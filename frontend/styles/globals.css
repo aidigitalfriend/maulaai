@@ -1,0 +1,491 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Design System - Addressing All UI/UX Issues */
+@layer base {
+  /* Reset and Base Styles */
+  * {
+    @apply border-gray-200;
+  }
+  
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-neural-800 font-medium;
+    @apply leading-relaxed antialiased;
+  }
+
+  /* Typography Hierarchy - Fix #4: Visual Hierarchy */
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold text-neural-900 leading-tight;
+    @apply bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl lg:text-4xl font-semibold text-neural-800 leading-tight mb-4;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl font-semibold text-neural-700 leading-snug mb-3;
+  }
+  
+  h4 {
+    @apply text-lg md:text-xl font-medium text-neural-700 leading-snug mb-2;
+  }
+  
+  p {
+    @apply text-base md:text-lg text-neural-600 leading-relaxed mb-4;
+  }
+  
+  .text-subtitle {
+    @apply text-lg md:text-xl text-neural-500 font-normal leading-relaxed;
+  }
+  
+  .text-caption {
+    @apply text-sm text-neural-400 font-normal;
+  }
+}
+
+@layer components {
+  /* Layout System - Fix #1: Grid/Layout System */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-wide {
+    @apply max-w-9xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Grid Systems for Consistent Layouts */
+  .grid-responsive {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8;
+  }
+  
+  .grid-2-col {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12;
+  }
+  
+  .grid-3-col {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8;
+  }
+  
+  .grid-4-col {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6;
+  }
+
+  /* Section Spacing - Fix #3: Hero Section Alignment */
+  .section-padding {
+    @apply py-12 md:py-16 lg:py-20;
+  }
+  
+  .section-padding-sm {
+    @apply py-8 md:py-12;
+  }
+  
+  .section-padding-lg {
+    @apply py-16 md:py-24 lg:py-32;
+  }
+
+  /* Reusable Navigation - Fix #2: Consistent Navigation */
+  .nav-link {
+    @apply text-neural-600 hover:text-brand-600 font-medium transition-colors duration-200;
+    @apply border-b-2 border-transparent hover:border-brand-400;
+  }
+  
+  .nav-link-active {
+    @apply text-brand-600 border-b-2 border-brand-500;
+  }
+  
+  .nav-mobile-link {
+    @apply block px-3 py-2 text-base font-medium text-neural-700 hover:text-brand-600;
+    @apply hover:bg-brand-50 rounded-md transition-colors duration-200;
+  }
+
+  /* Button System - Consistent CTAs */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-semibold rounded-lg;
+    @apply bg-gradient-to-r from-brand-500 to-accent-500 text-white shadow-medium;
+    @apply hover:from-brand-600 hover:to-accent-600 hover:shadow-large;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+    @apply transition-all duration-300 transform hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 text-base font-semibold rounded-lg;
+    @apply bg-white text-brand-600 border-2 border-brand-200 shadow-soft;
+    @apply hover:bg-brand-50 hover:border-brand-300 hover:shadow-medium;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+    @apply transition-all duration-200;
+  }
+  
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md;
+    @apply text-neural-600 hover:text-brand-600 hover:bg-brand-50;
+    @apply transition-colors duration-200;
+  }
+
+  /* Card Components - Consistent Structure */
+  .card {
+    @apply bg-white rounded-xl shadow-soft border border-neural-100;
+    @apply hover:shadow-medium transition-shadow duration-300;
+  }
+  
+  .card-padding {
+    @apply p-6 lg:p-8;
+  }
+  
+  .card-header {
+    @apply border-b border-neural-100 pb-4 mb-6;
+  }
+
+  /* Stats Cards - Fix Spacing Issues */
+  .stats-card {
+    @apply bg-white rounded-lg p-6 shadow-soft border border-neural-100;
+    @apply hover:shadow-medium transition-all duration-300 hover:scale-105;
+  }
+  
+  .stats-number {
+    @apply text-3xl md:text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-500;
+    @apply bg-clip-text text-transparent;
+  }
+  
+  .stats-label {
+    @apply text-sm font-medium text-neural-500 uppercase tracking-wider;
+  }
+
+  /* Hero Section Components - Fix #3: Hero Alignment */
+  .hero-container {
+    @apply container-custom section-padding-lg text-center;
+  }
+  
+  .hero-title {
+    @apply mb-6;
+  }
+  
+  .hero-subtitle {
+    @apply text-subtitle mb-8 max-w-3xl mx-auto;
+  }
+  
+  .hero-actions {
+    @apply flex flex-col sm:flex-row gap-4 justify-center items-center mb-12;
+  }
+  
+  .hero-stats {
+    @apply grid-4-col max-w-4xl mx-auto;
+  }
+
+  /* Agent Cards - Specific to AI Agent System */
+  .agent-card {
+    @apply card card-padding cursor-pointer;
+    @apply hover:border-brand-200 transition-all duration-300;
+  }
+  
+  .agent-avatar {
+    @apply w-16 h-16 rounded-full bg-gradient-to-r from-brand-400 to-accent-400;
+    @apply flex items-center justify-center text-white text-2xl font-bold mb-4;
+    @apply group-hover:scale-110 transition-transform duration-300;
+  }
+  
+  .agent-name {
+    @apply text-lg font-semibold text-neural-800 mb-2;
+  }
+  
+  .agent-description {
+    @apply text-sm text-neural-600 leading-relaxed;
+  }
+
+  /* Form Components - Consistent Styling */
+  .form-input {
+    @apply block w-full px-4 py-3 text-base border border-neural-200 rounded-lg;
+    @apply focus:ring-2 focus:ring-brand-500 focus:border-brand-500;
+    @apply placeholder-neural-400 transition-colors duration-200;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-neural-700 mb-2;
+  }
+
+  /* Responsive Utilities - Fix #5: Responsive Design */
+  .mobile-hidden {
+    @apply hidden md:block;
+  }
+  
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .desktop-grid {
+    @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+  }
+}
+
+@layer utilities {
+  /* Color & Contrast - Fix #6: Color Handling */
+  .text-contrast-high {
+    @apply text-neural-900;
+  }
+  
+  .text-contrast-medium {
+    @apply text-neural-700;
+  }
+  
+  .text-contrast-low {
+    @apply text-neural-500;
+  }
+  
+  .bg-brand-gradient {
+    @apply bg-gradient-to-r from-brand-500 via-accent-500 to-brand-600;
+  }
+  
+  .bg-neural-gradient {
+    @apply bg-gradient-to-br from-neural-50 via-white to-neural-100;
+  }
+
+  /* Animation Utilities */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Spacing Utilities for Consistent Layouts */
+  .space-section {
+    @apply mb-8 md:mb-12 lg:mb-16;
+  }
+  
+  .space-element {
+    @apply mb-4 md:mb-6;
+  }
+}
+
+/* ==========================================
+   DARK THEME IMPLEMENTATION
+   Charcoal theme with rich gradients and luxurious shadows
+   ========================================== */
+
+/* Dark Theme Global Override */
+body {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 50%, #264653 100%) !important;
+  background-attachment: fixed;
+  color: #e2e8f0 !important;
+}
+
+/* Dark Theme for all light backgrounds */
+.bg-gradient-to-br,
+.from-slate-50,
+.via-blue-50,
+.to-indigo-50 {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 50%, #264653 100%) !important;
+  background-attachment: fixed;
+}
+
+/* Dark cards with luxurious shadows */
+.bg-white {
+  background-color: #333333 !important;
+  border-color: rgba(51, 51, 51, 0.8) !important;
+  box-shadow: 0 4px 25px -5px rgba(15, 15, 35, 0.4), 
+              0 10px 30px -5px rgba(26, 17, 51, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.bg-white:hover {
+  box-shadow: 0 8px 40px -8px rgba(15, 15, 35, 0.6), 
+              0 15px 50px -10px rgba(26, 17, 51, 0.4),
+              0 0 20px rgba(34, 51, 68, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+/* Dark theme text colors */
+.text-neural-600 {
+  color: #94a3b8 !important;
+}
+
+.text-neural-700 {
+  color: #cbd5e1 !important;
+}
+
+.text-neural-800 {
+  color: #e2e8f0 !important;
+}
+
+.text-neural-500 {
+  color: #64748b !important;
+}
+
+.text-neural-900 {
+  color: #f1f5f9 !important;
+}
+
+/* Dark theme borders */
+.border-neural-100 {
+  border-color: rgba(51, 51, 51, 0.8) !important;
+}
+
+.border-neural-200 {
+  border-color: rgba(51, 51, 51, 0.9) !important;
+}
+
+/* Dark theme header */
+header.bg-white {
+  background-color: rgba(26, 26, 26, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom-color: rgba(51, 51, 51, 0.8) !important;
+}
+
+/* Dark theme hover states */
+.hover\:bg-brand-50:hover {
+  background-color: rgba(51, 51, 51, 0.3) !important;
+}
+
+/* Multi-color buttons with dark theme */
+.btn-primary {
+  background: linear-gradient(135deg, #223344 0%, #3b235a 50%, #1a3d2f 100%) !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 4px 25px -5px rgba(15, 15, 35, 0.4), 0 10px 30px -5px rgba(26, 17, 51, 0.3) !important;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2a4055 0%, #4a2d6b 50%, #208040 100%) !important;
+  box-shadow: 0 0 30px rgba(34, 51, 68, 0.4), 0 0 60px rgba(59, 35, 90, 0.3), 0 10px 40px rgba(26, 61, 47, 0.2) !important;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-secondary {
+  background-color: #333333 !important;
+  color: #e2e8f0 !important;
+  border-color: #223344 !important;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(51, 51, 51, 0.8) !important;
+  border-color: #3b235a !important;
+}
+
+/* Dropdown menus dark theme */
+.shadow-lg {
+  background-color: #333333 !important;
+  border-color: rgba(51, 51, 51, 0.8) !important;
+  box-shadow: 0 10px 40px -10px rgba(15, 15, 35, 0.6) !important;
+}
+
+/* Form elements dark theme */
+input, textarea, select {
+  background-color: #333333 !important;
+  border-color: #223344 !important;
+  color: #e2e8f0 !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Custom slider styles for Agent Settings Modal */
+.slider {
+  background: linear-gradient(to right, #e2e8f0 0%, #3b82f6 50%, #e2e8f0 100%);
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 2px solid white;
+  transition: all 0.2s ease-in-out;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+/* Animation for modal entrance */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-content {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Chat and Search Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes searchHighlight {
+  0% {
+    background-color: rgba(255, 235, 59, 0.8);
+    box-shadow: 0 0 0 4px rgba(255, 235, 59, 0.4);
+  }
+  100% {
+    background-color: rgba(255, 235, 59, 0.3);
+    box-shadow: 0 0 0 0 rgba(255, 235, 59, 0);
+  }
+}
+
+.search-highlight {
+  animation: searchHighlight 2s ease-out;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
