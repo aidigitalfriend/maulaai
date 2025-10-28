@@ -143,7 +143,8 @@ async function testGemini(): Promise<TestResult> {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    // Use the latest available model
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     const result = await model.generateContent(TEST_MESSAGE)
     const response = await result.response
