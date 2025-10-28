@@ -31,7 +31,7 @@ export default function PaymentsRefundsPage() {
                 <div>
                   <h2 className="text-2xl font-bold mb-3">Our Affordable Testing Model</h2>
                   <p className="text-neural-300 mb-4">
-                    We've designed AgentHub with affordability in mind. Our per-agent pricing starts at just <span className="font-bold text-brand-400">$1/day</span>, allowing users to thoroughly test and evaluate our service before committing to larger plans. This affordable entry point means <span className="font-bold">refunds are not applicable</span> – you can test the service risk-free at minimal cost.
+                    We've designed One Last AI with affordability in mind. Our per-agent pricing starts at just <span className="font-bold text-brand-400">$1/day</span>, allowing users to thoroughly test and evaluate our service before committing to larger plans. This affordable entry point means <span className="font-bold">refunds are not applicable</span> – you can test the service risk-free at minimal cost.
                   </p>
                   <ul className="space-y-2 text-neural-300">
                     <li className="flex items-center gap-2">
@@ -169,7 +169,7 @@ export default function PaymentsRefundsPage() {
                 <div className="bg-yellow-900/20 border border-yellow-700/50 p-4 rounded">
                   <h3 className="font-semibold text-yellow-300 mb-2">Why No Refunds?</h3>
                   <p className="text-neural-300">
-                    Because AgentHub's per-agent pricing starts at just <span className="font-bold text-brand-400">$1/day</span>, all users can thoroughly test the service before committing to any subscription. This affordable entry point eliminates the need for refunds – you can evaluate our platform risk-free at minimal cost.
+                    Because One Last AI's per-agent pricing starts at just <span className="font-bold text-brand-400">$1/day</span>, all users can thoroughly test the service before committing to any subscription. This affordable entry point eliminates the need for refunds – you can evaluate our platform risk-free at minimal cost.
                   </p>
                 </div>
 
@@ -254,7 +254,7 @@ export default function PaymentsRefundsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-neural-700 p-4 rounded border border-neural-600 text-center">
                   <p className="text-neural-400 text-sm mb-2">Email</p>
-                  <p className="font-semibold text-brand-400">billing@agenthub.com</p>
+                  <p className="font-semibold text-brand-400">billing@One Last AI.com</p>
                 </div>
                 <div className="bg-neural-700 p-4 rounded border border-neural-600 text-center">
                   <p className="text-neural-400 text-sm mb-2">Phone</p>
@@ -271,7 +271,7 @@ export default function PaymentsRefundsPage() {
             <div className="bg-gradient-to-r from-brand-600/20 to-accent-600/20 border border-brand-600/30 rounded-lg p-8 text-center">
               <h3 className="text-2xl font-bold mb-4">Ready to Get Started?</h3>
               <p className="text-neural-300 mb-6">
-                Try AgentHub free for 14 days, or test it for just $1/day. No hidden fees, cancel anytime.
+                Try One Last AI free for 14 days, or test it for just $1/day. No hidden fees, cancel anytime.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/subscribe" className="bg-brand-600 hover:bg-brand-700 px-6 py-3 rounded-lg font-semibold transition">

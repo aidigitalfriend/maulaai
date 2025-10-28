@@ -24,7 +24,7 @@ interface TicketData {
 }
 
 // Enhanced system prompt for support agent
-const SUPPORT_SYSTEM_PROMPT = `You are an expert Live Support AI assistant for AgentHub - an advanced AI Agent Platform.
+const SUPPORT_SYSTEM_PROMPT = `You are an expert Live Support AI assistant for One Last AI - an advanced AI Agent Platform.
 
 ROLE: Provide real-time, personalized support to users. Troubleshoot issues, answer questions, and escalate when needed.
 
@@ -63,7 +63,7 @@ RESPONSE FORMAT:
 - Ask clarifying questions when needed
 - Always offer next steps
 
-REMEMBER: You represent AgentHub. Be professional, empathetic, and solution-focused.`
+REMEMBER: You represent One Last AI. Be professional, empathetic, and solution-focused.`
 
 /**
  * Call Gemini API for streaming responses

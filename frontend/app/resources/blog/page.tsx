@@ -1,14 +1,11 @@
 'use client'
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'
 import { BlogPost } from '@/app/constants';
 
-interface BlogPageProps {
-  onNavigate: (page: 'home') => void;
-  onSelectBlogPost: (post: BlogPost) => void;
-}
-
-const BlogPage: React.FC<BlogPageProps> = ({ onNavigate, onSelectBlogPost }) => {
+const BlogPage: React.FC = () => {
+  const router = useRouter()
   const [selectedYear, setSelectedYear] = useState<number>(1936);
 
   // Function to determine the era based on year
@@ -15331,7 +15328,7 @@ const BlogPage: React.FC<BlogPageProps> = ({ onNavigate, onSelectBlogPost }) => 
           {/* Footer */}
           <div className="p-4 border-t border-white/10">
             <button 
-              onClick={() => onNavigate('home')} 
+              onClick={() => router.push('/')} 
               className="w-full ca-btn-secondary ca-magnetic text-center"
             >
               <i className="fas fa-home mr-2"></i>Back to Home

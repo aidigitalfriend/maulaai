@@ -9,7 +9,7 @@ export default function AboutOverviewPage() {
       {/* Hero Section */}
       <section className="section-padding-lg bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">About AgentHub</h1>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4">About One Last AI</h1>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
             Transforming businesses with emotionally intelligent, human-centric AI agents
           </p>
@@ -25,7 +25,7 @@ export default function AboutOverviewPage() {
               <div className="flex-1">
                 <h3 className="text-2xl font-bold text-amber-900 mb-3">Special Recognition</h3>
                 <p className="text-lg text-amber-800 mb-3">
-                  We extend our heartfelt gratitude to <span className="font-bold">Mr. Ben from Thailand</span> for his exceptional and invaluable contributions to AgentHub.
+                  We extend our heartfelt gratitude to <span className="font-bold">Mr. Ben from Thailand</span> for his exceptional and invaluable contributions to One Last AI.
                 </p>
                 <p className="text-amber-700 mb-2">
                   <span className="font-semibold">His dedication includes:</span>
@@ -49,7 +49,7 @@ export default function AboutOverviewPage() {
                   </li>
                 </ul>
                 <p className="text-amber-800 font-semibold mt-4">
-                  Mr. Ben's vision, generosity, and commitment to excellence have been instrumental in bringing AgentHub to life. He truly deserves this special recognition.
+                  Mr. Ben's vision, generosity, and commitment to excellence have been instrumental in bringing One Last AI to life. He truly deserves this special recognition.
                 </p>
               </div>
             </div>

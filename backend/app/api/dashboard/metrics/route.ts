@@ -33,7 +33,7 @@ const generateMetricsData = (days: number) => {
 }
 
 // API Metrics endpoint
-export async function GET_metrics(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (!verifyAuth(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

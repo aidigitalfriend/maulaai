@@ -4,48 +4,108 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import AgentChatPanel from '../../../components/AgentChatPanel'
+import { chatStorage, generateSessionId } from '../../../components/BenSegaChatPanel'
+import type { ChatSession } from '../../../components/BenSegaChatPanel'
 import IntelligentResponseSystem from '../../../lib/intelligent-response-system'
+import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function ComedyKingPage() {
+  const agentId = 'comedy-king'
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string>('')
   const [responseSystem, setResponseSystem] = useState<IntelligentResponseSystem | null>(null)
 
   useEffect(() => {
     // Initialize the intelligent response system
     const system = new IntelligentResponseSystem('comedy-king')
     setResponseSystem(system)
+    
+    // Load sessions
+    const history = chatStorage.getAgentHistory(agentId)
+    const sessionList = Object.values(history.sessions || {})
+    
+    if (sessionList.length === 0) {
+      // Create initial session
+      const initialSession: ChatSession = {
+        id: generateSessionId(),
+        name: 'New Chat',
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+      chatStorage.saveSession(agentId, initialSession)
+      setSessions([initialSession])
+      setActiveSessionId(initialSession.id)
+    } else {
+      setSessions(sessionList)
+      setActiveSessionId(sessionList[0].id)
+    }
   }, [])
 
-  const handleSendMessage = async (message: string): Promise<string> => {
-    if (!responseSystem) {
-      // Fallback responses while system initializes
-      const responses = [
-        "👑 Hold on, my loyal subject! My royal comedy brain is still warming up...",
-        "😂 By my crown, give me just a moment to conjure up the perfect royal joke!",
-        "🎭 The Comedy King's wit machine is still booting up! One moment please..."
-      ]
-      return responses[Math.floor(Math.random() * responses.length)]
+  const handleNewChat = () => {
+    const newSession: ChatSession = {
+      id: generateSessionId(),
+      name: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     }
+    chatStorage.saveSession(agentId, newSession)
+    setSessions(prev => [newSession, ...prev])
+    setActiveSessionId(newSession.id)
+  }
 
-    try {
-      // Generate intelligent response using personality system
-      const context = {
-        userMessage: message,
-        messageHistory: [],
-        topic: 'comedy',
-        mood: 'entertaining'
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId)
+  }
+
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId)
+    const remainingSessions = sessions.filter(s => s.id !== sessionId)
+    setSessions(remainingSessions)
+    
+    if (activeSessionId === sessionId) {
+      if (remainingSessions.length > 0) {
+        setActiveSessionId(remainingSessions[0].id)
+      } else {
+        handleNewChat()
       }
-      const response = await responseSystem.generateIntelligentResponse(context)
-      
-      // Add realistic typing delay based on response length
-      const typingDelay = Math.min(Math.max(response.length * 30, 1000), 3000)
-      await new Promise(resolve => setTimeout(resolve, typingDelay))
-      
-      return response
-      
+    }
+  }
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    const session = sessions.find(s => s.id === sessionId)
+    if (session) {
+      const updatedSession = { ...session, name: newName, updatedAt: Date.now() }
+      chatStorage.saveSession(agentId, updatedSession)
+      setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s))
+    }
+  }
+
+
+  // ✅ SECURED: Now uses backend API with IntelligentResponseSystem as fallback
+  const handleSendMessage = async (message: string): Promise<string> => {
+    try {
+      // Try secure backend API first for real AI responses
+      return await sendSecureMessage(message, 'comedy-king', 'gpt-3.5-turbo')
     } catch (error) {
-      // Fallback to character-consistent responses with delay
-      await new Promise(resolve => setTimeout(resolve, 1200))
+      // Fallback to IntelligentResponseSystem if backend unavailable
+      if (responseSystem) {
+        try {
+          const context = {
+            userMessage: message,
+            messageHistory: [],
+            topic: 'comedy',
+            mood: 'entertaining'
+          }
+          return await responseSystem.generateIntelligentResponse(context)
+        } catch (fallbackError) {
+          console.error('IntelligentResponseSystem failed:', fallbackError)
+        }
+      }
       
+      // Final fallback to character-consistent responses
       const fallbackResponses = [
         "👑 My royal comedy sensors are tingling! That deserves a MAGNIFICENT response from your Comedy King! Let me craft you some premium royal humor... *adjusts comedy crown* 😂",
         "🎭 By the power vested in me by the Comedy Kingdom Constitution, I declare this conversation HILARIOUS! Here's what your royal jester thinks... 👑",
@@ -59,62 +119,40 @@ export default function ComedyKingPage() {
     }
   }
 
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-yellow-100 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              😂
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Comedy King</h1>
-              <p className="text-yellow-100 text-lg">Humor & Entertainment Master</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Comedy</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Humor</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Entertainment</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Jokes</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chat Interface */}
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="comedy-king"
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      {/* Main Content */}
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
             agentName="Comedy King"
-            agentColor="yellow"
-            initialMessage="👑 Hello, I am Comedy King, how can I make you laugh today? �"
-            onSendMessage={handleSendMessage}
-            placeholder="👑 Tell your Comedy King what needs the royal funny treatment!"
-            className="border border-orange-200"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
 
-          {/* Character Personality Indicators */}
-          <div className="mt-6 flex flex-wrap gap-2 justify-center">
-            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-              👑 Royal Comedy Mode
-            </span>
-            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
-              🎭 Always Entertaining
-            </span>
-            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-              😂 Zero Serious Responses
-            </span>
-            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-              🎪 Maximum Humor Level
-            </span>
-          </div>
+        {/* Right Panel (Chat) */}
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId}
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Comedy King"
+              agentColor="from-yellow-500 to-orange-600"
+              placeholder="👑 Tell your Comedy King what needs the royal funny treatment!"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+            />
+          )}
         </div>
       </div>
     </div>

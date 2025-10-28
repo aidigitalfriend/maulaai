@@ -1,63 +1,119 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import AgentChatPanel from '../../../components/AgentChatPanel'
+import { chatStorage, generateSessionId } from '../../../components/BenSegaChatPanel'
+import type { ChatSession } from '../../../components/BenSegaChatPanel'
+import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function FitnessGuruPage() {
-  const handleSendMessage = async (message: string): Promise<string> => {
-    // Simulate AI response with delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+  const agentId = 'fitness-guru'
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string>('')
+
+  useEffect(() => {
+    const history = chatStorage.getAgentHistory(agentId)
+    const sessionList = Object.values(history.sessions || {})
     
-    const responses = [
-      "💪 YES! I love that energy! Here's exactly what you need to do...",
-      "🔥 You're already thinking like a champion! Let me design the perfect plan...",
-      "💪 That's a fantastic goal! Here's how we make it happen, step by step...",
-      "🏋️‍♀️ I can already see your potential! This workout is going to be AMAZING...",
-      "💪 Strong minds build strong bodies! Here's my proven strategy...",
-      "🔥 Time to level up! Your transformation starts with this..."
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+    if (sessionList.length === 0) {
+      const initialSession: ChatSession = {
+        id: generateSessionId(),
+        name: 'New Chat',
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+      chatStorage.saveSession(agentId, initialSession)
+      setSessions([initialSession])
+      setActiveSessionId(initialSession.id)
+    } else {
+      setSessions(sessionList)
+      setActiveSessionId(sessionList[0].id)
+    }
+  }, [])
+
+  const handleNewChat = () => {
+    const newSession: ChatSession = {
+      id: generateSessionId(),
+      name: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }
+    chatStorage.saveSession(agentId, newSession)
+    setSessions(prev => [newSession, ...prev])
+    setActiveSessionId(newSession.id)
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-      <div className="bg-gradient-to-r from-green-600 to-emerald-700 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-green-200 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              💪
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Fitness Guru</h1>
-              <p className="text-green-200 text-lg">Health & Fitness Coach</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Fitness</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Health</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Nutrition</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Wellness</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId)
+  }
 
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="fitness-guru"
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId)
+    const remainingSessions = sessions.filter(s => s.id !== sessionId)
+    setSessions(remainingSessions)
+    
+    if (activeSessionId === sessionId) {
+      if (remainingSessions.length > 0) {
+        setActiveSessionId(remainingSessions[0].id)
+      } else {
+        handleNewChat()
+      }
+    }
+  }
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    const session = sessions.find(s => s.id === sessionId)
+    if (session) {
+      const updatedSession = { ...session, name: newName, updatedAt: Date.now() }
+      chatStorage.saveSession(agentId, updatedSession)
+      setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s))
+    }
+  }
+
+  // ✅ SECURED: Now uses backend API with no exposed keys
+  const handleSendMessage = async (message: string): Promise<string> => {
+    try {
+      return await sendSecureMessage(message, 'fitness-guru', 'gpt-3.5-turbo')
+    } catch (error: any) {
+      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
+    }
+  }
+
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+
+  return (
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
             agentName="Fitness Guru"
-            agentColor="green"
-            initialMessage="💪 Hello, I am Fitness Guru, how can I help you crush your fitness goals?"
-            onSendMessage={handleSendMessage}
-            placeholder="What's your fitness goal today? 💪🔥"
-            className="border border-emerald-200"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId}
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Fitness Guru"
+              agentColor="from-green-600 to-emerald-700"
+              placeholder="What's your fitness goal today? 💪🔥"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+            />
+          )}
         </div>
       </div>
     </div>

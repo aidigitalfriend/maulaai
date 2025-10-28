@@ -1,67 +1,112 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import EnhancedAgentHeader from '../../../components/EnhancedAgentHeader'
+import BenSegaChatPanel from '../../../components/BenSegaChatPanel'
+import * as chatStorage from '../../../utils/chatStorage'
+import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function BenSegaPage() {
+  const agentId = "ben-sega";
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadedSessions = chatStorage.getAgentSessions(agentId);
+    if (loadedSessions.length > 0) {
+      setSessions(loadedSessions);
+      const activeId = chatStorage.getActiveSessionId(agentId);
+      setActiveSessionId(activeId ?? loadedSessions[0].id);
+    } else {
+      handleNewChat();
+    }
+  }, []);
+
+  const handleNewChat = () => {
+    const initialMessage: chatStorage.ChatMessage = {
+      id: 'initial-0',
+      role: 'assistant',
+      content: "🕹️ Hey there, gamer! Welcome! I'm Ben Sega, your guide to the golden age of gaming. Whether you wanna talk about the Sega Genesis, the arcade classics, or just reminisce about the best games ever made, I'm here for it! What's your favorite retro game?",
+      timestamp: new Date(),
+    };
+    const newSession = chatStorage.createNewSession(agentId, initialMessage);
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
+
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    // Also update the global active session ID
+    const histories = chatStorage.getAllChatHistories ? chatStorage.getAllChatHistories() : {};
+    if (histories[agentId]) {
+      histories[agentId].activeSessionId = sessionId;
+      if(chatStorage.saveAllChatHistories) chatStorage.saveAllChatHistories(histories);
+    }
+  };
+
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId);
+    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    setSessions(remainingSessions);
+    if (activeSessionId === sessionId) {
+      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      if (remainingSessions.length === 0) {
+        handleNewChat();
+      }
+    }
+  };
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    chatStorage.renameSession(agentId, sessionId, newName);
+    setSessions(sessions.map(s => s.id === sessionId ? { ...s, name: newName } : s));
+  };
+  
+  // ✅ SECURED: Now uses backend API with no exposed keys
   const handleSendMessage = async (message: string): Promise<string> => {
-    // Simulate API call to Ben Sega agent
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    const responses = [
-      "🕹️ Oh man, that takes me back! I remember when that first came out...",
-      "🎮 Classic choice! Did you know the secret behind that game's development?",
-      "✨ That's pure nostalgia gold! The 16-bit era was just magical...",
-      "🕹️ *Sega Genesis startup sound* Now THAT'S what I call gaming!",
-      "🎮 Dude, the memories! I still have the original cartridge for that one!",
-      "✨ Retro gaming wisdom: They don't make 'em like they used to!",
-      "🕹️ You know what's amazing about that game? The way they pushed the hardware limits!",
-      "🎮 That game defined an entire generation of gamers! What memories does it bring back for you?",
-      "✨ The cheat codes for that one were legendary! Up, down, left, right... classic!",
-      "🕹️ Fun fact: The developers had to get creative with the limited memory back then!"
-    ]
-    
-    return responses[Math.floor(Math.random() * responses.length)]
+    try {
+      return await sendSecureMessage(message, 'ben-sega', 'gpt-3.5-turbo')
+    } catch (error: any) {
+      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
+    }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-indigo-200 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              🕹️
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Ben Sega</h1>
-              <p className="text-indigo-200 text-lg">Retro Gaming Legend</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Retro Gaming</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Classic Games</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Nostalgia</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">History</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const activeSession = sessions.find(s => s.id === activeSessionId);
 
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="ben-sega"
-            agentName="Ben Sega"
-            agentColor="from-indigo-500 to-purple-600"
-            placeholder="What classic game brings back memories? 🕹️"
-            initialMessage="🕹️ Hello, I am Ben Sega, how can I help you explore retro gaming?"
-            onSendMessage={handleSendMessage}
+  return (
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      {/* Main Content */}
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <BenSegaChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
+
+        {/* Right Panel (Chat) */}
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId} // Important to remount ChatBox on session change
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Ben Sega"
+              agentColor="from-indigo-500 to-purple-600"
+              placeholder="What classic game brings back memories? 🕹️"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+              allowFileUpload={false}
+              enableLanguageDetection={false}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -4,49 +4,108 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import AgentChatPanel from '../../../components/AgentChatPanel'
+import { chatStorage, generateSessionId } from '../../../components/BenSegaChatPanel'
+import type { ChatSession } from '../../../components/BenSegaChatPanel'
 import IntelligentResponseSystem from '../../../lib/intelligent-response-system'
+import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function DramaQueenPage() {
+  const agentId = 'drama-queen'
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string>('')
   const [responseSystem, setResponseSystem] = useState<IntelligentResponseSystem | null>(null)
 
   useEffect(() => {
     // Initialize the intelligent response system
     const system = new IntelligentResponseSystem('drama-queen')
     setResponseSystem(system)
+    
+    // Load sessions
+    const history = chatStorage.getAgentHistory(agentId)
+    const sessionList = Object.values(history.sessions || {})
+    
+    if (sessionList.length === 0) {
+      // Create initial session
+      const initialSession: ChatSession = {
+        id: generateSessionId(),
+        name: 'New Chat',
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+      chatStorage.saveSession(agentId, initialSession)
+      setSessions([initialSession])
+      setActiveSessionId(initialSession.id)
+    } else {
+      setSessions(sessionList)
+      setActiveSessionId(sessionList[0].id)
+    }
   }, [])
 
-  const handleSendMessage = async (message: string): Promise<string> => {
-    if (!responseSystem) {
-      // Fallback responses while system initializes
-      const responses = [
-        "💎 *DRAMATIC pause* My theatrical brain is still preparing for this MAGNIFICENT performance!",
-        "🎭 DARLING! Give me just one moment to channel the PERFECT dramatic response!",
-        "✨ *flutters dramatically* The Drama Queen's spectacular wit is still warming up!"
-      ]
-      return responses[Math.floor(Math.random() * responses.length)]
+  const handleNewChat = () => {
+    const newSession: ChatSession = {
+      id: generateSessionId(),
+      name: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     }
+    chatStorage.saveSession(agentId, newSession)
+    setSessions(prev => [newSession, ...prev])
+    setActiveSessionId(newSession.id)
+  }
+
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId)
+  }
+
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId)
+    const remainingSessions = sessions.filter(s => s.id !== sessionId)
+    setSessions(remainingSessions)
     
+    if (activeSessionId === sessionId) {
+      if (remainingSessions.length > 0) {
+        setActiveSessionId(remainingSessions[0].id)
+      } else {
+        handleNewChat()
+      }
+    }
+  }
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    const session = sessions.find(s => s.id === sessionId)
+    if (session) {
+      const updatedSession = { ...session, name: newName, updatedAt: Date.now() }
+      chatStorage.saveSession(agentId, updatedSession)
+      setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s))
+    }
+  }
+
+
+  // ✅ SECURED: Now uses backend API with IntelligentResponseSystem as fallback
+  const handleSendMessage = async (message: string): Promise<string> => {
     try {
-      // Generate intelligent response using personality system
-      const context = {
-        userMessage: message,
-        messageHistory: [],
-        topic: 'drama',
-        mood: 'theatrical'
+      // Try secure backend API first for real AI responses
+      return await sendSecureMessage(message, 'drama-queen', 'gpt-3.5-turbo')
+    } catch (error) {
+      // Fallback to IntelligentResponseSystem if backend unavailable
+      if (responseSystem) {
+        try {
+          const context = {
+            userMessage: message,
+            messageHistory: [],
+            topic: 'drama',
+            mood: 'theatrical'
+          }
+          return await responseSystem.generateIntelligentResponse(context)
+        } catch (fallbackError) {
+          console.error('IntelligentResponseSystem failed:', fallbackError)
+        }
       }
       
-      const response = await responseSystem.generateIntelligentResponse(context)
-      
-      // Drama Queen responds with theatrical timing
-      const typingDelay = Math.min(Math.max(response.length * 35, 1200), 3500)
-      await new Promise(resolve => setTimeout(resolve, typingDelay))
-      
-      return response
-      
-    } catch (error) {
-      // Fallback to character-consistent responses with delay
-      await new Promise(resolve => setTimeout(resolve, 1400))
-      
+      // Final fallback to character-consistent responses
       const fallbackResponses = [
         "🎭 *GASPS with theatrical intensity* Oh my STARS and CROWN! This is absolutely RIVETING! The DRAMA, the PASSION, the sheer MAGNIFICENCE of this moment! *fans self dramatically* 💎✨",
         "👑 *Dramatic pause for maximum effect* DARLING! This is giving me CHILLS! The emotional depth, the theatrical potential - it's simply DIVINE! Let me craft you a response worthy of Broadway! 🌟",
@@ -59,46 +118,40 @@ export default function DramaQueenPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-purple-100 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              🎭
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Drama Queen</h1>
-              <p className="text-purple-100 text-lg">Theatrical Arts Extraordinaire</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Drama</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Theater</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Storytelling</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Expression</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const activeSession = sessions.find(s => s.id === activeSessionId);
 
-      {/* Chat Interface */}
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="drama-queen"
+  return (
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      {/* Main Content */}
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
             agentName="Drama Queen"
-            agentColor="purple"
-            initialMessage="👑 Hello, I am Drama Queen, how can I add drama and flair to your day?"
-            onSendMessage={handleSendMessage}
-            placeholder="Tell me your story, darling! Let's make it DRAMATIC! ✨"
-            className="border border-pink-200"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
+
+        {/* Right Panel (Chat) */}
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId}
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Drama Queen"
+              agentColor="from-purple-500 to-pink-600"
+              placeholder="Tell me your story, darling! Let's make it DRAMATIC! ✨"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+            />
+          )}
         </div>
       </div>
     </div>

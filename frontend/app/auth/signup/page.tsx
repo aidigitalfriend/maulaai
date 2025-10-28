@@ -118,7 +118,7 @@ export default function SignupPage() {
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Join Axeyaxe</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Join One Last AI</h1>
             <p className="text-blue-100">Create your account in seconds</p>
           </div>
 

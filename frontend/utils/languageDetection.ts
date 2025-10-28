@@ -94,11 +94,11 @@ const detectLanguageByPatterns = (text: string): DetectedLanguage | null => {
 }
 
 // Configuration from environment variables
+// ✅ SECURITY: No API keys in frontend - all calls go through secure backend
 const getAPIConfig = () => {
   return {
-    openaiApiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
-    cohereApiKey: process.env.NEXT_PUBLIC_COHERE_API_KEY || process.env.COHERE_API_KEY,
-    googleTranslateApiKey: process.env.NEXT_PUBLIC_GOOGLE_TRANSLATE_API_KEY || process.env.GOOGLE_TRANSLATE_API_KEY,
+    // ✅ REMOVED: API keys (now only on backend)
+    // openaiApiKey, cohereApiKey, googleTranslateApiKey - NO LONGER EXPOSED
     apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002',
     enableMultilingual: process.env.NEXT_PUBLIC_ENABLE_MULTILINGUAL !== 'false',
     confidenceThreshold: parseFloat(process.env.NEXT_PUBLIC_LANGUAGE_DETECTION_CONFIDENCE_THRESHOLD || '0.7'),

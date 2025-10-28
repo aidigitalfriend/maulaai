@@ -26,7 +26,7 @@ export default function CommunityOverviewPage() {
               {
                 icon: "🔧",
                 title: "Contributing",
-                description: "Help improve AgentHub by contributing code and ideas",
+                description: "Help improve One Last AI by contributing code and ideas",
                 link: "/community/contributing",
                 linkText: "Get Involved"
               },

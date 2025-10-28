@@ -28,9 +28,9 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold mb-3">Welcome to AgentHub</h3>
+            <h3 className="text-2xl font-bold mb-3">Welcome to One Last AI</h3>
             <p className="text-neural-300 leading-relaxed">
-              AgentHub is a powerful platform that lets you create, customize, and deploy AI agents for various purposes. Whether you're building a chatbot, virtual assistant, or specialized AI expert, AgentHub has you covered.
+              One Last AI is a powerful platform that lets you create, customize, and deploy AI agents for various purposes. Whether you're building a chatbot, virtual assistant, or specialized AI expert, One Last AI has you covered.
             </p>
           </div>
 
@@ -56,7 +56,7 @@ export default function DocumentationPage() {
 
           <div className="bg-neural-700 p-4 rounded-lg border border-neural-600">
             <p className="text-neural-300 text-sm">
-              💡 <strong>Tip:</strong> Start with the "Integration Guide" section to learn how to connect AgentHub to your platform.
+              💡 <strong>Tip:</strong> Start with the "Integration Guide" section to learn how to connect One Last AI to your platform.
             </p>
           </div>
         </div>
@@ -70,14 +70,14 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold mb-3">API Reference</h3>
             <p className="text-neural-300 leading-relaxed">
-              The AgentHub API provides RESTful endpoints for managing agents, conversations, and more.
+              The One Last AI API provides RESTful endpoints for managing agents, conversations, and more.
             </p>
           </div>
 
           <div>
             <h4 className="text-xl font-bold mb-3">Base URL</h4>
             <div className="bg-neural-700 p-3 rounded border border-neural-600 font-mono text-sm text-green-400">
-              https://api.agenthub.io/v1
+              https://api.One Last AI.io/v1
             </div>
           </div>
 
@@ -118,7 +118,7 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold mb-3">Authentication</h3>
             <p className="text-neural-300 leading-relaxed">
-              All AgentHub API requests require authentication using an API key.
+              All One Last AI API requests require authentication using an API key.
             </p>
           </div>
 
@@ -143,7 +143,7 @@ export default function DocumentationPage() {
           <div>
             <h4 className="text-xl font-bold mb-2">Example Request</h4>
             <div className="bg-neural-700 p-3 rounded border border-neural-600 font-mono text-sm text-green-400 overflow-x-auto">
-              <pre>{`curl -X GET https://api.agenthub.io/v1/agents \\
+              <pre>{`curl -X GET https://api.One Last AI.io/v1/agents \\
   -H "Authorization: Bearer YOUR_API_KEY"`}</pre>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold mb-3">Integration Guide</h3>
             <p className="text-neural-300 leading-relaxed">
-              Learn how to integrate AgentHub with your applications.
+              Learn how to integrate One Last AI with your applications.
             </p>
           </div>
 
@@ -172,9 +172,9 @@ export default function DocumentationPage() {
             <h4 className="text-xl font-bold mb-2">Web Integration</h4>
             <p className="text-neural-300 mb-2">Add a chat widget to your website:</p>
             <div className="bg-neural-700 p-3 rounded border border-neural-600 font-mono text-sm text-blue-400 overflow-x-auto">
-              <pre>{`<script src="https://cdn.agenthub.io/widget.js"></script>
+              <pre>{`<script src="https://cdn.One Last AI.io/widget.js"></script>
 <script>
-  AgentHub.init({
+  One Last AI.init({
     apiKey: 'YOUR_API_KEY',
     agent: 'agent-id'
   })
@@ -186,7 +186,7 @@ export default function DocumentationPage() {
             <h4 className="text-xl font-bold mb-2">Slack Integration</h4>
             <ol className="space-y-2 list-decimal list-inside text-neural-300">
               <li>Go to your workspace settings</li>
-              <li>Connect AgentHub to your Slack workspace</li>
+              <li>Connect One Last AI to your Slack workspace</li>
               <li>Authorize the required permissions</li>
               <li>Your agent is now available in Slack!</li>
             </ol>
@@ -194,7 +194,7 @@ export default function DocumentationPage() {
 
           <div>
             <h4 className="text-xl font-bold mb-2">Discord Integration</h4>
-            <p className="text-neural-300">Similar to Slack, you can integrate AgentHub with Discord to make your agents available as bots in your servers.</p>
+            <p className="text-neural-300">Similar to Slack, you can integrate One Last AI with Discord to make your agents available as bots in your servers.</p>
           </div>
 
           <div className="bg-neural-700 p-4 rounded-lg border border-neural-600">
@@ -222,7 +222,7 @@ export default function DocumentationPage() {
             <div className="space-y-2 text-neural-300">
               <p>1. Configure a webhook URL in your dashboard</p>
               <p>2. Choose which events to subscribe to</p>
-              <p>3. AgentHub will POST to your URL when events occur</p>
+              <p>3. One Last AI will POST to your URL when events occur</p>
             </div>
           </div>
 
@@ -341,7 +341,7 @@ export default function DocumentationPage() {
       <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Documentation & Agents</h1>
-          <p className="text-xl opacity-90">Learn everything about AgentHub and explore our AI agents</p>
+          <p className="text-xl opacity-90">Learn everything about One Last AI and explore our AI agents</p>
         </div>
       </section>
 

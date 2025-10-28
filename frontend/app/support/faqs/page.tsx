@@ -6,8 +6,8 @@ export default function FAQsPage() {
       category: "Getting Started",
       questions: [
         {
-          q: "What is AgentHub?",
-          a: "AgentHub is an AI platform that provides access to 20+ specialized AI personalities for various business needs. Each agent specializes in different areas like creative writing, technical problem-solving, entertainment, fitness, and customer support."
+          q: "What is One Last AI?",
+          a: "One Last AI is an AI platform that provides access to 20+ specialized AI personalities for various business needs. Each agent specializes in different areas like creative writing, technical problem-solving, entertainment, fitness, and customer support."
         },
         {
           q: "How do I get started?",
@@ -15,7 +15,7 @@ export default function FAQsPage() {
         },
         {
           q: "Do I need technical skills?",
-          a: "No! AgentHub is designed to be user-friendly. Anyone can use it without technical expertise. We also provide comprehensive documentation, tutorials, and support for those who want to explore advanced features."
+          a: "No! One Last AI is designed to be user-friendly. Anyone can use it without technical expertise. We also provide comprehensive documentation, tutorials, and support for those who want to explore advanced features."
         },
         {
           q: "What agents are available?",
@@ -105,8 +105,8 @@ export default function FAQsPage() {
           a: "Starter: 100 conversations/month, Professional: Unlimited conversations, Enterprise: Unlimited with dedicated infrastructure. All plans have reasonable rate limits (1000 requests/hour)."
         },
         {
-          q: "Can I use AgentHub for commercial purposes?",
-          a: "Yes! You can use AgentHub for business applications, content creation, customer support, and commercial projects. Enterprise plans include additional commercial usage terms."
+          q: "Can I use One Last AI for commercial purposes?",
+          a: "Yes! You can use One Last AI for business applications, content creation, customer support, and commercial projects. Enterprise plans include additional commercial usage terms."
         }
       ]
     },
@@ -177,7 +177,7 @@ export default function FAQsPage() {
         },
         {
           q: "Do you monitor system performance?",
-          a: "Yes. We continuously monitor system performance and provide status updates at status.agenthub.io. Enterprise users get real-time monitoring and custom alerts."
+          a: "Yes. We continuously monitor system performance and provide status updates at status.One Last AI.io. Enterprise users get real-time monitoring and custom alerts."
         }
       ]
     },
@@ -210,7 +210,7 @@ export default function FAQsPage() {
       category: "Compliance & Legal",
       questions: [
         {
-          q: "Is AgentHub GDPR compliant?",
+          q: "Is One Last AI GDPR compliant?",
           a: "Yes! We are fully GDPR compliant. We support data subject rights, DPA agreements, and provide tools for GDPR compliance. See our security page for details."
         },
         {
@@ -259,7 +259,7 @@ export default function FAQsPage() {
       <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
-          <p className="text-xl opacity-90">Find answers to common questions about AgentHub</p>
+          <p className="text-xl opacity-90">Find answers to common questions about One Last AI</p>
         </div>
       </section>
 

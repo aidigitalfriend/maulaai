@@ -1,16 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Initialize Gemini API client
+// Initialize API keys from environment (NEVER expose these to frontend)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
+
+// Rate limiting storage (in production, use Redis or database)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000 // 15 minutes
+const RATE_LIMIT_MAX_REQUESTS = 50 // 50 requests per window per IP
+
+function getRateLimitKey(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for')
+  const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || 'unknown'
+  return ip
+}
+
+function checkRateLimit(key: string): { allowed: boolean; remaining: number; resetTime: number } {
+  const now = Date.now()
+  const userLimit = rateLimitMap.get(key)
+
+  if (!userLimit || now > userLimit.resetTime) {
+    const resetTime = now + RATE_LIMIT_WINDOW
+    rateLimitMap.set(key, { count: 1, resetTime })
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetTime }
+  }
+
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetTime: userLimit.resetTime }
+  }
+
+  userLimit.count++
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - userLimit.count, resetTime: userLimit.resetTime }
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, model, conversationId } = await request.json()
+    // Check rate limit FIRST
+    const rateLimitKey = getRateLimitKey(request)
+    const rateLimit = checkRateLimit(rateLimitKey)
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': RATE_LIMIT_MAX_REQUESTS.toString(),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString()
+          }
+        }
+      )
+    }
+
+    const { message, model, conversationId, agentId } = await request.json()
 
     if (!message || !model) {
       return NextResponse.json(
         { error: 'Missing message or model' },
+        { status: 400 }
+      )
+    }
+
+    // Validate message length
+    if (message.length > 4000) {
+      return NextResponse.json(
+        { error: 'Message too long. Maximum 4000 characters.' },
+        { status: 400 }
+      )
+    }
+
+    // Validate agent ID
+    const validAgentIds = [
+      'ben-sega', 'einstein', 'bishop-burger', 'chef-biew', 'chess-player',
+      'comedy-king', 'drama-queen', 'emma-emotional', 'fitness-guru',
+      'julie-girlfriend', 'knight-logic', 'lazy-pawn', 'mrs-boss',
+      'nid-gaming', 'professor-astrology', 'rook-jokey', 'tech-wizard',
+      'travel-buddy'
+    ]
+
+    if (agentId && !validAgentIds.includes(agentId)) {
+      return NextResponse.json(
+        { error: 'Invalid agent ID' },
         { status: 400 }
       )
     }
@@ -33,14 +107,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ message: response })
-  } catch (error) {
-    console.error('Chat API error:', error)
+    // Log for monitoring (use proper logging service in production)
+    console.log(`[API] Chat - Agent: ${agentId || 'unknown'}, Model: ${model}, IP: ${rateLimitKey}`)
+
     return NextResponse.json(
-      { error: 'Failed to process chat message' },
+      { 
+        message: response,
+        timestamp: new Date().toISOString()
+      },
+      {
+        status: 200,
+        headers: {
+          'X-RateLimit-Limit': RATE_LIMIT_MAX_REQUESTS.toString(),
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+        }
+      }
+    )
+  } catch (error: any) {
+    console.error('Chat API error:', error)
+    // Don't expose internal error details to client
+    return NextResponse.json(
+      { 
+        error: 'An error occurred processing your request. Please try again.',
+        code: 'INTERNAL_ERROR'
+      },
       { status: 500 }
     )
   }
+}
+
+// Health check endpoint
+export async function GET() {
+  return NextResponse.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  })
 }
 
 async function callGeminiAPI(message: string, model: string): Promise<string> {

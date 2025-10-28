@@ -1,4 +1,5 @@
 // Chat history local storage utilities
+import { v4 as uuidv4 } from 'uuid';
 
 export interface FileAttachment {
   name: string
@@ -19,20 +20,28 @@ export interface ChatMessage {
   attachments?: FileAttachment[]
 }
 
-export interface ChatHistory {
-  agentId: string
-  messages: ChatMessage[]
-  lastUpdated: Date
+export interface ChatSession {
+  id: string;
+  name: string;
+  messages: ChatMessage[];
+  lastUpdated: Date;
 }
 
-const CHAT_STORAGE_KEY = 'agentChatHistory'
+export interface AgentChatHistory {
+  agentId: string;
+  sessions: Record<string, ChatSession>;
+  activeSessionId: string | null;
+}
+
+const CHAT_STORAGE_KEY = 'agentChatHistory_v2'
 const MAX_MESSAGES_PER_AGENT = 100 // Limit to prevent storage bloat
 const MAX_STORAGE_AGE_DAYS = 30 // Auto-clean old conversations
 
 /**
  * Get all chat histories from localStorage
  */
-function getAllChatHistories(): Record<string, ChatHistory> {
+function getAllChatHistories(): Record<string, AgentChatHistory> {
+  if (typeof window === 'undefined') return {};
   try {
     const stored = localStorage.getItem(CHAT_STORAGE_KEY)
     if (!stored) return {}
@@ -41,13 +50,17 @@ function getAllChatHistories(): Record<string, ChatHistory> {
     
     // Convert string dates back to Date objects
     Object.keys(parsed).forEach(agentId => {
-      const history = parsed[agentId]
-      history.lastUpdated = new Date(history.lastUpdated)
-      history.messages = history.messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp)
-      }))
-    })
+      const agentHistory = parsed[agentId] as AgentChatHistory;
+      if (agentHistory.sessions) {
+        Object.values(agentHistory.sessions).forEach(session => {
+          session.lastUpdated = new Date(session.lastUpdated);
+          session.messages = session.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+        });
+      }
+    });
     
     return parsed
   } catch (error) {
@@ -59,25 +72,38 @@ function getAllChatHistories(): Record<string, ChatHistory> {
 /**
  * Save all chat histories to localStorage
  */
-function saveAllChatHistories(histories: Record<string, ChatHistory>): void {
+function saveAllChatHistories(histories: Record<string, AgentChatHistory>): void {
+  if (typeof window === 'undefined') return;
   try {
     // Clean up old conversations before saving
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - MAX_STORAGE_AGE_DAYS)
     
-    const cleanedHistories: Record<string, ChatHistory> = {}
+    const cleanedHistories: Record<string, AgentChatHistory> = {}
     
     Object.keys(histories).forEach(agentId => {
-      const history = histories[agentId]
-      if (history.lastUpdated > cutoffDate) {
-        // Limit messages per agent
-        const messages = history.messages.slice(-MAX_MESSAGES_PER_AGENT)
-        cleanedHistories[agentId] = {
-          ...history,
-          messages
-        }
+      const agentHistory = histories[agentId];
+      const activeSessions: Record<string, ChatSession> = {};
+
+      if (agentHistory.sessions) {
+        Object.values(agentHistory.sessions).forEach(session => {
+          if (new Date(session.lastUpdated) > cutoffDate) {
+            const messages = session.messages.slice(-MAX_MESSAGES_PER_AGENT);
+            activeSessions[session.id] = { ...session, messages };
+          }
+        });
       }
-    })
+
+      if (Object.keys(activeSessions).length > 0) {
+        cleanedHistories[agentId] = {
+          ...agentHistory,
+          sessions: activeSessions,
+        };
+      } else if (!agentHistory.sessions || Object.keys(agentHistory.sessions).length === 0) {
+        // Keep agent history if it has no sessions yet
+        cleanedHistories[agentId] = agentHistory;
+      }
+    });
     
     localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(cleanedHistories))
   } catch (error) {
@@ -86,65 +112,179 @@ function saveAllChatHistories(histories: Record<string, ChatHistory>): void {
 }
 
 /**
- * Load chat history for a specific agent
+ * Load chat history for a specific agent and session
  */
-export function loadChatHistory(agentId: string): ChatMessage[] {
-  const histories = getAllChatHistories()
-  const history = histories[agentId]
+export function loadChatHistory(agentId: string, sessionId: string): ChatMessage[] {
+  const histories = getAllChatHistories();
+  const agentHistory = histories[agentId];
   
-  if (!history) return []
+  if (!agentHistory || !agentHistory.sessions || !agentHistory.sessions[sessionId]) return [];
   
-  return history.messages
+  return agentHistory.sessions[sessionId].messages;
 }
 
 /**
- * Save chat history for a specific agent
+ * Save chat history for a specific agent and session
  */
-export function saveChatHistory(agentId: string, messages: ChatMessage[]): void {
-  const histories = getAllChatHistories()
+export function saveChatHistory(agentId: string, sessionId: string, messages: ChatMessage[]): void {
+  const histories = getAllChatHistories();
   
-  histories[agentId] = {
-    agentId,
-    messages: messages.slice(), // Create a copy
-    lastUpdated: new Date()
+  if (!histories[agentId]) {
+    histories[agentId] = {
+      agentId,
+      sessions: {},
+      activeSessionId: sessionId,
+    };
+  }
+
+  if (!histories[agentId].sessions) {
+    histories[agentId].sessions = {};
+  }
+
+  if (!histories[agentId].sessions[sessionId]) {
+    histories[agentId].sessions[sessionId] = {
+      id: sessionId,
+      name: `Chat ${new Date().toLocaleString()}`,
+      messages: [],
+      lastUpdated: new Date(),
+    };
   }
   
-  saveAllChatHistories(histories)
+  histories[agentId].sessions[sessionId].messages = messages.slice(); // Create a copy
+  histories[agentId].sessions[sessionId].lastUpdated = new Date();
+  histories[agentId].activeSessionId = sessionId;
+  
+  saveAllChatHistories(histories);
 }
 
 /**
- * Add a single message to an agent's chat history
+ * Add a single message to an agent's chat history for a specific session
  */
-export function addMessageToHistory(agentId: string, message: ChatMessage): void {
-  const currentMessages = loadChatHistory(agentId)
-  const updatedMessages = [...currentMessages, message]
-  saveChatHistory(agentId, updatedMessages)
+export function addMessageToHistory(agentId: string, sessionId: string, message: ChatMessage): void {
+  const currentMessages = loadChatHistory(agentId, sessionId);
+  const updatedMessages = [...currentMessages, message];
+  saveChatHistory(agentId, sessionId, updatedMessages);
 }
 
 /**
- * Update a specific message in an agent's chat history (useful for feedback updates)
+ * Update a specific message in an agent's chat history for a specific session
  */
-export function updateMessageInHistory(agentId: string, messageId: string, updates: Partial<ChatMessage>): void {
-  const currentMessages = loadChatHistory(agentId)
+export function updateMessageInHistory(agentId: string, sessionId: string, messageId: string, updates: Partial<ChatMessage>): void {
+  const currentMessages = loadChatHistory(agentId, sessionId);
   const updatedMessages = currentMessages.map(msg => 
     msg.id === messageId ? { ...msg, ...updates } : msg
-  )
-  saveChatHistory(agentId, updatedMessages)
+  );
+  saveChatHistory(agentId, sessionId, updatedMessages);
 }
 
 /**
- * Clear chat history for a specific agent
+ * Clear chat history for a specific session
  */
-export function clearChatHistory(agentId: string): void {
+export function clearChatHistory(agentId: string, sessionId: string): void {
+  const histories = getAllChatHistories();
+  if (histories[agentId] && histories[agentId].sessions && histories[agentId].sessions[sessionId]) {
+    histories[agentId].sessions[sessionId].messages = [];
+    histories[agentId].sessions[sessionId].lastUpdated = new Date();
+    saveAllChatHistories(histories);
+  }
+}
+
+/**
+ * Clear all chat histories for a specific agent
+ */
+export function clearAgentChatHistory(agentId: string): void {
   const histories = getAllChatHistories()
   delete histories[agentId]
   saveAllChatHistories(histories)
 }
 
 /**
+ * Get all sessions for an agent
+ */
+export function getAgentSessions(agentId: string): ChatSession[] {
+  const histories = getAllChatHistories();
+  const agentHistory = histories[agentId];
+  return agentHistory && agentHistory.sessions ? Object.values(agentHistory.sessions).sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()) : [];
+}
+
+/**
+ * Get the active session ID for an agent
+ */
+export function getActiveSessionId(agentId: string): string | null {
+  const histories = getAllChatHistories();
+  const agentHistory = histories[agentId];
+  if (agentHistory && agentHistory.activeSessionId && agentHistory.sessions && agentHistory.sessions[agentHistory.activeSessionId]) {
+    return agentHistory.activeSessionId;
+  } else if (agentHistory && agentHistory.sessions && Object.keys(agentHistory.sessions).length > 0) {
+    const sortedSessions = Object.values(agentHistory.sessions).sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
+    return sortedSessions[0].id;
+  }
+  return null;
+}
+
+/**
+ * Create a new chat session for an agent
+ */
+export function createNewSession(agentId: string, initialMessage?: ChatMessage): ChatSession {
+  const histories = getAllChatHistories();
+  if (!histories[agentId]) {
+    histories[agentId] = {
+      agentId,
+      sessions: {},
+      activeSessionId: null,
+    };
+  }
+
+  if (!histories[agentId].sessions) {
+    histories[agentId].sessions = {};
+  }
+
+  const newSessionId = uuidv4();
+  const newSession: ChatSession = {
+    id: newSessionId,
+    name: `New Chat ${Object.keys(histories[agentId].sessions).length + 1}`,
+    messages: initialMessage ? [initialMessage] : [],
+    lastUpdated: new Date(),
+  };
+
+  histories[agentId].sessions[newSessionId] = newSession;
+  histories[agentId].activeSessionId = newSessionId;
+  saveAllChatHistories(histories);
+  return newSession;
+}
+
+/**
+ * Delete a chat session for an agent
+ */
+export function deleteSession(agentId: string, sessionId: string): void {
+  const histories = getAllChatHistories();
+  if (histories[agentId] && histories[agentId].sessions && histories[agentId].sessions[sessionId]) {
+    delete histories[agentId].sessions[sessionId];
+    if (histories[agentId].activeSessionId === sessionId) {
+      const remainingSessions = Object.values(histories[agentId].sessions).sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
+      histories[agentId].activeSessionId = remainingSessions.length > 0 ? remainingSessions[0].id : null;
+    }
+    saveAllChatHistories(histories);
+  }
+}
+
+/**
+ * Rename a chat session for an agent
+ */
+export function renameSession(agentId: string, sessionId: string, newName: string): void {
+  const histories = getAllChatHistories();
+  if (histories[agentId] && histories[agentId].sessions && histories[agentId].sessions[sessionId]) {
+    histories[agentId].sessions[sessionId].name = newName;
+    histories[agentId].sessions[sessionId].lastUpdated = new Date();
+    saveAllChatHistories(histories);
+  }
+}
+
+/**
  * Clear all chat histories
  */
 export function clearAllChatHistories(): void {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(CHAT_STORAGE_KEY)
   } catch (error) {
@@ -158,23 +298,36 @@ export function clearAllChatHistories(): void {
 export function getChatStorageInfo(): {
   totalAgents: number
   totalMessages: number
+  totalSessions: number;
   storageSize: number // in bytes
 } {
   const histories = getAllChatHistories()
   const totalAgents = Object.keys(histories).length
-  const totalMessages = Object.values(histories).reduce((sum, history) => sum + history.messages.length, 0)
+  let totalMessages = 0;
+  let totalSessions = 0;
+  Object.values(histories).forEach(agentHistory => {
+    if (agentHistory.sessions) {
+      totalSessions += Object.keys(agentHistory.sessions).length;
+      Object.values(agentHistory.sessions).forEach(session => {
+        totalMessages += session.messages.length;
+      });
+    }
+  });
   
   let storageSize = 0
-  try {
-    const stored = localStorage.getItem(CHAT_STORAGE_KEY)
-    storageSize = stored ? new Blob([stored]).size : 0
-  } catch (error) {
-    console.error('Error calculating storage size:', error)
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(CHAT_STORAGE_KEY)
+      storageSize = stored ? new Blob([stored]).size : 0
+    } catch (error) {
+      console.error('Error calculating storage size:', error)
+    }
   }
   
   return {
     totalAgents,
     totalMessages,
+    totalSessions,
     storageSize
   }
 }
@@ -183,13 +336,18 @@ export function getChatStorageInfo(): {
  * Export chat history for backup or sharing
  */
 export function exportChatHistory(agentId?: string): string {
+  const historiesToExport: Record<string, AgentChatHistory> = {};
+  const allHistories = getAllChatHistories();
+
   if (agentId) {
-    const messages = loadChatHistory(agentId)
-    return JSON.stringify({ [agentId]: messages }, null, 2)
+    if (allHistories[agentId]) {
+      historiesToExport[agentId] = allHistories[agentId];
+    }
+  } else {
+    Object.assign(historiesToExport, allHistories);
   }
   
-  const allHistories = getAllChatHistories()
-  return JSON.stringify(allHistories, null, 2)
+  return JSON.stringify(historiesToExport, null, 2)
 }
 
 /**
@@ -197,39 +355,45 @@ export function exportChatHistory(agentId?: string): string {
  */
 export function importChatHistory(jsonData: string): boolean {
   try {
-    const importedData = JSON.parse(jsonData)
-    const currentHistories = getAllChatHistories()
-    
-    // Merge imported data with current data
-    Object.keys(importedData).forEach(agentId => {
-      const importedHistory = importedData[agentId]
-      if (Array.isArray(importedHistory)) {
-        // Legacy format - just messages array
-        currentHistories[agentId] = {
-          agentId,
-          messages: importedHistory.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          })),
-          lastUpdated: new Date()
+    const importedData = JSON.parse(jsonData);
+    const currentHistories = getAllChatHistories();
+
+    for (const agentId in importedData) {
+      const agentHistoryToImport = importedData[agentId];
+      if (agentHistoryToImport && agentHistoryToImport.sessions) {
+        if (!currentHistories[agentId]) {
+          currentHistories[agentId] = {
+            agentId,
+            sessions: {},
+            activeSessionId: null,
+          };
         }
-      } else if (importedHistory.messages) {
-        // New format - full history object
-        currentHistories[agentId] = {
-          ...importedHistory,
-          messages: importedHistory.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          })),
-          lastUpdated: new Date(importedHistory.lastUpdated)
+        // Merge sessions
+        for (const sessionId in agentHistoryToImport.sessions) {
+          const sessionToImport = agentHistoryToImport.sessions[sessionId];
+          // Basic validation
+          if (sessionToImport && sessionToImport.id && sessionToImport.messages) {
+            currentHistories[agentId].sessions[sessionId] = {
+              ...sessionToImport,
+              lastUpdated: new Date(sessionToImport.lastUpdated),
+              messages: sessionToImport.messages.map((msg: any) => ({
+                ...msg,
+                timestamp: new Date(msg.timestamp)
+              }))
+            };
+          }
+        }
+        // Update active session id
+        if (agentHistoryToImport.activeSessionId) {
+          currentHistories[agentId].activeSessionId = agentHistoryToImport.activeSessionId;
         }
       }
-    })
+    }
     
-    saveAllChatHistories(currentHistories)
-    return true
+    saveAllChatHistories(currentHistories);
+    return true;
   } catch (error) {
-    console.error('Error importing chat history:', error)
-    return false
+    console.error('Error importing chat history:', error);
+    return false;
   }
 }

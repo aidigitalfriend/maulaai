@@ -252,25 +252,4 @@ export async function GET(
  * Requires: JWT authentication
  * Rate limit: 100 requests/hour
  */
-export async function getAgentsList() {
-  try {
-    const agents = Object.values(AGENT_METADATA)
-    
-    return NextResponse.json({
-      success: true,
-      data: {
-        total: agents.length,
-        agents,
-      },
-      timestamp: new Date().toISOString()
-    })
-  } catch (error) {
-    console.error('Agents list error:', error)
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-export default GET
+// Note: Only HTTP method exports are allowed in route handlers

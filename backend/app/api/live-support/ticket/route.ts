@@ -30,7 +30,7 @@ async function sendEmailToSupport(payload: EmailPayload): Promise<boolean> {
   try {
     // Mock email sending - in production use a real email service
     console.log('Sending support ticket email:', {
-      to: 'support@agenthub.ai',
+      to: 'support@One Last AI.ai',
       subject: `New Support Ticket: ${payload.ticketId}`,
       from: payload.userEmail,
       userName: payload.userName,
@@ -50,13 +50,13 @@ async function sendEmailToSupport(payload: EmailPayload): Promise<boolean> {
       body: JSON.stringify({
         personalizations: [
           {
-            to: [{ email: 'support@agenthub.ai' }],
+            to: [{ email: 'support@One Last AI.ai' }],
             subject: `New Support Ticket: ${payload.ticketId} from ${payload.userName}`,
           },
         ],
         from: {
-          email: 'noreply@agenthub.ai',
-          name: 'AgentHub Support',
+          email: 'noreply@One Last AI.ai',
+          name: 'One Last AI Support',
         },
         content: [
           {
@@ -164,7 +164,7 @@ function generateTicketEmailHTML(ticket: SupportTicket): string {
         </div>
 
         <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
-          <p>This is an automated email from AgentHub Live Support System</p>
+          <p>This is an automated email from One Last AI Live Support System</p>
         </div>
       </div>
     </body>
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare email payload
     const emailPayload: EmailPayload = {
-      to: 'support@agenthub.ai',
+      to: 'support@One Last AI.ai',
       subject: `Support Ticket: ${ticket.id} - ${ticket.userName}`,
       html: generateTicketEmailHTML(ticket),
       ticketId: ticket.id,
@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
               </ul>
 
               <p>Thank you for your patience!</p>
-              <p>Best regards,<br/>AgentHub Support Team</p>
+              <p>Best regards,<br/>One Last AI Support Team</p>
             </div>
           </div>
         </body>

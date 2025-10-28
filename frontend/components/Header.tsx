@@ -18,92 +18,18 @@ export default function Header() {
     }
   }
 
-  const navigation = [
-    {
-      name: 'Agents',
-      href: '/agents',
-      hasDropdown: true,
-      items: [
-        { name: 'All Agents', href: '/agents' },
-        { name: 'Random Agent', href: '/agents/random' },
-        { name: 'Einstein', href: '/agents/einstein' },
-        { name: 'Chef Biew', href: '/agents/chef-biew' },
-        { name: 'Tech Wizard', href: '/agents/tech-wizard' },
-        { name: 'Travel Buddy', href: '/agents/travel-buddy' }
-      ]
-    },
-    {
-      name: 'Solutions',
-      href: '/solutions',
-      hasDropdown: true,
-      items: [
-        { name: 'Overview', href: '/solutions/overview' },
-        { name: 'Enterprise AI', href: '/solutions/enterprise-ai' },
-        { name: 'Process Automation', href: '/solutions/process-automation' },
-        { name: 'Smart Analytics', href: '/solutions/smart-analytics' },
-        { name: 'AI Security', href: '/solutions/ai-security' }
-      ]
-    },
-    {
-      name: 'Industries',
-      href: '/industries',
-      hasDropdown: true,
-      items: [
-        { name: 'Overview', href: '/industries/overview' },
-        { name: 'Healthcare', href: '/industries/healthcare' },
-        { name: 'Finance & Banking', href: '/industries/finance-banking' },
-        { name: 'Retail & E-commerce', href: '/industries/retail-ecommerce' },
-        { name: 'Manufacturing', href: '/industries/manufacturing' },
-        { name: 'Technology', href: '/industries/technology' },
-        { name: 'Education', href: '/industries/education' }
-      ]
-    },
-    {
-      name: 'Resources',
-      href: '/resources',
-      hasDropdown: true,
-      items: [
-        { name: 'Overview', href: '/resources/overview' },
-        { name: 'Blog & News', href: '/resources/blog' },
-        { name: 'Case Studies', href: '/resources/case-studies' },
-        { name: 'Whitepapers', href: '/resources/whitepapers' },
-        { name: 'Webinars', href: '/resources/webinars' },
-        { name: 'Tutorials', href: '/resources/tutorials' }
-      ]
-    },
-    {
-      name: 'Docs',
-      href: '/docs',
-      hasDropdown: true,
-      items: [
-        { name: 'Overview', href: '/docs' },
-        { name: 'Agent Docs', href: '/docs/agents' },
-        { name: 'API Reference', href: '/docs/api' },
-        { name: 'Integrations', href: '/docs/integrations' },
-        { name: 'SDKs', href: '/docs/sdks' }
-      ]
-    },
-    {
-      name: 'Pricing',
-      href: '/pricing',
-      hasDropdown: true,
-      items: [
-        { name: 'Overview', href: '/pricing/overview' },
-        { name: 'Per-Agent Pricing', href: '/pricing/per-agent' }
-      ]
-    },
-    {
-      name: 'Support',
-      href: '/support',
-      hasDropdown: true,
-      items: [
-        { name: 'Live Support', href: '/support/live-support' },
-        { name: 'Help Center', href: '/support/help-center' },
-        { name: 'Contact Us', href: '/support/contact-us' },
-        { name: 'Book Consultation', href: '/support/book-consultation' },
-        { name: 'FAQs', href: '/support/faqs' }
-      ]
-    }
+  const navigation: Array<{
+    name: string;
+    href: string;
+    hasDropdown?: boolean;
+    items?: Array<{ name: string; href: string }>;
+  }> = [
+    { name: 'Agents', href: '/agents' },
+    { name: 'Solutions', href: '/solutions/overview' },
+    { name: 'Industries', href: '/industries/overview' },
+    { name: 'Documents', href: '/docs' },
+    { name: 'Pricing', href: '/pricing/overview' },
+    { name: 'Support', href: '/support/help-center' }
   ]
 
   return (
@@ -115,7 +41,7 @@ export default function Header() {
             <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">AI</span>
             </div>
-            <span className="text-xl font-bold text-neural-800">AgentHub</span>
+            <span className="text-xl font-bold text-neural-800">One Last AI</span>
           </Link>
 
           {/* Desktop Navigation */}

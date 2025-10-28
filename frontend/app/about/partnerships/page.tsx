@@ -15,7 +15,7 @@ export default function PartnershipsPage() {
       name: "Amazon Web Services",
       icon: "⚙️",
       description: "Cloud computing and storage solutions",
-      details: "Using AWS's comprehensive suite of services for reliable hosting, data processing, and enterprise-grade security for AgentHub."
+      details: "Using AWS's comprehensive suite of services for reliable hosting, data processing, and enterprise-grade security for One Last AI."
     },
     {
       name: "Microsoft Azure",
@@ -36,13 +36,13 @@ export default function PartnershipsPage() {
       name: "Microsoft Teams",
       icon: "👥",
       description: "Enterprise communication hub",
-      details: "Integrate AgentHub agents with Teams for seamless collaboration, automated notifications, and enterprise communication workflows."
+      details: "Integrate One Last AI agents with Teams for seamless collaboration, automated notifications, and enterprise communication workflows."
     },
     {
       name: "Zapier",
       icon: "⚡",
       description: "Automation and workflow platform",
-      details: "Connect AgentHub with thousands of apps through Zapier for sophisticated automation workflows and data synchronization."
+      details: "Connect One Last AI with thousands of apps through Zapier for sophisticated automation workflows and data synchronization."
     },
     {
       name: "HubSpot",
@@ -69,7 +69,7 @@ export default function PartnershipsPage() {
       name: "IBM Consulting",
       icon: "🔧",
       description: "Enterprise technology solutions",
-      details: "Delivering comprehensive consulting and integration services for enterprise-scale AgentHub deployments."
+      details: "Delivering comprehensive consulting and integration services for enterprise-scale One Last AI deployments."
     }
   ]
 
@@ -100,12 +100,12 @@ export default function PartnershipsPage() {
             <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
               <Cloud className="w-10 h-10 text-blue-400 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-white mb-2">Technology Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Infrastructure and cloud services powering AgentHub</p>
+              <p className="text-neutral-300 text-sm">Infrastructure and cloud services powering One Last AI</p>
             </div>
             <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
               <Zap className="w-10 h-10 text-purple-400 mx-auto mb-3" />
               <h3 className="text-lg font-bold text-white mb-2">Integration Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Tools and platforms that enhance AgentHub capabilities</p>
+              <p className="text-neutral-300 text-sm">Tools and platforms that enhance One Last AI capabilities</p>
             </div>
             <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
               <Users className="w-10 h-10 text-pink-400 mx-auto mb-3" />
@@ -136,7 +136,7 @@ export default function PartnershipsPage() {
           <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-6 mb-12">
             <h4 className="text-white font-bold mb-2">Why These Partners?</h4>
             <p className="text-neutral-300">
-              We partner with Google Cloud, AWS, and Microsoft Azure to ensure AgentHub runs on best-in-class infrastructure. 
+              We partner with Google Cloud, AWS, and Microsoft Azure to ensure One Last AI runs on best-in-class infrastructure. 
               These partnerships guarantee reliability, security, and scalability for enterprises of all sizes.
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function PartnershipsPage() {
           <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-6 mb-12">
             <h4 className="text-white font-bold mb-2">Seamless Integrations</h4>
             <p className="text-neutral-300">
-              Our integration partnerships enable AgentHub to work seamlessly with tools your team already uses. 
+              Our integration partnerships enable One Last AI to work seamlessly with tools your team already uses. 
               From communication platforms to automation tools, we're constantly expanding our ecosystem to enhance your productivity.
             </p>
           </div>
@@ -178,7 +178,7 @@ export default function PartnershipsPage() {
               <Award className="w-6 h-6 text-pink-400" />
               <h2 className="text-3xl font-bold text-white">Reseller Partners</h2>
             </div>
-            <p className="text-neutral-300">Global consulting firms helping organizations implement AgentHub solutions</p>
+            <p className="text-neutral-300">Global consulting firms helping organizations implement One Last AI solutions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -191,7 +191,7 @@ export default function PartnershipsPage() {
             <h4 className="text-white font-bold mb-2">Enterprise Implementation</h4>
             <p className="text-neutral-300">
               Our reseller partners bring deep enterprise expertise and global reach. They help organizations of all sizes 
-              successfully implement, customize, and optimize AgentHub for their specific business needs.
+              successfully implement, customize, and optimize One Last AI for their specific business needs.
             </p>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function PartnershipsPage() {
         <div className="container-custom max-w-3xl text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Interested in Partnering?</h2>
           <p className="text-neutral-300 mb-4 text-lg">
-            We're always looking for innovative companies and consulting firms to partner with AgentHub.
+            We're always looking for innovative companies and consulting firms to partner with One Last AI.
           </p>
           <p className="text-neutral-300 mb-8">
             Whether you're interested in technology partnerships, integrations, or reselling, we'd love to explore opportunities together.

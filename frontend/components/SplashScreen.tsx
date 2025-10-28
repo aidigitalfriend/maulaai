@@ -69,7 +69,7 @@ export default function SplashScreen({ isLoading, onLoadingComplete }: SplashScr
               className="text-center"
             >
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                AgentHub
+                One Last AI
               </h1>
               <p className="text-lg text-neural-300">
                 Intelligent AI Agents Platform

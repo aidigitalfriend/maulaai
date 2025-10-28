@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
             <p className="text-neural-700 mb-4">
-              AgentHub ("we", "our", or "us") operates the AgentHub platform. This page informs you of our policies 
+              One Last AI ("we", "our", or "us") operates the One Last AI platform. This page informs you of our policies 
               regarding the collection, use, and disclosure of personal data when you use our service.
             </p>
           </section>
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-2xl font-bold mb-4">3. Use of Data</h2>
-            <p className="text-neural-700 mb-4">AgentHub uses the collected data for various purposes:</p>
+            <p className="text-neural-700 mb-4">One Last AI uses the collected data for various purposes:</p>
             <ul className="list-disc pl-6 text-neural-700 space-y-2">
               <li>To provide and maintain our service</li>
               <li>To notify you about changes to our service</li>
@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-bold mb-4">6. Contact Us</h2>
             <p className="text-neural-700">
-              If you have any questions about this Privacy Policy, please contact us at privacy@agenthub.com
+              If you have any questions about this Privacy Policy, please contact us at privacy@One Last AI.com
             </p>
           </section>
         </div>

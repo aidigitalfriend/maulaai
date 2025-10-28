@@ -87,7 +87,7 @@ export default function HomePage() {
     }
   ]
 
-  // AI agent personalities preview
+  // AI agent personalities preview - Updated with real agents
   const agentPreviews = [
     {
       icon: (
@@ -102,35 +102,79 @@ export default function HomePage() {
     },
     {
       icon: (
-        <div className="text-2xl">🎭</div>
+        <div className="text-2xl">💚</div>
       ),
-      title: 'Shakespeare',
-      description: 'Creative writing, poetry, literature analysis, and dramatic storytelling.',
+      title: 'Emma Emotional',
+      description: 'Master of feelings and empathy. Perfect for emotional support and relationship advice.',
       link: {
-        text: 'Talk to Shakespeare',
-        href: '/agents/shakespeare'
+        text: 'Talk to Emma',
+        href: '/agents/emma-emotional'
       }
     },
     {
       icon: (
-        <div className="text-2xl">⚡</div>
+        <div className="text-2xl">🎮</div>
       ),
-      title: 'Tesla',
-      description: 'Innovation, electrical engineering, future technology, and inventive thinking.',
+      title: 'Nid Gaming',
+      description: 'Pro gamer extraordinaire! Master of gaming strategies, reviews, and esports culture.',
       link: {
-        text: 'Meet Tesla',
-        href: '/agents/tesla'
+        text: 'Game with Nid',
+        href: '/agents/nid-gaming'
       }
     },
     {
       icon: (
-        <div className="text-2xl">🎨</div>
+        <div className="text-2xl">🥢</div>
       ),
-      title: 'Da Vinci',
-      description: 'Art, engineering, anatomy, and Renaissance-era interdisciplinary thinking.',
+      title: 'Chef Biew',
+      description: 'Asian culinary master! Specializes in authentic recipes and cultural food traditions.',
       link: {
-        text: 'Discover Da Vinci',
-        href: '/agents/da-vinci'
+        text: 'Cook with Chef Biew',
+        href: '/agents/chef-biew'
+      }
+    },
+    {
+      icon: (
+        <div className="text-2xl">🧙‍♂️</div>
+      ),
+      title: 'Tech Wizard',
+      description: 'Master of all things tech! Expert in coding, troubleshooting, and innovation.',
+      link: {
+        text: 'Code with Tech Wizard',
+        href: '/agents/tech-wizard'
+      }
+    },
+    {
+      icon: (
+        <div className="text-2xl">👔</div>
+      ),
+      title: 'Mrs Boss',
+      description: 'Take-charge executive! Master of leadership, business management, and results.',
+      link: {
+        text: 'Lead with Mrs Boss',
+        href: '/agents/mrs-boss'
+      }
+    },
+    {
+      icon: (
+        <div className="text-2xl">💪</div>
+      ),
+      title: 'Fitness Guru',
+      description: 'Your personal fitness coach! Expert in workouts, nutrition, and wellness goals.',
+      link: {
+        text: 'Train with Fitness Guru',
+        href: '/agents/fitness-guru'
+      }
+    },
+    {
+      icon: (
+        <div className="text-2xl">🕹️</div>
+      ),
+      title: 'Ben Sega',
+      description: 'Retro gaming legend! Expert in classic games, gaming history, and nostalgia.',
+      link: {
+        text: 'Play with Ben Sega',
+        href: '/agents/ben-sega'
       }
     }
   ]
@@ -180,6 +224,26 @@ export default function HomePage() {
         backgroundStyle="gradient"
       />
 
+      {/* Explore All Agents Button */}
+      <section className="bg-gradient-to-br from-white via-brand-50 to-accent-50 py-8">
+        <div className="container-custom text-center">
+          <a
+            href="/agents"
+            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 group"
+          >
+            <span>Explore All Agents</span>
+            <svg 
+              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+        </div>
+      </section>
+
       {/* Testimonials Section - Dark Theme Updated */}
       <TestimonialSection />
 
@@ -196,7 +260,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
-                q: "How do I get started with AgentHub?",
+                q: "How do I get started with One Last AI?",
                 a: "Getting started is simple! Sign up for an account, choose your preferred AI agents, and begin chatting within minutes. Our onboarding guide walks you through every step."
               },
               {
@@ -244,7 +308,7 @@ export default function HomePage() {
               },
               {
                 date: "Oct 18, 2025",
-                title: "AgentHub Reaches 10K Active Users",
+                title: "One Last AI Reaches 10K Active Users",
                 desc: "Celebrating a milestone! Join our growing community of professionals using AI to transform their work.",
                 category: "Milestone",
                 link: "/community"
@@ -467,7 +531,7 @@ export default function HomePage() {
       <section className="section-padding bg-white">
         <div className="container-custom">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Thousands Choose AgentHub</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Thousands Choose One Last AI</h2>
             <p className="text-xl text-neural-600">Industry-leading features and support</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

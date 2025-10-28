@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'axeyaxe.com', 'www.axeyaxe.com'],
+    domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
   },
   
   // ✅ SECURITY: Disable source maps in production
@@ -27,6 +27,17 @@ const nextConfig = {
           // Restrict browser features
           { key: 'Permissions-Policy', value: 'geolocation=(), microphone=(), camera=()' },
         ],
+      },
+    ]
+  },
+
+  // Proxy frontend /api/* to backend server in development
+  async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ]
   },

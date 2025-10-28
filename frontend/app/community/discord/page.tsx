@@ -13,7 +13,7 @@ export default function DiscordPage() {
             <MessageCircle className="w-10 h-10" />
             <h1 className="text-5xl md:text-6xl font-bold">Join Our Discord</h1>
           </div>
-          <p className="text-xl opacity-90 mb-2">Connect with the AgentHub community</p>
+          <p className="text-xl opacity-90 mb-2">Connect with the One Last AI community</p>
           <p className="text-lg opacity-75">10,000+ members sharing knowledge and building together</p>
         </div>
       </section>
@@ -25,7 +25,7 @@ export default function DiscordPage() {
             <div className="text-7xl mb-6 animate-bounce">💜</div>
             <h2 className="text-4xl font-bold text-white mb-4">Our Active Discord Community</h2>
             <p className="text-xl text-neutral-300 mb-8">
-              Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow AgentHub users worldwide.
+              Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow One Last AI users worldwide.
             </p>
             <a
               href="https://discord.gg/onelastai"
@@ -72,7 +72,7 @@ export default function DiscordPage() {
               <Zap className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-lg font-bold text-white mb-1">Real-Time Support</h3>
-                <p className="text-neutral-300">Get instant help from community members and AgentHub team members</p>
+                <p className="text-neutral-300">Get instant help from community members and One Last AI team members</p>
               </div>
             </div>
 
@@ -205,7 +205,7 @@ export default function DiscordPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-2">💬 #general</h3>
-              <p className="text-neutral-300 text-sm">General discussion about AgentHub and the community</p>
+              <p className="text-neutral-300 text-sm">General discussion about One Last AI and the community</p>
             </div>
 
             <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">

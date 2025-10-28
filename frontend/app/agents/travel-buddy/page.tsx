@@ -1,63 +1,119 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import AgentChatPanel from '../../../components/AgentChatPanel'
+import { chatStorage, generateSessionId } from '../../../components/BenSegaChatPanel'
+import type { ChatSession } from '../../../components/BenSegaChatPanel'
+import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function TravelBuddyPage() {
-  const handleSendMessage = async (message: string): Promise<string> => {
-    // Simulate AI response with delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+  const agentId = 'travel-buddy'
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string>('')
+
+  useEffect(() => {
+    const history = chatStorage.getAgentHistory(agentId)
+    const sessionList = Object.values(history.sessions || {})
     
-    const responses = [
-      "✈️ Oh, what an amazing destination! I have so many insider tips for that place...",
-      "🌍 *pulls out imaginary travel journal* That reminds me of this incredible experience...",
-      "🎒 Perfect choice! Here's what you absolutely MUST do when you're there...",
-      "✈️ I'm getting excited just thinking about your trip! Let me share some secrets...",
-      "🌟 That place holds a special spot in my heart! Here's how to make it unforgettable...",
-      "🗺️ Adventure awaits! Here's my ultimate insider guide for that destination..."
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+    if (sessionList.length === 0) {
+      const initialSession: ChatSession = {
+        id: generateSessionId(),
+        name: 'New Chat',
+        messages: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+      chatStorage.saveSession(agentId, initialSession)
+      setSessions([initialSession])
+      setActiveSessionId(initialSession.id)
+    } else {
+      setSessions(sessionList)
+      setActiveSessionId(sessionList[0].id)
+    }
+  }, [])
+
+  const handleNewChat = () => {
+    const newSession: ChatSession = {
+      id: generateSessionId(),
+      name: 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }
+    chatStorage.saveSession(agentId, newSession)
+    setSessions(prev => [newSession, ...prev])
+    setActiveSessionId(newSession.id)
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50">
-      <div className="bg-gradient-to-r from-teal-600 to-cyan-700 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-teal-200 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              ✈️
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Travel Buddy</h1>
-              <p className="text-teal-200 text-lg">Adventure & Travel Guide</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Travel</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Adventure</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Culture</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Planning</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId)
+  }
 
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="travel-buddy"
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId)
+    const remainingSessions = sessions.filter(s => s.id !== sessionId)
+    setSessions(remainingSessions)
+    
+    if (activeSessionId === sessionId) {
+      if (remainingSessions.length > 0) {
+        setActiveSessionId(remainingSessions[0].id)
+      } else {
+        handleNewChat()
+      }
+    }
+  }
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    const session = sessions.find(s => s.id === sessionId)
+    if (session) {
+      const updatedSession = { ...session, name: newName, updatedAt: Date.now() }
+      chatStorage.saveSession(agentId, updatedSession)
+      setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s))
+    }
+  }
+
+  // ✅ SECURED: Now uses backend API with no exposed keys
+  const handleSendMessage = async (message: string): Promise<string> => {
+    try {
+      return await sendSecureMessage(message, 'travel-buddy', 'gpt-3.5-turbo')
+    } catch (error: any) {
+      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
+    }
+  }
+
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+
+  return (
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
             agentName="Travel Buddy"
-            agentColor="teal"
-            initialMessage="✈️ Hello, I am Travel Buddy, how can I help you plan your next adventure?"
-            onSendMessage={handleSendMessage}
-            placeholder="Where should we adventure to next? ✈️🌍"
-            className="border border-cyan-200"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId}
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Travel Buddy"
+              agentColor="from-teal-600 to-cyan-700"
+              placeholder="Where should we adventure to next? ✈️🌍"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+            />
+          )}
         </div>
       </div>
     </div>

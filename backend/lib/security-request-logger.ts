@@ -84,7 +84,7 @@ export function logRequest(
     userId: options?.userId,
     ip: metadata.ip,
     userAgent: metadata.userAgent,
-    referer: metadata.referer,
+  referer: metadata.referer || undefined,
     isSecure: metadata.isSecure,
     rateLimit: options?.rateLimit
   }

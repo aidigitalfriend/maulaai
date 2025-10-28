@@ -19,7 +19,7 @@ export default function AgentTypesPage() {
             Available Agent Types
           </h1>
           <p className="text-xl text-neutral-300">
-            Explore the diverse range of specialized agents available on AgentHub.
+            Explore the diverse range of specialized agents available on One Last AI.
           </p>
           <div className="flex items-center gap-4 mt-6 text-neutral-400">
             <span>📖 Reading time: 10 minutes</span>
@@ -37,7 +37,7 @@ export default function AgentTypesPage() {
               <h2 className="text-2xl font-bold text-white">Agent Specialization</h2>
             </div>
             <p className="text-neutral-300">
-              Each agent on AgentHub is trained and optimized for specific domains and tasks. This specialization allows them to provide 
+              Each agent on One Last AI is trained and optimized for specific domains and tasks. This specialization allows them to provide 
               expert-level insights and guidance in their respective fields. You can use agents individually or combine multiple agents 
               for complex, multi-faceted projects.
             </p>
@@ -332,7 +332,7 @@ export default function AgentTypesPage() {
           <section className="bg-neural-800/50 border border-neural-700 rounded-lg p-8">
             <h2 className="text-2xl font-bold text-white mb-6">Future Agents Coming Soon</h2>
             <p className="text-neutral-300 mb-4">
-              AgentHub continuously develops new specialized agents to expand our platform. Future agents under development include:
+              One Last AI continuously develops new specialized agents to expand our platform. Future agents under development include:
             </p>
             <ul className="list-disc list-inside text-neutral-300 space-y-2 ml-2">
               <li>Business Strategy & Consulting Expert</li>

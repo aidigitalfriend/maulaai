@@ -40,6 +40,38 @@ export default function Footer() {
       ]
     },
     {
+      title: 'Docs',
+      links: [
+        { name: 'Overview', href: '/docs' },
+        { name: 'Agent Docs', href: '/docs/agents' },
+        { name: 'API Reference', href: '/docs/api' },
+        { name: 'Integrations', href: '/docs/integrations' },
+        { name: 'SDKs', href: '/docs/sdks' }
+      ]
+    },
+    {
+      title: 'Industries',
+      links: [
+        { name: 'Overview', href: '/industries/overview' },
+        { name: 'Healthcare', href: '/industries/healthcare' },
+        { name: 'Finance & Banking', href: '/industries/finance-banking' },
+        { name: 'Retail & E-commerce', href: '/industries/retail-ecommerce' },
+        { name: 'Manufacturing', href: '/industries/manufacturing' },
+        { name: 'Technology', href: '/industries/technology' },
+        { name: 'Education', href: '/industries/education' }
+      ]
+    },
+    {
+      title: 'Solutions',
+      links: [
+        { name: 'Overview', href: '/solutions/overview' },
+        { name: 'Enterprise AI', href: '/solutions/enterprise-ai' },
+        { name: 'Process Automation', href: '/solutions/process-automation' },
+        { name: 'Smart Analytics', href: '/solutions/smart-analytics' },
+        { name: 'AI Security', href: '/solutions/ai-security' }
+      ]
+    },
+    {
       title: 'Support',
       links: [
         { name: 'Help Center', href: '/support/help-center' },
@@ -128,7 +160,7 @@ export default function Footer() {
               <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-accent-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">AI</span>
               </div>
-              <span className="text-2xl font-bold">AgentHub</span>
+              <span className="text-2xl font-bold">One Last AI</span>
             </Link>
             <p className="text-neural-300 mb-6 max-w-md">
               Transform your business with intelligent AI agents. 18+ specialized personalities 
@@ -174,7 +206,7 @@ export default function Footer() {
         <div className="container-custom py-6 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-neural-400 text-sm">
-              © {currentYear} AgentHub. All rights reserved.
+              © {currentYear} One Last AI. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm">
               <Link href="/legal/privacy-policy" className="text-neural-400 hover:text-white transition-colors">

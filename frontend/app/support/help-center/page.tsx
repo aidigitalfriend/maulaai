@@ -125,7 +125,7 @@ export default function SupportHelpCenter() {
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Help Center</h1>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Find everything you need to get the most out of AgentHub. Browse our documentation, tutorials, community resources, and support options.
+            Find everything you need to get the most out of One Last AI. Browse our documentation, tutorials, community resources, and support options.
           </p>
         </div>
       </section>
@@ -210,7 +210,7 @@ export default function SupportHelpCenter() {
         <div className="container-custom text-center max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">Still Need Help?</h2>
           <p className="text-neural-300 mb-8">
-            Can't find what you're looking for? Our dedicated support team is ready to help you succeed with AgentHub.
+            Can't find what you're looking for? Our dedicated support team is ready to help you succeed with One Last AI.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href="/support/contact-us" className="bg-brand-600 hover:bg-brand-700 px-6 py-3 rounded-lg font-semibold transition text-center">

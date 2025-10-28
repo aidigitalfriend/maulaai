@@ -81,7 +81,7 @@ export default function LoginPage() {
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
             <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-blue-100">Sign in to your Axeyaxe account</p>
+            <p className="text-blue-100">Sign in to your One Last AI account</p>
           </div>
 
           <div className="p-6">

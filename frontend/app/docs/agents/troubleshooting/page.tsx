@@ -263,7 +263,7 @@ export default function TroubleshootingPage() {
                 <ul className="list-disc list-inside text-neutral-300 space-y-1 ml-2">
                   <li>Refresh the page (Ctrl+R or Cmd+R)</li>
                   <li>Hard refresh to clear cache (Ctrl+Shift+R or Cmd+Shift+R)</li>
-                  <li>Clear browser cookies and cache for agenthub.com</li>
+                  <li>Clear browser cookies and cache for One Last AI.com</li>
                   <li>Try a different browser</li>
                   <li>Disable browser extensions and try again</li>
                   <li>Check that JavaScript is enabled in your browser</li>

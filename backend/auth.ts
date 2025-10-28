@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import EmailProvider from 'next-auth/providers/email'
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter'
 import { hash, compare } from 'bcryptjs'
-import dbConnect from '@/lib/mongodb'
+import dbConnect, { getClientPromise } from '@/lib/mongodb'
 import User from '@/models/User'
 import nodemailer from 'nodemailer'
 
@@ -26,8 +26,8 @@ const transporter = nodemailer.createTransport({
 // const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const authOptions: NextAuthOptions = {
-  // Configure adapter for MongoDB
-  adapter: MongoDBAdapter(dbConnect),
+  // Configure adapter for MongoDB (uses native driver)
+  adapter: process.env.MONGODB_URI ? MongoDBAdapter(getClientPromise()) : undefined,
 
   // Session strategy
   session: {
@@ -57,20 +57,20 @@ export const authOptions: NextAuthOptions = {
           pass: process.env.EMAIL_SERVER_PASSWORD,
         },
       },
-      from: process.env.EMAIL_FROM || 'noreply@axeyaxe.com',
+      from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
       sendVerificationRequest: async ({ identifier: email, url, provider, theme }) => {
         try {
           // Using SendGrid
           if (process.env.SENDGRID_API_KEY) {
-            const { text, html } = await provider.generateVerificationRequest({ url, theme })
+            const text = `Sign in to One Last AI: ${url}`
             await transporter.sendMail({
               to: email,
-              from: process.env.EMAIL_FROM || 'noreply@axeyaxe.com',
+              from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
               subject: '🔐 Your Magic Login Link',
               text,
               html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Welcome to Axeyaxe! 🎉</h2>
+                  <h2>Welcome to One Last AI! 🎉</h2>
                   <p>Click the button below to sign in securely (link expires in 24 hours):</p>
                   <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
                     🔓 Sign In Now
@@ -86,15 +86,18 @@ export const authOptions: NextAuthOptions = {
               `,
             })
           }
-          // Fallback: Using Resend
-          else if (process.env.RESEND_API_KEY) {
-            await resend.emails.send({
-              from: process.env.EMAIL_FROM || 'noreply@axeyaxe.com',
+          else {
+            // Fallback: use configured provider SMTP
+            const fallbackTransport = nodemailer.createTransport(provider.server as any)
+            const text = `Sign in to One Last AI: ${url}`
+            await fallbackTransport.sendMail({
               to: email,
+              from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
               subject: '🔐 Your Magic Login Link',
+              text,
               html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Welcome to Axeyaxe! 🎉</h2>
+                  <h2>Welcome to One Last AI! 🎉</h2>
                   <p>Click the button below to sign in securely (link expires in 24 hours):</p>
                   <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
                     🔓 Sign In Now
@@ -174,6 +177,7 @@ export const authOptions: NextAuthOptions = {
 
         // For email provider (passwordless magic link)
         if (account?.provider === 'email') {
+          if (!user.email) return false
           let dbUser = await User.findOne({ email: user.email })
 
           if (!dbUser) {
@@ -215,18 +219,20 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.authMethod = user.authMethod || 'password'
+        token.id = (user as any).id || token.id
+        token.email = (user as any).email || token.email
+        const methodFromUser = (user as any)?.authMethod
+        const method = methodFromUser || (account?.provider === 'email' ? 'passwordless' : 'password')
+        ;(token as any).authMethod = method
       }
       return token
     },
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
-        session.user.email = token.email as string
-        session.user.authMethod = (token.authMethod as 'password' | 'passwordless') || 'password'
+        ;(session.user as any).id = (token as any).id as string
+        ;(session.user as any).email = (token as any).email as string
+        ;(session.user as any).authMethod = ((token as any).authMethod as 'password' | 'passwordless') || 'password'
       }
       return session
     },
@@ -255,9 +261,6 @@ export const authOptions: NextAuthOptions = {
     },
     async signOut({ token }) {
       console.log(`✅ User signed out`)
-    },
-    async error({ error }) {
-      console.error(`❌ Auth error: ${error}`)
     },
   },
 

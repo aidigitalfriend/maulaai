@@ -84,7 +84,7 @@ export default function NewsPage() {
   const newsArticles = [
     {
       id: 1,
-      title: 'AgentHub Launches New $1/Day Testing Plan',
+      title: 'One Last AI Launches New $1/Day Testing Plan',
       description: 'We\'re excited to announce our affordable new testing plan, allowing users to evaluate all features for just $1 per day before committing to larger subscriptions.',
       category: 'product',
       date: 'October 22, 2025',
@@ -104,8 +104,8 @@ export default function NewsPage() {
     },
     {
       id: 3,
-      title: 'AgentHub Recognized as Top AI Platform',
-      description: 'We\'re thrilled to announce that AgentHub has been recognized by TechCrunch as one of the top 10 emerging AI platforms for 2025.',
+      title: 'One Last AI Recognized as Top AI Platform',
+      description: 'We\'re thrilled to announce that One Last AI has been recognized by TechCrunch as one of the top 10 emerging AI platforms for 2025.',
       category: 'awards',
       date: 'October 18, 2025',
       image: '🏆',
@@ -134,7 +134,7 @@ export default function NewsPage() {
     },
     {
       id: 6,
-      title: 'AgentHub Community Crosses 50,000 Members',
+      title: 'One Last AI Community Crosses 50,000 Members',
       description: 'Our community has grown to over 50,000 active members sharing insights, best practices, and innovative use cases.',
       category: 'product',
       date: 'October 10, 2025',
@@ -154,8 +154,8 @@ export default function NewsPage() {
     },
     {
       id: 8,
-      title: 'AgentHub Security Certification Achieved',
-      description: 'We\'re proud to announce that AgentHub has achieved SOC 2 Type II certification, ensuring the highest security standards.',
+      title: 'One Last AI Security Certification Achieved',
+      description: 'We\'re proud to announce that One Last AI has achieved SOC 2 Type II certification, ensuring the highest security standards.',
       category: 'awards',
       date: 'October 5, 2025',
       image: '🔒',
@@ -181,7 +181,7 @@ export default function NewsPage() {
             <h1 className="text-4xl md:text-5xl font-bold">Latest News</h1>
           </div>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Stay updated with the latest news, product announcements, and industry insights about AI and AgentHub.
+            Stay updated with the latest news, product announcements, and industry insights about AI and One Last AI.
           </p>
         </div>
       </section>
@@ -192,7 +192,7 @@ export default function NewsPage() {
           <div className="mb-4 text-5xl">🤖</div>
           <h2 className="text-4xl font-bold mb-4">Discover Our AI Agents</h2>
           <p className="text-lg text-neural-300 mb-6">
-            AgentHub offers a diverse collection of AI agents designed to help you with virtually anything. From scientific experts to lifestyle coaches, our agents are ready to assist you. Explore our current agents and stay tuned for exciting new additions coming soon!
+            One Last AI offers a diverse collection of AI agents designed to help you with virtually anything. From scientific experts to lifestyle coaches, our agents are ready to assist you. Explore our current agents and stay tuned for exciting new additions coming soon!
           </p>
           <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
             <div>

@@ -97,7 +97,7 @@ export default function DocsSDKs() {
               <div className="text-4xl mb-4">⚙️</div>
               <h3 className="text-lg font-bold mb-2">Easy to Use</h3>
               <p className="text-neutral-400 text-sm">
-                Simple APIs that make it easy to integrate AgentHub into your apps
+                Simple APIs that make it easy to integrate One Last AI into your apps
               </p>
             </div>
             <div className="card-dark p-6 text-center">
@@ -157,11 +157,11 @@ export default function DocsSDKs() {
             <div className="mb-6">
               <h4 className="text-lg font-bold mb-3">Installation</h4>
               <div className="bg-neutral-900 p-4 rounded-lg mb-4">
-                <code className="text-neutral-200 text-sm">npm install @agenthub/sdk</code>
+                <code className="text-neutral-200 text-sm">npm install @One Last AI/sdk</code>
               </div>
               <p className="text-neutral-400 text-sm">or with yarn:</p>
               <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">yarn add @agenthub/sdk</code>
+                <code className="text-neutral-200 text-sm">yarn add @One Last AI/sdk</code>
               </div>
             </div>
 
@@ -169,10 +169,10 @@ export default function DocsSDKs() {
               <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
                 <code className="text-neutral-200 text-sm">
-                  {`import { AgentHub } from '@agenthub/sdk';
+                  {`import { One Last AI } from '@One Last AI/sdk';
 
-const client = new AgentHub({
-  apiKey: process.env.AGENTHUB_API_KEY
+const client = new One Last AI({
+  apiKey: process.env.One Last AI_API_KEY
 });
 
 // Get all agents
@@ -216,7 +216,7 @@ console.log(newAgent.id);`}
             <div className="mb-6">
               <h4 className="text-lg font-bold mb-3">Installation</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">pip install agenthub-sdk</code>
+                <code className="text-neutral-200 text-sm">pip install One Last AI-sdk</code>
               </div>
             </div>
 
@@ -224,9 +224,9 @@ console.log(newAgent.id);`}
               <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
                 <code className="text-neutral-200 text-sm">
-                  {`from agenthub import AgentHub
+                  {`from One Last AI import One Last AI
 
-client = AgentHub(api_key='YOUR_API_KEY')
+client = One Last AI(api_key='YOUR_API_KEY')
 
 # Get all agents
 agents = client.agents.list()
@@ -247,10 +247,10 @@ print(response['reply'])`}
               <div className="bg-neutral-900 p-4 rounded-lg">
                 <code className="text-neutral-200 text-sm">
                   {`import asyncio
-from agenthub import AsyncAgentHub
+from One Last AI import AsyncOne Last AI
 
 async def main():
-  client = AsyncAgentHub(api_key='YOUR_API_KEY')
+  client = AsyncOne Last AI(api_key='YOUR_API_KEY')
   
   response = await client.conversations.send(
     agent_id='agent_123',
@@ -275,7 +275,7 @@ asyncio.run(main())`}
             <div className="mb-6">
               <h4 className="text-lg font-bold mb-3">Installation</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">go get github.com/agenthub/sdk-go</code>
+                <code className="text-neutral-200 text-sm">go get github.com/One Last AI/sdk-go</code>
               </div>
             </div>
 
@@ -287,11 +287,11 @@ asyncio.run(main())`}
 
 import (
   "fmt"
-  "github.com/agenthub/sdk-go"
+  "github.com/One Last AI/sdk-go"
 )
 
 func main() {
-  client := agenthub.NewClient("YOUR_API_KEY")
+  client := One Last AI.NewClient("YOUR_API_KEY")
   
   // List agents
   agents, err := client.Agents.List()
@@ -300,7 +300,7 @@ func main() {
   }
   
   // Send message
-  response, err := client.Conversations.Send(&agenthub.Message{
+  response, err := client.Conversations.Send(&One Last AI.Message{
     AgentID: "agent_123",
     Text:    "Hello!",
   })
@@ -322,7 +322,7 @@ func main() {
             <div className="mb-6">
               <h4 className="text-lg font-bold mb-3">Installation</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">composer require agenthub/sdk-php</code>
+                <code className="text-neutral-200 text-sm">composer require One Last AI/sdk-php</code>
               </div>
             </div>
 
@@ -333,7 +333,7 @@ func main() {
                   {`<?php
 require 'vendor/autoload.php';
 
-use AgentHub\\Client;
+use One Last AI\\Client;
 
 $client = new Client([
   'api_key' => 'YOUR_API_KEY'
@@ -365,7 +365,7 @@ echo $response['reply'];
             <div className="mb-6">
               <h4 className="text-lg font-bold mb-3">Installation</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">gem install agenthub-sdk</code>
+                <code className="text-neutral-200 text-sm">gem install One Last AI-sdk</code>
               </div>
             </div>
 
@@ -373,9 +373,9 @@ echo $response['reply'];
               <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
                 <code className="text-neutral-200 text-sm">
-                  {`require 'agenthub'
+                  {`require 'One Last AI'
 
-client = AgentHub::Client.new(api_key: ENV['AGENTHUB_API_KEY'])
+client = One Last AI::Client.new(api_key: ENV['One Last AI_API_KEY'])
 
 # List agents
 agents = client.agents.list
@@ -405,7 +405,7 @@ puts response['reply']`}
               <div className="bg-neutral-900 p-4 rounded-lg">
                 <code className="text-neutral-200 text-sm">
                   {`<dependency>
-  <groupId>com.agenthub</groupId>
+  <groupId>com.One Last AI</groupId>
   <artifactId>sdk-java</artifactId>
   <version>2.2.0</version>
 </dependency>`}
@@ -417,12 +417,12 @@ puts response['reply']`}
               <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
               <div className="bg-neutral-900 p-4 rounded-lg">
                 <code className="text-neutral-200 text-sm">
-                  {`import com.agenthub.sdk.AgentHub;
-import com.agenthub.sdk.models.Agent;
+                  {`import com.One Last AI.sdk.One Last AI;
+import com.One Last AI.sdk.models.Agent;
 
 public class Main {
   public static void main(String[] args) {
-    AgentHub client = new AgentHub("YOUR_API_KEY");
+    One Last AI client = new One Last AI("YOUR_API_KEY");
     
     // List agents
     List<Agent> agents = client.agents().list();

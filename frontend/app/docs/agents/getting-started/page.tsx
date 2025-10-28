@@ -19,7 +19,7 @@ export default function GettingStartedPage() {
             Getting Started with Agents
           </h1>
           <p className="text-xl text-neutral-300">
-            Learn the fundamentals of creating, deploying, and managing AI agents on AgentHub.
+            Learn the fundamentals of creating, deploying, and managing AI agents on One Last AI.
           </p>
           <div className="flex items-center gap-4 mt-6 text-neutral-400">
             <span>📖 Reading time: 8 minutes</span>
@@ -88,7 +88,7 @@ export default function GettingStartedPage() {
                   <h3 className="text-xl font-bold text-white">Create an Account</h3>
                 </div>
                 <p className="text-neutral-300">
-                  Visit AgentHub and sign up for a free account. You'll get immediate access to all available agents and the ability to create custom ones.
+                  Visit One Last AI and sign up for a free account. You'll get immediate access to all available agents and the ability to create custom ones.
                 </p>
               </div>
 

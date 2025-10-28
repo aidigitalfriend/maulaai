@@ -116,7 +116,7 @@ export default function SuggestionsPage() {
             <h1 className="text-4xl md:text-5xl font-bold">Share Your Ideas</h1>
           </div>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Help shape the future of AgentHub. Submit your feature requests, improvements, and ideas to make our platform even better.
+            Help shape the future of One Last AI. Submit your feature requests, improvements, and ideas to make our platform even better.
           </p>
         </div>
       </section>
@@ -347,7 +347,7 @@ export default function SuggestionsPage() {
                       maxLength={2000}
                       rows={6}
                       className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500 resize-none"
-                      placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve AgentHub?"
+                      placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve One Last AI?"
                     />
                     <p className="text-xs text-neural-400 mt-1">{formData.description.length}/2000</p>
                   </div>
@@ -431,7 +431,7 @@ export default function SuggestionsPage() {
                 {/* Terms & Submit */}
                 <div className="bg-neural-700 p-4 rounded-lg border border-neural-600">
                   <p className="text-sm text-neural-300">
-                    ✓ By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve AgentHub.
+                    ✓ By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve One Last AI.
                   </p>
                 </div>
 

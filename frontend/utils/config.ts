@@ -92,31 +92,33 @@ export interface AppConfig {
 
 /**
  * Get AI service configuration from environment variables
+ * ✅ SECURITY: API keys removed - all AI calls go through secure backend
  */
 export const getAIConfig = (): AIConfig => {
   return {
     openai: {
-      apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+      apiKey: '', // ✅ REMOVED: API key now only on backend
       model: process.env.NEXT_PUBLIC_OPENAI_MODEL || 'gpt-3.5-turbo',
-      enabled: !!(process.env.NEXT_PUBLIC_OPENAI_API_KEY || process.env.OPENAI_API_KEY)
+      enabled: true // Backend handles availability
     },
     anthropic: {
-      apiKey: process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY,
+      apiKey: '', // ✅ REMOVED: API key now only on backend
       model: process.env.NEXT_PUBLIC_ANTHROPIC_MODEL || 'claude-3-sonnet-20240229',
-      enabled: !!(process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY)
+      enabled: true // Backend handles availability
     },
     gemini: {
-      apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY,
+      apiKey: '', // ✅ REMOVED: API key now only on backend
       model: process.env.NEXT_PUBLIC_GEMINI_MODEL || 'gemini-pro',
-      enabled: !!(process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY)
+      enabled: true // Backend handles availability
     },
     cohere: {
-      apiKey: process.env.NEXT_PUBLIC_COHERE_API_KEY || process.env.COHERE_API_KEY,
+      apiKey: '', // ✅ REMOVED: API key now only on backend
       model: process.env.NEXT_PUBLIC_COHERE_MODEL || 'command-r-plus',
-      enabled: !!(process.env.NEXT_PUBLIC_COHERE_API_KEY || process.env.COHERE_API_KEY)
+      enabled: true // Backend handles availability
     }
   }
 }
+
 
 /**
  * Get voice service configuration from environment variables

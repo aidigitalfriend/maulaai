@@ -68,7 +68,7 @@ export default function CookiePolicyPage() {
           <section>
             <h2 className="text-2xl font-bold mb-4">6. Contact Us</h2>
             <p className="text-neural-700">
-              For questions about our Cookie Policy, please contact us at privacy@agenthub.com
+              For questions about our Cookie Policy, please contact us at privacy@One Last AI.com
             </p>
           </section>
         </div>

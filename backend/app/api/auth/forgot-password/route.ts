@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     try {
       await transporter.sendMail({
         to: user.email,
-        from: process.env.EMAIL_FROM || 'noreply@axeyaxe.com',
+        from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
         subject: '🔐 Password Reset Request',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

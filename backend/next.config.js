@@ -2,8 +2,8 @@
 
 // ✅ SECURITY: Allowed frontend origins
 const allowedOrigins = [
-  'https://axeyaxe.com',
-  'https://www.axeyaxe.com',
+  'https://onelastai.co',
+  'https://www.onelastai.co',
   process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : null,
   process.env.FRONTEND_URL || null,
 ].filter(Boolean)
@@ -25,7 +25,7 @@ const nextConfig = {
             key: 'Access-Control-Allow-Origin',
             value: process.env.NODE_ENV === 'development' 
               ? '*' 
-              : 'https://axeyaxe.com'
+              : 'https://onelastai.co'
           },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
@@ -44,4 +44,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+export default nextConfig

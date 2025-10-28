@@ -73,7 +73,7 @@ export default function ContributingPage() {
     {
       id: 'create',
       title: '✍️ Create Content',
-      description: 'Write guides, tutorials, or case studies based on your experience with AgentHub.',
+      description: 'Write guides, tutorials, or case studies based on your experience with One Last AI.',
       details: [
         'Write how-to guides',
         'Document best practices',
@@ -103,9 +103,9 @@ export default function ContributingPage() {
       {/* Header Section */}
       <section className="section-padding-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contributing to AgentHub</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contributing to One Last AI</h1>
           <p className="text-xl opacity-90 mb-4">Help us build a thriving community of AI enthusiasts and innovators</p>
-          <p className="text-lg opacity-75">Every contribution matters. Help shape the future of AgentHub.</p>
+          <p className="text-lg opacity-75">Every contribution matters. Help shape the future of One Last AI.</p>
         </div>
       </section>
 
@@ -137,7 +137,7 @@ export default function ContributingPage() {
       <section className="section-padding">
         <div className="container-custom max-w-5xl">
           <h2 className="text-3xl font-bold text-white mb-2">Ways to Contribute</h2>
-          <p className="text-neutral-300 mb-10">Choose how you'd like to contribute to AgentHub</p>
+          <p className="text-neutral-300 mb-10">Choose how you'd like to contribute to One Last AI</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {contributionTypes.map((contribution) => (
@@ -365,7 +365,7 @@ export default function ContributingPage() {
         <div className="container-custom max-w-4xl text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
           <p className="text-neutral-300 mb-8 text-lg">
-            Join our community and start making an impact today. Your contributions help everyone in the AgentHub ecosystem.
+            Join our community and start making an impact today. Your contributions help everyone in the One Last AI ecosystem.
           </p>
           <Link
             href="/community"

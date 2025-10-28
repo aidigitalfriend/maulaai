@@ -34,7 +34,7 @@ export default function DemoPage() {
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">Schedule Your Personal Demo</h1>
           <p className="text-xl text-neural-600 max-w-2xl mx-auto">
-            Experience AgentHub firsthand. Our product experts will show you exactly how our AI agents can transform your business.
+            Experience One Last AI firsthand. Our product experts will show you exactly how our AI agents can transform your business.
           </p>
         </div>
       </section>
@@ -50,7 +50,7 @@ export default function DemoPage() {
                 {[
                   { icon: "🤖", title: "AI Agent Capabilities", desc: "See how our 20+ AI agents can solve your specific challenges" },
                   { icon: "📊", title: "Real-time Analytics", desc: "Explore powerful dashboards and performance metrics" },
-                  { icon: "🔧", title: "Easy Integration", desc: "Learn how to integrate AgentHub into your workflow" },
+                  { icon: "🔧", title: "Easy Integration", desc: "Learn how to integrate One Last AI into your workflow" },
                   { icon: "💰", title: "ROI & Pricing", desc: "Understand pricing models and expected returns" }
                 ].map((item, idx) => (
                   <div key={idx} className="border-l-4 border-brand-500 pl-4">
@@ -189,11 +189,11 @@ export default function DemoPage() {
               },
               {
                 q: "Can multiple team members join?",
-                a: "Absolutely! We encourage team members from different departments to join and see how AgentHub can help them."
+                a: "Absolutely! We encourage team members from different departments to join and see how One Last AI can help them."
               },
               {
                 q: "Will I get a trial account after the demo?",
-                a: "Yes! Qualified leads receive a 14-day free trial to experience AgentHub firsthand."
+                a: "Yes! Qualified leads receive a 14-day free trial to experience One Last AI firsthand."
               }
             ].map((item, idx) => (
               <div key={idx} className="bg-white p-6 rounded-lg border border-neural-200">

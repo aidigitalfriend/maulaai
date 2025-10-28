@@ -1,5 +1,4 @@
 // Achievement Badge System - Complete gamification with 50+ badges
-import { User } from '@/types/user'
 
 export interface Achievement {
   id: string

@@ -62,7 +62,7 @@ export async function verifyRequest(req: NextRequest): Promise<AuthResult> {
       
       return {
         authenticated: true,
-        user: verified.payload as AuthenticatedUser,
+        user: (verified.payload as unknown) as AuthenticatedUser,
         error: null,
         token
       }

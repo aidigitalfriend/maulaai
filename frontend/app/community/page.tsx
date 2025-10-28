@@ -155,7 +155,7 @@ export default function CommunityPage() {
       {/* Header Section */}
       <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">AgentHub Community</h1>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4">One Last AI Community</h1>
           <p className="text-xl opacity-90">Join real-time discussions with thousands of developers, AI enthusiasts, and innovators</p>
         </div>
       </section>
@@ -353,7 +353,7 @@ export default function CommunityPage() {
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">🎯</div>
               <h3 className="font-bold mb-2">Stay On Topic</h3>
-              <p className="text-neural-400 text-sm">Keep discussions relevant to AgentHub and our platform community.</p>
+              <p className="text-neural-400 text-sm">Keep discussions relevant to One Last AI and our platform community.</p>
             </div>
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">✨</div>

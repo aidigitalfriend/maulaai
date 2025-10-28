@@ -1,8 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import AgentChatPanel from '../../../components/AgentChatPanel'
+import * as chatStorage from '../../../utils/chatStorage'
 
 import { FileAttachment } from '../../../utils/chatStorage'
 import { DetectedLanguage, generateMultilingualPrompt } from '../../../utils/languageDetection'
@@ -145,10 +148,58 @@ const callEinsteinAI = async (
 }
 
 export default function EinsteinPage() {
+  const agentId = "einstein";
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Get configuration from environment variables
   const aiConfig = getAIConfig()
   const appConfig = getAppConfig()  
   const preferredProvider = getPreferredAIProvider()
+
+  useEffect(() => {
+    const loadedSessions = chatStorage.getAgentSessions(agentId);
+    if (loadedSessions.length > 0) {
+      setSessions(loadedSessions);
+      const activeId = chatStorage.getActiveSessionId(agentId);
+      setActiveSessionId(activeId ?? loadedSessions[0].id);
+    } else {
+      handleNewChat();
+    }
+  }, []);
+
+  const handleNewChat = () => {
+    const initialMessage: chatStorage.ChatMessage = {
+      id: 'initial-0',
+      role: 'assistant',
+      content: "🧠 Guten Tag! I am Einstein, your guide to the wonders of theoretical physics and the mysteries of the universe. Whether you want to discuss relativity, quantum mechanics, or the nature of spacetime itself, I'm here for it! What scientific question puzzles your mind?",
+      timestamp: new Date(),
+    };
+    const newSession = chatStorage.createNewSession(agentId, initialMessage);
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
+
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+  };
+
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId);
+    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    setSessions(remainingSessions);
+    if (activeSessionId === sessionId) {
+      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      if (remainingSessions.length === 0) {
+        handleNewChat();
+      }
+    }
+  };
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    chatStorage.renameSession(agentId, sessionId, newName);
+    setSessions(sessions.map(s => s.id === sessionId ? { ...s, name: newName } : s));
+  };
 
   const handleSendMessage = async (message: string, attachments?: FileAttachment[], detectedLanguage?: DetectedLanguage): Promise<string> => {
     // Check if multilingual features are enabled
@@ -217,46 +268,42 @@ export default function EinsteinPage() {
     return responses[Math.floor(Math.random() * responses.length)]
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-indigo-200 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              🧠
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Einstein</h1>
-              <p className="text-indigo-200 text-lg">Theoretical Physics Genius</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Physics</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Science</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Theory</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Education</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const activeSession = sessions.find(s => s.id === activeSessionId);
 
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="einstein"
+  return (
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      {/* Main Content */}
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
             agentName="Einstein"
-            agentColor="indigo"
-            initialMessage="🧠 Guten Tag! I am Einstein, how can I help you explore the mysteries of science?"
-            onSendMessage={handleSendMessage}
-            placeholder="What scientific mystery shall we explore? (You can also upload research papers) 🧠⚡📄"
-            allowFileUpload={true}
-            enableLanguageDetection={true}
-            className="border border-purple-200"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
+
+        {/* Right Panel (Chat) */}
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId}
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Einstein"
+              agentColor="from-indigo-500 to-purple-600"
+              placeholder="What scientific mystery shall we explore? 🧠⚡"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+              allowFileUpload={true}
+              enableLanguageDetection={true}
+            />
+          )}
         </div>
       </div>
     </div>

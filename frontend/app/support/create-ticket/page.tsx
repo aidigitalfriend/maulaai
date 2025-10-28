@@ -437,7 +437,7 @@ export default function CreateTicketPage() {
                   <Link href="/resources/documentation" className="bg-neural-700 p-4 rounded border border-neural-600 hover:border-brand-500 transition text-center">
                     <p className="text-2xl mb-2">📚</p>
                     <p className="font-semibold">Documentation</p>
-                    <p className="text-sm text-neural-400">Learn how to use AgentHub</p>
+                    <p className="text-sm text-neural-400">Learn how to use One Last AI</p>
                   </Link>
                 </div>
               </div>

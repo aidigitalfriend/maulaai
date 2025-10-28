@@ -1,8 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
+import AgentChatPanel from '../../../components/AgentChatPanel'
+import * as chatStorage from '../../../utils/chatStorage'
 
 import { FileAttachment } from '../../../utils/chatStorage'
 import { DetectedLanguage, generateMultilingualPrompt } from '../../../utils/languageDetection'
@@ -60,10 +63,58 @@ const callBishopBurgerAI = async (
 }
 
 export default function BishopBurgerPage() {
+  const agentId = "bishop-burger";
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Get configuration from environment variables
   const aiConfig = getAIConfig()
   const appConfig = getAppConfig()  
   const preferredProvider = getPreferredAIProvider()
+
+  useEffect(() => {
+    const loadedSessions = chatStorage.getAgentSessions(agentId);
+    if (loadedSessions.length > 0) {
+      setSessions(loadedSessions);
+      const activeId = chatStorage.getActiveSessionId(agentId);
+      setActiveSessionId(activeId ?? loadedSessions[0].id);
+    } else {
+      handleNewChat();
+    }
+  }, []);
+
+  const handleNewChat = () => {
+    const initialMessage: chatStorage.ChatMessage = {
+      id: 'initial-0',
+      role: 'assistant',
+      content: "🍔 Blessings, food lover! I am Bishop Burger, your spiritual guide to culinary enlightenment. I move diagonally through flavors like a chess bishop, connecting unexpected ingredients to create divine dishes. Whether you seek recipes, cooking wisdom, or food philosophy, I'm here to bless your culinary journey! What dish shall we create today?",
+      timestamp: new Date(),
+    };
+    const newSession = chatStorage.createNewSession(agentId, initialMessage);
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
+
+  const handleSelectChat = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+  };
+
+  const handleDeleteChat = (sessionId: string) => {
+    chatStorage.deleteSession(agentId, sessionId);
+    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    setSessions(remainingSessions);
+    if (activeSessionId === sessionId) {
+      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      if (remainingSessions.length === 0) {
+        handleNewChat();
+      }
+    }
+  };
+
+  const handleRenameChat = (sessionId: string, newName: string) => {
+    chatStorage.renameSession(agentId, sessionId, newName);
+    setSessions(sessions.map(s => s.id === sessionId ? { ...s, name: newName } : s));
+  };
 
   const handleSendMessage = async (message: string, attachments?: FileAttachment[], detectedLanguage?: DetectedLanguage): Promise<string> => {
     // Check if multilingual features are enabled
@@ -141,49 +192,42 @@ export default function BishopBurgerPage() {
     return responses[Math.floor(Math.random() * responses.length)]
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-600 text-white">
-        <div className="container-custom py-8">
-          <Link href="/agents" className="inline-flex items-center text-orange-100 hover:text-white mb-4">
-            <ChevronLeftIcon className="w-5 h-5 mr-2" />
-            Back to Agents
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl">
-              🍔
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Bishop Burger</h1>
-              <p className="text-orange-100 text-lg">Culinary Arts Spiritual Guide</p>
-              <div className="flex space-x-2 mt-2">
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Cooking</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Recipes</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Food</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-sm">Creativity</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  const activeSession = sessions.find(s => s.id === activeSessionId);
 
-      {/* Chat Interface */}
-      <div className="container-custom py-8">
-        <div className="max-w-4xl mx-auto">
-          <ChatBox
-            agentId="bishop-burger"
+  return (
+    <div className="h-full bg-gray-900 text-white flex flex-col">
+      {/* Main Content */}
+      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
+        {/* Left Panel */}
+        <div className="w-1/4 flex flex-col h-full overflow-hidden">
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
             agentName="Bishop Burger"
-            agentColor="from-orange-500 to-amber-600"
-            initialMessage="🍔 Hello, I am Bishop Burger, how can I help you with culinary wisdom?"
-            onSendMessage={handleSendMessage}
-            placeholder="What culinary creation shall we bless today? 🍔✨ (You can also upload PDF recipes!)"
-            className="border border-amber-200"
-            allowFileUpload={true}
-            enableLanguageDetection={true}
-            maxFileSize={10}
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
           />
+        </div>
+
+        {/* Right Panel (Chat) */}
+        <div className="w-3/4 h-full flex flex-col">
+          {activeSessionId && (
+            <ChatBox
+              key={activeSessionId}
+              agentId={agentId}
+              sessionId={activeSessionId}
+              agentName="Bishop Burger"
+              agentColor="from-orange-500 to-amber-600"
+              placeholder="What culinary creation shall we bless today? 🍔✨"
+              initialMessages={activeSession?.messages}
+              onSendMessage={handleSendMessage}
+              allowFileUpload={true}
+              enableLanguageDetection={true}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -18,10 +18,14 @@
     "lint": "cd frontend && npm run lint && cd ../backend && npm run lint"
   },
   "devDependencies": {
+    "@types/uuid": "^10.0.0",
     "concurrently": "^8.2.2"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "uuid": "^13.0.0"
   }
 }
