@@ -80,11 +80,6 @@ export default function LazyPawnPage() {
     }
   }
 
-
-  const handleSendMessage = async (message: string): Promise<string> => {
-    if (!responseSystem) {
-
-
   // ✅ SECURED: Now uses backend API with IntelligentResponseSystem as fallback
   const handleSendMessage = async (message: string): Promise<string> => {
     try {
