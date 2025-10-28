@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 
@@ -38,9 +39,14 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AI</span>
-            </div>
+            <Image
+              src="/images/logos/company-logo.png"
+              alt="One Last AI"
+              width={40}
+              height={40}
+              className="w-10 h-10 object-contain"
+              priority
+            />
             <span className="text-xl font-bold text-neural-800">One Last AI</span>
           </Link>
 

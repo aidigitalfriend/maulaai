@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface SplashScreenProps {
@@ -46,19 +47,20 @@ export default function SplashScreen({ isLoading, onLoadingComplete }: SplashScr
             transition={{ duration: 0.6, ease: 'easeOut' }}
             className="relative z-10 flex flex-col items-center justify-center gap-6 px-4"
           >
-            {/* Logo */}
+            {/* Logo with Company Image */}
             <motion.div
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="w-24 h-24 bg-gradient-to-r from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-2xl"
+              className="w-32 h-32 flex items-center justify-center"
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                className="text-white font-bold text-5xl"
-              >
-                AI
-              </motion.div>
+              <Image
+                src="/images/logos/company-logo.png"
+                alt="One Last AI"
+                width={128}
+                height={128}
+                className="w-32 h-32 object-contain drop-shadow-2xl"
+                priority
+              />
             </motion.div>
 
             {/* Site Title */}

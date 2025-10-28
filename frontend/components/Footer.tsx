@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 
 export default function Footer() {
@@ -157,9 +158,13 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-brand-500 to-accent-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">AI</span>
-              </div>
+              <Image
+                src="/images/logos/company-logo.png"
+                alt="One Last AI"
+                width={40}
+                height={40}
+                className="w-10 h-10 object-contain"
+              />
               <span className="text-2xl font-bold">One Last AI</span>
             </Link>
             <p className="text-neural-300 mb-6 max-w-md">

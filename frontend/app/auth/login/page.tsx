@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../../lib/auth-context'
@@ -74,8 +75,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+        {/* Header with Logo */}
         <div className="text-center">
+          <Link href="/" className="inline-flex items-center justify-center mb-6">
+            <Image
+              src="/images/logos/company-logo.png"
+              alt="One Last AI"
+              width={80}
+              height={80}
+              className="w-20 h-20 object-contain"
+              priority
+            />
+          </Link>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent mb-2">
             Welcome Back
           </h1>

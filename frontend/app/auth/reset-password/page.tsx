@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../../lib/auth-context'
 
@@ -120,8 +121,18 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+        {/* Header with Logo */}
         <div className="text-center">
+          <Link href="/" className="inline-flex items-center justify-center mb-6">
+            <Image
+              src="/images/logos/company-logo.png"
+              alt="One Last AI"
+              width={80}
+              height={80}
+              className="w-20 h-20 object-contain"
+              priority
+            />
+          </Link>
           <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-6">
             <span className="text-3xl">🔑</span>
           </div>

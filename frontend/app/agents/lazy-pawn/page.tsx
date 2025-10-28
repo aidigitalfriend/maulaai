@@ -5,8 +5,10 @@ import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
 import AgentChatPanel from '../../../components/AgentChatPanel'
-import { chatStorage, generateSessionId } from '../../../components/BenSegaChatPanel'
-import type { ChatSession } from '../../../components/BenSegaChatPanel'
+import * as chatStorage from '../../../utils/chatStorage'
+import type { ChatSession } from '../../../utils/chatStorage'
+// Helper function to generate session IDs
+const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 import IntelligentResponseSystem from '../../../lib/intelligent-response-system'
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 

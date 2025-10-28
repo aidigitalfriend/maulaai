@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 
@@ -116,10 +117,22 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
-          {/* Header */}
+          {/* Header with Logo */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Join One Last AI</h1>
-            <p className="text-blue-100">Create your account in seconds</p>
+            <div className="flex justify-center mb-4">
+              <Link href="/">
+                <Image
+                  src="/images/logos/company-logo.png"
+                  alt="One Last AI"
+                  width={60}
+                  height={60}
+                  className="w-15 h-15 object-contain"
+                  priority
+                />
+              </Link>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2 text-center">Join One Last AI</h1>
+            <p className="text-blue-100 text-center">Create your account in seconds</p>
           </div>
 
           <div className="p-6">
