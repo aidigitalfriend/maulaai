@@ -9,6 +9,7 @@ import * as chatStorage from '../../../utils/chatStorage'
 import type { ChatSession } from '../../../utils/chatStorage'
 // Helper function to generate session IDs
 const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function TravelBuddyPage() {
