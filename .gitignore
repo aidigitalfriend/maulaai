@@ -6,15 +6,28 @@
 # Never commit: API keys, passwords, secrets, tokens, credentials
 # ==================================================
 
-# Environment variables and secrets
+# Environment variables and secrets (CRITICAL!)
 .env
+.env.*
 .env.local
 .env.production
 .env.production.local
 .env.development.local
 .env.test.local
+.env.staging
 .env.*.local
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+frontend/.env.production.local
 !.env.example
+!.env.template
+!**/.env.example
+!**/.env.template
+.env.production.frontend.template
+.env.production.backend.template
 
 # API Keys and sensitive configuration
 APIKEYS.md
@@ -27,6 +40,27 @@ API_KEYS.md
 **/*private*
 **/*credentials*
 **/*token*
+
+# Specific AI API keys (double protection)
+openai_key.txt
+anthropic_key.txt
+gemini_key.txt
+cohere_key.txt
+elevenlabs_key.txt
+
+# Payment provider keys
+stripe_keys.txt
+paypal_keys.txt
+payment_credentials.*
+
+# AWS credentials
+.aws/
+aws-credentials.json
+**/aws-config.json
+
+# MongoDB connection strings
+mongodb_uri.txt
+mongo-credentials.json
 
 # Database files
 *.db
@@ -307,7 +341,7 @@ tmp/
 # yarn.lock
 
 # ==================================================
-# PROJECT SPECIFIC
+# PROJECT SPECIFIC - SHINY FRIEND DISCO
 # ==================================================
 
 # Integration test outputs
@@ -320,3 +354,155 @@ docs/generated/
 # Local configuration overrides
 config.local.*
 settings.local.*
+
+# AI Model cache files
+**/model-cache/
+**/.cache/huggingface/
+**/.cache/transformers/
+
+# Voice/Audio cache
+**/voice-cache/
+**/tts-cache/
+**/audio-temp/
+
+# User uploaded files
+**/uploads/
+**/user-uploads/
+**/user-data/
+public/uploads/
+frontend/public/uploads/
+
+# Payment processing logs
+**/payment-logs/
+**/transaction-logs/
+**/stripe-webhooks.log
+**/paypal-webhooks.log
+
+# Email service logs
+**/email-logs/
+**/sendgrid-logs/
+
+# Session storage
+sessions/
+**/sessions/
+
+# Analytics data
+**/analytics-data/
+**/user-analytics/
+
+# Backup directories
+backups/
+**/backups/
+*.backup
+backup_*/
+
+# Database dumps
+*.sql
+
+# ==================================================
+# ADDITIONAL SENSITIVE FILES - ENSURE THESE ARE IGNORED
+# ==================================================
+# SSH keys and auth
+.ssh/
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+.netrc
+
+# HTTP auth and server secrets
+.htpasswd
+.htaccess
+
+# Rails / other encrypted credentials
+credentials.yml.enc
+
+# macOS keychain exports
+*.keychain
+
+# Generic secrets and key stores
+*.jks
+*.keystore
+*.p12
+*.pfx
+
+# Local sensitive documentation that may contain keys
+*credentials*
+*secret*
+*private*
+*tokens*
+*api-key*
+
+# Narrow allowlist: keep example env templates but ignore any other env-like files
+!.env.example
+!.env.template
+
+# Editor local histories
+.history
+.vscode/*history*
+
+# Git large file storage metadata (if storing secrets accidentally)
+.gitattributes
+
+*.dump
+dump.rdb
+
+# SSL certificates for local development
+**/ssl/
+**/certificates/
+localhost.pem
+localhost-key.pem
+
+# PM2 process manager
+.pm2/
+pm2.log
+pm2-error.log
+ecosystem.config.local.js
+
+# Nginx configuration (if contains sensitive data)
+nginx/production.conf
+nginx/ssl.conf
+
+# Deployment scripts with secrets
+deploy-production.sh
+deploy.local.sh
+**/deploy-secrets.*
+
+# Test accounts and data
+test-accounts.json
+test-users.json
+test-api-keys.json
+
+# OpenAI fine-tuning data
+**/training-data/
+**/fine-tune-data/
+
+# Large media files
+*.mp4
+*.mov
+*.avi
+*.mp3
+*.wav
+*.flac
+**/large-files/
+
+# Temporary agent conversation logs
+**/conversation-logs/
+**/chat-history/
+
+# Redis dumps
+dump.rdb
+
+# Sentry configuration
+.sentryclirc
+
+# Cloudflare credentials
+.cloudflare/
+cloudflare-credentials.json
+
+# Email templates with sensitive info
+**/email-templates/production/
+
+# Monitoring and metrics
+**/metrics/
+**/monitoring-data/
