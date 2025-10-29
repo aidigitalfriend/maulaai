@@ -63,7 +63,7 @@ This is the **BACKBONE** of our project - a sophisticated emotional TTS system t
 
 ## 🎭 AGENT PERSONALITIES
 
-### 👩 Female Agents (4)
+### 👩 Female Agents (6)
 
 #### 1. **Julie (Girlfriend)** 💕
 - **Emotion**: Romantic, loving, warm
@@ -93,7 +93,21 @@ This is the **BACKBONE** of our project - a sophisticated emotional TTS system t
 - **Provider**: Azure (Sara Neural - professional)
 - **Use Case**: "Let's analyze the quarterly reports and optimize strategy."
 
-### 👨 Male Agents (12)
+#### 5. **Chef Biew** �‍🍳
+- **Emotion**: Passionate, warm, creative
+- **Style**: Conversational, enthusiastic
+- **Voice**: Warm, passionate, expressive
+- **Provider**: ElevenLabs (Freya - warm female)
+- **Use Case**: "The secret to amazing food is love and fresh ingredients!"
+
+#### 6. **Nid Gaming** 🎮
+- **Emotion**: Excited, energetic, competitive
+- **Style**: Conversational, hyped
+- **Voice**: Energetic, youthful, enthusiastic
+- **Provider**: ElevenLabs (Matilda - energetic female)
+- **Use Case**: "Let's GO! Time to dominate this game! Ready player one? 🎮"
+
+### �👨 Male Agents (10)
 
 #### 5. **Einstein** 🧠
 - **Emotion**: Wise, thoughtful, mysterious
@@ -123,7 +137,14 @@ This is the **BACKBONE** of our project - a sophisticated emotional TTS system t
 - **Provider**: ElevenLabs (Josh - tech-savvy)
 - **Use Case**: "The algorithm's complexity is O(n log n) optimized."
 
-#### 9. **Chef Biew** 👨‍🍳
+#### 9. **Lazy Pawn** 😴
+- **Emotion**: Lazy, tired, casual
+- **Style**: Conversational, relaxed
+- **Voice**: Low energy, laid-back, slow
+- **Provider**: ElevenLabs (Sam - casual)
+- **Use Case**: "Eh... do we really need to do this right now?"
+
+#### 10. **Professor Astrology** �
 - **Emotion**: Passionate, warm, creative
 - **Style**: Conversational, enthusiastic
 - **Voice**: Warm, passionate, expressive

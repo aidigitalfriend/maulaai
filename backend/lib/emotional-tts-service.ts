@@ -249,21 +249,41 @@ export const AGENT_PERSONALITIES: Record<string, VoicePersonality> = {
 
   'chef-biew': {
     agentId: 'chef-biew',
-    gender: 'male',
+    gender: 'female',
     baseEmotion: 'passionate',
     defaultStyle: 'conversational',
     voiceCharacteristics: {
-      warmth: 0.85,
-      energy: 0.75,
-      authority: 0.7,
-      playfulness: 0.6
+      warmth: 0.9,
+      energy: 0.8,
+      authority: 0.65,
+      playfulness: 0.75
     },
     providers: {
-      elevenlabs: { voiceId: 'IKne3meq5aSn9XLyUdCD', stability: 0.5, similarityBoost: 0.75 }, // Charlie - warm
-      azure: { voiceName: 'en-US-JasonNeural' },
-      google: { name: 'en-US-Wavenet-I', languageCode: 'en-US' },
-      polly: { voiceId: 'Matthew', engine: 'neural' },
-      openai: { voice: 'fable' }
+      elevenlabs: { voiceId: 'jsCqWAovK2LkecY7zXl4', stability: 0.5, similarityBoost: 0.75 }, // Freya - warm, passionate female
+      azure: { voiceName: 'en-US-JennyNeural' },
+      google: { name: 'en-US-Wavenet-F', languageCode: 'en-US' },
+      polly: { voiceId: 'Joanna', engine: 'neural' },
+      openai: { voice: 'nova' }
+    }
+  },
+
+  'nid-gaming': {
+    agentId: 'nid-gaming',
+    gender: 'female',
+    baseEmotion: 'excited',
+    defaultStyle: 'conversational',
+    voiceCharacteristics: {
+      warmth: 0.7,
+      energy: 0.95,
+      authority: 0.6,
+      playfulness: 0.9
+    },
+    providers: {
+      elevenlabs: { voiceId: 'XrExE9yKIg1WjnnlVkGX', stability: 0.4, similarityBoost: 0.8 }, // Matilda - energetic, youthful female
+      azure: { voiceName: 'en-US-AriaNeural' },
+      google: { name: 'en-US-Wavenet-C', languageCode: 'en-US' },
+      polly: { voiceId: 'Kimberly', engine: 'neural' },
+      openai: { voice: 'shimmer' }
     }
   },
 
@@ -770,11 +790,12 @@ export class EmotionalTTSService {
       'drama-queen': 'Oh my goodness! This is ABSOLUTELY the most INCREDIBLE thing ever!',
       'emma-emotional': 'I really understand how you feel. Let me help you through this.',
       'mrs-boss': 'Let\'s analyze the quarterly reports and optimize our strategy.',
+      'chef-biew': 'The secret to amazing food is love, passion, and fresh ingredients!',
+      'nid-gaming': 'Let\'s GO! Time to dominate this game! Ready player one? 🎮',
       'einstein': 'The universe is a fascinating tapestry of mathematical elegance.',
       'comedy-king': 'So I told him, "That\'s not a bug, that\'s a feature!" Haha!',
       'fitness-guru': 'Let\'s GO! Push through! You\'ve got this! One more rep!',
       'tech-wizard': 'The algorithm\'s time complexity is O(n log n) with optimal space usage.',
-      'chef-biew': 'The secret ingredient is love, passion, and a pinch of creativity.',
       'lazy-pawn': 'Eh... do we really need to do this right now? Maybe later...',
       'professor-astrology': 'The stars align in mysterious ways, revealing cosmic truths.',
       'travel-buddy': 'Dude! This place is AMAZING! We gotta explore everything!',
