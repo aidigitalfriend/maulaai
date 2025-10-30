@@ -5,15 +5,16 @@ import AgentChatPanel from './AgentChatPanel'
 import * as chatStorage from '../utils/chatStorage'
 
 interface AgentPageLayoutProps {
-  agentId: string
-  agentName: string
-  sessions: chatStorage.ChatSession[]
-  activeSessionId: string | null
-  onNewChat: () => void
-  onSelectChat: (sessionId: string) => void
-  onDeleteChat: (sessionId: string) => void
-  onRenameChat: (sessionId: string, newName: string) => void
+  agentId?: string
+  agentName?: string
+  sessions?: chatStorage.ChatSession[]
+  activeSessionId?: string | null
+  onNewChat?: () => void
+  onSelectChat?: (sessionId: string) => void
+  onDeleteChat?: (sessionId: string) => void
+  onRenameChat?: (sessionId: string, newName: string) => void
   children: ReactNode
+  leftPanel?: ReactNode  // Optional: for custom left panel
 }
 
 export default function AgentPageLayout({
@@ -25,9 +26,32 @@ export default function AgentPageLayout({
   onSelectChat,
   onDeleteChat,
   onRenameChat,
-  children
+  children,
+  leftPanel
 }: AgentPageLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Use custom leftPanel if provided, otherwise use default AgentChatPanel
+  const sidebarContent = leftPanel || (
+    agentId && agentName && sessions ? (
+      <AgentChatPanel
+        chatSessions={sessions}
+        activeSessionId={activeSessionId}
+        agentId={agentId}
+        agentName={agentName}
+        onNewChat={() => {
+          onNewChat?.()
+          setIsSidebarOpen(false)
+        }}
+        onSelectChat={(sessionId) => {
+          onSelectChat?.(sessionId)
+          setIsSidebarOpen(false)
+        }}
+        onDeleteChat={onDeleteChat || (() => {})}
+        onRenameChat={onRenameChat || (() => {})}
+      />
+    ) : null
+  )
 
   return (
     <div className="h-full bg-gray-900 text-white flex flex-col">
@@ -64,22 +88,7 @@ export default function AgentPageLayout({
           flex flex-col h-full overflow-hidden
           pt-24 lg:pt-0
         `}>
-          <AgentChatPanel
-            chatSessions={sessions}
-            activeSessionId={activeSessionId}
-            agentId={agentId}
-            agentName={agentName}
-            onNewChat={() => {
-              onNewChat()
-              setIsSidebarOpen(false) // Close sidebar after creating new chat on mobile
-            }}
-            onSelectChat={(sessionId) => {
-              onSelectChat(sessionId)
-              setIsSidebarOpen(false) // Close sidebar after selecting chat on mobile
-            }}
-            onDeleteChat={onDeleteChat}
-            onRenameChat={onRenameChat}
-          />
+          {sidebarContent}
         </div>
 
         {/* Overlay for mobile when sidebar is open */}

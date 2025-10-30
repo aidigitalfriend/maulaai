@@ -88,22 +88,21 @@ export default function BenSegaPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Ben Sega"
-            agentColor="from-indigo-500 to-purple-600"
-            placeholder="What classic game brings back memories? 🕹️"
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-            allowFileUpload={false}
-            enableLanguageDetection={false}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId && (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Ben Sega"
+          agentColor="from-indigo-500 to-purple-600"
+          placeholder="What classic game brings back memories? 🕹️"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+          allowFileUpload={false}
+          enableLanguageDetection={false}
+        />
+      )}
+    </AgentPageLayout>
   )
 }
