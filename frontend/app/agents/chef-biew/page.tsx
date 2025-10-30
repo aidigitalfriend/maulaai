@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
+import AgentPageLayout from '../../../components/AgentPageLayout'
 import * as chatStorage from '../../../utils/chatStorage'
 import type { ChatSession } from '../../../utils/chatStorage'
 // Helper function to generate session IDs
@@ -92,39 +92,28 @@ export default function ChefBiewPage() {
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   return (
-    <div className="h-full bg-gray-900 text-white flex flex-col">
-      {/* Main Content */}
-      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
-        {/* Left Panel */}
-        <div className="w-1/4 flex flex-col h-full overflow-hidden">
-          <AgentChatPanel
-            chatSessions={sessions}
-            activeSessionId={activeSessionId}
-            agentId={agentId}
-            agentName="Chef Biew"
-            onNewChat={handleNewChat}
-            onSelectChat={handleSelectChat}
-            onDeleteChat={handleDeleteChat}
-            onRenameChat={handleRenameChat}
-          />
-        </div>
-
-        {/* Right Panel (Chat) */}
-        <div className="w-3/4 h-full flex flex-col">
-          {activeSessionId && (
-            <ChatBox
-              key={activeSessionId}
-              agentId={agentId}
-              sessionId={activeSessionId}
-              agentName="Chef Biew"
-              agentColor="from-red-600 to-orange-600"
-              placeholder="What Asian dish shall we cook together? 🍜"
-              initialMessages={activeSession?.messages}
-              onSendMessage={handleSendMessage}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    <AgentPageLayout
+      agentId={agentId}
+      agentName="Chef Biew"
+      sessions={sessions}
+      activeSessionId={activeSessionId}
+      onNewChat={handleNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
+      onRenameChat={handleRenameChat}
+    >
+      {activeSessionId && (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Chef Biew"
+          agentColor="from-red-600 to-orange-600"
+          placeholder="What Asian dish shall we cook together? 🍜"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      )}
+    </AgentPageLayout>
   )
 }

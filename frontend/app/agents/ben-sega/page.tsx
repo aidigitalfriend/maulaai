@@ -6,6 +6,7 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
 import EnhancedAgentHeader from '../../../components/EnhancedAgentHeader'
 import BenSegaChatPanel from '../../../components/BenSegaChatPanel'
+import AgentPageLayout from '../../../components/AgentPageLayout'
 import * as chatStorage from '../../../utils/chatStorage'
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
@@ -76,39 +77,33 @@ export default function BenSegaPage() {
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   return (
-    <div className="h-full bg-gray-900 text-white flex flex-col">
-      {/* Main Content */}
-      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
-        {/* Left Panel */}
-        <div className="w-1/4 flex flex-col h-full overflow-hidden">
-          <BenSegaChatPanel
-            chatSessions={sessions}
-            activeSessionId={activeSessionId}
-            onNewChat={handleNewChat}
-            onSelectChat={handleSelectChat}
-            onDeleteChat={handleDeleteChat}
-            onRenameChat={handleRenameChat}
+    <AgentPageLayout
+      leftPanel={
+        <BenSegaChatPanel
+          chatSessions={sessions}
+          activeSessionId={activeSessionId}
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+          onDeleteChat={handleDeleteChat}
+          onRenameChat={handleRenameChat}
+        />
+      }
+      rightPanel={
+        activeSessionId ? (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Ben Sega"
+            agentColor="from-indigo-500 to-purple-600"
+            placeholder="What classic game brings back memories? 🕹️"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+            allowFileUpload={false}
+            enableLanguageDetection={false}
           />
-        </div>
-
-        {/* Right Panel (Chat) */}
-        <div className="w-3/4 h-full flex flex-col">
-          {activeSessionId && (
-            <ChatBox
-              key={activeSessionId} // Important to remount ChatBox on session change
-              agentId={agentId}
-              sessionId={activeSessionId}
-              agentName="Ben Sega"
-              agentColor="from-indigo-500 to-purple-600"
-              placeholder="What classic game brings back memories? 🕹️"
-              initialMessages={activeSession?.messages}
-              onSendMessage={handleSendMessage}
-              allowFileUpload={false}
-              enableLanguageDetection={false}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+        ) : null
+      }
+    />
   )
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
+import AgentPageLayout from '../../../components/AgentPageLayout'
 import * as chatStorage from '../../../utils/chatStorage'
 
 import { FileAttachment } from '../../../utils/chatStorage'
@@ -195,41 +195,30 @@ export default function BishopBurgerPage() {
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   return (
-    <div className="h-full bg-gray-900 text-white flex flex-col">
-      {/* Main Content */}
-      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
-        {/* Left Panel */}
-        <div className="w-1/4 flex flex-col h-full overflow-hidden">
-          <AgentChatPanel
-            chatSessions={sessions}
-            activeSessionId={activeSessionId}
-            agentId={agentId}
-            agentName="Bishop Burger"
-            onNewChat={handleNewChat}
-            onSelectChat={handleSelectChat}
-            onDeleteChat={handleDeleteChat}
-            onRenameChat={handleRenameChat}
-          />
-        </div>
-
-        {/* Right Panel (Chat) */}
-        <div className="w-3/4 h-full flex flex-col">
-          {activeSessionId && (
-            <ChatBox
-              key={activeSessionId}
-              agentId={agentId}
-              sessionId={activeSessionId}
-              agentName="Bishop Burger"
-              agentColor="from-orange-500 to-amber-600"
-              placeholder="What culinary creation shall we bless today? 🍔✨"
-              initialMessages={activeSession?.messages}
-              onSendMessage={handleSendMessage}
-              allowFileUpload={true}
-              enableLanguageDetection={true}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    <AgentPageLayout
+      agentId={agentId}
+      agentName="Bishop Burger"
+      sessions={sessions}
+      activeSessionId={activeSessionId}
+      onNewChat={handleNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
+      onRenameChat={handleRenameChat}
+    >
+      {activeSessionId && (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Bishop Burger"
+          agentColor="from-orange-500 to-amber-600"
+          placeholder="What culinary creation shall we bless today? 🍔✨"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+          allowFileUpload={true}
+          enableLanguageDetection={true}
+        />
+      )}
+    </AgentPageLayout>
   )
 }
