@@ -1,10 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function DocumentationPage() {
   const [activeSection, setActiveSection] = useState('getting-started')
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to content on mobile when section changes
+  useEffect(() => {
+    if (contentRef.current && window.innerWidth < 1024) {
+      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [activeSection])
 
   const agents = [
     { id: 'einstein', name: 'Einstein', description: 'Physics & Mathematics Expert', avatar: '🧠' },
@@ -345,66 +353,73 @@ export default function DocumentationPage() {
         </div>
       </section>
 
-      {/* Main Content - Two Column Layout */}
-      <div className="flex-1 container-custom py-8 flex gap-6 h-screen overflow-hidden">
-        {/* Left Sidebar - Navigation */}
-        <div className="w-64 bg-neural-800 rounded-lg border border-neural-700 p-4 overflow-y-auto flex flex-col flex-shrink-0 h-full">
-          {/* Documentation Sections */}
-          <div className="mb-6">
-            <h3 className="text-sm font-bold text-neural-400 uppercase tracking-wider mb-3">Documentation</h3>
-            <div className="space-y-2">
-              {[
-                { id: 'getting-started', label: 'Getting Started', icon: '🚀' },
-                { id: 'api-reference', label: 'API Reference', icon: '📚' },
-                { id: 'authentication', label: 'Authentication', icon: '🔐' },
-                { id: 'integration-guide', label: 'Integration Guide', icon: '🔗' },
-                { id: 'webhook-troubleshooting', label: 'Webhook Troubleshooting', icon: '📡' },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`w-full text-left px-3 py-2 rounded transition ${
-                    activeSection === item.id
-                      ? 'bg-brand-600 text-white'
-                      : 'text-neural-300 hover:bg-neural-700'
-                  }`}
-                >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
+      {/* Main Content - Responsive Layout */}
+      <div className="flex-1 container-custom py-8">
+        {/* Mobile: Vertical Stack, Desktop: Side-by-side */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:h-screen lg:overflow-hidden">
+          
+          {/* Left Sidebar / Top Panel - Navigation */}
+          <div className="w-full lg:w-64 bg-neural-800 rounded-lg border border-neural-700 p-4 lg:overflow-y-auto lg:flex-shrink-0 lg:h-full">
+            {/* Documentation Sections */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold text-neural-400 uppercase tracking-wider mb-3">Documentation</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+                {[
+                  { id: 'getting-started', label: 'Getting Started', icon: '🚀' },
+                  { id: 'api-reference', label: 'API Reference', icon: '📚' },
+                  { id: 'authentication', label: 'Authentication', icon: '🔐' },
+                  { id: 'integration-guide', label: 'Integration Guide', icon: '🔗' },
+                  { id: 'webhook-troubleshooting', label: 'Webhook Troubleshooting', icon: '📡' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveSection(item.id)}
+                    className={`w-full text-left px-3 py-2 rounded transition ${
+                      activeSection === item.id
+                        ? 'bg-brand-600 text-white'
+                        : 'text-neural-300 hover:bg-neural-700'
+                    }`}
+                  >
+                    <span className="mr-2">{item.icon}</span>
+                    <span className="text-sm lg:text-base">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Agents Section */}
+            <div className="border-t border-neural-700 pt-4">
+              <h3 className="text-sm font-bold text-neural-400 uppercase tracking-wider mb-3">Agents</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+                {agents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    onClick={() => setActiveSection(`agent-${agent.id}`)}
+                    className={`w-full text-left px-3 py-2 rounded transition text-sm ${
+                      activeSection === `agent-${agent.id}`
+                        ? 'bg-brand-600 text-white'
+                        : 'text-neural-300 hover:bg-neural-700'
+                    }`}
+                  >
+                    <span className="mr-2">{agent.avatar}</span>
+                    <span className="text-xs lg:text-sm">{agent.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Agents Section */}
-          <div className="border-t border-neural-700 pt-4">
-            <h3 className="text-sm font-bold text-neural-400 uppercase tracking-wider mb-3">Agents</h3>
-            <div className="space-y-2">
-              {agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => setActiveSection(`agent-${agent.id}`)}
-                  className={`w-full text-left px-3 py-2 rounded transition text-sm ${
-                    activeSection === `agent-${agent.id}`
-                      ? 'bg-brand-600 text-white'
-                      : 'text-neural-300 hover:bg-neural-700'
-                  }`}
-                >
-                  <span className="mr-2">{agent.avatar}</span>
-                  {agent.name}
-                </button>
-              ))}
+          {/* Right Panel / Bottom Content - Content Display */}
+          <div 
+            ref={contentRef}
+            className="flex-1 bg-neural-800 rounded-lg border border-neural-700 p-4 lg:p-8 lg:overflow-y-auto lg:h-full lg:flex-shrink-0 scroll-mt-4"
+          >
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-neural-700">
+              <span className="text-3xl lg:text-4xl">{currentContent.icon}</span>
+              <h2 className="text-2xl lg:text-3xl font-bold">{currentContent.title}</h2>
             </div>
+            {currentContent.content}
           </div>
-        </div>
-
-        {/* Right Panel - Content */}
-        <div className="flex-1 bg-neural-800 rounded-lg border border-neural-700 p-8 overflow-y-auto h-full flex-shrink-0">
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-neural-700">
-            <span className="text-4xl">{currentContent.icon}</span>
-            <h2 className="text-3xl font-bold">{currentContent.title}</h2>
-          </div>
-          {currentContent.content}
         </div>
       </div>
     </div>
