@@ -34,7 +34,6 @@ export default function AIStudioPage() {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
-  const [selectedModel, setSelectedModel] = useState('gemini-pro')
   const [isLoading, setIsLoading] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isListening, setIsListening] = useState(false)
@@ -111,7 +110,7 @@ export default function AIStudioPage() {
       messages: [],
       createdAt: new Date(),
       updatedAt: new Date(),
-      model: selectedModel,
+      model: 'gemini-pro',
     }
     setConversations([newConversation, ...conversations])
     setCurrentConversation(newConversation)
@@ -131,7 +130,6 @@ export default function AIStudioPage() {
     }
     setCurrentConversation(conversationWithDates)
     setMessages(conversationWithDates.messages)
-    setSelectedModel(conversationWithDates.model)
   }
 
   const deleteConversation = (id: string) => {
@@ -166,7 +164,7 @@ export default function AIStudioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: inputText,
-          model: selectedModel,
+          model: 'gemini-pro',
           conversationId: currentConversation.id,
         }),
       })
@@ -288,21 +286,6 @@ export default function AIStudioPage() {
                 <Plus className="w-5 h-5" />
                 New Chat
               </button>
-
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-neural-300">MODEL</label>
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full px-3 py-2 bg-neural-700 border border-neural-600 rounded-lg text-sm focus:outline-none focus:border-brand-600 transition"
-                >
-                  {LLM_MODELS.map(model => (
-                    <option key={model.id} value={model.id}>
-                      {model.name} {model.free ? '(Free)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             {/* Conversations List - Scrollable */}
@@ -503,9 +486,6 @@ export default function AIStudioPage() {
                       <Send className="w-5 h-5" />
                     </button>
                   </div>
-                  <p className="text-xs text-neural-400">
-                    Using: <span className="font-semibold">{LLM_MODELS.find(m => m.id === selectedModel)?.name}</span>
-                  </p>
                 </div>
               </div>
             </>
