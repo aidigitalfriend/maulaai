@@ -7,17 +7,13 @@ import ChatBox from '../../../components/ChatBox'
 import AgentChatPanel from '../../../components/AgentChatPanel'
 import AgentPageLayout from '../../../components/AgentPageLayout'
 import * as chatStorage from '../../../utils/chatStorage'
-import type { ChatSession } from '../../../utils/chatStorage'
 import IntelligentResponseSystem from '../../../lib/intelligent-response-system'
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
-// Helper function to generate session IDs
-const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-
 export default function ComedyKingPage() {
   const agentId = 'comedy-king'
-  const [sessions, setSessions] = useState<ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string>('')
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [responseSystem, setResponseSystem] = useState<IntelligentResponseSystem | null>(null)
 
   useEffect(() => {
@@ -26,66 +22,50 @@ export default function ComedyKingPage() {
     setResponseSystem(system)
     
     // Load sessions
-    const history = chatStorage.getAgentHistory(agentId)
-    const sessionList = Object.values(history.sessions || {})
-    
-    if (sessionList.length === 0) {
-      // Create initial session
-      const initialSession: ChatSession = {
-        id: generateSessionId(),
-        name: 'New Chat',
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      }
-      chatStorage.saveSession(agentId, initialSession)
-      setSessions([initialSession])
-      setActiveSessionId(initialSession.id)
+    const loadedSessions = chatStorage.getAgentSessions(agentId);
+    if (loadedSessions.length > 0) {
+      setSessions(loadedSessions);
+      const activeId = chatStorage.getActiveSessionId(agentId);
+      setActiveSessionId(activeId ?? loadedSessions[0].id);
     } else {
-      setSessions(sessionList)
-      setActiveSessionId(sessionList[0].id)
+      handleNewChat();
     }
-  }, [])
+  }, []);
 
   const handleNewChat = () => {
-    const newSession: ChatSession = {
-      id: generateSessionId(),
-      name: 'New Chat',
-      messages: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    }
-    chatStorage.saveSession(agentId, newSession)
-    setSessions(prev => [newSession, ...prev])
-    setActiveSessionId(newSession.id)
-  }
+    const initialMessage: chatStorage.ChatMessage = {
+      id: 'initial-0',
+      role: 'assistant',
+      content: "🎭 Hey there! I'm Comedy King, here to bring laughter and entertainment! Whether you need jokes, funny stories, or just a good laugh, I've got you covered. What's your mood today?",
+      timestamp: new Date(),
+    };
+    const newSession = chatStorage.createNewSession(agentId, initialMessage);
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
 
   const handleSelectChat = (sessionId: string) => {
-    setActiveSessionId(sessionId)
-  }
+    setActiveSessionId(sessionId);
+  };
 
   const handleDeleteChat = (sessionId: string) => {
-    chatStorage.deleteSession(agentId, sessionId)
-    const remainingSessions = sessions.filter(s => s.id !== sessionId)
-    setSessions(remainingSessions)
-    
+    chatStorage.deleteSession(agentId, sessionId);
+    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      if (remainingSessions.length > 0) {
-        setActiveSessionId(remainingSessions[0].id)
-      } else {
-        handleNewChat()
+      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      if (remainingSessions.length === 0) {
+        handleNewChat();
       }
     }
-  }
+  };
 
   const handleRenameChat = (sessionId: string, newName: string) => {
-    const session = sessions.find(s => s.id === sessionId)
-    if (session) {
-      const updatedSession = { ...session, name: newName, updatedAt: Date.now() }
-      chatStorage.saveSession(agentId, updatedSession)
-      setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s))
-    }
-  }
+    chatStorage.renameSession(agentId, sessionId, newName);
+    setSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, name: newName } : s
+    ));
+  };
 
 
   // ✅ SECURED: Now uses backend API with IntelligentResponseSystem as fallback
