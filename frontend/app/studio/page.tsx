@@ -254,9 +254,9 @@ export default function AIStudioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-gradient-to-r from-brand-600 to-accent-600 border-b border-neural-700 p-4">
+      <header className="bg-gradient-to-r from-brand-600 to-accent-600 border-b border-neural-700 p-4 flex-shrink-0">
         <div className="container-custom flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
@@ -305,8 +305,8 @@ export default function AIStudioPage() {
               </div>
             </div>
 
-            {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {/* Conversations List - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ scrollBehavior: 'smooth' }}>
               {conversations.length === 0 ? (
                 <p className="text-center text-neural-400 text-sm py-8">No conversations yet</p>
               ) : (
@@ -349,7 +349,6 @@ export default function AIStudioPage() {
               </div>
             )}
           </aside>
-        )}
 
         {/* Overlay for mobile when sidebar is open */}
         {showSidebar && (
