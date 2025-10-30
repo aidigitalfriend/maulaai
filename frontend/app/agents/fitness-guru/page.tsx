@@ -86,20 +86,19 @@ export default function FitnessGuruPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Fitness Guru"
-            agentColor="from-green-600 to-emerald-700"
-            placeholder="What's your fitness goal today? 💪🔥"
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId ? (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Fitness Guru"
+          agentColor="from-green-600 to-emerald-700"
+          placeholder="What's your fitness goal today? 💪🔥"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      ) : null}
+    </AgentPageLayout>
   )
 }

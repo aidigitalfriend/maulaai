@@ -59,7 +59,6 @@ export default function ChefBiewPage() {
       s.id === sessionId ? { ...s, name: newName } : s
     ));
   };
-  }
 
   // ✅ SECURED: Now uses backend API with no exposed keys
   const handleSendMessage = async (message: string): Promise<string> => {

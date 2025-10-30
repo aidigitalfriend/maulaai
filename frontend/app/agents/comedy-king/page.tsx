@@ -119,20 +119,19 @@ export default function ComedyKingPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Comedy King"
-            agentColor="from-yellow-500 to-orange-600"
-            placeholder="👑 Tell your Comedy King what needs the royal funny treatment!"
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId ? (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Comedy King"
+          agentColor="from-yellow-500 to-orange-600"
+          placeholder="👑 Tell your Comedy King what needs the royal funny treatment!"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      ) : null}
+    </AgentPageLayout>
   )
 }

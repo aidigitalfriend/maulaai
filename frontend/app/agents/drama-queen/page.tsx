@@ -119,20 +119,19 @@ export default function DramaQueenPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Drama Queen"
-            agentColor="from-purple-500 to-pink-600"
-            placeholder="Tell me your story, darling! Let's make it DRAMATIC! ✨"
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId ? (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Drama Queen"
+          agentColor="from-purple-500 to-pink-600"
+          placeholder="Tell me your story, darling! Let's make it DRAMATIC! ✨"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      ) : null}
+    </AgentPageLayout>
   )
 }

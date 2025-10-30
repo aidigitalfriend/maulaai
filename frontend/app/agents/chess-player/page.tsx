@@ -86,20 +86,19 @@ export default function ChessPlayerPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Grandmaster Chess"
-            agentColor="from-slate-500 to-gray-600"
-            placeholder="Ask about strategy, chess moves, or tactical thinking..."
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId ? (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Grandmaster Chess"
+          agentColor="from-slate-500 to-gray-600"
+          placeholder="Ask about strategy, chess moves, or tactical thinking..."
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      ) : null}
+    </AgentPageLayout>
   )
 }

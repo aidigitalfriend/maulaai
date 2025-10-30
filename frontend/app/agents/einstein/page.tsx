@@ -285,22 +285,21 @@ export default function EinsteinPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Einstein"
-            agentColor="from-indigo-500 to-purple-600"
-            placeholder="What scientific mystery shall we explore? 🧠⚡"
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-            allowFileUpload={true}
-            enableLanguageDetection={true}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId ? (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Einstein"
+          agentColor="from-indigo-500 to-purple-600"
+          placeholder="What scientific mystery shall we explore? 🧠⚡"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+          allowFileUpload={true}
+          enableLanguageDetection={true}
+        />
+      ) : null}
+    </AgentPageLayout>
   )
 }

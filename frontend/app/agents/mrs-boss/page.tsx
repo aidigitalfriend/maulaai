@@ -86,20 +86,19 @@ export default function MrsBossPage() {
           onRenameChat={handleRenameChat}
         />
       }
-      rightPanel={
-        activeSessionId ? (
-          <ChatBox
-            key={activeSessionId}
-            agentId={agentId}
-            sessionId={activeSessionId}
-            agentName="Mrs Boss"
-            agentColor="from-gray-600 to-slate-700"
-            placeholder="What business challenge needs my attention? 👩‍💼"
-            initialMessages={activeSession?.messages}
-            onSendMessage={handleSendMessage}
-          />
-        ) : null
-      }
-    />
+    >
+      {activeSessionId ? (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Mrs Boss"
+          agentColor="from-gray-600 to-slate-700"
+          placeholder="What business challenge needs my attention? 👩‍💼"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      ) : null}
+    </AgentPageLayout>
   )
 }
