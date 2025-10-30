@@ -97,9 +97,9 @@ export default function Footer() {
       links: [
         { name: 'AI Studio', href: '/studio' },
         { name: 'IP Address Lookup', href: '/tools/ip-info' },
-        { name: 'Network Tools', href: '#' },
-        { name: 'Developer Utils', href: '#' },
-        { name: 'API Tester', href: '#' }
+        { name: 'Network Tools', href: '/tools/network-tools' },
+        { name: 'Developer Utils', href: '/tools/developer-utils' },
+        { name: 'API Tester', href: '/tools/api-tester' }
       ]
     },
     {
