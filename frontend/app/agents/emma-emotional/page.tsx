@@ -6,13 +6,12 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
 import AgentChatPanel from '../../../components/AgentChatPanel'
 import * as chatStorage from '../../../utils/chatStorage'
-import type { ChatSession } from '../../../utils/chatStorage'
 
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function EmmaEmotionalPage() {
   const agentId = 'emma-emotional'
-  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
 
   useEffect(() => {
