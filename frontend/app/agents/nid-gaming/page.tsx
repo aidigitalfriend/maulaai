@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
 import AgentChatPanel from '../../../components/AgentChatPanel'
+import AgentPageLayout from '../../../components/AgentPageLayout'
 import * as chatStorage from '../../../utils/chatStorage'
 
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
@@ -72,35 +73,28 @@ export default function NidGamingPage() {
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   return (
-    <div className="h-full bg-gray-900 text-white flex flex-col">
-      <div className="h-[85vh] flex gap-6 p-6 overflow-hidden">
-        <div className="w-1/4 flex flex-col h-full overflow-hidden">
-          <AgentChatPanel
-            chatSessions={sessions}
-            activeSessionId={activeSessionId}
-            agentId={agentId}
-            agentName="Nid Gaming"
-            onNewChat={handleNewChat}
-            onSelectChat={handleSelectChat}
-            onDeleteChat={handleDeleteChat}
-            onRenameChat={handleRenameChat}
-          />
-        </div>
-        <div className="w-3/4 h-full flex flex-col">
-          {activeSessionId && (
-            <ChatBox
-              key={activeSessionId}
-              agentId={agentId}
-              sessionId={activeSessionId}
-              agentName="Nid Gaming"
-              agentColor="from-blue-600 to-cyan-700"
-              placeholder="What game are we playing today? 🎮"
-              initialMessages={activeSession?.messages}
-              onSendMessage={handleSendMessage}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    <AgentPageLayout
+      agentId={agentId}
+      agentName="Nid Gaming"
+      sessions={sessions}
+      activeSessionId={activeSessionId}
+      onNewChat={handleNewChat}
+      onSelectChat={handleSelectChat}
+      onDeleteChat={handleDeleteChat}
+      onRenameChat={handleRenameChat}
+    >
+      {activeSessionId && (
+        <ChatBox
+          key={activeSessionId}
+          agentId={agentId}
+          sessionId={activeSessionId}
+          agentName="Nid Gaming"
+          agentColor="from-blue-600 to-cyan-700"
+          placeholder="What game are we playing today? 🎮"
+          initialMessages={activeSession?.messages}
+          onSendMessage={handleSendMessage}
+        />
+      )}
+    </AgentPageLayout>
   )
 }
