@@ -49,10 +49,20 @@ export default function AIStudioPage() {
     const stored = localStorage.getItem('ai-studio-conversations')
     if (stored) {
       const parsed = JSON.parse(stored)
-      setConversations(parsed)
-      if (parsed.length > 0) {
-        setCurrentConversation(parsed[0])
-        setMessages(parsed[0].messages)
+      // Convert timestamp strings back to Date objects
+      const conversationsWithDates = parsed.map((conv: Conversation) => ({
+        ...conv,
+        createdAt: new Date(conv.createdAt),
+        updatedAt: new Date(conv.updatedAt),
+        messages: conv.messages.map((msg: Message) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }))
+      }))
+      setConversations(conversationsWithDates)
+      if (conversationsWithDates.length > 0) {
+        setCurrentConversation(conversationsWithDates[0])
+        setMessages(conversationsWithDates[0].messages)
       }
     }
   }, [])
@@ -109,9 +119,19 @@ export default function AIStudioPage() {
   }
 
   const selectConversation = (conv: Conversation) => {
-    setCurrentConversation(conv)
-    setMessages(conv.messages)
-    setSelectedModel(conv.model)
+    // Ensure dates are Date objects
+    const conversationWithDates = {
+      ...conv,
+      createdAt: conv.createdAt instanceof Date ? conv.createdAt : new Date(conv.createdAt),
+      updatedAt: conv.updatedAt instanceof Date ? conv.updatedAt : new Date(conv.updatedAt),
+      messages: conv.messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)
+      }))
+    }
+    setCurrentConversation(conversationWithDates)
+    setMessages(conversationWithDates.messages)
+    setSelectedModel(conversationWithDates.model)
   }
 
   const deleteConversation = (id: string) => {
