@@ -40,12 +40,6 @@ export default function BenSegaPage() {
 
   const handleSelectChat = (sessionId: string) => {
     setActiveSessionId(sessionId);
-    // Also update the global active session ID
-    const histories = chatStorage.getAllChatHistories ? chatStorage.getAllChatHistories() : {};
-    if (histories[agentId]) {
-      histories[agentId].activeSessionId = sessionId;
-      if(chatStorage.saveAllChatHistories) chatStorage.saveAllChatHistories(histories);
-    }
   };
 
   const handleDeleteChat = (sessionId: string) => {
