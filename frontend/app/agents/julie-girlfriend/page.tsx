@@ -6,77 +6,59 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import ChatBox from '../../../components/ChatBox'
 import AgentChatPanel from '../../../components/AgentChatPanel'
 import * as chatStorage from '../../../utils/chatStorage'
-import type { ChatSession } from '../../../utils/chatStorage'
-// Helper function to generate session IDs
-const generateSessionId = () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
 import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
 
 export default function JulieGirlfriendPage() {
   const agentId = 'julie-girlfriend'
-  const [sessions, setSessions] = useState<ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string>('')
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
 
   useEffect(() => {
-    const history = chatStorage.getAgentHistory(agentId)
-    const sessionList = Object.values(history.sessions || {})
-    
-    if (sessionList.length === 0) {
-      const initialSession: ChatSession = {
-        id: generateSessionId(),
-        name: 'New Chat',
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      }
-      chatStorage.saveSession(agentId, initialSession)
-      setSessions([initialSession])
-      setActiveSessionId(initialSession.id)
+    const loadedSessions = chatStorage.getAgentSessions(agentId);
+    if (loadedSessions.length > 0) {
+      setSessions(loadedSessions);
+      const activeId = chatStorage.getActiveSessionId(agentId);
+      setActiveSessionId(activeId ?? loadedSessions[0].id);
     } else {
-      setSessions(sessionList)
-      setActiveSessionId(sessionList[0].id)
+      handleNewChat();
     }
-  }, [])
+  }, []);
 
   const handleNewChat = () => {
-    const newSession: ChatSession = {
-      id: generateSessionId(),
-      name: 'New Chat',
-      messages: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    }
-    chatStorage.saveSession(agentId, newSession)
-    setSessions(prev => [newSession, ...prev])
-    setActiveSessionId(newSession.id)
-  }
+    const initialMessage: chatStorage.ChatMessage = {
+      id: 'initial-0',
+      role: 'assistant',
+      content: "💕 Hi sweetie! I'm Julie, your caring companion. I'm here to chat, share thoughts, and be a supportive friend. How's your day going?",
+      timestamp: new Date(),
+    };
+    const newSession = chatStorage.createNewSession(agentId, initialMessage);
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
 
   const handleSelectChat = (sessionId: string) => {
-    setActiveSessionId(sessionId)
-  }
+    setActiveSessionId(sessionId);
+  };
 
   const handleDeleteChat = (sessionId: string) => {
-    chatStorage.deleteSession(agentId, sessionId)
-    const remainingSessions = sessions.filter(s => s.id !== sessionId)
-    setSessions(remainingSessions)
-    
+    chatStorage.deleteSession(agentId, sessionId);
+    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      if (remainingSessions.length > 0) {
-        setActiveSessionId(remainingSessions[0].id)
-      } else {
-        handleNewChat()
+      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      if (remainingSessions.length === 0) {
+        handleNewChat();
       }
     }
-  }
+  };
 
   const handleRenameChat = (sessionId: string, newName: string) => {
-    const session = sessions.find(s => s.id === sessionId)
-    if (session) {
-      const updatedSession = { ...session, name: newName, updatedAt: Date.now() }
-      chatStorage.saveSession(agentId, updatedSession)
-      setSessions(prev => prev.map(s => s.id === sessionId ? updatedSession : s))
-    }
-  }
+    chatStorage.renameSession(agentId, sessionId, newName);
+    setSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, name: newName } : s
+    ));
+  };
 
   // ✅ SECURED: Now uses backend API with no exposed keys
   const handleSendMessage = async (message: string): Promise<string> => {
