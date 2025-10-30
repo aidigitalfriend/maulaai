@@ -41,6 +41,7 @@ export default function AIStudioPage() {
   const [showSidebar, setShowSidebar] = useState(true)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
 
   // Load conversations from localStorage on mount
@@ -63,9 +64,11 @@ export default function AIStudioPage() {
     }
   }, [conversations])
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll to bottom of messages - scroll only within the messages container
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
   }, [messages])
 
   // Initialize speech recognition
@@ -236,12 +239,6 @@ export default function AIStudioPage() {
       <header className="bg-gradient-to-r from-brand-600 to-accent-600 border-b border-neural-700 p-4">
         <div className="container-custom flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition"
-            >
-              {showSidebar ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
             <div>
               <h1 className="text-3xl font-bold">🤖 AI Studio</h1>
               <p className="text-sm opacity-90">Advanced AI Chat with Multiple Models</p>
@@ -256,11 +253,14 @@ export default function AIStudioPage() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        {showSidebar && (
-          <aside className="w-64 bg-neural-800/50 border-r border-neural-700 flex flex-col overflow-hidden lg:flex">
-            <div className="p-4 border-b border-neural-700 space-y-3">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Sidebar - Hidden by default on mobile, toggle button to open */}
+        <aside className={`
+          fixed lg:relative inset-y-0 left-0 z-40 w-64 bg-neural-800/50 border-r border-neural-700 
+          flex flex-col overflow-hidden transform transition-transform duration-300
+          ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          <div className="p-4 border-b border-neural-700 space-y-3">
               <button
                 onClick={createNewConversation}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 rounded-lg font-semibold transition"
@@ -331,12 +331,32 @@ export default function AIStudioPage() {
           </aside>
         )}
 
+        {/* Overlay for mobile when sidebar is open */}
+        {showSidebar && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={() => setShowSidebar(false)}
+          />
+        )}
+
         {/* Main Chat Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Mobile Toggle Button - Always visible on mobile */}
+          <button
+            onClick={() => setShowSidebar(!showSidebar)}
+            className="lg:hidden fixed top-20 left-4 z-50 p-3 bg-brand-600 hover:bg-brand-700 rounded-full shadow-lg transition"
+          >
+            {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+
           {currentConversation ? (
             <>
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Messages - Scroll contained within this div */}
+              <div 
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto p-6 space-y-4"
+                style={{ scrollBehavior: 'smooth' }}
+              >
                 {messages.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center">
                     <div className="text-6xl mb-4">💬</div>
