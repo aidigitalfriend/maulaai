@@ -1,10 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function TutorialsPage() {
   const [selectedAgent, setSelectedAgent] = useState('einstein')
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to content on mobile when agent changes
+  useEffect(() => {
+    if (contentRef.current && window.innerWidth < 1024) {
+      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [selectedAgent])
 
   const agents = [
     {
@@ -380,17 +388,17 @@ export default function TutorialsPage() {
       {/* Header */}
       <section className="section-padding bg-gradient-to-r from-accent-600 to-brand-600 text-white flex-shrink-0">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Agent Tutorials</h1>
-          <p className="text-xl opacity-90">Learn how to use each agent and discover their unique capabilities</p>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Agent Tutorials</h1>
+          <p className="text-base md:text-xl opacity-90">Learn how to use each agent and discover their unique capabilities</p>
         </div>
       </section>
 
-      {/* Main Content - Two Column Layout */}
-      <div className="flex-1 container-custom py-8 flex gap-6 overflow-hidden">
-        {/* Left Sidebar - Agent List */}
-        <div className="w-64 bg-neural-800 rounded-lg border border-neural-700 p-4 overflow-y-auto flex-shrink-0">
+      {/* Main Content - Responsive Layout */}
+      <div className="flex-1 container-custom py-6 md:py-8 flex flex-col lg:flex-row gap-6">
+        {/* Left Sidebar - Agent List (Mobile: Grid at top, Desktop: Sidebar) */}
+        <div className="w-full lg:w-64 bg-neural-800 rounded-lg border border-neural-700 p-4 flex-shrink-0">
           <h3 className="text-sm font-bold text-neural-400 uppercase tracking-wider mb-4">All Agents</h3>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
             {agents.map((agent) => (
               <button
                 key={agent.id}
@@ -402,37 +410,37 @@ export default function TutorialsPage() {
                 }`}
               >
                 <span className="mr-2">{agent.avatar}</span>
-                {agent.name}
+                <span className="text-xs sm:text-sm">{agent.name}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Right Panel - Tutorial Content */}
-        <div className="flex-1 bg-neural-800 rounded-lg border border-neural-700 p-8 overflow-y-auto flex flex-col">
-          <div className="flex items-center gap-3 mb-8 pb-4 border-b border-neural-700">
-            <span className="text-5xl">{selectedAgentData.avatar}</span>
+        <div ref={contentRef} className="flex-1 bg-neural-800 rounded-lg border border-neural-700 p-4 md:p-8 overflow-y-auto flex flex-col scroll-mt-4">
+          <div className="flex items-center gap-3 mb-6 md:mb-8 pb-4 border-b border-neural-700">
+            <span className="text-4xl md:text-5xl">{selectedAgentData.avatar}</span>
             <div>
-              <h2 className="text-3xl font-bold">{selectedAgentData.name}</h2>
-              <p className="text-neural-300">{selectedAgentData.description}</p>
+              <h2 className="text-2xl md:text-3xl font-bold">{selectedAgentData.name}</h2>
+              <p className="text-sm md:text-base text-neural-300">{selectedAgentData.description}</p>
             </div>
           </div>
 
           {/* How It Works */}
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-3">How It Works</h3>
-            <p className="text-neural-300 leading-relaxed">
+          <div className="mb-6 md:mb-8">
+            <h3 className="text-xl md:text-2xl font-bold mb-3">How It Works</h3>
+            <p className="text-sm md:text-base text-neural-300 leading-relaxed">
               {selectedAgentData.tutorial.howItWorks}
             </p>
           </div>
 
           {/* Features */}
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-3">Key Features</h3>
+          <div className="mb-6 md:mb-8">
+            <h3 className="text-xl md:text-2xl font-bold mb-3">Key Features</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {selectedAgentData.tutorial.features.map((feature, idx) => (
                 <div key={idx} className="bg-neural-700 p-3 rounded border border-neural-600">
-                  <p className="text-neural-200">
+                  <p className="text-sm md:text-base text-neural-200">
                     <span className="text-green-400 mr-2">✓</span>
                     {feature}
                   </p>
@@ -442,11 +450,11 @@ export default function TutorialsPage() {
           </div>
 
           {/* Specialties */}
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-3">Specialties</h3>
+          <div className="mb-6 md:mb-8">
+            <h3 className="text-xl md:text-2xl font-bold mb-3">Specialties</h3>
             <ul className="space-y-2">
               {selectedAgentData.tutorial.specialties.map((specialty, idx) => (
-                <li key={idx} className="flex items-center text-neural-300">
+                <li key={idx} className="flex items-center text-sm md:text-base text-neural-300">
                   <span className="w-2 h-2 bg-brand-500 rounded-full mr-3"></span>
                   {specialty}
                 </li>
@@ -455,12 +463,12 @@ export default function TutorialsPage() {
           </div>
 
           {/* Use Cases */}
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-3">Use Cases</h3>
+          <div className="mb-6 md:mb-8">
+            <h3 className="text-xl md:text-2xl font-bold mb-3">Use Cases</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {selectedAgentData.tutorial.useCases.map((useCase, idx) => (
                 <div key={idx} className="bg-brand-600 bg-opacity-20 p-3 rounded border border-brand-500 border-opacity-30">
-                  <p className="text-neural-200">
+                  <p className="text-sm md:text-base text-neural-200">
                     <span className="text-brand-400 mr-2">→</span>
                     {useCase}
                   </p>
@@ -470,20 +478,20 @@ export default function TutorialsPage() {
           </div>
 
           {/* Example */}
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-3">Try It Out</h3>
+          <div className="mb-6 md:mb-8">
+            <h3 className="text-xl md:text-2xl font-bold mb-3">Try It Out</h3>
             <div className="bg-neural-700 p-4 rounded border border-neural-600">
-              <p className="text-neural-300 italic">
+              <p className="text-sm md:text-base text-neural-300 italic">
                 {selectedAgentData.tutorial.example}
               </p>
             </div>
           </div>
 
           {/* CTA */}
-          <div className="pt-6 border-t border-neural-700">
+          <div className="pt-4 md:pt-6 border-t border-neural-700">
             <Link
               href={`/agents/${selectedAgentData.id}`}
-              className="inline-block px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition"
+              className="inline-block w-full sm:w-auto text-center px-6 md:px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition"
             >
               Start Using {selectedAgentData.name} →
             </Link>
