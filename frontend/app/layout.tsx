@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import ConditionalFooter from '@/components/ConditionalFooter'
 import AuthProvider from '@/lib/auth-context'
 import { LoadingProvider } from '@/lib/loading-context'
 import '@/styles/globals.css'
@@ -32,8 +32,8 @@ export default function RootLayout({
               {children}
             </main>
             
-            {/* Global Footer */}
-            <Footer />
+            {/* Conditional Footer - Hidden on agent pages */}
+            <ConditionalFooter />
           </AuthProvider>
         </LoadingProvider>
       </body>
