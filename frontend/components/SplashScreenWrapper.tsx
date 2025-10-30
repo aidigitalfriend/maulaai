@@ -6,7 +6,7 @@ import { useLoading } from '@/lib/loading-context'
 import SplashScreen from '@/components/SplashScreen'
 
 export default function SplashScreenWrapper() {
-  const { isLoading } = useLoading()
+  const { isLoading, setIsLoading } = useLoading()
   const pathname = usePathname()
   const [shouldShowSplash, setShouldShowSplash] = useState(false)
 
@@ -18,12 +18,21 @@ export default function SplashScreenWrapper() {
     // Show splash only on homepage AND if user hasn't seen it before
     if (isHomepage && !hasSeenSplash) {
       setShouldShowSplash(true)
-      // Mark that user has seen the splash screen
-      localStorage.setItem('hasSeenSplash', 'true')
+      // Keep loading state active for splash
+      setIsLoading(true)
     } else {
       setShouldShowSplash(false)
+      // If not showing splash, immediately set loading to false
+      setIsLoading(false)
     }
-  }, [pathname])
+  }, [pathname, setIsLoading])
+
+  // Mark as seen when splash completes (when isLoading becomes false)
+  useEffect(() => {
+    if (shouldShowSplash && !isLoading) {
+      localStorage.setItem('hasSeenSplash', 'true')
+    }
+  }, [shouldShowSplash, isLoading])
 
   // Only render splash screen if conditions are met
   if (!shouldShowSplash) {
