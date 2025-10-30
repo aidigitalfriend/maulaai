@@ -122,27 +122,27 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-neural-900 text-white">
+    <footer className="bg-neural-900 text-white w-full overflow-x-hidden">
       {/* Newsletter Section */}
-      <div className="border-b border-neural-700">
-        <div className="container-custom py-12 px-4">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+      <div className="border-b border-neural-700 w-full">
+        <div className="container-custom py-12 px-4 sm:px-6 lg:px-8 w-full max-w-full">
+          <div className="grid md:grid-cols-2 gap-8 items-center w-full max-w-full">
             <div>
               <h3 className="text-2xl font-bold mb-2">Subscribe to our newsletter</h3>
               <p className="text-neural-300">Get the latest updates on AI agents, features, and industry insights.</p>
             </div>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 w-full">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded bg-neural-800 text-white placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="flex-1 px-4 py-3 rounded bg-neural-800 text-white placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full"
                 required
               />
               <button
                 type="submit"
-                className="px-6 py-3 bg-brand-500 text-white rounded font-semibold hover:bg-brand-600 transition"
+                className="px-6 py-3 bg-brand-500 text-white rounded font-semibold hover:bg-brand-600 transition whitespace-nowrap"
               >
                 Subscribe
               </button>
@@ -153,8 +153,8 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Content */}
-      <div className="container-custom py-16 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-8">
+      <div className="container-custom py-16 px-4 sm:px-6 lg:px-8 w-full max-w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-8 w-full max-w-full">
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-6">
@@ -207,9 +207,9 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-neural-800">
-        <div className="container-custom py-6 px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="border-t border-neural-800 w-full">
+        <div className="container-custom py-6 px-4 sm:px-6 lg:px-8 w-full max-w-full">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full max-w-full">
             <div className="text-neural-400 text-sm">
               © {currentYear} One Last AI. All rights reserved.
             </div>
@@ -232,22 +232,22 @@ export default function Footer() {
       </div>
 
       {/* Quick Access Bar */}
-      <div className="bg-gradient-to-r from-brand-600 to-accent-600">
-        <div className="container-custom py-4 px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-600 to-accent-600 w-full">
+        <div className="container-custom py-4 px-4 sm:px-6 lg:px-8 w-full max-w-full">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full max-w-full">
             <div className="text-white font-medium">
               🚀 Ready to get started with AI agents?
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Link
                 href="/agents"
-                className="bg-white text-brand-600 px-6 py-2 rounded-lg font-medium hover:bg-brand-50 transition-colors"
+                className="bg-white text-brand-600 px-6 py-2 rounded-lg font-medium hover:bg-brand-50 transition-colors text-center"
               >
                 Try Now
               </Link>
               <Link
                 href="/support/book-consultation"
-                className="border-2 border-white text-white px-6 py-2 rounded-lg font-medium hover:bg-white hover:text-brand-600 transition-colors"
+                className="border-2 border-white text-white px-6 py-2 rounded-lg font-medium hover:bg-white hover:text-brand-600 transition-colors text-center"
               >
                 Book Demo
               </Link>
