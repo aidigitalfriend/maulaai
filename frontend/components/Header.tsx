@@ -34,8 +34,8 @@ export default function Header() {
   ]
 
   return (
-    <header className="bg-white shadow-sm border-b border-neural-100 sticky top-0 z-50">
-      <div className="container-custom">
+    <header className="bg-white shadow-sm border-b border-neural-100 sticky top-0 z-50 w-full">
+      <div className="container-custom w-full max-w-full overflow-x-hidden">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
@@ -143,8 +143,8 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-neural-100">
-            <div className="space-y-2">
+          <div className="lg:hidden py-4 border-t border-neural-100 w-full max-w-full overflow-x-hidden">
+            <div className="space-y-2 w-full">
               {navigation.map((item) => (
                 <div key={item.name}>
                   <Link

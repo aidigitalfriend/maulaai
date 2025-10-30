@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className="min-h-screen flex flex-col">
+    <html lang="en" className="scroll-smooth overflow-x-hidden">
+      <body className="min-h-screen flex flex-col overflow-x-hidden">
         <LoadingProvider>
           <AuthProvider>
             {/* Global Splash Screen */}
