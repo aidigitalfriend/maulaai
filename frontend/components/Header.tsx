@@ -30,6 +30,7 @@ export default function Header() {
     { name: 'Industries', href: '/industries/overview' },
     { name: 'Documents', href: '/docs' },
     { name: 'Pricing', href: '/pricing/overview' },
+    { name: 'Status', href: '/status' },
     { name: 'Support', href: '/support/help-center' }
   ]
 

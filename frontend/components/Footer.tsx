@@ -79,6 +79,7 @@ export default function Footer() {
         { name: 'Contact Us', href: '/support/contact-us' },
         { name: 'Book Consultation', href: '/support/book-consultation' },
         { name: 'Live Support', href: '/support/live-support' },
+        { name: 'Status Page', href: '/status' },
         { name: 'FAQs', href: '/support/faqs' }
       ]
     },
