@@ -48,54 +48,13 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = async () => {
     try {
-      // Simulated data - in production, this would be a real API call
-      const simulatedData: AnalyticsData = {
-        overview: {
-          totalRequests: Math.floor(Math.random() * 50000) + 200000,
-          activeUsers: Math.floor(Math.random() * 500) + 2000,
-          avgResponseTime: Math.floor(Math.random() * 100) + 150,
-          successRate: 99.5 + Math.random() * 0.5,
-          requestsGrowth: Math.random() * 20 - 5,
-          usersGrowth: Math.random() * 15 - 3,
-        },
-        agents: [
-          'einstein', 'ben-sega', 'chess-player', 'comedy-king', 'drama-queen',
-          'mrs-boss', 'fitness-guru', 'chef-biew', 'lazy-pawn', 'knight-logic',
-          'rook-jokey', 'emma-emotional', 'julie-girlfriend', 'professor-astrology',
-          'nid-gaming', 'tech-wizard', 'travel-buddy', 'bishop-burger'
-        ].map(name => ({
-          name,
-          requests: Math.floor(Math.random() * 10000) + 5000,
-          users: Math.floor(Math.random() * 200) + 50,
-          avgResponseTime: Math.floor(Math.random() * 150) + 100,
-          successRate: 98 + Math.random() * 2,
-          trend: Math.random() > 0.5 ? 'up' : Math.random() > 0.3 ? 'stable' : 'down' as 'up' | 'down' | 'stable',
-        })),
-        tools: [
-          { name: 'AI Studio', usage: 15000, users: 800, avgDuration: 1200, trend: 'up' as const },
-          { name: 'IP Info', usage: 8000, users: 600, avgDuration: 50, trend: 'up' as const },
-          { name: 'Network Tools', usage: 5000, users: 400, avgDuration: 300, trend: 'stable' as const },
-          { name: 'Developer Utils', usage: 4500, users: 350, avgDuration: 180, trend: 'up' as const },
-          { name: 'API Tester', usage: 6000, users: 450, avgDuration: 420, trend: 'stable' as const },
-        ],
-        hourlyData: Array.from({ length: 24 }, (_, i) => ({
-          hour: `${i}:00`,
-          requests: Math.floor(Math.random() * 5000) + 3000,
-          users: Math.floor(Math.random() * 200) + 100,
-        })),
-        topAgents: [
-          { name: 'Einstein AI', requests: 45000, percentage: 18 },
-          { name: 'Ben Sega', requests: 38000, percentage: 15 },
-          { name: 'Chess Player', requests: 32000, percentage: 13 },
-          { name: 'Tech Wizard', requests: 28000, percentage: 11 },
-          { name: 'Comedy King', requests: 25000, percentage: 10 },
-        ],
-      }
-      setData(simulatedData)
+      const response = await fetch(`/api/status/analytics?timeRange=${timeRange}`)
+      const data = await response.json()
+      setData(data)
+      setIsLoading(false)
       setLastUpdate(new Date())
     } catch (error) {
-      console.error('Failed to fetch analytics:', error)
-    } finally {
+      console.error('Error fetching analytics:', error)
       setIsLoading(false)
     }
   }

@@ -64,47 +64,13 @@ export default function APIStatusPage() {
 
   const fetchAPIStatus = async () => {
     try {
-      // Simulated data - in production, this would be real API monitoring
-      const simulatedData: APIStatusData = {
-        endpoints: [
-          { name: 'Chat API', endpoint: '/api/chat', method: 'POST', status: 'operational', responseTime: 145, uptime: 99.9, lastChecked: new Date().toISOString(), errorRate: 0.1 },
-          { name: 'Authentication', endpoint: '/api/auth', method: 'POST', status: 'operational', responseTime: 98, uptime: 99.95, lastChecked: new Date().toISOString(), errorRate: 0.05 },
-          { name: 'Status API', endpoint: '/api/status', method: 'GET', status: 'operational', responseTime: 52, uptime: 100, lastChecked: new Date().toISOString(), errorRate: 0 },
-          { name: 'User Profile', endpoint: '/api/user/profile', method: 'GET', status: 'operational', responseTime: 87, uptime: 99.8, lastChecked: new Date().toISOString(), errorRate: 0.2 },
-          { name: 'File Upload', endpoint: '/api/upload', method: 'POST', status: 'operational', responseTime: 234, uptime: 99.5, lastChecked: new Date().toISOString(), errorRate: 0.5 },
-        ],
-        categories: {
-          agents: [
-            'Einstein AI', 'Ben Sega', 'Chess Player', 'Comedy King', 'Drama Queen',
-            'Mrs Boss', 'Fitness Guru', 'Chef Biew', 'Lazy Pawn', 'Knight Logic',
-            'Rook Jokey', 'Emma Emotional', 'Julie Girlfriend', 'Professor Astrology',
-            'Nid Gaming', 'Tech Wizard', 'Travel Buddy', 'Bishop Burger'
-          ].map(name => ({
-            name,
-            apiEndpoint: `/api/agents/${name.toLowerCase().replace(/ /g, '-')}`,
-            status: Math.random() > 0.95 ? 'degraded' : 'operational' as 'operational' | 'degraded',
-            responseTime: Math.floor(Math.random() * 100) + 80,
-            requestsPerMinute: Math.floor(Math.random() * 50) + 20,
-          })),
-          tools: [
-            { name: 'AI Studio', apiEndpoint: '/api/studio', status: 'operational', responseTime: 156, requestsPerMinute: 85 },
-            { name: 'IP Info', apiEndpoint: '/api/tools/ip-info', status: 'operational', responseTime: 45, requestsPerMinute: 120 },
-            { name: 'Network Tools', apiEndpoint: '/api/tools/network', status: 'operational', responseTime: 67, requestsPerMinute: 45 },
-            { name: 'Developer Utils', apiEndpoint: '/api/tools/dev-utils', status: 'operational', responseTime: 52, requestsPerMinute: 38 },
-            { name: 'API Tester', apiEndpoint: '/api/tools/api-tester', status: 'operational', responseTime: 89, requestsPerMinute: 56 },
-          ] as Array<{ name: string; apiEndpoint: string; status: 'operational' | 'degraded'; responseTime: number; requestsPerMinute: number }>,
-          aiServices: [
-            { name: 'Gemini Pro', provider: 'Google AI', status: 'operational', responseTime: 234, quota: '95% remaining' },
-            { name: 'GPT-4', provider: 'OpenAI', status: 'operational', responseTime: 312, quota: '87% remaining' },
-            { name: 'Claude 3', provider: 'Anthropic', status: 'operational', responseTime: 289, quota: '92% remaining' },
-          ] as Array<{ name: string; provider: string; status: 'operational' | 'degraded'; responseTime: number; quota: string }>,
-        },
-      }
-      setData(simulatedData)
+      const response = await fetch('/api/status/api-status')
+      const apiData = await response.json()
+      setData(apiData)
+      setIsLoading(false)
       setLastUpdate(new Date())
     } catch (error) {
-      console.error('Failed to fetch API status:', error)
-    } finally {
+      console.error('Error fetching API status:', error)
       setIsLoading(false)
     }
   }

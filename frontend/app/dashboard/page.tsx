@@ -15,11 +15,11 @@ interface AnalyticsData {
     daysUntilRenewal: number
   }
   usage: {
-    conversations: { current: number; limit: number; percentage: number }
-    agents: { current: number; limit: number; percentage: number }
-    apiCalls: { current: number; limit: number; percentage: number }
-    storage: { current: number; limit: number; percentage: number; unit: string }
-    messages: { current: number; limit: number; percentage: number }
+    conversations: { current: number; limit: number; percentage: number; unit?: string }
+    agents: { current: number; limit: number; percentage: number; unit?: string }
+    apiCalls: { current: number; limit: number; percentage: number; unit?: string }
+    storage: { current: number; limit: number; percentage: number; unit?: string }
+    messages: { current: number; limit: number; percentage: number; unit?: string }
   }
   dailyUsage: Array<{ date: string; conversations: number; messages: number; apiCalls: number }>
   weeklyTrend: {
@@ -60,17 +60,6 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [])
 
-  const fetchAnalytics = async () => {
-    try {
-      const response = await fetch('/api/user/analytics')
-      const data = await response.json()
-      setAnalyticsData(data)
-      setLoading(false)
-    } catch (error) {
-      console.error('Error fetching analytics:', error)
-      setLoading(false)
-    }
-  }
   const fetchAnalytics = async () => {
     try {
       const response = await fetch('/api/user/analytics')
@@ -180,13 +169,6 @@ export default function Dashboard() {
       href: "/dashboard/agent-performance",
       stats: ["Response Times", "Accuracy Metrics", "Learning Progress", "Optimization Tips"]
     }
-  ]
-
-  const quickStats = [
-    { label: "Active Agents", value: "12", change: "+2 this month", trend: "up" },
-    { label: "Total Conversations", value: "2,847", change: "+15% this week", trend: "up" },
-    { label: "Avg Response Time", value: "0.8s", change: "-0.2s improved", trend: "up" },
-    { label: "Success Rate", value: "94.2%", change: "+1.3% this month", trend: "up" }
   ]
 
   return (
