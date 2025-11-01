@@ -79,18 +79,29 @@ export default function StatusPage() {
   const [data, setData] = useState<StatusData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [error, setError] = useState<string | null>(null)
 
   const fetchStatus = async () => {
     try {
+      setError(null)
       const response = await fetch('/api/status')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         setData(result.data)
         setLastUpdate(new Date())
+        setIsLoading(false)
+      } else {
+        console.error('API returned error:', result.error)
+        setError(result.error || 'Unknown error')
+        setIsLoading(false)
       }
     } catch (error) {
       console.error('Failed to fetch status:', error)
-    } finally {
+      setError(error instanceof Error ? error.message : 'Failed to fetch status')
+      // Set loading to false even on error
       setIsLoading(false)
     }
   }
@@ -102,12 +113,47 @@ export default function StatusPage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-600"></div>
           <p className="text-neural-800 text-lg font-medium">Loading Status...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-lg border border-red-200">
+          <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+            <XCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-center text-neural-800 mb-2">Unable to Load Status</h2>
+          <p className="text-center text-neural-600 mb-6">{error}</p>
+          <button
+            onClick={() => {
+              setIsLoading(true)
+              setError(null)
+              fetchStatus()
+            }}
+            className="w-full px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-all"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <AlertTriangle className="w-16 h-16 text-yellow-600" />
+          <p className="text-neural-800 text-lg font-medium">No data available</p>
         </div>
       </div>
     )
