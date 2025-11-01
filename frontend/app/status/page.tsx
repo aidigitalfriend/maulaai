@@ -59,8 +59,8 @@ interface StatusData {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const config = {
-    operational: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10', text: 'Operational' },
-    degraded: { icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-400/10', text: 'Degraded' },
+    operational: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-400/10', text: 'Operational' },
+    degraded: { icon: AlertTriangle, color: 'text-yellow-600', bg: 'bg-yellow-400/10', text: 'Degraded' },
     outage: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-400/10', text: 'Outage' },
     maintenance: { icon: Clock, color: 'text-blue-400', bg: 'bg-blue-400/10', text: 'Maintenance' },
   }
@@ -104,10 +104,10 @@ export default function StatusPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-400"></div>
-          <p className="text-white text-lg">Loading Status...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-600"></div>
+          <p className="text-neural-800 text-lg font-medium">Loading Status...</p>
         </div>
       </div>
     )
@@ -117,40 +117,40 @@ export default function StatusPage() {
   const overallStatus = operationalCount === data.agents.length ? 'operational' : 'degraded'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white py-12">
-      <div className="container-custom">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 md:py-12">
+      <div className="container-custom px-4 md:px-6">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <Activity className="w-16 h-16 text-brand-400" />
+        <div className="text-center mb-8 md:mb-12">
+          <div className="flex items-center justify-center mb-4 md:mb-6">
+            <Activity className="w-12 h-12 md:w-16 md:h-16 text-brand-600" />
           </div>
-          <h1 className="text-5xl font-bold mb-4">
-            System <span className="text-gradient">Status</span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent">
+            System Status
           </h1>
-          <p className="text-xl text-neural-300 mb-6">
+          <p className="text-base md:text-lg lg:text-xl text-neural-600 mb-4 md:mb-6 max-w-2xl mx-auto px-4">
             Real-time monitoring of all One Last AI services
           </p>
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-3 md:gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
               <StatusBadge status={overallStatus} />
-              <span className="text-neural-400 text-sm">
+              <span className="text-neural-600 text-xs md:text-sm">
                 Last updated: {lastUpdate.toLocaleTimeString()}
               </span>
             </div>
             {/* Navigation Buttons */}
-            <div className="flex items-center gap-4 mt-4">
+            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-2 md:mt-4 w-full sm:w-auto px-4 sm:px-0">
               <a
                 href="/status/analytics"
-                className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105"
+                className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-brand-600 hover:bg-brand-700 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
               >
-                <TrendingUp className="w-5 h-5" />
+                <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
                 View Analytics
               </a>
               <a
                 href="/status/api-status"
-                className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105"
+                className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-purple-600 hover:bg-purple-700 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
               >
-                <Zap className="w-5 h-5" />
+                <Zap className="w-4 h-4 md:w-5 md:h-5" />
                 API Status
               </a>
             </div>
@@ -158,58 +158,58 @@ export default function StatusPage() {
         </div>
 
         {/* Main Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
           {/* Platform Status */}
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-xl md:rounded-2xl p-5 md:p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
-              <Server className="w-8 h-8 text-brand-400" />
+              <Server className="w-7 h-7 md:w-8 md:h-8 text-brand-600" />
               <StatusBadge status={data.platform.status} />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Platform</h3>
-            <div className="text-3xl font-bold text-brand-400 mb-2">{data.platform.uptime.toFixed(2)}%</div>
-            <p className="text-sm text-neural-400">Uptime</p>
+            <h3 className="text-base md:text-lg font-semibold mb-2 text-neural-800">Platform</h3>
+            <div className="text-2xl md:text-3xl font-bold text-brand-600 mb-2">{data.platform.uptime.toFixed(2)}%</div>
+            <p className="text-xs md:text-sm text-neural-600">Uptime</p>
           </div>
 
           {/* API Status */}
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-xl md:rounded-2xl p-5 md:p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
-              <Zap className="w-8 h-8 text-yellow-400" />
+              <Zap className="w-7 h-7 md:w-8 md:h-8 text-yellow-600" />
               <StatusBadge status={data.api.status} />
             </div>
-            <h3 className="text-lg font-semibold mb-2">API</h3>
-            <div className="text-3xl font-bold text-yellow-400 mb-2">{data.api.responseTime}ms</div>
-            <p className="text-sm text-neural-400">Avg Response Time</p>
+            <h3 className="text-base md:text-lg font-semibold mb-2 text-neural-800">API</h3>
+            <div className="text-2xl md:text-3xl font-bold text-yellow-600 mb-2">{data.api.responseTime}ms</div>
+            <p className="text-sm text-neural-600">Avg Response Time</p>
           </div>
 
           {/* Database Status */}
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
-              <Database className="w-8 h-8 text-green-400" />
+              <Database className="w-8 h-8 text-green-600" />
               <StatusBadge status={data.database.status} />
             </div>
             <h3 className="text-lg font-semibold mb-2">Database</h3>
-            <div className="text-3xl font-bold text-green-400 mb-2">{data.database.connectionPool}%</div>
-            <p className="text-sm text-neural-400">Connection Pool</p>
+            <div className="text-3xl font-bold text-green-600 mb-2">{data.database.connectionPool}%</div>
+            <p className="text-sm text-neural-600">Connection Pool</p>
           </div>
 
           {/* Active Users */}
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
-              <Users className="w-8 h-8 text-purple-400" />
-              <TrendingUp className="w-5 h-5 text-green-400" />
+              <Users className="w-8 h-8 text-purple-600" />
+              <TrendingUp className="w-5 h-5 text-green-600" />
             </div>
             <h3 className="text-lg font-semibold mb-2">Active Users</h3>
-            <div className="text-3xl font-bold text-purple-400 mb-2">
+            <div className="text-3xl font-bold text-purple-600 mb-2">
               {data.agents.reduce((sum, a) => sum + a.activeUsers, 0)}
             </div>
-            <p className="text-sm text-neural-400">Across All Agents</p>
+            <p className="text-sm text-neural-600">Across All Agents</p>
           </div>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
           {/* Uptime Chart */}
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <h3 className="text-xl font-bold mb-6">7-Day Uptime</h3>
             <div className="h-64 flex items-end justify-between gap-2">
               {data.historical.map((day, i) => (
@@ -218,17 +218,17 @@ export default function StatusPage() {
                     className="w-full bg-gradient-to-t from-brand-600 to-brand-400 rounded-t-lg transition-all hover:opacity-80"
                     style={{ height: `${day.uptime}%` }}
                   />
-                  <span className="text-xs text-neural-400">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                  <span className="text-xs text-neural-600">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-4 text-center text-sm text-neural-400">
+            <div className="mt-4 text-center text-sm text-neural-600">
               Average: {(data.historical.reduce((sum, d) => sum + d.uptime, 0) / data.historical.length).toFixed(2)}%
             </div>
           </div>
 
           {/* Requests Chart */}
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <h3 className="text-xl font-bold mb-6">API Requests (7 Days)</h3>
             <div className="h-64 flex items-end justify-between gap-2">
               {data.historical.map((day, i) => {
@@ -245,19 +245,19 @@ export default function StatusPage() {
                         {day.requests.toLocaleString()}
                       </div>
                     </div>
-                    <span className="text-xs text-neural-400">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                    <span className="text-xs text-neural-600">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
                   </div>
                 )
               })}
             </div>
-            <div className="mt-4 text-center text-sm text-neural-400">
+            <div className="mt-4 text-center text-sm text-neural-600">
               Total Today: {data.api.requestsToday.toLocaleString()} requests
             </div>
           </div>
         </div>
 
         {/* AI Services Status */}
-        <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700 mb-12">
+        <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow mb-12">
           <h3 className="text-xl font-bold mb-6">AI Services</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {data.aiServices.map((service, i) => (
@@ -268,12 +268,12 @@ export default function StatusPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-neural-400">Response Time</p>
-                    <p className="font-bold text-brand-400">{service.responseTime}ms</p>
+                    <p className="text-neural-600">Response Time</p>
+                    <p className="font-bold text-brand-600">{service.responseTime}ms</p>
                   </div>
                   <div>
-                    <p className="text-neural-400">Uptime</p>
-                    <p className="font-bold text-green-400">{service.uptime.toFixed(2)}%</p>
+                    <p className="text-neural-600">Uptime</p>
+                    <p className="font-bold text-green-600">{service.uptime.toFixed(2)}%</p>
                   </div>
                 </div>
               </div>
@@ -282,9 +282,9 @@ export default function StatusPage() {
         </div>
 
         {/* Agents Status */}
-        <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700 mb-12">
+        <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow mb-12">
           <h3 className="text-xl font-bold mb-6">AI Agents ({operationalCount}/{data.agents.length} Operational)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {data.agents.map((agent, i) => (
               <div key={i} className="bg-neural-700/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -293,12 +293,12 @@ export default function StatusPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <p className="text-neural-400">Response</p>
-                    <p className="font-bold text-brand-400">{agent.responseTime}ms</p>
+                    <p className="text-neural-600">Response</p>
+                    <p className="font-bold text-brand-600">{agent.responseTime}ms</p>
                   </div>
                   <div>
-                    <p className="text-neural-400">Users</p>
-                    <p className="font-bold text-purple-400">{agent.activeUsers}</p>
+                    <p className="text-neural-600">Users</p>
+                    <p className="font-bold text-purple-600">{agent.activeUsers}</p>
                   </div>
                 </div>
               </div>
@@ -307,9 +307,9 @@ export default function StatusPage() {
         </div>
 
         {/* Tools Status */}
-        <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700 mb-12">
+        <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow mb-12">
           <h3 className="text-xl font-bold mb-6">Tools & Services</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.tools.map((tool, i) => (
               <div key={i} className="bg-neural-700/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -318,13 +318,13 @@ export default function StatusPage() {
                 </div>
                 <div className="flex gap-4 text-sm">
                   <div>
-                    <p className="text-neural-400">Response Time</p>
-                    <p className="font-bold text-brand-400">{tool.responseTime}ms</p>
+                    <p className="text-neural-600">Response Time</p>
+                    <p className="font-bold text-brand-600">{tool.responseTime}ms</p>
                   </div>
                   {tool.activeChats && (
                     <div>
-                      <p className="text-neural-400">Active Chats</p>
-                      <p className="font-bold text-green-400">{tool.activeChats}</p>
+                      <p className="text-neural-600">Active Chats</p>
+                      <p className="font-bold text-green-600">{tool.activeChats}</p>
                     </div>
                   )}
                 </div>
@@ -335,7 +335,7 @@ export default function StatusPage() {
 
         {/* Recent Incidents */}
         {data.incidents.length > 0 && (
-          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+          <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <h3 className="text-xl font-bold mb-6">Recent Incidents</h3>
             <div className="space-y-4">
               {data.incidents.map((incident) => (
@@ -343,7 +343,7 @@ export default function StatusPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h4 className="font-semibold mb-1">{incident.title}</h4>
-                      <p className="text-sm text-neural-400">
+                      <p className="text-sm text-neural-600">
                         {new Date(incident.date).toLocaleDateString()} • Duration: {incident.duration}
                       </p>
                     </div>
@@ -357,7 +357,7 @@ export default function StatusPage() {
 
         {/* Auto-refresh Notice */}
         <div className="mt-8 text-center">
-          <p className="text-neural-400 text-sm">
+          <p className="text-neural-600 text-sm">
             🔄 Auto-refreshing every 30 seconds • Last update: {lastUpdate.toLocaleString()}
           </p>
         </div>
