@@ -130,11 +130,30 @@ export default function StatusPage() {
           <p className="text-xl text-neural-300 mb-6">
             Real-time monitoring of all One Last AI services
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <StatusBadge status={overallStatus} />
-            <span className="text-neural-400 text-sm">
-              Last updated: {lastUpdate.toLocaleTimeString()}
-            </span>
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-4">
+              <StatusBadge status={overallStatus} />
+              <span className="text-neural-400 text-sm">
+                Last updated: {lastUpdate.toLocaleTimeString()}
+              </span>
+            </div>
+            {/* Navigation Buttons */}
+            <div className="flex items-center gap-4 mt-4">
+              <a
+                href="/status/analytics"
+                className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105"
+              >
+                <TrendingUp className="w-5 h-5" />
+                View Analytics
+              </a>
+              <a
+                href="/status/api-status"
+                className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105"
+              >
+                <Zap className="w-5 h-5" />
+                API Status
+              </a>
+            </div>
           </div>
         </div>
 
