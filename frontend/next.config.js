@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable static export for mobile app
+  output: 'export',
+  
   images: {
     domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
+    unoptimized: true, // Required for static export
   },
   
   // Skip type checking and linting during build (for faster production deployment)
