@@ -16,9 +16,11 @@ import {
   Loader2,
   Eye,
   Globe2,
-  Wifi
+  Wifi,
+  Navigation
 } from 'lucide-react';
 import DoctorNetworkChat from '@/components/DoctorNetworkChat';
+import Script from 'next/script';
 
 interface IPLocation {
   city?: string;
@@ -163,6 +165,8 @@ export default function IPInfoPage() {
   const [showRawData, setShowRawData] = useState(false);
   const [rawData, setRawData] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   // Auto-detect user's IP on page load
   useEffect(() => {
@@ -213,6 +217,65 @@ export default function IPInfoPage() {
       setSearchLoading(false);
     }
   };
+
+  // Initialize Google Map when coordinates are available
+  useEffect(() => {
+    if (mapLoaded && ipData?.location?.coordinates && !map) {
+      const mapElement = document.getElementById('google-map');
+      if (mapElement) {
+        const newMap = new google.maps.Map(mapElement, {
+          center: { 
+            lat: ipData.location.coordinates.lat, 
+            lng: ipData.location.coordinates.lng 
+          },
+          zoom: 12,
+          mapTypeControl: true,
+          streetViewControl: true,
+          fullscreenControl: true,
+        });
+
+        // Add marker at the IP location
+        new google.maps.Marker({
+          position: { 
+            lat: ipData.location.coordinates.lat, 
+            lng: ipData.location.coordinates.lng 
+          },
+          map: newMap,
+          title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
+          animation: google.maps.Animation.DROP,
+        });
+
+        // Add info window
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <div style="padding: 8px;">
+              <h3 style="font-weight: bold; margin-bottom: 4px;">${ipData.ip}</h3>
+              <p style="margin: 2px 0;">${ipData.location.city || 'Unknown'}, ${ipData.location.region || ''}</p>
+              <p style="margin: 2px 0;">${ipData.location.country || 'Unknown'}</p>
+              <p style="margin: 2px 0; font-size: 12px; color: #666;">
+                ${ipData.location.coordinates.lat.toFixed(4)}, ${ipData.location.coordinates.lng.toFixed(4)}
+              </p>
+            </div>
+          `,
+        });
+
+        // Show info window on marker click
+        const marker = new google.maps.Marker({
+          position: { 
+            lat: ipData.location.coordinates.lat, 
+            lng: ipData.location.coordinates.lng 
+          },
+          map: newMap,
+        });
+        
+        marker.addListener('click', () => {
+          infoWindow.open(newMap, marker);
+        });
+
+        setMap(newMap);
+      }
+    }
+  }, [mapLoaded, ipData, map]);
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,7 +371,15 @@ export default function IPInfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      {/* Google Maps Script */}
+      <Script
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+        strategy="afterInteractive"
+        onLoad={() => setMapLoaded(true)}
+      />
+      
+      <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -457,6 +528,36 @@ export default function IPInfoPage() {
                   </div>
                 );
               })()}
+
+              {/* Google Maps Location Visualization */}
+              {ipData.location.coordinates && (
+                <div className="mb-8 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Navigation className="w-5 h-5 text-blue-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Geographic Location</h3>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        <span>{ipData.location.city || 'Unknown'}, {ipData.location.country || 'Unknown'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div 
+                    id="google-map" 
+                    className="w-full h-[400px]"
+                    style={{ minHeight: '400px' }}
+                  />
+                  <div className="p-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-600 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>
+                      Location is approximate based on IP address geolocation. 
+                      Actual location may vary by several kilometers.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Information Cards Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -616,5 +717,6 @@ export default function IPInfoPage() {
         } : undefined}
       />
     </div>
+    </>
   );
 }
