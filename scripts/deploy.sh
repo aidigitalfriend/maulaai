@@ -15,8 +15,8 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Configuration
-APP_DIR="/var/www/shiny-friend-disco"
-BACKUP_DIR="/var/www/backups"
+APP_DIR="${APP_DIR:-/var/www/shiny-friend-disco}"
+BACKUP_DIR="${BACKUP_DIR:-/var/www/backups}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Functions
