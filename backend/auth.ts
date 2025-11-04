@@ -25,9 +25,12 @@ const transporter = nodemailer.createTransport({
 // import { Resend } from 'resend'
 // const resend = new Resend(process.env.RESEND_API_KEY)
 
+const DISABLE_DB_ADAPTER = (process.env.NEXTAUTH_DISABLE_DB_ADAPTER || '').toLowerCase() === 'true'
+
 export const authOptions: NextAuthOptions = {
   // Configure adapter for MongoDB (uses native driver)
-  adapter: process.env.MONGODB_URI ? MongoDBAdapter(getClientPromise()) : undefined,
+  // Allow disabling to avoid startup hangs in environments without DB access
+  adapter: process.env.MONGODB_URI && !DISABLE_DB_ADAPTER ? MongoDBAdapter(getClientPromise()) : undefined,
 
   // Session strategy
   session: {
