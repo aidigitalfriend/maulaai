@@ -107,10 +107,45 @@ export default function StatusPage() {
   }
 
   useEffect(() => {
+    let es: EventSource | null = null
+    let pollTimer: any = null
+
+    const startSSE = () => {
+      try {
+        es = new EventSource('/api/status/stream')
+        es.onmessage = (e) => {
+          try {
+            const payload = JSON.parse(e.data)
+            if (payload?.success && payload?.data) {
+              setData(payload.data)
+              setLastUpdate(new Date())
+              setIsLoading(false)
+            }
+          } catch (err) {
+            console.error('SSE parse error:', err)
+          }
+        }
+        es.onerror = (e) => {
+          console.warn('SSE error, switching to polling...', e)
+          es?.close()
+          // fallback to polling every 30s
+          pollTimer = setInterval(fetchStatus, 30000)
+        }
+      } catch (e) {
+        console.warn('SSE not available, using polling.', e)
+        pollTimer = setInterval(fetchStatus, 30000)
+      }
+    }
+
+    // initial snapshot to render something fast
     fetchStatus()
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchStatus, 30000)
-    return () => clearInterval(interval)
+    // then start live stream
+    startSSE()
+
+    return () => {
+      es?.close()
+      if (pollTimer) clearInterval(pollTimer)
+    }
   }, [])
 
   if (isLoading) {
@@ -401,10 +436,10 @@ export default function StatusPage() {
           </div>
         )}
 
-        {/* Auto-refresh Notice */}
+        {/* Live update notice */}
         <div className="mt-8 text-center">
           <p className="text-neural-600 text-sm">
-            🔄 Auto-refreshing every 30 seconds • Last update: {lastUpdate.toLocaleString()}
+            � Live updating • Last update: {lastUpdate.toLocaleString()}
           </p>
         </div>
       </div>
