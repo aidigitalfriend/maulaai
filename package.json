@@ -14,12 +14,13 @@
     "start:frontend": "cd frontend && npm run start",
     "start:backend": "cd backend && npm run start",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "clean": "cd frontend && rm -rf .next node_modules && cd ../backend && rm -rf .next node_modules",
+    "clean": "rimraf frontend/.next frontend/node_modules backend/.next backend/node_modules",
     "lint": "cd frontend && npm run lint && cd ../backend && npm run lint"
   },
   "devDependencies": {
     "@types/uuid": "^10.0.0",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
   },
   "engines": {
     "node": ">=18.0.0",

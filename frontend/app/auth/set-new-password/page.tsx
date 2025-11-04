@@ -1,12 +1,13 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { EyeIcon, EyeSlashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../../lib/auth-context'
 
-export default function SetNewPasswordPage() {
+function SetNewPasswordPageContent() {
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
@@ -354,5 +355,13 @@ export default function SetNewPasswordPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SetNewPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <SetNewPasswordPageContent />
+    </Suspense>
   )
 }

@@ -52,6 +52,32 @@ app.get('/health', (req, res) => {
   })
 })
 
+// Compatibility alias: /api/health -> same as /health
+app.get('/api/health', (req, res) => {
+  const hasAIService = !!(
+    process.env.OPENAI_API_KEY ||
+    process.env.ANTHROPIC_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.COHERE_API_KEY
+  )
+
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    version: process.env.APP_VERSION || '1.0.0',
+    services: {
+      openai: !!process.env.OPENAI_API_KEY,
+      anthropic: !!process.env.ANTHROPIC_API_KEY,
+      gemini: !!process.env.GEMINI_API_KEY,
+      cohere: !!process.env.COHERE_API_KEY,
+      elevenlabs: !!process.env.ELEVENLABS_API_KEY,
+      googleTranslate: !!process.env.GOOGLE_TRANSLATE_API_KEY
+    },
+    hasAIService
+  })
+})
+
 // Language detection endpoint
 app.post('/api/language-detect', async (req, res) => {
   try {

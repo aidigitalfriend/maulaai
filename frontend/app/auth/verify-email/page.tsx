@@ -1,12 +1,13 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, CheckCircle } from 'lucide-react'
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email')
   const [countdown, setCountdown] = useState(60)
@@ -153,5 +154,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPageContent />
+    </Suspense>
   )
 }

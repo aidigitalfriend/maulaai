@@ -22,6 +22,10 @@ import {
 import DoctorNetworkChat from '@/components/DoctorNetworkChat';
 import Script from 'next/script';
 
+// Declare Google Maps JS SDK global to satisfy TypeScript when script is loaded at runtime
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const google: any;
+
 interface IPLocation {
   city?: string;
   region?: string;
@@ -166,7 +170,12 @@ export default function IPInfoPage() {
   const [rawData, setRawData] = useState<any>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [map, setMap] = useState<any>(null);
+  const [marker, setMarker] = useState<any>(null);
+  const [infoWindow, setInfoWindow] = useState<any>(null);
+  const [formattedAddress, setFormattedAddress] = useState<string | null>(null);
+  const [showQuickInfo, setShowQuickInfo] = useState(true);
+  const [toast, setToast] = useState<null | { message: string; type?: 'success' | 'info' | 'error' }>(null);
 
   // Auto-detect user's IP on page load
   useEffect(() => {
@@ -218,64 +227,72 @@ export default function IPInfoPage() {
     }
   };
 
-  // Initialize Google Map when coordinates are available
+  // Initialize or update Google Map when coordinates are available
   useEffect(() => {
-    if (mapLoaded && ipData?.location?.coordinates && !map) {
+    if (!mapLoaded || !ipData?.location?.coordinates) return;
+
+    const { lat, lng } = ipData.location.coordinates;
+    const center = { lat, lng };
+
+    // Create map if not created yet
+    if (!map) {
       const mapElement = document.getElementById('google-map');
-      if (mapElement) {
-        const newMap = new google.maps.Map(mapElement, {
-          center: { 
-            lat: ipData.location.coordinates.lat, 
-            lng: ipData.location.coordinates.lng 
-          },
-          zoom: 12,
-          mapTypeControl: true,
-          streetViewControl: true,
-          fullscreenControl: true,
-        });
+      if (!mapElement) return;
 
-        // Add marker at the IP location
-        new google.maps.Marker({
-          position: { 
-            lat: ipData.location.coordinates.lat, 
-            lng: ipData.location.coordinates.lng 
-          },
-          map: newMap,
-          title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
-          animation: google.maps.Animation.DROP,
-        });
+      const newMap = new google.maps.Map(mapElement, {
+        center,
+        zoom: 12,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true,
+      });
 
-        // Add info window
-        const infoWindow = new google.maps.InfoWindow({
-          content: `
-            <div style="padding: 8px;">
-              <h3 style="font-weight: bold; margin-bottom: 4px;">${ipData.ip}</h3>
-              <p style="margin: 2px 0;">${ipData.location.city || 'Unknown'}, ${ipData.location.region || ''}</p>
-              <p style="margin: 2px 0;">${ipData.location.country || 'Unknown'}</p>
-              <p style="margin: 2px 0; font-size: 12px; color: #666;">
-                ${ipData.location.coordinates.lat.toFixed(4)}, ${ipData.location.coordinates.lng.toFixed(4)}
-              </p>
-            </div>
-          `,
-        });
+      const newMarker = new google.maps.Marker({
+        position: center,
+        map: newMap,
+        title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
+        animation: google.maps.Animation.DROP,
+      });
 
-        // Show info window on marker click
-        const marker = new google.maps.Marker({
-          position: { 
-            lat: ipData.location.coordinates.lat, 
-            lng: ipData.location.coordinates.lng 
-          },
-          map: newMap,
-        });
-        
-        marker.addListener('click', () => {
-          infoWindow.open(newMap, marker);
-        });
+      const newInfoWindow = new google.maps.InfoWindow({
+        content: buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()),
+      });
 
-        setMap(newMap);
-      }
+      newMarker.addListener('click', () => newInfoWindow.open(newMap, newMarker));
+
+      setMap(newMap);
+      setMarker(newMarker);
+  setInfoWindow(newInfoWindow);
+  newInfoWindow.open(newMap, newMarker);
+      return;
     }
-  }, [mapLoaded, ipData, map]);
+
+    // Update map center and marker if map already exists (e.g., manual IP lookup)
+    map.setCenter(center);
+    marker?.setPosition(center);
+
+    if (infoWindow) {
+      infoWindow.setContent(buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()));
+    }
+  }, [mapLoaded, ipData, map, marker, infoWindow, formattedAddress]);
+
+  // Reverse geocode to get a human-readable address for the coordinates
+  useEffect(() => {
+    if (!mapLoaded || !ipData?.location?.coordinates) return;
+    try {
+      const geocoder = new google.maps.Geocoder();
+      const { lat, lng } = ipData.location.coordinates;
+      geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+        if (status === 'OK' && results && results[0]) {
+          setFormattedAddress(results[0].formatted_address);
+        } else {
+          setFormattedAddress(getFallbackAddress());
+        }
+      });
+    } catch (e) {
+      setFormattedAddress(getFallbackAddress());
+    }
+  }, [mapLoaded, ipData?.location?.coordinates?.lat, ipData?.location?.coordinates?.lng]);
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,8 +306,10 @@ export default function IPInfoPage() {
       await navigator.clipboard.writeText(text);
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
+      setToast({ message: `${field === 'rawData' ? 'Raw data' : field} copied to clipboard`, type: 'success' });
     } catch (err) {
       console.error('Failed to copy:', err);
+      setToast({ message: 'Failed to copy', type: 'error' });
     }
   };
 
@@ -317,6 +336,73 @@ export default function IPInfoPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  // Fallback address from IP fields when reverse geocoding is unavailable
+  const getFallbackAddress = () => {
+    if (!ipData) return null;
+    const parts = [ipData.location.city, ipData.location.region, ipData.location.country]
+      .filter(Boolean)
+      .join(', ');
+    return parts || null;
+  };
+
+  const openInGoogleMapsUrl = (lat?: number, lng?: number) => {
+    if (typeof lat !== 'number' || typeof lng !== 'number') return '#';
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  };
+
+  const getDirectionsUrl = (lat?: number, lng?: number) => {
+    if (typeof lat !== 'number' || typeof lng !== 'number') return '#';
+    return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  };
+
+  const shareLocation = (lat?: number, lng?: number, address?: string, ip?: string) => {
+    if (typeof lat !== 'number' || typeof lng !== 'number') return;
+    const url = openInGoogleMapsUrl(lat, lng);
+    const text = address || getFallbackAddress() || `${lat}, ${lng}`;
+    const title = ip ? `IP ${ip} location` : 'Location';
+    try {
+      if (navigator.share) {
+        navigator
+          .share({ title, text, url })
+          .then(() => setToast({ message: 'Share dialog opened', type: 'info' }))
+          .catch(() => {
+            copyToClipboard(url, 'shareUrl');
+            setToast({ message: 'Link copied to clipboard', type: 'success' });
+          });
+      } else {
+        copyToClipboard(url, 'shareUrl');
+        setToast({ message: 'Link copied to clipboard', type: 'success' });
+      }
+    } catch {
+      copyToClipboard(url, 'shareUrl');
+      setToast({ message: 'Link copied to clipboard', type: 'success' });
+    }
+  };
+
+  // Simple toast auto-dismiss
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 2000);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  const buildInfoWindowHtml = (
+    data: IPInfoData,
+    lat: number,
+    lng: number,
+    address?: string | null
+  ) => `
+    <div style="padding: 8px; max-width: 280px;">
+      <h3 style="font-weight: bold; margin-bottom: 6px;">${data.ip}</h3>
+      ${address ? `<div style=\"margin: 4px 0; font-size: 13px;\"><strong>Address:</strong> ${address}</div>` : ''}
+      <div style="margin: 4px 0; font-size: 13px;"><strong>City:</strong> ${data.location.city || 'Unknown'}</div>
+      <div style="margin: 4px 0; font-size: 13px;"><strong>Region:</strong> ${data.location.region || ''}</div>
+      <div style="margin: 4px 0; font-size: 13px;"><strong>Country:</strong> ${data.location.country || 'Unknown'}</div>
+      ${data.network.organization ? `<div style=\"margin: 4px 0; font-size: 13px;\"><strong>Organization:</strong> ${data.network.organization}</div>` : ''}
+      <div style="margin: 6px 0; font-size: 12px; color: #666;"><strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
+    </div>
+  `;
 
   const InfoCard = ({ title, children, icon }: { title: string; children: React.ReactNode; icon: React.ReactNode }) => (
     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
@@ -540,7 +626,7 @@ export default function IPInfoPage() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
-                        <span>{ipData.location.city || 'Unknown'}, {ipData.location.country || 'Unknown'}</span>
+                        <span>{formattedAddress || `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`}</span>
                       </div>
                     </div>
                   </div>
@@ -556,6 +642,78 @@ export default function IPInfoPage() {
                       Actual location may vary by several kilometers.
                     </span>
                   </div>
+                  {/* Quick actions and summary cards */}
+                  <div className="p-4 bg-white border-t border-gray-200">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <div className="flex flex-wrap gap-3">
+                        <a
+                          href={openInGoogleMapsUrl(ipData.location.coordinates.lat, ipData.location.coordinates.lng)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        >
+                          Open in Google Maps
+                        </a>
+                        <a
+                          href={getDirectionsUrl(ipData.location.coordinates.lat, ipData.location.coordinates.lng)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
+                        >
+                          Get Directions
+                        </a>
+                        <button
+                          onClick={() => shareLocation(
+                            ipData.location.coordinates!.lat,
+                            ipData.location.coordinates!.lng,
+                            formattedAddress || getFallbackAddress() || undefined,
+                            ipData.ip
+                          )}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                        >
+                          Share Location
+                        </button>
+                        <button
+                          onClick={() => {
+                            const addr = formattedAddress || getFallbackAddress();
+                            if (addr) copyToClipboard(addr, 'address');
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          Copy Address
+                        </button>
+                        <button
+                          onClick={() => setShowQuickInfo(v => !v)}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          {showQuickInfo ? 'Hide Info' : 'Show Info'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {showQuickInfo && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="rounded-lg bg-neutral-900 text-white p-4">
+                          <div className="text-sm opacity-80 mb-1">Coordinates</div>
+                          <div className="font-semibold text-lg">
+                            {ipData.location.coordinates.lat.toFixed(6)}, {ipData.location.coordinates.lng.toFixed(6)}
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-neutral-900 text-white p-4">
+                          <div className="text-sm opacity-80 mb-1">Location</div>
+                          <div className="font-semibold text-lg">
+                            {formattedAddress || getFallbackAddress() || 'Unknown'}
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-neutral-900 text-white p-4">
+                          <div className="text-sm opacity-80 mb-1">Network</div>
+                          <div className="font-semibold text-lg">
+                            {ipData.network.organization || ipData.network.isp || 'Unknown'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -564,6 +722,7 @@ export default function IPInfoPage() {
                 {/* Location Information */}
                 <InfoCard title="Location Information" icon={<MapPin className="w-5 h-5 text-blue-600" />}>
                   <div className="space-y-0">
+                    <InfoRow label="Address" value={formattedAddress || getFallbackAddress() || undefined} copyable />
                     <InfoRow label="City" value={ipData.location.city} />
                     <InfoRow label="Region" value={ipData.location.region} />
                     <InfoRow label="Country" value={ipData.location.country} />

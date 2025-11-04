@@ -1,13 +1,14 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../../lib/auth-context'
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [authMode, setAuthMode] = useState<'passwordless' | 'password'>('passwordless')
   const [formData, setFormData] = useState({
     email: '',
@@ -325,5 +326,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   )
 }

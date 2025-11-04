@@ -7,8 +7,8 @@
 const http = require('http');
 
 // Test configuration
-const FRONTEND_PORT = 3003;
-const BACKEND_PORT = 3004;
+const FRONTEND_PORT = 3000;
+const BACKEND_PORT = 3005;
 
 console.log('🧪 Starting integration tests...\n');
 
@@ -18,7 +18,7 @@ function testBackendHealth() {
     const options = {
       hostname: 'localhost',
       port: BACKEND_PORT,
-      path: '/api/health',
+  path: '/health',
       method: 'GET'
     };
 

@@ -1,6 +1,7 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Upload, CheckCircle, AlertCircle } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -36,7 +37,7 @@ interface FormData {
   expectations: string
 }
 
-export default function ApplyJobPage() {
+function ApplyJobPageContent() {
   const searchParams = useSearchParams()
   const position = searchParams?.get('position') || 'Software Engineer'
   const jobId = searchParams?.get('id') || 'unknown'
@@ -661,5 +662,13 @@ export default function ApplyJobPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function ApplyJobPage() {
+  return (
+    <Suspense fallback={null}>
+      <ApplyJobPageContent />
+    </Suspense>
   )
 }

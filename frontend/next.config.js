@@ -1,11 +1,18 @@
 /** @type {import('next').NextConfig} */
+const isExport = process.env.NEXT_EXPORT === 'true'
 const nextConfig = {
-  // Enable static export for mobile app
-  output: 'export',
+  // Enable static export for mobile app only when explicitly requested
+  output: isExport ? 'export' : undefined,
   
   images: {
     domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
-    unoptimized: true, // Required for static export
+    // Unoptimized only for static export
+    unoptimized: !!isExport,
+  },
+  
+  // Expose Google Maps API key to the client; prefer NEXT_PUBLIC_ but fall back to non-prefixed if provided
+  env: {
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '',
   },
   
   // Skip type checking and linting during build (for faster production deployment)
