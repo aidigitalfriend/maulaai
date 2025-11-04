@@ -13,7 +13,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 3002
+// Default to 3005 to align with frontend rewrites, Nginx upstream, and integration tests
+const PORT = process.env.PORT || 3005
 
 // Security middleware
 app.use(helmet())
@@ -203,11 +204,14 @@ app.post('/api/voice/synthesize', async (req, res) => {
     }
     
     let audioData = null
-    
+
+    // Explicitly return 501 for unimplemented providers
+    if (provider === 'azure') {
+      return res.status(501).json({ success: false, error: 'Azure Speech not implemented yet' })
+    }
+
     if (provider === 'elevenlabs' && process.env.ELEVENLABS_API_KEY) {
       audioData = await synthesizeWithElevenLabs(text, voice, language)
-    } else if (provider === 'azure' && process.env.AZURE_SPEECH_KEY) {
-      audioData = await synthesizeWithAzure(text, voice, language)
     }
     
     if (!audioData) {
@@ -246,13 +250,16 @@ app.post('/api/translate', async (req, res) => {
     }
     
     let translatedText = null
-    
+
+    // Explicitly return 501 for unimplemented providers
+    if (provider === 'azure') {
+      return res.status(501).json({ success: false, error: 'Azure Translator not implemented yet' })
+    }
+
     if (provider === 'google' && process.env.GOOGLE_TRANSLATE_API_KEY) {
       translatedText = await translateWithGoogle(text, targetLanguage, sourceLanguage)
     } else if (provider === 'deepl' && process.env.DEEPL_API_KEY) {
       translatedText = await translateWithDeepL(text, targetLanguage, sourceLanguage)
-    } else if (provider === 'azure' && process.env.AZURE_TRANSLATOR_KEY) {
-      translatedText = await translateWithAzure(text, targetLanguage, sourceLanguage)
     }
     
     if (!translatedText) {
