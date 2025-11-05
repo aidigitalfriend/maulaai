@@ -1,600 +1,1198 @@
-'use client''use client'
+'use client''use client''use client'
 
 
 
-import { useState } from 'react'import { useState } from 'react'
+import { useState } from 'react'
 
-import { Code, Send, Loader2, ArrowLeft, Plus, Trash2, Copy, Check } from 'lucide-react'import { Send, Plus, Trash2, Copy, Clock } from 'lucide-react'
+import { Send, Plus, Trash2, Copy, Clock } from 'lucide-react'
 
-import Link from 'next/link'
+import Link from 'next/link'import { useState } from 'react'import { useState } from 'react'
 
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
+
+
+interface Header {import { Code, Send, Loader2, ArrowLeft, Plus, Trash2, Copy, Check } from 'lucide-react'import { Send, Plus, Trash2, Copy, Clock } from 'lucide-react'
+
+  id: string
+
+  key: stringimport Link from 'next/link'
+
+  value: string
+
+  enabled: booleanconst HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
+
+}
 
 interface Header {
 
-  id: stringinterface Header {
+interface QueryParam {
 
-  key: string  id: string
+  id: string  id: stringinterface Header {
 
-  value: string  key: string
+  key: string
 
-  enabled: boolean  value: string
+  value: string  key: string  id: string
 
-}}
+  enabled: boolean
+
+}  value: string  key: string
 
 
 
-interface QueryParam {export default function APITesterPage() {
+interface ApiResponse {  enabled: boolean  value: string
 
-  id: string  const [url, setUrl] = useState('https://api.example.com/endpoint')
+  status: number
 
-  key: string  const [method, setMethod] = useState('GET')
+  statusText: string}}
 
-  value: string  const [headers, setHeaders] = useState<Header[]>([
-
-  enabled: boolean    { id: '1', key: 'Content-Type', value: 'application/json' }
-
-}  ])
-
-  const [body, setBody] = useState('{\n  "key": "value"\n}')
-
-interface ApiResponse {  const [response, setResponse] = useState<any>(null)
-
-  status: number  const [isLoading, setIsLoading] = useState(false)
-
-  statusText: string  const [responseTime, setResponseTime] = useState<number | null>(null)
-
-  headers: Record<string, string>  const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body')
+  headers: Record<string, string>
 
   data: any
 
-  time: number  const addHeader = () => {
+  time?: number
 
-}    setHeaders([...headers, { id: Date.now().toString(), key: '', value: '' }])
+}interface QueryParam {export default function APITesterPage() {
 
-  }
 
-const REQUEST_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
 
-  const removeHeader = (id: string) => {
+const quickPresets = [  id: string  const [url, setUrl] = useState('https://api.example.com/endpoint')
 
-const CONTENT_TYPES = [    setHeaders(headers.filter(h => h.id !== id))
+  {
 
-  { label: 'JSON (application/json)', value: 'application/json' },  }
-
-  { label: 'Form Data (multipart/form-data)', value: 'multipart/form-data' },
-
-  { label: 'URL Encoded (application/x-www-form-urlencoded)', value: 'application/x-www-form-urlencoded' },  const updateHeader = (id: string, field: 'key' | 'value', value: string) => {
-
-  { label: 'Plain Text (text/plain)', value: 'text/plain' },    setHeaders(headers.map(h => h.id === id ? { ...h, [field]: value } : h))
-
-  { label: 'XML (application/xml)', value: 'application/xml' },  }
-
-  { label: 'HTML (text/html)', value: 'text/html' }
-
-]  const sendRequest = async () => {
-
-    setIsLoading(true)
-
-const AUTH_TYPES = [    setResponse(null)
-
-  { label: 'No Auth', value: 'none' },    setResponseTime(null)
-
-  { label: 'Bearer Token', value: 'bearer' },
-
-  { label: 'Basic Auth', value: 'basic' },    const startTime = performance.now()
-
-  { label: 'API Key', value: 'apikey' }
-
-]    try {
-
-      const requestHeaders: Record<string, string> = {}
-
-const BODY_TYPES = [      headers.forEach(h => {
-
-  { label: 'JSON', value: 'json' },        if (h.key.trim()) {
-
-  { label: 'Raw Text', value: 'raw' },          requestHeaders[h.key] = h.value
-
-  { label: 'Form Data', value: 'formdata' },        }
-
-  { label: 'URL Encoded', value: 'urlencoded' }      })
-
-]
-
-      const options: RequestInit = {
-
-const PRESET_APIS = [        method,
-
-  {        headers: requestHeaders,
-
-    name: 'JSONPlaceholder - Get Posts',      }
+    name: 'JSONPlaceholder - Get Posts',  key: string  const [method, setMethod] = useState('GET')
 
     method: 'GET',
 
-    url: 'https://jsonplaceholder.typicode.com/posts'      if (['POST', 'PUT', 'PATCH'].includes(method) && body.trim()) {
-
-  },        options.body = body
-
-  {      }
-
-    name: 'JSONPlaceholder - Create Post',
-
-    method: 'POST',      const res = await fetch(url, options)
-
-    url: 'https://jsonplaceholder.typicode.com/posts',      const endTime = performance.now()
-
-    body: JSON.stringify({ title: 'Test Post', body: 'Test Body', userId: 1 }, null, 2)      setResponseTime(Math.round(endTime - startTime))
+    url: 'https://jsonplaceholder.typicode.com/posts'  value: string  const [headers, setHeaders] = useState<Header[]>([
 
   },
 
-  {      const contentType = res.headers.get('content-type')
+  {  enabled: boolean    { id: '1', key: 'Content-Type', value: 'application/json' }
 
-    name: 'GitHub - Get User',      let data
+    name: 'JSONPlaceholder - Create Post',
+
+    method: 'POST',}  ])
+
+    url: 'https://jsonplaceholder.typicode.com/posts',
+
+    body: JSON.stringify({ title: 'Test Post', body: 'Test content', userId: 1 }, null, 2),  const [body, setBody] = useState('{\n  "key": "value"\n}')
+
+    headers: [{ id: '1', key: 'Content-Type', value: 'application/json', enabled: true }]
+
+  },interface ApiResponse {  const [response, setResponse] = useState<any>(null)
+
+  {
+
+    name: 'GitHub API - Get User',  status: number  const [isLoading, setIsLoading] = useState(false)
 
     method: 'GET',
 
-    url: 'https://api.github.com/users/github'      if (contentType?.includes('application/json')) {
+    url: 'https://api.github.com/users/github'  statusText: string  const [responseTime, setResponseTime] = useState<number | null>(null)
 
-  },        data = await res.json()
+  },
 
-  {      } else {
+  {  headers: Record<string, string>  const [activeTab, setActiveTab] = useState<'body' | 'headers'>('body')
 
-    name: 'REST Countries - All',        data = await res.text()
+    name: 'REST Countries - Get Country',
 
-    method: 'GET',      }
+    method: 'GET',  data: any
 
-    url: 'https://restcountries.com/v3.1/all'
+    url: 'https://restcountries.com/v3.1/name/canada'
 
-  },      setResponse({
+  },  time: number  const addHeader = () => {
 
-  {        status: res.status,
+  {
 
-    name: 'Cat Facts API',        statusText: res.statusText,
+    name: 'Cat Facts API',}    setHeaders([...headers, { id: Date.now().toString(), key: '', value: '' }])
 
-    method: 'GET',        headers: Object.fromEntries(res.headers.entries()),
+    method: 'GET',
 
-    url: 'https://catfact.ninja/fact'        data
-
-  }      })
-
-]    } catch (error: any) {
-
-      const endTime = performance.now()
-
-export default function ApiTesterPage() {      setResponseTime(Math.round(endTime - startTime))
-
-  const [method, setMethod] = useState('GET')      setResponse({
-
-  const [url, setUrl] = useState('')        error: true,
-
-  const [authType, setAuthType] = useState('none')        message: error.message || 'Request failed'
-
-  const [bearerToken, setBearerToken] = useState('')      })
-
-  const [basicUsername, setBasicUsername] = useState('')    } finally {
-
-  const [basicPassword, setBasicPassword] = useState('')      setIsLoading(false)
-
-  const [apiKeyHeader, setApiKeyHeader] = useState('X-API-Key')    }
-
-  const [apiKeyValue, setApiKeyValue] = useState('')  }
-
-  const [headers, setHeaders] = useState<Header[]>([
-
-    { id: '1', key: '', value: '', enabled: true }  const copyResponse = () => {
-
-  ])    if (response) {
-
-  const [queryParams, setQueryParams] = useState<QueryParam[]>([      navigator.clipboard.writeText(JSON.stringify(response, null, 2))
-
-    { id: '1', key: '', value: '', enabled: true }    }
-
-  ])  }
-
-  const [bodyType, setBodyType] = useState('json')
-
-  const [body, setBody] = useState('')  return (
-
-  const [loading, setLoading] = useState(false)    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-
-  const [response, setResponse] = useState<ApiResponse | null>(null)      <div className="container-custom py-20">
-
-  const [error, setError] = useState('')        {/* Header */}
-
-  const [copied, setCopied] = useState(false)        <div className="text-center mb-12">
-
-          <h1 className="text-5xl font-bold mb-4">
-
-  const addHeader = () => {            API <span className="text-gradient">Tester</span>
-
-    setHeaders([...headers, { id: Date.now().toString(), key: '', value: '', enabled: true }])          </h1>
-
-  }          <p className="text-xl text-neural-300 max-w-2xl mx-auto">
-
-            Test and debug your APIs with a powerful, easy-to-use HTTP client
-
-  const removeHeader = (id: string) => {          </p>
-
-    setHeaders(headers.filter(h => h.id !== id))        </div>
+    url: 'https://catfact.ninja/fact'  }
 
   }
 
-        {/* Main Content */}
-
-  const updateHeader = (id: string, field: 'key' | 'value' | 'enabled', value: string | boolean) => {        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-    setHeaders(headers.map(h => h.id === id ? { ...h, [field]: value } : h))          {/* Request Section */}
-
-  }          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
-
-            <h2 className="text-2xl font-bold mb-6">Request</h2>
-
-  const addQueryParam = () => {
-
-    setQueryParams([...queryParams, { id: Date.now().toString(), key: '', value: '', enabled: true }])            {/* URL and Method */}
-
-  }            <div className="space-y-4 mb-6">
-
-              <div className="flex gap-3">
-
-  const removeQueryParam = (id: string) => {                <select
-
-    setQueryParams(queryParams.filter(q => q.id !== id))                  value={method}
-
-  }                  onChange={(e) => setMethod(e.target.value)}
-
-                  className="px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg font-semibold focus:outline-none focus:border-brand-600 transition"
-
-  const updateQueryParam = (id: string, field: 'key' | 'value' | 'enabled', value: string | boolean) => {                >
-
-    setQueryParams(queryParams.map(q => q.id === id ? { ...q, [field]: value } : q))                  {HTTP_METHODS.map(m => (
-
-  }                    <option key={m} value={m}>{m}</option>
-
-                  ))}
-
-  const loadPreset = (preset: typeof PRESET_APIS[0]) => {                </select>
-
-    setMethod(preset.method)                <input
-
-    setUrl(preset.url)                  type="text"
-
-    if (preset.body) {                  value={url}
-
-      setBody(preset.body)                  onChange={(e) => setUrl(e.target.value)}
-
-      setBodyType('json')                  placeholder="Enter API endpoint URL"
-
-    } else {                  className="flex-1 px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg focus:outline-none focus:border-brand-600 transition"
-
-      setBody('')                />
-
-    }              </div>
-
-  }            </div>
+]const REQUEST_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
 
 
 
-  const formatJson = () => {            {/* Tabs */}
+export default function ApiTesterPage() {  const removeHeader = (id: string) => {
 
-    try {            <div className="flex gap-4 mb-4 border-b border-neural-700">
+  const [method, setMethod] = useState('GET')
 
-      const parsed = JSON.parse(body)              <button
+  const [url, setUrl] = useState('')const CONTENT_TYPES = [    setHeaders(headers.filter(h => h.id !== id))
 
-      setBody(JSON.stringify(parsed, null, 2))                onClick={() => setActiveTab('body')}
+  const [authType, setAuthType] = useState('none')
 
-    } catch (e) {                className={`px-4 py-2 font-semibold transition ${
+  const [bearerToken, setBearerToken] = useState('')  { label: 'JSON (application/json)', value: 'application/json' },  }
 
-      // Invalid JSON, do nothing                  activeTab === 'body'
+  const [basicUsername, setBasicUsername] = useState('')
 
-    }                    ? 'text-brand-400 border-b-2 border-brand-400'
+  const [basicPassword, setBasicPassword] = useState('')  { label: 'Form Data (multipart/form-data)', value: 'multipart/form-data' },
 
-  }                    : 'text-neural-400 hover:text-white'
+  const [apiKeyHeader, setApiKeyHeader] = useState('X-API-Key')
 
-                }`}
+  const [apiKeyValue, setApiKeyValue] = useState('')  { label: 'URL Encoded (application/x-www-form-urlencoded)', value: 'application/x-www-form-urlencoded' },  const updateHeader = (id: string, field: 'key' | 'value', value: string) => {
 
-  const copyResponse = () => {              >
+  const [headers, setHeaders] = useState<Header[]>([])
 
-    if (response) {                Body
+  const [queryParams, setQueryParams] = useState<QueryParam[]>([])  { label: 'Plain Text (text/plain)', value: 'text/plain' },    setHeaders(headers.map(h => h.id === id ? { ...h, [field]: value } : h))
 
-      navigator.clipboard.writeText(JSON.stringify(response.data, null, 2))              </button>
+  const [bodyType, setBodyType] = useState('json')
 
-      setCopied(true)              <button
+  const [body, setBody] = useState('')  { label: 'XML (application/xml)', value: 'application/xml' },  }
 
-      setTimeout(() => setCopied(false), 2000)                onClick={() => setActiveTab('headers')}
+  const [loading, setLoading] = useState(false)
 
-    }                className={`px-4 py-2 font-semibold transition ${
+  const [response, setResponse] = useState<ApiResponse | null>(null)  { label: 'HTML (text/html)', value: 'text/html' }
 
-  }                  activeTab === 'headers'
+  const [error, setError] = useState('')
 
-                    ? 'text-brand-400 border-b-2 border-brand-400'
+  const [copied, setCopied] = useState(false)]  const sendRequest = async () => {
 
-  const handleSend = async () => {                    : 'text-neural-400 hover:text-white'
 
-    if (!url.trim()) {                }`}
 
-      setError('Please enter a URL')              >
+  const addHeader = () => {    setIsLoading(true)
 
-      return                Headers ({headers.length})
+    setHeaders([...headers, { id: Date.now().toString(), key: '', value: '', enabled: true }])
 
-    }              </button>
+  }const AUTH_TYPES = [    setResponse(null)
 
-            </div>
+
+
+  const removeHeader = (id: string) => {  { label: 'No Auth', value: 'none' },    setResponseTime(null)
+
+    setHeaders(headers.filter(h => h.id !== id))
+
+  }  { label: 'Bearer Token', value: 'bearer' },
+
+
+
+  const updateHeader = (id: string, field: keyof Header, value: string | boolean) => {  { label: 'Basic Auth', value: 'basic' },    const startTime = performance.now()
+
+    setHeaders(headers.map(h => h.id === id ? { ...h, [field]: value } : h))
+
+  }  { label: 'API Key', value: 'apikey' }
+
+
+
+  const addQueryParam = () => {]    try {
+
+    setQueryParams([...queryParams, { id: Date.now().toString(), key: '', value: '', enabled: true }])
+
+  }      const requestHeaders: Record<string, string> = {}
+
+
+
+  const removeQueryParam = (id: string) => {const BODY_TYPES = [      headers.forEach(h => {
+
+    setQueryParams(queryParams.filter(q => q.id !== id))
+
+  }  { label: 'JSON', value: 'json' },        if (h.key.trim()) {
+
+
+
+  const updateQueryParam = (id: string, field: keyof QueryParam, value: string | boolean) => {  { label: 'Raw Text', value: 'raw' },          requestHeaders[h.key] = h.value
+
+    setQueryParams(queryParams.map(q => q.id === id ? { ...q, [field]: value } : q))
+
+  }  { label: 'Form Data', value: 'formdata' },        }
+
+
+
+  const loadPreset = (preset: typeof quickPresets[0]) => {  { label: 'URL Encoded', value: 'urlencoded' }      })
+
+    setMethod(preset.method)
+
+    setUrl(preset.url)]
+
+    if (preset.body) {
+
+      setBody(preset.body)      const options: RequestInit = {
+
+      setBodyType('json')
+
+    } else {const PRESET_APIS = [        method,
+
+      setBody('')
+
+    }  {        headers: requestHeaders,
+
+    if (preset.headers) {
+
+      setHeaders(preset.headers)    name: 'JSONPlaceholder - Get Posts',      }
+
+    } else {
+
+      setHeaders([])    method: 'GET',
+
+    }
+
+    setQueryParams([])    url: 'https://jsonplaceholder.typicode.com/posts'      if (['POST', 'PUT', 'PATCH'].includes(method) && body.trim()) {
+
+    setAuthType('none')
+
+    setResponse(null)  },        options.body = body
+
+    setError('')
+
+  }  {      }
+
+
+
+  const formatJson = () => {    name: 'JSONPlaceholder - Create Post',
+
+    try {
+
+      const parsed = JSON.parse(body)    method: 'POST',      const res = await fetch(url, options)
+
+      setBody(JSON.stringify(parsed, null, 2))
+
+    } catch (e) {    url: 'https://jsonplaceholder.typicode.com/posts',      const endTime = performance.now()
+
+      // Invalid JSON, don't format
+
+    }    body: JSON.stringify({ title: 'Test Post', body: 'Test Body', userId: 1 }, null, 2)      setResponseTime(Math.round(endTime - startTime))
+
+  }
+
+  },
+
+  const copyResponse = () => {
+
+    if (response) {  {      const contentType = res.headers.get('content-type')
+
+      navigator.clipboard.writeText(JSON.stringify(response.data, null, 2))
+
+      setCopied(true)    name: 'GitHub - Get User',      let data
+
+      setTimeout(() => setCopied(false), 2000)
+
+    }    method: 'GET',
+
+  }
+
+    url: 'https://api.github.com/users/github'      if (contentType?.includes('application/json')) {
+
+  const handleSend = async () => {
+
+    if (!url.trim()) {  },        data = await res.json()
+
+      setError('Please enter a URL')
+
+      return  {      } else {
+
+    }
+
+    name: 'REST Countries - All',        data = await res.text()
 
     setLoading(true)
 
-    setError('')            {/* Body Tab */}
+    setError('')    method: 'GET',      }
 
-    setResponse(null)            {activeTab === 'body' && (
+    setResponse(null)
 
-              <div>
+    url: 'https://restcountries.com/v3.1/all'
 
-    try {                <textarea
+    try {
 
-      // Build query params                  value={body}
+      // Build full URL with query params  },      setResponse({
 
-      const enabledParams = queryParams.filter(p => p.enabled && p.key.trim())                  onChange={(e) => setBody(e.target.value)}
+      const enabledParams = queryParams.filter(q => q.enabled && q.key)
 
-      let finalUrl = url                  placeholder="Request body (JSON, XML, etc.)"
+      let fullUrl = url  {        status: res.status,
 
-      if (enabledParams.length > 0) {                  className="w-full h-64 px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg font-mono text-sm focus:outline-none focus:border-brand-600 transition resize-none"
+      if (enabledParams.length > 0) {
 
-        const params = new URLSearchParams()                  disabled={!['POST', 'PUT', 'PATCH'].includes(method)}
+        const params = new URLSearchParams()    name: 'Cat Facts API',        statusText: res.statusText,
 
-        enabledParams.forEach(p => params.append(p.key, p.value))                />
+        enabledParams.forEach(p => params.append(p.key, p.value))
 
-        finalUrl = `${url}${url.includes('?') ? '&' : '?'}${params.toString()}`              </div>
+        fullUrl += (url.includes('?') ? '&' : '?') + params.toString()    method: 'GET',        headers: Object.fromEntries(res.headers.entries()),
 
-      }            )}
+      }
+
+    url: 'https://catfact.ninja/fact'        data
+
+      // Build headers
+
+      const requestHeaders: Record<string, string> = {}  }      })
+
+      headers.filter(h => h.enabled && h.key).forEach(h => {
+
+        requestHeaders[h.key] = h.value]    } catch (error: any) {
+
+      })
+
+      const endTime = performance.now()
+
+      // Add auth headers
+
+      if (authType === 'bearer' && bearerToken) {export default function ApiTesterPage() {      setResponseTime(Math.round(endTime - startTime))
+
+        requestHeaders['Authorization'] = `Bearer ${bearerToken}`
+
+      } else if (authType === 'basic' && basicUsername && basicPassword) {  const [method, setMethod] = useState('GET')      setResponse({
+
+        const encoded = btoa(`${basicUsername}:${basicPassword}`)
+
+        requestHeaders['Authorization'] = `Basic ${encoded}`  const [url, setUrl] = useState('')        error: true,
+
+      } else if (authType === 'apikey' && apiKeyHeader && apiKeyValue) {
+
+        requestHeaders[apiKeyHeader] = apiKeyValue  const [authType, setAuthType] = useState('none')        message: error.message || 'Request failed'
+
+      }
+
+  const [bearerToken, setBearerToken] = useState('')      })
+
+      // Prepare body
+
+      let requestBody: any = undefined  const [basicUsername, setBasicUsername] = useState('')    } finally {
+
+      if (['POST', 'PUT', 'PATCH'].includes(method) && body) {
+
+        if (bodyType === 'json') {  const [basicPassword, setBasicPassword] = useState('')      setIsLoading(false)
+
+          requestHeaders['Content-Type'] = 'application/json'
+
+          requestBody = body  const [apiKeyHeader, setApiKeyHeader] = useState('X-API-Key')    }
+
+        } else if (bodyType === 'form') {
+
+          requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'  const [apiKeyValue, setApiKeyValue] = useState('')  }
+
+          requestBody = body
+
+        } else {  const [headers, setHeaders] = useState<Header[]>([
+
+          requestBody = body
+
+        }    { id: '1', key: '', value: '', enabled: true }  const copyResponse = () => {
+
+      }
+
+  ])    if (response) {
+
+      const startTime = Date.now()
+
+      const res = await fetch('/api/tools/api-tester', {  const [queryParams, setQueryParams] = useState<QueryParam[]>([      navigator.clipboard.writeText(JSON.stringify(response, null, 2))
+
+        method: 'POST',
+
+        headers: { 'Content-Type': 'application/json' },    { id: '1', key: '', value: '', enabled: true }    }
+
+        body: JSON.stringify({
+
+          method,  ])  }
+
+          url: fullUrl,
+
+          headers: requestHeaders,  const [bodyType, setBodyType] = useState('json')
+
+          body: requestBody
+
+        })  const [body, setBody] = useState('')  return (
+
+      })
+
+  const [loading, setLoading] = useState(false)    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
+
+      const endTime = Date.now()
+
+      const data = await res.json()  const [response, setResponse] = useState<ApiResponse | null>(null)      <div className="container-custom py-20">
 
 
 
-      // Build headers            {/* Headers Tab */}
+      if (res.ok) {  const [error, setError] = useState('')        {/* Header */}
 
-      const requestHeaders: Record<string, string> = {}            {activeTab === 'headers' && (
+        setResponse({
 
-                    <div className="space-y-3">
+          status: data.status,  const [copied, setCopied] = useState(false)        <div className="text-center mb-12">
 
-      // Add auth headers                {headers.map(header => (
+          statusText: data.statusText,
 
-      if (authType === 'bearer' && bearerToken) {                  <div key={header.id} className="flex gap-3">
+          headers: data.headers,          <h1 className="text-5xl font-bold mb-4">
 
-        requestHeaders['Authorization'] = `Bearer ${bearerToken}`                    <input
+          data: data.data,
 
-      } else if (authType === 'basic' && basicUsername) {                      type="text"
+          time: endTime - startTime  const addHeader = () => {            API <span className="text-gradient">Tester</span>
 
-        const encoded = btoa(`${basicUsername}:${basicPassword}`)                      value={header.key}
+        })
 
-        requestHeaders['Authorization'] = `Basic ${encoded}`                      onChange={(e) => updateHeader(header.id, 'key', e.target.value)}
+      } else {    setHeaders([...headers, { id: Date.now().toString(), key: '', value: '', enabled: true }])          </h1>
 
-      } else if (authType === 'apikey' && apiKeyValue) {                      placeholder="Header key"
+        setError(data.error || 'Request failed')
 
-        requestHeaders[apiKeyHeader] = apiKeyValue                      className="flex-1 px-3 py-2 bg-neural-700 border border-neural-600 rounded-lg text-sm focus:outline-none focus:border-brand-600 transition"
+      }  }          <p className="text-xl text-neural-300 max-w-2xl mx-auto">
 
-      }                    />
+    } catch (err: any) {
+
+      setError(err.message || 'Failed to send request')            Test and debug your APIs with a powerful, easy-to-use HTTP client
+
+    } finally {
+
+      setLoading(false)  const removeHeader = (id: string) => {          </p>
+
+    }
+
+  }    setHeaders(headers.filter(h => h.id !== id))        </div>
+
+
+
+  return (  }
+
+    <div className="min-h-screen bg-neural-900 text-neutral-100">
+
+      {/* Header */}        {/* Main Content */}
+
+      <header className="bg-neural-800 border-b border-neural-700">
+
+        <div className="container-custom py-6">  const updateHeader = (id: string, field: 'key' | 'value' | 'enabled', value: string | boolean) => {        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <Link 
+
+            href="/tools/network-tools"    setHeaders(headers.map(h => h.id === id ? { ...h, [field]: value } : h))          {/* Request Section */}
+
+            className="inline-flex items-center gap-2 text-neutral-400 hover:text-neutral-100 mb-4 transition-colors"
+
+          >  }          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+
+            <span>←</span>
+
+            <span>Back to Network Tools</span>            <h2 className="text-2xl font-bold mb-6">Request</h2>
+
+          </Link>
+
+          <div className="flex items-center gap-4">  const addQueryParam = () => {
+
+            <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center">
+
+              <Send className="w-7 h-7 text-white" />    setQueryParams([...queryParams, { id: Date.now().toString(), key: '', value: '', enabled: true }])            {/* URL and Method */}
+
+            </div>
+
+            <div>  }            <div className="space-y-4 mb-6">
+
+              <h1 className="text-3xl font-bold mb-2">API Tester</h1>
+
+              <p className="text-neural-300">Professional API testing with presets and advanced options</p>              <div className="flex gap-3">
+
+            </div>
+
+          </div>  const removeQueryParam = (id: string) => {                <select
+
+        </div>
+
+      </header>    setQueryParams(queryParams.filter(q => q.id !== id))                  value={method}
+
+
+
+      {/* Main Content */}  }                  onChange={(e) => setMethod(e.target.value)}
+
+      <div className="container-custom py-8">
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">                  className="px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg font-semibold focus:outline-none focus:border-brand-600 transition"
+
+          {/* Left Column - Configuration */}
+
+          <div className="space-y-6">  const updateQueryParam = (id: string, field: 'key' | 'value' | 'enabled', value: string | boolean) => {                >
+
+            {/* Quick Presets */}
+
+            <div className="card-modern p-6">    setQueryParams(queryParams.map(q => q.id === id ? { ...q, [field]: value } : q))                  {HTTP_METHODS.map(m => (
+
+              <h2 className="text-xl font-semibold mb-4">Quick Presets</h2>
+
+              <select  }                    <option key={m} value={m}>{m}</option>
+
+                className="input-modern w-full"
+
+                onChange={(e) => {                  ))}
+
+                  const preset = quickPresets[parseInt(e.target.value)]
+
+                  if (preset) loadPreset(preset)  const loadPreset = (preset: typeof PRESET_APIS[0]) => {                </select>
+
+                }}
+
+                defaultValue=""    setMethod(preset.method)                <input
+
+              >
+
+                <option value="" disabled>Select a preset...</option>    setUrl(preset.url)                  type="text"
+
+                {quickPresets.map((preset, idx) => (
+
+                  <option key={idx} value={idx}>{preset.name}</option>    if (preset.body) {                  value={url}
+
+                ))}
+
+              </select>      setBody(preset.body)                  onChange={(e) => setUrl(e.target.value)}
+
+            </div>
+
+      setBodyType('json')                  placeholder="Enter API endpoint URL"
+
+            {/* URL and Method */}
+
+            <div className="card-modern p-6">    } else {                  className="flex-1 px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg focus:outline-none focus:border-brand-600 transition"
+
+              <h2 className="text-xl font-semibold mb-4">Request</h2>
+
+              <div className="space-y-4">      setBody('')                />
+
+                <div className="flex gap-2">
+
+                  <select    }              </div>
+
+                    className="input-modern w-32"
+
+                    value={method}  }            </div>
+
+                    onChange={(e) => setMethod(e.target.value)}
+
+                  >
+
+                    <option value="GET">GET</option>
+
+                    <option value="POST">POST</option>  const formatJson = () => {            {/* Tabs */}
+
+                    <option value="PUT">PUT</option>
+
+                    <option value="PATCH">PATCH</option>    try {            <div className="flex gap-4 mb-4 border-b border-neural-700">
+
+                    <option value="DELETE">DELETE</option>
+
+                    <option value="HEAD">HEAD</option>      const parsed = JSON.parse(body)              <button
+
+                    <option value="OPTIONS">OPTIONS</option>
+
+                  </select>      setBody(JSON.stringify(parsed, null, 2))                onClick={() => setActiveTab('body')}
+
+                  <input
+
+                    type="text"    } catch (e) {                className={`px-4 py-2 font-semibold transition ${
+
+                    className="input-modern flex-1"
+
+                    placeholder="https://api.example.com/endpoint"      // Invalid JSON, do nothing                  activeTab === 'body'
+
+                    value={url}
+
+                    onChange={(e) => setUrl(e.target.value)}    }                    ? 'text-brand-400 border-b-2 border-brand-400'
+
+                  />
+
+                </div>  }                    : 'text-neural-400 hover:text-white'
+
+              </div>
+
+            </div>                }`}
+
+
+
+            {/* Authentication */}  const copyResponse = () => {              >
+
+            <div className="card-modern p-6">
+
+              <h2 className="text-xl font-semibold mb-4">Authentication</h2>    if (response) {                Body
+
+              <div className="space-y-4">
+
+                <select      navigator.clipboard.writeText(JSON.stringify(response.data, null, 2))              </button>
+
+                  className="input-modern w-full"
+
+                  value={authType}      setCopied(true)              <button
+
+                  onChange={(e) => setAuthType(e.target.value)}
+
+                >      setTimeout(() => setCopied(false), 2000)                onClick={() => setActiveTab('headers')}
+
+                  <option value="none">No Auth</option>
+
+                  <option value="bearer">Bearer Token</option>    }                className={`px-4 py-2 font-semibold transition ${
+
+                  <option value="basic">Basic Auth</option>
+
+                  <option value="apikey">API Key</option>  }                  activeTab === 'headers'
+
+                </select>
+
+                    ? 'text-brand-400 border-b-2 border-brand-400'
+
+                {authType === 'bearer' && (
+
+                  <input  const handleSend = async () => {                    : 'text-neural-400 hover:text-white'
+
+                    type="text"
+
+                    className="input-modern w-full"    if (!url.trim()) {                }`}
+
+                    placeholder="Token"
+
+                    value={bearerToken}      setError('Please enter a URL')              >
+
+                    onChange={(e) => setBearerToken(e.target.value)}
+
+                  />      return                Headers ({headers.length})
+
+                )}
+
+    }              </button>
+
+                {authType === 'basic' && (
+
+                  <div className="space-y-2">            </div>
 
                     <input
 
-      // Add custom headers                      type="text"
+                      type="text"    setLoading(true)
 
-      headers.filter(h => h.enabled && h.key.trim()).forEach(h => {                      value={header.value}
+                      className="input-modern w-full"
 
-        requestHeaders[h.key] = h.value                      onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
+                      placeholder="Username"    setError('')            {/* Body Tab */}
 
-      })                      placeholder="Header value"
+                      value={basicUsername}
 
-                      className="flex-1 px-3 py-2 bg-neural-700 border border-neural-600 rounded-lg text-sm focus:outline-none focus:border-brand-600 transition"
+                      onChange={(e) => setBasicUsername(e.target.value)}    setResponse(null)            {activeTab === 'body' && (
 
-      // Add content type for body requests                    />
+                    />
 
-      if (['POST', 'PUT', 'PATCH'].includes(method) && body && !requestHeaders['Content-Type']) {                    <button
+                    <input              <div>
 
-        if (bodyType === 'json') {                      onClick={() => removeHeader(header.id)}
+                      type="password"
 
-          requestHeaders['Content-Type'] = 'application/json'                      className="p-2 text-red-400 hover:bg-red-600/20 rounded-lg transition"
+                      className="input-modern w-full"    try {                <textarea
 
-        } else if (bodyType === 'urlencoded') {                    >
+                      placeholder="Password"
 
-          requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'                      <Trash2 className="w-5 h-5" />
+                      value={basicPassword}      // Build query params                  value={body}
 
-        } else if (bodyType === 'raw') {                    </button>
+                      onChange={(e) => setBasicPassword(e.target.value)}
 
-          requestHeaders['Content-Type'] = 'text/plain'                  </div>
+                    />      const enabledParams = queryParams.filter(p => p.enabled && p.key.trim())                  onChange={(e) => setBody(e.target.value)}
 
-        }                ))}
+                  </div>
 
-      }                <button
+                )}      let finalUrl = url                  placeholder="Request body (JSON, XML, etc.)"
 
-                  onClick={addHeader}
+
+
+                {authType === 'apikey' && (      if (enabledParams.length > 0) {                  className="w-full h-64 px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg font-mono text-sm focus:outline-none focus:border-brand-600 transition resize-none"
+
+                  <div className="space-y-2">
+
+                    <input        const params = new URLSearchParams()                  disabled={!['POST', 'PUT', 'PATCH'].includes(method)}
+
+                      type="text"
+
+                      className="input-modern w-full"        enabledParams.forEach(p => params.append(p.key, p.value))                />
+
+                      placeholder="Header Name (e.g., X-API-Key)"
+
+                      value={apiKeyHeader}        finalUrl = `${url}${url.includes('?') ? '&' : '?'}${params.toString()}`              </div>
+
+                      onChange={(e) => setApiKeyHeader(e.target.value)}
+
+                    />      }            )}
+
+                    <input
+
+                      type="text"
+
+                      className="input-modern w-full"
+
+                      placeholder="API Key Value"      // Build headers            {/* Headers Tab */}
+
+                      value={apiKeyValue}
+
+                      onChange={(e) => setApiKeyValue(e.target.value)}      const requestHeaders: Record<string, string> = {}            {activeTab === 'headers' && (
+
+                    />
+
+                  </div>                    <div className="space-y-3">
+
+                )}
+
+              </div>      // Add auth headers                {headers.map(header => (
+
+            </div>
+
+      if (authType === 'bearer' && bearerToken) {                  <div key={header.id} className="flex gap-3">
+
+            {/* Query Parameters */}
+
+            <div className="card-modern p-6">        requestHeaders['Authorization'] = `Bearer ${bearerToken}`                    <input
+
+              <div className="flex items-center justify-between mb-4">
+
+                <h2 className="text-xl font-semibold">Query Parameters</h2>      } else if (authType === 'basic' && basicUsername) {                      type="text"
+
+                <button
+
+                  onClick={addQueryParam}        const encoded = btoa(`${basicUsername}:${basicPassword}`)                      value={header.key}
+
+                  className="btn-secondary text-sm flex items-center gap-2"
+
+                >        requestHeaders['Authorization'] = `Basic ${encoded}`                      onChange={(e) => updateHeader(header.id, 'key', e.target.value)}
+
+                  <Plus className="w-4 h-4" />
+
+                  Add      } else if (authType === 'apikey' && apiKeyValue) {                      placeholder="Header key"
+
+                </button>
+
+              </div>        requestHeaders[apiKeyHeader] = apiKeyValue                      className="flex-1 px-3 py-2 bg-neural-700 border border-neural-600 rounded-lg text-sm focus:outline-none focus:border-brand-600 transition"
+
+              <div className="space-y-2">
+
+                {queryParams.length === 0 ? (      }                    />
+
+                  <p className="text-neural-400 text-sm">No query parameters</p>
+
+                ) : (                    <input
+
+                  queryParams.map((param) => (
+
+                    <div key={param.id} className="flex items-center gap-2">      // Add custom headers                      type="text"
+
+                      <input
+
+                        type="checkbox"      headers.filter(h => h.enabled && h.key.trim()).forEach(h => {                      value={header.value}
+
+                        checked={param.enabled}
+
+                        onChange={(e) => updateQueryParam(param.id, 'enabled', e.target.checked)}        requestHeaders[h.key] = h.value                      onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
+
+                        className="w-4 h-4"
+
+                      />      })                      placeholder="Header value"
+
+                      <input
+
+                        type="text"                      className="flex-1 px-3 py-2 bg-neural-700 border border-neural-600 rounded-lg text-sm focus:outline-none focus:border-brand-600 transition"
+
+                        className="input-modern flex-1"
+
+                        placeholder="Key"      // Add content type for body requests                    />
+
+                        value={param.key}
+
+                        onChange={(e) => updateQueryParam(param.id, 'key', e.target.value)}      if (['POST', 'PUT', 'PATCH'].includes(method) && body && !requestHeaders['Content-Type']) {                    <button
+
+                      />
+
+                      <input        if (bodyType === 'json') {                      onClick={() => removeHeader(header.id)}
+
+                        type="text"
+
+                        className="input-modern flex-1"          requestHeaders['Content-Type'] = 'application/json'                      className="p-2 text-red-400 hover:bg-red-600/20 rounded-lg transition"
+
+                        placeholder="Value"
+
+                        value={param.value}        } else if (bodyType === 'urlencoded') {                    >
+
+                        onChange={(e) => updateQueryParam(param.id, 'value', e.target.value)}
+
+                      />          requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'                      <Trash2 className="w-5 h-5" />
+
+                      <button
+
+                        onClick={() => removeQueryParam(param.id)}        } else if (bodyType === 'raw') {                    </button>
+
+                        className="text-red-400 hover:text-red-300"
+
+                      >          requestHeaders['Content-Type'] = 'text/plain'                  </div>
+
+                        <Trash2 className="w-4 h-4" />
+
+                      </button>        }                ))}
+
+                    </div>
+
+                  ))      }                <button
+
+                )}
+
+              </div>                  onClick={addHeader}
+
+            </div>
 
       const startTime = Date.now()                  className="flex items-center gap-2 px-4 py-2 text-brand-400 hover:bg-brand-600/20 rounded-lg transition"
 
-                >
+            {/* Headers */}
 
-      const apiResponse = await fetch('/api/tools/api-tester', {                  <Plus className="w-4 h-4" />
+            <div className="card-modern p-6">                >
 
-        method: 'POST',                  Add Header
+              <div className="flex items-center justify-between mb-4">
 
-        headers: { 'Content-Type': 'application/json' },                </button>
+                <h2 className="text-xl font-semibold">Headers</h2>      const apiResponse = await fetch('/api/tools/api-tester', {                  <Plus className="w-4 h-4" />
 
-        body: JSON.stringify({              </div>
+                <button
 
-          method,            )}
+                  onClick={addHeader}        method: 'POST',                  Add Header
 
-          url: finalUrl,
+                  className="btn-secondary text-sm flex items-center gap-2"
 
-          headers: requestHeaders,            {/* Send Button */}
+                >        headers: { 'Content-Type': 'application/json' },                </button>
 
-          body: body || undefined            <button
+                  <Plus className="w-4 h-4" />
 
-        })              onClick={sendRequest}
+                  Add        body: JSON.stringify({              </div>
 
-      })              disabled={isLoading || !url.trim()}
+                </button>
 
-              className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-lg font-semibold transition"
+              </div>          method,            )}
 
-      const data = await apiResponse.json()            >
+              <div className="space-y-2">
 
-      const endTime = Date.now()              {isLoading ? (
+                {headers.length === 0 ? (          url: finalUrl,
 
-                <>Processing...</>
+                  <p className="text-neural-400 text-sm">No custom headers</p>
 
-      if (data.success) {              ) : (
+                ) : (          headers: requestHeaders,            {/* Send Button */}
 
-        setResponse({                <>
+                  headers.map((header) => (
 
-          status: data.data.status,                  <Send className="w-5 h-5" />
+                    <div key={header.id} className="flex items-center gap-2">          body: body || undefined            <button
 
-          statusText: data.data.statusText,                  Send Request
+                      <input
 
-          headers: data.data.headers,                </>
+                        type="checkbox"        })              onClick={sendRequest}
 
-          data: data.data.data,              )}
+                        checked={header.enabled}
 
-          time: endTime - startTime            </button>
+                        onChange={(e) => updateHeader(header.id, 'enabled', e.target.checked)}      })              disabled={isLoading || !url.trim()}
 
-        })          </div>
+                        className="w-4 h-4"
 
-      } else {
+                      />              className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-lg font-semibold transition"
+
+                      <input
+
+                        type="text"      const data = await apiResponse.json()            >
+
+                        className="input-modern flex-1"
+
+                        placeholder="Key"      const endTime = Date.now()              {isLoading ? (
+
+                        value={header.key}
+
+                        onChange={(e) => updateHeader(header.id, 'key', e.target.value)}                <>Processing...</>
+
+                      />
+
+                      <input      if (data.success) {              ) : (
+
+                        type="text"
+
+                        className="input-modern flex-1"        setResponse({                <>
+
+                        placeholder="Value"
+
+                        value={header.value}          status: data.data.status,                  <Send className="w-5 h-5" />
+
+                        onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
+
+                      />          statusText: data.data.statusText,                  Send Request
+
+                      <button
+
+                        onClick={() => removeHeader(header.id)}          headers: data.data.headers,                </>
+
+                        className="text-red-400 hover:text-red-300"
+
+                      >          data: data.data.data,              )}
+
+                        <Trash2 className="w-4 h-4" />
+
+                      </button>          time: endTime - startTime            </button>
+
+                    </div>
+
+                  ))        })          </div>
+
+                )}
+
+              </div>      } else {
+
+            </div>
 
         setError(data.error || 'Request failed')          {/* Response Section */}
 
-      }          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
+            {/* Body */}
 
-    } catch (err: any) {            <div className="flex items-center justify-between mb-6">
+            {['POST', 'PUT', 'PATCH'].includes(method) && (      }          <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
 
-      setError(err.message || 'Failed to send request')              <h2 className="text-2xl font-bold">Response</h2>
+              <div className="card-modern p-6">
 
-    } finally {              {response && (
+                <div className="flex items-center justify-between mb-4">    } catch (err: any) {            <div className="flex items-center justify-between mb-6">
 
-      setLoading(false)                <button
+                  <h2 className="text-xl font-semibold">Body</h2>
 
-    }                  onClick={copyResponse}
+                  <div className="flex gap-2">      setError(err.message || 'Failed to send request')              <h2 className="text-2xl font-bold">Response</h2>
 
-  }                  className="flex items-center gap-2 px-3 py-2 text-sm text-brand-400 hover:bg-brand-600/20 rounded-lg transition"
+                    <select
 
-                >
+                      className="input-modern text-sm"    } finally {              {response && (
 
-  return (                  <Copy className="w-4 h-4" />
+                      value={bodyType}
 
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">                  Copy
+                      onChange={(e) => setBodyType(e.target.value)}      setLoading(false)                <button
 
-      <div className="container-custom py-12">                </button>
+                    >
 
-        <Link               )}
+                      <option value="json">JSON</option>    }                  onClick={copyResponse}
 
-          href="/tools/network-tools"            </div>
+                      <option value="text">Raw Text</option>
 
-          className="inline-flex items-center gap-2 text-neural-300 hover:text-white mb-8 transition-colors"
+                      <option value="form">Form Data</option>  }                  className="flex items-center gap-2 px-3 py-2 text-sm text-brand-400 hover:bg-brand-600/20 rounded-lg transition"
 
-        >            {!response && !isLoading && (
+                      <option value="urlencoded">URL Encoded</option>
 
-          <ArrowLeft className="w-4 h-4" />              <div className="h-full flex items-center justify-center text-center text-neural-400">
+                    </select>                >
 
-          Back to Network Tools                <div>
+                    {bodyType === 'json' && (
 
-        </Link>                  <Send className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <button  return (                  <Copy className="w-4 h-4" />
 
-                  <p>Send a request to see the response</p>
+                        onClick={formatJson}
+
+                        className="btn-secondary text-sm"    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">                  Copy
+
+                      >
+
+                        Format      <div className="container-custom py-12">                </button>
+
+                      </button>
+
+                    )}        <Link               )}
+
+                  </div>
+
+                </div>          href="/tools/network-tools"            </div>
+
+                <textarea
+
+                  className="input-modern w-full font-mono text-sm"          className="inline-flex items-center gap-2 text-neural-300 hover:text-white mb-8 transition-colors"
+
+                  rows={10}
+
+                  placeholder={        >            {!response && !isLoading && (
+
+                    bodyType === 'json' 
+
+                      ? '{\n  "key": "value"\n}'          <ArrowLeft className="w-4 h-4" />              <div className="h-full flex items-center justify-center text-center text-neural-400">
+
+                      : 'Request body...'
+
+                  }          Back to Network Tools                <div>
+
+                  value={body}
+
+                  onChange={(e) => setBody(e.target.value)}        </Link>                  <Send className="w-16 h-16 mx-auto mb-4 opacity-50" />
+
+                />
+
+              </div>                  <p>Send a request to see the response</p>
+
+            )}
 
         <div className="text-center mb-12">                </div>
 
-          <div className="flex items-center justify-center mb-6">              </div>
+            {/* Send Button */}
 
-            <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20">            )}
+            <button          <div className="flex items-center justify-center mb-6">              </div>
 
-              <Code className="w-10 h-10 text-white" />
+              onClick={handleSend}
 
-            </div>            {isLoading && (
+              disabled={loading || !url.trim()}            <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/20">            )}
 
-          </div>              <div className="h-full flex items-center justify-center">
+              className="btn-primary w-full flex items-center justify-center gap-2"
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">                <div className="flex gap-2">
+            >              <Code className="w-10 h-10 text-white" />
 
-            API <span className="text-gradient bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Tester</span>                  <div className="w-3 h-3 bg-brand-400 rounded-full animate-bounce" />
+              {loading ? (
 
-          </h1>                  <div className="w-3 h-3 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                <>            </div>            {isLoading && (
 
-          <p className="text-xl text-neural-300 max-w-2xl mx-auto">                  <div className="w-3 h-3 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+
+                  Sending...          </div>              <div className="h-full flex items-center justify-center">
+
+                </>
+
+              ) : (          <h1 className="text-4xl md:text-5xl font-bold mb-4">                <div className="flex gap-2">
+
+                <>
+
+                  <Send className="w-5 h-5" />            API <span className="text-gradient bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Tester</span>                  <div className="w-3 h-3 bg-brand-400 rounded-full animate-bounce" />
+
+                  Send Request
+
+                </>          </h1>                  <div className="w-3 h-3 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+
+              )}
+
+            </button>          <p className="text-xl text-neural-300 max-w-2xl mx-auto">                  <div className="w-3 h-3 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+
+          </div>
 
             Professional API testing tool with advanced features                </div>
 
-          </p>              </div>
+          {/* Right Column - Response */}
 
-        </div>            )}
+          <div className="lg:sticky lg:top-6 lg:h-fit">          </p>              </div>
 
+            <div className="card-modern p-6">
 
+              <div className="flex items-center justify-between mb-4">        </div>            )}
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">            {response && (
+                <h2 className="text-xl font-semibold">Response</h2>
 
-          {/* Left Panel - Request Configuration */}              <div className="space-y-4">
+                {response && (
 
-          <div className="lg:col-span-2 space-y-6">                {/* Status */}
+                  <button
 
-            {/* Presets */}                {!response.error && (
+                    onClick={copyResponse}        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">            {response && (
+
+                    className="btn-secondary text-sm flex items-center gap-2"
+
+                  >          {/* Left Panel - Request Configuration */}              <div className="space-y-4">
+
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+
+                    {copied ? 'Copied!' : 'Copy'}          <div className="lg:col-span-2 space-y-6">                {/* Status */}
+
+                  </button>
+
+                )}            {/* Presets */}                {!response.error && (
+
+              </div>
 
             <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">                  <div className="flex items-center gap-4">
 
-              <h3 className="text-lg font-semibold text-white mb-4">Quick Presets</h3>                    <div className={`px-3 py-1 rounded-lg font-semibold ${
+              {error && (
 
-              <div className="flex flex-wrap gap-2">                      response.status >= 200 && response.status < 300
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">              <h3 className="text-lg font-semibold text-white mb-4">Quick Presets</h3>                    <div className={`px-3 py-1 rounded-lg font-semibold ${
+
+                  <p className="text-red-400 text-sm">{error}</p>
+
+                </div>              <div className="flex flex-wrap gap-2">                      response.status >= 200 && response.status < 300
+
+              )}
 
                 {PRESET_APIS.map((preset, idx) => (                        ? 'bg-green-600/20 text-green-400'
 
-                  <button                        : response.status >= 400
+              {response ? (
 
-                    key={idx}                        ? 'bg-red-600/20 text-red-400'
+                <div className="space-y-4">                  <button                        : response.status >= 400
 
-                    onClick={() => loadPreset(preset)}                        : 'bg-yellow-600/20 text-yellow-400'
+                  {/* Status */}
 
-                    className="px-3 py-2 bg-neural-700 hover:bg-neural-600 rounded-lg text-sm transition-colors"                    }`}>
+                  <div className="flex items-center gap-4">                    key={idx}                        ? 'bg-red-600/20 text-red-400'
 
-                  >                      {response.status} {response.statusText}
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
 
-                    {preset.name}                    </div>
+                      response.status >= 200 && response.status < 300                    onClick={() => loadPreset(preset)}                        : 'bg-yellow-600/20 text-yellow-400'
 
-                  </button>                    {responseTime && (
+                        ? 'bg-green-500/20 text-green-400'
 
-                ))}                      <div className="flex items-center gap-1 text-neural-400 text-sm">
+                        : response.status >= 400                    className="px-3 py-2 bg-neural-700 hover:bg-neural-600 rounded-lg text-sm transition-colors"                    }`}>
 
-              </div>                        <Clock className="w-4 h-4" />
+                        ? 'bg-red-500/20 text-red-400'
 
-            </div>                        {responseTime}ms
+                        : 'bg-yellow-500/20 text-yellow-400'                  >                      {response.status} {response.statusText}
 
-                      </div>
+                    }`}>
 
-            {/* URL and Method */}                    )}
+                      {response.status} {response.statusText}                    {preset.name}                    </div>
 
-            <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">                  </div>
+                    </span>
 
-              <h3 className="text-lg font-semibold text-white mb-4">Request</h3>                )}
+                    {response.time !== undefined && (                  </button>                    {responseTime && (
 
-              <div className="flex gap-3">
+                      <div className="flex items-center gap-1 text-sm text-neural-400">
 
-                <select                {/* Error */}
+                        <Clock className="w-4 h-4" />                ))}                      <div className="flex items-center gap-1 text-neural-400 text-sm">
 
-                  value={method}                {response.error && (
+                        {response.time}ms
 
-                  onChange={(e) => setMethod(e.target.value)}                  <div className="px-4 py-3 bg-red-600/20 border border-red-600/50 rounded-lg text-red-400">
+                      </div>              </div>                        <Clock className="w-4 h-4" />
 
-                  className="px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg text-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none"                    <div className="font-semibold mb-1">Error</div>
+                    )}
 
-                >                    <div className="text-sm">{response.message}</div>
+                  </div>            </div>                        {responseTime}ms
 
-                  {REQUEST_METHODS.map(m => (                  </div>
 
-                    <option key={m} value={m}>{m}</option>                )}
 
-                  ))}
+                  {/* Response Body */}                      </div>
 
-                </select>                {/* Response Data */}
+                  <div>
 
-                <input                <div className="bg-neural-900 rounded-lg p-4 max-h-96 overflow-auto">
+                    <h3 className="text-sm font-medium mb-2 text-neural-300">Body</h3>            {/* URL and Method */}                    )}
 
-                  type="text"                  <pre className="text-sm text-neural-200 whitespace-pre-wrap break-words font-mono">
+                    <pre className="bg-neural-800 rounded-lg p-4 overflow-auto max-h-96 text-sm">
 
-                  value={url}                    {JSON.stringify(response.error ? response : response.data, null, 2)}
+                      <code>{JSON.stringify(response.data, null, 2)}</code>            <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">                  </div>
+
+                    </pre>
+
+                  </div>              <h3 className="text-lg font-semibold text-white mb-4">Request</h3>                )}
+
+
+
+                  {/* Response Headers */}              <div className="flex gap-3">
+
+                  <div>
+
+                    <h3 className="text-sm font-medium mb-2 text-neural-300">Headers</h3>                <select                {/* Error */}
+
+                    <div className="bg-neural-800 rounded-lg p-4 space-y-1 text-sm max-h-48 overflow-auto">
+
+                      {Object.entries(response.headers).map(([key, value]) => (                  value={method}                {response.error && (
+
+                        <div key={key} className="flex gap-2">
+
+                          <span className="text-violet-400 font-mono">{key}:</span>                  onChange={(e) => setMethod(e.target.value)}                  <div className="px-4 py-3 bg-red-600/20 border border-red-600/50 rounded-lg text-red-400">
+
+                          <span className="text-neural-300 font-mono break-all">{value}</span>
+
+                        </div>                  className="px-4 py-3 bg-neural-700 border border-neural-600 rounded-lg text-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none"                    <div className="font-semibold mb-1">Error</div>
+
+                      ))}
+
+                    </div>                >                    <div className="text-sm">{response.message}</div>
+
+                  </div>
+
+                </div>                  {REQUEST_METHODS.map(m => (                  </div>
+
+              ) : (
+
+                <div className="text-center py-12 text-neural-400">                    <option key={m} value={m}>{m}</option>                )}
+
+                  <Send className="w-12 h-12 mx-auto mb-4 opacity-50" />
+
+                  <p>Send a request to see the response</p>                  ))}
+
+                </div>
+
+              )}                </select>                {/* Response Data */}
+
+            </div>
+
+          </div>                <input                <div className="bg-neural-900 rounded-lg p-4 max-h-96 overflow-auto">
+
+        </div>
+
+      </div>                  type="text"                  <pre className="text-sm text-neural-200 whitespace-pre-wrap break-words font-mono">
+
+    </div>
+
+  )                  value={url}                    {JSON.stringify(response.error ? response : response.data, null, 2)}
+
+}
 
                   onChange={(e) => setUrl(e.target.value)}                  </pre>
 
