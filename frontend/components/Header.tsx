@@ -29,6 +29,7 @@ export default function Header() {
     { name: 'Solutions', href: '/solutions/overview' },
     { name: 'Industries', href: '/industries/overview' },
     { name: 'Documents', href: '/docs' },
+    { name: 'Tools', href: '/tools/network-tools' },
     { name: 'Pricing', href: '/pricing/overview' },
     { name: 'Status', href: '/status' },
     { name: 'Support', href: '/support/help-center' }
