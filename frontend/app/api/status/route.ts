@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import os from 'os'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const runtime = 'nodejs'
 
 /**
  * Platform Status API
@@ -32,6 +34,16 @@ export async function GET() {
   try {
     const now = new Date()
 
+    // System metrics (CPU and Memory)
+    const totalMem = os.totalmem()
+    const freeMem = os.freemem()
+    const usedMem = totalMem - freeMem
+    const memoryPercent = Math.round((usedMem / totalMem) * 100)
+    const cores = os.cpus().length || 1
+    const [l1, l5, l15] = os.loadavg()
+    // Rough CPU utilization estimate based on load average per core
+    const cpuPercent = Math.max(0, Math.min(100, Math.round((l1 / cores) * 100)))
+
     // Platform Status
     const platformStatus = {
       status: 'operational',
@@ -41,12 +53,17 @@ export async function GET() {
     }
 
     // API Status
+    const errorRate = Math.round((Math.random() * 3 + 0.2) * 10) / 10 // 0.2% - 3.2%
+    const rpm = Math.floor(Math.random() * 100) + 200
+    const requestsToday = Math.floor(Math.random() * 10000) + 50000
     const apiStatus = {
       status: 'operational',
       responseTime: getResponseTime('api'),
       uptime: getUptimePercentage('api'),
-      requestsToday: Math.floor(Math.random() * 10000) + 50000,
-      requestsPerMinute: Math.floor(Math.random() * 100) + 200,
+      requestsToday,
+      requestsPerMinute: rpm,
+      errorRate, // percentage
+      errorsToday: Math.round((requestsToday * errorRate) / 100),
     }
 
     // Database Status
@@ -153,6 +170,17 @@ export async function GET() {
       success: true,
       timestamp: now.toISOString(),
       data: {
+        system: {
+          cpuPercent,
+          memoryPercent,
+          totalMem,
+          freeMem,
+          usedMem,
+          load1: l1,
+          load5: l5,
+          load15: l15,
+          cores,
+        },
         platform: platformStatus,
         api: apiStatus,
         database: databaseStatus,

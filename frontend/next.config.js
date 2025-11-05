@@ -3,11 +3,6 @@ const nextConfig = {
   // Server-rendered deployment; disable static export during production builds to support route handlers
   output: undefined,
   
-  // CRITICAL: Disable Next.js caching to prevent stale chunk references
-  experimental: {
-    isrMemoryCacheSize: 0, // Disable ISR memory cache completely
-  },
-  
   images: {
     domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
     // Unoptimized only for static export

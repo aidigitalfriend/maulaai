@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import os from 'os'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const runtime = 'nodejs'
 
 /**
  * Server-Sent Events (SSE) endpoint for real-time status updates
@@ -30,6 +32,15 @@ const agentsList = [
 const generateStatusData = () => {
   const now = new Date()
 
+  // System metrics
+  const totalMem = os.totalmem()
+  const freeMem = os.freemem()
+  const usedMem = totalMem - freeMem
+  const memoryPercent = Math.round((usedMem / totalMem) * 100)
+  const cores = os.cpus().length || 1
+  const [l1, l5, l15] = os.loadavg()
+  const cpuPercent = Math.max(0, Math.min(100, Math.round((l1 / cores) * 100)))
+
   const platformStatus = {
     status: 'operational',
     uptime: getUptimePercentage('platform'),
@@ -37,12 +48,17 @@ const generateStatusData = () => {
     version: '2.0.0',
   }
 
+  const errorRate = Math.round((Math.random() * 3 + 0.2) * 10) / 10
+  const rpm = Math.floor(Math.random() * 100) + 200
+  const requestsToday = Math.floor(Math.random() * 10000) + 50000
   const apiStatus = {
     status: 'operational',
     responseTime: getResponseTime('api'),
     uptime: getUptimePercentage('api'),
-    requestsToday: Math.floor(Math.random() * 10000) + 50000,
-    requestsPerMinute: Math.floor(Math.random() * 100) + 200,
+    requestsToday,
+    requestsPerMinute: rpm,
+    errorRate,
+    errorsToday: Math.round((requestsToday * errorRate) / 100),
   }
 
   const databaseStatus = {
@@ -143,6 +159,17 @@ const generateStatusData = () => {
     success: true,
     timestamp: now.toISOString(),
     data: {
+      system: {
+        cpuPercent,
+        memoryPercent,
+        totalMem,
+        freeMem,
+        usedMem,
+        load1: l1,
+        load5: l5,
+        load15: l15,
+        cores,
+      },
       platform: platformStatus,
       api: apiStatus,
       database: databaseStatus,
@@ -155,38 +182,66 @@ const generateStatusData = () => {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream({
     async start(controller) {
+      let closed = false
+      let interval: NodeJS.Timeout | undefined
+
+      const safeEnqueue = (chunk: string) => {
+        if (closed) return
+        try {
+          controller.enqueue(encoder.encode(chunk))
+        } catch (err) {
+          // If the controller is already closed, stop the stream loop
+          closed = true
+          if (interval) clearInterval(interval)
+          try { controller.close() } catch {}
+        }
+      }
+
+      const cleanup = () => {
+        if (closed) return
+        closed = true
+        if (interval) clearInterval(interval)
+        try { controller.close() } catch {}
+      }
+
+      // Abort/disconnect handling
+      try {
+        // @ts-ignore: Request in Next has a standard AbortSignal
+        const signal: AbortSignal | undefined = req?.signal
+        signal?.addEventListener('abort', cleanup)
+      } catch {}
+
       try {
         // Send initial data immediately
         const initialData = generateStatusData()
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialData)}\n\n`))
+        safeEnqueue(`data: ${JSON.stringify(initialData)}\n\n`)
 
         // Send updates every 10 seconds
-        const interval = setInterval(() => {
+        interval = setInterval(() => {
           try {
             const data = generateStatusData()
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+            safeEnqueue(`data: ${JSON.stringify(data)}\n\n`)
           } catch (error) {
             console.error('Error generating status data:', error)
           }
         }, 10000)
 
-        // Cleanup on close
-        const cleanup = () => {
-          clearInterval(interval)
-          controller.close()
-        }
-
-        // Handle client disconnect
-        setTimeout(cleanup, 5 * 60 * 1000) // Close after 5 minutes
+        // Hard stop after 5 minutes as a safety net
+        setTimeout(cleanup, 5 * 60 * 1000)
       } catch (error) {
         console.error('SSE stream error:', error)
-        controller.error(error)
+        try { controller.error(error as any) } catch {}
+        cleanup()
       }
+    },
+    cancel() {
+      // Called if the consumer cancels the stream
+      // Nothing additional needed; start() cleanup handles it
     },
   })
 

@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
-import dbConnect from '../../../../backend/lib/mongodb'
-import CommunityPost from '../../../../backend/models/CommunityPost'
 
 // GET /app-community/posts?category=&search=&limit=&before=
 export async function GET(req: NextRequest) {
   try {
+    const hasMongo = !!process.env.MONGODB_URI
+    if (!hasMongo) {
+      // Demo data when DB is not configured
+      const demo = [
+        { _id: 'd1', authorName: 'Alex Chen', authorAvatar: '🧠', content: 'Welcome to the community!', category: 'general', createdAt: new Date(), isPinned: true },
+        { _id: 'd2', authorName: 'Priya', authorAvatar: '⚙️', content: 'Share your favorite agent tips here.', category: 'agents', createdAt: new Date(Date.now() - 3600_000), isPinned: false },
+      ]
+      return NextResponse.json({ success: true, data: demo })
+    }
+
+    const [{ default: dbConnect }, { default: CommunityPost }] = await Promise.all([
+      import('../../../../backend/lib/mongodb'),
+      import('../../../../backend/models/CommunityPost'),
+    ])
     await dbConnect()
 
     const { searchParams } = new URL(req.url)
@@ -39,13 +51,41 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, data: posts })
   } catch (error: any) {
     console.error('App-Community posts GET error:', error)
-    return NextResponse.json({ success: false, error: 'Failed to fetch posts' }, { status: 500 })
+    // Soft-fail with demo content in dev
+    const demo = [
+      { _id: 'e1', authorName: 'System', authorAvatar: 'ℹ️', content: 'Demo mode: database unavailable.', category: 'general', createdAt: new Date(), isPinned: false },
+    ]
+    return NextResponse.json({ success: true, data: demo, demo: true })
   }
 }
 
 // POST /app-community/posts
 export async function POST(req: NextRequest) {
   try {
+    const hasMongo = !!process.env.MONGODB_URI
+    if (!hasMongo) {
+      const body = await req.json().catch(() => ({} as any))
+      const { content, category = 'general', authorName = 'Guest', authorAvatar = '👤' } = body || {}
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        return NextResponse.json({ success: false, error: 'Content is required' }, { status: 400 })
+      }
+      const post = {
+        _id: 'demo-' + Date.now(),
+        authorId: null,
+        authorName: String(authorName).slice(0, 80),
+        authorAvatar: String(authorAvatar || '👤').slice(0, 8),
+        content: content.trim(),
+        category,
+        isPinned: false,
+        createdAt: new Date(),
+      }
+      return NextResponse.json({ success: true, data: post, demo: true })
+    }
+
+    const [{ default: dbConnect }, { default: CommunityPost }] = await Promise.all([
+      import('../../../../backend/lib/mongodb'),
+      import('../../../../backend/models/CommunityPost'),
+    ])
     await dbConnect()
     const body = await req.json()
     const { content, category = 'general', authorName, authorAvatar = '👤' } = body || {}

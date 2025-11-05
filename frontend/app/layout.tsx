@@ -10,11 +10,6 @@ const SplashScreenWrapper = dynamicImport(
   { ssr: false }
 )
 
-// CRITICAL: Force all pages to skip Next.js cache to prevent stale chunk references after deployment
-export const fetchCache = 'force-no-store'
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 // Fix #1: Root Layout with proper structure and spacing
 export default function RootLayout({
   children,

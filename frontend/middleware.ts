@@ -12,23 +12,16 @@ export function middleware(req: NextRequest) {
     return res
   }
 
-  // For all other requests (HTML pages), force no-cache to prevent stale chunk references
+  // For HTML pages, prevent caching to avoid stale chunk references
   const res = NextResponse.next()
-  
-  // Override any Next.js caching with aggressive no-cache headers
-  res.headers.delete('Cache-Control')
-  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+  res.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   res.headers.set('Pragma', 'no-cache')
   res.headers.set('Expires', '0')
-  res.headers.set('Surrogate-Control', 'no-store')
   
   return res
 }
 
 export const config = {
-  // Apply to ALL routes to ensure headers are set
-  matcher: ['/(.*)'
-
-
-]
+  // Apply to all routes except API and static assets
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
 }

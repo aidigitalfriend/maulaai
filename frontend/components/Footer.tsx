@@ -155,10 +155,10 @@ export default function Footer() {
 
       {/* Main Footer Content */}
       <div className="container-custom py-16 px-4 sm:px-6 lg:px-8 w-full max-w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-8 w-full max-w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-8 w-full max-w-full justify-items-center md:justify-items-start">
           {/* Brand Section */}
-          <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-6">
+          <div className="lg:col-span-2 flex flex-col items-center md:items-start text-center md:text-left">
+            <Link href="/" className="flex items-center gap-3 mb-6 justify-center md:justify-start">
               <Image
                 src="/images/logos/company-logo.png"
                 alt="One Last AI"
@@ -172,7 +172,7 @@ export default function Footer() {
               Transform your business with intelligent AI agents. 18+ specialized personalities 
               ready to revolutionize how you work, communicate, and solve problems.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 justify-center md:justify-start">
               {socialLinks.map((social) => (
                 <Link
                   key={social.name}
@@ -188,14 +188,14 @@ export default function Footer() {
 
           {/* Footer Links */}
           {footerSections.map((section) => (
-            <div key={section.title}>
+            <div key={section.title} className="text-center md:text-left">
               <h3 className="font-semibold text-white mb-4">{section.title}</h3>
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-neural-300 hover:text-white transition-colors"
+                      className="text-neural-300 hover:text-white transition-colors inline-block"
                     >
                       {link.name}
                     </Link>
