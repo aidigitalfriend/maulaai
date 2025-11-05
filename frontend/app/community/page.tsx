@@ -25,58 +25,15 @@ interface CommunityUser {
 }
 
 export default function CommunityPage() {
-  const [messages, setMessages] = useState<CommunityMessage[]>([
-    {
-      id: '1',
-      author: 'Alex Chen',
-      avatar: '👨‍💻',
-      content: 'Just finished a project using Einstein for solving complex math problems. The accuracy is incredible!',
-      timestamp: new Date(Date.now() - 5 * 60000),
-      likes: 42,
-      replies: 8,
-      category: 'agents',
-      isPinned: false
-    },
-    {
-      id: '2',
-      author: 'Sarah Johnson',
-      avatar: '👩‍🔬',
-      content: 'Has anyone successfully integrated voice features into their custom agent? Would love to hear your experience!',
-      timestamp: new Date(Date.now() - 15 * 60000),
-      likes: 28,
-      replies: 5,
-      category: 'help',
-      isPinned: false
-    },
-    {
-      id: '3',
-      author: 'Tech Wizard Team',
-      avatar: '🎯',
-      content: '📢 New platform feature: Live analytics dashboard is now available for all users. Check your settings to enable it!',
-      timestamp: new Date(Date.now() - 30 * 60000),
-      likes: 156,
-      replies: 23,
-      category: 'general',
-      isPinned: true
-    },
-    {
-      id: '4',
-      author: 'Mike Rodriguez',
-      avatar: '🚀',
-      content: 'Anyone interested in collaborating on an AI agent for customer support? I\'m looking for team members!',
-      timestamp: new Date(Date.now() - 45 * 60000),
-      likes: 35,
-      replies: 12,
-      category: 'ideas',
-      isPinned: false
-    }
-  ])
+  const [messages, setMessages] = useState<CommunityMessage[]>([])
 
   const [newMessage, setNewMessage] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'general' | 'agents' | 'ideas' | 'help'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set())
-  const [onlineUsers, setOnlineUsers] = useState(45)
+  const [metrics, setMetrics] = useState<{ totalMembers: number; onlineNow: number; totalPosts: number; postsThisWeek: number; activeReplies: number; newMembersWeek: number } | null>(null)
+  const [loadingPosts, setLoadingPosts] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -87,40 +44,151 @@ export default function CommunityPage() {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // Presence ping (20s)
+  useEffect(() => {
+    const sessionKey = 'presence_session'
+    let sessionId = localStorage.getItem(sessionKey)
+    if (!sessionId) {
+      sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36)
+      localStorage.setItem(sessionKey, sessionId)
+    }
+    const ping = async () => {
+      try {
+        const user = localStorage.getItem('auth_user')
+        const userId = user ? JSON.parse(user).id : null
+  await fetch('/api/x-community/presence/ping', {
+          method: 'POST',
+          headers: {
+            'x-session-id': sessionId as string,
+            ...(userId ? { 'x-user-id': userId } : {}),
+          },
+        })
+      } catch (_) {}
+    }
+    ping()
+    const t = setInterval(ping, 20000)
+    return () => clearInterval(t)
+  }, [])
+
+  // Fetch initial posts
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoadingPosts(true)
+        const params = new URLSearchParams()
+        if (selectedCategory !== 'all') params.set('category', selectedCategory)
+        if (searchQuery) params.set('search', searchQuery)
+  const res = await fetch(`/api/x-community/posts?${params.toString()}`)
+        const json = await res.json()
+        if (json.success) {
+          const list: CommunityMessage[] = (json.data || []).map((p: any) => ({
+            id: p._id,
+            author: p.authorName,
+            avatar: p.authorAvatar || '�',
+            content: p.content,
+            timestamp: new Date(p.createdAt),
+            likes: p.likesCount || 0,
+            replies: p.repliesCount || 0,
+            category: p.category,
+            isPinned: !!p.isPinned,
+          }))
+          setMessages(list)
+        } else {
+          setError(json.error || 'Failed to load posts')
+        }
+      } catch (e: any) {
+        setError('Failed to load posts')
+      } finally {
+        setLoadingPosts(false)
+      }
+    }
+    load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // SSE for metrics
+  useEffect(() => {
+  const es = new EventSource('/api/x-community/stream')
+    es.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data)
+        if (msg?.type === 'metrics') {
+          setMetrics(msg.data)
+        }
+      } catch (_) {}
+    }
+    es.onerror = () => {
+      es.close()
+    }
+    return () => es.close()
+  }, [])
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
 
-    const newMsg: CommunityMessage = {
-      id: Date.now().toString(),
-      author: 'You',
-      avatar: '😊',
-      content: newMessage,
-      timestamp: new Date(),
-      likes: 0,
-      replies: 0,
-      category: selectedCategory !== 'all' ? (selectedCategory as any) : 'general',
-      isPinned: false
+    const token = localStorage.getItem('auth_token')
+    const userRaw = localStorage.getItem('auth_user')
+    if (!token || !userRaw) {
+      window.location.href = '/auth/login'
+      return
     }
-
-    setMessages([...messages, newMsg])
-    setNewMessage('')
+    const user = JSON.parse(userRaw)
+    const categoryToUse = selectedCategory !== 'all' ? (selectedCategory as any) : 'general'
+    try {
+  const res = await fetch('/api/x-community/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          content: newMessage.trim(),
+          category: categoryToUse,
+          authorName: user.name || user.email || 'Member',
+          authorAvatar: '😊',
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        const p = json.data
+        const newMsg: CommunityMessage = {
+          id: p._id,
+          author: p.authorName,
+          avatar: p.authorAvatar || '👤',
+          content: p.content,
+          timestamp: new Date(p.createdAt),
+          likes: p.likesCount || 0,
+          replies: p.repliesCount || 0,
+          category: p.category,
+          isPinned: !!p.isPinned,
+        }
+        setMessages((prev) => [newMsg, ...prev])
+        setNewMessage('')
+      }
+    } catch (_) {}
   }
 
-  const handleLike = (messageId: string) => {
-    setMessages(messages.map(msg => 
-      msg.id === messageId 
-        ? { ...msg, likes: likedMessages.has(messageId) ? msg.likes - 1 : msg.likes + 1 }
-        : msg
-    ))
-    
-    const newLiked = new Set(likedMessages)
-    if (newLiked.has(messageId)) {
-      newLiked.delete(messageId)
-    } else {
-      newLiked.add(messageId)
+  const handleLike = async (messageId: string) => {
+    const token = localStorage.getItem('auth_token')
+    const userRaw = localStorage.getItem('auth_user')
+    if (!token || !userRaw) {
+      window.location.href = '/auth/login'
+      return
     }
-    setLikedMessages(newLiked)
+    const isLiked = likedMessages.has(messageId)
+    try {
+      const endpoint = isLiked ? 'unlike' : 'like'
+  await fetch(`/api/x-community/posts/${messageId}/${endpoint}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, likes: Math.max(0, m.likes + (isLiked ? -1 : 1)) } : m)))
+      const next = new Set(likedMessages)
+      if (isLiked) next.delete(messageId)
+      else next.add(messageId)
+      setLikedMessages(next)
+    } catch (_) {}
   }
 
   const filteredMessages = messages
@@ -129,10 +197,10 @@ export default function CommunityPage() {
     .sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.timestamp.getTime() - a.timestamp.getTime())
 
   const stats = [
-    { number: '15K+', label: 'Community Members', icon: '👥' },
-    { number: '2.5K+', label: 'Active Discussions', icon: '💬' },
-    { number: onlineUsers, label: 'Online Now', icon: '🟢' },
-    { number: '5.2K+', label: 'Total Posts', icon: '📝' }
+    { number: metrics?.totalMembers ?? '—', label: 'Community Members', icon: '👥' },
+    { number: metrics?.totalPosts ?? '—', label: 'Total Discussions', icon: '💬' },
+    { number: metrics?.onlineNow ?? '—', label: 'Online Now', icon: '🟢' },
+    { number: metrics?.postsThisWeek ?? '—', label: 'Posts This Week', icon: '📝' }
   ]
 
   const categories = [
@@ -244,7 +312,7 @@ export default function CommunityPage() {
                 {filteredMessages.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="text-4xl mb-4">💭</div>
-                    <p className="text-neural-400">No discussions found. Be the first to start one!</p>
+                    <p className="text-neural-400">{loadingPosts ? 'Loading discussions…' : 'No discussions found. Be the first to start one!'}</p>
                   </div>
                 ) : (
                   filteredMessages.map((message) => (
@@ -343,22 +411,22 @@ export default function CommunityPage() {
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">🤝</div>
               <h3 className="font-bold mb-2">Be Respectful</h3>
-              <p className="text-neural-400 text-sm">Treat all community members with respect and kindness. Healthy disagreements are welcome.</p>
+              <p className="text-neural-400 text-sm">Harassment, hate speech, doxxing, and threats are strictly prohibited. Disagreements are fine—keep them civil and on-topic.</p>
             </div>
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">💡</div>
               <h3 className="font-bold mb-2">Share Knowledge</h3>
-              <p className="text-neural-400 text-sm">Help others by sharing your experience and insights. We all grow together.</p>
+              <p className="text-neural-400 text-sm">Provide constructive, good-faith contributions. Don’t post spam, scams, or misleading content.</p>
             </div>
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">🎯</div>
               <h3 className="font-bold mb-2">Stay On Topic</h3>
-              <p className="text-neural-400 text-sm">Keep discussions relevant to One Last AI and our platform community.</p>
+              <p className="text-neural-400 text-sm">Keep discussions relevant to One Last AI and applicable law. Don’t share illegal content or proprietary data without permission.</p>
             </div>
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">✨</div>
               <h3 className="font-bold mb-2">Be Authentic</h3>
-              <p className="text-neural-400 text-sm">Share genuine experiences and constructive feedback to help our community thrive.</p>
+              <p className="text-neural-400 text-sm">Protect your account. Don’t impersonate others. By participating, you agree to our Terms and applicable policies.</p>
             </div>
           </div>
         </div>
@@ -370,21 +438,21 @@ export default function CommunityPage() {
           <h2 className="text-3xl font-bold mb-8 text-center">Community Activity</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-8 bg-neural-800 rounded-lg border border-neural-700">
-              <div className="text-5xl font-bold text-brand-400 mb-2">892</div>
+              <div className="text-5xl font-bold text-brand-400 mb-2">{metrics?.postsThisWeek ?? '—'}</div>
               <p className="text-neural-300">Posts This Week</p>
               <div className="mt-4 h-1 bg-neural-700 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-brand-600 to-accent-600 w-3/4"></div>
               </div>
             </div>
             <div className="text-center p-8 bg-neural-800 rounded-lg border border-neural-700">
-              <div className="text-5xl font-bold text-brand-400 mb-2">3.2K</div>
+              <div className="text-5xl font-bold text-brand-400 mb-2">{metrics?.activeReplies ?? '—'}</div>
               <p className="text-neural-300">Active Replies</p>
               <div className="mt-4 h-1 bg-neural-700 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-brand-600 to-accent-600 w-4/5"></div>
               </div>
             </div>
             <div className="text-center p-8 bg-neural-800 rounded-lg border border-neural-700">
-              <div className="text-5xl font-bold text-brand-400 mb-2">156</div>
+              <div className="text-5xl font-bold text-brand-400 mb-2">{metrics?.newMembersWeek ?? '—'}</div>
               <p className="text-neural-300">New Members</p>
               <div className="mt-4 h-1 bg-neural-700 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-brand-600 to-accent-600 w-2/3"></div>

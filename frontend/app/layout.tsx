@@ -1,14 +1,19 @@
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import Header from '@/components/Header'
 import ConditionalFooter from '@/components/ConditionalFooter'
 import AuthProvider from '@/lib/auth-context'
 import { LoadingProvider } from '@/lib/loading-context'
 import '@/styles/globals.css'
 
-const SplashScreenWrapper = dynamic(
+const SplashScreenWrapper = dynamicImport(
   () => import('@/components/SplashScreenWrapper'),
   { ssr: false }
 )
+
+// CRITICAL: Force all pages to skip Next.js cache to prevent stale chunk references after deployment
+export const fetchCache = 'force-no-store'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 // Fix #1: Root Layout with proper structure and spacing
 export default function RootLayout({

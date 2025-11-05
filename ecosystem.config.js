@@ -18,9 +18,12 @@ module.exports = {
     // Frontend Next.js Application
     {
       name: 'shiny-frontend',
-      cwd: FRONTEND_CWD,
-      script: 'npm',
-      args: 'start',
+  cwd: FRONTEND_CWD,
+  // Use a shell wrapper to export variables from root .env before starting Next.js
+  script: 'bash',
+  args: ['-lc', 'set -a; source /home/ubuntu/shiny-friend-disco/.env; export PORT=3000; exec npm start'],
+  // Keep as reference; env vars are sourced via bash wrapper above
+  // env_file: '/home/ubuntu/shiny-friend-disco/.env',
       env: {
         NODE_ENV: 'production',
         PORT: 3000
@@ -45,6 +48,8 @@ module.exports = {
       name: 'shiny-backend',
       cwd: BACKEND_CWD,
       script: 'server-simple.js',
+  // Load backend-specific environment variables
+  env_file: '/home/ubuntu/shiny-friend-disco/backend/.env',
       env: {
         NODE_ENV: 'production',
         PORT: 3005

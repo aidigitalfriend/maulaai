@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Globe, 
   MapPin, 
@@ -176,6 +176,8 @@ export default function IPInfoPage() {
   const [formattedAddress, setFormattedAddress] = useState<string | null>(null);
   const [showQuickInfo, setShowQuickInfo] = useState(true);
   const [toast, setToast] = useState<null | { message: string; type?: 'success' | 'info' | 'error' }>(null);
+  const mapsApiKey = useMemo(() => (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim(), []);
+  const [mapsAvailable, setMapsAvailable] = useState<boolean>(!!mapsApiKey);
 
   // Auto-detect user's IP on page load
   useEffect(() => {
@@ -229,7 +231,7 @@ export default function IPInfoPage() {
 
   // Initialize or update Google Map when coordinates are available
   useEffect(() => {
-    if (!mapLoaded || !ipData?.location?.coordinates) return;
+    if (!mapsAvailable || !mapLoaded || !ipData?.location?.coordinates) return;
 
     const { lat, lng } = ipData.location.coordinates;
     const center = { lat, lng };
@@ -239,31 +241,37 @@ export default function IPInfoPage() {
       const mapElement = document.getElementById('google-map');
       if (!mapElement) return;
 
-      const newMap = new google.maps.Map(mapElement, {
-        center,
-        zoom: 12,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-      });
+      try {
+        const newMap = new google.maps.Map(mapElement, {
+          center,
+          zoom: 12,
+          mapTypeControl: true,
+          streetViewControl: true,
+          fullscreenControl: true,
+        });
 
-      const newMarker = new google.maps.Marker({
-        position: center,
-        map: newMap,
-        title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
-        animation: google.maps.Animation.DROP,
-      });
+        const newMarker = new google.maps.Marker({
+          position: center,
+          map: newMap,
+          title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
+          animation: google.maps.Animation.DROP,
+        });
 
-      const newInfoWindow = new google.maps.InfoWindow({
-        content: buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()),
-      });
+        const newInfoWindow = new google.maps.InfoWindow({
+          content: buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()),
+        });
 
-      newMarker.addListener('click', () => newInfoWindow.open(newMap, newMarker));
+        newMarker.addListener('click', () => newInfoWindow.open(newMap, newMarker));
 
-      setMap(newMap);
-      setMarker(newMarker);
-  setInfoWindow(newInfoWindow);
-  newInfoWindow.open(newMap, newMarker);
+        setMap(newMap);
+        setMarker(newMarker);
+        setInfoWindow(newInfoWindow);
+        newInfoWindow.open(newMap, newMarker);
+      } catch (e) {
+        // Likely due to missing/invalid API key or Maps not available
+        console.warn('Google Maps initialization failed, disabling map preview.', e);
+        setMapsAvailable(false);
+      }
       return;
     }
 
@@ -274,11 +282,11 @@ export default function IPInfoPage() {
     if (infoWindow) {
       infoWindow.setContent(buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()));
     }
-  }, [mapLoaded, ipData, map, marker, infoWindow, formattedAddress]);
+  }, [mapsAvailable, mapLoaded, ipData, map, marker, infoWindow, formattedAddress]);
 
   // Reverse geocode to get a human-readable address for the coordinates
   useEffect(() => {
-    if (!mapLoaded || !ipData?.location?.coordinates) return;
+  if (!mapsAvailable || !mapLoaded || !ipData?.location?.coordinates) return;
     try {
       const geocoder = new google.maps.Geocoder();
       const { lat, lng } = ipData.location.coordinates;
@@ -292,7 +300,7 @@ export default function IPInfoPage() {
     } catch (e) {
       setFormattedAddress(getFallbackAddress());
     }
-  }, [mapLoaded, ipData?.location?.coordinates?.lat, ipData?.location?.coordinates?.lng]);
+  }, [mapsAvailable, mapLoaded, ipData?.location?.coordinates?.lat, ipData?.location?.coordinates?.lng]);
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -387,6 +395,20 @@ export default function IPInfoPage() {
     return () => clearTimeout(id);
   }, [toast]);
 
+  // Detect Google Maps error overlay (e.g., InvalidKeyMapError) and gracefully fallback
+  useEffect(() => {
+    if (!mapLoaded || !mapsAvailable) return;
+    const id = setTimeout(() => {
+      const el = document.getElementById('google-map');
+      if (!el) return;
+      const hasErrorOverlay = !!el.querySelector('.gm-err-container');
+      if (hasErrorOverlay) {
+        setMapsAvailable(false);
+      }
+    }, 1200);
+    return () => clearTimeout(id);
+  }, [mapLoaded, mapsAvailable]);
+
   const buildInfoWindowHtml = (
     data: IPInfoData,
     lat: number,
@@ -405,10 +427,10 @@ export default function IPInfoPage() {
   `;
 
   const InfoCard = ({ title, children, icon }: { title: string; children: React.ReactNode; icon: React.ReactNode }) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+    <div className="card card-padding">
       <div className="flex items-center gap-2 mb-4">
         {icon}
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold text-contrast-high">{title}</h3>
       </div>
       {children}
     </div>
@@ -458,30 +480,33 @@ export default function IPInfoPage() {
 
   return (
     <>
-      {/* Google Maps Script */}
-      <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-        strategy="afterInteractive"
-        onLoad={() => setMapLoaded(true)}
-      />
+      {/* Google Maps Script (only if key provided); add modern params to satisfy console warnings */}
+      {mapsApiKey && (
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&v=weekly&libraries=places&loading=async`}
+          strategy="afterInteractive"
+          onLoad={() => setMapLoaded(true)}
+          onError={() => setMapsAvailable(false)}
+        />
+      )}
       
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-neural-gradient">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <Globe2 className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">IP Address Lookup Tool</h1>
+              <Globe2 className="w-8 h-8 text-contrast-high" />
+              <h1 className="text-3xl font-bold">IP Address Lookup Tool</h1>
             </div>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-contrast-medium max-w-2xl mx-auto">
               Get detailed information about any IP address including location, ISP details, 
               security flags, and network information.
             </p>
           </div>
 
           {/* Manual Search */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8 shadow-sm">
+          <div className="card card-padding mb-8">
             <form onSubmit={handleManualSearch} className="flex gap-3">
               <div className="flex-1">
                 <input
@@ -489,13 +514,13 @@ export default function IPInfoPage() {
                   value={manualIP}
                   onChange={(e) => setManualIP(e.target.value)}
                   placeholder="Enter IP address to lookup (e.g., 8.8.8.8)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="form-input"
                 />
               </div>
               <button
                 type="submit"
                 disabled={searchLoading || !manualIP.trim()}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {searchLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -522,11 +547,11 @@ export default function IPInfoPage() {
           {ipData && (
             <>
               {/* IP Address Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 mb-8 text-white">
+              <div className="rounded-lg p-6 mb-8 text-white btn-primary !w-full !justify-between">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold mb-2">IP Address: {ipData.ip}</h2>
-                    <div className="flex items-center gap-4 text-blue-100">
+                    <div className="flex items-center gap-4 opacity-90">
                       {ipData.location.city && ipData.location.country && (
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
@@ -544,7 +569,7 @@ export default function IPInfoPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => copyToClipboard(ipData.ip, 'ip')}
-                      className="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors"
+                      className="p-2 bg-black/20 hover:bg-black/30 rounded-lg transition-colors"
                       title="Copy IP address"
                     >
                       {copiedField === 'ip' ? (
@@ -555,7 +580,7 @@ export default function IPInfoPage() {
                     </button>
                     <button
                       onClick={downloadReport}
-                      className="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors"
+                      className="p-2 bg-black/20 hover:bg-black/30 rounded-lg transition-colors"
                       title="Download report"
                     >
                       <Download className="w-5 h-5" />
@@ -617,12 +642,12 @@ export default function IPInfoPage() {
 
               {/* Google Maps Location Visualization */}
               {ipData.location.coordinates && (
-                <div className="mb-8 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="mb-8 card overflow-hidden">
                   <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Navigation className="w-5 h-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Geographic Location</h3>
+                        <Navigation className="w-5 h-5 text-contrast-high" />
+                        <h3 className="text-lg font-semibold text-contrast-high">Geographic Location</h3>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
@@ -630,11 +655,20 @@ export default function IPInfoPage() {
                       </div>
                     </div>
                   </div>
-                  <div 
-                    id="google-map" 
-                    className="w-full h-[400px]"
-                    style={{ minHeight: '400px' }}
-                  />
+                  {mapsAvailable && mapsApiKey ? (
+                    <div 
+                      id="google-map" 
+                      className="w-full h-[400px]"
+                      style={{ minHeight: '400px' }}
+                    />
+                  ) : (
+                    <div className="w-full h-[400px] flex items-center justify-center text-center p-6">
+                      <div>
+                        <p className="text-contrast-medium mb-2">Map preview is unavailable.</p>
+                        <p className="text-caption">Missing or invalid Google Maps API key. You can still open the location below.</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="p-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-600 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
                     <span>
@@ -650,7 +684,7 @@ export default function IPInfoPage() {
                           href={openInGoogleMapsUrl(ipData.location.coordinates.lat, ipData.location.coordinates.lng)}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          className="btn-primary"
                         >
                           Open in Google Maps
                         </a>
@@ -658,7 +692,7 @@ export default function IPInfoPage() {
                           href={getDirectionsUrl(ipData.location.coordinates.lat, ipData.location.coordinates.lng)}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors"
+                          className="btn-secondary"
                         >
                           Get Directions
                         </a>
@@ -669,7 +703,7 @@ export default function IPInfoPage() {
                             formattedAddress || getFallbackAddress() || undefined,
                             ipData.ip
                           )}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                          className="btn-primary"
                         >
                           Share Location
                         </button>
@@ -678,13 +712,13 @@ export default function IPInfoPage() {
                             const addr = formattedAddress || getFallbackAddress();
                             if (addr) copyToClipboard(addr, 'address');
                           }}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="btn-secondary"
                         >
                           Copy Address
                         </button>
                         <button
                           onClick={() => setShowQuickInfo(v => !v)}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="btn-secondary"
                         >
                           {showQuickInfo ? 'Hide Info' : 'Show Info'}
                         </button>
@@ -720,7 +754,7 @@ export default function IPInfoPage() {
               {/* Information Cards Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Location Information */}
-                <InfoCard title="Location Information" icon={<MapPin className="w-5 h-5 text-blue-600" />}>
+                <InfoCard title="Location Information" icon={<MapPin className="w-5 h-5 text-contrast-high" />}>
                   <div className="space-y-0">
                     <InfoRow label="Address" value={formattedAddress || getFallbackAddress() || undefined} copyable />
                     <InfoRow label="City" value={ipData.location.city} />
@@ -739,7 +773,7 @@ export default function IPInfoPage() {
                 </InfoCard>
 
                 {/* Network Information */}
-                <InfoCard title="Network Information" icon={<Server className="w-5 h-5 text-green-600" />}>
+                <InfoCard title="Network Information" icon={<Server className="w-5 h-5 text-contrast-high" />}>
                   <div className="space-y-0">
                     <InfoRow label="ISP" value={ipData.network.isp} copyable />
                     <InfoRow label="Organization" value={ipData.network.organization} />
@@ -751,7 +785,7 @@ export default function IPInfoPage() {
                 </InfoCard>
 
                 {/* Security Information */}
-                <InfoCard title="Security Analysis" icon={<Shield className="w-5 h-5 text-purple-600" />}>
+                <InfoCard title="Security Analysis" icon={<Shield className="w-5 h-5 text-contrast-high" />}>
                   <div className="space-y-3">
                     <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${getThreatColor(ipData.security.threat)}`}>
                       {getThreatIcon(ipData.security.threat)}
@@ -784,7 +818,7 @@ export default function IPInfoPage() {
                 </InfoCard>
 
                 {/* Metadata Information */}
-                <InfoCard title="Additional Information" icon={<Clock className="w-5 h-5 text-gray-600" />}>
+                <InfoCard title="Additional Information" icon={<Clock className="w-5 h-5 text-contrast-high" />}>
                   <div className="space-y-0">
                     <InfoRow label="Hostname" value={ipData.metadata.hostname} copyable />
                     <InfoRow label="Data Source" value={ipData.metadata.source} />

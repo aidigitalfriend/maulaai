@@ -1,6 +1,13 @@
 import Link from 'next/link'
+import { headers as nextHeaders } from 'next/headers'
+
+// Avoid serving stale HTML that references old chunk hashes after deploys
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export default function DocsAgents() {
+  // Force dynamic rendering at request time
+  void nextHeaders()
   const agentDocs = [
     {
       title: "Getting Started with Agents",

@@ -1,6 +1,15 @@
 import Link from 'next/link'
+import { headers as nextHeaders } from 'next/headers'
+
+// Avoid serving stale HTML that references old chunk hashes after deploys
+// Force this page to be dynamic so caches revalidate on each request
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export default function DocsTutorials() {
+  // Force dynamic rendering by reading request headers
+  // (Some platforms may ignore revalidate flag for static content otherwise)
+  void nextHeaders()
   const tutorials = [
     {
       title: "Getting Started",

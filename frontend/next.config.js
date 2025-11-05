@@ -1,13 +1,17 @@
 /** @type {import('next').NextConfig} */
-const isExport = process.env.NEXT_EXPORT === 'true'
 const nextConfig = {
-  // Enable static export for mobile app only when explicitly requested
-  output: isExport ? 'export' : undefined,
+  // Server-rendered deployment; disable static export during production builds to support route handlers
+  output: undefined,
+  
+  // CRITICAL: Disable Next.js caching to prevent stale chunk references
+  experimental: {
+    isrMemoryCacheSize: 0, // Disable ISR memory cache completely
+  },
   
   images: {
     domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
     // Unoptimized only for static export
-    unoptimized: !!isExport,
+  unoptimized: false,
   },
   
   // Expose Google Maps API key to the client; prefer NEXT_PUBLIC_ but fall back to non-prefixed if provided
@@ -32,9 +36,19 @@ const nextConfig = {
   // ✅ SECURITY: Add security headers
   async headers() {
     return [
+      // Cache policy for Next.js static assets (hashed, immutable)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // CRITICAL: Prevent caching of HTML to avoid stale chunk references after deploys
+      // All HTML pages should revalidate to get correct buildId chunk URLs
       {
         source: '/:path*',
         headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
           // Prevent MIME type sniffing
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           // Prevent clickjacking
@@ -50,8 +64,13 @@ const nextConfig = {
     ]
   },
 
-  // Proxy frontend /api/* to backend server in development
+  // Proxy /api/* to backend only during local development.
+  // In production, Next.js App Router serves its own API routes (e.g. /api/community, /api/tools, /api/status),
+  // and Nginx will forward other backend APIs to the Node server.
   async rewrites() {
+    if (process.env.NODE_ENV !== 'development') {
+      return []
+    }
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
     return [
       {

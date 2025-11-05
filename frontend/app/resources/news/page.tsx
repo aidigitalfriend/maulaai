@@ -3,27 +3,50 @@
 import Link from 'next/link'
 import { Newspaper, Zap, TrendingUp, Award, Calendar, ArrowRight, MessageSquare, Info } from 'lucide-react'
 import { useState } from 'react'
+import { allAgents } from '@/app/agents/registry'
 
 export default function NewsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedAgent, setSelectedAgent] = useState<any>(null)
   const [showAgentDetails, setShowAgentDetails] = useState(false)
+  const [selectedArticle, setSelectedArticle] = useState<any>(null)
+  const [showArticleModal, setShowArticleModal] = useState(false)
 
-  // Available Agents
-  const availableAgents = [
-    { id: 1, name: 'Einstein', emoji: '🧠', description: 'Physics & Science Expert', path: '/agents/einstein' },
-    { id: 2, name: 'Comedy King', emoji: '🤡', description: 'Humor & Entertainment', path: '/agents/comedy-king' },
-    { id: 3, name: 'Tech Wizard', emoji: '🧙', description: 'Technology Expert', path: '/agents/tech-wizard' },
-    { id: 4, name: 'Chef Biew', emoji: '👨‍🍳', description: 'Culinary Guide', path: '/agents/chef-biew' },
-    { id: 5, name: 'Fitness Guru', emoji: '💪', description: 'Fitness & Wellness', path: '/agents/fitness-guru' },
-    { id: 6, name: 'Travel Buddy', emoji: '✈️', description: 'Travel Advisor', path: '/agents/travel-buddy' },
-    { id: 7, name: 'Professor Astrology', emoji: '🔭', description: 'Space & Astronomy', path: '/agents/professor-astrology' },
-    { id: 8, name: 'Julie Girlfriend', emoji: '💕', description: 'Relationship Coach', path: '/agents/julie-girlfriend' },
-    { id: 9, name: 'Emma Emotional', emoji: '🎭', description: 'Emotional Intelligence', path: '/agents/emma-emotional' },
-    { id: 10, name: 'Mrs Boss', emoji: '👔', description: 'Business Coach', path: '/agents/mrs-boss' },
-    { id: 11, name: 'Bishop Burger', emoji: '🍔', description: 'Food Reviews', path: '/agents/bishop-burger' },
-    { id: 12, name: 'Ben Sega', emoji: '🎮', description: 'Gaming Guide', path: '/agents/ben-sega' },
+  // Build Available Agents from the central registry (18 total)
+  const agentSlugs: string[] = [
+    'ben-sega',
+    'bishop-burger',
+    'chef-biew',
+    'chess-player',
+    'comedy-king',
+    'drama-queen',
+    'einstein',
+    'emma-emotional',
+    'fitness-guru',
+    'julie-girlfriend',
+    'knight-logic',
+    'lazy-pawn',
+    'mrs-boss',
+    'nid-gaming',
+    'professor-astrology',
+    'rook-jokey',
+    'tech-wizard',
+    'travel-buddy'
   ]
+
+  const availableAgents = agentSlugs
+    .map(id => allAgents.find(a => a.id === id))
+    .filter(Boolean)
+    .map((a: any, i: number) => ({
+      key: `${a.id}-${i}`,
+      id: a.id,
+      name: a.name,
+      emoji: a?.details?.icon || '🤖',
+      description: a.description,
+      path: `/agents/${a.id}`,
+      specialties: a?.personality?.specialties || [],
+      details: a?.details?.sections || []
+    }))
 
   // Coming Soon Agents (40-50)
   const comingSoonAgents = [
@@ -90,7 +113,8 @@ export default function NewsPage() {
       date: 'October 22, 2025',
       image: '🚀',
       readTime: '3 min read',
-      featured: true
+      featured: true,
+      content: `We\'re making it easier than ever to try our agents. With the new $1/day testing plan,\n\n- Get full access to core features\n- Test any agent at your own pace\n- Upgrade or cancel any time\n\nThis plan is perfect for experimenting with agent workflows, evaluating voice and chat experiences, and validating your use cases before moving to higher tiers.`
     },
     {
       id: 2,
@@ -100,7 +124,8 @@ export default function NewsPage() {
       date: 'October 20, 2025',
       image: '📈',
       readTime: '5 min read',
-      featured: true
+      featured: true,
+      content: `The latest industry data shows enterprise AI adoption at unprecedented levels.\n\nTop drivers include:\n- Intelligent customer support agents\n- Automated content workflows\n- Real-time analytics and insights\n\nOrganizations report faster response times, improved customer satisfaction, and reduced operational costs.`
     },
     {
       id: 3,
@@ -110,7 +135,8 @@ export default function NewsPage() {
       date: 'October 18, 2025',
       image: '🏆',
       readTime: '2 min read',
-      featured: true
+      featured: true,
+      content: `We\'re honored to be recognized for product innovation, real-time community features, and voice-enabled experiences.\n\nThe judges highlighted:\n- Agent catalog breadth\n- Production-ready App Router APIs\n- Robust infrastructure behind Cloudflare with SSE support`
     },
     {
       id: 4,
@@ -120,7 +146,8 @@ export default function NewsPage() {
       date: 'October 15, 2025',
       image: '🎙️',
       readTime: '4 min read',
-      featured: false
+      featured: false,
+      content: `Voice just got better: improved TTS quality, expressive styles, and lower latency.\n\nWhat\'s new:\n- Emotional TTS presets\n- Faster streaming responses\n- Fine-grained voice controls`
     },
     {
       id: 5,
@@ -130,7 +157,8 @@ export default function NewsPage() {
       date: 'October 12, 2025',
       image: '💬',
       readTime: '6 min read',
-      featured: false
+      featured: false,
+      content: `AI agents are redefining service with 24/7 availability, instant routing, and personalized responses.\n\nKey takeaways:\n- Augment, don\'t replace, human teams\n- Use analytics to continuously improve\n- Ensure privacy and security from day one`
     },
     {
       id: 6,
@@ -140,7 +168,8 @@ export default function NewsPage() {
       date: 'October 10, 2025',
       image: '👥',
       readTime: '3 min read',
-      featured: false
+      featured: false,
+      content: `Thank you to our growing global community!\n\nWhat\'s happening:\n- Real-time presence and metrics\n- Weekly AMAs with the dev team\n- Community-driven feature requests`
     },
     {
       id: 7,
@@ -150,7 +179,8 @@ export default function NewsPage() {
       date: 'October 8, 2025',
       image: '🧠',
       readTime: '7 min read',
-      featured: false
+      featured: false,
+      content: `Emerging architectures improve context retention, reasoning, and controllability. Expect better performance on complex tasks with fewer tokens.`
     },
     {
       id: 8,
@@ -160,7 +190,8 @@ export default function NewsPage() {
       date: 'October 5, 2025',
       image: '🔒',
       readTime: '3 min read',
-      featured: false
+      featured: false,
+      content: `Security first: SOC 2 Type II compliance validates our processes, monitoring, and controls across the platform.`
     }
   ]
 
@@ -196,7 +227,7 @@ export default function NewsPage() {
           </p>
           <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
             <div>
-              <p className="text-3xl font-bold text-brand-400">{availableAgents.length}</p>
+              <p className="text-3xl font-bold text-brand-400">{agentSlugs.length}</p>
               <p className="text-sm text-neural-300">Available Agents</p>
             </div>
             <div>
@@ -204,7 +235,7 @@ export default function NewsPage() {
               <p className="text-sm text-neural-300">Coming Soon</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-yellow-400">{availableAgents.length + comingSoonAgents.length}</p>
+              <p className="text-3xl font-bold text-yellow-400">{agentSlugs.length + comingSoonAgents.length}</p>
               <p className="text-sm text-neural-300">Total Agents</p>
             </div>
           </div>
@@ -265,10 +296,14 @@ export default function NewsPage() {
                       {article.description}
                     </p>
 
-                    <div className="flex items-center text-brand-400 group-hover:translate-x-1 transition-transform">
+                    <button
+                      className="flex items-center text-brand-400 group-hover:translate-x-1 transition-transform"
+                      onClick={() => { setSelectedArticle(article); setShowArticleModal(true); }}
+                      aria-label={`Read more about ${article.title}`}
+                    >
                       Read More
                       <ArrowRight className="w-4 h-4 ml-2" />
-                    </div>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -311,10 +346,14 @@ export default function NewsPage() {
                         {article.description}
                       </p>
 
-                      <div className="flex items-center text-brand-400 group-hover:translate-x-1 transition-transform">
+                      <button
+                        className="flex items-center text-brand-400 group-hover:translate-x-1 transition-transform"
+                        onClick={() => { setSelectedArticle(article); setShowArticleModal(true); }}
+                        aria-label={`Read article ${article.title}`}
+                      >
                         Read Article
                         <ArrowRight className="w-4 h-4 ml-2" />
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -327,6 +366,46 @@ export default function NewsPage() {
           )}
         </div>
       </section>
+
+      {/* Article Modal (floating, scrollable) */}
+      {showArticleModal && selectedArticle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowArticleModal(false)} />
+
+          {/* Modal */}
+          <div className="relative bg-neural-800 border border-neural-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neural-700 bg-neural-800/95 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">{selectedArticle.image}</div>
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedArticle.title}</h2>
+                  <p className="text-neural-400 text-sm flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> {selectedArticle.date}
+                    <span className="text-xs bg-neural-700 px-2 py-1 rounded text-neural-300 ml-2">{selectedArticle.readTime}</span>
+                  </p>
+                </div>
+              </div>
+              <button aria-label="Close" onClick={() => setShowArticleModal(false)} className="px-3 py-2 rounded-lg bg-neural-700 hover:bg-neural-600 border border-neural-600 text-sm">
+                Close
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[calc(85vh-64px)]">
+              <p className="whitespace-pre-line text-neural-200 leading-relaxed">{selectedArticle.content || selectedArticle.description}</p>
+
+              {/* Bottom actions including Close button */}
+              <div className="pt-4 border-t border-neural-700 flex justify-end">
+                <button onClick={() => setShowArticleModal(false)} className="px-4 py-2 bg-neural-700 hover:bg-neural-600 border border-neural-600 rounded-lg text-sm">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Available Agents Section */}
       <section className="section-padding border-t border-neural-700">
@@ -383,26 +462,85 @@ export default function NewsPage() {
         </div>
       </section>
 
-      {/* Agent Details Modal */}
+      {/* Agent Details Modal (floating with internal scroll) */}
       {showAgentDetails && selectedAgent && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-neural-800 border border-neural-700 rounded-lg p-8 max-w-md w-full">
-            <div className="text-5xl mb-4 text-center">{selectedAgent.emoji}</div>
-            <h2 className="text-2xl font-bold mb-2 text-center">{selectedAgent.name}</h2>
-            <p className="text-neural-400 mb-4 text-center">{selectedAgent.description}</p>
-            <div className="space-y-3 mb-6">
-              <div className="bg-neural-700 p-3 rounded">
-                <p className="text-xs text-neural-400 uppercase">Specialization</p>
-                <p className="text-white">{selectedAgent.description}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowAgentDetails(false)} />
+
+          {/* Modal */}
+          <div className="relative bg-neural-800 border border-neural-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neural-700 bg-neural-800/95 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <div className="text-4xl">{selectedAgent.emoji}</div>
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedAgent.name}</h2>
+                  <p className="text-neural-400 text-sm">{selectedAgent.description}</p>
+                </div>
               </div>
-              <div className="bg-neural-700 p-3 rounded">
-                <p className="text-xs text-neural-400 uppercase">Status</p>
-                <p className="text-white">{selectedAgent.path ? 'Available' : 'Coming Soon'}</p>
+              <button aria-label="Close" onClick={() => setShowAgentDetails(false)} className="px-3 py-2 rounded-lg bg-neural-700 hover:bg-neural-600 border border-neural-600 text-sm">
+                Close
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="px-6 py-5 space-y-6 overflow-y-auto max-h-[calc(85vh-64px)]">
+              {/* Specialties */}
+              {selectedAgent.specialties?.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Specialties</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAgent.specialties.map((s: string, idx: number) => (
+                      <span key={idx} className="text-xs bg-neural-700 border border-neural-600 px-2 py-1 rounded-full text-neural-200">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* How they work / Details */}
+              {selectedAgent.details?.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">How this agent works</h3>
+                  <div className="space-y-4">
+                    {selectedAgent.details.map((section: any, idx: number) => (
+                      <div key={idx} className="bg-neural-700/40 border border-neural-600 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl" aria-hidden>{section.icon}</span>
+                          <h4 className="font-semibold">{section.title}</h4>
+                        </div>
+                        {section.items?.length ? (
+                          <ul className="list-disc list-inside text-neural-300 space-y-1">
+                            {section.items.map((item: string, i: number) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-neural-300">{section.content}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Getting Started */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">How to Get Started</h3>
+                <ol className="list-decimal list-inside text-neural-300 space-y-1">
+                  <li>Open the agent and try a conversation using the Launch button.</li>
+                  <li>Create an account or sign in when prompted.</li>
+                  <li>Choose a subscription to unlock full features. You can manage or cancel anytime.</li>
+                </ol>
+                <div className="mt-3 flex gap-3">
+                  <Link href="/pricing" className="px-4 py-2 bg-brand-600 hover:bg-brand-700 rounded-lg text-sm font-semibold">View Plans</Link>
+                  <Link href={selectedAgent.path} className="px-4 py-2 bg-neural-700 hover:bg-neural-600 border border-neural-600 rounded-lg text-sm">Launch Agent</Link>
+                </div>
+                <p className="text-yellow-300 text-sm mt-3">Pro tip: Our lowest subscription is just $1 — test an agent before committing to a larger plan.</p>
               </div>
             </div>
-            <button onClick={() => setShowAgentDetails(false)} className="w-full bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-semibold transition">
-              Close
-            </button>
           </div>
         </div>
       )}
