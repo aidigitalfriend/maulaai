@@ -1,7 +1,29 @@
 /** @type {import('next').NextConfig} */
+const path = require('path')
+
 const nextConfig = {
   // Server-rendered deployment; disable static export during production builds to support route handlers
   output: undefined,
+  
+  // Allow webpack to transpile and resolve backend modules in monorepo structure
+  transpilePackages: ['ai-app-monorepo'],
+  
+  // Enable importing from parent directory (monorepo structure)
+  experimental: {
+    externalDir: true,
+  },
+  
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Add backend directory to module resolution for server-side imports
+      const backendPath = path.resolve(__dirname, '../backend')
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@backend': backendPath,
+      }
+    }
+    return config
+  },
   
   images: {
     domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
