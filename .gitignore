@@ -78,6 +78,11 @@ mongo-credentials.json
 *.keystore
 private/
 secrets/
+# Certificates/keys (do not commit private keys)
+*.pem
+*.key
+*.crt
+
 
 # Backup files
 *.backup
