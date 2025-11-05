@@ -1,14 +1,24 @@
 /**
  * PM2 Ecosystem Configuration
  * Manages frontend and backend processes for production
+ *
+ * Notes:
+ * - Uses APP_DIR env var when provided, falls back to /home/ubuntu/shiny-friend-disco
+ * - Logs go to PM2's default ~/.pm2/logs to avoid permission issues with /var/log
  */
+
+const path = require('path');
+const HOME = process.env.HOME || '/home/ubuntu';
+const APP_DIR = process.env.APP_DIR || '/home/ubuntu/shiny-friend-disco';
+const FRONTEND_CWD = path.join(APP_DIR, 'frontend');
+const BACKEND_CWD = path.join(APP_DIR, 'backend');
 
 module.exports = {
   apps: [
     // Frontend Next.js Application
     {
       name: 'shiny-frontend',
-      cwd: '/var/www/shiny-friend-disco/frontend',
+      cwd: FRONTEND_CWD,
       script: 'npm',
       args: 'start',
       env: {
@@ -20,8 +30,6 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '500M',
-      error_file: '/var/log/pm2/frontend-error.log',
-      out_file: '/var/log/pm2/frontend-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
       min_uptime: '10s',
@@ -35,7 +43,7 @@ module.exports = {
     // Backend API Server
     {
       name: 'shiny-backend',
-      cwd: '/var/www/shiny-friend-disco/backend',
+      cwd: BACKEND_CWD,
       script: 'server-simple.js',
       env: {
         NODE_ENV: 'production',
@@ -46,8 +54,6 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '500M',
-      error_file: '/var/log/pm2/backend-error.log',
-      out_file: '/var/log/pm2/backend-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
       min_uptime: '10s',
