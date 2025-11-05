@@ -9,72 +9,72 @@ const developerUtils = [
     name: 'JSON Formatter',
     description: 'Format, validate, and beautify JSON data with syntax highlighting',
     icon: FileJson,
-    href: '#',
+    href: '/tools/json-formatter',
     color: 'from-blue-500 to-cyan-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'base64',
     name: 'Base64 Encoder/Decoder',
     description: 'Encode and decode Base64 strings easily',
     icon: Binary,
-    href: '#',
+    href: '/tools/base64',
     color: 'from-purple-500 to-pink-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'hash-generator',
     name: 'Hash Generator',
     description: 'Generate MD5, SHA-1, SHA-256, and other hash values',
     icon: Hash,
-    href: '#',
+    href: '/tools/hash-generator',
     color: 'from-green-500 to-emerald-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'uuid-generator',
     name: 'UUID Generator',
     description: 'Generate unique identifiers (UUID/GUID) in various formats',
     icon: Key,
-    href: '#',
+    href: '/tools/uuid-generator',
     color: 'from-orange-500 to-red-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'color-picker',
     name: 'Color Picker',
     description: 'Pick colors and convert between HEX, RGB, HSL formats',
     icon: Palette,
-    href: '#',
+    href: '/tools/color-picker',
     color: 'from-indigo-500 to-purple-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'timestamp',
     name: 'Timestamp Converter',
     description: 'Convert between Unix timestamps and human-readable dates',
     icon: Clock,
-    href: '#',
+    href: '/tools/timestamp-converter',
     color: 'from-yellow-500 to-orange-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'regex-tester',
     name: 'Regex Tester',
     description: 'Test and debug regular expressions with live matching',
     icon: Code2,
-    href: '#',
+    href: '/tools/regex-tester',
     color: 'from-teal-500 to-green-500',
-    comingSoon: true
+    comingSoon: false
   },
   {
     id: 'url-parser',
     name: 'URL Parser',
     description: 'Parse and decode URLs to extract components',
     icon: Code2,
-    href: '#',
+    href: '/tools/url-parser',
     color: 'from-pink-500 to-rose-500',
-    comingSoon: true
+    comingSoon: false
   }
 ]
 
