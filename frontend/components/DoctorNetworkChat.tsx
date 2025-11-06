@@ -18,6 +18,58 @@ import {
   ThumbsDown
 } from 'lucide-react';
 
+// Simple markdown renderer for chat messages with emoji support
+function MarkdownMessage({ content }: { content: string }) {
+  // Convert markdown to HTML
+  const formatText = (text: string) => {
+    // Split by newlines to preserve structure
+    const lines = text.split('\n');
+    
+    return lines.map((line, idx) => {
+      // Bold text: **text** -> <strong>text</strong>
+      let formatted = line.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
+      
+      // Italic text: *text* -> <em>text</em>
+      formatted = formatted.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+      
+      // Code inline: `code` -> <code>code</code>
+      formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-mono">$1</code>');
+      
+      // Headers with proper styling
+      if (line.startsWith('### ')) {
+        return <h3 key={idx} className="text-base font-bold mt-3 mb-1.5 text-gray-800" dangerouslySetInnerHTML={{ __html: formatted.substring(4) }} />;
+      }
+      if (line.startsWith('## ')) {
+        return <h2 key={idx} className="text-lg font-bold mt-3 mb-2 text-gray-800" dangerouslySetInnerHTML={{ __html: formatted.substring(3) }} />;
+      }
+      if (line.startsWith('# ')) {
+        return <h1 key={idx} className="text-xl font-bold mt-4 mb-2 text-gray-900" dangerouslySetInnerHTML={{ __html: formatted.substring(2) }} />;
+      }
+      
+      // Bullet points with better styling
+      if (line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')) {
+        return (
+          <li key={idx} className="ml-4 mb-1 list-disc" dangerouslySetInnerHTML={{ __html: formatted.replace(/^[\s•\-\*]+/, '') }} />
+        );
+      }
+      
+      // Empty lines
+      if (line.trim() === '') {
+        return <div key={idx} className="h-2" />;
+      }
+      
+      // Regular paragraph with proper line height
+      return <p key={idx} className="mb-1.5 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatted }} />;
+    });
+  };
+
+  return (
+    <div className="text-sm leading-relaxed" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Arial, sans-serif' }}>
+      {formatText(content)}
+    </div>
+  );
+}
+
 interface ChatMessage {
   id: string;
   type: 'user' | 'assistant';
@@ -50,6 +102,9 @@ export default function DoctorNetworkChat({ ipContext }: DoctorNetworkProps) {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const isUserScrollingRef = useRef(false);
+  const lastMessageCountRef = useRef(0);
 
   // Multi-language support
   const languages = {
@@ -211,16 +266,39 @@ export default function DoctorNetworkChat({ ipContext }: DoctorNetworkProps) {
     }
   ];
 
-  // Auto-scroll to bottom when new messages arrive
+  // Detect user scrolling
   useEffect(() => {
-    // Use requestAnimationFrame for smoother scroll behavior
-    const timer = setTimeout(() => {
-      if (messagesEndRef.current && messagesEndRef.current.parentElement) {
-        const parent = messagesEndRef.current.parentElement;
-        parent.scrollTop = parent.scrollHeight;
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      // Check if user is near the bottom (within 50px)
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
+      isUserScrollingRef.current = !isNearBottom;
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [isOpen]);
+
+  // Auto-scroll to bottom only when new messages arrive and user isn't manually scrolling
+  useEffect(() => {
+    // Only scroll if a new message was added (not just updated)
+    if (messages.length !== lastMessageCountRef.current) {
+      lastMessageCountRef.current = messages.length;
+      
+      // Only auto-scroll if user hasn't manually scrolled up
+      if (!isUserScrollingRef.current && messagesEndRef.current) {
+        // Use requestAnimationFrame for smoother scroll behavior
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end'
+          });
+        });
       }
-    }, 0);
-    return () => clearTimeout(timer);
+    }
   }, [messages]);
 
   // Focus input when chat opens
@@ -600,7 +678,15 @@ Quick networking tip: Your IP address is like your home address for the internet
         {/* Chat messages - only show when not minimized */}
         {!isMinimized && (
           <>
-            <div className="flex-1 p-4 space-y-4 overflow-y-auto" style={{ maxHeight: 'calc(500px - 180px)', scrollBehavior: 'smooth' }}>
+            <div 
+              ref={messagesContainerRef}
+              className="flex-1 p-4 space-y-4 overflow-y-auto overscroll-contain" 
+              style={{ 
+                maxHeight: 'calc(500px - 180px)', 
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               {/* Quick Questions Panel */}
               {showQuickQuestions && messages.length <= 1 && (
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
@@ -647,7 +733,11 @@ Quick networking tip: Your IP address is like your home address for the internet
                           : 'bg-gray-100 text-gray-900 rounded-bl-sm'
                       }`}
                     >
-                      <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                      {message.type === 'user' ? (
+                        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                      ) : (
+                        <MarkdownMessage content={message.content} />
+                      )}
                       <div className={`text-xs mt-1 ${
                         message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
                       }`}>

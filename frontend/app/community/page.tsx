@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
-import { Send, Heart, MessageCircle, Users, TrendingUp, Search, Filter } from 'lucide-react'
+import { Send, Heart, MessageCircle, Users, TrendingUp, Search, Filter, ChevronDown } from 'lucide-react'
 
 interface CommunityMessage {
   id: string
@@ -22,12 +22,14 @@ interface CommunityUser {
   avatar: string
   title: string
   joinedDate: Date
+  postsCount?: number
 }
 
 export default function CommunityPage() {
   const [messages, setMessages] = useState<CommunityMessage[]>([])
-
+  const [topMembers, setTopMembers] = useState<CommunityUser[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [postCategory, setPostCategory] = useState<'general' | 'agents' | 'ideas' | 'help'>('general')
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'general' | 'agents' | 'ideas' | 'help'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set())
@@ -56,7 +58,7 @@ export default function CommunityPage() {
       try {
         const user = localStorage.getItem('auth_user')
         const userId = user ? JSON.parse(user).id : null
-  await fetch('/api/x-community/presence/ping', {
+        await fetch('/api/x-community/presence/ping', {
           method: 'POST',
           headers: {
             'x-session-id': sessionId as string,
@@ -70,7 +72,7 @@ export default function CommunityPage() {
     return () => clearInterval(t)
   }, [])
 
-  // Fetch initial posts
+  // Fetch initial posts and top members
   useEffect(() => {
     const load = async () => {
       try {
@@ -78,13 +80,15 @@ export default function CommunityPage() {
         const params = new URLSearchParams()
         if (selectedCategory !== 'all') params.set('category', selectedCategory)
         if (searchQuery) params.set('search', searchQuery)
-  const res = await fetch(`/api/x-community/posts?${params.toString()}`)
+        
+        // Fetch posts
+        const res = await fetch(`/api/x-community/posts?${params.toString()}`)
         const json = await res.json()
         if (json.success) {
           const list: CommunityMessage[] = (json.data || []).map((p: any) => ({
             id: p._id,
             author: p.authorName,
-            avatar: p.authorAvatar || '�',
+            avatar: p.authorAvatar || '👤',
             content: p.content,
             timestamp: new Date(p.createdAt),
             likes: p.likesCount || 0,
@@ -95,6 +99,21 @@ export default function CommunityPage() {
           setMessages(list)
         } else {
           setError(json.error || 'Failed to load posts')
+        }
+
+        // Fetch top members
+        const membersRes = await fetch('/api/x-community/top-members')
+        const membersJson = await membersRes.json()
+        if (membersJson.success && membersJson.data) {
+          const membersList: CommunityUser[] = membersJson.data.map((m: any) => ({
+            id: m._id,
+            name: m.name || m.email || 'Member',
+            avatar: m.avatar || '👤',
+            title: m.title || `${m.postsCount || 0} posts`,
+            joinedDate: new Date(m.createdAt),
+            postsCount: m.postsCount || 0,
+          }))
+          setTopMembers(membersList)
         }
       } catch (e: any) {
         setError('Failed to load posts')
@@ -108,7 +127,7 @@ export default function CommunityPage() {
 
   // SSE for metrics
   useEffect(() => {
-  const es = new EventSource('/api/x-community/stream')
+    const es = new EventSource('/api/x-community/stream')
     es.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data)
@@ -134,9 +153,8 @@ export default function CommunityPage() {
       return
     }
     const user = JSON.parse(userRaw)
-    const categoryToUse = selectedCategory !== 'all' ? (selectedCategory as any) : 'general'
     try {
-  const res = await fetch('/api/x-community/posts', {
+      const res = await fetch('/api/x-community/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +162,7 @@ export default function CommunityPage() {
         },
         body: JSON.stringify({
           content: newMessage.trim(),
-          category: categoryToUse,
+          category: postCategory,
           authorName: user.name || user.email || 'Member',
           authorAvatar: '😊',
         }),
@@ -179,7 +197,7 @@ export default function CommunityPage() {
     const isLiked = likedMessages.has(messageId)
     try {
       const endpoint = isLiked ? 'unlike' : 'like'
-  await fetch(`/api/x-community/posts/${messageId}/${endpoint}`, {
+      await fetch(`/api/x-community/posts/${messageId}/${endpoint}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -209,13 +227,6 @@ export default function CommunityPage() {
     { id: 'agents', label: 'Agents & Features', icon: '🤖', color: 'from-green-500 to-emerald-500' },
     { id: 'ideas', label: 'Ideas & Suggestions', icon: '💡', color: 'from-yellow-500 to-orange-500' },
     { id: 'help', label: 'Help & Support', icon: '❓', color: 'from-red-500 to-pink-500' }
-  ]
-
-  const topMembers: CommunityUser[] = [
-    { id: '1', name: 'Alex Chen', avatar: '👨‍💻', title: 'Platform Expert', joinedDate: new Date('2024-01-15') },
-    { id: '2', name: 'Sarah Johnson', avatar: '👩‍🔬', title: 'AI Researcher', joinedDate: new Date('2024-02-20') },
-    { id: '3', name: 'Mike Rodriguez', avatar: '🚀', title: 'Agent Developer', joinedDate: new Date('2024-03-10') },
-    { id: '4', name: 'Emma Wilson', avatar: '🎨', title: 'Designer', joinedDate: new Date('2024-01-30') }
   ]
 
   return (
@@ -278,15 +289,22 @@ export default function CommunityPage() {
                   <Users size={20} /> Top Members
                 </h3>
                 <div className="space-y-4">
-                  {topMembers.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3 p-3 bg-neural-700 rounded-lg hover:bg-neural-600 transition-colors cursor-pointer">
-                      <div className="text-2xl">{member.avatar}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm">{member.name}</div>
-                        <div className="text-xs text-neural-400">{member.title}</div>
-                      </div>
+                  {topMembers.length === 0 ? (
+                    <div className="text-center py-4 text-neural-400 text-sm">
+                      No members yet
                     </div>
-                  ))}
+                  ) : (
+                    topMembers.map((member) => (
+                      <div key={member.id} className="flex items-center gap-3 p-3 bg-neural-700 rounded-lg hover:bg-neural-600 transition-colors cursor-pointer">
+                        <div className="text-2xl">{member.avatar}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm">{member.name}</div>
+                          <div className="text-xs text-neural-400">{member.title}</div>
+                          <div className="text-xs text-neural-500">Joined {new Date(member.joinedDate).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -364,22 +382,19 @@ export default function CommunityPage() {
               {/* Message Input */}
               <form onSubmit={handleSendMessage} className="bg-neural-800 p-6 rounded-lg border border-neural-700">
                 <div className="mb-4">
-                  <label className="text-sm text-neural-300 mb-2 block">Category</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {['general', 'agents', 'ideas', 'help'].map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setSelectedCategory(cat as any)}
-                        className={`px-3 py-1 rounded-full text-sm transition-all ${
-                          selectedCategory === cat
-                            ? 'bg-brand-600 text-white'
-                            : 'bg-neural-700 text-neural-300 hover:bg-neural-600'
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
+                  <label className="text-sm text-neural-300 mb-2 block">Select Category</label>
+                  <div className="relative">
+                    <select
+                      value={postCategory}
+                      onChange={(e) => setPostCategory(e.target.value as 'general' | 'agents' | 'ideas' | 'help')}
+                      className="w-full bg-neural-700 border border-neural-600 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-brand-500 pr-10"
+                    >
+                      <option value="general">🌍 General</option>
+                      <option value="agents">🤖 Agents & Features</option>
+                      <option value="ideas">💡 Ideas & Suggestions</option>
+                      <option value="help">❓ Help & Support</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-neural-400 pointer-events-none" size={20} />
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -416,17 +431,17 @@ export default function CommunityPage() {
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">💡</div>
               <h3 className="font-bold mb-2">Share Knowledge</h3>
-              <p className="text-neural-400 text-sm">Provide constructive, good-faith contributions. Don’t post spam, scams, or misleading content.</p>
+              <p className="text-neural-400 text-sm">Provide constructive, good-faith contributions. Don't post spam, scams, or misleading content.</p>
             </div>
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">🎯</div>
               <h3 className="font-bold mb-2">Stay On Topic</h3>
-              <p className="text-neural-400 text-sm">Keep discussions relevant to One Last AI and applicable law. Don’t share illegal content or proprietary data without permission.</p>
+              <p className="text-neural-400 text-sm">Keep discussions relevant to One Last AI and applicable law. Don't share illegal content or proprietary data without permission.</p>
             </div>
             <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
               <div className="text-3xl mb-3">✨</div>
               <h3 className="font-bold mb-2">Be Authentic</h3>
-              <p className="text-neural-400 text-sm">Protect your account. Don’t impersonate others. By participating, you agree to our Terms and applicable policies.</p>
+              <p className="text-neural-400 text-sm">Protect your account. Don't impersonate others. By participating, you agree to our Terms and applicable policies.</p>
             </div>
           </div>
         </div>

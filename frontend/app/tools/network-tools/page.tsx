@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Network, Globe, Wifi, MapPin, Shield, Activity, Server, Radio, Code } from 'lucide-react'
+import { Network, Globe, Wifi, MapPin, Shield, Activity, Server, Radio, Code, Search, Tag, Award, Cpu } from 'lucide-react'
 
 const networkTools = [
   {
@@ -75,6 +75,78 @@ const networkTools = [
     icon: Code,
     href: '/tools/api-tester',
     color: 'from-violet-500 to-purple-500'
+  },
+  {
+    id: 'ip-geolocation',
+    name: 'IP Geolocation API',
+    description: 'Get detailed location and ISP information for any IP address using WHOIS XML API',
+    icon: MapPin,
+    href: '/tools/ip-geolocation',
+    color: 'from-cyan-500 to-blue-500'
+  },
+  {
+    id: 'dns-lookup-advanced',
+    name: 'DNS Lookup API',
+    description: 'Get comprehensive DNS records (A, AAAA, MX, NS, TXT, CNAME, SOA) for any domain',
+    icon: Server,
+    href: '/tools/dns-lookup-advanced',
+    color: 'from-emerald-500 to-teal-500'
+  },
+  {
+    id: 'domain-availability',
+    name: 'Domain Availability',
+    description: 'Check if your desired domain name is available across popular TLDs (.com, .net, .org, etc.)',
+    icon: Search,
+    href: '/tools/domain-availability',
+    color: 'from-rose-500 to-pink-500'
+  },
+  {
+    id: 'website-categorization',
+    name: 'Website Categorization',
+    description: 'Automatically classify websites into content categories for filtering and analysis',
+    icon: Tag,
+    href: '/tools/website-categorization',
+    color: 'from-amber-500 to-yellow-500'
+  },
+  {
+    id: 'threat-intelligence',
+    name: 'Threat Intelligence',
+    description: 'Scan domains and IPs for security threats, malware, phishing, and malicious activity',
+    icon: Shield,
+    href: '/tools/threat-intelligence',
+    color: 'from-red-500 to-rose-500'
+  },
+  {
+    id: 'domain-reputation',
+    name: 'Domain Reputation',
+    description: 'Check domain trustworthiness and security reputation with scoring analysis',
+    icon: Award,
+    href: '/tools/domain-reputation',
+    color: 'from-indigo-500 to-blue-500'
+  },
+  {
+    id: 'ip-netblocks',
+    name: 'IP Netblocks Lookup',
+    description: 'Get IP range and network block information for any IP address',
+    icon: Network,
+    href: '/tools/ip-netblocks',
+    color: 'from-lime-500 to-green-500'
+  },
+  {
+    id: 'mac-lookup',
+    name: 'MAC Address Lookup',
+    description: 'Find manufacturer and vendor information for any MAC address',
+    icon: Cpu,
+    href: '/tools/mac-lookup',
+    color: 'from-sky-500 to-cyan-500'
+  },
+  {
+    id: 'domain-research',
+    name: 'Domain Research Suite',
+    description: 'Comprehensive domain history, analysis, and research tools',
+    icon: Search,
+    href: '/tools/domain-research',
+    color: 'from-fuchsia-500 to-purple-500'
   }
 ]
 
@@ -127,7 +199,7 @@ export default function NetworkToolsPage() {
       <section className="container-custom py-16 border-t border-neural-700">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div>
-            <div className="text-4xl font-bold text-brand-400 mb-2">9+</div>
+            <div className="text-4xl font-bold text-brand-400 mb-2">19+</div>
             <div className="text-neural-300">Network Tools</div>
           </div>
           <div>

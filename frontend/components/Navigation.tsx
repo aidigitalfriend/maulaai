@@ -11,7 +11,8 @@ import {
   UserGroupIcon,
   GlobeAltIcon,
   DocumentTextIcon,
-  UserIcon
+  UserIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline'
 import ThemeToggle from './ThemeToggle'
 
@@ -23,6 +24,7 @@ export default function Navigation() {
   const navigation = [
     { name: 'Home', href: '/', icon: HomeIcon },
     { name: 'AI Agents', href: '/agents', icon: UserGroupIcon },
+    { name: 'Dev Utils', href: '/tools/developer-utils', icon: WrenchScrewdriverIcon },
     { name: 'Dark Theme', href: '/dark-theme', icon: CpuChipIcon },
     { name: 'IP Info', href: '/ip-info', icon: GlobeAltIcon },
     { name: 'Dashboard', href: '/dashboard', icon: CpuChipIcon },

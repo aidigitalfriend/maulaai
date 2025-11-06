@@ -172,12 +172,23 @@ export default function IPInfoPage() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [map, setMap] = useState<any>(null);
   const [marker, setMarker] = useState<any>(null);
+  const [markerType, setMarkerType] = useState<'advanced' | 'legacy'>('legacy');
   const [infoWindow, setInfoWindow] = useState<any>(null);
   const [formattedAddress, setFormattedAddress] = useState<string | null>(null);
   const [showQuickInfo, setShowQuickInfo] = useState(true);
   const [toast, setToast] = useState<null | { message: string; type?: 'success' | 'info' | 'error' }>(null);
   const mapsApiKey = useMemo(() => (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim(), []);
   const [mapsAvailable, setMapsAvailable] = useState<boolean>(!!mapsApiKey);
+
+  // Set up Google Maps callback
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).initGoogleMaps = () => {
+        console.log('Google Maps API fully loaded');
+        setMapLoaded(true);
+      };
+    }
+  }, []);
 
   // Auto-detect user's IP on page load
   useEffect(() => {
@@ -233,6 +244,12 @@ export default function IPInfoPage() {
   useEffect(() => {
     if (!mapsAvailable || !mapLoaded || !ipData?.location?.coordinates) return;
 
+    // Wait for google.maps to be fully loaded
+    if (typeof window === 'undefined' || !window.google || !window.google.maps || !window.google.maps.Map) {
+      console.warn('Google Maps API not fully loaded yet');
+      return;
+    }
+
     const { lat, lng } = ipData.location.coordinates;
     const center = { lat, lng };
 
@@ -248,14 +265,32 @@ export default function IPInfoPage() {
           mapTypeControl: true,
           streetViewControl: true,
           fullscreenControl: true,
+          mapId: 'DEMO_MAP_ID', // Required for AdvancedMarkerElement
         });
 
-        const newMarker = new google.maps.Marker({
-          position: center,
-          map: newMap,
-          title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
-          animation: google.maps.Animation.DROP,
-        });
+        // Use AdvancedMarkerElement if available (new API), fallback to Marker
+        let newMarker: any;
+        try {
+          if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+            newMarker = new google.maps.marker.AdvancedMarkerElement({
+              position: center,
+              map: newMap,
+              title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
+            });
+            setMarkerType('advanced');
+          } else {
+            throw new Error('AdvancedMarkerElement not available');
+          }
+        } catch (e) {
+          // Fallback to deprecated Marker
+          newMarker = new google.maps.Marker({
+            position: center,
+            map: newMap,
+            title: `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`,
+            animation: google.maps.Animation.DROP,
+          });
+          setMarkerType('legacy');
+        }
 
         const newInfoWindow = new google.maps.InfoWindow({
           content: buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()),
@@ -277,12 +312,22 @@ export default function IPInfoPage() {
 
     // Update map center and marker if map already exists (e.g., manual IP lookup)
     map.setCenter(center);
-    marker?.setPosition(center);
+    
+    // Update marker position based on marker type
+    if (marker) {
+      if (markerType === 'advanced') {
+        // AdvancedMarkerElement uses property assignment
+        marker.position = center;
+      } else {
+        // Legacy Marker uses setPosition method
+        marker.setPosition(center);
+      }
+    }
 
     if (infoWindow) {
       infoWindow.setContent(buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()));
     }
-  }, [mapsAvailable, mapLoaded, ipData, map, marker, infoWindow, formattedAddress]);
+  }, [mapsAvailable, mapLoaded, ipData, map, marker, markerType, infoWindow, formattedAddress]);
 
   // Reverse geocode to get a human-readable address for the coordinates
   useEffect(() => {
@@ -415,14 +460,14 @@ export default function IPInfoPage() {
     lng: number,
     address?: string | null
   ) => `
-    <div style="padding: 8px; max-width: 280px;">
-      <h3 style="font-weight: bold; margin-bottom: 6px;">${data.ip}</h3>
-      ${address ? `<div style=\"margin: 4px 0; font-size: 13px;\"><strong>Address:</strong> ${address}</div>` : ''}
-      <div style="margin: 4px 0; font-size: 13px;"><strong>City:</strong> ${data.location.city || 'Unknown'}</div>
-      <div style="margin: 4px 0; font-size: 13px;"><strong>Region:</strong> ${data.location.region || ''}</div>
-      <div style="margin: 4px 0; font-size: 13px;"><strong>Country:</strong> ${data.location.country || 'Unknown'}</div>
-      ${data.network.organization ? `<div style=\"margin: 4px 0; font-size: 13px;\"><strong>Organization:</strong> ${data.network.organization}</div>` : ''}
-      <div style="margin: 6px 0; font-size: 12px; color: #666;"><strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
+    <div style="padding: 12px; max-width: 300px; font-family: system-ui, -apple-system, sans-serif;">
+      <h3 style="font-weight: 700; margin-bottom: 10px; color: #1a1a1a; font-size: 16px;">${data.ip}</h3>
+      ${address ? `<div style="margin: 6px 0; font-size: 14px; color: #2c3e50; line-height: 1.4;"><strong style="color: #1a1a1a;">Address:</strong> ${address}</div>` : ''}
+      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">City:</strong> ${data.location.city || 'Unknown'}</div>
+      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Region:</strong> ${data.location.region || 'N/A'}</div>
+      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Country:</strong> ${data.location.country || 'Unknown'}</div>
+      ${data.network.organization ? `<div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Organization:</strong> ${data.network.organization}</div>` : ''}
+      <div style="margin: 8px 0 4px 0; padding-top: 8px; border-top: 1px solid #e0e0e0; font-size: 13px; color: #34495e;"><strong style="color: #1a1a1a;">Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
     </div>
   `;
 
@@ -483,9 +528,8 @@ export default function IPInfoPage() {
       {/* Google Maps Script (only if key provided); add modern params to satisfy console warnings */}
       {mapsApiKey && (
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&v=weekly&libraries=places&loading=async`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${mapsApiKey}&v=weekly&libraries=places,marker&loading=async&callback=initGoogleMaps`}
           strategy="afterInteractive"
-          onLoad={() => setMapLoaded(true)}
           onError={() => setMapsAvailable(false)}
         />
       )}

@@ -82,10 +82,10 @@ export async function GET(req: NextRequest) {
       // Initial payload
       if (computeMetrics) {
         computeMetrics().then((m) => safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: m })}\n\n`)).catch(() => {
-          safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: mockMetrics() })}\n\n`)
+          safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: realMetrics() })}\n\n`)
         })
       } else {
-        safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: mockMetrics() })}\n\n`)
+        safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: realMetrics() })}\n\n`)
       }
 
       // Poll every 5s
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
             const m = await computeMetrics()
             safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: m })}\n\n`)
           } else {
-            safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: mockMetrics() })}\n\n`)
+            safeEnqueue(`data: ${JSON.stringify({ type: 'metrics', data: realMetrics() })}\n\n`)
           }
         } catch {
           // ignore per-iteration error; next tick will retry
@@ -120,15 +120,14 @@ export async function GET(req: NextRequest) {
   return new Response(stream, { headers: sseHeaders() })
 }
 
-function mockMetrics() {
-  // Simple, readable demo numbers
-  const base = 55000
+function realMetrics() {
+  // Return real zeros when DB is not available - no fake numbers!
   return {
-    totalMembers: 1280,
-    newMembersWeek: 42,
-    onlineNow: Math.floor(Math.random() * 40) + 10,
-    totalPosts: base + Math.floor(Math.random() * 2000),
-    postsThisWeek: 320 + Math.floor(Math.random() * 80),
-    activeReplies: 95 + Math.floor(Math.random() * 25),
+    totalMembers: 0,
+    newMembersWeek: 0,
+    onlineNow: 0,
+    totalPosts: 0,
+    postsThisWeek: 0,
+    activeReplies: 0,
   }
 }

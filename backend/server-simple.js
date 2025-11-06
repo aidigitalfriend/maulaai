@@ -108,6 +108,11 @@ function providerStatusFromEnv() {
     anthropic: !!process.env.ANTHROPIC_API_KEY,
     gemini: !!process.env.GEMINI_API_KEY,
     cohere: !!process.env.COHERE_API_KEY,
+    huggingface: !!process.env.HUGGINGFACE_API_KEY,
+    mistral: !!process.env.MISTRAL_API_KEY,
+    replicate: !!process.env.REPLICATE_API_TOKEN,
+    stability: !!process.env.STABILITY_API_KEY,
+    runway: !!process.env.RUNWAYML_API_KEY,
     elevenlabs: !!process.env.ELEVENLABS_API_KEY,
     googleTranslate: !!process.env.GOOGLE_TRANSLATE_API_KEY,
   }
@@ -220,9 +225,15 @@ app.get('/api/status', async (req, res) => {
         uptime: db.ok ? 99.9 : 0
       },
       aiServices: [
-        { name: 'OpenAI', status: providers.openai ? 'operational' : 'outage', responseTime: 300, uptime: providers.openai ? 99.9 : 0 },
-        { name: 'Anthropic', status: providers.anthropic ? 'operational' : 'outage', responseTime: 350, uptime: providers.anthropic ? 99.9 : 0 },
-        { name: 'Gemini', status: providers.gemini ? 'operational' : 'outage', responseTime: 320, uptime: providers.gemini ? 99.9 : 0 },
+        { name: 'OpenAI GPT', status: providers.openai ? 'operational' : 'outage', responseTime: 300, uptime: providers.openai ? 99.9 : 0 },
+        { name: 'Claude (Anthropic)', status: providers.anthropic ? 'operational' : 'outage', responseTime: 350, uptime: providers.anthropic ? 99.9 : 0 },
+        { name: 'Google Gemini', status: providers.gemini ? 'operational' : 'outage', responseTime: 320, uptime: providers.gemini ? 99.9 : 0 },
+        { name: 'Cohere', status: providers.cohere ? 'operational' : 'outage', responseTime: 340, uptime: providers.cohere ? 99.9 : 0 },
+        { name: 'HuggingFace', status: providers.huggingface ? 'operational' : 'outage', responseTime: 380, uptime: providers.huggingface ? 99.9 : 0 },
+        { name: 'Mistral AI', status: providers.mistral ? 'operational' : 'outage', responseTime: 330, uptime: providers.mistral ? 99.9 : 0 },
+        { name: 'Replicate', status: providers.replicate ? 'operational' : 'outage', responseTime: 450, uptime: providers.replicate ? 99.9 : 0 },
+        { name: 'Stability AI', status: providers.stability ? 'operational' : 'outage', responseTime: 500, uptime: providers.stability ? 99.9 : 0 },
+        { name: 'RunwayML', status: providers.runway ? 'operational' : 'outage', responseTime: 520, uptime: providers.runway ? 99.9 : 0 },
       ],
       agents: [
         { name: 'einstein', status: 'operational', responseTime: metrics.avgResponseMs, activeUsers: 12 },
@@ -276,9 +287,15 @@ app.get('/api/status/api-status', async (req, res) => {
         { name: 'Translate', apiEndpoint: '/api/translate', status: 'operational', responseTime: 250, requestsPerMinute: 0 },
       ],
       aiServices: [
-        { name: 'OpenAI', provider: 'openai', status: process.env.OPENAI_API_KEY ? 'operational' : 'down', responseTime: 300, quota: 'Configured' },
-        { name: 'Anthropic', provider: 'anthropic', status: process.env.ANTHROPIC_API_KEY ? 'operational' : 'down', responseTime: 350, quota: 'Configured' },
-        { name: 'Gemini', provider: 'google', status: process.env.GEMINI_API_KEY ? 'operational' : 'down', responseTime: 320, quota: 'Configured' },
+        { name: 'OpenAI GPT', provider: 'openai', status: process.env.OPENAI_API_KEY ? 'operational' : 'down', responseTime: 300, quota: process.env.OPENAI_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'Claude (Anthropic)', provider: 'anthropic', status: process.env.ANTHROPIC_API_KEY ? 'operational' : 'down', responseTime: 350, quota: process.env.ANTHROPIC_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'Google Gemini', provider: 'google', status: process.env.GEMINI_API_KEY ? 'operational' : 'down', responseTime: 320, quota: process.env.GEMINI_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'Cohere', provider: 'cohere', status: process.env.COHERE_API_KEY ? 'operational' : 'down', responseTime: 340, quota: process.env.COHERE_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'HuggingFace', provider: 'huggingface', status: process.env.HUGGINGFACE_API_KEY ? 'operational' : 'down', responseTime: 380, quota: process.env.HUGGINGFACE_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'Mistral AI', provider: 'mistral', status: process.env.MISTRAL_API_KEY ? 'operational' : 'down', responseTime: 330, quota: process.env.MISTRAL_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'Replicate', provider: 'replicate', status: process.env.REPLICATE_API_TOKEN ? 'operational' : 'down', responseTime: 450, quota: process.env.REPLICATE_API_TOKEN ? 'Configured' : 'Not configured' },
+        { name: 'Stability AI', provider: 'stability', status: process.env.STABILITY_API_KEY ? 'operational' : 'down', responseTime: 500, quota: process.env.STABILITY_API_KEY ? 'Configured' : 'Not configured' },
+        { name: 'RunwayML', provider: 'runway', status: process.env.RUNWAYML_API_KEY ? 'operational' : 'down', responseTime: 520, quota: process.env.RUNWAYML_API_KEY ? 'Configured' : 'Not configured' },
       ]
     }
   })
@@ -354,9 +371,15 @@ async function fetchLikeStatus() {
       api: { status: apiStatus, responseTime: metrics.avgResponseMs, uptime: 99.9, requestsToday: 10000 + metrics.totalLastMinute, requestsPerMinute: metrics.totalLastMinute },
       database: { status: dbStatus, connectionPool: db.ok ? 65 : 0, responseTime: db.latencyMs ?? 0, uptime: db.ok ? 99.9 : 0 },
       aiServices: [
-        { name: 'OpenAI', status: providers.openai ? 'operational' : 'outage', responseTime: 300, uptime: providers.openai ? 99.9 : 0 },
-        { name: 'Anthropic', status: providers.anthropic ? 'operational' : 'outage', responseTime: 350, uptime: providers.anthropic ? 99.9 : 0 },
-        { name: 'Gemini', status: providers.gemini ? 'operational' : 'outage', responseTime: 320, uptime: providers.gemini ? 99.9 : 0 },
+        { name: 'OpenAI GPT', status: providers.openai ? 'operational' : 'outage', responseTime: 300, uptime: providers.openai ? 99.9 : 0 },
+        { name: 'Claude (Anthropic)', status: providers.anthropic ? 'operational' : 'outage', responseTime: 350, uptime: providers.anthropic ? 99.9 : 0 },
+        { name: 'Google Gemini', status: providers.gemini ? 'operational' : 'outage', responseTime: 320, uptime: providers.gemini ? 99.9 : 0 },
+        { name: 'Cohere', status: providers.cohere ? 'operational' : 'outage', responseTime: 340, uptime: providers.cohere ? 99.9 : 0 },
+        { name: 'HuggingFace', status: providers.huggingface ? 'operational' : 'outage', responseTime: 380, uptime: providers.huggingface ? 99.9 : 0 },
+        { name: 'Mistral AI', status: providers.mistral ? 'operational' : 'outage', responseTime: 330, uptime: providers.mistral ? 99.9 : 0 },
+        { name: 'Replicate', status: providers.replicate ? 'operational' : 'outage', responseTime: 450, uptime: providers.replicate ? 99.9 : 0 },
+        { name: 'Stability AI', status: providers.stability ? 'operational' : 'outage', responseTime: 500, uptime: providers.stability ? 99.9 : 0 },
+        { name: 'RunwayML', status: providers.runway ? 'operational' : 'outage', responseTime: 520, uptime: providers.runway ? 99.9 : 0 },
       ],
       agents: [
         { name: 'einstein', status: 'operational', responseTime: metrics.avgResponseMs, activeUsers: 12 },

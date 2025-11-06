@@ -202,10 +202,10 @@ export default function ApiTesterPage() {
 
       if (res.ok) {
         setResponse({
-          status: data.status,
-          statusText: data.statusText,
-          headers: data.headers,
-          data: data.data,
+          status: data.data?.status || data.status || 0,
+          statusText: data.data?.statusText || data.statusText || 'Unknown',
+          headers: data.data?.headers || data.headers || {},
+          data: data.data?.data || data.data || null,
           time: endTime - startTime
         })
       } else {
@@ -574,12 +574,16 @@ export default function ApiTesterPage() {
                   <div>
                     <h3 className="text-sm font-medium mb-2 text-neural-300">Headers</h3>
                     <div className="bg-neural-800 rounded-lg p-4 space-y-1 text-sm max-h-48 overflow-auto">
-                      {Object.entries(response.headers).map(([key, value]) => (
-                        <div key={key} className="flex gap-2">
-                          <span className="text-violet-400 font-mono">{key}:</span>
-                          <span className="text-neural-300 font-mono break-all">{value}</span>
-                        </div>
-                      ))}
+                      {response.headers && Object.keys(response.headers).length > 0 ? (
+                        Object.entries(response.headers).map(([key, value]) => (
+                          <div key={key} className="flex gap-2">
+                            <span className="text-violet-400 font-mono">{key}:</span>
+                            <span className="text-neural-300 font-mono break-all">{value}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-neural-400 text-sm">No headers returned</div>
+                      )}
                     </div>
                   </div>
                 </div>

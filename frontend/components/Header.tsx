@@ -26,13 +26,14 @@ export default function Header() {
     items?: Array<{ name: string; href: string }>;
   }> = [
     { name: 'Agents', href: '/agents' },
-    { name: 'Solutions', href: '/solutions/overview' },
-    { name: 'Industries', href: '/industries/overview' },
     { name: 'Documents', href: '/docs' },
     { name: 'Tools', href: '/tools/network-tools' },
+    { name: 'Dev Utils', href: '/tools/developer-utils' },
     { name: 'Pricing', href: '/pricing/overview' },
     { name: 'Status', href: '/status' },
-    { name: 'Support', href: '/support/help-center' }
+    { name: 'Support', href: '/support/help-center' },
+    { name: 'Legal', href: '/legal' },
+    { name: 'AI Studio', href: '/studio' }
   ]
 
   return (
