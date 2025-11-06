@@ -21,6 +21,7 @@ export default function Footer() {
       title: 'Platform',
       links: [
         { name: 'All Agents', href: '/agents' },
+        { name: 'Rewards Center', href: '/rewards', highlight: true },
         { name: 'Solutions', href: '/solutions/overview' },
         { name: 'Industries', href: '/industries/overview' },
         { name: 'Pricing', href: '/pricing/overview' },
@@ -97,7 +98,6 @@ export default function Footer() {
       title: 'Tools',
       links: [
         { name: 'AI Studio', href: '/studio' },
-        { name: 'Rewards Center', href: '/rewards', highlight: true },
         { name: 'IP Address Lookup', href: '/tools/ip-info' },
         { name: 'Network Tools', href: '/tools/network-tools' },
         { name: 'Developer Utils', href: '/tools/developer-utils' },
