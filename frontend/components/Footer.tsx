@@ -97,6 +97,7 @@ export default function Footer() {
       title: 'Tools',
       links: [
         { name: 'AI Studio', href: '/studio' },
+        { name: 'Rewards Center', href: '/rewards', highlight: true },
         { name: 'IP Address Lookup', href: '/tools/ip-info' },
         { name: 'Network Tools', href: '/tools/network-tools' },
         { name: 'Developer Utils', href: '/tools/developer-utils' },
@@ -195,9 +196,19 @@ export default function Footer() {
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-neural-300 hover:text-white transition-colors inline-block"
+                      className={`transition-colors inline-block ${
+                        link.highlight 
+                          ? 'text-yellow-400 hover:text-yellow-300 font-semibold flex items-center gap-2' 
+                          : 'text-neural-300 hover:text-white'
+                      }`}
                     >
+                      {link.highlight && <span className="text-lg">🎁</span>}
                       {link.name}
+                      {link.highlight && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white animate-pulse">
+                          NEW
+                        </span>
+                      )}
                     </Link>
                   </li>
                 ))}
