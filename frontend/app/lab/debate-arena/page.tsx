@@ -231,18 +231,6 @@ export default function DebateArenaPage() {
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/50 rounded-2xl p-8 text-center"
-        >
-          <MessageSquare className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Real-time AI debate system will be integrated soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

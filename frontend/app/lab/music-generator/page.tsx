@@ -8,7 +8,7 @@ import { Music, Play, Pause, Download, RefreshCw, Sliders } from 'lucide-react'
 export default function MusicGeneratorPage() {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [hasGenerated, setHasGenerated] = useState(false)
+  const [generatedMusic, setGeneratedMusic] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [genre, setGenre] = useState('electronic')
   const [mood, setMood] = useState('energetic')
@@ -18,11 +18,37 @@ export default function MusicGeneratorPage() {
   const moods = ['Energetic', 'Calm', 'Dark', 'Uplifting', 'Mysterious', 'Romantic']
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return
+    if (!prompt.trim()) {
+      alert('Please describe the music you want to create')
+      return
+    }
+    
     setIsGenerating(true)
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    setHasGenerated(true)
-    setIsGenerating(false)
+    
+    try {
+      const response = await fetch('/api/lab/music-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          genre,
+          mood,
+          duration
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Music generation failed')
+      }
+
+      const data = await response.json()
+      setGeneratedMusic(data.audio)
+    } catch (error) {
+      console.error('Music generation error:', error)
+      alert('Music generation failed. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -166,21 +192,15 @@ export default function MusicGeneratorPage() {
           >
             <h3 className="text-xl font-bold mb-6">Your Track</h3>
 
-            {hasGenerated && !isGenerating ? (
+            {generatedMusic && !isGenerating ? (
               <div className="space-y-6">
                 <div className="aspect-square rounded-xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 flex items-center justify-center">
                   <Music className="w-24 h-24 opacity-80" />
                 </div>
 
                 <div className="space-y-3">
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-semibold flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-green-500/50 transition-all"
-                  >
-                    {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                    {isPlaying ? 'Pause' : 'Play'}
-                  </button>
-
+                  <audio src={generatedMusic} controls className="w-full mb-3" />
+                  
                   <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
                     <Download className="w-5 h-5" />
                     Download
@@ -198,18 +218,6 @@ export default function MusicGeneratorPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border border-cyan-500/50 rounded-2xl p-8 text-center"
-        >
-          <Music className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. AI music generation backend will be added soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

@@ -35,12 +35,31 @@ export default function ImagePlaygroundPage() {
     if (!prompt.trim()) return
     
     setIsGenerating(true)
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    // Use Picsum with random seed for variety
-    const seed = Math.floor(Math.random() * 10000)
-    setGeneratedImage(`https://picsum.photos/seed/${seed}/800/800`)
-    setIsGenerating(false)
+    
+    try {
+      const response = await fetch('/api/lab/image-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          style: selectedStyle,
+          width: 1024,
+          height: 1024
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Image generation failed')
+      }
+
+      const data = await response.json()
+      setGeneratedImage(data.image)
+    } catch (error) {
+      console.error('Generation error:', error)
+      alert('Image generation failed. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleDownload = async () => {
@@ -283,20 +302,6 @@ export default function ImagePlaygroundPage() {
             </div>
           </motion.div>
         </div>
-
-        {/* Coming Soon Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/50 rounded-2xl p-8 text-center"
-        >
-          <Sparkles className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Backend AI integration with DALL-E/Stable Diffusion will be added soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

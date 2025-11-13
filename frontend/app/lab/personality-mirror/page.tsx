@@ -11,23 +11,48 @@ export default function PersonalityMirrorPage() {
   const [results, setResults] = useState<any>(null)
 
   const handleAnalyze = async () => {
-    if (!text.trim()) return
+    if (!text.trim()) {
+      alert('Please provide a writing sample')
+      return
+    }
+    
     setIsAnalyzing(true)
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    setResults({
-      personality: 'ENFP - The Campaigner',
-      traits: [
-        { name: 'Openness', score: 85, color: 'from-purple-500 to-pink-500' },
-        { name: 'Conscientiousness', score: 72, color: 'from-blue-500 to-cyan-500' },
-        { name: 'Extraversion', score: 78, color: 'from-green-500 to-emerald-500' },
-        { name: 'Agreeableness', score: 81, color: 'from-yellow-500 to-orange-500' },
-        { name: 'Emotional Stability', score: 68, color: 'from-red-500 to-pink-500' }
-      ],
-      communication: 'Enthusiastic and expressive',
-      strengths: ['Creative thinking', 'Empathetic', 'Adaptable', 'Inspiring'],
-      suggestions: ['Focus on follow-through', 'Practice active listening', 'Set clear boundaries']
-    })
-    setIsAnalyzing(false)
+    
+    try {
+      const response = await fetch('/api/lab/personality-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ writingSample: text })
+      })
+
+      if (!response.ok) {
+        throw new Error('Personality analysis failed')
+      }
+
+      const data = await response.json()
+      
+      // Format the analysis to match our UI
+      const formattedResults = {
+        personality: data.analysis.personalityType,
+        traits: [
+          { name: 'Openness', score: data.analysis.traits.openness, color: 'from-purple-500 to-pink-500' },
+          { name: 'Conscientiousness', score: data.analysis.traits.conscientiousness, color: 'from-blue-500 to-cyan-500' },
+          { name: 'Extraversion', score: data.analysis.traits.extraversion, color: 'from-green-500 to-emerald-500' },
+          { name: 'Agreeableness', score: data.analysis.traits.agreeableness, color: 'from-yellow-500 to-orange-500' },
+          { name: 'Emotional Stability', score: data.analysis.traits.emotionalStability, color: 'from-red-500 to-pink-500' }
+        ],
+        communication: data.analysis.communicationStyle,
+        strengths: data.analysis.strengths,
+        suggestions: data.analysis.growthAreas
+      }
+      
+      setResults(formattedResults)
+    } catch (error) {
+      console.error('Personality analysis error:', error)
+      alert('Personality analysis failed. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
@@ -196,18 +221,6 @@ export default function PersonalityMirrorPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-teal-600/20 to-cyan-600/20 border border-teal-500/50 rounded-2xl p-8 text-center"
-        >
-          <User className="w-12 h-12 text-teal-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Advanced personality analysis AI will be integrated soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

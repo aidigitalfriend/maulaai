@@ -8,7 +8,8 @@ import { Palette, Upload, Download, Wand2, RefreshCw, Sparkles } from 'lucide-re
 export default function NeuralArtPage() {
   const [selectedStyle, setSelectedStyle] = useState('van-gogh')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [hasResult, setHasResult] = useState(false)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [resultImage, setResultImage] = useState<string | null>(null)
 
   const styles = [
     { id: 'van-gogh', name: 'Van Gogh', gradient: 'from-yellow-500 to-orange-500' },
@@ -21,11 +22,50 @@ export default function NeuralArtPage() {
     { id: 'watercolor', name: 'Watercolor', gradient: 'from-blue-400 to-cyan-400' }
   ]
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string)
+        setResultImage(null) // Clear previous result
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleTransform = async () => {
+    if (!uploadedImage) {
+      alert('Please upload an image first!')
+      return
+    }
+
     setIsProcessing(true)
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    setHasResult(true)
-    setIsProcessing(false)
+    try {
+      const response = await fetch('/api/lab/neural-art', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageUrl: uploadedImage,
+          style: selectedStyle
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setResultImage(data.image)
+      } else {
+        alert('Failed to transform image. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('An error occurred. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -78,15 +118,32 @@ export default function NeuralArtPage() {
               Original Image
             </h2>
 
-            <div className="aspect-square rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-gray-400 mb-6 cursor-pointer hover:border-orange-500/50 hover:bg-white/10 transition-all">
-              <Upload className="w-16 h-16 mb-4 opacity-50" />
-              <p className="text-center px-4">Click to upload or drag & drop</p>
-              <p className="text-sm mt-2">PNG, JPG up to 10MB</p>
-            </div>
+            {uploadedImage ? (
+              <div className="aspect-square rounded-xl overflow-hidden mb-6">
+                <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <label className="aspect-square rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-gray-400 mb-6 cursor-pointer hover:border-orange-500/50 hover:bg-white/10 transition-all">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <Upload className="w-16 h-16 mb-4 opacity-50" />
+                <p className="text-center px-4">Click to upload or drag & drop</p>
+                <p className="text-sm mt-2">PNG, JPG up to 10MB</p>
+              </label>
+            )}
 
-            <button className="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-orange-500/50 transition-all">
-              Upload Image
-            </button>
+            {uploadedImage && (
+              <button
+                onClick={() => setUploadedImage(null)}
+                className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl font-semibold transition-all"
+              >
+                Upload Different Image
+              </button>
+            )}
           </motion.div>
 
           {/* Result */}
@@ -107,19 +164,23 @@ export default function NeuralArtPage() {
                 <p className="text-lg font-semibold">Applying neural style...</p>
                 <p className="text-sm text-gray-400 mt-2">This may take a moment</p>
               </div>
-            ) : hasResult ? (
+            ) : resultImage ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4"
               >
-                <div className="aspect-square rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                  <Palette className="w-24 h-24 opacity-80" />
+                <div className="aspect-square rounded-xl overflow-hidden">
+                  <img src={resultImage} alt="Stylized result" className="w-full h-full object-cover" />
                 </div>
-                <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
+                <a
+                  href={resultImage}
+                  download="neural-art.png"
+                  className="block w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all"
+                >
                   <Download className="w-5 h-5" />
                   Download Artwork
-                </button>
+                </a>
               </motion.div>
             ) : (
               <div className="aspect-square rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-gray-400">
@@ -160,7 +221,7 @@ export default function NeuralArtPage() {
 
           <button
             onClick={handleTransform}
-            disabled={isProcessing}
+            disabled={isProcessing || !uploadedImage}
             className="w-full mt-6 py-4 bg-gradient-to-r from-orange-600 to-amber-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-orange-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
           >
             {isProcessing ? (
@@ -175,19 +236,6 @@ export default function NeuralArtPage() {
               </>
             )}
           </button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="bg-gradient-to-r from-orange-600/20 to-amber-600/20 border border-orange-500/50 rounded-2xl p-8 text-center"
-        >
-          <Palette className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Neural style transfer backend will be integrated soon!
-          </p>
         </motion.div>
       </div>
     </div>

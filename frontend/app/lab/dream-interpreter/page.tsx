@@ -11,20 +11,32 @@ export default function DreamInterpreterPage() {
   const [analysis, setAnalysis] = useState<any>(null)
 
   const handleAnalyze = async () => {
-    if (!dream.trim()) return
+    if (!dream.trim()) {
+      alert('Please describe your dream')
+      return
+    }
+    
     setIsAnalyzing(true)
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    setAnalysis({
-      mainTheme: 'Transformation & Growth',
-      emotions: ['Curiosity', 'Anticipation', 'Wonder'],
-      symbols: [
-        { symbol: 'Flying', meaning: 'Freedom, ambition, escaping limitations' },
-        { symbol: 'Water', meaning: 'Emotions, subconscious, cleansing' },
-        { symbol: 'Forest', meaning: 'Unknown, exploration, natural instincts' }
-      ],
-      interpretation: 'Your dream suggests you are going through a period of personal transformation. The recurring themes of flight and exploration indicate a desire for freedom and new experiences. The presence of water suggests deep emotional processing.'
-    })
-    setIsAnalyzing(false)
+    
+    try {
+      const response = await fetch('/api/lab/dream-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dream })
+      })
+
+      if (!response.ok) {
+        throw new Error('Dream analysis failed')
+      }
+
+      const data = await response.json()
+      setAnalysis(data.analysis)
+    } catch (error) {
+      console.error('Analysis error:', error)
+      alert('Dream analysis failed. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
@@ -172,18 +184,6 @@ export default function DreamInterpreterPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-violet-600/20 to-purple-600/20 border border-violet-500/50 rounded-2xl p-8 text-center"
-        >
-          <Brain className="w-12 h-12 text-violet-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. AI-powered dream analysis backend will be added soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

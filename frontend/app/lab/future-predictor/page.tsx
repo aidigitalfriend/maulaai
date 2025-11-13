@@ -29,25 +29,49 @@ export default function FuturePredictorPage() {
   ]
 
   const handlePredict = async () => {
-    if (!topic.trim()) return
+    if (!topic.trim()) {
+      alert('Please enter a topic to predict')
+      return
+    }
+    
     setIsPredicting(true)
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    setPrediction({
-      confidence: 78,
-      trend: 'Rising',
-      keyInsights: [
-        'Rapid adoption expected in Q2 2026',
-        'Major tech companies investing heavily',
-        'Regulatory frameworks being developed'
-      ],
-      scenarios: [
-        { type: 'Optimistic', probability: 35, description: 'Mainstream adoption with full regulatory support' },
-        { type: 'Moderate', probability: 50, description: 'Gradual adoption with mixed regulatory environment' },
-        { type: 'Conservative', probability: 15, description: 'Slow adoption due to regulatory challenges' }
-      ],
-      relatedTrends: ['AI Ethics', 'Data Privacy', 'Digital Infrastructure']
-    })
-    setIsPredicting(false)
+    
+    try {
+      const response = await fetch('/api/lab/future-prediction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic,
+          timeframe
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Prediction failed')
+      }
+
+      const data = await response.json()
+      
+      // Format the prediction to match our UI
+      const formattedPrediction = {
+        confidence: data.prediction.confidence,
+        trend: data.prediction.trend === 'rising' ? 'Rising' : data.prediction.trend === 'falling' ? 'Falling' : 'Stable',
+        keyInsights: data.prediction.keyInsights,
+        scenarios: data.prediction.scenarios.map((s: any) => ({
+          type: s.name,
+          probability: s.probability,
+          description: s.description
+        })),
+        relatedTrends: data.prediction.relatedTrends
+      }
+      
+      setPrediction(formattedPrediction)
+    } catch (error) {
+      console.error('Prediction error:', error)
+      alert('Future prediction failed. Please try again.')
+    } finally {
+      setIsPredicting(false)
+    }
   }
 
   return (
@@ -250,18 +274,6 @@ export default function FuturePredictorPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-indigo-600/20 to-blue-600/20 border border-indigo-500/50 rounded-2xl p-8 text-center"
-        >
-          <TrendingUp className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Advanced trend forecasting AI will be integrated soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

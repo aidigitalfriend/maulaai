@@ -11,6 +11,7 @@ export default function VoiceCloningPage() {
   const [isCloning, setIsCloning] = useState(false)
   const [text, setText] = useState('')
   const [clonedAudio, setClonedAudio] = useState<string | null>(null)
+  const [selectedVoice, setSelectedVoice] = useState('21m00Tcm4TlvDq8ikWAM') // Rachel default
 
   const handleRecord = () => {
     if (isRecording) {
@@ -23,11 +24,37 @@ export default function VoiceCloningPage() {
   }
 
   const handleClone = async () => {
-    if (!hasRecording || !text.trim()) return
+    if (!text.trim()) {
+      alert('Please enter text to generate speech')
+      return
+    }
+    
     setIsCloning(true)
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    setClonedAudio('cloned')
-    setIsCloning(false)
+    
+    try {
+      const response = await fetch('/api/lab/voice-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          voiceId: selectedVoice,
+          stability: 0.5,
+          similarityBoost: 0.75
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Voice generation failed')
+      }
+
+      const data = await response.json()
+      setClonedAudio(data.audio)
+    } catch (error) {
+      console.error('Voice cloning error:', error)
+      alert('Voice generation failed. Please try again.')
+    } finally {
+      setIsCloning(false)
+    }
   }
 
   return (
@@ -154,23 +181,48 @@ export default function VoiceCloningPage() {
 
             <button
               onClick={handleClone}
-              disabled={!hasRecording || !text.trim() || isCloning}
+              disabled={!text.trim() || isCloning}
               className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-indigo-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mb-6"
             >
               {isCloning ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  Cloning Voice...
+                  Generating Voice...
                 </>
               ) : (
                 <>
                   <Volume2 className="w-5 h-5" />
-                  Clone & Generate Speech
+                  Generate Speech
                 </>
               )}
             </button>
 
             {clonedAudio && !isCloning && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white/5 rounded-xl p-6 border border-white/20"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-semibold">Cloned Audio</span>
+                  <div className="flex items-center gap-2 text-green-400 text-sm">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    Ready
+                  </div>
+                </div>
+                <audio 
+                  controls 
+                  className="w-full mb-4"
+                  src={clonedAudio}
+                >
+                  Your browser does not support the audio element.
+                </audio>
+                <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-all">
+                  <Download className="w-5 h-5" />
+                  Download Audio
+                </button>
+              </motion.div>
+            )}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -196,18 +248,6 @@ export default function VoiceCloningPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/50 rounded-2xl p-8 text-center"
-        >
-          <Mic className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Backend voice cloning AI will be integrated soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

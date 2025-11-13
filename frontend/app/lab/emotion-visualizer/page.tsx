@@ -11,30 +11,53 @@ export default function EmotionVisualizerPage() {
   const [analysis, setAnalysis] = useState<any>(null)
 
   const handleAnalyze = async () => {
-    if (!text.trim()) return
+    if (!text.trim()) {
+      alert('Please enter text to analyze')
+      return
+    }
+    
     setIsAnalyzing(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setAnalysis({
-      overall: { sentiment: 'Positive', score: 0.72, emoji: '😊' },
-      emotions: [
-        { name: 'Joy', intensity: 75, color: 'from-yellow-500 to-orange-500', emoji: '😄' },
-        { name: 'Trust', intensity: 62, color: 'from-green-500 to-emerald-500', emoji: '🤝' },
-        { name: 'Anticipation', intensity: 58, color: 'from-blue-500 to-cyan-500', emoji: '🎯' },
-        { name: 'Surprise', intensity: 35, color: 'from-purple-500 to-pink-500', emoji: '😲' },
-        { name: 'Sadness', intensity: 18, color: 'from-blue-600 to-indigo-600', emoji: '😢' },
-        { name: 'Fear', intensity: 12, color: 'from-gray-500 to-slate-600', emoji: '😨' },
-        { name: 'Anger', intensity: 8, color: 'from-red-500 to-rose-500', emoji: '😠' },
-        { name: 'Disgust', intensity: 5, color: 'from-green-700 to-emerald-800', emoji: '🤢' }
-      ],
-      keywords: [
-        { word: 'amazing', sentiment: 0.9, color: 'text-green-400' },
-        { word: 'excited', sentiment: 0.85, color: 'text-green-400' },
-        { word: 'beautiful', sentiment: 0.8, color: 'text-green-400' },
-        { word: 'challenging', sentiment: -0.2, color: 'text-yellow-400' },
-        { word: 'difficult', sentiment: -0.5, color: 'text-orange-400' }
-      ]
-    })
-    setIsAnalyzing(false)
+    
+    try {
+      const response = await fetch('/api/lab/emotion-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      })
+
+      if (!response.ok) {
+        throw new Error('Emotion analysis failed')
+      }
+
+      const data = await response.json()
+      
+      // Format the response to match our UI structure
+      const emotions = data.emotions
+      const formattedAnalysis = {
+        overall: {
+          sentiment: emotions.overall > 0 ? 'Positive' : emotions.overall < 0 ? 'Negative' : 'Neutral',
+          score: emotions.overall / 100,
+          emoji: emotions.overall > 0 ? '😊' : emotions.overall < 0 ? '😢' : '😐'
+        },
+        emotions: [
+          { name: 'Joy', intensity: emotions.joy || 0, color: 'from-yellow-500 to-orange-500', emoji: '😄' },
+          { name: 'Trust', intensity: emotions.trust || 0, color: 'from-green-500 to-emerald-500', emoji: '🤝' },
+          { name: 'Anticipation', intensity: emotions.anticipation || 0, color: 'from-blue-500 to-cyan-500', emoji: '🎯' },
+          { name: 'Surprise', intensity: emotions.surprise || 0, color: 'from-purple-500 to-pink-500', emoji: '😲' },
+          { name: 'Sadness', intensity: emotions.sadness || 0, color: 'from-blue-600 to-indigo-600', emoji: '😢' },
+          { name: 'Fear', intensity: emotions.fear || 0, color: 'from-gray-500 to-slate-600', emoji: '😨' },
+          { name: 'Anger', intensity: emotions.anger || 0, color: 'from-red-500 to-rose-500', emoji: '😠' },
+          { name: 'Disgust', intensity: emotions.disgust || 0, color: 'from-green-700 to-emerald-800', emoji: '🤢' }
+        ]
+      }
+      
+      setAnalysis(formattedAnalysis)
+    } catch (error) {
+      console.error('Emotion analysis error:', error)
+      alert('Emotion analysis failed. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   const getSentimentIcon = () => {
@@ -196,18 +219,6 @@ export default function EmotionVisualizerPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-pink-600/20 to-purple-600/20 border border-pink-500/50 rounded-2xl p-8 text-center"
-        >
-          <Heart className="w-12 h-12 text-pink-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Advanced emotion analysis AI will be integrated soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )

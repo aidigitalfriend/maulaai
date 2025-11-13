@@ -29,12 +29,36 @@ export default function StoryWeaverPage() {
   ]
 
   const handleContinue = async () => {
-    if (!story.trim()) return
+    if (!story.trim()) {
+      alert('Please write something to continue')
+      return
+    }
+    
     setIsGenerating(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    const continuation = "\n\nThe moonlight cast eerie shadows through the ancient trees as she stepped forward, her heart pounding. Something rustled in the darkness ahead, and she knew there was no turning back now. The adventure had only just begun, and fate had already set the wheels in motion for an encounter that would change everything..."
-    setStory(story + continuation)
-    setIsGenerating(false)
+    
+    try {
+      const response = await fetch('/api/lab/story-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          story,
+          genre,
+          action: 'continue'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Story generation failed')
+      }
+
+      const data = await response.json()
+      setStory(story + '\n\n' + data.generated)
+    } catch (error) {
+      console.error('Story generation error:', error)
+      alert('Story generation failed. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -191,18 +215,6 @@ export default function StoryWeaverPage() {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-12 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 rounded-2xl p-8 text-center"
-        >
-          <BookOpen className="w-12 h-12 text-green-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold mb-2">Full AI Integration Coming Soon</h3>
-          <p className="text-gray-300">
-            This is a demo interface. Advanced AI storytelling features will be added soon!
-          </p>
-        </motion.div>
       </div>
     </div>
   )
