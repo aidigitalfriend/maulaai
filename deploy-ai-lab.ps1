@@ -34,23 +34,31 @@ Write-Host ""
 Write-Host "🔨 Step 3: Rebuilding on server..." -ForegroundColor Yellow
 Write-Host "Connecting to server and executing build commands..." -ForegroundColor Gray
 
-ssh ${SERVER} "cd ${PROJECT_PATH} && \
-echo 'Installing backend dependencies...' && \
-cd backend && npm install && \
-echo 'Installing frontend dependencies...' && \
-cd ../frontend && npm install && \
-echo 'Building backend...' && \
-cd ${PROJECT_PATH}/backend && npm run build && \
-echo 'Clearing Next.js cache...' && \
-cd ${PROJECT_PATH}/frontend && rm -rf .next && \
-echo 'Building frontend...' && \
-npm run build && \
-echo 'Restarting PM2 processes...' && \
-pm2 restart backend && \
-pm2 restart frontend && \
-echo 'Checking PM2 status...' && \
-pm2 status && \
-echo 'Deployment complete!'"
+$sshCommands = @"
+cd $PROJECT_PATH
+echo 'Installing backend dependencies...'
+cd backend
+npm install
+echo 'Installing frontend dependencies...'
+cd ../frontend
+npm install
+echo 'Building backend...'
+cd $PROJECT_PATH/backend
+npm run build
+echo 'Clearing Next.js cache...'
+cd $PROJECT_PATH/frontend
+rm -rf .next
+echo 'Building frontend...'
+npm run build
+echo 'Restarting PM2 processes...'
+pm2 restart backend
+pm2 restart frontend
+echo 'Checking PM2 status...'
+pm2 status
+echo 'Deployment complete!'
+"@
+
+ssh $SERVER $sshCommands
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "[OK] Server rebuild and restart completed successfully" -ForegroundColor Green
