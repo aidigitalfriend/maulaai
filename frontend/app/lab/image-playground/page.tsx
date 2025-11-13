@@ -12,14 +12,14 @@ export default function ImagePlaygroundPage() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
 
   const styles = [
-    { id: 'realistic', name: 'Realistic', gradient: 'from-blue-500 to-cyan-500' },
-    { id: 'artistic', name: 'Artistic', gradient: 'from-purple-500 to-pink-500' },
-    { id: 'anime', name: 'Anime', gradient: 'from-pink-500 to-rose-500' },
-    { id: 'oil-painting', name: 'Oil Painting', gradient: 'from-orange-500 to-amber-500' },
-    { id: 'watercolor', name: 'Watercolor', gradient: 'from-cyan-500 to-blue-500' },
-    { id: 'digital-art', name: 'Digital Art', gradient: 'from-violet-500 to-purple-500' },
-    { id: '3d-render', name: '3D Render', gradient: 'from-indigo-500 to-blue-500' },
-    { id: 'pixel-art', name: 'Pixel Art', gradient: 'from-green-500 to-emerald-500' }
+    { id: 'realistic', name: 'Realistic', color: 'bg-gradient-to-br from-blue-500 to-cyan-500' },
+    { id: 'artistic', name: 'Artistic', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
+    { id: 'anime', name: 'Anime', color: 'bg-gradient-to-br from-pink-500 to-rose-500' },
+    { id: 'oil-painting', name: 'Oil Painting', color: 'bg-gradient-to-br from-orange-500 to-amber-500' },
+    { id: 'watercolor', name: 'Watercolor', color: 'bg-gradient-to-br from-cyan-500 to-blue-500' },
+    { id: 'digital-art', name: 'Digital Art', color: 'bg-gradient-to-br from-violet-500 to-purple-500' },
+    { id: '3d-render', name: '3D Render', color: 'bg-gradient-to-br from-indigo-500 to-blue-500' },
+    { id: 'pixel-art', name: 'Pixel Art', color: 'bg-gradient-to-br from-green-500 to-emerald-500' }
   ]
 
   const examples = [
@@ -37,22 +37,37 @@ export default function ImagePlaygroundPage() {
     setIsGenerating(true)
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 3000))
-    // Use a working placeholder image service
-    setGeneratedImage(`https://source.unsplash.com/800x800/?${encodeURIComponent(prompt)},${selectedStyle}`)
+    // Use Picsum with random seed for variety
+    const seed = Math.floor(Math.random() * 10000)
+    setGeneratedImage(`https://picsum.photos/seed/${seed}/800/800`)
     setIsGenerating(false)
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!generatedImage) return
     
-    // Create a temporary link and trigger download
-    const link = document.createElement('a')
-    link.href = generatedImage
-    link.download = `ai-generated-${Date.now()}.jpg`
-    link.target = '_blank'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      // Fetch the image as a blob
+      const response = await fetch(generatedImage)
+      const blob = await response.blob()
+      
+      // Create object URL
+      const url = window.URL.createObjectURL(blob)
+      
+      // Create temporary link and trigger download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ai-generated-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Download failed. Please try right-clicking the image and selecting "Save image as..."')
+    }
   }
 
   const handleShare = async () => {
@@ -168,7 +183,7 @@ export default function ImagePlaygroundPage() {
                         : 'border-white/20 hover:border-white/40 bg-white/5'
                     }`}
                   >
-                    <div className={`w-full h-12 rounded-lg bg-gradient-to-br ${style.gradient} mb-2`} />
+                    <div className={`w-full h-12 rounded-lg ${style.color} mb-2`} />
                     <div className="text-sm font-medium text-center">{style.name}</div>
                   </button>
                 ))}
