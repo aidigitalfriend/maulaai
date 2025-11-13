@@ -10,42 +10,7 @@ export default function SignupPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [authMode, setAuthMode] = useState<'passwordless' | 'password' | null>(null)
 
-  // Passwordless signup (magic link)
-  const handlePasswordlessSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const name = formData.get('name') as string
-
-    try {
-      // Send email with magic link
-      const result = await signIn('email', {
-        email,
-        name,
-        redirect: false,
-        callbackUrl: '/dashboard',
-      })
-
-      if (result?.error) {
-        setError(result.error)
-      } else if (result?.ok) {
-        // Redirect to verification page
-        router.push('/auth/verify-email?email=' + encodeURIComponent(email))
-      }
-    } catch (err) {
-      setError('Failed to send magic link. Please try again.')
-      console.error('Passwordless signup error:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Password-based signup (traditional)
   const handlePasswordSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
@@ -143,115 +108,9 @@ export default function SignupPage() {
               </div>
             )}
 
-            {/* No mode selected - show options */}
-            {authMode === null && (
-              <div className="space-y-4">
-                <p className="text-gray-700 text-center font-medium mb-6">
-                  Choose how you'd like to sign up:
-                </p>
-
-                {/* Passwordless option */}
-                <button
-                  onClick={() => setAuthMode('passwordless')}
-                  className="w-full p-4 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition text-left"
-                >
-                  <div className="flex items-center">
-                    <div className="text-2xl mr-4">🔐</div>
-                    <div>
-                      <p className="font-semibold text-gray-900">Magic Link (Recommended)</p>
-                      <p className="text-sm text-gray-600">
-                        Sign in with a secure link sent to your email
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Password option */}
-                <button
-                  onClick={() => setAuthMode('password')}
-                  className="w-full p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition text-left"
-                >
-                  <div className="flex items-center">
-                    <div className="text-2xl mr-4">🔑</div>
-                    <div>
-                      <p className="font-semibold text-gray-900">Email & Password</p>
-                      <p className="text-sm text-gray-600">Traditional sign up with a password</p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Already have account */}
-                <div className="pt-4 text-center">
-                  <p className="text-gray-600 text-sm">
-                    Already have an account?{' '}
-                    <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                      Login
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Passwordless signup form */}
-            {authMode === 'passwordless' && (
-              <form onSubmit={handlePasswordlessSignup} className="space-y-4">
-                <button
-                  type="button"
-                  onClick={() => setAuthMode(null)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4"
-                >
-                  ← Back
-                </button>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name (optional)
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition"
-                >
-                  {isLoading ? 'Sending link...' : 'Send Magic Link'}
-                </button>
-              </form>
-            )}
-
             {/* Password signup form */}
-            {authMode === 'password' && (
-              <form onSubmit={handlePasswordSignup} className="space-y-4">
-                <button
-                  type="button"
-                  onClick={() => setAuthMode(null)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4"
-                >
-                  ← Back
-                </button>
-
-                <div>
+            <form onSubmit={handlePasswordSignup} className="space-y-4">
+              <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address
                   </label>
@@ -324,7 +183,16 @@ export default function SignupPage() {
                   By signing up, you agree to our Terms of Service and Privacy Policy
                 </p>
               </form>
-            )}
+
+              {/* Already have account */}
+              <div className="pt-4 text-center">
+                <p className="text-gray-600 text-sm">
+                  Already have an account?{' '}
+                  <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                    Login
+                  </Link>
+                </p>
+              </div>
           </div>
         </div>
       </div>
