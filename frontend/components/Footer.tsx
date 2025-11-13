@@ -97,6 +97,7 @@ export default function Footer() {
     {
       title: 'Tools',
       links: [
+        { name: 'AI Lab', href: '/lab', highlight: true },
         { name: 'AI Studio', href: '/studio' },
         { name: 'IP Address Lookup', href: '/tools/ip-info' },
         { name: 'Network Tools', href: '/tools/network-tools' },
