@@ -37,8 +37,42 @@ export default function ImagePlaygroundPage() {
     setIsGenerating(true)
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 3000))
-    setGeneratedImage(`https://picsum.photos/seed/${Date.now()}/800/800`)
+    // Use a working placeholder image service
+    setGeneratedImage(`https://source.unsplash.com/800x800/?${encodeURIComponent(prompt)},${selectedStyle}`)
     setIsGenerating(false)
+  }
+
+  const handleDownload = () => {
+    if (!generatedImage) return
+    
+    // Create a temporary link and trigger download
+    const link = document.createElement('a')
+    link.href = generatedImage
+    link.download = `ai-generated-${Date.now()}.jpg`
+    link.target = '_blank'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleShare = async () => {
+    if (!generatedImage) return
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'AI Generated Image',
+          text: `Check out this image I created with AI: "${prompt}"`,
+          url: generatedImage
+        })
+      } catch (error) {
+        console.log('Share cancelled')
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(generatedImage)
+      alert('Image URL copied to clipboard!')
+    }
   }
 
   return (
@@ -209,11 +243,17 @@ export default function ImagePlaygroundPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="grid grid-cols-2 gap-3"
               >
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all">
+                <button 
+                  onClick={handleDownload}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all"
+                >
                   <Download className="w-5 h-5" />
                   Download
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all">
+                <button 
+                  onClick={handleShare}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all"
+                >
                   <Share2 className="w-5 h-5" />
                   Share
                 </button>
