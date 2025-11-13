@@ -33,6 +33,16 @@ interface Experiment {
 export default function AILabPage() {
   const experiments: Experiment[] = [
     {
+      id: 'battle-arena',
+      name: 'AI Battle Arena',
+      description: 'Watch AI models compete head-to-head, compare responses, and vote for the winner',
+      icon: <Zap className="w-8 h-8" />,
+      color: 'from-yellow-500 to-red-500',
+      href: '/lab/battle-arena',
+      status: 'live',
+      testCount: 15230
+    },
+    {
       id: 'image-playground',
       name: 'AI Image Playground',
       description: 'Generate stunning images, apply style transfers, and transform visuals with cutting-edge AI',
