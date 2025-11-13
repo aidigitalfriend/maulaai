@@ -12,9 +12,9 @@ $PROJECT_PATH = "~/shiny-friend-disco"
 Write-Host "📦 Step 1: Uploading backend API routes..." -ForegroundColor Yellow
 scp -r backend/app/api/lab/* ${SERVER}:${PROJECT_PATH}/backend/app/api/lab/
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Backend routes uploaded successfully" -ForegroundColor Green
+    Write-Host "[OK] Backend routes uploaded successfully" -ForegroundColor Green
 } else {
-    Write-Host "❌ Failed to upload backend routes" -ForegroundColor Red
+    Write-Host "[ERROR] Failed to upload backend routes" -ForegroundColor Red
     exit 1
 }
 Write-Host ""
@@ -23,9 +23,9 @@ Write-Host ""
 Write-Host "📦 Step 2: Uploading frontend pages..." -ForegroundColor Yellow
 scp -r frontend/app/lab/* ${SERVER}:${PROJECT_PATH}/frontend/app/lab/
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Frontend pages uploaded successfully" -ForegroundColor Green
+    Write-Host "[OK] Frontend pages uploaded successfully" -ForegroundColor Green
 } else {
-    Write-Host "❌ Failed to upload frontend pages" -ForegroundColor Red
+    Write-Host "[ERROR] Failed to upload frontend pages" -ForegroundColor Red
     exit 1
 }
 Write-Host ""
@@ -34,38 +34,28 @@ Write-Host ""
 Write-Host "🔨 Step 3: Rebuilding on server..." -ForegroundColor Yellow
 Write-Host "Connecting to server and executing build commands..." -ForegroundColor Gray
 
-ssh ${SERVER} @"
-cd ${PROJECT_PATH}
-
-echo "Installing dependencies..."
-cd backend && npm install
-cd ../frontend && npm install
-
-echo "Building backend..."
-cd ${PROJECT_PATH}/backend
-npm run build
-
-echo "Clearing Next.js cache..."
-cd ${PROJECT_PATH}/frontend
-rm -rf .next
-
-echo "Building frontend..."
-npm run build
-
-echo "Restarting PM2 processes..."
-pm2 restart backend
-pm2 restart frontend
-
-echo "Checking PM2 status..."
-pm2 status
-
-echo "Deployment complete!"
-"@
+ssh ${SERVER} "cd ${PROJECT_PATH} && \
+echo 'Installing backend dependencies...' && \
+cd backend && npm install && \
+echo 'Installing frontend dependencies...' && \
+cd ../frontend && npm install && \
+echo 'Building backend...' && \
+cd ${PROJECT_PATH}/backend && npm run build && \
+echo 'Clearing Next.js cache...' && \
+cd ${PROJECT_PATH}/frontend && rm -rf .next && \
+echo 'Building frontend...' && \
+npm run build && \
+echo 'Restarting PM2 processes...' && \
+pm2 restart backend && \
+pm2 restart frontend && \
+echo 'Checking PM2 status...' && \
+pm2 status && \
+echo 'Deployment complete!'"
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Server rebuild and restart completed successfully" -ForegroundColor Green
+    Write-Host "[OK] Server rebuild and restart completed successfully" -ForegroundColor Green
 } else {
-    Write-Host "⚠️ Server commands completed with warnings" -ForegroundColor Yellow
+    Write-Host "[WARNING] Server commands completed with warnings" -ForegroundColor Yellow
 }
 Write-Host ""
 
@@ -79,9 +69,9 @@ Write-Host "=" -NoNewline; Write-Host "=" * 60 -ForegroundColor Cyan
 Write-Host "🎉 Deployment Summary" -ForegroundColor Cyan
 Write-Host "=" -NoNewline; Write-Host "=" * 60 -ForegroundColor Cyan
 Write-Host ""
-Write-Host "✅ Backend API routes deployed: 10 files" -ForegroundColor Green
-Write-Host "✅ Frontend pages deployed: 11 files" -ForegroundColor Green
-Write-Host "✅ Server rebuilt and restarted" -ForegroundColor Green
+Write-Host "[OK] Backend API routes deployed: 10 files" -ForegroundColor Green
+Write-Host "[OK] Frontend pages deployed: 11 files" -ForegroundColor Green
+Write-Host "[OK] Server rebuilt and restarted" -ForegroundColor Green
 Write-Host ""
 Write-Host "🌐 Test the AI Lab at: https://onelastai.co/lab" -ForegroundColor Yellow
 Write-Host ""
