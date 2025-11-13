@@ -5,45 +5,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 export default function SignupPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [authMode, setAuthMode] = useState<'passwordless' | 'password' | null>(null)
-
-  // Passwordless signup (magic link)
-  const handlePasswordlessSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const name = formData.get('name') as string
-
-    try {
-      // Send email with magic link
-      const result = await signIn('email', {
-        email,
-        name,
-        redirect: false,
-        callbackUrl: '/dashboard',
-      })
-
-      if (result?.error) {
-        setError(result.error)
-      } else if (result?.ok) {
-        // Redirect to verification page
-        router.push('/auth/verify-email?email=' + encodeURIComponent(email))
-      }
-    } catch (err) {
-      setError('Failed to send magic link. Please try again.')
-      console.error('Passwordless signup error:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Password-based signup (traditional)
   const handlePasswordSignup = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -114,218 +83,176 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
-          {/* Header with Logo */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
-            <div className="flex justify-center mb-4">
-              <Link href="/">
-                <Image
-                  src="/images/logos/company-logo.png"
-                  alt="One Last AI"
-                  width={60}
-                  height={60}
-                  className="w-15 h-15 object-contain"
-                  priority
-                />
-              </Link>
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header with Logo */}
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center justify-center mb-6">
+            <Image
+              src="/images/logos/company-logo.png"
+              alt="One Last AI"
+              width={80}
+              height={80}
+              className="w-20 h-20 object-contain"
+              priority
+            />
+          </Link>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent mb-2">
+            Join One Last AI
+          </h1>
+          <p className="text-neural-600 text-lg">
+            Create your account to get started
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800 text-center font-medium">{error}</p>
+          </div>
+        )}
+
+        {/* Signup Form */}
+        <div className="bg-white rounded-xl shadow-lg border border-neural-200 p-6">
+          <form onSubmit={handlePasswordSignup} className="space-y-4">
+            {/* Name Field */}
+            <div>
+              <label className="block text-sm font-medium text-neural-700 mb-2">
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                placeholder="Enter your full name"
+                className="w-full px-4 py-3 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2 text-center">Join One Last AI</h1>
-            <p className="text-blue-100 text-center">Create your account in seconds</p>
-          </div>
 
-          <div className="p-6">
-            {/* Error message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-800 text-sm">{error}</p>
-              </div>
-            )}
+            {/* Email Field */}
+            <div>
+              <label className="block text-sm font-medium text-neural-700 mb-2">
+                Email Address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="Enter your email address"
+                className="w-full px-4 py-3 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              />
+            </div>
 
-            {/* No mode selected - show options */}
-            {authMode === null && (
-              <div className="space-y-4">
-                <p className="text-gray-700 text-center font-medium mb-6">
-                  Choose how you'd like to sign up:
-                </p>
-
-                {/* Passwordless option */}
-                <button
-                  onClick={() => setAuthMode('passwordless')}
-                  className="w-full p-4 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition text-left"
-                >
-                  <div className="flex items-center">
-                    <div className="text-2xl mr-4">🔐</div>
-                    <div>
-                      <p className="font-semibold text-gray-900">Magic Link (Recommended)</p>
-                      <p className="text-sm text-gray-600">
-                        Sign in with a secure link sent to your email
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Password option */}
-                <button
-                  onClick={() => setAuthMode('password')}
-                  className="w-full p-4 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition text-left"
-                >
-                  <div className="flex items-center">
-                    <div className="text-2xl mr-4">🔑</div>
-                    <div>
-                      <p className="font-semibold text-gray-900">Email & Password</p>
-                      <p className="text-sm text-gray-600">Traditional sign up with a password</p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Already have account */}
-                <div className="pt-4 text-center">
-                  <p className="text-gray-600 text-sm">
-                    Already have an account?{' '}
-                    <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                      Login
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Passwordless signup form */}
-            {authMode === 'passwordless' && (
-              <form onSubmit={handlePasswordlessSignup} className="space-y-4">
+            {/* Password Field */}
+            <div>
+              <label className="block text-sm font-medium text-neural-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  placeholder="At least 8 characters"
+                  className="w-full px-4 py-3 pr-12 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                />
                 <button
                   type="button"
-                  onClick={() => setAuthMode(null)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-neural-400 hover:text-neural-600"
                 >
-                  ← Back
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
                 </button>
+              </div>
+              <p className="text-xs text-neural-500 mt-1">Minimum 8 characters</p>
+            </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name (optional)
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition"
-                >
-                  {isLoading ? 'Sending link...' : 'Send Magic Link'}
-                </button>
-              </form>
-            )}
-
-            {/* Password signup form */}
-            {authMode === 'password' && (
-              <form onSubmit={handlePasswordSignup} className="space-y-4">
+            {/* Confirm Password Field */}
+            <div>
+              <label className="block text-sm font-medium text-neural-700 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  placeholder="Confirm your password"
+                  className="w-full px-4 py-3 pr-12 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                />
                 <button
                   type="button"
-                  onClick={() => setAuthMode(null)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-4"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-3 text-neural-400 hover:text-neural-600"
                 >
-                  ← Back
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
                 </button>
+              </div>
+            </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="you@example.com"
-                  />
-                </div>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                isLoading
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-brand-600 to-accent-500 text-white hover:from-brand-700 hover:to-accent-600 transform hover:scale-105'
+              }`}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Creating account...
+                </span>
+              ) : (
+                '🚀 Create Account'
+              )}
+            </button>
 
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="John Doe"
-                  />
-                </div>
+            <p className="text-xs text-neural-500 text-center mt-4">
+              By signing up, you agree to our{' '}
+              <Link href="/legal/terms-of-service" className="text-brand-600 hover:text-brand-700">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/legal/privacy-policy" className="text-brand-600 hover:text-brand-700">
+                Privacy Policy
+              </Link>
+            </p>
+          </form>
+        </div>
 
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="At least 8 characters"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
-                </div>
+        {/* Login Link */}
+        <div className="text-center">
+          <p className="text-neural-600">
+            Already have an account?{' '}
+            <Link href="/auth/login" className="text-brand-600 hover:text-brand-700 font-medium">
+              Login
+            </Link>
+          </p>
+        </div>
 
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Confirm Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder="Confirm your password"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition"
-                >
-                  {isLoading ? 'Creating account...' : 'Create Account'}
-                </button>
-
-                <p className="text-xs text-gray-500 text-center">
-                  By signing up, you agree to our Terms of Service and Privacy Policy
-                </p>
-              </form>
-            )}
-          </div>
+        {/* Back to Home */}
+        <div className="text-center">
+          <Link 
+            href="/" 
+            className="text-sm text-neural-500 hover:text-neural-600"
+          >
+            ← Back to homepage
+          </Link>
         </div>
       </div>
     </div>

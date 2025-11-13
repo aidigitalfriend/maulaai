@@ -1,218 +1,385 @@
-'use client'
-export const dynamic = 'force-dynamic'
+'use client''use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../lib/auth-context'
+export const dynamic = 'force-dynamic'export const dynamic = 'force-dynamic'
 
-function LoginPageContent() {
-  const [authMode, setAuthMode] = useState<'passwordless' | 'password'>('passwordless')
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
 
-  const { loginWithPassword, loginPasswordless, verifyPassageMagicLink, state } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
 
-  // Check for magic link token on component mount
-  useEffect(() => {
-    const token = searchParams.get('token')
-    if (token) {
-      handleMagicLinkVerification(token)
-    }
-  }, [searchParams])
+import { useState, useEffect, Suspense } from 'react'import { useState, useEffect, Suspense } from 'react'
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (state.isAuthenticated) {
-      const redirectTo = searchParams.get('redirect') || '/dashboard'
-      router.push(redirectTo)
-    }
-  }, [state.isAuthenticated, router, searchParams])
+import Link from 'next/link'import Link from 'next/link'
 
-  const handleMagicLinkVerification = async (token: string) => {
-    try {
-      await verifyPassageMagicLink(token)
-      // Redirect will happen via useEffect when state changes
-    } catch (error) {
-      console.error('Magic link verification failed:', error)
-    }
-  }
+import Image from 'next/image'import Image from 'next/image'
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
-  }
+import { useRouter, useSearchParams } from 'next/navigation'import { useRouter, useSearchParams } from 'next/navigation'
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    
-    try {
-      if (authMode === 'passwordless') {
-        await loginPasswordless(formData.email)
-        setSuccessMessage('🎉 Check your email! We sent you a secure login link from 1Password/Passage.')
-      } else {
-        await loginWithPassword(formData.email, formData.password)
-        // Redirect handled by useEffect
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header with Logo */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center justify-center mb-6">
-            <Image
-              src="/images/logos/company-logo.png"
-              alt="One Last AI"
-              width={80}
-              height={80}
-              className="w-20 h-20 object-contain"
-              priority
-            />
-          </Link>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-neural-600 text-lg">
-            Sign in to access your AI agents
-          </p>
-        </div>
+import { useAuth } from '../../../lib/auth-context'import { useAuth } from '../../../lib/auth-context'
 
-        {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-800 text-center font-medium">{successMessage}</p>
-            <p className="text-green-700 text-sm text-center mt-2">
-              The secure link will expire in 15 minutes for your security.
+
+
+function LoginPageContent() {function LoginPageContent() {
+
+  const [formData, setFormData] = useState({  const [formData, setFormData] = useState({
+
+    email: '',    email: '',
+
+    password: ''    password: ''
+
+  })  })
+
+  const [showPassword, setShowPassword] = useState(false)  const [showPassword, setShowPassword] = useState(false)
+
+  const [isSubmitting, setIsSubmitting] = useState(false)  const [isSubmitting, setIsSubmitting] = useState(false)
+
+
+
+  const { loginWithPassword, state } = useAuth()  const { loginWithPassword, state } = useAuth()
+
+  const router = useRouter()  const router = useRouter()
+
+  const searchParams = useSearchParams()  const searchParams = useSearchParams()
+
+
+
+  // Redirect if already authenticated  // Redirect if already authenticated
+
+  useEffect(() => {  useEffect(() => {
+
+    if (state.isAuthenticated) {    if (state.isAuthenticated) {
+
+      const redirectTo = searchParams.get('redirect') || '/dashboard'      const redirectTo = searchParams.get('redirect') || '/dashboard'
+
+      router.push(redirectTo)      router.push(redirectTo)
+
+    }    }
+
+  }, [state.isAuthenticated, router, searchParams])  }, [state.isAuthenticated, router, searchParams])
+
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    setFormData(prev => ({    setFormData(prev => ({
+
+      ...prev,      ...prev,
+
+      [e.target.name]: e.target.value      [e.target.name]: e.target.value
+
+    }))    }))
+
+  }  }
+
+
+
+  const handleSubmit = async (e: React.FormEvent) => {  const handleSubmit = async (e: React.FormEvent) => {
+
+    e.preventDefault()    e.preventDefault()
+
+    setIsSubmitting(true)    setIsSubmitting(true)
+
+        
+
+    try {    try {
+
+      await loginWithPassword(formData.email, formData.password)      await loginWithPassword(formData.email, formData.password)
+
+      // Redirect handled by useEffect      // Redirect handled by useEffect
+
+    } catch (error) {    } catch (error) {
+
+      console.error('Login error:', error)      console.error('Login error:', error)
+
+    } finally {    } finally {
+
+      setIsSubmitting(false)      setIsSubmitting(false)
+
+    }    }
+
+  }  }
+
+
+
+  return (  return (
+
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+
+      <div className="max-w-md w-full space-y-8">      <div className="max-w-md w-full space-y-8">
+
+        {/* Header with Logo */}        {/* Header with Logo */}
+
+        <div className="text-center">        <div className="text-center">
+
+          <Link href="/" className="inline-flex items-center justify-center mb-6">          <Link href="/" className="inline-flex items-center justify-center mb-6">
+
+            <Image            <Image
+
+              src="/images/logos/company-logo.png"              src="/images/logos/company-logo.png"
+
+              alt="One Last AI"              alt="One Last AI"
+
+              width={80}              width={80}
+
+              height={80}              height={80}
+
+              className="w-20 h-20 object-contain"              className="w-20 h-20 object-contain"
+
+              priority              priority
+
+            />            />
+
+          </Link>          </Link>
+
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent mb-2">          <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent mb-2">
+
+            Welcome Back            Welcome Back
+
+          </h1>          </h1>
+
+          <p className="text-neural-600 text-lg">          <p className="text-neural-600 text-lg">
+
+            Sign in to access your AI agents            Sign in to access your AI agents
+
+          </p>          </p>
+
+        </div>        </div>
+
+
+
+        {state.error && (        {successMessage && (
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+
+            <p className="text-red-800 text-center font-medium">{state.error}</p>            <p className="text-green-800 text-center font-medium">{successMessage}</p>
+
+          </div>            <p className="text-green-700 text-sm text-center mt-2">
+
+        )}              The secure link will expire in 15 minutes for your security.
+
             </p>
-          </div>
-        )}
 
-        {state.error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 text-center font-medium">{state.error}</p>
-          </div>
-        )}
+        {/* Login Form */}          </div>
 
-        {/* Loading State for Magic Link Verification */}
-        {state.isLoading && searchParams.get('token') && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent mr-3"></div>
-              <p className="text-blue-800 font-medium">Verifying your secure login link...</p>
-            </div>
-          </div>
-        )}
+        <div className="bg-white rounded-xl shadow-lg border border-neural-200 p-6">        )}
 
-        {/* Auth Mode Selection */}
-        <div className="bg-white rounded-xl shadow-lg border border-neural-200 p-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-neural-800 mb-4">Choose your login method</h2>
-            
-            {/* Mode Toggle */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <button
-                type="button"
-                onClick={() => setAuthMode('passwordless')}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                  authMode === 'passwordless'
-                    ? 'border-brand-500 bg-brand-50'
-                    : 'border-neural-200 hover:border-neural-300'
-                }`}
-              >
-                <div className="flex items-center mb-2">
-                  <span className="text-2xl mr-3">🔐</span>
-                  <span className="font-medium text-neural-800">Passwordless</span>
-                  {authMode === 'passwordless' && (
-                    <span className="ml-auto text-brand-600 text-sm font-medium">Secure</span>
-                  )}
-                </div>
-                <p className="text-sm text-neural-600">
-                  Secure magic link login
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAuthMode('password')}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                  authMode === 'password'
-                    ? 'border-brand-500 bg-brand-50'
-                    : 'border-neural-200 hover:border-neural-300'
-                }`}
-              >
-                <div className="flex items-center mb-2">
-                  <span className="text-2xl mr-3">🔑</span>
-                  <span className="font-medium text-neural-800">Password</span>
-                </div>
-                <p className="text-sm text-neural-600">
-                  Email + password
-                </p>
-              </button>
-            </div>
-          </div>
-
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-neural-700 mb-2">
-                Email Address
-              </label>
+
+            {/* Email Field */}        {state.error && (
+
+            <div>          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+
+              <label className="block text-sm font-medium text-neural-700 mb-2">            <p className="text-red-800 text-center font-medium">{state.error}</p>
+
+                Email Address          </div>
+
+              </label>        )}
+
               <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter your email address"
-                className="w-full px-4 py-3 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-              />
+
+                type="email"        {/* Loading State for Magic Link Verification */}
+
+                name="email"        {state.isLoading && searchParams.get('token') && (
+
+                value={formData.email}          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+
+                onChange={handleInputChange}            <div className="flex items-center justify-center">
+
+                required              <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent mr-3"></div>
+
+                placeholder="Enter your email address"              <p className="text-blue-800 font-medium">Verifying your secure login link...</p>
+
+                className="w-full px-4 py-3 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"            </div>
+
+              />          </div>
+
+            </div>        )}
+
+
+
+            {/* Password Field */}        {/* Auth Mode Selection */}
+
+            <div>        <div className="bg-white rounded-xl shadow-lg border border-neural-200 p-6">
+
+              <label className="block text-sm font-medium text-neural-700 mb-2">          <div className="mb-6">
+
+                Password            <h2 className="text-xl font-semibold text-neural-800 mb-4">Choose your login method</h2>
+
+              </label>            
+
+              <div className="relative">            {/* Mode Toggle */}
+
+                <input            <div className="grid grid-cols-2 gap-3 mb-6">
+
+                  type={showPassword ? 'text' : 'password'}              <button
+
+                  name="password"                type="button"
+
+                  value={formData.password}                onClick={() => setAuthMode('passwordless')}
+
+                  onChange={handleInputChange}                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+
+                  required                  authMode === 'passwordless'
+
+                  placeholder="Enter your password"                    ? 'border-brand-500 bg-brand-50'
+
+                  className="w-full px-4 py-3 pr-12 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"                    : 'border-neural-200 hover:border-neural-300'
+
+                />                }`}
+
+                <button              >
+
+                  type="button"                <div className="flex items-center mb-2">
+
+                  onClick={() => setShowPassword(!showPassword)}                  <span className="text-2xl mr-3">🔐</span>
+
+                  className="absolute right-3 top-3 text-neural-400 hover:text-neural-600"                  <span className="font-medium text-neural-800">Passwordless</span>
+
+                >                  {authMode === 'passwordless' && (
+
+                  {showPassword ? (                    <span className="ml-auto text-brand-600 text-sm font-medium">Secure</span>
+
+                    <EyeSlashIcon className="w-5 h-5" />                  )}
+
+                  ) : (                </div>
+
+                    <EyeIcon className="w-5 h-5" />                <p className="text-sm text-neural-600">
+
+                  )}                  Secure magic link login
+
+                </button>                </p>
+
+              </div>              </button>
+
             </div>
 
-            {/* Password Field (only for traditional mode) */}
-            {authMode === 'password' && (
-              <div>
-                <label className="block text-sm font-medium text-neural-700 mb-2">
+              <button
+
+            {/* Forgot Password Link */}                type="button"
+
+            <div className="text-right">                onClick={() => setAuthMode('password')}
+
+              <Link                 className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+
+                href="/auth/reset-password"                   authMode === 'password'
+
+                className="text-sm text-brand-600 hover:text-brand-700"                    ? 'border-brand-500 bg-brand-50'
+
+              >                    : 'border-neural-200 hover:border-neural-300'
+
+                Forgot your password?                }`}
+
+              </Link>              >
+
+            </div>                <div className="flex items-center mb-2">
+
+                  <span className="text-2xl mr-3">🔑</span>
+
+            {/* Submit Button */}                  <span className="font-medium text-neural-800">Password</span>
+
+            <button                </div>
+
+              type="submit"                <p className="text-sm text-neural-600">
+
+              disabled={isSubmitting || state.isLoading}                  Email + password
+
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${                </p>
+
+                isSubmitting || state.isLoading              </button>
+
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'            </div>
+
+                  : 'bg-gradient-to-r from-brand-600 to-accent-500 text-white hover:from-brand-700 hover:to-accent-600 transform hover:scale-105'          </div>
+
+              }`}
+
+            >          {/* Login Form */}
+
+              {isSubmitting || state.isLoading ? (          <form onSubmit={handleSubmit} className="space-y-4">
+
+                <span className="flex items-center justify-center">            {/* Email Field */}
+
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>            <div>
+
+                  Signing in...              <label className="block text-sm font-medium text-neural-700 mb-2">
+
+                </span>                Email Address
+
+              ) : (              </label>
+
+                '🔑 Sign In'              <input
+
+              )}                type="email"
+
+            </button>                name="email"
+
+          </form>                value={formData.email}
+
+        </div>                onChange={handleInputChange}
+
+                required
+
+        {/* Signup Link */}                placeholder="Enter your email address"
+
+        <div className="text-center">                className="w-full px-4 py-3 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+
+          <p className="text-neural-600">              />
+
+            Don't have an account?{' '}            </div>
+
+            <Link href="/auth/signup" className="text-brand-600 hover:text-brand-700 font-medium">
+
+              Sign up here            {/* Password Field (only for traditional mode) */}
+
+            </Link>            {authMode === 'password' && (
+
+          </p>              <div>
+
+        </div>                <label className="block text-sm font-medium text-neural-700 mb-2">
+
                   Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Enter your password"
-                    className="w-full px-4 py-3 pr-12 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                  />
-                  <button
-                    type="button"
+
+        {/* Back to Home */}                </label>
+
+        <div className="text-center">                <div className="relative">
+
+          <Link                   <input
+
+            href="/"                     type={showPassword ? 'text' : 'password'}
+
+            className="text-sm text-neural-500 hover:text-neural-600"                    name="password"
+
+          >                    value={formData.password}
+
+            ← Back to homepage                    onChange={handleInputChange}
+
+          </Link>                    required
+
+        </div>                    placeholder="Enter your password"
+
+      </div>                    className="w-full px-4 py-3 pr-12 border border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+
+    </div>                  />
+
+  )                  <button
+
+}                    type="button"
+
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-neural-400 hover:text-neural-600"
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
+
+export default function LoginPage() {                    className="absolute right-3 top-3 text-neural-400 hover:text-neural-600"
+
+  return (                  >
+
+    <Suspense fallback={null}>                    {showPassword ? (
+
+      <LoginPageContent />                      <EyeSlashIcon className="w-5 h-5" />
+
+    </Suspense>                    ) : (
+
+  )                      <EyeIcon className="w-5 h-5" />
+
+}                    )}
+
                   </button>
                 </div>
               </div>
