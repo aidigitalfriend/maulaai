@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
 import { hash } from 'bcryptjs'
+import { sendWelcomeEmail } from '@/services/email'
 
 /**
  * POST /api/auth/signup
@@ -56,6 +57,13 @@ export async function POST(request: NextRequest) {
     })
 
     await newUser.save()
+
+    // Send welcome email (async, don't block response)
+    const userName = name || email.split('@')[0]
+    sendWelcomeEmail(email.toLowerCase(), userName).catch(error => {
+      console.error('Failed to send welcome email:', error)
+      // Don't fail signup if email fails
+    })
 
     // Return user (without password)
     const userResponse = newUser.toJSON()
