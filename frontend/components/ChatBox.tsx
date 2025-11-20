@@ -173,6 +173,15 @@ const HighlightedText = ({ text, searchQuery }: { text: string, searchQuery: str
   )
 }
 
+// Agent Settings Interface
+interface AgentSettings {
+  temperature: number;
+  maxTokens: number;
+  mode: 'professional' | 'balanced' | 'creative' | 'fast';
+  systemPrompt: string;
+  model?: string;
+}
+
 interface ChatBoxProps {
   agentId: string;
   sessionId: string;
@@ -213,6 +222,16 @@ export default function ChatBox({
   const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   
+  // Settings state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [agentSettings, setAgentSettings] = useState<AgentSettings>({
+    temperature: 0.7,
+    maxTokens: 2000,
+    mode: 'balanced',
+    systemPrompt: '',
+    model: 'gpt-3.5-turbo'
+  });
+  
   const [pdfPreview, setPdfPreview] = useState<{ url: string, name: string } | null>(null);
   const [detectedLanguage, setDetectedLanguage] = useState<DetectedLanguage | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -222,6 +241,53 @@ export default function ChatBox({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
+
+  // Mode configurations
+  const modeConfigs = {
+    professional: { temp: 0.3, tokens: 1500, desc: 'Precise, formal, and accurate responses' },
+    balanced: { temp: 0.7, tokens: 2000, desc: 'Mix of creativity and accuracy' },
+    creative: { temp: 0.9, tokens: 2500, desc: 'More creative and explorative responses' },
+    fast: { temp: 0.5, tokens: 1000, desc: 'Quick, concise responses' }
+  };
+
+  // Close settings panel when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (settingsPanelRef.current && !settingsPanelRef.current.contains(event.target as Node)) {
+        setIsSettingsOpen(false);
+      }
+    }
+    
+    if (isSettingsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isSettingsOpen]);
+
+  // Load settings from localStorage
+  useEffect(() => {
+    const savedSettings = localStorage.getItem(`agent-settings-${agentId}`);
+    if (savedSettings) {
+      setAgentSettings(JSON.parse(savedSettings));
+    }
+  }, [agentId]);
+
+  // Save settings to localStorage
+  const updateSettings = (newSettings: Partial<AgentSettings>) => {
+    const updated = { ...agentSettings, ...newSettings };
+    setAgentSettings(updated);
+    localStorage.setItem(`agent-settings-${agentId}`, JSON.stringify(updated));
+  };
+
+  const handleModeChange = (mode: AgentSettings['mode']) => {
+    const config = modeConfigs[mode];
+    updateSettings({
+      mode,
+      temperature: config.temp,
+      maxTokens: config.tokens
+    });
+  };
 
   const performSearch = (query: string) => {
     if (!query.trim()) {
@@ -517,14 +583,225 @@ export default function ChatBox({
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
         <div className="flex items-center space-x-2">
-          <button onClick={() => setIsSearchVisible(p => !p)} className="p-2 rounded-full hover:bg-gray-100">
-            <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
+          <button 
+            onClick={() => setIsSettingsOpen(p => !p)} 
+            className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${isSettingsOpen ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500'}`}
+            title="Agent Settings"
+          >
+            <Cog6ToothIcon className="w-5 h-5" />
           </button>
-          <button onClick={handleClearChat} className="p-2 rounded-full hover:bg-gray-100">
-            <TrashIcon className="w-5 h-5 text-gray-500" />
+          <button 
+            onClick={() => setIsSearchVisible(p => !p)} 
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+            title="Search History"
+          >
+            <MagnifyingGlassIcon className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={handleClearChat} 
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+            title="Clear Chat"
+          >
+            <TrashIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
+
+      {/* Settings Panel */}
+      {isSettingsOpen && (
+        <div 
+          ref={settingsPanelRef}
+          className="absolute right-4 top-16 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+        >
+          {/* Settings Header */}
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Cog6ToothIcon className="w-5 h-5 text-white" />
+              <h3 className="text-white font-semibold">Agent Settings</h3>
+            </div>
+            <button 
+              onClick={() => setIsSettingsOpen(false)}
+              className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Settings Content - Scrollable */}
+          <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
+            
+            {/* Mode Selection */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Response Mode</label>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.keys(modeConfigs) as Array<keyof typeof modeConfigs>).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleModeChange(mode)}
+                    className={`p-3 rounded-lg border-2 transition-all text-left ${
+                      agentSettings.mode === mode
+                        ? 'border-indigo-500 bg-indigo-50 shadow-sm'
+                        : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-medium text-sm capitalize">{mode}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{modeConfigs[mode].desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Temperature Slider */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-gray-700">Temperature</label>
+                <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded text-indigo-600">
+                  {agentSettings.temperature.toFixed(2)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={agentSettings.temperature}
+                onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Focused (0.0)</span>
+                <span>Balanced (1.0)</span>
+                <span>Creative (2.0)</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Controls randomness: lower values are more focused, higher values are more creative.
+              </p>
+            </div>
+
+            {/* Max Tokens Slider */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-gray-700">Max Tokens</label>
+                <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded text-indigo-600">
+                  {agentSettings.maxTokens}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="100"
+                max="4000"
+                step="100"
+                value={agentSettings.maxTokens}
+                onChange={(e) => updateSettings({ maxTokens: parseInt(e.target.value) })}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Short (100)</span>
+                <span>Medium (2000)</span>
+                <span>Long (4000)</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Maximum length of the response. ~4 characters = 1 token.
+              </p>
+            </div>
+
+            {/* Model Selection */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">AI Model</label>
+              <select
+                value={agentSettings.model}
+                onChange={(e) => updateSettings({ model: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              >
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Fast & Efficient)</option>
+                <option value="gpt-4">GPT-4 (Most Capable)</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo (Balanced)</option>
+                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                <option value="claude-3-opus">Claude 3 Opus</option>
+              </select>
+            </div>
+
+            {/* System Prompt */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Custom System Prompt</label>
+              <textarea
+                value={agentSettings.systemPrompt}
+                onChange={(e) => updateSettings({ systemPrompt: e.target.value })}
+                placeholder="Add custom instructions for the agent... (e.g., 'Always respond in a friendly tone' or 'Focus on beginner-level explanations')"
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
+              />
+              <p className="text-xs text-gray-500">
+                Custom instructions to guide the agent's behavior. This will be prepended to every conversation.
+              </p>
+            </div>
+
+            {/* Quick Prompts Library */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Quick Prompt Templates</label>
+              <div className="space-y-1">
+                <button
+                  onClick={() => updateSettings({ systemPrompt: 'You are a helpful assistant. Always provide clear, concise, and accurate information. Break down complex topics into simple explanations.' })}
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                >
+                  📚 Educational Mode - Clear explanations for learning
+                </button>
+                <button
+                  onClick={() => updateSettings({ systemPrompt: 'You are a professional consultant. Provide expert-level analysis with detailed reasoning. Include relevant examples and best practices.' })}
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                >
+                  💼 Professional Mode - Expert analysis and insights
+                </button>
+                <button
+                  onClick={() => updateSettings({ systemPrompt: 'You are a creative brainstorming partner. Think outside the box, suggest innovative ideas, and explore multiple perspectives.' })}
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                >
+                  💡 Creative Mode - Innovative and imaginative
+                </button>
+                <button
+                  onClick={() => updateSettings({ systemPrompt: 'You are a coding assistant. Provide clean, well-documented code with explanations. Follow best practices and modern conventions.' })}
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                >
+                  💻 Coding Mode - Programming focused responses
+                </button>
+              </div>
+            </div>
+
+            {/* Settings Summary */}
+            <div className="pt-3 border-t border-gray-200">
+              <div className="bg-indigo-50 rounded-lg p-3 space-y-1">
+                <div className="text-xs font-semibold text-indigo-900">Current Configuration:</div>
+                <div className="text-xs text-indigo-700 space-y-0.5">
+                  <div>• Mode: <span className="font-medium capitalize">{agentSettings.mode}</span></div>
+                  <div>• Temperature: <span className="font-medium">{agentSettings.temperature}</span></div>
+                  <div>• Max Tokens: <span className="font-medium">{agentSettings.maxTokens}</span></div>
+                  <div>• Model: <span className="font-medium">{agentSettings.model}</span></div>
+                  {agentSettings.systemPrompt && (
+                    <div>• Custom Prompt: <span className="font-medium">Enabled</span></div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Reset Button */}
+            <button
+              onClick={() => {
+                const defaultSettings = {
+                  temperature: 0.7,
+                  maxTokens: 2000,
+                  mode: 'balanced' as const,
+                  systemPrompt: '',
+                  model: 'gpt-3.5-turbo'
+                };
+                updateSettings(defaultSettings);
+              }}
+              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+            >
+              Reset to Defaults
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search Bar */}
       {isSearchVisible && (
