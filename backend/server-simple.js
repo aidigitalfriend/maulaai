@@ -9,6 +9,7 @@ import helmet from 'helmet'
 import dotenv from 'dotenv'
 import os from 'os'
 import { MongoClient } from 'mongodb'
+import { setupAgentOptimizedRoutes } from './routes/agent-optimized.js'
 
 dotenv.config()
 
@@ -27,6 +28,11 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 app.use(express.json({ limit: '10mb' }))
+
+// ----------------------------
+// AGENT AI PROVIDER ROUTES
+// ----------------------------
+setupAgentOptimizedRoutes(app)
 
 // ----------------------------
 // Lightweight metrics tracker
