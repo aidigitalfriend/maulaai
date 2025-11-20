@@ -13,8 +13,8 @@ import {
   getVisitorStats,
   getSessionStats,
   getRealtimeStats
-} from '../lib/analytics-tracker'
-import { getTrackingData } from '../lib/tracking-middleware'
+} from '../lib/analytics-tracker.js'
+import { getTrackingData } from '../lib/tracking-middleware.js'
 
 const router = express.Router()
 
