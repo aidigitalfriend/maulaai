@@ -1,29 +1,14 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import EmailProvider from 'next-auth/providers/email'
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter'
 import { hash, compare } from 'bcryptjs'
 import dbConnect, { getClientPromise } from '@/lib/mongodb'
 import User from '@/models/User'
-import nodemailer from 'nodemailer'
 
 /**
  * Auth.js Configuration
- * Supports both passwordless (magic link) and traditional (email + password) authentication
+ * Simple email + password authentication only
  */
-
-// Email transporter configuration
-const transporter = nodemailer.createTransport({
-  service: 'sendgrid',
-  auth: {
-    user: 'apikey',
-    pass: process.env.SENDGRID_API_KEY || '',
-  },
-})
-
-// Alternative: Using Resend
-// import { Resend } from 'resend'
-// const resend = new Resend(process.env.RESEND_API_KEY)
 
 const DISABLE_DB_ADAPTER = (process.env.NEXTAUTH_DISABLE_DB_ADAPTER || '').toLowerCase() === 'true'
 
@@ -48,83 +33,7 @@ export const authOptions: NextAuthOptions = {
   // Providers
   providers: [
     /**
-     * PASSWORDLESS LOGIN (Magic Link via Email)
-     * User enters email → receives magic link → clicks link → logged in
-     */
-    EmailProvider({
-      server: {
-        host: process.env.SMTP_HOST || process.env.EMAIL_SERVER_HOST,
-        port: parseInt(process.env.SMTP_PORT || process.env.EMAIL_SERVER_PORT || '587'),
-        auth: {
-          user: process.env.SMTP_USER || process.env.EMAIL_SERVER_USER,
-          pass: process.env.SMTP_PASSWORD || process.env.EMAIL_SERVER_PASSWORD,
-        },
-      },
-      from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
-      sendVerificationRequest: async ({ identifier: email, url, provider, theme }) => {
-        try {
-          // Using SendGrid
-          if (process.env.SENDGRID_API_KEY) {
-            const text = `Sign in to One Last AI: ${url}`
-            await transporter.sendMail({
-              to: email,
-              from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
-              subject: '🔐 Your Magic Login Link',
-              text,
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Welcome to One Last AI! 🎉</h2>
-                  <p>Click the button below to sign in securely (link expires in 24 hours):</p>
-                  <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    🔓 Sign In Now
-                  </a>
-                  <p style="margin-top: 20px; font-size: 12px; color: #666;">
-                    Or copy this link:<br/>
-                    ${url}
-                  </p>
-                  <p style="margin-top: 20px; color: #999; font-size: 12px;">
-                    This link expires in 24 hours. If you didn't request this, please ignore this email.
-                  </p>
-                </div>
-              `,
-            })
-          }
-          else {
-            // Fallback: use configured provider SMTP
-            const fallbackTransport = nodemailer.createTransport(provider.server as any)
-            const text = `Sign in to One Last AI: ${url}`
-            await fallbackTransport.sendMail({
-              to: email,
-              from: process.env.EMAIL_FROM || 'noreply@onelastai.co',
-              subject: '🔐 Your Magic Login Link',
-              text,
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Welcome to One Last AI! 🎉</h2>
-                  <p>Click the button below to sign in securely (link expires in 24 hours):</p>
-                  <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    🔓 Sign In Now
-                  </a>
-                  <p style="margin-top: 20px; font-size: 12px; color: #666;">
-                    Or copy this link:<br/>
-                    ${url}
-                  </p>
-                  <p style="margin-top: 20px; color: #999; font-size: 12px;">
-                    This link expires in 24 hours. If you didn't request this, please ignore this email.
-                  </p>
-                </div>
-              `,
-            })
-          }
-        } catch (error) {
-          console.error('Failed to send verification email:', error)
-          throw new Error('Email sending failed')
-        }
-      },
-    }),
-
-    /**
-     * TRADITIONAL LOGIN (Email + Password)
+     * EMAIL + PASSWORD LOGIN
      * User enters email + password → credentials verified → logged in
      */
     CredentialsProvider({
@@ -174,32 +83,9 @@ export const authOptions: NextAuthOptions = {
 
   // Callbacks
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account }) {
       try {
         await dbConnect()
-
-        // For email provider (passwordless magic link)
-        if (account?.provider === 'email') {
-          if (!user.email) return false
-          let dbUser = await User.findOne({ email: user.email })
-
-          if (!dbUser) {
-            // Create new passwordless user
-            dbUser = new User({
-              email: user.email,
-              name: user.name || user.email.split('@')[0],
-              authMethod: 'passwordless',
-              emailVerified: new Date(),
-            })
-            await dbUser.save()
-          } else {
-            // Update lastLoginAt
-            dbUser.lastLoginAt = new Date()
-            await dbUser.save()
-          }
-
-          return true
-        }
 
         // For credentials provider (password login)
         if (account?.provider === 'credentials') {
@@ -225,7 +111,7 @@ export const authOptions: NextAuthOptions = {
         token.id = (user as any).id || token.id
         token.email = (user as any).email || token.email
         const methodFromUser = (user as any)?.authMethod
-        const method = methodFromUser || (account?.provider === 'email' ? 'passwordless' : 'password')
+        const method = methodFromUser || 'password'
         ;(token as any).authMethod = method
       }
       return token
@@ -235,25 +121,29 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         ;(session.user as any).id = (token as any).id as string
         ;(session.user as any).email = (token as any).email as string
-        ;(session.user as any).authMethod = ((token as any).authMethod as 'password' | 'passwordless') || 'password'
+        ;(session.user as any).authMethod = 'password'
       }
       return session
     },
 
     async redirect({ url, baseUrl }) {
-      // Redirect to dashboard after login
-      if (url.startsWith('/')) return `${baseUrl}${url}`
-      if (new URL(url).origin === baseUrl) return url
+      // Normalize and safely handle relative and absolute URLs
+      try {
+        if (url.startsWith('/')) return `${baseUrl}${url}`
+        const parsed = new URL(url, baseUrl)
+        if (parsed.origin === baseUrl) return parsed.toString()
+      } catch (e) {
+        // Fall through to default redirect if URL parsing fails
+      }
       return `${baseUrl}/dashboard`
     },
   },
 
-  // Email configuration
+  // Pages configuration
   pages: {
     signIn: '/auth/login',
     signOut: '/auth/logout',
     error: '/auth/error',
-    verifyRequest: '/auth/verify-email', // Magic link verification page
     newUser: '/auth/signup',
   },
 

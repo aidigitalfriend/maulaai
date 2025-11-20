@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server-simple.js",
+    "dev:watch": "nodemon --ext js,ts --watch . server-simple.js",
     "dev:socket": "node server.js",
     "build": "echo \"No backend build needed (Express API)\"",
     "start": "node server-simple.js",
@@ -56,6 +57,7 @@
     "@types/node": "^24.10.0",
     "@types/nodemailer": "^7.0.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "nodemon": "^3.1.7"
   }
 }

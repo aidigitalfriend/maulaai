@@ -26,9 +26,14 @@ const nextConfig = {
   },
   
   images: {
-    domains: ['localhost', 'onelastai.co', 'www.onelastai.co'],
-    // Unoptimized only for static export
-  unoptimized: false,
+    // Modern configuration: prefer remotePatterns over deprecated domains list
+    remotePatterns: [
+      { protocol: 'https', hostname: 'onelastai.co' },
+      { protocol: 'https', hostname: 'www.onelastai.co' }
+    ],
+    // Keep localhost for dev convenience
+    domains: ['localhost'],
+    unoptimized: false,
   },
   
   // Expose Google Maps API key to the client; prefer NEXT_PUBLIC_ but fall back to non-prefixed if provided
