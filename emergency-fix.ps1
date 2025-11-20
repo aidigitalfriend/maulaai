@@ -9,7 +9,7 @@ Write-Host "================================================" -ForegroundColor R
 Write-Host ""
 
 $pemFile = "one-last-ai.pem"
-$server = "ubuntu@ec2-47-129-195-133.ap-southeast-1.compute.amazonaws.com"
+$server = "ubuntu@ec2-47-129-43-231.ap-southeast-1.compute.amazonaws.com"
 $projectPath = "~/shiny-friend-disco"
 
 # Step 1: Check current PM2 status

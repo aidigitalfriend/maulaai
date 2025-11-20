@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$EC2_HOST = "ec2-47-129-195-133.ap-southeast-1.compute.amazonaws.com"
+$EC2_HOST = "ec2-47-129-43-231.ap-southeast-1.compute.amazonaws.com"
 $KEY_FILE = "one-last-ai.pem"
 $REMOTE_DIR = "/home/ubuntu/shiny-friend-disco"
 

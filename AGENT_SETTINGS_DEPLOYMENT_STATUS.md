@@ -71,7 +71,7 @@ Both services confirmed running via PM2 with agent settings panel code deployed.
 ### ⏳ Production Deployment (PENDING)
 
 **Status:** EC2 instance unreachable
-**Host:** ec2-47-129-195-133.ap-southeast-1.compute.amazonaws.com:22  
+**Host:** ec2-47-129-43-231.ap-southeast-1.compute.amazonaws.com:22  
 **Network Status:** 
 - ❌ SSH Connection: TIMEOUT
 - ❌ Ping: 100% packet loss
@@ -104,7 +104,7 @@ Both services confirmed running via PM2 with agent settings panel code deployed.
 
 ### Option 3: Manual SSH (When Instance is Online)
 ```bash
-ssh -i one-last-ai.pem ubuntu@ec2-47-129-195-133.ap-southeast-1.compute.amazonaws.com
+ssh -i one-last-ai.pem ubuntu@ec2-47-129-43-231.ap-southeast-1.compute.amazonaws.com
 cd /var/www/shiny-friend-disco
 bash deploy-now.sh
 ```
