@@ -12,6 +12,13 @@ import helmet from 'helmet'
 import dotenv from 'dotenv'
 import os from 'os'
 import { MongoClient } from 'mongodb'
+import cookieParser from 'cookie-parser'
+import mongoose from 'mongoose'
+
+// Import tracking middleware
+import { universalTrackingMiddleware } from './lib/tracking-middleware.js'
+// Import analytics routes
+import analyticsRouter from './routes/analytics.js'
 
 dotenv.config()
 
@@ -21,6 +28,9 @@ const PORT = process.env.PORT || 3005
 
 // Security middleware
 app.use(helmet())
+
+// Cookie parser for tracking
+app.use(cookieParser())
 
 // CORS configuration
 const corsOptions = {
@@ -36,6 +46,28 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 app.use(express.json({ limit: '10mb' }))
+
+// ----------------------------
+// MongoDB Connection
+// ----------------------------
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/onelastai', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('✅ MongoDB Atlas Connected')
+}).catch(err => {
+  console.error('❌ MongoDB connection error:', err)
+})
+
+// ----------------------------
+// UNIVERSAL TRACKING - Captures EVERYTHING
+// ----------------------------
+app.use(universalTrackingMiddleware)
+
+// ----------------------------
+// API ROUTES
+// ----------------------------
+app.use('/api/analytics', analyticsRouter)
 
 // ----------------------------
 // Socket.IO Setup
