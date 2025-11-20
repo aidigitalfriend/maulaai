@@ -3,29 +3,37 @@
  * Manages frontend and backend processes for production
  *
  * Notes:
- * - Uses APP_DIR env var when provided, falls back to /home/ubuntu/shiny-friend-disco
+ * - Auto-detects development vs production paths
+ * - Uses APP_DIR env var when provided, falls back to auto-detection
  * - Logs go to PM2's default ~/.pm2/logs to avoid permission issues with /var/log
  */
 
 const path = require('path');
+const { getBasePath, getFrontendPath, getBackendPath, getEnvPaths, detectEnvironment } = require('./path-config');
+
+// Auto-detect paths or use environment override
 const HOME = process.env.HOME || '/home/ubuntu';
-const APP_DIR = process.env.APP_DIR || '/home/ubuntu/shiny-friend-disco';
-const FRONTEND_CWD = path.join(APP_DIR, 'frontend');
-const BACKEND_CWD = path.join(APP_DIR, 'backend');
+const APP_DIR = process.env.APP_DIR || getBasePath();
+const FRONTEND_CWD = getFrontendPath();
+const BACKEND_CWD = getBackendPath();
+const ENV_PATHS = getEnvPaths();
+
+console.log(`🔧 PM2 Config - Environment: ${detectEnvironment()}`);
+console.log(`📁 Base Directory: ${APP_DIR}`);
 
 module.exports = {
   apps: [
     // Frontend Next.js Application
     {
       name: 'shiny-frontend',
-  cwd: FRONTEND_CWD,
-  // Use a shell wrapper to export variables from root .env before starting Next.js
-  script: 'bash',
-  args: ['-lc', 'set -a; source /home/ubuntu/shiny-friend-disco/.env; export PORT=3000; exec npm start'],
-  // Keep as reference; env vars are sourced via bash wrapper above
-  // env_file: '/home/ubuntu/shiny-friend-disco/.env',
+      cwd: FRONTEND_CWD,
+      // Use a shell wrapper to export variables from root .env before starting Next.js
+      script: 'bash',
+      args: ['-lc', `set -a; source ${ENV_PATHS.root}; export PORT=3000; exec npm start`],
+      // Keep as reference; env vars are sourced via bash wrapper above
+      // env_file: ENV_PATHS.root,
       env: {
-        NODE_ENV: 'production',
+        NODE_ENV: process.env.NODE_ENV || 'production',
         PORT: 3000
       },
       instances: 1,
@@ -48,10 +56,10 @@ module.exports = {
       name: 'shiny-backend',
       cwd: BACKEND_CWD,
       script: 'server-simple.js',
-  // Load backend-specific environment variables
-  env_file: '/home/ubuntu/shiny-friend-disco/backend/.env',
+      // Load backend-specific environment variables
+      env_file: ENV_PATHS.backend,
       env: {
-        NODE_ENV: 'production',
+        NODE_ENV: process.env.NODE_ENV || 'production',
         PORT: 3005
       },
       instances: 1,
