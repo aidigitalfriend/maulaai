@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+import { compare } from 'bcryptjs';
 import dbConnect from '@backend/lib/mongodb';
 import User from '@backend/models/User';
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
