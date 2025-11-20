@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@backend/lib/mongodb'
 import User from '@backend/models/User'
-import { hash } from 'bcryptjs'
 
 /**
  * POST /api/auth/signup
@@ -45,12 +44,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create new user
-    const hashedPassword = await hash(password, 10)
+    // Create new user (password will be hashed by User model's pre-save hook)
     const newUser = new User({
       email: email.toLowerCase(),
       name: name || email.split('@')[0],
-      password: hashedPassword,
+      password: password, // Don't hash here, let the User model do it
       authMethod: authMethod || 'password',
       emailVerified: new Date(), // Auto-verify for password signup
     })
