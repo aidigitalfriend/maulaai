@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@backend/lib/mongodb'
 import User from '@backend/models/User'
+import jwt from 'jsonwebtoken'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
 
 /**
  * POST /api/auth/signup
@@ -55,14 +58,25 @@ export async function POST(request: NextRequest) {
 
     await newUser.save()
 
-    // Return success (without password)
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: newUser._id.toString() },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    )
+
+    // Return success with token and user info
     return NextResponse.json(
       {
         message: 'User created successfully',
+        token,
         user: {
           id: newUser._id.toString(),
           email: newUser.email,
           name: newUser.name,
+          authMethod: newUser.authMethod,
+          createdAt: newUser.createdAt,
+          lastLoginAt: newUser.lastLoginAt,
         },
       },
       { status: 201 }
