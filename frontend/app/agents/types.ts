@@ -9,6 +9,8 @@ export type AgentCategory =
   | 'Creative' 
   | 'Technology'
 
+export type AIProvider = 'mistral' | 'anthropic' | 'openai' | 'gemini' | 'cohere'
+
 export interface DetailedSection {
   title: string
   icon: string
@@ -45,6 +47,12 @@ export interface AgentConfig {
     temperature: number
     enabled: boolean
     premium: boolean
+  }
+  aiProvider: {
+    primary: AIProvider
+    fallbacks: AIProvider[]
+    model: string
+    reasoning?: string
   }
   details?: {
     icon: string
