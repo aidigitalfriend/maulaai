@@ -140,6 +140,8 @@ async function callGemini(message, config) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Referer': 'https://onelastai.co',
+      'User-Agent': 'OnelastAI/1.0',
     },
     body: JSON.stringify({
       contents: [{
@@ -155,12 +157,47 @@ async function callGemini(message, config) {
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(`Gemini API error: ${error.error?.message || 'Unknown error'}`)
+    const errorText = await response.text()
+    console.error('Gemini API error response:', errorText)
+    throw new Error(`Gemini API error: ${errorText}`)
   }
 
   const data = await response.json()
   return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated'
+}
+
+async function callAnthropic(message, config) {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY
+  if (!anthropicKey) {
+    throw new Error('Anthropic API key not configured')
+  }
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': anthropicKey,
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 2048,
+      temperature: 0.7,
+      messages: [{
+        role: 'user',
+        content: `${config.systemPrompt}\n\nUser: ${message}`
+      }]
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Anthropic API error response:', errorText)
+    throw new Error(`Anthropic API error: ${errorText}`)
+  }
+
+  const data = await response.json()
+  return data.content?.[0]?.text || 'No response generated'
 }
 
 export function setupSimpleAgentRoutes(app) {
@@ -204,20 +241,27 @@ export function setupSimpleAgentRoutes(app) {
       let response
       let provider = 'unknown'
 
-      // Try OpenAI first, fallback to Gemini if it fails
+      // Try OpenAI first, then Gemini, then Anthropic as fallbacks
       try {
         response = await callOpenAI(message, config)
         provider = 'OpenAI'
         console.log(`[Simple Agent] Successfully used OpenAI for ${config.name}`)
       } catch (openAiError) {
-        console.log(`[Simple Agent] OpenAI failed for ${config.name}, trying Gemini...`, openAiError.message)
+        console.log(`[Simple Agent] OpenAI failed for ${config.name}, trying Gemini...`)
         try {
           response = await callGemini(message, config)
           provider = 'Gemini'
           console.log(`[Simple Agent] Successfully used Gemini for ${config.name}`)
         } catch (geminiError) {
-          console.error(`[Simple Agent] Both OpenAI and Gemini failed for ${config.name}`)
-          throw new Error(`AI services unavailable. OpenAI: ${openAiError.message}, Gemini: ${geminiError.message}`)
+          console.log(`[Simple Agent] Gemini failed for ${config.name}, trying Anthropic...`)
+          try {
+            response = await callAnthropic(message, config)
+            provider = 'Anthropic'
+            console.log(`[Simple Agent] Successfully used Anthropic for ${config.name}`)
+          } catch (anthropicError) {
+            console.error(`[Simple Agent] All AI providers failed for ${config.name}`)
+            throw new Error(`All AI services unavailable. OpenAI: ${openAiError.message}, Gemini: ${geminiError.message}, Anthropic: ${anthropicError.message}`)
+          }
         }
       }
 
