@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense, useState, useEffect } from 'react'
+import { isAuthenticated, getCurrentUser, buildLoginUrl } from '../../lib/auth-utils'
 
 function PaymentContent() {
   const searchParams = useSearchParams()
@@ -15,6 +16,16 @@ function PaymentContent() {
   const plan = searchParams.get('plan') || 'daily'
   const price = searchParams.get('price') || '$1'
   const period = searchParams.get('period') || 'daily'
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      // Build the current page URL to return to after login
+      const currentUrl = `/payment?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}&plan=${plan}&price=${price}&period=${period}`
+      const loginUrl = buildLoginUrl(currentUrl)
+      router.push(loginUrl)
+    }
+  }, [agentName, agentSlug, plan, price, period, router])
 
   // Calculate billing details
   const getBillingDetails = () => {
@@ -36,9 +47,16 @@ function PaymentContent() {
     setLoading(true)
     
     try {
-      // Get user info (in production, get from auth session)
-      const userId = localStorage.getItem('userId') || 'user_' + Date.now()
-      const userEmail = localStorage.getItem('userEmail') || 'user@example.com'
+      // Get user info from auth
+      const currentUser = getCurrentUser()
+      if (!currentUser) {
+        alert('Please log in to continue')
+        router.push(buildLoginUrl(window.location.pathname + window.location.search))
+        return
+      }
+      
+      const userId = currentUser.id || localStorage.getItem('userId') || 'user_' + Date.now()
+      const userEmail = currentUser.email || localStorage.getItem('userEmail') || 'user@example.com'
       
       // Create Stripe checkout session
       const response = await fetch('/api/stripe/checkout', {

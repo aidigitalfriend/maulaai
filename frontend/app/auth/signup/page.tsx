@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import { Suspense } from 'react'
 
-export default function SignupPage() {
+function SignupPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,18 +59,21 @@ export default function SignupPage() {
         return
       }
 
+      // Get redirect destination or default to dashboard
+      const redirectTo = searchParams.get('redirect') || '/dashboard'
+
       // Sign them in
       const signInResult = await signIn('credentials', {
         email,
         password,
         redirect: false,
-        callbackUrl: '/dashboard',
+        callbackUrl: redirectTo,
       })
 
       if (signInResult?.error) {
         setError('Account created but login failed. Please try logging in.')
       } else if (signInResult?.ok) {
-        router.push('/dashboard')
+        router.push(redirectTo)
       }
     } catch (err) {
       setError('Failed to create account. Please try again.')
@@ -188,7 +193,10 @@ export default function SignupPage() {
               <div className="pt-4 text-center">
                 <p className="text-gray-600 text-sm">
                   Already have an account?{' '}
-                  <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                  <Link 
+                    href={`/auth/login${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`} 
+                    className="text-blue-600 hover:text-blue-700 font-medium"
+                  >
                     Login
                   </Link>
                 </p>
@@ -197,5 +205,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <SignupPageContent />
+    </Suspense>
   )
 }

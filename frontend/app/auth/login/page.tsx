@@ -162,7 +162,10 @@ function LoginPageContent() {
         <div className="text-center">
           <p className="text-neural-600">
             Don't have an account?{' '}
-            <Link href="/auth/signup" className="text-brand-600 hover:text-brand-700 font-medium">
+            <Link 
+              href={`/auth/signup${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}
+              className="text-brand-600 hover:text-brand-700 font-medium"
+            >
               Sign up here
             </Link>
           </p>

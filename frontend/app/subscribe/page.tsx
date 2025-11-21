@@ -1,13 +1,25 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
+import { isAuthenticated, buildLoginUrl } from '../../lib/auth-utils'
 
 function SubscriptionContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const agentName = searchParams.get('agent') || 'AI Agent'
   const agentSlug = searchParams.get('slug') || 'agent'
+
+  // Check authentication on mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      // Build the current page URL to return to after login
+      const currentUrl = `/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`
+      const loginUrl = buildLoginUrl(currentUrl)
+      router.push(loginUrl)
+    }
+  }, [agentName, agentSlug, router])
 
   const subscriptionPlans = [
     {
