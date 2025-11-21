@@ -35,29 +35,39 @@ function PaymentContent() {
   const handlePayment = async () => {
     setLoading(true)
     
-    // Simulate payment processing
     try {
-      // Here you would integrate with your actual payment processor
-      // For demo purposes, we'll simulate a successful payment
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Get user info (in production, get from auth session)
+      const userId = localStorage.getItem('userId') || 'user_' + Date.now()
+      const userEmail = localStorage.getItem('userEmail') || 'user@example.com'
       
-      // Store subscription in localStorage (in production, this would be in your database)
-      localStorage.setItem(`subscription-${agentSlug}`, 'active')
-      localStorage.setItem(`subscription-${agentSlug}-plan`, plan)
-      localStorage.setItem(`subscription-${agentSlug}-date`, new Date().toISOString())
-      
-      // Redirect to success page or dashboard with subscription info
-      const successParams = new URLSearchParams({
-        success: 'true',
-        agent: agentName,
-        slug: agentSlug,
-        plan: plan
+      // Create Stripe checkout session
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agentId: agentSlug,
+          agentName: agentName,
+          plan: period, // 'daily', 'weekly', or 'monthly'
+          userId: userId,
+          userEmail: userEmail,
+        }),
       })
-      
-      router.push(`/dashboard?${successParams.toString()}`)
-      
+
+      const data = await response.json()
+
+      if (data.success && data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url
+      } else {
+        console.error('Checkout error:', data.error)
+        alert('Failed to create checkout session. Please try again.')
+        setLoading(false)
+      }
     } catch (error) {
       console.error('Payment failed:', error)
+      alert('An error occurred. Please try again.')
       setLoading(false)
     }
   }
