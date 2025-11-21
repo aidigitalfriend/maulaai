@@ -136,7 +136,7 @@ async function callGemini(message, config) {
     throw new Error('Gemini API key not configured')
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -259,8 +259,10 @@ export function setupSimpleAgentRoutes(app) {
             provider = 'Anthropic'
             console.log(`[Simple Agent] Successfully used Anthropic for ${config.name}`)
           } catch (anthropicError) {
-            console.error(`[Simple Agent] All AI providers failed for ${config.name}`)
-            throw new Error(`All AI services unavailable. OpenAI: ${openAiError.message}, Gemini: ${geminiError.message}, Anthropic: ${anthropicError.message}`)
+            console.error(`[Simple Agent] All AI providers failed for ${config.name}, using fallback response`)
+            // Provide a helpful fallback response when all AI services fail
+            response = `Hello! I'm ${config.name}, and I'd love to help you! However, I'm currently experiencing some connectivity issues with my AI services. Please try again in a moment, or contact support if the issue persists. Thank you for your patience! 🤖✨`
+            provider = 'Fallback'
           }
         }
       }
