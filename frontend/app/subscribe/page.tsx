@@ -55,9 +55,15 @@ function SubscriptionContent() {
   ]
 
   const handleSubscribe = (plan: any) => {
-    // This would integrate with your payment processor
-    console.log(`Subscribing to ${agentName} - ${plan.type} plan`)
-    // Redirect to payment processing or show payment modal
+    // Redirect to payment page with agent and plan details
+    const params = new URLSearchParams({
+      agent: agentName,
+      slug: agentSlug,
+      plan: plan.type.toLowerCase(),
+      price: plan.price,
+      period: plan.billingCycle
+    })
+    window.location.href = `/payment?${params.toString()}`
   }
 
   return (
@@ -74,7 +80,7 @@ function SubscriptionContent() {
           </p>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 max-w-2xl mx-auto">
             <p className="text-amber-200 font-medium">
-              ⚠️ You can only subscribe to one agent at a time. This subscription will give you exclusive access to {agentName}.
+              ⚠️ One agent per subscription. You can subscribe to multiple agents, but each requires a separate subscription.
             </p>
           </div>
         </div>
@@ -134,15 +140,15 @@ function SubscriptionContent() {
           <h2 className="text-2xl font-bold mb-6 text-center">Important Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-bold text-brand-400 mb-3">🔒 One Agent Policy</h3>
+              <h3 className="font-bold text-brand-400 mb-3">🔒 Individual Subscriptions</h3>
               <p className="text-sm text-neutral-300">
-                You can only subscribe to one agent at a time. To switch agents, you'll need to cancel your current subscription and subscribe to a different agent.
+                Each agent requires its own subscription. You can subscribe to multiple agents individually, but each subscription is separate.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-brand-400 mb-3">💳 No Free Tiers</h3>
+              <h3 className="font-bold text-brand-400 mb-3">💳 Unified Pricing</h3>
               <p className="text-sm text-neutral-300">
-                All agents require a paid subscription. There are no free trials or free tiers available.
+                All agents use the same simple pricing: $1/day, $5/week, or $19/month. Choose the billing cycle that works best for you.
               </p>
             </div>
             <div>

@@ -7,6 +7,7 @@ import ChatBox from '../../../components/ChatBox'
 import AgentChatPanel from '../../../components/AgentChatPanel'
 import AgentPageLayout from '../../../components/AgentPageLayout'
 import * as chatStorage from '../../../utils/chatStorage'
+import { sendSecureMessage } from '../../../lib/secure-api-client'
 
 import { FileAttachment } from '../../../utils/chatStorage'
 import { DetectedLanguage, generateMultilingualPrompt } from '../../../utils/languageDetection'
@@ -202,7 +203,18 @@ export default function EinsteinPage() {
     setSessions(sessions.map(s => s.id === sessionId ? { ...s, name: newName } : s));
   };
 
+  // Check subscription status (demo implementation)
+  const checkSubscription = () => {
+    const hasSubscription = localStorage.getItem('subscription-einstein') === 'active'
+    return hasSubscription
+  }
+
   const handleSendMessage = async (message: string, attachments?: FileAttachment[], detectedLanguage?: DetectedLanguage): Promise<string> => {
+    // Check subscription before allowing message
+    if (!checkSubscription()) {
+      return "Please subscribe to access Einstein. You can subscribe from the agents page."
+    }
+
     // Check if multilingual features are enabled
     if (!appConfig.multilingual.enabled) {
       detectedLanguage = {
@@ -214,14 +226,12 @@ export default function EinsteinPage() {
       }
     }
 
-    // Try to call actual AI service if configured
-    if (aiConfig.openai.enabled || aiConfig.anthropic.enabled || aiConfig.gemini.enabled || aiConfig.cohere.enabled) {
-      try {
-        const response = await callEinsteinAI(message, attachments, detectedLanguage, preferredProvider)
-        if (response) return response
-      } catch (error) {
-        console.warn('AI service call failed, falling back to simulated response:', error)
-      }
+    // Try to call actual AI service first
+    try {
+      const response = await sendSecureMessage(message, 'einstein', 'gpt-4')
+      if (response) return response
+    } catch (error) {
+      console.warn('Einstein AI service call failed, falling back to simulated response:', error)
     }
 
     // Fallback to simulated response (demo mode)

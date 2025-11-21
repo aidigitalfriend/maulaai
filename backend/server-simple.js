@@ -10,6 +10,7 @@ import dotenv from 'dotenv'
 import os from 'os'
 import { MongoClient } from 'mongodb'
 import { setupAgentOptimizedRoutes } from './routes/agent-optimized.js'
+import { setupSimpleAgentRoutes } from './routes/simple-agent.js'
 
 dotenv.config()
 
@@ -33,6 +34,7 @@ app.use(express.json({ limit: '10mb' }))
 // AGENT AI PROVIDER ROUTES
 // ----------------------------
 setupAgentOptimizedRoutes(app)
+setupSimpleAgentRoutes(app)
 
 // ----------------------------
 // Lightweight metrics tracker

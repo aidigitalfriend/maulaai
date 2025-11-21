@@ -273,7 +273,7 @@ export default function HomePage() {
               },
               {
                 q: "What's included in each pricing plan?",
-                a: "Our plans range from Starter ($1/day) to Enterprise ($19/month). Each tier offers increasing access to AI agents, conversation limits, and support levels."
+                a: "We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each subscription gives you unlimited access to one AI agent with no conversation limits."
               }
             ].map((item, idx) => (
               <div key={idx} className="border-l-4 border-brand-600 pl-6">
@@ -478,26 +478,26 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             {[
               {
-                name: "Starter",
+                name: "Daily",
                 price: "$1",
                 period: "/day",
-                description: "Perfect for individuals and small teams",
-                features: ["Up to 5 AI agents", "100 conversations/month", "Email support", "Basic analytics"]
+                description: "Perfect for short-term use",
+                features: ["Access to any single agent", "Unlimited conversations", "Real-time responses", "Cancel anytime"]
               },
               {
-                name: "Professional",
+                name: "Weekly",
                 price: "$5",
                 period: "/week",
-                description: "For growing businesses",
-                features: ["Unlimited AI agents", "Unlimited conversations", "Priority support", "Advanced analytics", "Custom integrations"],
+                description: "Great value for regular use",
+                features: ["Access to any single agent", "Unlimited conversations", "Real-time responses", "Save 29% vs daily", "Cancel anytime"],
                 highlighted: true
               },
               {
-                name: "Enterprise",
+                name: "Monthly",
                 price: "$19",
                 period: "/month",
-                description: "For large organizations",
-                features: ["Everything in Professional", "Dedicated account manager", "Custom AI agents", "SLA guarantee", "24/7 phone support"]
+                description: "Best value for long-term use",
+                features: ["Access to any single agent", "Unlimited conversations", "Real-time responses", "Save 37% vs daily", "Best value"]
               }
             ].map((plan, idx) => (
               <div key={idx} className={`p-8 rounded-lg transition-transform ${plan.highlighted ? 'bg-gradient-to-br from-brand-600 to-accent-600 scale-105 shadow-lg' : 'bg-neural-800 border border-neural-700'}`}>

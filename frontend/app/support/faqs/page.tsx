@@ -28,11 +28,11 @@ export default function FAQsPage() {
       questions: [
         {
           q: "What are the pricing plans?",
-          a: "We offer three main plans: Starter ($1/day - per agent), Professional ($5/week - per agent), and Enterprise ($19/month - per agent). All plans include a 14-day free trial with no credit card required."
+          a: "We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each subscription gives you unlimited access to one AI agent of your choice. No free trials - all access is paid."
         },
         {
           q: "What does 'per agent' mean?",
-          a: "Our pricing is based on per-agent usage. You can have multiple agents active simultaneously, and each agent's pricing is calculated separately. This gives you flexibility to use as many agents as you need."
+          a: "Each subscription gives you access to exactly one AI agent. If you want to use multiple agents, you need separate subscriptions for each one. This ensures focused, dedicated access to each agent's unique capabilities."
         },
         {
           q: "Can I cancel anytime?",

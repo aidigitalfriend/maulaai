@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import { TrendingUp, TrendingDown, Activity, Users, MessageSquare, Zap, DollarSign, Clock, CheckCircle, ArrowRight } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, Users, MessageSquare, Zap, DollarSign, Clock, CheckCircle, ArrowRight, X } from 'lucide-react'
 
 interface AnalyticsData {
   subscription: {
@@ -50,15 +51,42 @@ interface AnalyticsData {
 }
 
 export default function Dashboard() {
+  const searchParams = useSearchParams()
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [subscriptionSuccess, setSubscriptionSuccess] = useState<{
+    agent: string
+    slug: string
+    plan: string
+  } | null>(null)
 
   useEffect(() => {
+    // Check for subscription success
+    if (searchParams.get('success') === 'true') {
+      const agent = searchParams.get('agent')
+      const slug = searchParams.get('slug')
+      const plan = searchParams.get('plan')
+      
+      if (agent && slug && plan) {
+        setSubscriptionSuccess({ agent, slug, plan })
+        setShowSuccessMessage(true)
+        
+        // Clear URL parameters after showing success message
+        const url = new URL(window.location.href)
+        url.searchParams.delete('success')
+        url.searchParams.delete('agent')
+        url.searchParams.delete('slug')
+        url.searchParams.delete('plan')
+        window.history.replaceState({}, '', url.toString())
+      }
+    }
+
     fetchAnalytics()
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchAnalytics, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [searchParams])
 
   const fetchAnalytics = async () => {
     try {
@@ -175,6 +203,37 @@ export default function Dashboard() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="container-custom section-padding-lg">
+        
+        {/* Subscription Success Message */}
+        {showSuccessMessage && subscriptionSuccess && (
+          <div className="mb-8 bg-green-50 border border-green-200 rounded-xl p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center">
+                <CheckCircle className="w-8 h-8 text-green-600 mr-4" />
+                <div>
+                  <h3 className="text-lg font-semibold text-green-900 mb-2">
+                    🎉 Subscription Successful!
+                  </h3>
+                  <p className="text-green-700 mb-4">
+                    You now have access to <strong>{subscriptionSuccess.agent}</strong> with your <strong>{subscriptionSuccess.plan}</strong> plan.
+                  </p>
+                  <Link 
+                    href={`/agents/${subscriptionSuccess.slug}`}
+                    className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Start Chatting <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSuccessMessage(false)}
+                className="text-green-600 hover:text-green-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
           <div>
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-3">

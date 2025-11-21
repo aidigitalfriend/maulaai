@@ -68,12 +68,25 @@ export default function ComedyKingPage() {
   };
 
 
+  // Check subscription status (demo implementation)
+  const checkSubscription = () => {
+    // In a real implementation, you would check the user's subscription status
+    const hasSubscription = localStorage.getItem('subscription-comedy-king') === 'active'
+    return hasSubscription
+  }
+
   // ✅ SECURED: Now uses backend API with IntelligentResponseSystem as fallback
   const handleSendMessage = async (message: string): Promise<string> => {
+    // Check subscription before allowing message
+    if (!checkSubscription()) {
+      return "Please subscribe to access Comedy King. You can subscribe from the agents page."
+    }
+
     try {
       // Try secure backend API first for real AI responses
       return await sendSecureMessage(message, 'comedy-king', 'gpt-3.5-turbo')
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Comedy King chat error:', error)
       // Fallback to IntelligentResponseSystem if backend unavailable
       if (responseSystem) {
         try {

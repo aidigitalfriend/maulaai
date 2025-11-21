@@ -4,56 +4,50 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 
 export default function PerAgentPricingPage() {
-  const agents = [
+  const pricingOptions = [
     {
-      name: 'Basic Agents',
-      description: 'Essential AI assistants for simple tasks',
-      dailyPrice: '$1',
-      perAgentPrice: 'per day',
-      agents: ['Comedy King', 'Lazy Pawn', 'Random Agent'],
+      name: 'Daily Subscription',
+      description: 'Perfect for short-term projects or trying out agents',
+      price: '$1',
+      period: 'per day',
       features: [
-        'Standard AI responses',
-        'Chat-based interface',
-        'Basic analytics',
-        'Community support',
-        'Up to 1000 interactions/month'
+        'Access to any single agent',
+        'Unlimited conversations',
+        'Real-time responses',
+        'Voice interaction (if supported)',
+        'Cancel anytime'
       ],
       color: 'from-blue-500 to-blue-600'
     },
     {
-      name: 'Professional Agents',
-      description: 'Advanced AI with specialized capabilities',
-      weeklyPrice: '$5',
-      perAgentPrice: 'per week',
-      agents: ['Tech Wizard', 'Einstein', 'Chef Biew', 'Professor Astrology'],
+      name: 'Weekly Subscription',
+      description: 'Great value for regular use and projects',
+      price: '$5',
+      period: 'per week',
       features: [
-        'Advanced AI capabilities',
-        'Voice interaction support',
-        'Detailed analytics & insights',
-        'Priority email support',
-        'Up to 10000 interactions/month',
-        'Custom agent training',
-        'API access'
+        'Access to any single agent',
+        'Unlimited conversations',
+        'Real-time responses',
+        'Voice interaction (if supported)',
+        'Cancel anytime',
+        'Save 29% vs daily'
       ],
       color: 'from-purple-500 to-purple-600',
       recommended: true
     },
     {
-      name: 'Enterprise Agents',
-      description: 'Full-featured AI with premium support',
-      monthlyPrice: '$19',
-      perAgentPrice: 'per month',
-      agents: ['Julie Girlfriend', 'Emma Emotional', 'Mrs Boss', 'Doctor Network'],
+      name: 'Monthly Subscription',
+      description: 'Best value for ongoing work and long-term projects',
+      price: '$19',
+      period: 'per month',
       features: [
-        'Enterprise AI models',
-        'Multi-channel deployment',
-        'Real-time analytics dashboard',
-        'Dedicated support team',
-        'Unlimited interactions',
-        'Advanced customization',
-        'API with webhooks',
-        'SLA guarantee',
-        'Data encryption & compliance'
+        'Access to any single agent',
+        'Unlimited conversations',
+        'Real-time responses',
+        'Voice interaction (if supported)',
+        'Cancel anytime',
+        'Save 37% vs daily',
+        'Best value for extended use'
       ],
       color: 'from-amber-500 to-amber-600'
     }
@@ -65,9 +59,9 @@ export default function PerAgentPricingPage() {
       <section className="py-12 px-4 border-b border-neural-700">
         <div className="container-custom">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Per-Agent Pricing
+            Simple Per-Agent Pricing
           </h1>
-          <p className="text-neural-300">Choose the perfect plan for each agent in your fleet</p>
+          <p className="text-neural-300">All agents use the same transparent pricing. Choose your billing cycle.</p>
         </div>
       </section>
 
@@ -77,7 +71,7 @@ export default function PerAgentPricingPage() {
       <section className="py-16 px-4">
         <div className="container-custom">
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {agents.map((tier, i) => (
+            {pricingOptions.map((tier, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -244,7 +238,7 @@ export default function PerAgentPricingPage() {
                 },
                 {
                   q: 'Is there a free trial?',
-                  a: 'Yes, all plans come with a 14-day free trial. No credit card required.'
+                  a: 'No, we don\'t offer free trials. All agent access requires a paid subscription starting at $1/day.'
                 },
                 {
                   q: 'What about bulk agent discounts?',

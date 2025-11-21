@@ -61,12 +61,28 @@ export default function TechWizardPage() {
     ));
   };
 
+  // Check subscription status (demo implementation)
+  const checkSubscription = () => {
+    // In a real implementation, you would check the user's subscription status
+    // For now, we'll simulate subscription check
+    const hasSubscription = localStorage.getItem('subscription-tech-wizard') === 'active'
+    return hasSubscription
+  }
+
   // ✅ SECURED: Now uses backend API with no exposed keys
   const handleSendMessage = async (message: string): Promise<string> => {
+    // Check subscription before allowing message
+    if (!checkSubscription()) {
+      return "Please subscribe to access Tech Wizard. You can subscribe from the agents page."
+    }
+    
     try {
-      return await sendSecureMessage(message, 'tech-wizard', 'gpt-3.5-turbo')
+      // Use multiple fallback strategies for better reliability
+      return await sendSecureMessage(message, 'tech-wizard', 'gpt-4')
     } catch (error: any) {
-      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
+      console.error('Tech Wizard chat error:', error)
+      // Fallback response if API fails
+      return `I'm Tech Wizard! I'd love to help you with ${message.includes('code') ? 'coding' : message.includes('tech') ? 'technology' : 'your tech question'}, but I'm having trouble connecting to my AI brain right now. Please try again in a moment, or check if the backend server is running properly.`
     }
   }
 

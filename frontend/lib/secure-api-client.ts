@@ -43,7 +43,97 @@ export class SecureAPIClient {
    */
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/chat`, {
+      // Try the agents/optimized endpoint first, fallback to agents/chat, then chat
+      let response;
+      let endpoint = '';
+      
+      // First attempt: simple agent endpoint (most reliable)
+      try {
+        endpoint = `${this.baseUrl}/api/agents/simple`
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agentId: request.agentId || 'tech-wizard',
+            message: request.message
+          }),
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          return {
+            success: true,
+            message: data.response || data.message || 'No response received',
+            timestamp: data.timestamp || new Date().toISOString()
+          }
+        }
+      } catch (error) {
+        console.log('[SecureAPIClient] Simple endpoint failed, trying optimized')
+      }
+
+      // Second attempt: optimized agent endpoint
+      try {
+        endpoint = `${this.baseUrl}/api/agents/optimized`
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agentId: request.agentId || 'tech-wizard',
+            message: request.message,
+            options: {
+              model: request.model,
+              conversationId: request.conversationId
+            }
+          }),
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          return {
+            success: true,
+            message: data.response || data.message || 'No response received',
+            timestamp: data.timestamp || new Date().toISOString()
+          }
+        }
+      } catch (error) {
+        console.log('[SecureAPIClient] Optimized endpoint failed, trying agents chat')
+      }
+      
+      // Third attempt: agents chat endpoint  
+      try {
+        endpoint = `${this.baseUrl}/api/agents/chat`
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agentId: request.agentId || 'tech-wizard',
+            message: request.message,
+            model: request.model || 'gpt-3.5-turbo',
+            conversationHistory: []
+          }),
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          return {
+            success: true,
+            message: data.message || data.response || 'No response received',
+            timestamp: data.timestamp || new Date().toISOString()
+          }
+        }
+      } catch (error) {
+        console.log('[SecureAPIClient] Agents chat endpoint failed, trying basic chat')
+      }
+      
+      // Fourth attempt: basic chat endpoint
+      endpoint = `${this.baseUrl}/api/chat`
+      response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

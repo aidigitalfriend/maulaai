@@ -3,53 +3,53 @@ import Link from 'next/link'
 export default function PricingOverview() {
   const plans = [
     {
-      name: 'Starter',
+      name: 'Daily',
       price: '$1',
       period: '/day',
-      description: 'Perfect for individuals and small teams getting started with AI agents',
+      description: 'Perfect for short-term projects or trying out agents',
       features: [
-        'Up to 5 AI agents',
-        '1,000 conversations/month',
-        'Basic analytics',
-        'Email support',
-        'Core integrations'
+        'Access to any single agent',
+        'Unlimited conversations',
+        'Real-time responses',
+        'Voice interaction (if supported)',
+        'Cancel anytime'
       ],
-      cta: 'Get Started',
+      cta: 'Choose Agent',
       href: '/agents'
     },
     {
-      name: 'Professional',
+      name: 'Weekly',
       price: '$5',
       period: '/week',
-      description: 'Advanced features for growing businesses and teams',
+      description: 'Great value for regular use and projects',
       features: [
-        'Up to 15 AI agents',
-        '10,000 conversations/month',
-        'Advanced analytics',
-        'Priority support',
-        'Custom integrations',
-        'API access'
+        'Access to any single agent',
+        'Unlimited conversations',
+        'Real-time responses',
+        'Voice interaction (if supported)',
+        'Cancel anytime',
+        'Save 29% vs daily'
       ],
-      cta: 'Get Started',
+      cta: 'Choose Agent',
       href: '/agents',
       popular: true
     },
     {
-      name: 'Enterprise',
+      name: 'Monthly',
       price: '$19',
       period: '/month',
-      description: 'Unlimited scalability for large organizations',
+      description: 'Best value for ongoing work and long-term projects',
       features: [
-        'Unlimited AI agents',
+        'Access to any single agent',
         'Unlimited conversations',
-        'Enterprise analytics',
-        '24/7 dedicated support',
-        'Custom development',
-        'On-premise deployment',
-        'SLA guarantees'
+        'Real-time responses',
+        'Voice interaction (if supported)',
+        'Cancel anytime',
+        'Save 37% vs daily',
+        'Best value'
       ],
-      cta: 'Contact Sales',
-      href: '/support/book-consultation'
+      cta: 'Choose Agent',
+      href: '/agents'
     }
   ]
 
@@ -61,7 +61,7 @@ export default function PricingOverview() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-neural-600 leading-relaxed mb-8">
-            Choose the perfect plan for your needs. Start free and scale as you grow.
+            Simple per-agent pricing. Each subscription gives you unlimited access to one AI agent of your choice.
           </p>
         </div>
 

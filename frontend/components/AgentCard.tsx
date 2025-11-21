@@ -25,7 +25,7 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
   return (
     <>
       <Link
-        href={`/agents/${agent.id}`}
+        href={`/subscribe?agent=${encodeURIComponent(agent.name)}&slug=${agent.id}`}
         className="agent-card animate-fade-in-up relative"
         style={{ animationDelay: `${index * 100}ms` }}
         onClick={handleCardClick}
@@ -66,7 +66,7 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-neural-100 gap-3">
           <span className="text-sm font-medium text-brand-600 flex-1">
-            Start Conversation
+            Subscribe to Access
           </span>
           
           <div className="flex items-center gap-2">
