@@ -130,6 +130,39 @@ async function callOpenAI(message, config) {
   return data.choices?.[0]?.message?.content || 'No response generated'
 }
 
+async function callGemini(message, config) {
+  const geminiKey = process.env.GEMINI_API_KEY
+  if (!geminiKey) {
+    throw new Error('Gemini API key not configured')
+  }
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{
+          text: `${config.systemPrompt}\n\nUser: ${message}`
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+      }
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(`Gemini API error: ${error.error?.message || 'Unknown error'}`)
+  }
+
+  const data = await response.json()
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated'
+}
+
 export function setupSimpleAgentRoutes(app) {
   // POST /api/agents/simple - Simple agent chat
   app.post('/api/agents/simple', async (req, res) => {
@@ -168,14 +201,32 @@ export function setupSimpleAgentRoutes(app) {
 
       console.log(`[Simple Agent] ${config.name} processing message: "${message.substring(0, 50)}..."`)
 
-      // Call OpenAI with the agent's personality
-      const response = await callOpenAI(message, config)
+      let response
+      let provider = 'unknown'
+
+      // Try OpenAI first, fallback to Gemini if it fails
+      try {
+        response = await callOpenAI(message, config)
+        provider = 'OpenAI'
+        console.log(`[Simple Agent] Successfully used OpenAI for ${config.name}`)
+      } catch (openAiError) {
+        console.log(`[Simple Agent] OpenAI failed for ${config.name}, trying Gemini...`, openAiError.message)
+        try {
+          response = await callGemini(message, config)
+          provider = 'Gemini'
+          console.log(`[Simple Agent] Successfully used Gemini for ${config.name}`)
+        } catch (geminiError) {
+          console.error(`[Simple Agent] Both OpenAI and Gemini failed for ${config.name}`)
+          throw new Error(`AI services unavailable. OpenAI: ${openAiError.message}, Gemini: ${geminiError.message}`)
+        }
+      }
 
       res.json({
         success: true,
         response: response,
         agentId: agentId,
         agentName: config.name,
+        provider: provider,
         timestamp: new Date().toISOString()
       })
 
