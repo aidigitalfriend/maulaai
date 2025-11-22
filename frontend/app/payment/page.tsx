@@ -279,13 +279,20 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* Back Link */}
-        <div className="text-center mt-12">
+        {/* Back Links */}
+        <div className="flex gap-6 justify-center mt-12">
           <Link 
             href={`/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`}
             className="text-brand-600 hover:text-brand-700 transition-colors"
           >
             ← Back to Plan Selection
+          </Link>
+          <span className="text-gray-400">|</span>
+          <Link 
+            href="/agents"
+            className="text-brand-600 hover:text-brand-700 transition-colors"
+          >
+            Back to All Agents →
           </Link>
         </div>
       </div>

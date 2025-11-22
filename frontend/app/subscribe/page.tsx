@@ -181,10 +181,10 @@ function SubscriptionContent() {
         {/* Back Link */}
         <div className="text-center">
           <Link 
-            href={`/agents/${agentSlug}`}
+            href="/agents"
             className="text-brand-400 hover:text-brand-300 transition-colors"
           >
-            ← Back to {agentName}
+            ← Back to All Agents
           </Link>
         </div>
       </div>

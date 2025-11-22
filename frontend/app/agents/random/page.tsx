@@ -2,29 +2,30 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { isAuthenticated } from '../../../lib/auth-utils'
 
 export default function RandomAgent() {
   const router = useRouter()
 
   const availableAgents = [
-    'ben-sega',
-    'bishop-burger', 
-    'chef-biew',
-    'chess-player',
-    'comedy-king',
-    'drama-queen',
-    'einstein',
-    'emma-emotional',
-    'fitness-guru',
-    'julie-girlfriend',
-    'knight-logic',
-    'lazy-pawn',
-    'mrs-boss',
-    'nid-gaming',
-    'professor-astrology',
-    'rook-jokey',
-    'tech-wizard',
-    'travel-buddy'
+    { slug: 'ben-sega', name: 'Ben Sega' },
+    { slug: 'bishop-burger', name: 'Bishop Burger' },
+    { slug: 'chef-biew', name: 'Chef Biew' },
+    { slug: 'chess-player', name: 'Chess Player' },
+    { slug: 'comedy-king', name: 'Comedy King' },
+    { slug: 'drama-queen', name: 'Drama Queen' },
+    { slug: 'einstein', name: 'Einstein' },
+    { slug: 'emma-emotional', name: 'Emma Emotional' },
+    { slug: 'fitness-guru', name: 'Fitness Guru' },
+    { slug: 'julie-girlfriend', name: 'Julie Girlfriend' },
+    { slug: 'knight-logic', name: 'Knight Logic' },
+    { slug: 'lazy-pawn', name: 'Lazy Pawn' },
+    { slug: 'mrs-boss', name: 'Mrs Boss' },
+    { slug: 'nid-gaming', name: 'Nid Gaming' },
+    { slug: 'professor-astrology', name: 'Professor Astrology' },
+    { slug: 'rook-jokey', name: 'Rook Jokey' },
+    { slug: 'tech-wizard', name: 'Tech Wizard' },
+    { slug: 'travel-buddy', name: 'Travel Buddy' }
   ]
 
   useEffect(() => {
@@ -32,8 +33,16 @@ export default function RandomAgent() {
     const randomIndex = Math.floor(Math.random() * availableAgents.length)
     const randomAgent = availableAgents[randomIndex]
     
-    // Redirect to the random agent
-    router.push(`/agents/${randomAgent}`)
+    // Check if user has subscription for this agent (in production, check via API)
+    const hasSubscription = localStorage.getItem(`subscription-${randomAgent.slug}`) === 'active'
+    
+    // If no subscription and not authenticated, go to subscribe page
+    if (!hasSubscription) {
+      router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
+    } else {
+      // If subscribed, go directly to agent chat
+      router.push(`/agents/${randomAgent.slug}`)
+    }
   }, [router])
 
   return (
