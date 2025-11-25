@@ -1,0 +1,102 @@
+import Link from 'next/link'
+
+export default function Resources() {
+  const resourceCategories = [
+    {
+      title: "Blog & News",
+      description: "Stay updated with the latest insights, trends, and announcements in AI technology.",
+      icon: "📰",
+      href: "/resources/blog",
+      items: ["Industry Insights", "Product Updates", "Expert Articles", "Company News"]
+    },
+    {
+      title: "Case Studies",
+      description: "Explore real-world success stories and implementations from our clients.",
+      icon: "📊",
+      href: "/resources/case-studies",
+      items: ["Customer Success", "ROI Analysis", "Implementation Stories", "Before & After"]
+    },
+    {
+      title: "Whitepapers",
+      description: "In-depth research and analysis on AI trends, technologies, and best practices.",
+      icon: "📄",
+      href: "/resources/whitepapers",
+      items: ["Technical Research", "Market Analysis", "Best Practices", "Future Trends"]
+    },
+    {
+      title: "Webinars",
+      description: "Join live sessions and access recorded presentations from industry experts.",
+      icon: "🎥",
+      href: "/resources/webinars",
+      items: ["Live Sessions", "Recorded Content", "Expert Panels", "Q&A Sessions"]
+    },
+    {
+      title: "Documentation",
+      description: "Comprehensive guides and technical documentation for our platform.",
+      icon: "📚",
+      href: "/resources/documentation",
+      items: ["API Reference", "Integration Guides", "Best Practices", "Troubleshooting"]
+    },
+    {
+      title: "Tutorials",
+      description: "Step-by-step guides to help you get the most out of our AI agents.",
+      icon: "🎓",
+      href: "/resources/tutorials",
+      items: ["Getting Started", "Advanced Features", "Video Guides", "Interactive Demos"]
+    }
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="container-custom section-padding-lg">
+        <div className="text-center max-w-4xl mx-auto mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+            Resources & Learning
+          </h1>
+          <p className="text-xl text-neural-600 leading-relaxed mb-8">
+            Discover insights, learn best practices, and stay ahead with our comprehensive resource library.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {resourceCategories.map((category, index) => (
+            <Link key={index} href={category.href} className="group bg-white rounded-2xl p-8 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300">
+              <div className="text-4xl mb-4">{category.icon}</div>
+              <h3 className="text-xl font-bold text-neural-800 mb-3 group-hover:text-brand-600 transition-colors">
+                {category.title}
+              </h3>
+              <p className="text-neural-600 mb-4 leading-relaxed">
+                {category.description}
+              </p>
+              <ul className="space-y-2">
+                {category.items.map((item, itemIndex) => (
+                  <li key={itemIndex} className="text-sm text-neural-500 flex items-center">
+                    <span className="w-1.5 h-1.5 bg-brand-400 rounded-full mr-3"></span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </Link>
+          ))}
+        </div>
+
+        <div className="bg-gradient-to-r from-brand-600 to-accent-600 rounded-2xl p-8 text-white text-center">
+          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+          <p className="text-lg mb-6 opacity-90">
+            Subscribe to our newsletter for the latest resources, insights, and updates.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <input 
+              type="email" 
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-lg text-neural-800 focus:outline-none focus:ring-2 focus:ring-white"
+            />
+            <button className="px-6 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-neural-50 transition-colors">
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

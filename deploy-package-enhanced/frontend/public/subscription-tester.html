@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Agent Subscription Tester</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button { 
+            padding: 10px 20px; 
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        .success { color: #28a745; }
+        .info { color: #007bff; }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin: 20px 0;
+        }
+        .agent-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .subscribed { 
+            background: #d4edda; 
+            border-color: #c3e6cb; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Agent Subscription Manager</h1>
+        <p>Use this tool to manage agent subscriptions for testing purposes.</p>
+        
+        <div class="controls">
+            <button onclick="subscribeAll()">✅ Subscribe to All Agents</button>
+            <button onclick="clearAll()">❌ Clear All Subscriptions</button>
+            <button onclick="checkStatus()">🔍 Check Status</button>
+        </div>
+
+        <div id="agents" class="grid">
+            <!-- Agent cards will be populated here -->
+        </div>
+
+        <div id="status"></div>
+
+        <h3>Quick Links</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/agents/tech-wizard" target="_blank">
+                <button>🧙‍♂️ Tech Wizard</button>
+            </a>
+            <a href="/agents/comedy-king" target="_blank">
+                <button>👑 Comedy King</button>
+            </a>
+            <a href="/agents/einstein" target="_blank">
+                <button>🧠 Einstein</button>
+            </a>
+            <a href="/agents/chef-biew" target="_blank">
+                <button>👨‍🍳 Chef Biew</button>
+            </a>
+            <a href="/agents/julie-girlfriend" target="_blank">
+                <button>💝 Julie</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const agents = [
+            'tech-wizard', 'comedy-king', 'einstein', 'chef-biew', 
+            'julie-girlfriend', 'travel-buddy', 'fitness-guru', 
+            'professor-astrology', 'lazy-pawn', 'drama-queen',
+            'ben-sega', 'emma-emotional'
+        ];
+
+        function subscribeToAgent(agentId) {
+            localStorage.setItem(`subscription-${agentId}`, 'active');
+            localStorage.setItem(`subscription-${agentId}-plan`, 'monthly');
+            localStorage.setItem(`subscription-${agentId}-date`, new Date().toISOString());
+            updateDisplay();
+        }
+
+        function unsubscribeFromAgent(agentId) {
+            localStorage.removeItem(`subscription-${agentId}`);
+            localStorage.removeItem(`subscription-${agentId}-plan`);
+            localStorage.removeItem(`subscription-${agentId}-date`);
+            updateDisplay();
+        }
+
+        function subscribeAll() {
+            agents.forEach(agentId => {
+                localStorage.setItem(`subscription-${agentId}`, 'active');
+                localStorage.setItem(`subscription-${agentId}-plan`, 'monthly');
+                localStorage.setItem(`subscription-${agentId}-date`, new Date().toISOString());
+            });
+            updateDisplay();
+            document.getElementById('status').innerHTML = 
+                '<p class="success">✅ All agents subscribed successfully!</p>';
+        }
+
+        function clearAll() {
+            agents.forEach(agentId => {
+                localStorage.removeItem(`subscription-${agentId}`);
+                localStorage.removeItem(`subscription-${agentId}-plan`);
+                localStorage.removeItem(`subscription-${agentId}-date`);
+            });
+            updateDisplay();
+            document.getElementById('status').innerHTML = 
+                '<p class="info">❌ All subscriptions cleared!</p>';
+        }
+
+        function checkStatus() {
+            const subscribed = agents.filter(agentId => 
+                localStorage.getItem(`subscription-${agentId}`) === 'active'
+            );
+            document.getElementById('status').innerHTML = 
+                `<p class="info">📊 ${subscribed.length}/${agents.length} agents subscribed: ${subscribed.join(', ')}</p>`;
+        }
+
+        function updateDisplay() {
+            const container = document.getElementById('agents');
+            container.innerHTML = agents.map(agentId => {
+                const isSubscribed = localStorage.getItem(`subscription-${agentId}`) === 'active';
+                const plan = localStorage.getItem(`subscription-${agentId}-plan`) || 'none';
+                return `
+                    <div class="agent-card ${isSubscribed ? 'subscribed' : ''}">
+                        <h4>${agentId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                        <p>Status: ${isSubscribed ? '✅ Active' : '❌ Not Subscribed'}</p>
+                        ${isSubscribed ? `<p>Plan: ${plan}</p>` : ''}
+                        <button onclick="${isSubscribed ? `unsubscribeFromAgent('${agentId}')` : `subscribeToAgent('${agentId}')`}">
+                            ${isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize display
+        updateDisplay();
+        checkStatus();
+    </script>
+</body>
+</html>
