@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhookSignature } from '@/lib/stripe';
 import Stripe from 'stripe';
+import dbConnect from '@/lib/mongodb';
+import Subscription from '@/models/Subscription';
 
 // Disable body parsing for webhooks
 export const runtime = 'nodejs';
@@ -88,19 +90,42 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     return;
   }
 
-  // TODO: Store subscription in your database
-  // Example:
-  // await db.subscriptions.create({
-  //   userId,
-  //   agentId,
-  //   plan,
-  //   stripeSubscriptionId: session.subscription as string,
-  //   stripeCustomerId: session.customer as string,
-  //   status: 'active',
-  //   startDate: new Date(),
-  // });
+  try {
+    await dbConnect();
+    
+    // Get subscription details from Stripe to get all needed data
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-11-17.clover',
+    });
+    
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+    
+    // Get customer email
+    const customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
+    
+    // Create subscription in database
+    await Subscription.create({
+      userId,
+      email: customer.email || session.customer_details?.email || '',
+      agentId,
+      agentName: agentName || agentId,
+      plan: plan as 'daily' | 'weekly' | 'monthly',
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: session.customer as string,
+      stripePriceId: subscription.items.data[0].price.id,
+      status: subscription.status,
+      price: subscription.items.data[0].price.unit_amount || 0,
+      currency: subscription.items.data[0].price.currency,
+      startDate: new Date(subscription.start_date * 1000),
+      currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    });
 
-  console.log(`User ${userId} subscribed to ${agentName} (${plan} plan)`);
+    console.log(`✅ Subscription saved to database: User ${userId} subscribed to ${agentName} (${plan} plan)`);
+  } catch (error: any) {
+    console.error('Error saving subscription to database:', error.message);
+  }
 }
 
 /**
@@ -114,7 +139,49 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     metadata: subscription.metadata,
   });
 
-  // TODO: Update database with subscription details
+  const { userId, agentId, agentName, plan } = subscription.metadata || {};
+
+  if (!userId || !agentId) {
+    console.error('Missing metadata in subscription.created event');
+    return;
+  }
+
+  try {
+    await dbConnect();
+    
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-11-17.clover',
+    });
+    
+    const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+    
+    // Upsert subscription (create if doesn't exist, update if exists)
+    await Subscription.findOneAndUpdate(
+      { stripeSubscriptionId: subscription.id },
+      {
+        userId,
+        email: customer.email || '',
+        agentId,
+        agentName: agentName || agentId,
+        plan: plan as 'daily' | 'weekly' | 'monthly',
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: subscription.customer as string,
+        stripePriceId: subscription.items.data[0].price.id,
+        status: subscription.status,
+        price: subscription.items.data[0].price.unit_amount || 0,
+        currency: subscription.items.data[0].price.currency,
+        startDate: new Date(subscription.start_date * 1000),
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log(`✅ Subscription created in database: ${subscription.id}`);
+  } catch (error: any) {
+    console.error('Error updating subscription in database:', error.message);
+  }
 }
 
 /**
@@ -127,7 +194,26 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     metadata: subscription.metadata,
   });
 
-  // TODO: Update subscription status in database
+  try {
+    await dbConnect();
+    
+    // Update subscription in database
+    await Subscription.findOneAndUpdate(
+      { stripeSubscriptionId: subscription.id },
+      {
+        status: subscription.status,
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : undefined,
+      },
+      { new: true }
+    );
+
+    console.log(`✅ Subscription updated in database: ${subscription.id}`);
+  } catch (error: any) {
+    console.error('Error updating subscription in database:', error.message);
+  }
 }
 
 /**
@@ -146,13 +232,23 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     return;
   }
 
-  // TODO: Mark subscription as cancelled in database
-  // await db.subscriptions.update({
-  //   where: { stripeSubscriptionId: subscription.id },
-  //   data: { status: 'cancelled', endDate: new Date() }
-  // });
+  try {
+    await dbConnect();
+    
+    // Mark subscription as canceled in database
+    await Subscription.findOneAndUpdate(
+      { stripeSubscriptionId: subscription.id },
+      {
+        status: 'canceled',
+        canceledAt: new Date(),
+      },
+      { new: true }
+    );
 
-  console.log(`Subscription cancelled for user ${userId}, agent ${agentId}`);
+    console.log(`✅ Subscription cancelled in database for user ${userId}, agent ${agentId}`);
+  } catch (error: any) {
+    console.error('Error cancelling subscription in database:', error.message);
+  }
 }
 
 /**
@@ -161,11 +257,26 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   console.log('✅ Invoice payment succeeded:', {
     invoiceId: invoice.id,
-    subscriptionId: invoice.subscription,
+    subscriptionId: (invoice as any).subscription,
     amountPaid: invoice.amount_paid / 100,
   });
 
-  // TODO: Record payment in database
+  try {
+    await dbConnect();
+    
+    const subscriptionId = (invoice as any).subscription as string;
+    if (subscriptionId) {
+      // Ensure subscription is marked as active
+      await Subscription.findOneAndUpdate(
+        { stripeSubscriptionId: subscriptionId },
+        { status: 'active' },
+        { new: true }
+      );
+      console.log(`✅ Payment recorded for subscription: ${subscriptionId}`);
+    }
+  } catch (error: any) {
+    console.error('Error recording payment in database:', error.message);
+  }
 }
 
 /**
@@ -174,10 +285,24 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   console.log('❌ Invoice payment failed:', {
     invoiceId: invoice.id,
-    subscriptionId: invoice.subscription,
+    subscriptionId: (invoice as any).subscription,
     attemptCount: invoice.attempt_count,
   });
 
-  // TODO: Notify user of failed payment
-  // TODO: Update subscription status if needed
+  try {
+    await dbConnect();
+    
+    const subscriptionId = (invoice as any).subscription as string;
+    if (subscriptionId) {
+      // Mark subscription as past_due
+      await Subscription.findOneAndUpdate(
+        { stripeSubscriptionId: subscriptionId },
+        { status: 'past_due' },
+        { new: true }
+      );
+      console.log(`⚠️ Subscription marked as past_due: ${subscriptionId}`);
+    }
+  } catch (error: any) {
+    console.error('Error updating subscription status in database:', error.message);
+  }
 }

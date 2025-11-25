@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { isAuthenticated } from '../../../lib/auth-utils'
+import { getCurrentUser } from '../../../lib/auth-utils'
 
 export default function RandomAgent() {
   const router = useRouter()
+  const [checking, setChecking] = useState(true)
 
   const availableAgents = [
     { slug: 'ben-sega', name: 'Ben Sega' },
@@ -29,20 +30,53 @@ export default function RandomAgent() {
   ]
 
   useEffect(() => {
-    // Get a random agent
-    const randomIndex = Math.floor(Math.random() * availableAgents.length)
-    const randomAgent = availableAgents[randomIndex]
-    
-    // Check if user has subscription for this agent (in production, check via API)
-    const hasSubscription = localStorage.getItem(`subscription-${randomAgent.slug}`) === 'active'
-    
-    // If no subscription and not authenticated, go to subscribe page
-    if (!hasSubscription) {
-      router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
-    } else {
-      // If subscribed, go directly to agent chat
-      router.push(`/agents/${randomAgent.slug}`)
+    const checkSubscriptionAndRedirect = async () => {
+      try {
+        // Get a random agent
+        const randomIndex = Math.floor(Math.random() * availableAgents.length)
+        const randomAgent = availableAgents[randomIndex]
+        
+        // Get current user
+        const user = getCurrentUser()
+        
+        if (!user) {
+          // Not logged in, go to subscribe page
+          router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
+          return
+        }
+
+        // Check if user has subscription for this agent via API
+        const response = await fetch('/api/subscriptions/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            email: user.email,
+            agentId: randomAgent.slug,
+          }),
+        })
+
+        const data = await response.json()
+        
+        if (data.hasAccess) {
+          // User has subscription, go to agent chat
+          router.push(`/agents/${randomAgent.slug}`)
+        } else {
+          // No subscription, go to subscribe page
+          router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error)
+        // On error, fallback to subscribe page
+        const randomIndex = Math.floor(Math.random() * availableAgents.length)
+        const randomAgent = availableAgents[randomIndex]
+        router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
+      } finally {
+        setChecking(false)
+      }
     }
+
+    checkSubscriptionAndRedirect()
   }, [router])
 
   return (

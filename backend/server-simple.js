@@ -344,6 +344,50 @@ app.get('/api/status/analytics', (req, res) => {
   })
 })
 
+// Admin Dashboard
+app.get('/api/admin/dashboard', async (req, res) => {
+  try {
+    // Connect to MongoDB
+    const client = new MongoClient(process.env.MONGODB_URI)
+    await client.connect()
+    const db = client.db()
+    
+    // Get collection stats
+    const collections = await db.listCollections().toArray()
+    const stats = {}
+    
+    for (const collection of collections) {
+      try {
+        const count = await db.collection(collection.name).countDocuments()
+        stats[collection.name] = count
+      } catch (err) {
+        stats[collection.name] = 0
+      }
+    }
+    
+    await client.close()
+    
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      totalCollections: collections.length,
+      collections: collections.map(c => c.name),
+      documentCounts: stats,
+      summary: {
+        totalDocuments: Object.values(stats).reduce((sum, count) => sum + count, 0),
+        collections: collections.length
+      }
+    })
+  } catch (error) {
+    console.error('Admin dashboard error:', error)
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch dashboard data',
+      message: error.message 
+    })
+  }
+})
+
 // Server-Sent Events stream for real-time updates
 app.get('/api/status/stream', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream')

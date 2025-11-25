@@ -2,24 +2,70 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Suspense, useEffect } from 'react'
-import { isAuthenticated, buildLoginUrl } from '../../lib/auth-utils'
+import { Suspense, useEffect, useState } from 'react'
+import { isAuthenticated, buildLoginUrl, getCurrentUser } from '../../lib/auth-utils'
 
 function SubscriptionContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const agentName = searchParams.get('agent') || 'AI Agent'
   const agentSlug = searchParams.get('slug') || 'agent'
+  const [checking, setChecking] = useState(true)
 
-  // Check authentication on mount
+  // Check authentication and subscription status on mount
   useEffect(() => {
-    if (!isAuthenticated()) {
-      // Build the current page URL to return to after login
-      const currentUrl = `/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`
-      const loginUrl = buildLoginUrl(currentUrl)
-      router.push(loginUrl)
+    const checkAccessAndRedirect = async () => {
+      // First check if user is authenticated
+      if (!isAuthenticated()) {
+        const currentUrl = `/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`
+        const loginUrl = buildLoginUrl(currentUrl)
+        router.push(loginUrl)
+        return
+      }
+
+      // Check if user already has subscription for this agent
+      try {
+        const user = getCurrentUser()
+        if (user) {
+          const response = await fetch('/api/subscriptions/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              email: user.email,
+              agentId: agentSlug,
+            }),
+          })
+
+          const data = await response.json()
+          
+          if (data.hasAccess && data.subscription) {
+            // User already has active subscription, redirect to chat
+            router.push(`/agents/${agentSlug}`)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error)
+      }
+
+      setChecking(false)
     }
+
+    checkAccessAndRedirect()
   }, [agentName, agentSlug, router])
+
+  // Show loading state while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
+          <p className="text-neural-600">Checking subscription status...</p>
+        </div>
+      </div>
+    )
+  }
 
   const subscriptionPlans = [
     {

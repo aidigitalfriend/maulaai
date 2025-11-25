@@ -97,7 +97,7 @@ export default function HomePage() {
       description: 'Theoretical physics, complex problem solving, and scientific research assistance.',
       link: {
         text: 'Chat with Einstein',
-        href: '/agents/einstein'
+        href: '/subscribe?agent=Einstein&slug=einstein'
       }
     },
     {
@@ -108,7 +108,7 @@ export default function HomePage() {
       description: 'Master of feelings and empathy. Perfect for emotional support and relationship advice.',
       link: {
         text: 'Talk to Emma',
-        href: '/agents/emma-emotional'
+        href: '/subscribe?agent=Emma+Emotional&slug=emma-emotional'
       }
     },
     {
@@ -119,7 +119,7 @@ export default function HomePage() {
       description: 'Pro gamer extraordinaire! Master of gaming strategies, reviews, and esports culture.',
       link: {
         text: 'Game with Nid',
-        href: '/agents/nid-gaming'
+        href: '/subscribe?agent=Nid+Gaming&slug=nid-gaming'
       }
     },
     {
@@ -130,7 +130,7 @@ export default function HomePage() {
       description: 'Asian culinary master! Specializes in authentic recipes and cultural food traditions.',
       link: {
         text: 'Cook with Chef Biew',
-        href: '/agents/chef-biew'
+        href: '/subscribe?agent=Chef+Biew&slug=chef-biew'
       }
     },
     {
@@ -141,7 +141,7 @@ export default function HomePage() {
       description: 'Master of all things tech! Expert in coding, troubleshooting, and innovation.',
       link: {
         text: 'Code with Tech Wizard',
-        href: '/agents/tech-wizard'
+        href: '/subscribe?agent=Tech+Wizard&slug=tech-wizard'
       }
     },
     {
@@ -152,7 +152,7 @@ export default function HomePage() {
       description: 'Take-charge executive! Master of leadership, business management, and results.',
       link: {
         text: 'Lead with Mrs Boss',
-        href: '/agents/mrs-boss'
+        href: '/subscribe?agent=Mrs+Boss&slug=mrs-boss'
       }
     },
     {
@@ -163,7 +163,7 @@ export default function HomePage() {
       description: 'Your personal fitness coach! Expert in workouts, nutrition, and wellness goals.',
       link: {
         text: 'Train with Fitness Guru',
-        href: '/agents/fitness-guru'
+        href: '/subscribe?agent=Fitness+Guru&slug=fitness-guru'
       }
     },
     {
@@ -174,7 +174,7 @@ export default function HomePage() {
       description: 'Retro gaming legend! Expert in classic games, gaming history, and nostalgia.',
       link: {
         text: 'Play with Ben Sega',
-        href: '/agents/ben-sega'
+        href: '/subscribe?agent=Ben+Sega&slug=ben-sega'
       }
     }
   ]

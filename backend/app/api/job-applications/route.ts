@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import dbConnect from '@/lib/mongodb'
+import JobApplication from '@/models/JobApplication'
 
-interface JobApplication {
+interface JobApplicationData {
   position: string
   jobId: string
   fullName: string
@@ -164,15 +166,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create application object
-    const application: JobApplication = {
+    // Connect to database
+    await dbConnect()
+
+    // Generate unique application ID
+    const applicationId = `APP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
+    // Create and save application to database
+    const application = new JobApplication({
       position,
       jobId,
+      applicationId,
       fullName,
       email,
       contactNumber,
       address,
-      age,
+      age: parseInt(age),
       currentPosition,
       yearsExperience,
       expertise,
@@ -180,36 +189,36 @@ export async function POST(request: NextRequest) {
       portfolioUrl: portfolioUrl || '',
       additionalInfo: additionalInfo || '',
       expectations: expectations || '',
-      submittedAt: new Date().toISOString(),
+      status: 'pending',
+      submittedAt: new Date(),
       ipAddress,
-      userAgent
-    }
+      userAgent,
+      // TODO: Add file URLs when file upload is implemented
+      // resumeUrl: resumeFile ? await uploadFile(resumeFile) : undefined,
+      // coverLetterUrl: coverLetterFile ? await uploadFile(coverLetterFile) : undefined,
+    })
 
-    // TODO: In production, you would:
-    // 1. Save to database
-    // 2. Save files to cloud storage
-    // 3. Send confirmation email
-    // 4. Send notification to HR
-    // 5. Add to CRM
+    const savedApplication = await application.save()
 
-    // For now, just log and return success
-    console.log('Job Application Received:', {
+    console.log('Job Application Saved:', {
+      applicationId,
       position,
       email,
       name: fullName,
       timestamp: new Date().toISOString()
     })
 
-    // Simulate sending emails
+    // TODO: Send confirmation email and HR notification
     console.log(`Confirmation email would be sent to: ${email}`)
     console.log(`HR notification would be sent for: ${position} position`)
 
     return NextResponse.json(
       {
         message: 'Application submitted successfully',
-        applicationId: `APP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        applicationId,
         email,
-        position
+        position,
+        submittedAt: savedApplication.submittedAt
       },
       { status: 200 }
     )
@@ -219,6 +228,57 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'Failed to process application. Please try again later.'
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    await dbConnect()
+
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const position = searchParams.get('position')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const skip = (page - 1) * limit
+
+    // Build query
+    const query: any = {}
+    if (status) query.status = status
+    if (position) query.position = new RegExp(position, 'i')
+
+    // Get applications with pagination
+    const applications = await JobApplication.find(query)
+      .sort({ submittedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select('-__v')
+      .lean()
+
+    const total = await JobApplication.countDocuments(query)
+    const totalPages = Math.ceil(total / limit)
+
+    return NextResponse.json({
+      success: true,
+      data: applications,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    })
+
+  } catch (error) {
+    console.error('Job Applications GET Error:', error)
+    return NextResponse.json(
+      {
+        message: 'Failed to fetch applications'
       },
       { status: 500 }
     )

@@ -90,7 +90,24 @@ export default function Dashboard() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch('/api/user/analytics')
+      // Get current user to pass to analytics endpoint
+      const userStr = localStorage.getItem('user')
+      let queryParams = ''
+      
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr)
+          if (user.id) {
+            queryParams = `?userId=${encodeURIComponent(user.id)}`
+          } else if (user.email) {
+            queryParams = `?email=${encodeURIComponent(user.email)}`
+          }
+        } catch (e) {
+          console.error('Error parsing user data:', e)
+        }
+      }
+      
+      const response = await fetch(`/api/user/analytics${queryParams}`)
       const data = await response.json()
       setAnalyticsData(data)
       setLoading(false)

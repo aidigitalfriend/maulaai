@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import dbConnect from '@/lib/mongodb'
+import ContactMessage from '@/models/ContactMessage'
 
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP and user agent
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      request.ip || 
+                      'unknown'
+    const userAgent = request.headers.get('user-agent') || 'unknown'
+
     const { name, email, message, subject, agentName } = await request.json()
 
     // Validate required fields
@@ -12,6 +21,52 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Connect to database and save message
+    await dbConnect()
+
+    // Determine category based on agentName or subject
+    let category = 'general'
+    if (agentName) category = 'support'
+    if (subject?.toLowerCase().includes('sales')) category = 'sales'
+    if (subject?.toLowerCase().includes('partner')) category = 'partnership'
+
+    // Auto-assign priority based on keywords
+    const urgentKeywords = ['urgent', 'emergency', 'critical', 'asap', 'immediately']
+    const highKeywords = ['important', 'priority', 'issue', 'problem', 'bug']
+    
+    let priority = 'medium'
+    const fullText = `${subject || ''} ${message}`.toLowerCase()
+    
+    if (urgentKeywords.some(keyword => fullText.includes(keyword))) {
+      priority = 'urgent'
+    } else if (highKeywords.some(keyword => fullText.includes(keyword))) {
+      priority = 'high'
+    }
+
+    // Save to database
+    const contactMessage = new ContactMessage({
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      subject: subject ? subject.trim() : (agentName ? `${agentName} Agent Inquiry` : 'General Inquiry'),
+      message: message.trim(),
+      category,
+      priority,
+      ipAddress,
+      userAgent,
+      source: 'website'
+    })
+
+    const savedMessage = await contactMessage.save()
+
+    console.log('Contact Message Saved:', {
+      id: savedMessage._id,
+      name,
+      email,
+      category,
+      priority,
+      agentName
+    })
 
     // Setup Gmail transporter
     const transporter = nodemailer.createTransport({
@@ -81,7 +136,8 @@ Time: ${new Date().toLocaleString()}
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Message sent successfully!' 
+      message: 'Message sent successfully!',
+      messageId: savedMessage._id
     })
 
   } catch (error) {
@@ -97,13 +153,78 @@ Time: ${new Date().toLocaleString()}
   }
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    await dbConnect()
+
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const category = searchParams.get('category')
+    const priority = searchParams.get('priority')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const skip = (page - 1) * limit
+
+    // Build query
+    const query: any = {}
+    if (status) query.status = status
+    if (category) query.category = category
+    if (priority) query.priority = priority
+
+    // Get messages with pagination
+    const messages = await ContactMessage.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select('-__v')
+      .lean()
+
+    const total = await ContactMessage.countDocuments(query)
+    const totalPages = Math.ceil(total / limit)
+
+    // Get stats
+    const stats = await ContactMessage.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ])
+
+    return NextResponse.json({
+      success: true,
+      data: messages,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
+      stats
+    })
+
+  } catch (error) {
+    console.error('Contact Messages GET Error:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch messages'
+      },
+      { status: 500 }
+    )
+  }
+}
+
 // Handle CORS for frontend requests
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   })

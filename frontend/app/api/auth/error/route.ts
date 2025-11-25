@@ -14,24 +14,29 @@ export async function GET(request: NextRequest) {
 
   const message = error ? (errorMessages[error] || errorMessages['Default']) : 'Unknown authentication error';
 
+  // Return 200 status to prevent console errors, but include error info in response
   return NextResponse.json({
+    success: false,
     error: error || 'unknown',
     message
-  }, { status: 400 });
+  }, { status: 200 });
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { error, message } = await request.json();
     
+    // Return 200 status to prevent console errors, but include error info in response
     return NextResponse.json({
+      success: false,
       error: error || 'unknown',
       message: message || 'Authentication error occurred'
-    }, { status: 400 });
+    }, { status: 200 });
   } catch {
     return NextResponse.json({
+      success: false,
       error: 'invalid_request',
       message: 'Invalid error request'
-    }, { status: 400 });
+    }, { status: 200 });
   }
 }

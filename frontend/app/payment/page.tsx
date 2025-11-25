@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import { isAuthenticated, getCurrentUser, buildLoginUrl } from '../../lib/auth-utils'
 
 function PaymentContent() {
@@ -10,6 +10,13 @@ function PaymentContent() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('card')
+  const [userInfo, setUserInfo] = useState<{name: string, email: string} | null>(null)
+  
+  // Form refs for auto-advance
+  const cardNumberRef = useRef<HTMLInputElement>(null)
+  const expiryRef = useRef<HTMLInputElement>(null)
+  const cvvRef = useRef<HTMLInputElement>(null)
+  const billingNameRef = useRef<HTMLInputElement>(null)
   
   const agentName = searchParams.get('agent') || 'AI Agent'
   const agentSlug = searchParams.get('slug') || 'agent'
@@ -17,13 +24,22 @@ function PaymentContent() {
   const price = searchParams.get('price') || '$1'
   const period = searchParams.get('period') || 'daily'
 
-  // Check authentication on mount
+  // Check authentication and get user info on mount
   useEffect(() => {
     if (!isAuthenticated()) {
       // Build the current page URL to return to after login
       const currentUrl = `/payment?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}&plan=${plan}&price=${price}&period=${period}`
       const loginUrl = buildLoginUrl(currentUrl)
       router.push(loginUrl)
+    } else {
+      // Get user info from auth
+      const currentUser = getCurrentUser()
+      if (currentUser) {
+        setUserInfo({
+          name: currentUser.name || 'User',
+          email: currentUser.email || ''
+        })
+      }
     }
   }, [agentName, agentSlug, plan, price, period, router])
 
@@ -42,6 +58,43 @@ function PaymentContent() {
   }
 
   const billing = getBillingDetails()
+
+  // Auto-format card number with spaces
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\s/g, '') // Remove spaces
+    let formattedValue = value.replace(/(\d{4})/g, '$1 ').trim() // Add space every 4 digits
+    e.target.value = formattedValue
+    
+    // Auto-advance when 16 digits entered
+    if (value.length === 16 && expiryRef.current) {
+      expiryRef.current.focus()
+    }
+  }
+
+  // Auto-format expiry date as MM/YY
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2, 4)
+    }
+    e.target.value = value
+    
+    // Auto-advance when MM/YY complete (5 characters)
+    if (e.target.value.length === 5 && cvvRef.current) {
+      cvvRef.current.focus()
+    }
+  }
+
+  // Auto-advance CVV
+  const handleCVVChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    e.target.value = value.slice(0, 3) // Max 3 digits
+    
+    // Auto-advance when 3 digits entered
+    if (value.length === 3 && billingNameRef.current) {
+      billingNameRef.current.focus()
+    }
+  }
 
   const handlePayment = async () => {
     setLoading(true)
@@ -115,7 +168,7 @@ function PaymentContent() {
                 Payment Method
               </label>
               <div className="space-y-3">
-                <label className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <label className="flex items-center space-x-3 p-3 border-2 rounded-lg hover:bg-gray-50 cursor-pointer border-brand-600">
                   <input
                     type="radio"
                     name="payment"
@@ -127,7 +180,7 @@ function PaymentContent() {
                   <span className="text-2xl">💳</span>
                   <span className="font-medium">Credit/Debit Card</span>
                 </label>
-                <label className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <label className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer opacity-50">
                   <input
                     type="radio"
                     name="payment"
@@ -135,24 +188,51 @@ function PaymentContent() {
                     checked={paymentMethod === 'paypal'}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="text-brand-600"
+                    disabled
                   />
                   <span className="text-2xl">🅿️</span>
-                  <span className="font-medium">PayPal</span>
+                  <span className="font-medium">PayPal (Coming Soon)</span>
                 </label>
               </div>
             </div>
 
             {/* Card Form (shown when card is selected) */}
             {paymentMethod === 'card' && (
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Account Information - Read Only */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-sm text-blue-900 mb-3">Account Information</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-xs font-medium text-blue-800 mb-1">Full Name</label>
+                      <div className="bg-white px-3 py-2 rounded border border-blue-200 text-sm font-semibold text-brand-600">
+                        {userInfo?.name || 'Loading...'}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-blue-800 mb-1">Email Address</label>
+                      <div className="bg-white px-3 py-2 rounded border border-blue-200 text-sm font-semibold text-brand-600">
+                        {userInfo?.email || 'Loading...'}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-2">
+                    ℹ️ Your account details are pre-filled and cannot be changed during checkout
+                  </p>
+                </div>
+
+                {/* Card Details */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Card Number
                   </label>
                   <input
+                    ref={cardNumberRef}
                     type="text"
                     placeholder="1234 5678 9012 3456"
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    maxLength={19}
+                    onChange={handleCardNumberChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-lg font-mono"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -161,9 +241,12 @@ function PaymentContent() {
                       Expiry Date
                     </label>
                     <input
+                      ref={expiryRef}
                       type="text"
                       placeholder="MM/YY"
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      maxLength={5}
+                      onChange={handleExpiryChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-lg font-mono"
                     />
                   </div>
                   <div>
@@ -171,21 +254,112 @@ function PaymentContent() {
                       CVV
                     </label>
                     <input
+                      ref={cvvRef}
                       type="text"
                       placeholder="123"
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      maxLength={3}
+                      onChange={handleCVVChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-lg font-mono"
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cardholder Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                  />
+
+                {/* Billing Address */}
+                <div className="border-t pt-6">
+                  <h3 className="font-semibold text-sm text-gray-900 mb-4">Billing Address</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Name on Card
+                      </label>
+                      <input
+                        ref={billingNameRef}
+                        type="text"
+                        placeholder="John Doe"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address Line 1
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="123 Main Street"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address Line 2 (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Apartment, suite, etc."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="New York"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          State/Province
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="NY"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ZIP/Postal Code
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="10001"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Country
+                        </label>
+                        <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                          <option value="US">United States</option>
+                          <option value="CA">Canada</option>
+                          <option value="GB">United Kingdom</option>
+                          <option value="AU">Australia</option>
+                          <option value="DE">Germany</option>
+                          <option value="FR">France</option>
+                          <option value="JP">Japan</option>
+                          <option value="TH">Thailand</option>
+                          <option value="SG">Singapore</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Security Badge */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center space-x-3">
+                  <span className="text-2xl">🔒</span>
+                  <div className="text-sm text-green-800">
+                    <p className="font-semibold">Secure Payment</p>
+                    <p className="text-xs">Your payment information is encrypted and secure</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -272,9 +446,62 @@ function PaymentContent() {
               )}
             </button>
 
-            <p className="text-xs text-gray-500 text-center mt-4">
-              By subscribing, you agree to our Terms of Service and Privacy Policy.
-              You can cancel anytime from your dashboard.
+            {/* Legal & Policy Information */}
+            <div className="mt-6 space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                  <span className="mr-2">📋</span> Terms & Conditions
+                </h4>
+                <p className="text-xs text-gray-600 leading-relaxed mb-2">
+                  By subscribing, you agree to our Terms of Service. Your subscription will auto-renew at the end of each billing cycle. You maintain full control and can cancel anytime.
+                </p>
+                <Link href="/terms" className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors inline-flex items-center">
+                  Read More →
+                </Link>
+              </div>
+
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center">
+                  <span className="mr-2">🔄</span> Refund Policy
+                </h4>
+                <p className="text-xs text-green-700 leading-relaxed mb-2">
+                  We offer a 7-day money-back guarantee. If you're not satisfied with your subscription, contact us within 7 days for a full refund, no questions asked.
+                </p>
+                <Link href="/refund-policy" className="text-xs font-semibold text-green-700 hover:text-green-800 transition-colors inline-flex items-center">
+                  Read More →
+                </Link>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                  <span className="mr-2">🔒</span> Privacy Policy
+                </h4>
+                <p className="text-xs text-blue-700 leading-relaxed mb-2">
+                  Your privacy is our priority. We never share your personal information with third parties. All data is encrypted and stored securely in compliance with GDPR and CCPA.
+                </p>
+                <Link href="/privacy-policy" className="text-xs font-semibold text-blue-700 hover:text-blue-800 transition-colors inline-flex items-center">
+                  Read More →
+                </Link>
+              </div>
+
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <h4 className="text-sm font-semibold text-purple-800 mb-2 flex items-center">
+                  <span className="mr-2">✨</span> Satisfaction Guarantee
+                </h4>
+                <ul className="text-xs text-purple-700 space-y-1 mb-2">
+                  <li>• Cancel anytime from your dashboard</li>
+                  <li>• No hidden fees or charges</li>
+                  <li>• 24/7 customer support</li>
+                  <li>• Instant access to all features</li>
+                </ul>
+                <Link href="/support" className="text-xs font-semibold text-purple-700 hover:text-purple-800 transition-colors inline-flex items-center">
+                  Read More →
+                </Link>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center mt-6">
+              Questions? Contact us at <span className="font-semibold text-brand-600">support@onelastai.com</span>
             </p>
           </div>
         </div>
