@@ -27,7 +27,7 @@ export default function Navigation() {
     { name: 'Dev Utils', href: '/tools/developer-utils', icon: WrenchScrewdriverIcon },
     { name: 'Dark Theme', href: '/dark-theme', icon: CpuChipIcon },
     { name: 'IP Info', href: '/ip-info', icon: GlobeAltIcon },
-    { name: 'Dashboard', href: '/dashboard', icon: CpuChipIcon },
+    { name: 'Dashboard', href: '/dashboard/overview', icon: CpuChipIcon },
     { name: 'Legal', href: '/legal', icon: DocumentTextIcon },
   ]
 

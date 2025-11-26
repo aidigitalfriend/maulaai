@@ -1,0 +1,345 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { 
+  UserIcon, 
+  PencilIcon, 
+  MapPinIcon, 
+  BriefcaseIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  GlobeAltIcon,
+  CalendarIcon,
+  CameraIcon
+} from '@heroicons/react/24/outline'
+
+export default function UserProfilePage() {
+  const [profile, setProfile] = useState({
+    name: 'John Doe',
+    email: 'john@example.com',
+    avatar: '/api/placeholder/150/150',
+    bio: 'AI enthusiast and developer passionate about creating intelligent solutions that bridge the gap between human creativity and machine efficiency.',
+    phoneNumber: '+1 (555) 123-4567',
+    location: 'San Francisco, CA',
+    timezone: 'Pacific Time (PT)',
+    profession: 'AI Developer',
+    company: 'Tech Innovation Inc.',
+    website: 'https://johndoe.dev',
+    socialLinks: {
+      linkedin: 'https://linkedin.com/in/johndoe',
+      twitter: 'https://twitter.com/johndoe',
+      github: 'https://github.com/johndoe'
+    },
+    joinedDate: '2024-01-15',
+    lastActive: '2025-11-26T10:30:00Z',
+    preferences: {
+      emailNotifications: true,
+      smsNotifications: false,
+      marketingEmails: true,
+      productUpdates: true
+    }
+  })
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingField, setEditingField] = useState('')
+
+  const handleSave = (field, value) => {
+    setProfile(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    setIsEditing(false)
+    setEditingField('')
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const formatDateTime = (dateString) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
+      {/* Header */}
+      <section className="py-12 px-4 border-b border-neural-200 bg-white">
+        <div className="container-custom">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
+                User Profile
+              </h1>
+              <p className="text-neural-600">Manage your personal information and preferences</p>
+            </div>
+            <Link href="/dashboard/overview" className="btn-secondary">
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Profile Content */}
+      <section className="py-16 px-4">
+        <div className="container-custom max-w-4xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Profile Card */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 text-center">
+                <div className="relative mb-6">
+                  <div className="w-32 h-32 bg-brand-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto">
+                    {profile.name.charAt(0)}
+                  </div>
+                  <button className="absolute bottom-2 right-1/2 transform translate-x-1/2 translate-y-1/2 bg-white rounded-full p-2 shadow-lg border border-neural-200 hover:bg-neural-50">
+                    <CameraIcon className="w-4 h-4 text-neural-600" />
+                  </button>
+                </div>
+                
+                <h2 className="text-2xl font-bold text-neural-900 mb-2">{profile.name}</h2>
+                <p className="text-neural-600 mb-4">{profile.profession}</p>
+                <p className="text-sm text-neural-500 mb-6">{profile.company}</p>
+                
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-center text-neural-600">
+                    <MapPinIcon className="w-4 h-4 mr-2" />
+                    {profile.location}
+                  </div>
+                  <div className="flex items-center justify-center text-neural-600">
+                    <CalendarIcon className="w-4 h-4 mr-2" />
+                    Joined {formatDate(profile.joinedDate)}
+                  </div>
+                  <div className="flex items-center justify-center text-neural-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    Last active {formatDateTime(profile.lastActive)}
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-6 border-t border-neural-100">
+                  <h3 className="font-semibold text-neural-900 mb-3">Connect</h3>
+                  <div className="flex justify-center space-x-3">
+                    {profile.socialLinks.linkedin && (
+                      <a href={profile.socialLinks.linkedin} className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors">
+                        <span className="text-sm font-medium">in</span>
+                      </a>
+                    )}
+                    {profile.socialLinks.twitter && (
+                      <a href={profile.socialLinks.twitter} className="p-2 bg-sky-100 text-sky-600 rounded-lg hover:bg-sky-200 transition-colors">
+                        <span className="text-sm font-medium">tw</span>
+                      </a>
+                    )}
+                    {profile.socialLinks.github && (
+                      <a href={profile.socialLinks.github} className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">
+                        <span className="text-sm font-medium">gh</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Details */}
+            <div className="lg:col-span-2">
+              <div className="space-y-6">
+                
+                {/* Personal Information */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-neural-900">Personal Information</h3>
+                    <button className="btn-ghost text-sm">
+                      <PencilIcon className="w-4 h-4 mr-1" />
+                      Edit
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Full Name</label>
+                      <input 
+                        type="text" 
+                        value={profile.name}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Email Address</label>
+                      <input 
+                        type="email" 
+                        value={profile.email}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Phone Number</label>
+                      <input 
+                        type="tel" 
+                        value={profile.phoneNumber}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Location</label>
+                      <input 
+                        type="text" 
+                        value={profile.location}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Bio</label>
+                      <textarea 
+                        value={profile.bio}
+                        rows="4"
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Information */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-neural-900">Professional Information</h3>
+                    <button className="btn-ghost text-sm">
+                      <PencilIcon className="w-4 h-4 mr-1" />
+                      Edit
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Profession</label>
+                      <input 
+                        type="text" 
+                        value={profile.profession}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Company</label>
+                      <input 
+                        type="text" 
+                        value={profile.company}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-neural-700 mb-2">Website</label>
+                      <input 
+                        type="url" 
+                        value={profile.website}
+                        className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notification Preferences */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                  <h3 className="text-xl font-semibold text-neural-900 mb-6">Notification Preferences</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-neural-900">Email Notifications</h4>
+                        <p className="text-sm text-neural-600">Receive important updates via email</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={profile.preferences.emailNotifications}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-neural-900">SMS Notifications</h4>
+                        <p className="text-sm text-neural-600">Receive alerts via text message</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={profile.preferences.smsNotifications}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-neural-900">Marketing Emails</h4>
+                        <p className="text-sm text-neural-600">Receive promotional content and news</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={profile.preferences.marketingEmails}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-neural-900">Product Updates</h4>
+                        <p className="text-sm text-neural-600">Get notified about new features and updates</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={profile.preferences.productUpdates}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Changes Button */}
+                <div className="flex justify-end space-x-4">
+                  <button className="btn-secondary">
+                    Cancel Changes
+                  </button>
+                  <button className="btn-primary">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}

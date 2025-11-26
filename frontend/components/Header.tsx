@@ -109,7 +109,7 @@ export default function Header() {
                     {state.user?.name || state.user?.email}
                   </span>
                 </div>
-                <Link href="/dashboard" className="btn-secondary">
+                <Link href="/dashboard/overview" className="btn-secondary">
                   Dashboard
                 </Link>
                 <button 

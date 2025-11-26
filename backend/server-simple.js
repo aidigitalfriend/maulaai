@@ -9,12 +9,28 @@ import helmet from 'helmet'
 import dotenv from 'dotenv'
 import os from 'os'
 import { MongoClient } from 'mongodb'
+import mongoose from 'mongoose'
 import { setupAgentOptimizedRoutes } from './routes/agent-optimized.js'
 import { setupSimpleAgentRoutes } from './routes/simple-agent.js'
 import { setupAILabRoutes } from './routes/ai-lab-main.js'
 import { setupUserDashboardRoutes } from './routes/user-dashboard.js'
+import userProfileRoutes from './routes/userProfile.js'
+import userSecurityRoutes from './routes/userSecurity.js'
+import userPreferencesRoutes from './routes/userPreferences.js'
+import rewardsCenterRoutes from './routes/rewardsCenter.js'
 
 dotenv.config()
+
+// Connect to MongoDB with Mongoose
+const connectMongoDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/shiny-friend-disco')
+    console.log('✅ Connected to MongoDB with Mongoose')
+  } catch (error) {
+    console.error('❌ MongoDB Mongoose connection error:', error)
+    process.exit(1)
+  }
+}
 
 const app = express()
 const PORT = process.env.PORT || 3005
@@ -47,6 +63,14 @@ setupAILabRoutes(app)
 // USER DASHBOARD ROUTES
 // ----------------------------
 setupUserDashboardRoutes(app)
+
+// ----------------------------
+// DASHBOARD SECTION ROUTES
+// ----------------------------
+app.use('/api/user/profile', userProfileRoutes)
+app.use('/api/user/security', userSecurityRoutes)  
+app.use('/api/user/preferences', userPreferencesRoutes)
+app.use('/api/user/rewards', rewardsCenterRoutes)
 
 // ----------------------------
 // AGENT SUBSCRIPTIONS API (Simple Test)
@@ -1238,23 +1262,34 @@ app.use((err, req, res, next) => {
   })
 })
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Backend server running on port ${PORT}`)
-  console.log(`📊 Health check: http://localhost:${PORT}/health`)
+// Start server with MongoDB connection
+const startServer = async () => {
+  await connectMongoDB()
   
-  const hasAIService = !!(
-    process.env.OPENAI_API_KEY ||
-    process.env.ANTHROPIC_API_KEY ||
-    process.env.GEMINI_API_KEY ||
-    process.env.COHERE_API_KEY
-  )
-  
-  if (hasAIService) {
-    console.log('✅ AI services configured')
-  } else {
-    console.log('⚠️  No AI services configured - using simulation mode')
-  }
-  
-  console.log('✅ Server started successfully')
+  app.listen(PORT, () => {
+    console.log(`🚀 Backend server running on port ${PORT}`)
+    console.log(`📊 Health check: http://localhost:${PORT}/health`)
+    console.log(`👤 Dashboard API: http://localhost:${PORT}/api/user/profile/test123`)
+    
+    const hasAIService = !!(
+      process.env.OPENAI_API_KEY ||
+      process.env.ANTHROPIC_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      process.env.COHERE_API_KEY
+    )
+    
+    if (hasAIService) {
+      console.log('✅ AI services configured')
+    } else {
+      console.log('⚠️  No AI services configured - using simulation mode')
+    }
+    
+    console.log('✅ Server started successfully')
+  })
+}
+
+// Start the server
+startServer().catch(error => {
+  console.error('❌ Failed to start server:', error)
+  process.exit(1)
 })
