@@ -1,8 +1,8 @@
 'use client'
 
 import { CheckCircleIcon, ExclamationTriangleIcon, ClockIcon } from '@heroicons/react/24/outline'
-import type { AgentSubscription } from '../../services/agentSubscriptionService'
-import { agentSubscriptionService } from '../../services/agentSubscriptionService'
+import type { AgentSubscription } from '../services/agentSubscriptionService'
+import { agentSubscriptionService } from '../services/agentSubscriptionService'
 
 interface SubscriptionStatusProps {
   subscription: AgentSubscription

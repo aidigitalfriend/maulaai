@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { XMarkIcon, CheckIcon, ClockIcon } from '@heroicons/react/24/outline'
-import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '../../services/agentSubscriptionService'
+import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '../services/agentSubscriptionService'
 
 interface SubscriptionModalProps {
   isOpen: boolean
