@@ -59,22 +59,12 @@ function SignupPageContent() {
         return
       }
 
-      // Get redirect destination or default to dashboard
+      // Account created successfully! 
+      // Instead of auto-signin (which causes NextAuth errors), redirect to login with success message
       const redirectTo = searchParams.get('redirect') || '/dashboard'
-
-      // Sign them in
-      const signInResult = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-        callbackUrl: redirectTo,
-      })
-
-      if (signInResult?.error) {
-        setError('Account created but login failed. Please try logging in.')
-      } else if (signInResult?.ok) {
-        router.push(redirectTo)
-      }
+      const loginUrl = `/auth/login?message=Account created successfully! Please sign in.${redirectTo !== '/dashboard' ? `&redirect=${encodeURIComponent(redirectTo)}` : ''}`
+      
+      router.push(loginUrl)
     } catch (err) {
       setError('Failed to create account. Please try again.')
       console.error('Password signup error:', err)
