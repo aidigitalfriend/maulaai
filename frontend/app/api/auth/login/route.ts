@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@backend/lib/mongodb';
-import User from '@backend/models/User';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';

@@ -41,8 +41,8 @@ const nextConfig = {
     // Keep localhost for dev convenience
     domains: ['localhost'],
     unoptimized: false,
-    // Fix CSP for Next.js images - allow inline scripts for Stripe and other integrations
-    contentSecurityPolicy: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; frame-src 'self' https://js.stripe.com;",
+    // Fix CSP for Next.js images - allow inline scripts for Stripe, Cloudflare and other integrations
+    contentSecurityPolicy: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://static.cloudflareinsights.com; frame-src 'self' https://js.stripe.com;",
   },
   
   // Expose Google Maps API key to the client; prefer NEXT_PUBLIC_ but fall back to non-prefixed if provided
@@ -90,10 +90,10 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           // Restrict browser features
           { key: 'Permissions-Policy', value: 'geolocation=(), microphone=(), camera=()' },
-          // Content Security Policy - allow Stripe and inline scripts
+          // Content Security Policy - allow Stripe, Cloudflare Insights and inline scripts
           { 
             key: 'Content-Security-Policy-Report-Only', 
-            value: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network; connect-src 'self' https://api.stripe.com https://m.stripe.network; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';" 
+            value: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://static.cloudflareinsights.com; connect-src 'self' https://api.stripe.com https://m.stripe.network https://cloudflareinsights.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';" 
           },
         ],
       },
