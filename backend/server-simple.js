@@ -18,6 +18,9 @@ import userProfileRoutes from './routes/userProfile.js'
 import userSecurityRoutes from './routes/userSecurity.js'
 import userPreferencesRoutes from './routes/userPreferences.js'
 import rewardsCenterRoutes from './routes/rewardsCenter.js'
+import agentSubscriptionsRoutes from './routes/agentSubscriptions.js'
+import agentChatHistoryRoutes from './routes/agentChatHistory.js'
+import agentUsageRoutes from './routes/agentUsage.js'
 
 dotenv.config()
 
@@ -48,6 +51,9 @@ app.use(cors(corsOptions))
 
 app.use(express.json({ limit: '10mb' }))
 
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'))
+
 // ----------------------------
 // AGENT AI PROVIDER ROUTES
 // ----------------------------
@@ -71,6 +77,13 @@ app.use('/api/user/profile', userProfileRoutes)
 app.use('/api/user/security', userSecurityRoutes)  
 app.use('/api/user/preferences', userPreferencesRoutes)
 app.use('/api/user/rewards', rewardsCenterRoutes)
+
+// ----------------------------
+// AGENT SUBSCRIPTION SYSTEM ROUTES
+// ----------------------------
+app.use('/api/agent/subscriptions', agentSubscriptionsRoutes)
+app.use('/api/agent/chat', agentChatHistoryRoutes)
+app.use('/api/agent/usage', agentUsageRoutes)
 
 // ----------------------------
 // AGENT SUBSCRIPTIONS API (Simple Test)

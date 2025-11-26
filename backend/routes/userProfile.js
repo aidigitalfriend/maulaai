@@ -1,6 +1,44 @@
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs/promises';
 import UserProfile from '../models/UserProfile.js';
 const router = express.Router();
+
+// Configure multer for avatar uploads
+const storage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = 'uploads/avatars';
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 // Get user profile
 router.get('/:userId', async (req, res) => {
@@ -105,6 +143,42 @@ router.patch('/:userId/preferences', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update preferences'
+    });
+  }
+});
+
+// Upload avatar
+router.post('/:userId/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    // Create avatar URL
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+    // Update profile with new avatar
+    const profile = await UserProfile.findOneAndUpdate(
+      { userId },
+      { $set: { avatar: avatarUrl } },
+      { new: true, upsert: true }
+    );
+
+    res.json({
+      success: true,
+      avatarUrl: avatarUrl,
+      message: 'Avatar uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to upload avatar'
     });
   }
 });
