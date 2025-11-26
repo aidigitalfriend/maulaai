@@ -20,7 +20,7 @@ class AgentCollectionHub {
     if (!this.client) {
       this.client = new MongoClient(process.env.MONGODB_URI);
       await this.client.connect();
-      this.db = this.client.db('ai-lab-main');
+      this.db = this.client.db('onelastai');
     }
     return this.db;
   }

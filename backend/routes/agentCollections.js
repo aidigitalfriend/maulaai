@@ -29,7 +29,7 @@ router.post('/:agentId/chat-session', async (req, res) => {
 
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const collectionName = getAgentCollectionName(agentId);
     const collection = db.collection(collectionName);
@@ -86,7 +86,7 @@ router.post('/:agentId/interaction', async (req, res) => {
 
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const collectionName = getAgentCollectionName(agentId);
     const collection = db.collection(collectionName);
@@ -131,7 +131,7 @@ router.get('/:agentId/user/:userId/sessions', async (req, res) => {
 
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const collectionName = getAgentCollectionName(agentId);
     const collection = db.collection(collectionName);
@@ -184,7 +184,7 @@ router.get('/:agentId/analytics', async (req, res) => {
 
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const collectionName = getAgentCollectionName(agentId);
     const collection = db.collection(collectionName);
@@ -262,7 +262,7 @@ router.get('/:agentId/stats', async (req, res) => {
 
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const collectionName = getAgentCollectionName(agentId);
     const collection = db.collection(collectionName);
@@ -316,7 +316,7 @@ router.get('/mapping', async (req, res) => {
   try {
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const mappings = await db.collection('agent_collection_mapping')
       .find({ isActive: true })

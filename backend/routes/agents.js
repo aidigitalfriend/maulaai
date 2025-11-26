@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
   try {
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const agents = await db.collection('agents')
       .find({ isActive: true })
@@ -53,7 +53,7 @@ router.get('/:agentId', async (req, res) => {
     
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const agent = await db.collection('agents').findOne({ 
       id: agentId,
@@ -102,7 +102,7 @@ router.get('/category/:category', async (req, res) => {
     
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const agents = await db.collection('agents')
       .find({ 
@@ -148,7 +148,7 @@ router.get('/search/:query', async (req, res) => {
     
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
-    const db = client.db('ai-lab-main');
+    const db = client.db('onelastai');
     
     const agents = await db.collection('agents')
       .find({
