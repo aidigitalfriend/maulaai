@@ -3,6 +3,8 @@ import dbConnect from '@backend/lib/mongodb';
 import User from '@backend/models/User';
 import jwt from 'jsonwebtoken';
 
+export const dynamic = 'force-dynamic';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export async function GET(request: NextRequest) {

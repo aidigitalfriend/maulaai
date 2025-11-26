@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { TrendingUp, TrendingDown, Activity, Users, MessageSquare, Zap, DollarSign, Clock, CheckCircle, ArrowRight, X } from 'lucide-react'
@@ -50,7 +50,7 @@ interface AnalyticsData {
   topAgents: Array<{ name: string; usage: number }>
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams()
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -578,5 +578,13 @@ export default function Dashboard() {
       </div>
     </div>
     </ProtectedRoute>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-neural-900 flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }

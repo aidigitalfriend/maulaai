@@ -11,6 +11,8 @@ import os from 'os'
 import { MongoClient } from 'mongodb'
 import { setupAgentOptimizedRoutes } from './routes/agent-optimized.js'
 import { setupSimpleAgentRoutes } from './routes/simple-agent.js'
+import { setupAILabRoutes } from './routes/ai-lab-main.js'
+import { setupUserDashboardRoutes } from './routes/user-dashboard.js'
 
 dotenv.config()
 
@@ -35,6 +37,81 @@ app.use(express.json({ limit: '10mb' }))
 // ----------------------------
 setupAgentOptimizedRoutes(app)
 setupSimpleAgentRoutes(app)
+
+// ----------------------------
+// AI LAB ROUTES
+// ----------------------------
+setupAILabRoutes(app)
+
+// ----------------------------
+// USER DASHBOARD ROUTES
+// ----------------------------
+setupUserDashboardRoutes(app)
+
+// ----------------------------
+// AGENT SUBSCRIPTIONS API (Simple Test)
+// ----------------------------
+app.get('/api/subscriptions/pricing', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      perAgentPricing: true,
+      plans: [
+        {
+          id: "daily",
+          name: "daily",
+          displayName: "Daily Plan",
+          description: "$1 per day per agent - Perfect for short-term projects",
+          billingPeriod: "day",
+          priceFormatted: "$1.00",
+          period: "day"
+        },
+        {
+          id: "weekly", 
+          name: "weekly",
+          displayName: "Weekly Plan",
+          description: "$5 per week per agent - Great for weekly projects",
+          billingPeriod: "week",
+          priceFormatted: "$5.00",
+          period: "week"
+        },
+        {
+          id: "monthly",
+          name: "monthly", 
+          displayName: "Monthly Plan",
+          description: "$19 per month per agent - Best value for regular usage",
+          billingPeriod: "month",
+          priceFormatted: "$19.00",
+          period: "month"
+        }
+      ]
+    }
+  })
+})
+
+app.get('/api/subscriptions/agents', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      agents: [
+        {
+          agentId: "general-assistant",
+          name: "General AI Assistant",
+          description: "Your versatile AI companion for any task",
+          category: "assistant",
+          features: ["Text generation", "Analysis", "Q&A", "Creative writing"]
+        }
+      ],
+      totalAgents: 1,
+      pricing: {
+        perAgent: true,
+        daily: '$1.00',
+        weekly: '$5.00', 
+        monthly: '$19.00'
+      }
+    }
+  })
+})
 
 // ----------------------------
 // Lightweight metrics tracker

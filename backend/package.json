@@ -10,7 +10,8 @@
     "build": "echo \"No backend build needed (Express API)\"",
     "start": "node server-simple.js",
     "start:socket": "node server.js",
-    "lint": "echo \"No backend lint configured\""
+    "lint": "echo \"No backend lint configured\"",
+    "seed:core": "node scripts/populate-core-collections.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

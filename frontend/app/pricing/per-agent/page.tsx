@@ -116,11 +116,9 @@ export default function PerAgentPricingPage() {
                   <div className="mb-6">
                     <p className="text-sm font-semibold text-white mb-2">Includes:</p>
                     <div className="flex flex-wrap gap-2">
-                      {tier.agents.map((agent, j) => (
-                        <span key={j} className="text-xs px-2 py-1 bg-neural-700 text-neural-200 rounded border border-neural-600">
-                          {agent}
-                        </span>
-                      ))}
+                      <span className="text-xs px-2 py-1 bg-neural-700 text-neural-200 rounded border border-neural-600">
+                        Any Single Agent
+                      </span>
                     </div>
                   </div>
 

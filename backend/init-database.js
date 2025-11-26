@@ -28,6 +28,13 @@ import Presence from './models/Presence.ts'
 import Notification from './models/Notification.ts'
 import EmailQueue from './models/EmailQueue.ts'
 import Agent from './models/Agent.ts'
+
+// Pricing and Subscription Models
+import Plan from './models/Plan.ts'
+import Payment from './models/Payment.ts'
+import Coupon from './models/Coupon.ts'
+import Billing from './models/Billing.ts'
+import Invoice from './models/InvoiceFixed.ts'
 import { 
   Visitor, 
   PageView, 
@@ -82,6 +89,13 @@ async function initializeCollections() {
     { name: 'userevents', model: UserEvent, description: 'Custom user events' },
     { name: 'sessions', model: Session, description: 'User session tracking' },
     { name: 'apiusages', model: ApiUsage, description: 'API endpoint analytics' },
+    
+    // Pricing and Subscription Models
+    { name: 'plans', model: Plan, description: 'Subscription pricing plans' },
+    { name: 'payments', model: Payment, description: 'Payment transactions and processing' },
+    { name: 'coupons', model: Coupon, description: 'Discount codes and promotions' },
+    { name: 'billings', model: Billing, description: 'Billing cycles and usage tracking' },
+    { name: 'invoices', model: Invoice, description: 'Invoice generation and management' },
   ]
 
   for (const collection of collections) {
@@ -193,6 +207,148 @@ async function createSampleData() {
     })
     await sampleAgent.save()
     console.log('✅ Created sample agent')
+
+    // Create sample pricing plans
+    const freePlan = new Plan({
+      name: 'Free',
+      displayName: 'Free Plan',
+      description: 'Basic AI access with limited usage',
+      type: 'free',
+      billingPeriod: 'monthly',
+      price: {
+        amount: 0,
+        currency: 'USD'
+      },
+      features: {
+        limits: {
+          apiCallsPerMonth: 100,
+          storageGB: 1,
+          maxAgents: 1
+        }
+      },
+      isActive: true,
+      isPublic: true
+    })
+    await freePlan.save()
+    
+    const proPlan = new Plan({
+      name: 'Pro',
+      displayName: 'Pro Plan', 
+      description: 'Advanced AI features for power users',
+      type: 'paid',
+      billingPeriod: 'monthly',
+      price: {
+        amount: 2900, // $29.00
+        currency: 'USD'
+      },
+      features: {
+        limits: {
+          apiCallsPerMonth: 10000,
+          storageGB: 50,
+          maxAgents: 10
+        }
+      },
+      isActive: true,
+      isPublic: true
+    })
+    await proPlan.save()
+    console.log('✅ Created sample pricing plans')
+
+    // Create sample subscription for user
+    const sampleSubscription = new Subscription({
+      userId: sampleUser._id,
+      planId: freePlan._id,
+      status: 'active',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      billingCycle: 'monthly'
+    })
+    await sampleSubscription.save()
+    console.log('✅ Created sample subscription')
+
+    // Create sample coupon
+    const sampleCoupon = new Coupon({
+      code: 'WELCOME25',
+      name: 'Welcome Discount',
+      description: '25% off first month for new users',
+      type: 'percentage',
+      discount: {
+        percentage: 25
+      },
+      status: 'active',
+      validity: {
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 days
+      },
+      usage: {
+        maxUses: 1000,
+        maxUsesPerCustomer: 1
+      },
+      management: {
+        createdBy: sampleUser._id
+      }
+    })
+    await sampleCoupon.save()
+    console.log('✅ Created sample coupon')
+
+    // Create sample billing record
+    const sampleBilling = new Billing({
+      user: sampleUser._id,
+      subscription: sampleSubscription._id,
+      plan: freePlan._id,
+      billingPeriod: {
+        start: new Date(),
+        end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        duration: 'monthly',
+        periodNumber: 1
+      },
+      financial: {
+        baseAmount: 0,
+        subtotal: 0,
+        totalAmount: 0,
+        amountDue: 0,
+        currency: 'USD'
+      },
+      payment: {
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      }
+    })
+    await sampleBilling.save()
+    console.log('✅ Created sample billing record')
+
+    // Create sample invoice
+    const sampleInvoice = new Invoice({
+      user: sampleUser._id,
+      subscription: sampleSubscription._id,
+      billing: sampleBilling._id,
+      status: 'paid',
+      financial: {
+        lineItems: [{
+          description: 'Free Plan - Monthly Subscription',
+          quantity: 1,
+          unitPrice: 0,
+          amount: 0,
+          type: 'subscription',
+          planId: freePlan._id
+        }],
+        subtotal: 0,
+        total: 0,
+        amountDue: 0,
+        amountPaid: 0,
+        currency: 'USD'
+      },
+      dates: {
+        issueDate: new Date(),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        paidDate: new Date()
+      },
+      customer: {
+        name: sampleUser.name,
+        email: sampleUser.email
+      }
+    })
+    await sampleInvoice.save()
+    console.log('✅ Created sample invoice')
 
     console.log('\n🎉 Sample data created successfully!')
 
