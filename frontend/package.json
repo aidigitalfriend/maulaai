@@ -15,7 +15,7 @@
     "mobile:build": "npm run export && npx cap sync && npx cap copy"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.68.0",
+    "@anthropic-ai/sdk": "^0.71.0",
     "@capacitor/android": "^7.4.4",
     "@capacitor/app": "^7.1.0",
     "@capacitor/camera": "^7.0.2",
@@ -48,7 +48,7 @@
     "mongoose": "^9.0.0",
     "next": "14.2.33",
     "next-auth": "^4.24.13",
-    "openai": "^4.104.0",
+    "openai": "^6.9.1",
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^10.1.0",
