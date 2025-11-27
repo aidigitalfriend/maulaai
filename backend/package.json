@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
-    "@google-cloud/translate": "^9.2.1",
+    "@google-cloud/translate": "^9.3.0",
     "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^1.10.0",
     "@next-auth/mongodb-adapter": "^1.1.3",
