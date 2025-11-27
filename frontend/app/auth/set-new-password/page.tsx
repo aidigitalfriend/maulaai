@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { EyeIcon, EyeSlashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../lib/auth-context'
+import { useAuth } from '@/contexts/AuthContext'
 
 function SetNewPasswordPageContent() {
   const [formData, setFormData] = useState({

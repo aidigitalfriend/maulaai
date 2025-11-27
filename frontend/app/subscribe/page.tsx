@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense, useEffect, useState } from 'react'
-import { isAuthenticated, buildLoginUrl, getCurrentUser } from '../../lib/auth-utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 function SubscriptionContent() {
   const searchParams = useSearchParams()

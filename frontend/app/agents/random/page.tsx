@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser } from '../../../lib/auth-utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function RandomAgent() {
   const router = useRouter()
