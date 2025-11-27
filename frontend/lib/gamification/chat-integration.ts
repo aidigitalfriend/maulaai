@@ -19,6 +19,7 @@ import {
   saveUserMetrics,
   loadUserMetrics
 } from './realtime-metrics'
+import { gamificationStorage } from '../gamificationAPI'
 
 export interface ChatSession {
   sessionId: string
@@ -326,21 +327,15 @@ export class ChatIntegrationService {
    */
   private static async syncMetricsToBackend(userId: string, event: MetricsEvent): Promise<void> {
     try {
-      const authToken = localStorage.getItem('authToken')
-      if (!authToken) {
-        console.warn('[ChatIntegration] No auth token for sync')
-        return
-      }
-
-      const response = await fetch('/api/gamification/metrics/track', {
+      // Using session-based auth and new API structure
+      const response = await fetch(`/api/gamification/events/${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-          'x-user-id': userId
         },
+        credentials: 'include',
         body: JSON.stringify({
-          event: event.type,
+          type: event.type,
           data: event.data
         })
       })
@@ -369,14 +364,13 @@ export class ChatIntegrationService {
       const metrics = this.metricsCache.get(userId)
       if (!metrics) return false
 
-      const authToken = localStorage.getItem('authToken')
-      if (!authToken) return false
-
-      const response = await fetch(`/api/gamification/profile/${userId}`, {
-        method: 'PUT',
+      // Using session-based auth and new API structure
+      const response = await fetch(`/api/gamification/metrics/${userId}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
+        },
+        credentials: 'include',
           'x-user-id': userId
         },
         body: JSON.stringify(metrics)

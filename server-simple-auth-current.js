@@ -15,6 +15,7 @@ import agentChatHistoryRoutes from './routes/agentChatHistory.js'
 import agentUsageRoutes from './routes/agentUsage.js'
 import agentsRoutes from './routes/agents.js'
 import agentCollectionsRoutes from './routes/agentCollections.js'
+import communityRoutes from './routes/community.js'
 
 dotenv.config()
 
@@ -44,6 +45,9 @@ app.use('/api/agents', agentsRoutes)
 
 // Agent Collections API routes (individual agent data hubs)
 app.use('/api/agent-collections', agentCollectionsRoutes)
+
+// Community API routes
+app.use('/api/community', communityRoutes)
 
 // MongoDB connection
 let client

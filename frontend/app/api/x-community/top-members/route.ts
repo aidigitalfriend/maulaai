@@ -1,56 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
-// GET /api/x-community/top-members
+// GET /api/x-community/top-members - Proxy to backend community API for consistency with app-community routes
 export async function GET(req: NextRequest) {
   try {
-    const hasMongo = !!process.env.MONGODB_URI
-    if (!hasMongo) {
-      // Return empty array when DB is not configured
-      return NextResponse.json({ success: true, data: [] })
-    }
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
+    const response = await fetch(`${backendUrl}/api/community/top-members`)
 
-    const [{ default: dbConnect }, { default: User }, { default: CommunityPost }] = await Promise.all([
-      import('../../../../../backend/lib/mongodb'),
-      import('../../../../../backend/models/User'),
-      import('../../../../../backend/models/CommunityPost'),
-    ])
-    await dbConnect()
-
-    // Get top 10 users by post count
-    const topPosters = await CommunityPost.aggregate([
-      { $group: { _id: '$authorName', count: { $sum: 1 }, avatar: { $first: '$authorAvatar' } } },
-      { $sort: { count: -1 } },
-      { $limit: 10 },
-    ])
-
-    // Get user details for top posters (if they exist in User collection)
-    const members = await Promise.all(
-      topPosters.map(async (poster) => {
-        // Try to find user by name or email
-        const user = await User.findOne({
-          $or: [
-            { name: poster._id },
-            { email: poster._id },
-          ],
-        }).lean()
-
-        return {
-          _id: user?._id?.toString() || poster._id,
-          name: poster._id,
-          avatar: poster.avatar || '👤',
-          email: user?.email || null,
-          postsCount: poster.count,
-          createdAt: user?.createdAt || new Date(),
-          title: `${poster.count} ${poster.count === 1 ? 'post' : 'posts'}`,
-        }
-      })
-    )
-
-    return NextResponse.json({ success: true, data: members })
-  } catch (error: any) {
-    console.error('App-Community top-members GET error:', error)
-    // Return empty array on error
-    return NextResponse.json({ success: true, data: [] })
+    const data = await response.json()
+    return NextResponse.json(data, { status: response.status })
+  } catch (error) {
+    console.error('Community top-members proxy error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to fetch top members', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 })
   }
 }

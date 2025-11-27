@@ -33,6 +33,7 @@ export default function CommunityPage() {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'general' | 'agents' | 'ideas' | 'help'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [likedMessages, setLikedMessages] = useState<Set<string>>(new Set())
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [metrics, setMetrics] = useState<{ totalMembers: number; onlineNow: number; totalPosts: number; postsThisWeek: number; activeReplies: number; newMembersWeek: number } | null>(null)
   const [loadingPosts, setLoadingPosts] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,31 +47,27 @@ export default function CommunityPage() {
     scrollToBottom()
   }, [messages])
 
-  // Presence ping (20s)
+  // Presence ping with JWT authentication (20s)
   useEffect(() => {
-    const sessionKey = 'presence_session'
-    let sessionId = localStorage.getItem(sessionKey)
-    if (!sessionId) {
-      sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36)
-      localStorage.setItem(sessionKey, sessionId)
-    }
     const ping = async () => {
       try {
-        const user = localStorage.getItem('auth_user')
-        const userId = user ? JSON.parse(user).id : null
+        if (!userProfile?.token) return // Only ping if authenticated
+        
         await fetch('/api/x-community/presence/ping', {
           method: 'POST',
           headers: {
-            'x-session-id': sessionId as string,
-            ...(userId ? { 'x-user-id': userId } : {}),
+            'Authorization': `Bearer ${userProfile.token}`,
+            'Content-Type': 'application/json'
           },
         })
-      } catch (_) {}
+      } catch (error) {
+        console.error('Presence ping failed:', error)
+      }
     }
     ping()
-    const t = setInterval(ping, 20000)
-    return () => clearInterval(t)
-  }, [])
+    const interval = setInterval(ping, 20000)
+    return () => clearInterval(interval)
+  }, [userProfile?.token])
 
   // Fetch initial posts and top members
   useEffect(() => {
@@ -125,6 +122,31 @@ export default function CommunityPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Load user profile from API instead of localStorage
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      const token = localStorage.getItem('auth_token') || document.cookie.match(/token=([^;]+)/)?.[1]
+      if (!token) return
+      
+      try {
+        const res = await fetch('/api/user/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const profile = await res.json()
+          // Include token with user profile for API calls
+          setUserProfile({
+            ...profile.data,
+            token
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+      }
+    }
+    loadUserProfile()
+  }, [])
+
   // SSE for metrics
   useEffect(() => {
     const es = new EventSource('/api/x-community/stream')
@@ -146,25 +168,20 @@ export default function CommunityPage() {
     e.preventDefault()
     if (!newMessage.trim()) return
 
-    const token = localStorage.getItem('auth_token')
-    const userRaw = localStorage.getItem('auth_user')
-    if (!token || !userRaw) {
-      window.location.href = '/auth/login'
+    if (!userProfile?.token) {
+      setError('Please log in to post messages')
       return
     }
-    const user = JSON.parse(userRaw)
     try {
       const res = await fetch('/api/x-community/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${userProfile.token}`,
         },
         body: JSON.stringify({
           content: newMessage.trim(),
           category: postCategory,
-          authorName: user.name || user.email || 'Member',
-          authorAvatar: '😊',
         }),
       })
       const json = await res.json()
@@ -188,19 +205,23 @@ export default function CommunityPage() {
   }
 
   const handleLike = async (messageId: string) => {
-    const token = localStorage.getItem('auth_token')
-    const userRaw = localStorage.getItem('auth_user')
-    if (!token || !userRaw) {
-      window.location.href = '/auth/login'
+    if (!userProfile?.token) {
+      setError('Please log in to like posts')
       return
     }
     const isLiked = likedMessages.has(messageId)
     try {
       const endpoint = isLiked ? 'unlike' : 'like'
-      await fetch(`/api/x-community/posts/${messageId}/${endpoint}`, {
+      const res = await fetch(`/api/x-community/posts/${messageId}/${endpoint}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${userProfile.token}`,
+          'Content-Type': 'application/json'
+        },
       })
+      if (!res.ok) {
+        throw new Error('Failed to update like')
+      }
       setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, likes: Math.max(0, m.likes + (isLiked ? -1 : 1)) } : m)))
       const next = new Set(likedMessages)
       if (isLiked) next.delete(messageId)

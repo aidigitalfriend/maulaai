@@ -86,7 +86,10 @@ export function emitMetricsEvent(event: MetricsEvent): void {
   })
 }
 
-// LOCAL STORAGE KEY
+// Import API client for database-backed storage
+import { gamificationStorage } from '../gamificationAPI'
+
+// LOCAL STORAGE KEY (deprecated - using API now)
 const METRICS_STORAGE_KEY = 'userRealTimeMetrics'
 const PENDING_EVENTS_KEY = 'pendingMetricsEvents'
 
@@ -121,15 +124,15 @@ export function initializeUserMetrics(userId: string, username: string): UserMet
 }
 
 /**
- * Load user metrics from localStorage
+ * Load user metrics from API (database-backed)
  */
-export function loadUserMetrics(userId: string): UserMetrics | null {
+export async function loadUserMetrics(userId: string): Promise<UserMetrics | null> {
   try {
-    const stored = localStorage.getItem(`${METRICS_STORAGE_KEY}_${userId}`)
-    if (!stored) return null
-
-    const metrics = JSON.parse(stored)
+    // First try to get from API
+    const metrics = await gamificationStorage.getMetrics()
     
+    if (!metrics) return null
+
     // Reconstruct Sets
     if (Array.isArray(metrics.agentsUsed)) {
       metrics.agentsUsed = new Set(metrics.agentsUsed)
@@ -150,15 +153,48 @@ export function loadUserMetrics(userId: string): UserMetrics | null {
 
     return metrics
   } catch (error) {
-    console.error('Error loading user metrics:', error)
-    return null
+    console.error('Error loading user metrics from API:', error)
+    
+    // Fallback to localStorage for backward compatibility
+    try {
+      const stored = localStorage.getItem(`${METRICS_STORAGE_KEY}_${userId}`)
+      if (!stored) return null
+
+      const metrics = JSON.parse(stored)
+      
+      // Reconstruct Sets
+      if (Array.isArray(metrics.agentsUsed)) {
+        metrics.agentsUsed = new Set(metrics.agentsUsed)
+      }
+      
+      // Convert date strings back to Date objects
+      metrics.firstUsageToday = metrics.firstUsageToday ? new Date(metrics.firstUsageToday) : null
+      metrics.lastActivityTime = new Date(metrics.lastActivityTime)
+      metrics.lastChallengeTime = metrics.lastChallengeTime ? new Date(metrics.lastChallengeTime) : null
+      metrics.accountCreatedAt = new Date(metrics.accountCreatedAt)
+      metrics.lastUpdated = new Date(metrics.lastUpdated)
+      
+      metrics.conversationSessions = metrics.conversationSessions?.map((s: any) => ({
+        ...s,
+        startTime: new Date(s.startTime),
+        endTime: s.endTime ? new Date(s.endTime) : undefined
+      })) || []
+
+      // Migrate to API
+      await gamificationStorage.setMetrics(metrics)
+      
+      return metrics
+    } catch (fallbackError) {
+      console.error('Error loading user metrics from localStorage:', fallbackError)
+      return null
+    }
   }
 }
 
 /**
- * Save user metrics to localStorage
+ * Save user metrics to API (database-backed)
  */
-export function saveUserMetrics(metrics: UserMetrics): void {
+export async function saveUserMetrics(metrics: UserMetrics): Promise<void> {
   try {
     const serializable = {
       ...metrics,
@@ -166,9 +202,25 @@ export function saveUserMetrics(metrics: UserMetrics): void {
       lastUpdated: new Date().toISOString()
     }
     
+    // Save to API (database-backed)
+    await gamificationStorage.setMetrics(serializable)
+    
+    // Keep localStorage as backup for now
     localStorage.setItem(`${METRICS_STORAGE_KEY}_${metrics.userId}`, JSON.stringify(serializable))
   } catch (error) {
-    console.error('Error saving user metrics:', error)
+    console.error('Error saving user metrics to API:', error)
+    
+    // Fallback to localStorage
+    try {
+      const serializable = {
+        ...metrics,
+        agentsUsed: Array.from(metrics.agentsUsed), // Convert Set to Array
+        lastUpdated: new Date().toISOString()
+      }
+      localStorage.setItem(`${METRICS_STORAGE_KEY}_${metrics.userId}`, JSON.stringify(serializable))
+    } catch (fallbackError) {
+      console.error('Error saving user metrics to localStorage:', fallbackError)
+    }
   }
 }
 
@@ -176,12 +228,12 @@ export function saveUserMetrics(metrics: UserMetrics): void {
  * REAL-TIME EVENT TRACKING
  * Track when user sends a message
  */
-export function trackMessageSent(
+export async function trackMessageSent(
   userId: string,
   agentId: string,
   messageLength: number,
   metrics: UserMetrics
-): UserMetrics {
+): Promise<UserMetrics> {
   const updated = { ...metrics }
   
   // Increment message count
@@ -220,8 +272,11 @@ export function trackMessageSent(
     data: { agentId, messageLength }
   })
   
+  // Track event via API
+  await gamificationStorage.trackEvent('message-sent', { agentId, messageLength })
+  
   // Save immediately
-  saveUserMetrics(updated)
+  await saveUserMetrics(updated)
   
   return updated
 }
@@ -229,12 +284,12 @@ export function trackMessageSent(
 /**
  * Track perfect response (100% satisfaction)
  */
-export function trackPerfectResponse(
+export async function trackPerfectResponse(
   userId: string,
   agentId: string,
   responseTime: number,
   metrics: UserMetrics
-): UserMetrics {
+): Promise<UserMetrics> {
   const updated = { ...metrics }
   
   updated.perfectResponseCount += 1
@@ -258,7 +313,10 @@ export function trackPerfectResponse(
     data: { agentId, responseTime }
   })
   
-  saveUserMetrics(updated)
+  // Track event via API
+  await gamificationStorage.trackEvent('perfect-response', { agentId, responseTime })
+  
+  await saveUserMetrics(updated)
   return updated
 }
 
@@ -428,38 +486,62 @@ export function trackChallengeCompletion(
 }
 
 /**
- * Queue pending metrics events for backend sync
+ * Queue pending metrics events for backend sync (now using API directly)
  */
-export function queueMetricsForSync(userId: string, event: MetricsEvent): void {
+export async function queueMetricsForSync(userId: string, event: MetricsEvent): Promise<void> {
   try {
-    const key = `${PENDING_EVENTS_KEY}_${userId}`
-    const stored = localStorage.getItem(key)
-    const events: MetricsEvent[] = stored ? JSON.parse(stored) : []
-    
-    events.push(event)
-    
-    // Keep max 100 pending events
-    if (events.length > 100) {
-      events.shift()
-    }
-    
-    localStorage.setItem(key, JSON.stringify(events))
+    // Try to send event directly to API first
+    await gamificationStorage.trackEvent(event.type, event.data)
   } catch (error) {
-    console.error('Error queuing metrics:', error)
+    console.error('Error sending event to API, queuing locally:', error)
+    
+    // Fallback to localStorage queue
+    try {
+      const key = `${PENDING_EVENTS_KEY}_${userId}`
+      const stored = localStorage.getItem(key)
+      const events: MetricsEvent[] = stored ? JSON.parse(stored) : []
+      
+      events.push(event)
+      
+      // Keep max 100 pending events
+      if (events.length > 100) {
+        events.shift()
+      }
+      
+      localStorage.setItem(key, JSON.stringify(events))
+    } catch (fallbackError) {
+      console.error('Error queuing metrics to localStorage:', fallbackError)
+    }
   }
 }
 
 /**
- * Get all pending metrics for sync
+ * Get all pending metrics for sync (API-first approach)
  */
-export function getPendingMetrics(userId: string): MetricsEvent[] {
+export async function getPendingMetrics(userId: string): Promise<MetricsEvent[]> {
   try {
+    // Try to get from API first
+    const syncData = await gamificationStorage.syncData()
+    if (syncData?.success && syncData.data?.pendingEvents) {
+      return syncData.data.pendingEvents
+    }
+    
+    // Fallback to localStorage
     const key = `${PENDING_EVENTS_KEY}_${userId}`
     const stored = localStorage.getItem(key)
     return stored ? JSON.parse(stored) : []
   } catch (error) {
     console.error('Error getting pending metrics:', error)
-    return []
+    
+    // Fallback to localStorage
+    try {
+      const key = `${PENDING_EVENTS_KEY}_${userId}`
+      const stored = localStorage.getItem(key)
+      return stored ? JSON.parse(stored) : []
+    } catch (fallbackError) {
+      console.error('Error getting pending metrics from localStorage:', fallbackError)
+      return []
+    }
   }
 }
 

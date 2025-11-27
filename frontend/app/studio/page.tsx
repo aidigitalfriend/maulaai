@@ -26,29 +26,41 @@ export default function AIStudioPage() {
   const MAX_MESSAGES = 18
 
   useEffect(() => {
-    const storedMessages = localStorage.getItem('ai-studio-messages')
-    const storedCount = localStorage.getItem('ai-studio-count')
-    const storedTimestamp = localStorage.getItem('ai-studio-timestamp')
-
-    if (storedMessages && storedCount && storedTimestamp) {
-      const timestamp = parseInt(storedTimestamp)
-      const now = Date.now()
-      const thirtyMinutes = 30 * 60 * 1000
-
-      if (now - timestamp < thirtyMinutes) {
-        setMessages(JSON.parse(storedMessages))
-        setMessageCount(parseInt(storedCount))
-        setShowWelcome(false)
-        if (parseInt(storedCount) >= MAX_MESSAGES) {
-          setRateLimitReached(true)
-        }
-      } else {
-        localStorage.removeItem('ai-studio-messages')
-        localStorage.removeItem('ai-studio-count')
-        localStorage.removeItem('ai-studio-timestamp')
-      }
-    }
+    loadSession()
   }, [])
+
+  const loadSession = async () => {
+    try {
+      const response = await fetch('/api/studio/session', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          const sessionData = data.data
+          
+          if (!sessionData.isNew && !sessionData.expired) {
+            setMessages(sessionData.messages)
+            setMessageCount(sessionData.messageCount)
+            setShowWelcome(false)
+            if (sessionData.messageCount >= MAX_MESSAGES) {
+              setRateLimitReached(true)
+            }
+          } else if (sessionData.expired) {
+            // Session expired, start fresh
+            setMessages([])
+            setMessageCount(0)
+            setShowWelcome(true)
+            setRateLimitReached(false)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load session:', error)
+    }
+  }
 
   // Track user scroll behavior to prevent auto-scroll interference
   useEffect(() => {
@@ -71,10 +83,16 @@ export default function AIStudioPage() {
     }
   }, [messages, shouldAutoScroll])
 
-  const handleResetSession = () => {
-    localStorage.removeItem('ai-studio-messages')
-    localStorage.removeItem('ai-studio-count')
-    localStorage.removeItem('ai-studio-timestamp')
+  const handleResetSession = async () => {
+    try {
+      await fetch('/api/studio/session', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+    } catch (error) {
+      console.error('Failed to reset session:', error)
+    }
+    
     setMessages([])
     setMessageCount(0)
     setRateLimitReached(false)
@@ -171,10 +189,21 @@ export default function AIStudioPage() {
       const finalMessages = [...newMessages, assistantMessage]
       setMessages(finalMessages)
 
-      localStorage.setItem('ai-studio-messages', JSON.stringify(finalMessages))
-      localStorage.setItem('ai-studio-count', newCount.toString())
-      if (!localStorage.getItem('ai-studio-timestamp')) {
-        localStorage.setItem('ai-studio-timestamp', Date.now().toString())
+      // Save session to backend
+      try {
+        await fetch('/api/studio/session', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messages: finalMessages,
+            messageCount: newCount
+          })
+        })
+      } catch (error) {
+        console.error('Failed to save session:', error)
       }
 
     } catch (error) {

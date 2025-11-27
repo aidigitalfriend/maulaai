@@ -1,33 +1,28 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+const BACKEND_BASE = process.env.BACKEND_URL || 'http://localhost:3005'
 
-function sseHeaders() {
-  return new Headers({
-    'Content-Type': 'text/event-stream; charset=utf-8',
-    'Cache-Control': 'no-cache, no-transform',
-    Connection: 'keep-alive',
-    'X-Accel-Buffering': 'no',
-  })
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url)
+    const backendUrl = `${BACKEND_BASE}/api/community/stream${url.search}`
+    
+    const res = await fetch(backendUrl, {
+      method: 'GET',
+      headers: Object.fromEntries(request.headers),
+    })
+    
+    const text = await res.text()
+
+    return new NextResponse(text, {
+      status: res.status,
+      headers: res.headers as any,
+    })
+  } catch (error: any) {
+    console.error('[/app-community/stream] Proxy error:', error)
+    return NextResponse.json({ success: false, error: error.message || 'Proxy error' }, { status: 500 })
+  }
 }
-
-export async function GET(req: NextRequest) {
-  const encoder = new TextEncoder()
-
-  // Determine DB availability first; avoid importing DB code if not configured
-  const hasMongo = !!process.env.MONGODB_URI
-  let computeMetrics: (() => Promise<{ totalMembers: number; newMembersWeek: number; onlineNow: number; totalPosts: number; postsThisWeek: number; activeReplies: number }>) | null = null
-
-  if (hasMongo) {
-    try {
-      const [{ default: dbConnect }, { default: User }, { default: CommunityPost }, { default: CommunityComment }, { default: Presence }] = await Promise.all([
-        import('../../../../backend/lib/mongodb'),
-        import('../../../../backend/models/User'),
-        import('../../../../backend/models/CommunityPost'),
-        import('../../../../backend/models/CommunityComment'),
-        import('../../../../backend/models/Presence'),
-      ])
       await dbConnect()
 
       computeMetrics = async () => {

@@ -5,6 +5,7 @@
  */
 
 import { UserMetrics } from './realtime-metrics'
+import { gamificationStorage, gamificationAPI } from '../gamificationAPI'
 
 export interface SyncConfig {
   syncInterval: number // ms between syncs (default 5 min)
@@ -97,13 +98,11 @@ export class GamificationSyncService {
     this.isSyncing.set(userId, true)
 
     try {
-      const authToken = localStorage.getItem('authToken')
-      if (!authToken) {
-        throw new Error('No authentication token')
-      }
+      // Using session-based auth now, no need for localStorage token
 
-      // Get pending events for this user
-      const pendingEvents = this.getPendingEvents(userId)
+      // Get pending events for this user (now from API)
+      const pendingEventsResult = await gamificationAPI.syncData(userId)
+      const pendingEvents = pendingEventsResult?.data?.pendingEvents || []
 
       if (pendingEvents.length === 0) {
         console.log(`[GamificationSync] No pending events for user ${userId}`)
@@ -303,14 +302,18 @@ export class GamificationSyncService {
     // Get from pending events
     this.pendingEvents.forEach((_, userId) => userIds.add(userId))
 
-    // Get from localStorage
-    const keys = Object.keys(localStorage)
-    keys.forEach(key => {
-      if (key.startsWith('userRealTimeMetrics_')) {
-        const userId = key.replace('userRealTimeMetrics_', '')
-        userIds.add(userId)
-      }
-    })
+    // Get from localStorage (legacy support)
+    try {
+      const keys = Object.keys(localStorage)
+      keys.forEach(key => {
+        if (key.startsWith('userRealTimeMetrics_')) {
+          const userId = key.replace('userRealTimeMetrics_', '')
+          userIds.add(userId)
+        }
+      })
+    } catch (error) {
+      console.warn('[GamificationSync] Could not access localStorage:', error)
+    }
 
     return Array.from(userIds)
   }
@@ -320,17 +323,10 @@ export class GamificationSyncService {
    */
   static async pullFromBackend(userId: string): Promise<any> {
     try {
-      const authToken = localStorage.getItem('authToken')
-      if (!authToken) {
-        throw new Error('No authentication token')
-      }
-
-      const response = await fetch(`/api/gamification/profile/${userId}`, {
+      // Using session-based auth and new API structure
+      const response = await fetch(`/api/gamification/sync/${userId}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'x-user-id': userId
-        }
+        credentials: 'include'
       })
 
       if (!response.ok) {

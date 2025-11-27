@@ -6,6 +6,7 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import os from 'os'
 import { MongoClient } from 'mongodb'
@@ -21,6 +22,7 @@ import rewardsCenterRoutes from './routes/rewardsCenter.js'
 import agentSubscriptionsRoutes from './routes/agentSubscriptions.js'
 import agentChatHistoryRoutes from './routes/agentChatHistory.js'
 import agentUsageRoutes from './routes/agentUsage.js'
+
 
 dotenv.config()
 
@@ -40,6 +42,7 @@ const PORT = process.env.PORT || 3005
 
 // Security middleware
 app.use(helmet())
+app.use(cookieParser())
 
 // CORS configuration
 const corsOptions = {
@@ -84,6 +87,10 @@ app.use('/api/user/rewards', rewardsCenterRoutes)
 app.use('/api/agent/subscriptions', agentSubscriptionsRoutes)
 app.use('/api/agent/chat', agentChatHistoryRoutes)
 app.use('/api/agent/usage', agentUsageRoutes)
+
+// ----------------------------
+// COMMUNITY SYSTEM ROUTES (loaded dynamically in startServer)
+// ----------------------------
 
 // ----------------------------
 // AGENT SUBSCRIPTIONS API (Simple Test)
@@ -813,8 +820,8 @@ app.post('/api/translate', async (req, res) => {
   }
 });
 
-// Gamification API (in-memory) mounted at /api/gamification
-;(() => {
+// Gamification API (in-memory) mounted at /api/gamification - COMMENTED OUT - Using new API
+/*;(() => {
   const gamificationDB = {}
 
   // Simple auth middleware for demo
@@ -1151,7 +1158,7 @@ app.post('/api/translate', async (req, res) => {
   }
 
   app.use('/api/gamification', router)
-})()
+})()*/
 
 // IP information endpoint (used by frontend /tools/ip-info)
 // GET /api/ipinfo?ip=1.2.3.4
@@ -1278,6 +1285,23 @@ app.use((err, req, res, next) => {
 // Start server with MongoDB connection
 const startServer = async () => {
   await connectMongoDB()
+  
+  // Load community, user, session, AI studio, and gamification routes
+  try {
+    const { default: communityRoutes } = await import('./routes/community.js')
+    const { default: userRoutes } = await import('./routes/user.js')
+    const { default: sessionRoutes } = await import('./routes/session.js')
+    const { default: aiStudioSessionRoutes } = await import('./routes/ai-studio-session.js')
+    const { default: gamificationRoutes } = await import('./routes/gamification.js')
+    app.use('/api/community', communityRoutes)
+    app.use('/api/user', userRoutes)
+    app.use('/api/session', sessionRoutes)
+    app.use('/api/studio', aiStudioSessionRoutes)
+    app.use('/api/gamification', gamificationRoutes)
+    console.log('✅ All API routes loaded successfully')
+  } catch (error) {
+    console.error('❌ Failed to load routes:', error.message)
+  }
   
   app.listen(PORT, () => {
     console.log(`🚀 Backend server running on port ${PORT}`)

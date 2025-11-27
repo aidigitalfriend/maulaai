@@ -14,8 +14,8 @@ export async function fetchApiMetrics(days: number = 7): Promise<DashboardRespon
   try {
     // Replace with your actual API endpoint
     const response = await fetch(`/api/dashboard/metrics?days=${days}`, {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -31,9 +31,9 @@ export async function fetchApiMetrics(days: number = 7): Promise<DashboardRespon
 // Fetch model usage data
 export async function fetchModelUsage(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/model-usage', {
+    const response = await fetch('/api/dashboard/billing', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -49,9 +49,9 @@ export async function fetchModelUsage(): Promise<DashboardResponse<any>> {
 // Fetch success/failure rates
 export async function fetchSuccessFailureRates(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/success-failure', {
+    const response = await fetch('/api/dashboard/satisfaction', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -67,9 +67,9 @@ export async function fetchSuccessFailureRates(): Promise<DashboardResponse<any>
 // Fetch token usage
 export async function fetchTokenUsage(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/token-usage', {
+    const response = await fetch('/api/dashboard/costs', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -85,9 +85,9 @@ export async function fetchTokenUsage(): Promise<DashboardResponse<any>> {
 // Fetch geographic distribution
 export async function fetchGeographicData(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/geographic', {
+    const response = await fetch('/api/dashboard/health', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -103,9 +103,9 @@ export async function fetchGeographicData(): Promise<DashboardResponse<any>> {
 // Fetch peak traffic hours
 export async function fetchPeakTraffic(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/peak-traffic', {
+    const response = await fetch('/api/dashboard/profile', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -121,9 +121,9 @@ export async function fetchPeakTraffic(): Promise<DashboardResponse<any>> {
 // Fetch error breakdown
 export async function fetchErrorBreakdown(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/error-breakdown', {
+    const response = await fetch('/api/dashboard/errors', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -139,9 +139,9 @@ export async function fetchErrorBreakdown(): Promise<DashboardResponse<any>> {
 // Fetch response size data
 export async function fetchResponseSizeData(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/response-size', {
+    const response = await fetch('/api/dashboard/response-times', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
@@ -157,9 +157,9 @@ export async function fetchResponseSizeData(): Promise<DashboardResponse<any>> {
 // Fetch cost estimation
 export async function fetchCostEstimation(): Promise<DashboardResponse<any>> {
   try {
-    const response = await fetch('/api/dashboard/cost-estimation', {
+    const response = await fetch('/api/dashboard/subscriptions', {
+      credentials: 'include', // Use session cookies
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         'Content-Type': 'application/json'
       }
     });
