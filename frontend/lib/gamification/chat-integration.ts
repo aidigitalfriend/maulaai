@@ -371,8 +371,6 @@ export class ChatIntegrationService {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-          'x-user-id': userId
-        },
         body: JSON.stringify(metrics)
       })
 

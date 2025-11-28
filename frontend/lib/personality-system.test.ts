@@ -1,7 +1,3 @@
-#!/bin/bash
-# PERSONALITY SYSTEM INTEGRATION TEST
-# Tests all 18 agents for personality consistency
-
 import { AGENT_SYSTEM_PROMPTS, AGENT_TEMPERATURES, getSystemPrompt, getAgentTemperature } from '@/lib/agent-system-prompts';
 
 /**
