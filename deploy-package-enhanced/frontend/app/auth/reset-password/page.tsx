@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../lib/auth-context'
+import { useAuth } from '../../../contexts/AuthContext'
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('')

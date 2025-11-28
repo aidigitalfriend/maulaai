@@ -21,6 +21,14 @@ rsync -avz --no-perms --no-owner --no-group -e "ssh -i $KEY -o LogLevel=QUIET" \
   package.json \
   ${SERVER}:${REMOTE_DIR}/
 
+rsync -avz --no-perms --no-owner --no-group -e "ssh -i $KEY -o LogLevel=QUIET" \
+  package-lock.json \
+  ${SERVER}:${REMOTE_DIR}/
+
+echo ""
+echo "📦 Installing updated dependencies on server..."
+ssh -i $KEY -o LogLevel=QUIET $SERVER "cd $REMOTE_DIR && npm install"
+
 echo ""
 echo "🔄 Restarting frontend application..."
 ssh -i $KEY -o LogLevel=QUIET $SERVER "cd $REMOTE_DIR && pm2 restart shiny-frontend"

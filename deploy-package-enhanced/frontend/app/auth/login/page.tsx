@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../lib/auth-context'
+import { useAuth } from '../../../contexts/AuthContext'
 
 function LoginPageContent() {
   const [formData, setFormData] = useState({

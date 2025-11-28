@@ -11,22 +11,11 @@ export default function Header() {
 
   useEffect(() => setMounted(true), []);
 
-  const { state } = mounted
-    ? useAuth()
-    : {
-        state: {
-          isLoading: false,
-          isAuthenticated: false,
-          user: null,
-          error: null,
-        },
-      };
+  const { state, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
-      if (mounted) {
-        await useAuth().logout();
-      }
+      await logout();
       setIsMenuOpen(false);
     } catch (error) {
       console.error('Logout failed:', error);

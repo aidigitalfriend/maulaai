@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import ConditionalFooter from '@/components/ConditionalFooter';
-import AuthProvider from '@/lib/auth-context';
+import AuthProvider from '@/contexts/AuthContext';
 import { LoadingProvider } from '@/lib/loading-context';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
 import '@/styles/globals.css';
