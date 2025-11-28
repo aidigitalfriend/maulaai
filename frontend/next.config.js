@@ -12,6 +12,8 @@ const nextConfig = {
   experimental: {
     externalDir: true,
   },
+
+  turbopack: {},
   
   webpack: (config, { isServer }) => {
     if (isServer) {

@@ -198,52 +198,53 @@ export default function VoiceCloningPage() {
             </button>
 
             {clonedAudio && !isCloning && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white/5 rounded-xl p-6 border border-white/20"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold">Cloned Audio</span>
-                  <div className="flex items-center gap-2 text-green-400 text-sm">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    Ready
-                  </div>
-                </div>
-                <audio 
-                  controls 
-                  className="w-full mb-4"
-                  src={clonedAudio}
+              <>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/5 rounded-xl p-6 border border-white/20"
                 >
-                  Your browser does not support the audio element.
-                </audio>
-                <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-all">
-                  <Download className="w-5 h-5" />
-                  Download Audio
-                </button>
-              </motion.div>
-            )}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <div className="p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-                    <span className="font-semibold">Voice cloned successfully!</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-semibold">Cloned Audio</span>
+                    <div className="flex items-center gap-2 text-green-400 text-sm">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                      Ready
+                    </div>
                   </div>
-                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
-                    <Play className="w-5 h-5" />
-                    Play Cloned Voice
+                  <audio 
+                    controls 
+                    className="w-full mb-4"
+                    src={clonedAudio}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-all">
+                    <Download className="w-5 h-5" />
+                    Download Audio
                   </button>
-                </div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                      <span className="font-semibold">Voice cloned successfully!</span>
+                    </div>
+                    <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
+                      <Play className="w-5 h-5" />
+                      Play Cloned Voice
+                    </button>
+                  </div>
 
-                <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
-                  <Download className="w-5 h-5" />
-                  Download Audio
-                </button>
-              </motion.div>
+                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
+                    <Download className="w-5 h-5" />
+                    Download Audio
+                  </button>
+                </motion.div>
+              </>
             )}
           </motion.div>
         </div>
