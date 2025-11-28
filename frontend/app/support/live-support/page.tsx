@@ -25,7 +25,7 @@ import {
   Clock,
 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 // Social Media Icon component
 const SocialIcon = ({ icon: Icon, href, label, color }: any) => (

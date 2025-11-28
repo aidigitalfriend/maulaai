@@ -1,33 +1,33 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@/contexts/AuthContext';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default function ResetPasswordPage() {
-  const [email, setEmail] = useState('')
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { resetPassword, state } = useAuth()
+  const { resetPassword, state } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    
+    e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      await resetPassword(email)
-      setIsSubmitted(true)
+      await resetPassword(email);
+      setIsSubmitted(true);
     } catch (error) {
-      console.error('Reset password error:', error)
+      console.error('Reset password error:', error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isSubmitted) {
     return (
@@ -49,28 +49,36 @@ export default function ResetPasswordPage() {
 
           {/* Instructions */}
           <div className="bg-white rounded-xl shadow-lg border border-neural-200 p-6">
-            <h2 className="text-xl font-semibold text-neural-800 mb-4">What's next?</h2>
+            <h2 className="text-xl font-semibold text-neural-800 mb-4">
+              What's next?
+            </h2>
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">1</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">
+                  1
+                </span>
                 <p className="text-neural-600">
                   Check your email inbox (and spam/junk folder just in case)
                 </p>
               </div>
               <div className="flex items-start space-x-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">2</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">
+                  2
+                </span>
                 <p className="text-neural-600">
                   Click the secure reset link we sent you
                 </p>
               </div>
               <div className="flex items-start space-x-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">3</span>
-                <p className="text-neural-600">
-                  Create a new strong password
-                </p>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">
+                  3
+                </span>
+                <p className="text-neural-600">Create a new strong password</p>
               </div>
               <div className="flex items-start space-x-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">4</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-sm font-medium">
+                  4
+                </span>
                 <p className="text-neural-600">
                   Sign in with your new password
                 </p>
@@ -80,24 +88,26 @@ export default function ResetPasswordPage() {
 
           {/* Security Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-800 mb-2">🔒 Security Notice</h3>
+            <h3 className="font-medium text-blue-800 mb-2">
+              🔒 Security Notice
+            </h3>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• The reset link will expire in 1 hour for security</li>
               <li>• Only the most recent reset link will work</li>
-              <li>• If you didn't request this, you can safely ignore the email</li>
+              <li>
+                • If you didn't request this, you can safely ignore the email
+              </li>
             </ul>
           </div>
 
           {/* Actions */}
           <div className="space-y-4">
             <div className="text-center">
-              <p className="text-neural-600 mb-4">
-                Didn't receive the email?
-              </p>
+              <p className="text-neural-600 mb-4">Didn't receive the email?</p>
               <button
                 onClick={() => {
-                  setIsSubmitted(false)
-                  setEmail('')
+                  setIsSubmitted(false);
+                  setEmail('');
                 }}
                 className="text-brand-600 hover:text-brand-700 font-medium"
               >
@@ -106,7 +116,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div className="text-center pt-4 border-t border-neural-200">
-              <Link 
+              <Link
                 href="/auth/login"
                 className="inline-flex items-center text-neural-500 hover:text-neural-600"
               >
@@ -117,7 +127,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -125,7 +135,10 @@ export default function ResetPasswordPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header with Logo */}
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center justify-center mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center mb-6"
+          >
             <Image
               src="/images/logos/company-logo.png"
               alt="One Last AI"
@@ -148,7 +161,9 @@ export default function ResetPasswordPage() {
 
         {state.error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 text-center font-medium">{state.error}</p>
+            <p className="text-red-800 text-center font-medium">
+              {state.error}
+            </p>
           </div>
         )}
 
@@ -195,11 +210,14 @@ export default function ResetPasswordPage() {
 
         {/* Alternative Options */}
         <div className="bg-brand-50 rounded-lg p-4">
-          <h3 className="font-medium text-brand-800 mb-2">💡 Consider Passwordless</h3>
+          <h3 className="font-medium text-brand-800 mb-2">
+            💡 Consider Passwordless
+          </h3>
           <p className="text-sm text-brand-700 mb-3">
-            Skip the password hassle entirely! Our passwordless login is more secure and convenient.
+            Skip the password hassle entirely! Our passwordless login is more
+            secure and convenient.
           </p>
-          <Link 
+          <Link
             href="/auth/login"
             className="text-brand-600 hover:text-brand-700 text-sm font-medium"
           >
@@ -209,15 +227,15 @@ export default function ResetPasswordPage() {
 
         {/* Navigation */}
         <div className="flex items-center justify-between text-sm">
-          <Link 
+          <Link
             href="/auth/login"
             className="inline-flex items-center text-neural-500 hover:text-neural-600"
           >
             <ArrowLeftIcon className="w-4 h-4 mr-1" />
             Back to login
           </Link>
-          
-          <Link 
+
+          <Link
             href="/auth/signup"
             className="text-brand-600 hover:text-brand-700"
           >
@@ -226,5 +244,5 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

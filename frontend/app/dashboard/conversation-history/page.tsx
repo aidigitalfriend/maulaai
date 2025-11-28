@@ -1,32 +1,52 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default function ConversationHistoryPage() {
-  const { state } = useAuth()
+  const { state } = useAuth();
 
   if (!state.isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-neural-900 mb-4">Please log in to view conversations</h1>
+          <h1 className="text-2xl font-bold text-neural-900 mb-4">
+            Please log in to view conversations
+          </h1>
           <Link href="/auth/login" className="btn-primary inline-block">
             Log In
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   const conversations = [
-    { id: 1, agent: 'Tech Wizard', topic: 'API Integration Help', date: '2024-01-15', duration: '12m' },
-    { id: 2, agent: 'Einstein', topic: 'Physics Concepts', date: '2024-01-14', duration: '8m' },
-    { id: 3, agent: 'Chef Biew', topic: 'Recipe Suggestions', date: '2024-01-13', duration: '15m' },
-  ]
+    {
+      id: 1,
+      agent: 'Tech Wizard',
+      topic: 'API Integration Help',
+      date: '2024-01-15',
+      duration: '12m',
+    },
+    {
+      id: 2,
+      agent: 'Einstein',
+      topic: 'Physics Concepts',
+      date: '2024-01-14',
+      duration: '8m',
+    },
+    {
+      id: 3,
+      agent: 'Chef Biew',
+      topic: 'Recipe Suggestions',
+      date: '2024-01-13',
+      duration: '15m',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
@@ -36,7 +56,9 @@ export default function ConversationHistoryPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
             Conversation History
           </h1>
-          <p className="text-neural-600">Review and manage your past interactions</p>
+          <p className="text-neural-600">
+            Review and manage your past interactions
+          </p>
         </div>
       </section>
 
@@ -54,7 +76,9 @@ export default function ConversationHistoryPage() {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-neural-900 mb-1">{conv.agent}</h3>
+                    <h3 className="font-semibold text-neural-900 mb-1">
+                      {conv.agent}
+                    </h3>
                     <p className="text-sm text-neural-600">{conv.topic}</p>
                   </div>
                   <div className="text-right">
@@ -68,13 +92,18 @@ export default function ConversationHistoryPage() {
 
           {/* Empty state message */}
           <div className="bg-neural-50 rounded-lg p-8 text-center border border-dashed border-neural-300">
-            <p className="text-neural-600 mb-4">Load more conversations or search history</p>
-            <Link href="/dashboard/overview" className="btn-secondary inline-block">
+            <p className="text-neural-600 mb-4">
+              Load more conversations or search history
+            </p>
+            <Link
+              href="/dashboard/overview"
+              className="btn-secondary inline-block"
+            >
               Back to Dashboard
             </Link>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

@@ -1,29 +1,38 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => setMounted(true), []);
 
-  const { state } = mounted ? useAuth() : { state: { isLoading: false, isAuthenticated: false, user: null, error: null } }
-  
+  const { state } = mounted
+    ? useAuth()
+    : {
+        state: {
+          isLoading: false,
+          isAuthenticated: false,
+          user: null,
+          error: null,
+        },
+      };
+
   const handleLogout = async () => {
     try {
       if (mounted) {
-        await useAuth().logout()
+        await useAuth().logout();
       }
-      setIsMenuOpen(false)
+      setIsMenuOpen(false);
     } catch (error) {
-      console.error('Logout failed:', error)
+      console.error('Logout failed:', error);
     }
-  }
+  };
 
   const navigation: Array<{
     name: string;
@@ -39,8 +48,8 @@ export default function Header() {
     { name: 'Status', href: '/status' },
     { name: 'Support', href: '/support/help-center' },
     { name: 'Legal', href: '/legal' },
-    { name: 'AI Studio', href: '/studio' }
-  ]
+    { name: 'AI Studio', href: '/studio' },
+  ];
 
   return (
     <header className="bg-white shadow-sm border-b border-neural-100 sticky top-0 z-50 w-full">
@@ -56,7 +65,9 @@ export default function Header() {
               className="w-10 h-10 object-contain"
               priority
             />
-            <span className="text-xl font-bold text-neural-800">One Last AI</span>
+            <span className="text-xl font-bold text-neural-800">
+              One Last AI
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -65,7 +76,9 @@ export default function Header() {
               <div
                 key={item.name}
                 className="relative"
-                onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.name)}
+                onMouseEnter={() =>
+                  item.hasDropdown && setActiveDropdown(item.name)
+                }
                 onMouseLeave={() => setActiveDropdown(null)}
               >
                 <Link
@@ -74,8 +87,18 @@ export default function Header() {
                 >
                   {item.name}
                   {item.hasDropdown && (
-                    <svg className="w-4 h-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="w-4 h-4 ml-1 inline"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   )}
                 </Link>
@@ -118,7 +141,7 @@ export default function Header() {
                 <Link href="/dashboard/overview" className="btn-secondary">
                   Dashboard
                 </Link>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="text-neural-600 hover:text-red-600 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-red-50"
                 >
@@ -140,11 +163,26 @@ export default function Header() {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden p-2 text-neural-600 hover:text-brand-600"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -197,10 +235,14 @@ export default function Header() {
                         </span>
                       </div>
                     </div>
-                    <Link href="/dashboard" className="block btn-secondary text-center" onClick={() => setIsMenuOpen(false)}>
+                    <Link
+                      href="/dashboard"
+                      className="block btn-secondary text-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Dashboard
                     </Link>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="block w-full text-center px-4 py-2 text-neural-600 hover:text-red-600 font-medium transition-colors rounded-lg hover:bg-red-50"
                     >
@@ -210,13 +252,25 @@ export default function Header() {
                 ) : (
                   // Unauthenticated mobile navigation
                   <>
-                    <Link href="/auth/login" className="block text-center px-4 py-2 text-neural-600 hover:text-brand-600 font-medium transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    <Link
+                      href="/auth/login"
+                      className="block text-center px-4 py-2 text-neural-600 hover:text-brand-600 font-medium transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Login
                     </Link>
-                    <Link href="/auth/signup" className="block btn-secondary text-center" onClick={() => setIsMenuOpen(false)}>
+                    <Link
+                      href="/auth/signup"
+                      className="block btn-secondary text-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Sign Up
                     </Link>
-                    <Link href="/agents" className="block btn-primary text-center" onClick={() => setIsMenuOpen(false)}>
+                    <Link
+                      href="/agents"
+                      className="block btn-primary text-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       Try Agents
                     </Link>
                   </>
@@ -227,5 +281,5 @@ export default function Header() {
         )}
       </div>
     </header>
-  )
+  );
 }
