@@ -13,8 +13,6 @@ const nextConfig = {
     externalDir: true,
   },
 
-  turbopack: {},
-
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Add backend directory to module resolution for server-side imports
@@ -67,9 +65,6 @@ const nextConfig = {
   // ✅ SECURITY: Disable source maps in production
   productionBrowserSourceMaps:
     process.env.NODE_ENV === 'production' ? false : true,
-
-  // ✅ SECURITY: Enable minification
-  swcMinify: true,
 
   // ✅ SECURITY: Add security headers
   async headers() {
