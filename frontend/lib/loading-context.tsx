@@ -36,7 +36,12 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
 export function useLoading() {
   const context = useContext(LoadingContext)
   if (context === undefined) {
-    throw new Error('useLoading must be used within LoadingProvider')
+    // During SSR or before provider mounts, return default values
+    return {
+      isLoading: true,
+      setIsLoading: () => {},
+      completeLoading: () => {}
+    }
   }
   return context
 }

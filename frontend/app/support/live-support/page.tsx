@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Send,
   Mic,
@@ -23,7 +23,9 @@ import {
   CheckCircle,
   Zap,
   Clock,
-} from 'lucide-react'
+} from 'lucide-react';
+
+export const dynamic = 'force-dynamic'
 
 // Social Media Icon component
 const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
@@ -37,7 +39,7 @@ const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
   >
     <Icon size={20} />
   </a>
-)
+);
 
 // Support button component
 const SupportButton = ({ icon: Icon, label, href, onClick }: any) => (
@@ -51,26 +53,26 @@ const SupportButton = ({ icon: Icon, label, href, onClick }: any) => (
     />
     <span className="text-sm font-medium">{label}</span>
   </button>
-)
+);
 
 interface Message {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp: Date
-  isStreaming?: boolean
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  isStreaming?: boolean;
 }
 
 interface SupportTicket {
-  id: string
-  userId: string
-  userEmail: string
-  userName: string
-  subscription?: string
-  issue: string
-  status: 'open' | 'in-progress' | 'escalated' | 'resolved'
-  createdAt: Date
-  messages: Message[]
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  subscription?: string;
+  issue: string;
+  status: 'open' | 'in-progress' | 'escalated' | 'resolved';
+  createdAt: Date;
+  messages: Message[];
 }
 
 const SOCIAL_LINKS = [
@@ -116,43 +118,47 @@ const SOCIAL_LINKS = [
     label: 'TikTok',
     color: 'bg-black hover:bg-gray-900 text-white',
   },
-]
+];
 
 export default function LiveSupportPage() {
-  const auth = useAuth()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inputText, setInputText] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isStreamingResponse, setIsStreamingResponse] = useState(false)
-  const [showLoginPrompt, setShowLoginPrompt] = useState(!auth.state.isAuthenticated)
-  const [userProfile, setUserProfile] = useState<any>(null)
-  const [supportTicket, setSupportTicket] = useState<SupportTicket | null>(null)
-  const [ticketGenerated, setTicketGenerated] = useState(false)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const messageContainerRef = useRef<HTMLDivElement>(null)
+  const auth = useAuth();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isStreamingResponse, setIsStreamingResponse] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(
+    !auth.state.isAuthenticated
+  );
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [supportTicket, setSupportTicket] = useState<SupportTicket | null>(
+    null
+  );
+  const [ticketGenerated, setTicketGenerated] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 0)
-  }, [])
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 0);
+  }, []);
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages, scrollToBottom])
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   // Fetch user profile data when authenticated
   useEffect(() => {
     if (auth.state.isAuthenticated && auth.state.user) {
-      setShowLoginPrompt(false)
-      fetchUserProfile()
-      initializeChat()
+      setShowLoginPrompt(false);
+      fetchUserProfile();
+      initializeChat();
     } else {
-      setShowLoginPrompt(true)
+      setShowLoginPrompt(true);
     }
-  }, [auth.state.isAuthenticated])
+  }, [auth.state.isAuthenticated]);
 
   const fetchUserProfile = async () => {
     try {
@@ -163,30 +169,32 @@ export default function LiveSupportPage() {
         subscription: 'Pro',
         joinedDate: auth.state.user?.createdAt,
         supportTickets: 2,
-      }
-      setUserProfile(mockProfile)
+      };
+      setUserProfile(mockProfile);
     } catch (error) {
-      console.error('Failed to fetch user profile:', error)
+      console.error('Failed to fetch user profile:', error);
     }
-  }
+  };
 
   const initializeChat = () => {
     const welcomeMessage: Message = {
       id: '0',
       role: 'assistant',
-      content: `👋 Hello ${auth.state.user?.name || 'there'}! Welcome to Live Support. I'm your AI support assistant. How can I help you today? Whether it's technical issues, account problems, or general questions, I'm here to assist!`,
+      content: `👋 Hello ${
+        auth.state.user?.name || 'there'
+      }! Welcome to Live Support. I'm your AI support assistant. How can I help you today? Whether it's technical issues, account problems, or general questions, I'm here to assist!`,
       timestamp: new Date(),
-    }
-    setMessages([welcomeMessage])
-  }
+    };
+    setMessages([welcomeMessage]);
+  };
 
   const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!inputText.trim()) return
+    if (!inputText.trim()) return;
     if (!auth.state.isAuthenticated) {
-      setShowLoginPrompt(true)
-      return
+      setShowLoginPrompt(true);
+      return;
     }
 
     // Add user message
@@ -195,12 +203,12 @@ export default function LiveSupportPage() {
       role: 'user',
       content: inputText,
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    setInputText('')
-    setIsLoading(true)
-    setIsStreamingResponse(true)
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText('');
+    setIsLoading(true);
+    setIsStreamingResponse(true);
 
     try {
       const response = await fetch('/api/live-support', {
@@ -216,15 +224,15 @@ export default function LiveSupportPage() {
           userProfile: userProfile,
           conversationHistory: messages,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to get response')
+        throw new Error('Failed to get response');
       }
 
-      let fullResponse = ''
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
+      let fullResponse = '';
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
       // Streaming response
       const assistantMessage: Message = {
@@ -233,34 +241,34 @@ export default function LiveSupportPage() {
         content: '',
         timestamp: new Date(),
         isStreaming: true,
-      }
+      };
 
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages((prev) => [...prev, assistantMessage]);
 
       if (reader) {
         while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+          const { done, value } = await reader.read();
+          if (done) break;
 
-          const chunk = decoder.decode(value)
-          const lines = chunk.split('\n')
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               try {
-                const data = JSON.parse(line.slice(6))
+                const data = JSON.parse(line.slice(6));
                 if (data.content) {
-                  fullResponse += data.content
+                  fullResponse += data.content;
                   setMessages((prev) => {
-                    const updated = [...prev]
+                    const updated = [...prev];
                     updated[updated.length - 1] = {
                       ...updated[updated.length - 1],
                       content: fullResponse,
-                    }
-                    return updated
-                  })
+                    };
+                    return updated;
+                  });
                 }
-                scrollToBottom()
+                scrollToBottom();
               } catch (e) {
                 // Ignore parse errors
               }
@@ -274,28 +282,29 @@ export default function LiveSupportPage() {
         fullResponse.toLowerCase().includes('escalat') ||
         fullResponse.toLowerCase().includes('ticket')
       ) {
-        setTicketGenerated(true)
+        setTicketGenerated(true);
       }
 
       setMessages((prev) => {
-        const updated = [...prev]
-        updated[updated.length - 1].isStreaming = false
-        return updated
-      })
+        const updated = [...prev];
+        updated[updated.length - 1].isStreaming = false;
+        return updated;
+      });
     } catch (error) {
-      console.error('Error sending message:', error)
+      console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'system',
-        content: '⚠️ Failed to get response. Please try again or contact support directly.',
+        content:
+          '⚠️ Failed to get response. Please try again or contact support directly.',
         timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false)
-      setIsStreamingResponse(false)
+      setIsLoading(false);
+      setIsStreamingResponse(false);
     }
-  }
+  };
 
   const generateTicket = async () => {
     try {
@@ -309,16 +318,16 @@ export default function LiveSupportPage() {
         status: 'escalated',
         createdAt: new Date(),
         messages: messages,
-      }
+      };
 
-      setSupportTicket(ticketData)
+      setSupportTicket(ticketData);
 
       // Send to backend
       const response = await fetch('/api/live-support/ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ticketData),
-      })
+      });
 
       if (response.ok) {
         const ticketMessage: Message = {
@@ -326,38 +335,43 @@ export default function LiveSupportPage() {
           role: 'system',
           content: `✅ Support ticket created: ${ticketData.id}\n\nOur human support team will contact you at ${ticketData.userEmail} within 48 hours. Your ticket contains all conversation details.`,
           timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, ticketMessage])
-        setTicketGenerated(false)
+        };
+        setMessages((prev) => [...prev, ticketMessage]);
+        setTicketGenerated(false);
       }
     } catch (error) {
-      console.error('Error generating ticket:', error)
+      console.error('Error generating ticket:', error);
     }
-  }
+  };
 
   const downloadChat = () => {
     const chatContent = messages
-      .map((m) => `[${m.role.toUpperCase()}] ${m.timestamp.toLocaleTimeString()}\n${m.content}`)
-      .join('\n\n')
+      .map(
+        (m) =>
+          `[${m.role.toUpperCase()}] ${m.timestamp.toLocaleTimeString()}\n${
+            m.content
+          }`
+      )
+      .join('\n\n');
 
-    const element = document.createElement('a')
+    const element = document.createElement('a');
     element.setAttribute(
       'href',
       'data:text/plain;charset=utf-8,' + encodeURIComponent(chatContent)
-    )
-    element.setAttribute('download', `support-chat-${Date.now()}.txt`)
-    element.style.display = 'none'
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-  }
+    );
+    element.setAttribute('download', `support-chat-${Date.now()}.txt`);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
 
   const copyChat = () => {
     const chatContent = messages
       .map((m) => `[${m.role.toUpperCase()}] ${m.content}`)
-      .join('\n\n')
-    navigator.clipboard.writeText(chatContent)
-  }
+      .join('\n\n');
+    navigator.clipboard.writeText(chatContent);
+  };
 
   if (showLoginPrompt && !auth.state.isAuthenticated) {
     return (
@@ -369,7 +383,8 @@ export default function LiveSupportPage() {
             </div>
             <h1 className="text-3xl font-bold text-white mb-4">Live Support</h1>
             <p className="text-neural-400 mb-8">
-              Please log in to access our real-time AI support agent with personalized assistance based on your account.
+              Please log in to access our real-time AI support agent with
+              personalized assistance based on your account.
             </p>
 
             <div className="space-y-3">
@@ -382,7 +397,10 @@ export default function LiveSupportPage() {
               </Link>
               <p className="text-sm text-neural-500">
                 Don't have an account?{' '}
-                <Link href="/auth/signup" className="text-brand-400 hover:text-brand-300">
+                <Link
+                  href="/auth/signup"
+                  className="text-brand-400 hover:text-brand-300"
+                >
                   Sign up here
                 </Link>
               </p>
@@ -390,7 +408,7 @@ export default function LiveSupportPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -404,14 +422,17 @@ export default function LiveSupportPage() {
               <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
               <div>
                 <h1 className="font-bold text-lg">Live Support</h1>
-                <p className="text-sm text-neural-400">AI-Powered Support Agent</p>
+                <p className="text-sm text-neural-400">
+                  AI-Powered Support Agent
+                </p>
               </div>
             </div>
 
             {userProfile && (
               <div className="flex items-center gap-2 px-4 py-2 bg-neural-700 rounded-lg">
                 <span className="text-sm">
-                  <span className="text-neural-400">Account:</span> {userProfile.name}
+                  <span className="text-neural-400">Account:</span>{' '}
+                  {userProfile.name}
                 </span>
               </div>
             )}
@@ -423,17 +444,24 @@ export default function LiveSupportPage() {
             className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-neural-700 scrollbar-track-neural-800"
           >
             {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
                 <div
                   className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-xl ${
                     message.role === 'user'
                       ? 'bg-brand-600 text-white rounded-br-none'
                       : message.role === 'system'
-                        ? 'bg-yellow-900/30 border border-yellow-700/50 text-yellow-200'
-                        : 'bg-neural-700 text-neural-100 rounded-bl-none'
+                      ? 'bg-yellow-900/30 border border-yellow-700/50 text-yellow-200'
+                      : 'bg-neural-700 text-neural-100 rounded-bl-none'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {message.content}
+                  </p>
                   <p className="text-xs mt-2 opacity-70">
                     {message.timestamp.toLocaleTimeString()}
                   </p>
@@ -463,7 +491,8 @@ export default function LiveSupportPage() {
                 <div className="flex items-center gap-3">
                   <AlertCircle size={20} className="text-blue-400" />
                   <span className="text-sm">
-                    Your issue needs escalation. Our team will create a support ticket.
+                    Your issue needs escalation. Our team will create a support
+                    ticket.
                   </span>
                 </div>
                 <button
@@ -489,7 +518,11 @@ export default function LiveSupportPage() {
                 disabled={isLoading || !inputText.trim()}
                 className="px-4 py-3 bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isLoading ? <Loader size={18} className="animate-spin" /> : <Send size={18} />}
+                {isLoading ? (
+                  <Loader size={18} className="animate-spin" />
+                ) : (
+                  <Send size={18} />
+                )}
               </button>
             </form>
 
@@ -518,7 +551,9 @@ export default function LiveSupportPage() {
           {/* User Profile Section */}
           {userProfile && (
             <div className="mb-8 p-4 bg-neural-700 rounded-lg border border-neural-600">
-              <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">Your Profile</h3>
+              <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">
+                Your Profile
+              </h3>
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-neural-400">Name:</span>
@@ -550,7 +585,9 @@ export default function LiveSupportPage() {
             <div className="mb-8 p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle size={18} className="text-green-400" />
-                <h3 className="font-bold text-sm uppercase">Ticket Generated</h3>
+                <h3 className="font-bold text-sm uppercase">
+                  Ticket Generated
+                </h3>
               </div>
               <p className="text-sm text-green-200 mb-2">Ticket ID:</p>
               <p className="font-mono text-xs bg-black/30 p-2 rounded mb-3 break-all">
@@ -564,38 +601,42 @@ export default function LiveSupportPage() {
 
           {/* Quick Actions */}
           <div className="mb-8">
-            <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">Quick Actions</h3>
+            <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">
+              Quick Actions
+            </h3>
             <div className="space-y-2">
               <SupportButton
                 icon={Mail}
                 label="Contact Us"
                 href="/support/contact-us"
-                onClick={() => window.location.href = '/support/contact-us'}
+                onClick={() => (window.location.href = '/support/contact-us')}
               />
               <SupportButton
                 icon={HelpCircle}
                 label="Help Center"
                 href="/support/help-center"
-                onClick={() => window.location.href = '/support/help-center'}
+                onClick={() => (window.location.href = '/support/help-center')}
               />
               <SupportButton
                 icon={MessageCircle}
                 label="Support Page"
                 href="/support"
-                onClick={() => window.location.href = '/support'}
+                onClick={() => (window.location.href = '/support')}
               />
               <SupportButton
                 icon={Users}
                 label="Community"
                 href="/community"
-                onClick={() => window.location.href = '/community'}
+                onClick={() => (window.location.href = '/community')}
               />
             </div>
           </div>
 
           {/* Social Media */}
           <div>
-            <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">Follow Us</h3>
+            <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">
+              Follow Us
+            </h3>
             <div className="grid grid-cols-3 gap-2">
               {SOCIAL_LINKS.map((social) => (
                 <SocialIcon
@@ -622,5 +663,5 @@ export default function LiveSupportPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

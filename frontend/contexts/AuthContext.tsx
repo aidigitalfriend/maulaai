@@ -50,9 +50,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   }
 }
 
-interface AuthContextType extends AuthState {
+interface AuthContextType {
+  state: AuthState
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
+  resetPassword: (email: string) => Promise<void>
   logout: () => Promise<void>
   clearError: () => void
   getAuthToken: () => string | null
@@ -162,6 +164,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const resetPassword = async (email: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.message || 'Reset password failed')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Reset password failed'
+      dispatch({ type: 'AUTH_ERROR', payload: message })
+      throw error
+    }
+  }
+
   const logout = async () => {
     try {
       const token = authStorage.getToken()
@@ -189,7 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, clearError, getAuthToken }}>
+    <AuthContext.Provider value={{ state, login, register, resetPassword, logout, clearError, getAuthToken }}>
       {children}
     </AuthContext.Provider>
   )
@@ -197,6 +216,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
+  if (context === null) {
+    // During SSR or before provider mounts, return default values
+    return {
+      state: initialState,
+      login: async () => {},
+      register: async () => {},
+      resetPassword: async () => {},
+      logout: async () => {},
+      clearError: () => {},
+      getAuthToken: () => null
+    }
+  }
   if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
 }

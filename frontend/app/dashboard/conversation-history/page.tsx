@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 
+export const dynamic = 'force-dynamic'
+
 export default function ConversationHistoryPage() {
   const { state } = useAuth()
 

@@ -2,17 +2,23 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  const { state, logout } = useAuth()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
+  const { state } = mounted ? useAuth() : { state: { isLoading: false, isAuthenticated: false, user: null, error: null } }
   
   const handleLogout = async () => {
     try {
-      await logout()
+      if (mounted) {
+        await useAuth().logout()
+      }
       setIsMenuOpen(false)
     } catch (error) {
       console.error('Logout failed:', error)

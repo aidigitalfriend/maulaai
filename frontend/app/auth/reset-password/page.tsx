@@ -6,6 +6,8 @@ import Image from 'next/image'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
 
+export const dynamic = 'force-dynamic'
+
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)

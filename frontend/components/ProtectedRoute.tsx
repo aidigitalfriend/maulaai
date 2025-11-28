@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -13,10 +13,16 @@ export default function ProtectedRoute({
   children, 
   redirectTo = '/auth' 
 }: ProtectedRouteProps) {
+  const [mounted, setMounted] = useState(false)
   const { state } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     // Don't redirect while loading
     if (state.isLoading) return
 
@@ -24,10 +30,10 @@ export default function ProtectedRoute({
     if (!state.isAuthenticated) {
       router.push(redirectTo)
     }
-  }, [state.isAuthenticated, state.isLoading, router, redirectTo])
+  }, [state.isAuthenticated, state.isLoading, router, redirectTo, mounted])
 
-  // Show loading spinner while checking authentication
-  if (state.isLoading) {
+  // During SSR, show loading
+  if (!mounted || state.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="text-center">
