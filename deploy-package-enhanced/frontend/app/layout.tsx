@@ -1,15 +1,11 @@
-import dynamicImport from 'next/dynamic'
+import dynamic from 'next/dynamic'
 import type { Metadata } from 'next'
 import Header from '@/components/Header'
 import ConditionalFooter from '@/components/ConditionalFooter'
 import AuthProvider from '@/lib/auth-context'
 import { LoadingProvider } from '@/lib/loading-context'
+import SplashScreenWrapper from '@/components/SplashScreenWrapper'
 import '@/styles/globals.css'
-
-const SplashScreenWrapper = dynamicImport(
-  () => import('@/components/SplashScreenWrapper'),
-  { ssr: false }
-)
 
 // Metadata for SEO and browser tabs
 export const metadata: Metadata = {

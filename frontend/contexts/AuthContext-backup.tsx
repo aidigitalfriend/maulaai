@@ -1,14 +1,13 @@
 'use client'
 
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
-import authStorage from '@/lib/auth-storage'
 
 export interface User {
   id: string
   email: string
   name?: string
   avatar?: string
-  joinedAt?: string
+  joinedAt: string
   lastLoginAt?: string
 }
 
@@ -36,15 +35,40 @@ const initialState: AuthState = {
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'AUTH_START':
-      return { ...state, isLoading: true, error: null }
+      return {
+        ...state,
+        isLoading: true,
+        error: null
+      }
     case 'AUTH_SUCCESS':
-      return { ...state, user: action.payload, isAuthenticated: true, isLoading: false, error: null }
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
+      }
     case 'AUTH_ERROR':
-      return { ...state, user: null, isAuthenticated: false, isLoading: false, error: action.payload }
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: action.payload
+      }
     case 'AUTH_LOGOUT':
-      return { ...state, user: null, isAuthenticated: false, isLoading: false, error: null }
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null
+      }
     case 'CLEAR_ERROR':
-      return { ...state, error: null }
+      return {
+        ...state,
+        error: null
+      }
     default:
       return state
   }
@@ -63,6 +87,7 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
+  // Check for existing session on mount
   useEffect(() => {
     checkExistingSession()
   }, [])
@@ -71,35 +96,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' })
       
-      const storedToken = authStorage.getToken()
-      const storedUser = authStorage.getUser()
+      // Check session with backend (uses HTTP-only cookies)
+      const response = await fetch('/api/session/profile', {
+        method: 'GET',
+        credentials: 'include' // Include cookies
+      })
       
-      if (storedToken && storedUser && !authStorage.isTokenExpired()) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${storedToken}`
-          },
-          credentials: 'include'
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          if (data.valid) {
-            console.log('✅ Session restored from localStorage/cookies')
-            dispatch({ type: 'AUTH_SUCCESS', payload: storedUser })
-            authStorage.refreshExpiry()
-            return
-          }
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data?.user) {
+          dispatch({ type: 'AUTH_SUCCESS', payload: data.data.user })
+        } else {
+          dispatch({ type: 'AUTH_LOGOUT' })
         }
+      } else {
+        dispatch({ type: 'AUTH_LOGOUT' })
       }
-      
-      authStorage.clearAll()
-      dispatch({ type: 'AUTH_LOGOUT' })
     } catch (error) {
       console.error('Session check error:', error)
-      authStorage.clearAll()
       dispatch({ type: 'AUTH_LOGOUT' })
     }
   }
@@ -108,24 +122,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' })
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/login`, {
+      const response = await fetch('/api/session/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies
         body: JSON.stringify({ email, password }),
       })
 
       const data = await response.json()
-      if (!response.ok) throw new Error(data.message || 'Login failed')
 
-      if (data.token) {
-        authStorage.setToken(data.token, 7)
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Login failed')
       }
-      
-      if (data.user) {
-        authStorage.setUser(data.user)
-        dispatch({ type: 'AUTH_SUCCESS', payload: data.user })
-      }
+
+      dispatch({ type: 'AUTH_SUCCESS', payload: data.data.user })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed'
       dispatch({ type: 'AUTH_ERROR', payload: message })
@@ -137,24 +149,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' })
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/signup`, {
+      const response = await fetch('/api/session/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies
         body: JSON.stringify({ name, email, password }),
       })
 
       const data = await response.json()
-      if (!response.ok) throw new Error(data.message || 'Registration failed')
 
-      if (data.token) {
-        authStorage.setToken(data.token, 7)
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Registration failed')
       }
-      
-      if (data.user) {
-        authStorage.setUser(data.user)
-        dispatch({ type: 'AUTH_SUCCESS', payload: data.user })
-      }
+
+      dispatch({ type: 'AUTH_SUCCESS', payload: data.data.user })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed'
       dispatch({ type: 'AUTH_ERROR', payload: message })
@@ -164,18 +174,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      const token = authStorage.getToken()
-      if (token) {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/logout`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          credentials: 'include'
-        })
-      }
+      await fetch('/api/session/logout', {
+        method: 'POST',
+        credentials: 'include' // Include cookies
+      })
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
-      authStorage.clearAll()
       dispatch({ type: 'AUTH_LOGOUT' })
     }
   }
@@ -185,11 +190,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const getAuthToken = (): string | null => {
-    return authStorage.getToken()
+    // For backward compatibility with components that still expect tokens
+    // In session-based auth, we rely on HTTP-only cookies instead
+    // Return null to encourage migration to session-based auth
+    return null
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, clearError, getAuthToken }}>
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        register,
+        logout,
+        clearError,
+        getAuthToken,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -197,7 +214,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) throw new Error('useAuth must be used within AuthProvider')
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
   return context
 }
 

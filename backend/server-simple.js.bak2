@@ -76,13 +76,6 @@ setupAILabRoutes(app)
 setupUserDashboardRoutes(app)
 
 // ----------------------------
-// ----------------------------
-// ANALYTICS ROUTES
-// ----------------------------
-app.use('/api/analytics', analyticsRoutes)
-app.use('/api/admin/analytics', adminAnalyticsRoutes)
-
-
 // DASHBOARD SECTION ROUTES
 // ----------------------------
 app.use('/api/user/profile', userProfileRoutes)
