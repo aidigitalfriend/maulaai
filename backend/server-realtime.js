@@ -19,6 +19,8 @@ import mongoose from 'mongoose'
 import { universalTrackingMiddleware } from './lib/tracking-middleware.js'
 // Import analytics routes
 import analyticsRouter from './routes/analytics.js'
+// Import AI Lab routes
+import { setupAILabRoutes } from './routes/ai-lab-main.js'
 
 dotenv.config()
 
@@ -68,6 +70,8 @@ app.use(universalTrackingMiddleware)
 // API ROUTES
 // ----------------------------
 app.use('/api/analytics', analyticsRouter)
+// Setup AI Lab routes
+setupAILabRoutes(app)
 
 // ----------------------------
 // Socket.IO Setup
