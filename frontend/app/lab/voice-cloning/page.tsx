@@ -1,36 +1,44 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useState, useRef } from 'react'
-import Link from 'next/link'
-import { Mic, Play, Square, Download, Wand2, Volume2, RefreshCw } from 'lucide-react'
+import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
+import Link from 'next/link';
+import {
+  Mic,
+  Play,
+  Square,
+  Download,
+  Wand2,
+  Volume2,
+  RefreshCw,
+} from 'lucide-react';
 
 export default function VoiceCloningPage() {
-  const [isRecording, setIsRecording] = useState(false)
-  const [hasRecording, setHasRecording] = useState(false)
-  const [isCloning, setIsCloning] = useState(false)
-  const [text, setText] = useState('')
-  const [clonedAudio, setClonedAudio] = useState<string | null>(null)
-  const [selectedVoice, setSelectedVoice] = useState('21m00Tcm4TlvDq8ikWAM') // Rachel default
+  const [isRecording, setIsRecording] = useState(false);
+  const [hasRecording, setHasRecording] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
+  const [text, setText] = useState('');
+  const [clonedAudio, setClonedAudio] = useState<string | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState('21m00Tcm4TlvDq8ikWAM'); // Rachel default
 
   const handleRecord = () => {
     if (isRecording) {
-      setIsRecording(false)
-      setHasRecording(true)
+      setIsRecording(false);
+      setHasRecording(true);
     } else {
-      setIsRecording(true)
-      setHasRecording(false)
+      setIsRecording(true);
+      setHasRecording(false);
     }
-  }
+  };
 
   const handleClone = async () => {
     if (!text.trim()) {
-      alert('Please enter text to generate speech')
-      return
+      alert('Please enter text to generate speech');
+      return;
     }
-    
-    setIsCloning(true)
-    
+
+    setIsCloning(true);
+
     try {
       const response = await fetch('/api/lab/voice-generation', {
         method: 'POST',
@@ -39,23 +47,23 @@ export default function VoiceCloningPage() {
           text,
           voiceId: selectedVoice,
           stability: 0.5,
-          similarityBoost: 0.75
-        })
-      })
+          similarityBoost: 0.75,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Voice generation failed')
+        throw new Error('Voice generation failed');
       }
 
-      const data = await response.json()
-      setClonedAudio(data.audio)
+      const data = await response.json();
+      setClonedAudio(data.audio);
     } catch (error) {
-      console.error('Voice cloning error:', error)
-      alert('Voice generation failed. Please try again.')
+      console.error('Voice cloning error:', error);
+      alert('Voice generation failed. Please try again.');
     } finally {
-      setIsCloning(false)
+      setIsCloning(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -66,10 +74,13 @@ export default function VoiceCloningPage() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <Link href="/lab" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6">
+          <Link
+            href="/lab"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6"
+          >
             <span>←</span> Back to AI Lab
           </Link>
-          
+
           <div className="flex items-center gap-4 mb-4">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500">
               <Mic className="w-12 h-12" />
@@ -156,7 +167,8 @@ export default function VoiceCloningPage() {
             </div>
 
             <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl text-sm text-blue-300">
-              <strong>💡 Tip:</strong> Record 10-15 seconds of clear speech for best results. Speak naturally and clearly.
+              <strong>💡 Tip:</strong> Record 10-15 seconds of clear speech for
+              best results. Speak naturally and clearly.
             </div>
           </motion.div>
 
@@ -211,11 +223,7 @@ export default function VoiceCloningPage() {
                       Ready
                     </div>
                   </div>
-                  <audio 
-                    controls 
-                    className="w-full mb-4"
-                    src={clonedAudio}
-                  >
+                  <audio controls className="w-full mb-4" src={clonedAudio}>
                     Your browser does not support the audio element.
                   </audio>
                   <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-all">
@@ -231,7 +239,9 @@ export default function VoiceCloningPage() {
                   <div className="p-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-xl">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-                      <span className="font-semibold">Voice cloned successfully!</span>
+                      <span className="font-semibold">
+                        Voice cloned successfully!
+                      </span>
                     </div>
                     <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
                       <Play className="w-5 h-5" />
@@ -248,8 +258,7 @@ export default function VoiceCloningPage() {
             )}
           </motion.div>
         </div>
-
       </div>
     </div>
-  )
+  );
 }
