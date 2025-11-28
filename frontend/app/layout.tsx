@@ -90,8 +90,8 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col overflow-x-hidden">
         <LoadingProvider>
           <AuthProvider>
-            {/* Global Splash Screen */}
-            <SplashScreenWrapper />
+            {/* Global Splash Screen - Temporarily disabled */}
+            {/* <SplashScreenWrapper /> */}
 
             {/* Global Navigation - Fix #2: Consistent Navigation */}
             <Header />
@@ -100,7 +100,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
 
             {/* Conditional Footer - Hidden on agent pages */}
-            <ConditionalFooter />
+            {/* <ConditionalFooter /> */}
           </AuthProvider>
         </LoadingProvider>
       </body>

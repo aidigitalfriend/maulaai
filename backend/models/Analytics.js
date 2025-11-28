@@ -1,33 +1,39 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
-const { Schema } = mongoose
+const { Schema } = mongoose;
 
 // VISITOR TRACKING
-const VisitorSchema = new Schema({
-  visitorId: { type: String, required: true, unique: true, index: true },
-  userId: { type: String, index: true },
-  firstVisit: { type: Date, default: Date.now },
-  lastVisit: { type: Date, default: Date.now },
-  visitCount: { type: Number, default: 1 },
-  device: String,
-  browser: String,
-  os: String,
-  country: String,
-  city: String,
-  ipAddress: String
-}, { timestamps: true })
+const VisitorSchema = new Schema(
+  {
+    visitorId: { type: String, required: true, unique: true, index: true },
+    userId: { type: String, index: true },
+    firstVisit: { type: Date, default: Date.now },
+    lastVisit: { type: Date, default: Date.now },
+    visitCount: { type: Number, default: 1 },
+    device: String,
+    browser: String,
+    os: String,
+    country: String,
+    city: String,
+    ipAddress: String,
+  },
+  { timestamps: true }
+);
 
 // SESSION TRACKING
-const SessionSchema = new Schema({
-  sessionId: { type: String, required: true, unique: true, index: true },
-  visitorId: { type: String, required: true, index: true },
-  userId: { type: String, index: true },
-  startTime: { type: Date, default: Date.now },
-  endTime: Date,
-  lastActivity: { type: Date, default: Date.now },
-  pageViews: { type: Number, default: 0 },
-  events: { type: Number, default: 0 }
-}, { timestamps: true })
+const SessionSchema = new Schema(
+  {
+    sessionId: { type: String, required: true, unique: true, index: true },
+    visitorId: { type: String, required: true, index: true },
+    userId: { type: String, index: true },
+    startTime: { type: Date, default: Date.now },
+    endTime: Date,
+    lastActivity: { type: Date, default: Date.now },
+    pageViews: { type: Number, default: 0 },
+    events: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
 
 // PAGE VIEW TRACKING
 const PageViewSchema = new Schema({
@@ -39,8 +45,8 @@ const PageViewSchema = new Schema({
   referrer: String,
   timeSpent: Number,
   scrollDepth: Number,
-  timestamp: { type: Date, default: Date.now, index: true }
-})
+  timestamp: { type: Date, default: Date.now, index: true },
+});
 
 // CHAT INTERACTION TRACKING
 const ChatInteractionSchema = new Schema({
@@ -56,8 +62,8 @@ const ChatInteractionSchema = new Schema({
   language: String,
   satisfied: Boolean,
   feedback: String,
-  timestamp: { type: Date, default: Date.now, index: true }
-})
+  timestamp: { type: Date, default: Date.now, index: true },
+});
 
 // TOOL USAGE TRACKING
 const ToolUsageSchema = new Schema({
@@ -71,8 +77,8 @@ const ToolUsageSchema = new Schema({
   success: Boolean,
   error: String,
   executionTime: Number,
-  timestamp: { type: Date, default: Date.now, index: true }
-})
+  timestamp: { type: Date, default: Date.now, index: true },
+});
 
 // LAB EXPERIMENT TRACKING
 const LabExperimentSchema = new Schema({
@@ -88,8 +94,8 @@ const LabExperimentSchema = new Schema({
   error: String,
   processingTime: Number,
   rating: Number,
-  timestamp: { type: Date, default: Date.now, index: true }
-})
+  timestamp: { type: Date, default: Date.now, index: true },
+});
 
 // USER EVENT TRACKING
 const UserEventSchema = new Schema({
@@ -101,8 +107,8 @@ const UserEventSchema = new Schema({
   eventData: Schema.Types.Mixed,
   success: { type: Boolean, default: true },
   error: String,
-  timestamp: { type: Date, default: Date.now, index: true }
-})
+  timestamp: { type: Date, default: Date.now, index: true },
+});
 
 // API USAGE TRACKING
 const ApiUsageSchema = new Schema({
@@ -114,15 +120,25 @@ const ApiUsageSchema = new Schema({
   responseTime: Number,
   userAgent: String,
   ipAddress: String,
-  timestamp: { type: Date, default: Date.now, index: true }
-})
+  timestamp: { type: Date, default: Date.now, index: true },
+});
 
 // EXPORT MODELS
-export const Visitor = mongoose.models.Visitor || mongoose.model('Visitor', VisitorSchema)
-export const Session = mongoose.models.Session || mongoose.model('Session', SessionSchema)
-export const PageView = mongoose.models.PageView || mongoose.model('PageView', PageViewSchema)
-export const ChatInteraction = mongoose.models.ChatInteraction || mongoose.model('ChatInteraction', ChatInteractionSchema)
-export const ToolUsage = mongoose.models.ToolUsage || mongoose.model('ToolUsage', ToolUsageSchema)
-export const LabExperiment = mongoose.models.LabExperiment || mongoose.model('LabExperiment', LabExperimentSchema)
-export const UserEvent = mongoose.models.UserEvent || mongoose.model('UserEvent', UserEventSchema)
-export const ApiUsage = mongoose.models.ApiUsage || mongoose.model('ApiUsage', ApiUsageSchema)
+export const Visitor =
+  mongoose.models.Visitor || mongoose.model('Visitor', VisitorSchema);
+export const Session =
+  mongoose.models.Session || mongoose.model('Session', SessionSchema);
+export const PageView =
+  mongoose.models.PageView || mongoose.model('PageView', PageViewSchema);
+export const ChatInteraction =
+  mongoose.models.ChatInteraction ||
+  mongoose.model('ChatInteraction', ChatInteractionSchema);
+export const ToolUsage =
+  mongoose.models.ToolUsage || mongoose.model('ToolUsage', ToolUsageSchema);
+export const LabExperiment =
+  mongoose.models.LabExperiment ||
+  mongoose.model('LabExperiment', LabExperimentSchema);
+export const UserEvent =
+  mongoose.models.UserEvent || mongoose.model('UserEvent', UserEventSchema);
+export const ApiUsage =
+  mongoose.models.ApiUsage || mongoose.model('ApiUsage', ApiUsageSchema);
