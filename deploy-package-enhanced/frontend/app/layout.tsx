@@ -4,7 +4,7 @@ import Header from '@/components/Header'
 import ConditionalFooter from '@/components/ConditionalFooter'
 import AuthProvider from '@/lib/auth-context'
 import { LoadingProvider } from '@/lib/loading-context'
-import SplashScreenWrapper from '@/components/SplashScreenWrapper'
+// import SplashScreenWrapper from '@/components/SplashScreenWrapper'
 import '@/styles/globals.css'
 
 // Metadata for SEO and browser tabs
@@ -76,9 +76,9 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col overflow-x-hidden">
         <LoadingProvider>
           <AuthProvider>
-            {/* Global Splash Screen */}
-            <SplashScreenWrapper />
-            
+            {/* SplashScreenWrapper temporarily removed for debugging */}
+            {/* <SplashScreenWrapper /> */}
+
             {/* Global Navigation - Fix #2: Consistent Navigation */}
             <Header />
             
