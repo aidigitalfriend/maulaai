@@ -133,17 +133,17 @@ router.get('/stats', async (req, res) => {
     const userId = req.user?.id
 
     // Import models for stats
-    const LabExperiment = (await import('../models/LabExperiment.ts')).default
-    const DatasetAnalysis = (await import('../models/DatasetAnalysis.ts')).default
-    const ImageGeneration = (await import('../models/ImageGeneration.ts')).default
-    const EmotionAnalysis = (await import('../models/EmotionAnalysis.ts')).default
-    const FuturePrediction = (await import('../models/FuturePrediction.ts')).default
-    const MusicGeneration = (await import('../models/MusicGeneration.ts')).default
-    const PersonalityTest = (await import('../models/PersonalityTest.ts')).default
-    const CreativeWriting = (await import('../models/CreativeWriting.ts')).default
-    const SmartAssistant = (await import('../models/SmartAssistant.ts')).default
-    const VirtualReality = (await import('../models/VirtualReality.ts')).default
-    const LanguageLearning = (await import('../models/LanguageLearning.ts')).default
+    const LabExperiment = (await import('../models/LabExperiment.js')).default
+    const DatasetAnalysis = (await import('../models/DatasetAnalysis.js')).default
+    const ImageGeneration = (await import('../models/ImageGeneration.js')).default
+    const EmotionAnalysis = (await import('../models/EmotionAnalysis.js')).default
+    const FuturePrediction = (await import('../models/FuturePrediction.js')).default
+    const MusicGeneration = (await import('../models/MusicGeneration.js')).default
+    const PersonalityTest = (await import('../models/PersonalityTest.js')).default
+    const CreativeWriting = (await import('../models/CreativeWriting.js')).default
+    const SmartAssistant = (await import('../models/SmartAssistant.js')).default
+    const VirtualReality = (await import('../models/VirtualReality.js')).default
+    const LanguageLearning = (await import('../models/LanguageLearning.js')).default
 
     const stats = {
       totalExperiments: await LabExperiment.countDocuments({ userId }),

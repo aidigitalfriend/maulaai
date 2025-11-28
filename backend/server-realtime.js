@@ -19,8 +19,8 @@ import mongoose from 'mongoose'
 import { universalTrackingMiddleware } from './lib/tracking-middleware.js'
 // Import analytics routes
 import analyticsRouter from './routes/analytics.js'
-// Import AI Lab routes
-import { setupAILabRoutes } from './routes/ai-lab-main.js'
+// Import AI Lab routes - temporarily disabled due to model import issues
+// import { setupAILabRoutes } from './routes/ai-lab-main.js'
 
 dotenv.config()
 
@@ -70,8 +70,19 @@ app.use(universalTrackingMiddleware)
 // API ROUTES
 // ----------------------------
 app.use('/api/analytics', analyticsRouter)
-// Setup AI Lab routes
-setupAILabRoutes(app)
+
+// Basic auth routes for frontend compatibility
+app.get('/api/auth/status', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'Real-Time Server',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  })
+})
+
+// Setup AI Lab routes - temporarily disabled due to model import issues
+// setupAILabRoutes(app)
 
 // ----------------------------
 // Socket.IO Setup
