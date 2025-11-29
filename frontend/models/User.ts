@@ -83,7 +83,10 @@ const UserSchema = new Schema<IUser>(
  * - Password not modified
  * - Password is undefined (passwordless user)
  * - Password is empty
+ * NOTE: Password hashing is now handled manually in API routes
+ * to avoid bcryptjs compatibility issues with Next.js
  */
+/*
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) {
     return next()
@@ -97,6 +100,7 @@ UserSchema.pre('save', async function (next) {
     next(error as Error)
   }
 })
+*/
 
 /**
  * Compare password method
