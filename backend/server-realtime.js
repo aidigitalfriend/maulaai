@@ -89,6 +89,15 @@ app.get('/api/auth/status', (req, res) => {
   });
 });
 
+// Test endpoint to verify community routes loading
+app.get('/api/test-community', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Community routes test endpoint',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Setup AI Lab routes - temporarily disabled due to model import issues
 // setupAILabRoutes(app)
 
