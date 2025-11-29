@@ -1,15 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
 
-export interface ICommunityComment  {
-  postId: Schema.Types.ObjectId
-  authorId: Schema.Types.ObjectId | null
-  authorName: String
-  authorAvatar?: String
-  content: String
-  createdAt: Date
-  updatedAt: Date
-}
-
 const CommunityCommentSchema = new Schema(
   {
     postId: { type: Schema.Types.ObjectId, ref: 'CommunityPost', required: true, index: true },

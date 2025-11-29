@@ -1,16 +1,29 @@
 import express from 'express';
 const router = express.Router();
 
-// Import all community models
-const CommunityPost = (await import('../models/CommunityPost.js')).default;
-const CommunityComment = (await import('../models/CommunityComment.js')).default;
-const CommunityLike = (await import('../models/CommunityLike.js')).default;
-const CommunityMetrics = (await import('../models/CommunityMetrics.js')).default;
-const CommunityGroup = (await import('../models/CommunityGroup.js')).default;
-const CommunityMembership = (await import('../models/CommunityMembership.js')).default;
-const CommunityEvent = (await import('../models/CommunityEvent.js')).default;
-const CommunityModeration = (await import('../models/CommunityModeration.js')).default;
-const User = (await import('../models/User.ts')).default;
+// Simple test route
+router.get('/test', (req, res) => {
+  res.json({ message: 'Community routes are working!' });
+});
+
+// Import all community models dynamically
+const loadModels = async () => {
+  try {
+    const CommunityPost = (await import('../models/CommunityPost.js')).default;
+    const CommunityComment = (await import('../models/CommunityComment.js')).default;
+    const CommunityLike = (await import('../models/CommunityLike.js')).default;
+    const CommunityMetrics = (await import('../models/CommunityMetrics.js')).default;
+    const CommunityGroup = (await import('../models/CommunityGroup.js')).default;
+    const CommunityMembership = (await import('../models/CommunityMembership.js')).default;
+    const CommunityEvent = (await import('../models/CommunityEvent.js')).default;
+    const CommunityModeration = (await import('../models/CommunityModeration.js')).default;
+    const User = (await import('../models/User.ts')).default;
+    return { CommunityPost, CommunityComment, CommunityLike, CommunityMetrics, CommunityGroup, CommunityMembership, CommunityEvent, CommunityModeration, User };
+  } catch (error) {
+    console.error('Failed to load community models:', error);
+    throw error;
+  }
+};
 
 // Activity logging helper
 const logActivity = async (
@@ -35,6 +48,8 @@ const logActivity = async (
 router.get('/posts', async (req, res) => {
   try {
     console.log('🔍 Community posts endpoint called');
+    const models = await loadModels();
+    const { CommunityPost } = models;
     const { category, search, limit = 20, before, author } = req.query;
     console.log('📋 Query params:', {
       category,

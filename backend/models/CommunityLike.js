@@ -1,11 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
 
-export interface ICommunityLike  {
-  postId: Schema.Types.ObjectId
-  userId: Schema.Types.ObjectId
-  createdAt: Date
-}
-
 const CommunityLikeSchema = new Schema(
   {
     postId: { type: Schema.Types.ObjectId, ref: 'CommunityPost', required: true, index: true },
