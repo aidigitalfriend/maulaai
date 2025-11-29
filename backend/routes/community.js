@@ -17,7 +17,7 @@ const loadModels = async () => {
     const CommunityMembership = (await import('../models/CommunityMembership.js')).default;
     const CommunityEvent = (await import('../models/CommunityEvent.js')).default;
     const CommunityModeration = (await import('../models/CommunityModeration.js')).default;
-    const User = (await import('../models/User.ts')).default;
+    const User = (await import('../models/User.js')).default;
     return { CommunityPost, CommunityComment, CommunityLike, CommunityMetrics, CommunityGroup, CommunityMembership, CommunityEvent, CommunityModeration, User };
   } catch (error) {
     console.error('Failed to load community models:', error);
