@@ -67,12 +67,26 @@ const loadCommunityRoutes = async () => {
   }
 };
 
+// Load AI Studio session routes dynamically
+const loadStudioRoutes = async () => {
+  try {
+    console.log('🔄 Loading AI Studio session routes...');
+    const { default: aiStudioSessionRoutes } = await import('./routes/ai-studio-session.js');
+    console.log('📦 AI Studio session routes imported:', typeof aiStudioSessionRoutes);
+    app.use('/api/studio', aiStudioSessionRoutes);
+    console.log('✅ AI Studio session routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Failed to load AI Studio session routes:', error);
+  }
+};
+
 // Load routes after database connection
 mongoose
   .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/onelastai')
   .then(async () => {
     console.log('✅ MongoDB Atlas Connected');
     await loadCommunityRoutes();
+    await loadStudioRoutes();
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);

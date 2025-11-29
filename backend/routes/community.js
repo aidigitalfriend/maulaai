@@ -10,15 +10,33 @@ router.get('/test', (req, res) => {
 const loadModels = async () => {
   try {
     const CommunityPost = (await import('../models/CommunityPost.js')).default;
-    const CommunityComment = (await import('../models/CommunityComment.js')).default;
+    const CommunityComment = (await import('../models/CommunityComment.js'))
+      .default;
     const CommunityLike = (await import('../models/CommunityLike.js')).default;
-    const CommunityMetrics = (await import('../models/CommunityMetrics.js')).default;
-    const CommunityGroup = (await import('../models/CommunityGroup.js')).default;
-    const CommunityMembership = (await import('../models/CommunityMembership.js')).default;
-    const CommunityEvent = (await import('../models/CommunityEvent.js')).default;
-    const CommunityModeration = (await import('../models/CommunityModeration.js')).default;
+    const CommunityMetrics = (await import('../models/CommunityMetrics.js'))
+      .default;
+    const CommunityGroup = (await import('../models/CommunityGroup.js'))
+      .default;
+    const CommunityMembership = (
+      await import('../models/CommunityMembership.js')
+    ).default;
+    const CommunityEvent = (await import('../models/CommunityEvent.js'))
+      .default;
+    const CommunityModeration = (
+      await import('../models/CommunityModeration.js')
+    ).default;
     const User = (await import('../models/User.js')).default;
-    return { CommunityPost, CommunityComment, CommunityLike, CommunityMetrics, CommunityGroup, CommunityMembership, CommunityEvent, CommunityModeration, User };
+    return {
+      CommunityPost,
+      CommunityComment,
+      CommunityLike,
+      CommunityMetrics,
+      CommunityGroup,
+      CommunityMembership,
+      CommunityEvent,
+      CommunityModeration,
+      User,
+    };
   } catch (error) {
     console.error('Failed to load community models:', error);
     throw error;
