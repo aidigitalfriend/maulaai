@@ -71,8 +71,13 @@ const loadCommunityRoutes = async () => {
 const loadStudioRoutes = async () => {
   try {
     console.log('🔄 Loading AI Studio session routes...');
-    const { default: aiStudioSessionRoutes } = await import('./routes/ai-studio-session.js');
-    console.log('📦 AI Studio session routes imported:', typeof aiStudioSessionRoutes);
+    const { default: aiStudioSessionRoutes } = await import(
+      './routes/ai-studio-session.js'
+    );
+    console.log(
+      '📦 AI Studio session routes imported:',
+      typeof aiStudioSessionRoutes
+    );
     app.use('/api/studio', aiStudioSessionRoutes);
     console.log('✅ AI Studio session routes loaded successfully');
   } catch (error) {
