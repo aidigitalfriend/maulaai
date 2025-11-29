@@ -5,6 +5,7 @@ import {
   useContext,
   useReducer,
   useEffect,
+  useMemo,
   ReactNode,
 } from 'react';
 import authStorage from '@/lib/auth-storage';
@@ -249,36 +250,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authStorage.getToken();
   };
 
+  const contextValue = useMemo(() => ({
+    state,
+    login,
+    register,
+    resetPassword,
+    logout,
+    clearError,
+    getAuthToken,
+  }), [state]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        state,
-        login,
-        register,
-        resetPassword,
-        logout,
-        clearError,
-        getAuthToken,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 }
 
+const defaultAuthValue = {
+  state: initialState,
+  login: async () => {},
+  register: async () => {},
+  resetPassword: async () => {},
+  logout: async () => {},
+  clearError: () => {},
+  getAuthToken: () => null,
+};
+
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === null) {
     // During SSR or before provider mounts, return default values
-    return {
-      state: initialState,
-      login: async () => {},
-      register: async () => {},
-      resetPassword: async () => {},
-      logout: async () => {},
-      clearError: () => {},
-      getAuthToken: () => null,
-    };
+    return defaultAuthValue;
   }
   if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
