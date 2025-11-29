@@ -2,23 +2,29 @@ import express from 'express';
 const router = express.Router();
 
 // Import all community models
-import CommunityPost from '../models/CommunityPost.ts';
-import CommunityComment from '../models/CommunityComment.ts';
-import CommunityLike from '../models/CommunityLike.ts';
-import CommunityMetrics from '../models/CommunityMetrics.ts';
-import CommunityGroup from '../models/CommunityGroup.ts';
-import CommunityMembership from '../models/CommunityMembership.ts';
-import CommunityEvent from '../models/CommunityEvent.ts';
-import CommunityModeration from '../models/CommunityModeration.ts';
-import User from '../models/User.ts';
+const CommunityPost = (await import('../models/CommunityPost.js')).default;
+const CommunityComment = (await import('../models/CommunityComment.js')).default;
+const CommunityLike = (await import('../models/CommunityLike.js')).default;
+const CommunityMetrics = (await import('../models/CommunityMetrics.js')).default;
+const CommunityGroup = (await import('../models/CommunityGroup.js')).default;
+const CommunityMembership = (await import('../models/CommunityMembership.js')).default;
+const CommunityEvent = (await import('../models/CommunityEvent.js')).default;
+const CommunityModeration = (await import('../models/CommunityModeration.js')).default;
+const User = (await import('../models/User.ts')).default;
 
 // Activity logging helper
-const logActivity = async (action, resource, resourceId, userId = null, metadata = {}) => {
+const logActivity = async (
+  action,
+  resource,
+  resourceId,
+  userId = null,
+  metadata = {}
+) => {
   try {
     console.log(`[COMMUNITY_ACTIVITY] ${action} ${resource} ${resourceId}`, {
       userId,
       timestamp: new Date().toISOString(),
-      ...metadata
+      ...metadata,
     });
   } catch (error) {
     console.error('Activity logging error:', error);
@@ -28,7 +34,15 @@ const logActivity = async (action, resource, resourceId, userId = null, metadata
 // GET /api/community/posts - List community posts
 router.get('/posts', async (req, res) => {
   try {
+    console.log('🔍 Community posts endpoint called');
     const { category, search, limit = 20, before, author } = req.query;
+    console.log('📋 Query params:', {
+      category,
+      search,
+      limit,
+      before,
+      author,
+    });
     const query = {};
 
     if (category && ['general', 'agents', 'ideas', 'help'].includes(category)) {
@@ -38,7 +52,7 @@ router.get('/posts', async (req, res) => {
     if (search && search.trim()) {
       query.$or = [
         { content: { $regex: search.trim(), $options: 'i' } },
-        { authorName: { $regex: search.trim(), $options: 'i' } }
+        { authorName: { $regex: search.trim(), $options: 'i' } },
       ];
     }
 
@@ -58,21 +72,21 @@ router.get('/posts', async (req, res) => {
       .limit(Math.min(parseInt(limit) || 20, 50))
       .lean();
 
-    await logActivity('LIST', 'posts', 'multiple', null, { 
-      count: posts.length, 
-      filters: { category, search, author } 
+    await logActivity('LIST', 'posts', 'multiple', null, {
+      count: posts.length,
+      filters: { category, search, author },
     });
 
     res.json({
       success: true,
       count: posts.length,
-      data: posts
+      data: posts,
     });
   } catch (error) {
     console.error('Community posts list error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch posts' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch posts',
     });
   }
 });
@@ -80,26 +94,35 @@ router.get('/posts', async (req, res) => {
 // POST /api/community/posts - Create new post
 router.post('/posts', async (req, res) => {
   try {
-    const { content, category = 'general', authorName, authorAvatar = '👤' } = req.body;
+    const {
+      content,
+      category = 'general',
+      authorName,
+      authorAvatar = '👤',
+    } = req.body;
 
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Content is required' 
+    if (
+      !content ||
+      typeof content !== 'string' ||
+      content.trim().length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Content is required',
       });
     }
 
     if (!['general', 'agents', 'ideas', 'help'].includes(category)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid category' 
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid category',
       });
     }
 
     if (!authorName) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Author name is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'Author name is required',
       });
     }
 
@@ -109,24 +132,24 @@ router.post('/posts', async (req, res) => {
       authorAvatar: String(authorAvatar || '👤').slice(0, 8),
       content: content.trim(),
       category,
-      isPinned: false
+      isPinned: false,
     });
 
     await logActivity('CREATE', 'post', post._id.toString(), null, {
       category,
       authorName,
-      contentLength: content.length
+      contentLength: content.length,
     });
 
     res.json({
       success: true,
-      data: post
+      data: post,
     });
   } catch (error) {
     console.error('Community post creation error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to create post' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create post',
     });
   }
 });
@@ -135,11 +158,11 @@ router.post('/posts', async (req, res) => {
 router.get('/posts/:id', async (req, res) => {
   try {
     const post = await CommunityPost.findById(req.params.id).lean();
-    
+
     if (!post) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Post not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'Post not found',
       });
     }
 
@@ -147,13 +170,13 @@ router.get('/posts/:id', async (req, res) => {
 
     res.json({
       success: true,
-      data: post
+      data: post,
     });
   } catch (error) {
     console.error('Community post fetch error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch post' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch post',
     });
   }
 });
@@ -162,51 +185,51 @@ router.get('/posts/:id', async (req, res) => {
 router.get('/metrics', async (req, res) => {
   try {
     const { period = 'daily', groupId } = req.query;
-    
+
     // Basic stats
     const totalPosts = await CommunityPost.countDocuments();
     const totalComments = await CommunityComment.countDocuments();
     const totalLikes = await CommunityLike.countDocuments();
-    
+
     // Category breakdown
     const postsByCategory = await CommunityPost.aggregate([
       { $group: { _id: '$category', count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]);
 
     // Recent activity (last 7 days)
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentPosts = await CommunityPost.countDocuments({ 
-      createdAt: { $gte: weekAgo } 
+    const recentPosts = await CommunityPost.countDocuments({
+      createdAt: { $gte: weekAgo },
     });
-    const recentComments = await CommunityComment.countDocuments({ 
-      createdAt: { $gte: weekAgo } 
+    const recentComments = await CommunityComment.countDocuments({
+      createdAt: { $gte: weekAgo },
     });
 
     const metrics = {
       overview: {
         totalPosts,
-        totalComments, 
+        totalComments,
         totalLikes,
         recentPosts,
-        recentComments
+        recentComments,
       },
       categories: postsByCategory,
       period,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
     };
 
     await logActivity('VIEW', 'metrics', 'overview', null, { period });
 
     res.json({
       success: true,
-      data: metrics
+      data: metrics,
     });
   } catch (error) {
     console.error('Community metrics error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch metrics' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch metrics',
     });
   }
 });
@@ -216,9 +239,19 @@ router.get('/presence', async (req, res) => {
   try {
     // Simple presence simulation - in production this would use websockets
     const activeUsers = [
-      { name: 'Alex Chen', avatar: '🧠', status: 'online', lastSeen: new Date() },
-      { name: 'Priya', avatar: '⚙️', status: 'away', lastSeen: new Date(Date.now() - 300000) },
-      { name: 'Jordan', avatar: '🚀', status: 'online', lastSeen: new Date() }
+      {
+        name: 'Alex Chen',
+        avatar: '🧠',
+        status: 'online',
+        lastSeen: new Date(),
+      },
+      {
+        name: 'Priya',
+        avatar: '⚙️',
+        status: 'away',
+        lastSeen: new Date(Date.now() - 300000),
+      },
+      { name: 'Jordan', avatar: '🚀', status: 'online', lastSeen: new Date() },
     ];
 
     await logActivity('VIEW', 'presence', 'active_users', null);
@@ -226,13 +259,13 @@ router.get('/presence', async (req, res) => {
     res.json({
       success: true,
       count: activeUsers.length,
-      data: activeUsers
+      data: activeUsers,
     });
   } catch (error) {
     console.error('Community presence error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch presence data' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch presence data',
     });
   }
 });
@@ -243,9 +276,9 @@ router.post('/presence/ping', async (req, res) => {
     const { userName, status = 'online' } = req.body;
 
     if (!userName) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'User name is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'User name is required',
       });
     }
 
@@ -256,14 +289,14 @@ router.post('/presence/ping', async (req, res) => {
       data: {
         userName,
         status,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
   } catch (error) {
     console.error('Community presence ping error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to update presence' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update presence',
     });
   }
 });
@@ -275,15 +308,16 @@ router.get('/top-members', async (req, res) => {
 
     // Aggregate top posters
     const topPosters = await CommunityPost.aggregate([
-      { $group: { 
-          _id: '$authorName', 
+      {
+        $group: {
+          _id: '$authorName',
           posts: { $sum: 1 },
           avatar: { $first: '$authorAvatar' },
-          lastPost: { $max: '$createdAt' }
-        } 
+          lastPost: { $max: '$createdAt' },
+        },
       },
       { $sort: { posts: -1 } },
-      { $limit: Math.min(parseInt(limit) || 10, 50) }
+      { $limit: Math.min(parseInt(limit) || 10, 50) },
     ]);
 
     await logActivity('VIEW', 'top_members', 'leaderboard', null);
@@ -291,18 +325,18 @@ router.get('/top-members', async (req, res) => {
     res.json({
       success: true,
       count: topPosters.length,
-      data: topPosters.map(member => ({
+      data: topPosters.map((member) => ({
         name: member._id,
         avatar: member.avatar,
         posts: member.posts,
-        lastPost: member.lastPost
-      }))
+        lastPost: member.lastPost,
+      })),
     });
   } catch (error) {
     console.error('Community top members error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch top members' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch top members',
     });
   }
 });
@@ -319,17 +353,19 @@ router.get('/stream', async (req, res) => {
       .select('authorName authorAvatar content category createdAt')
       .lean();
 
-    const activities = recentPosts.map(post => ({
+    const activities = recentPosts.map((post) => ({
       type: 'post',
       id: post._id,
       author: {
         name: post.authorName,
-        avatar: post.authorAvatar
+        avatar: post.authorAvatar,
       },
       action: 'created a post',
-      content: post.content.substring(0, 100) + (post.content.length > 100 ? '...' : ''),
+      content:
+        post.content.substring(0, 100) +
+        (post.content.length > 100 ? '...' : ''),
       category: post.category,
-      timestamp: post.createdAt
+      timestamp: post.createdAt,
     }));
 
     await logActivity('VIEW', 'activity_stream', 'recent', null);
@@ -337,13 +373,13 @@ router.get('/stream', async (req, res) => {
     res.json({
       success: true,
       count: activities.length,
-      data: activities
+      data: activities,
     });
   } catch (error) {
     console.error('Community stream error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch activity stream' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch activity stream',
     });
   }
 });
@@ -356,7 +392,9 @@ router.post('/posts/:id/like', async (req, res) => {
     const userEmail = req.headers['x-user-email'];
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Authentication required' });
+      return res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
 
     // Check if already liked
@@ -370,7 +408,7 @@ router.post('/posts/:id/like', async (req, res) => {
       postId,
       userId,
       userEmail,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
     await like.save();
 
@@ -385,7 +423,7 @@ router.post('/posts/:id/like', async (req, res) => {
 
     res.json({
       success: true,
-      data: { postId, liked: true, likesCount: post?.likesCount || 0 }
+      data: { postId, liked: true, likesCount: post?.likesCount || 0 },
     });
   } catch (error) {
     console.error('Like post error:', error);
@@ -400,12 +438,14 @@ router.post('/posts/:id/unlike', async (req, res) => {
     const userId = req.headers['x-user-id'];
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Authentication required' });
+      return res
+        .status(401)
+        .json({ success: false, error: 'Authentication required' });
     }
 
     // Remove like record
     const result = await CommunityLike.deleteOne({ postId, userId });
-    
+
     if (result.deletedCount === 0) {
       return res.status(400).json({ success: false, error: 'Not liked' });
     }
@@ -421,7 +461,7 @@ router.post('/posts/:id/unlike', async (req, res) => {
 
     res.json({
       success: true,
-      data: { postId, liked: false, likesCount: post?.likesCount || 0 }
+      data: { postId, liked: false, likesCount: post?.likesCount || 0 },
     });
   } catch (error) {
     console.error('Unlike post error:', error);

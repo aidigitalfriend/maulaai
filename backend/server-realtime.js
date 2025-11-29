@@ -57,7 +57,9 @@ app.use('/api/analytics', analyticsRouter);
 // Load community routes dynamically
 const loadCommunityRoutes = async () => {
   try {
+    console.log('🔄 Loading community routes...');
     const { default: communityRoutes } = await import('./routes/community.js');
+    console.log('📦 Community routes imported:', typeof communityRoutes);
     app.use('/api/community', communityRoutes);
     console.log('✅ Community routes loaded successfully');
   } catch (error) {
@@ -67,10 +69,7 @@ const loadCommunityRoutes = async () => {
 
 // Load routes after database connection
 mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/onelastai', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/onelastai')
   .then(async () => {
     console.log('✅ MongoDB Atlas Connected');
     await loadCommunityRoutes();
