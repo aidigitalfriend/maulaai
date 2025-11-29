@@ -19,8 +19,6 @@ import mongoose from 'mongoose';
 import { universalTrackingMiddleware } from './lib/tracking-middleware.js';
 // Import analytics routes
 import analyticsRouter from './routes/analytics.js';
-// Import community routes
-import communityRoutes from './routes/community.js';
 // Import AI Lab routes - temporarily disabled due to model import issues
 // import { setupAILabRoutes } from './routes/ai-lab-main.js'
 
@@ -52,30 +50,34 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 
 // ----------------------------
-// MongoDB Connection
+// API ROUTES
 // ----------------------------
+app.use('/api/analytics', analyticsRouter);
+
+// Load community routes dynamically
+const loadCommunityRoutes = async () => {
+  try {
+    const { default: communityRoutes } = await import('./routes/community.js');
+    app.use('/api/community', communityRoutes);
+    console.log('✅ Community routes loaded successfully');
+  } catch (error) {
+    console.error('❌ Failed to load community routes:', error);
+  }
+};
+
+// Load routes after database connection
 mongoose
   .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/onelastai', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB Atlas Connected');
+    await loadCommunityRoutes();
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
   });
-
-// ----------------------------
-// UNIVERSAL TRACKING - Captures EVERYTHING
-// ----------------------------
-app.use(universalTrackingMiddleware);
-
-// ----------------------------
-// API ROUTES
-// ----------------------------
-app.use('/api/analytics', analyticsRouter);
-app.use('/api/community', communityRoutes);
 
 // Basic auth routes for frontend compatibility
 app.get('/api/auth/status', (req, res) => {
