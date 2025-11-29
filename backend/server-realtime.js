@@ -19,6 +19,8 @@ import mongoose from 'mongoose';
 import { universalTrackingMiddleware } from './lib/tracking-middleware.js';
 // Import analytics routes
 import analyticsRouter from './routes/analytics.js';
+// Import community routes
+import communityRoutes from './routes/community.js';
 // Import AI Lab routes - temporarily disabled due to model import issues
 // import { setupAILabRoutes } from './routes/ai-lab-main.js'
 
@@ -73,6 +75,7 @@ app.use(universalTrackingMiddleware);
 // API ROUTES
 // ----------------------------
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/community', communityRoutes);
 
 // Basic auth routes for frontend compatibility
 app.get('/api/auth/status', (req, res) => {
