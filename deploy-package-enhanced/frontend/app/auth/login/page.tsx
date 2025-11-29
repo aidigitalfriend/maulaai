@@ -1,60 +1,63 @@
-'use client'
-export const dynamic = 'force-dynamic'
+'use client';
+export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, Suspense } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../contexts/AuthContext'
+import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../../contexts/AuthContext';
 
 function LoginPageContent() {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+    password: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { loginWithPassword, state } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const { loginWithPassword, state } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (state.isAuthenticated) {
-      const redirectTo = searchParams.get('redirect') || '/dashboard'
-      router.push(redirectTo)
+      const redirectTo = searchParams.get('redirect') || '/dashboard';
+      router.push(redirectTo);
     }
-  }, [state.isAuthenticated, router, searchParams])
+  }, [state.isAuthenticated, router, searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
-    }))
-  }
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    
+    e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      await loginWithPassword(formData.email, formData.password)
+      await loginWithPassword(formData.email, formData.password);
       // Redirect handled by useEffect
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('Login error:', error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header with Logo */}
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center justify-center mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center mb-6"
+          >
             <Image
               src="/images/logos/company-logo.png"
               alt="One Last AI"
@@ -74,7 +77,9 @@ function LoginPageContent() {
 
         {state.error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 text-center font-medium">{state.error}</p>
+            <p className="text-red-800 text-center font-medium">
+              {state.error}
+            </p>
           </div>
         )}
 
@@ -117,19 +122,19 @@ function LoginPageContent() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-neural-400 hover:text-neural-600"
                 >
-                    {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Forgot Password Link */}
             <div className="text-right">
-              <Link 
-                href="/auth/reset-password" 
+              <Link
+                href="/auth/reset-password"
                 className="text-sm text-brand-600 hover:text-brand-700"
               >
                 Forgot your password?
@@ -162,8 +167,12 @@ function LoginPageContent() {
         <div className="text-center">
           <p className="text-neural-600">
             Don't have an account?{' '}
-            <Link 
-              href={`/auth/signup${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}
+            <Link
+              href={`/auth/signup${
+                searchParams.get('redirect')
+                  ? `?redirect=${searchParams.get('redirect')}`
+                  : ''
+              }`}
               className="text-brand-600 hover:text-brand-700 font-medium"
             >
               Sign up here
@@ -173,8 +182,8 @@ function LoginPageContent() {
 
         {/* Back to Home */}
         <div className="text-center">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="text-sm text-neural-500 hover:text-neural-600"
           >
             ← Back to homepage
@@ -182,7 +191,7 @@ function LoginPageContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
@@ -190,5 +199,5 @@ export default function LoginPage() {
     <Suspense fallback={null}>
       <LoginPageContent />
     </Suspense>
-  )
+  );
 }

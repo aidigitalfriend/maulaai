@@ -100,7 +100,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
 
             {/* Conditional Footer - Hidden on agent pages */}
-            {/* <ConditionalFooter /> */}
+            <ConditionalFooter />
           </AuthProvider>
         </LoadingProvider>
       </body>

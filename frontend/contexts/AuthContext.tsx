@@ -250,20 +250,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authStorage.getToken();
   };
 
-  const contextValue = useMemo(() => ({
-    state,
-    login,
-    register,
-    resetPassword,
-    logout,
-    clearError,
-    getAuthToken,
-  }), [state]);
+  const contextValue = useMemo(
+    () => ({
+      state,
+      login,
+      register,
+      resetPassword,
+      logout,
+      clearError,
+      getAuthToken,
+    }),
+    [state]
+  );
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 

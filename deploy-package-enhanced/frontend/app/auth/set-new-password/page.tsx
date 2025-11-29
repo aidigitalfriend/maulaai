@@ -1,70 +1,80 @@
-'use client'
-export const dynamic = 'force-dynamic'
+'use client';
+export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, Suspense } from 'react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { EyeIcon, EyeSlashIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../contexts/AuthContext'
+import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  CheckIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+import { useAuth } from '../../../contexts/AuthContext';
 
 function SetNewPasswordPageContent() {
   const [formData, setFormData] = useState({
     password: '',
-    confirmPassword: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [tokenError, setTokenError] = useState('')
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [tokenError, setTokenError] = useState('');
 
-  const { setNewPassword, state } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const { setNewPassword, state } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
 
   useEffect(() => {
     if (!token) {
-      setTokenError('Invalid or missing reset token. Please request a new password reset.')
+      setTokenError(
+        'Invalid or missing reset token. Please request a new password reset.'
+      );
     }
-  }, [token])
+  }, [token]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
-    }))
-  }
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!token) return
+    e.preventDefault();
+    if (!token) return;
 
     if (formData.password !== formData.confirmPassword) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
-    
+    setIsSubmitting(true);
+
     try {
-      await setNewPassword(token, formData.password)
-      setIsSuccess(true)
+      await setNewPassword(token, formData.password);
+      setIsSuccess(true);
     } catch (error) {
-      console.error('Set new password error:', error)
+      console.error('Set new password error:', error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Password validation
-  const isPasswordLongEnough = formData.password.length >= 8
-  const hasUpperCase = /[A-Z]/.test(formData.password)
-  const hasLowerCase = /[a-z]/.test(formData.password)
-  const hasNumber = /\d/.test(formData.password)
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password)
-  const doPasswordsMatch = formData.password === formData.confirmPassword && formData.password.length > 0
+  const isPasswordLongEnough = formData.password.length >= 8;
+  const hasUpperCase = /[A-Z]/.test(formData.password);
+  const hasLowerCase = /[a-z]/.test(formData.password);
+  const hasNumber = /\d/.test(formData.password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(formData.password);
+  const doPasswordsMatch =
+    formData.password === formData.confirmPassword &&
+    formData.password.length > 0;
 
-  const isPasswordValid = isPasswordLongEnough && hasUpperCase && hasLowerCase && hasNumber
+  const isPasswordValid =
+    isPasswordLongEnough && hasUpperCase && hasLowerCase && hasNumber;
 
   if (tokenError) {
     return (
@@ -86,7 +96,7 @@ function SetNewPasswordPageContent() {
             <p className="text-neural-600 mb-6">
               Password reset links expire after 1 hour for security reasons.
             </p>
-            <Link 
+            <Link
               href="/auth/reset-password"
               className="inline-block w-full py-3 px-4 bg-gradient-to-r from-brand-600 to-accent-500 text-white rounded-lg font-medium hover:from-brand-700 hover:to-accent-600 transition-all duration-200"
             >
@@ -95,7 +105,7 @@ function SetNewPasswordPageContent() {
           </div>
 
           <div className="text-center">
-            <Link 
+            <Link
               href="/auth/login"
               className="text-brand-600 hover:text-brand-700"
             >
@@ -104,7 +114,7 @@ function SetNewPasswordPageContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (isSuccess) {
@@ -128,7 +138,7 @@ function SetNewPasswordPageContent() {
               <p className="text-neural-600 mb-6">
                 You can now sign in with your new password.
               </p>
-              <Link 
+              <Link
                 href="/auth/login"
                 className="inline-block w-full py-3 px-4 bg-gradient-to-r from-brand-600 to-accent-500 text-white rounded-lg font-medium hover:from-brand-700 hover:to-accent-600 transition-all duration-200 transform hover:scale-105"
               >
@@ -138,7 +148,9 @@ function SetNewPasswordPageContent() {
           </div>
 
           <div className="bg-brand-50 rounded-lg p-4">
-            <h3 className="font-medium text-brand-800 mb-2">🛡️ Security Tips</h3>
+            <h3 className="font-medium text-brand-800 mb-2">
+              🛡️ Security Tips
+            </h3>
             <ul className="text-sm text-brand-700 space-y-1">
               <li>• Keep your password secure and don't share it</li>
               <li>• Consider using a password manager</li>
@@ -147,7 +159,7 @@ function SetNewPasswordPageContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -168,7 +180,9 @@ function SetNewPasswordPageContent() {
 
         {state.error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 text-center font-medium">{state.error}</p>
+            <p className="text-red-800 text-center font-medium">
+              {state.error}
+            </p>
           </div>
         )}
 
@@ -211,58 +225,82 @@ function SetNewPasswordPageContent() {
               {formData.password && (
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                      isPasswordLongEnough ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        isPasswordLongEnough ? 'bg-green-100' : 'bg-red-100'
+                      }`}
+                    >
                       {isPasswordLongEnough ? (
                         <CheckIcon className="w-3 h-3 text-green-600" />
                       ) : (
                         <XMarkIcon className="w-3 h-3 text-red-600" />
                       )}
                     </div>
-                    <span className={`text-sm ${isPasswordLongEnough ? 'text-green-700' : 'text-red-700'}`}>
+                    <span
+                      className={`text-sm ${
+                        isPasswordLongEnough ? 'text-green-700' : 'text-red-700'
+                      }`}
+                    >
                       At least 8 characters
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                      hasUpperCase ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        hasUpperCase ? 'bg-green-100' : 'bg-red-100'
+                      }`}
+                    >
                       {hasUpperCase ? (
                         <CheckIcon className="w-3 h-3 text-green-600" />
                       ) : (
                         <XMarkIcon className="w-3 h-3 text-red-600" />
                       )}
                     </div>
-                    <span className={`text-sm ${hasUpperCase ? 'text-green-700' : 'text-red-700'}`}>
+                    <span
+                      className={`text-sm ${
+                        hasUpperCase ? 'text-green-700' : 'text-red-700'
+                      }`}
+                    >
                       One uppercase letter
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                      hasLowerCase ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        hasLowerCase ? 'bg-green-100' : 'bg-red-100'
+                      }`}
+                    >
                       {hasLowerCase ? (
                         <CheckIcon className="w-3 h-3 text-green-600" />
                       ) : (
                         <XMarkIcon className="w-3 h-3 text-red-600" />
                       )}
                     </div>
-                    <span className={`text-sm ${hasLowerCase ? 'text-green-700' : 'text-red-700'}`}>
+                    <span
+                      className={`text-sm ${
+                        hasLowerCase ? 'text-green-700' : 'text-red-700'
+                      }`}
+                    >
                       One lowercase letter
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                      hasNumber ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        hasNumber ? 'bg-green-100' : 'bg-red-100'
+                      }`}
+                    >
                       {hasNumber ? (
                         <CheckIcon className="w-3 h-3 text-green-600" />
                       ) : (
                         <XMarkIcon className="w-3 h-3 text-red-600" />
                       )}
                     </div>
-                    <span className={`text-sm ${hasNumber ? 'text-green-700' : 'text-red-700'}`}>
+                    <span
+                      className={`text-sm ${
+                        hasNumber ? 'text-green-700' : 'text-red-700'
+                      }`}
+                    >
                       One number
                     </span>
                   </div>
@@ -312,7 +350,9 @@ function SetNewPasswordPageContent() {
                 </button>
               </div>
               {formData.confirmPassword && !doPasswordsMatch && (
-                <p className="text-red-600 text-sm mt-1">Passwords don't match</p>
+                <p className="text-red-600 text-sm mt-1">
+                  Passwords don't match
+                </p>
               )}
               {formData.confirmPassword && doPasswordsMatch && (
                 <p className="text-green-600 text-sm mt-1 flex items-center">
@@ -325,9 +365,17 @@ function SetNewPasswordPageContent() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!isPasswordValid || !doPasswordsMatch || isSubmitting || state.isLoading}
+              disabled={
+                !isPasswordValid ||
+                !doPasswordsMatch ||
+                isSubmitting ||
+                state.isLoading
+              }
               className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                !isPasswordValid || !doPasswordsMatch || isSubmitting || state.isLoading
+                !isPasswordValid ||
+                !doPasswordsMatch ||
+                isSubmitting ||
+                state.isLoading
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-brand-600 to-accent-500 text-white hover:from-brand-700 hover:to-accent-600 transform hover:scale-105'
               }`}
@@ -346,7 +394,9 @@ function SetNewPasswordPageContent() {
 
         {/* Security Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-800 mb-2">🛡️ Password Security</h3>
+          <h3 className="font-medium text-blue-800 mb-2">
+            🛡️ Password Security
+          </h3>
           <ul className="text-sm text-blue-700 space-y-1">
             <li>• Your password is encrypted and never stored in plain text</li>
             <li>• Consider using a password manager for security</li>
@@ -355,7 +405,7 @@ function SetNewPasswordPageContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function SetNewPasswordPage() {
@@ -363,5 +413,5 @@ export default function SetNewPasswordPage() {
     <Suspense fallback={null}>
       <SetNewPasswordPageContent />
     </Suspense>
-  )
+  );
 }
