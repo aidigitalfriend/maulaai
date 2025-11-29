@@ -2,6 +2,7 @@
 const path = require('path');
 
 const nextConfig = {
+  turbopack: false,
   // Server-rendered deployment; disable static export during production builds to support route handlers
   output: undefined,
 
@@ -9,9 +10,7 @@ const nextConfig = {
   transpilePackages: ['ai-app-monorepo'],
 
   // Enable importing from parent directory (monorepo structure)
-  experimental: {
-    externalDir: true,
-  },
+  outputFileTracingRoot: __dirname,
 
   images: {
     // Modern configuration: prefer remotePatterns over deprecated domains list
@@ -35,9 +34,6 @@ const nextConfig = {
   // Skip type checking and linting during build (for faster production deployment)
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 
   // ✅ SECURITY: Disable source maps in production
