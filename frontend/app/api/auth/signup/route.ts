@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
 
@@ -47,11 +48,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create new user (password will be hashed by User model's pre-save hook)
+    // Hash the password manually
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+
+    // Create new user
     const newUser = new User({
       email: email.toLowerCase(),
       name: name || email.split('@')[0],
-      password: password, // Don't hash here, let the User model do it
+      password: hashedPassword, // Use pre-hashed password
       authMethod: authMethod || 'password',
       emailVerified: new Date(), // Auto-verify for password signup
     })
