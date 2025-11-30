@@ -105,7 +105,10 @@ UserSchema.pre('save', async function (next) {
 /**
  * Compare password method
  * Used during credential-based login
+ * NOTE: Password comparison is now handled manually in API routes
+ * to avoid bcryptjs compatibility issues with Next.js
  */
+/*
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
@@ -114,6 +117,7 @@ UserSchema.methods.comparePassword = async function (
   }
   return await bcrypt.compare(candidatePassword, this.password)
 }
+*/
 
 /**
  * Instance method: Check if reset token is valid
