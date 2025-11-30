@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check password
-    const isPasswordValid = user.password ? await bcrypt.compare(password, user.password) : false;
+    const isPasswordValid = user.password
+      ? await bcrypt.compare(password, user.password)
+      : false;
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
@@ -40,30 +42,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id.toString() },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
 
     // Update last login time
     user.lastLoginAt = new Date();
     await user.save();
 
     // Return success with user info and token
-    return NextResponse.json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        authMethod: user.authMethod,
-        createdAt: user.createdAt,
-        lastLoginAt: user.lastLoginAt
-      }
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        message: 'Login successful',
+        token,
+        user: {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+          authMethod: user.authMethod,
+          createdAt: user.createdAt,
+          lastLoginAt: user.lastLoginAt,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

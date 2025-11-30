@@ -1,21 +1,21 @@
-import mongoose, { Schema, Document } from 'mongoose'
-import bcrypt from 'bcryptjs'
+import mongoose, { Schema, Document } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
-  email: string
-  name?: string
-  password?: string // Optional for passwordless users
-  authMethod: 'password' | 'passwordless'
-  emailVerified?: Date
-  image?: string
-  createdAt: Date
-  updatedAt: Date
-  lastLoginAt?: Date
-  isActive: boolean
-  role: 'user' | 'admin' | 'moderator'
-  resetPasswordToken?: string
-  resetPasswordExpires?: Date
-  comparePassword(candidatePassword: string): Promise<boolean>
+  email: string;
+  name?: string;
+  password?: string; // Optional for passwordless users
+  authMethod: 'password' | 'passwordless';
+  emailVerified?: Date;
+  image?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLoginAt?: Date;
+  isActive: boolean;
+  role: 'user' | 'admin' | 'moderator';
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -75,7 +75,7 @@ const UserSchema = new Schema<IUser>(
   {
     timestamps: true,
   }
-)
+);
 
 /**
  * Hash password before saving
@@ -123,33 +123,34 @@ UserSchema.methods.comparePassword = async function (
  * Instance method: Check if reset token is valid
  */
 UserSchema.methods.isResetTokenValid = function (): boolean {
-  return this.resetPasswordExpires && this.resetPasswordExpires > new Date()
-}
+  return this.resetPasswordExpires && this.resetPasswordExpires > new Date();
+};
 
 /**
  * Instance method: Generate reset token
  */
 UserSchema.methods.generateResetToken = function (): string {
-  const resetToken = require('crypto').randomBytes(32).toString('hex')
+  const resetToken = require('crypto').randomBytes(32).toString('hex');
   this.resetPasswordToken = require('crypto')
     .createHash('sha256')
     .update(resetToken)
-    .digest('hex')
-  this.resetPasswordExpires = new Date(Date.now() + 1 * 60 * 60 * 1000) // 1 hour
-  return resetToken
-}
+    .digest('hex');
+  this.resetPasswordExpires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+  return resetToken;
+};
 
 /**
  * JSON response method
  * Don't expose password or sensitive fields
  */
 UserSchema.methods.toJSON = function () {
-  const user = this.toObject()
-  delete user.password
-  delete user.resetPasswordToken
-  delete user.resetPasswordExpires
-  delete user.__v
-  return user
-}
+  const user = this.toObject();
+  delete user.password;
+  delete user.resetPasswordToken;
+  delete user.resetPasswordExpires;
+  delete user.__v;
+  return user;
+};
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema)
+export default mongoose.models.User ||
+  mongoose.model<IUser>('User', UserSchema);

@@ -16,7 +16,7 @@ function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { loginWithPassword, state } = useAuth()
+  const { login, state } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -43,7 +43,7 @@ function LoginPageContent() {
     setIsSubmitting(true)
     
     try {
-      await loginWithPassword(formData.email, formData.password)
+      await login(formData.email, formData.password)
       // Redirect handled by useEffect
     } catch (error) {
       console.error('Login error:', error)

@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import dbConnect from '@/lib/mongodb'
-import User from '@/models/User'
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcryptjs'
+import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongodb';
+import User from '@/models/User';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 /**
  * POST /api/auth/signup
  * Register a new user with email and password
- * 
+ *
  * Body:
  * {
  *   email: string
@@ -20,37 +20,37 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
  */
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, password, authMethod } = await request.json()
+    const { email, name, password, authMethod } = await request.json();
 
     // Validation
     if (!email || !password) {
       return NextResponse.json(
         { message: 'Email and password are required' },
         { status: 400 }
-      )
+      );
     }
 
     if (password.length < 8) {
       return NextResponse.json(
         { message: 'Password must be at least 8 characters' },
         { status: 400 }
-      )
+      );
     }
 
-    await dbConnect()
+    await dbConnect();
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() })
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return NextResponse.json(
         { message: 'Email already registered' },
         { status: 409 }
-      )
+      );
     }
 
     // Hash the password manually
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password, salt)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create new user
     const newUser = new User({
@@ -59,16 +59,14 @@ export async function POST(request: NextRequest) {
       password: hashedPassword, // Use pre-hashed password
       authMethod: authMethod || 'password',
       emailVerified: new Date(), // Auto-verify for password signup
-    })
+    });
 
-    await newUser.save()
+    await newUser.save();
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: newUser._id.toString() },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    )
+    const token = jwt.sign({ userId: newUser._id.toString() }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
 
     // Return success with token and user info
     return NextResponse.json(
@@ -85,12 +83,12 @@ export async function POST(request: NextRequest) {
         },
       },
       { status: 201 }
-    )
+    );
   } catch (error) {
-    console.error('Signup error:', error)
+    console.error('Signup error:', error);
     return NextResponse.json(
       { message: 'Failed to create account' },
       { status: 500 }
-    )
+    );
   }
 }
