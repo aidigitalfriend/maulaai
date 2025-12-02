@@ -1,31 +1,33 @@
-'use client'
+'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Suspense, useEffect, useState } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Suspense, useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 function SubscriptionContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const agentName = searchParams.get('agent') || 'AI Agent'
-  const agentSlug = searchParams.get('slug') || 'agent'
-  const [checking, setChecking] = useState(true)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { state } = useAuth();
+  const agentName = searchParams.get('agent') || 'AI Agent';
+  const agentSlug = searchParams.get('slug') || 'agent';
+  const [checking, setChecking] = useState(true);
 
   // Check authentication and subscription status on mount
   useEffect(() => {
     const checkAccessAndRedirect = async () => {
       // First check if user is authenticated
-      if (!isAuthenticated()) {
-        const currentUrl = `/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`
-        const loginUrl = buildLoginUrl(currentUrl)
-        router.push(loginUrl)
-        return
+      if (!state.isAuthenticated || !state.user) {
+        const currentUrl = `/subscribe?agent=${encodeURIComponent(
+          agentName
+        )}&slug=${agentSlug}`;
+        router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
+        return;
       }
 
       // Check if user already has subscription for this agent
       try {
-        const user = getCurrentUser()
+        const user = state.user;
         if (user) {
           const response = await fetch('/api/subscriptions/check', {
             method: 'POST',
@@ -35,25 +37,25 @@ function SubscriptionContent() {
               email: user.email,
               agentId: agentSlug,
             }),
-          })
+          });
 
-          const data = await response.json()
-          
+          const data = await response.json();
+
           if (data.hasAccess && data.subscription) {
             // User already has active subscription, redirect to chat
-            router.push(`/agents/${agentSlug}`)
-            return
+            router.push(`/agents/${agentSlug}`);
+            return;
           }
         }
       } catch (error) {
-        console.error('Error checking subscription:', error)
+        console.error('Error checking subscription:', error);
       }
 
-      setChecking(false)
-    }
+      setChecking(false);
+    };
 
-    checkAccessAndRedirect()
-  }, [agentName, agentSlug, router])
+    checkAccessAndRedirect();
+  }, [agentName, agentSlug, router, state.isAuthenticated, state.user]);
 
   // Show loading state while checking
   if (checking) {
@@ -64,7 +66,7 @@ function SubscriptionContent() {
           <p className="text-neural-600">Checking subscription status...</p>
         </div>
       </div>
-    )
+    );
   }
 
   const subscriptionPlans = [
@@ -76,10 +78,10 @@ function SubscriptionContent() {
         'Full access to ' + agentName,
         'Unlimited conversations',
         'Real-time responses',
-        'Cancel anytime'
+        'Cancel anytime',
       ],
       recommended: false,
-      billingCycle: 'daily'
+      billingCycle: 'daily',
     },
     {
       type: 'Weekly',
@@ -90,10 +92,10 @@ function SubscriptionContent() {
         'Unlimited conversations',
         'Real-time responses',
         'Cancel anytime',
-        'Save 29% vs daily'
+        'Save 29% vs daily',
       ],
       recommended: true,
-      billingCycle: 'weekly'
+      billingCycle: 'weekly',
     },
     {
       type: 'Monthly',
@@ -105,12 +107,12 @@ function SubscriptionContent() {
         'Real-time responses',
         'Cancel anytime',
         'Save 39% vs daily',
-        'Best value'
+        'Best value',
       ],
       recommended: false,
-      billingCycle: 'monthly'
-    }
-  ]
+      billingCycle: 'monthly',
+    },
+  ];
 
   const handleSubscribe = (plan: any) => {
     // Redirect to payment page with agent and plan details
@@ -119,10 +121,10 @@ function SubscriptionContent() {
       slug: agentSlug,
       plan: plan.type.toLowerCase(),
       price: plan.price,
-      period: plan.billingCycle
-    })
-    window.location.href = `/payment?${params.toString()}`
-  }
+      period: plan.billingCycle,
+    });
+    window.location.href = `/payment?${params.toString()}`;
+  };
 
   return (
     <div className="min-h-screen">
@@ -138,7 +140,8 @@ function SubscriptionContent() {
           </p>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 max-w-2xl mx-auto">
             <p className="text-amber-200 font-medium">
-              ⚠️ One agent per subscription. You can subscribe to multiple agents, but each requires a separate subscription.
+              ⚠️ One agent per subscription. You can subscribe to multiple
+              agents, but each requires a separate subscription.
             </p>
           </div>
         </div>
@@ -149,8 +152,8 @@ function SubscriptionContent() {
             <div
               key={index}
               className={`card-dark p-8 relative ${
-                plan.recommended 
-                  ? 'ring-2 ring-brand-500 transform scale-105' 
+                plan.recommended
+                  ? 'ring-2 ring-brand-500 transform scale-105'
                   : 'hover:card-dark-hover'
               } transition-all duration-300`}
             >
@@ -161,11 +164,13 @@ function SubscriptionContent() {
                   </span>
                 </div>
               )}
-              
+
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-2">{plan.type}</h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-brand-400">{plan.price}</span>
+                  <span className="text-4xl font-bold text-brand-400">
+                    {plan.price}
+                  </span>
                   <span className="text-neutral-400 ml-2">{plan.period}</span>
                 </div>
               </div>
@@ -195,30 +200,44 @@ function SubscriptionContent() {
 
         {/* Important Notes */}
         <div className="card-dark p-8 max-w-4xl mx-auto mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-center">Important Information</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Important Information
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-bold text-brand-400 mb-3">🔒 Individual Subscriptions</h3>
+              <h3 className="font-bold text-brand-400 mb-3">
+                🔒 Individual Subscriptions
+              </h3>
               <p className="text-sm text-neutral-300">
-                Each agent requires its own subscription. You can subscribe to multiple agents individually, but each subscription is separate.
+                Each agent requires its own subscription. You can subscribe to
+                multiple agents individually, but each subscription is separate.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-brand-400 mb-3">💳 Unified Pricing</h3>
+              <h3 className="font-bold text-brand-400 mb-3">
+                💳 Unified Pricing
+              </h3>
               <p className="text-sm text-neutral-300">
-                All agents use the same simple pricing: $1/day, $5/week, or $19/month. Choose the billing cycle that works best for you.
+                All agents use the same simple pricing: $1/day, $5/week, or
+                $19/month. Choose the billing cycle that works best for you.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-brand-400 mb-3">🔄 Easy Cancellation</h3>
+              <h3 className="font-bold text-brand-400 mb-3">
+                🔄 Easy Cancellation
+              </h3>
               <p className="text-sm text-neutral-300">
-                Cancel your subscription anytime from your dashboard. Your access will continue until the end of your billing period.
+                Cancel your subscription anytime from your dashboard. Your
+                access will continue until the end of your billing period.
               </p>
             </div>
             <div>
-              <h3 className="font-bold text-brand-400 mb-3">⚡ Instant Access</h3>
+              <h3 className="font-bold text-brand-400 mb-3">
+                ⚡ Instant Access
+              </h3>
               <p className="text-sm text-neutral-300">
-                Once subscribed, you'll have immediate access to unlimited conversations with {agentName}.
+                Once subscribed, you'll have immediate access to unlimited
+                conversations with {agentName}.
               </p>
             </div>
           </div>
@@ -226,7 +245,7 @@ function SubscriptionContent() {
 
         {/* Back Link */}
         <div className="text-center">
-          <Link 
+          <Link
             href="/agents"
             className="text-brand-400 hover:text-brand-300 transition-colors"
           >
@@ -235,13 +254,19 @@ function SubscriptionContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function SubscribePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <SubscriptionContent />
     </Suspense>
-  )
+  );
 }

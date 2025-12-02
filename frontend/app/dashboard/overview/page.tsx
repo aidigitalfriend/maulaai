@@ -12,16 +12,17 @@ import {
   BadgeCheckIcon,
   SettingsIcon
 } from '@heroicons/react/24/outline'
+import { useAuth } from '@/contexts/AuthContext'
 
 // API data fetching functions
 const fetchUserData = async (userId: string) => {
   try {
     const [profileRes, rewardsRes] = await Promise.all([
-      fetch(`http://localhost:3005/api/user/profile/${userId}`),
-      fetch(`http://localhost:3005/api/user/rewards/${userId}`)
+      fetch(`/api/user/profile/${userId}`).catch(() => null),
+      fetch(`/api/user/rewards/${userId}`).catch(() => null)
     ])
 
-    if (profileRes.ok && rewardsRes.ok) {
+    if (profileRes?.ok && rewardsRes?.ok) {
       const profile = await profileRes.json()
       const rewards = await rewardsRes.json()
       
@@ -30,18 +31,19 @@ const fetchUserData = async (userId: string) => {
         rewards: rewards.rewards
       }
     }
-    throw new Error('Failed to fetch user data')
+    // Return null to fallback to mock data instead of throwing error
+    return null
   } catch (error) {
     console.error('API fetch error:', error)
     return null
   }
 }
 
-// Mock data generator functions (fallback)
-const generateMockUserProfile = () => ({
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatar: '/api/placeholder/150/150',
+// Mock data generator functions (fallback) - uses real user data when available
+const generateMockUserProfile = (authUser?: any) => ({
+  name: authUser?.name || 'John Doe',
+  email: authUser?.email || 'john@example.com',
+  avatar: authUser?.avatar || '/api/placeholder/150/150',
   bio: 'AI enthusiast and developer passionate about creating intelligent solutions.',
   phoneNumber: '+1 (555) 123-4567',
   location: 'San Francisco, CA',
@@ -54,8 +56,8 @@ const generateMockUserProfile = () => ({
     twitter: 'https://twitter.com/johndoe',
     github: 'https://github.com/johndoe'
   },
-  joinedDate: '2024-01-15',
-  lastActive: '2025-11-26'
+  joinedDate: authUser?.joinedAt || '2024-01-15',
+  lastActive: authUser?.lastLoginAt || new Date().toISOString().split('T')[0]
 })
 
 const generateMockSecuritySettings = () => ({
@@ -111,6 +113,7 @@ const generateMockRewards = () => ({
 })
 
 export default function DashboardOverviewPage() {
+  const { state } = useAuth() // Get authenticated user
   const [userProfile, setUserProfile] = useState<any>(null)
   const [securitySettings, setSecuritySettings] = useState<any>(null)
   const [preferences, setPreferences] = useState<any>(null)
@@ -121,7 +124,8 @@ export default function DashboardOverviewPage() {
     // Load user data from API
     const loadUserData = async () => {
       try {
-        const userId = 'test123' // TODO: Get from auth context
+        // Use the authenticated user's ID if available
+        const userId = state.user?.id || state.user?.email || 'guest'
         const apiData = await fetchUserData(userId)
         
         if (apiData) {
@@ -131,8 +135,8 @@ export default function DashboardOverviewPage() {
           setSecuritySettings(generateMockSecuritySettings())
           setPreferences(generateMockPreferences())
         } else {
-          // Fallback to mock data
-          setUserProfile(generateMockUserProfile())
+          // Fallback to mock data with real user info
+          setUserProfile(generateMockUserProfile(state.user))
           setSecuritySettings(generateMockSecuritySettings())
           setPreferences(generateMockPreferences())
           setRewards(generateMockRewards())
@@ -140,8 +144,8 @@ export default function DashboardOverviewPage() {
         setIsLoading(false)
       } catch (error) {
         console.error('Error loading user data:', error)
-        // Fallback to mock data on error
-        setUserProfile(generateMockUserProfile())
+        // Fallback to mock data on error with real user info
+        setUserProfile(generateMockUserProfile(state.user))
         setSecuritySettings(generateMockSecuritySettings())
         setPreferences(generateMockPreferences())
         setRewards(generateMockRewards())
@@ -150,7 +154,7 @@ export default function DashboardOverviewPage() {
     }
 
     loadUserData()
-  }, [])
+  }, [state.user])
 
   if (isLoading) {
     return (

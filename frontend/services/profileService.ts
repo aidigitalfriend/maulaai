@@ -1,41 +1,40 @@
 interface ProfileData {
-  name: string
-  email: string
-  avatar?: string
-  bio: string
-  phoneNumber: string
-  location: string
-  timezone: string
-  profession: string
-  company: string
-  website: string
+  name: string;
+  email: string;
+  avatar?: string;
+  bio: string;
+  phoneNumber: string;
+  location: string;
+  timezone: string;
+  profession: string;
+  company: string;
+  website: string;
   socialLinks: {
-    linkedin: string
-    twitter: string
-    github: string
-  }
+    linkedin: string;
+    twitter: string;
+    github: string;
+  };
   preferences: {
-    emailNotifications: boolean
-    smsNotifications: boolean
-    marketingEmails: boolean
-    productUpdates: boolean
-  }
+    emailNotifications: boolean;
+    smsNotifications: boolean;
+    marketingEmails: boolean;
+    productUpdates: boolean;
+  };
 }
 
 interface UpdateProfileResponse {
-  success: boolean
-  profile: ProfileData
-  message?: string
-  error?: string
+  success: boolean;
+  profile: ProfileData;
+  message?: string;
+  error?: string;
 }
 
 class ProfileService {
-  private baseUrl: string
-  
+  private baseUrl: string;
+
   constructor() {
-    this.baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://onelastai.co/api' 
-      : 'http://localhost:3005/api'
+    // Always use relative path to go through NGINX proxy
+    this.baseUrl = '/api';
   }
 
   async getProfile(userId: string): Promise<ProfileData> {
@@ -46,27 +45,30 @@ class ProfileService {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: UpdateProfileResponse = await response.json()
-      
+      const data: UpdateProfileResponse = await response.json();
+
       if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch profile')
+        throw new Error(data.error || 'Failed to fetch profile');
       }
 
-      return data.profile
+      return data.profile;
     } catch (error) {
-      console.error('Get profile error:', error)
+      console.error('Get profile error:', error);
       // Return default profile for development
-      return this.getDefaultProfile()
+      return this.getDefaultProfile();
     }
   }
 
-  async updateProfile(userId: string, profileData: Partial<ProfileData>): Promise<ProfileData> {
+  async updateProfile(
+    userId: string,
+    profileData: Partial<ProfileData>
+  ): Promise<ProfileData> {
     try {
       const response = await fetch(`${this.baseUrl}/user/profile/${userId}`, {
         method: 'PUT',
@@ -75,78 +77,87 @@ class ProfileService {
         },
         credentials: 'include',
         body: JSON.stringify(profileData),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: UpdateProfileResponse = await response.json()
-      
+      const data: UpdateProfileResponse = await response.json();
+
       if (!data.success) {
-        throw new Error(data.error || 'Failed to update profile')
+        throw new Error(data.error || 'Failed to update profile');
       }
 
-      return data.profile
+      return data.profile;
     } catch (error) {
-      console.error('Update profile error:', error)
-      throw error
+      console.error('Update profile error:', error);
+      throw error;
     }
   }
 
-  async updatePreferences(userId: string, preferences: ProfileData['preferences']): Promise<ProfileData['preferences']> {
+  async updatePreferences(
+    userId: string,
+    preferences: ProfileData['preferences']
+  ): Promise<ProfileData['preferences']> {
     try {
-      const response = await fetch(`${this.baseUrl}/user/profile/${userId}/preferences`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ preferences }),
-      })
+      const response = await fetch(
+        `${this.baseUrl}/user/profile/${userId}/preferences`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ preferences }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json()
-      
+      const data = await response.json();
+
       if (!data.success) {
-        throw new Error(data.error || 'Failed to update preferences')
+        throw new Error(data.error || 'Failed to update preferences');
       }
 
-      return data.preferences
+      return data.preferences;
     } catch (error) {
-      console.error('Update preferences error:', error)
-      throw error
+      console.error('Update preferences error:', error);
+      throw error;
     }
   }
 
   async uploadAvatar(userId: string, file: File): Promise<string> {
     try {
-      const formData = new FormData()
-      formData.append('avatar', file)
+      const formData = new FormData();
+      formData.append('avatar', file);
 
-      const response = await fetch(`${this.baseUrl}/user/profile/${userId}/avatar`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
+      const response = await fetch(
+        `${this.baseUrl}/user/profile/${userId}/avatar`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json()
-      
+      const data = await response.json();
+
       if (!data.success) {
-        throw new Error(data.error || 'Failed to upload avatar')
+        throw new Error(data.error || 'Failed to upload avatar');
       }
 
-      return data.avatarUrl
+      return data.avatarUrl;
     } catch (error) {
-      console.error('Upload avatar error:', error)
-      throw error
+      console.error('Upload avatar error:', error);
+      throw error;
     }
   }
 
@@ -165,17 +176,17 @@ class ProfileService {
       socialLinks: {
         linkedin: 'https://linkedin.com/in/johndoe',
         twitter: 'https://twitter.com/johndoe',
-        github: 'https://github.com/johndoe'
+        github: 'https://github.com/johndoe',
       },
       preferences: {
         emailNotifications: true,
         smsNotifications: false,
         marketingEmails: true,
-        productUpdates: true
-      }
-    }
+        productUpdates: true,
+      },
+    };
   }
 }
 
-export const profileService = new ProfileService()
-export type { ProfileData, UpdateProfileResponse }
+export const profileService = new ProfileService();
+export type { ProfileData, UpdateProfileResponse };

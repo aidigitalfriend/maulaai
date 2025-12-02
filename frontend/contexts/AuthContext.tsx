@@ -102,35 +102,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedUser = authStorage.getUser();
 
       if (storedToken && storedUser && !authStorage.isTokenExpired()) {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/verify`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${storedToken}`,
-            },
-            credentials: 'include',
-          }
-        );
+        // Try to verify with server, but don't logout on network errors
+        try {
+          const response = await fetch(
+            `/api/auth/verify`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${storedToken}`,
+              },
+              credentials: 'include',
+            }
+          );
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.valid) {
-            console.log('✅ Session restored from localStorage/cookies');
-            dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
-            authStorage.refreshExpiry();
+          if (response.ok) {
+            const data = await response.json();
+            if (data.valid) {
+              console.log('✅ Session verified with server');
+              dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
+              authStorage.refreshExpiry();
+              return;
+            } else {
+              // Server says token is invalid, logout
+              console.log('⚠️ Server rejected token');
+              authStorage.clearAll();
+              dispatch({ type: 'AUTH_LOGOUT' });
+              return;
+            }
+          } else if (response.status === 401) {
+            // Unauthorized - token is invalid
+            console.log('⚠️ Token unauthorized');
+            authStorage.clearAll();
+            dispatch({ type: 'AUTH_LOGOUT' });
             return;
           }
+        } catch (verifyError) {
+          // Network error or server down - trust local token if not expired
+          console.log('⚠️ Could not verify with server, using local token');
         }
+        
+        // If we reach here, either verification failed with network error
+        // or server is down, but token exists and isn't expired locally
+        // Trust the local token
+        console.log('✅ Session restored from local storage (offline)');
+        dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
+        return;
       }
 
+      // No valid token found
       authStorage.clearAll();
       dispatch({ type: 'AUTH_LOGOUT' });
     } catch (error) {
       console.error('Session check error:', error);
-      authStorage.clearAll();
-      dispatch({ type: 'AUTH_LOGOUT' });
+      // Don't logout on errors - just use whatever state we have
+      const storedToken = authStorage.getToken();
+      const storedUser = authStorage.getUser();
+      if (storedToken && storedUser) {
+        dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
+      } else {
+        dispatch({ type: 'AUTH_LOGOUT' });
+      }
     }
   };
 
@@ -139,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'AUTH_START' });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/login`,
+        `/api/auth/login`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -171,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'AUTH_START' });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/signup`,
+        `/api/auth/signup`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -202,7 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/reset-password`,
+        `/api/auth/reset-password`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -226,7 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = authStorage.getToken();
       if (token) {
         await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || ''}/api/auth/logout`,
+          `/api/auth/logout`,
           {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
@@ -280,11 +312,11 @@ const defaultAuthValue = {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === null) {
-    // During SSR or before provider mounts, return default values
+  // Always use context if available, fallback to default if null (SSR case)
+  // This ensures hook order is consistent between SSR and client hydration
+  if (!context || context === null) {
     return defaultAuthValue;
   }
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 }
 

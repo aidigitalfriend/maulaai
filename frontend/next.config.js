@@ -13,6 +13,9 @@ const nextConfig = {
     externalDir: true,
   },
 
+  // Add empty turbopack config to silence warnings
+  turbopack: {},
+
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Add backend directory to module resolution for server-side imports

@@ -51,11 +51,11 @@ module.exports = {
       shutdown_with_message: true
     },
 
-    // Backend API Server with Real-Time WebSocket Support
+    // Backend API Server with Authentication
     {
       name: 'shiny-backend',
-      cwd: BACKEND_CWD,
-      script: 'server-realtime.js', // 🔥 NEW: Real-time server with Socket.IO
+      cwd: APP_DIR,
+      script: 'server-simple-auth-current.mjs',
       // Load backend-specific environment variables
       env_file: ENV_PATHS.backend,
       env: {

@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
+  // Always call hooks in the same order - useAuth must be before useState
+  const { state, logout } = useAuth();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
-
-  const { state, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -45,15 +46,13 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            {/* <Image
+            <img
               src="/images/logos/company-logo.png"
               alt="One Last AI"
-              width={40}
-              height={40}
+              width="40"
+              height="40"
               className="w-10 h-10 object-contain"
-              priority
-            /> */}
-            <div className="w-10 h-10 bg-blue-500 rounded"></div>
+            />
             <span className="text-xl font-bold text-neural-800">
               One Last AI
             </span>
