@@ -209,7 +209,14 @@ app.post('/api/auth/verify', async (req, res) => {
       token,
       process.env.JWT_SECRET || 'fallback-secret'
     );
-    const user = await db.collection('users').findOne({ _id: decoded.userId });
+    
+    // Handle both ObjectId and string userId
+    let userId = decoded.userId;
+    if (typeof userId === 'string' && userId.length === 24) {
+      userId = new ObjectId(userId);
+    }
+    
+    const user = await db.collection('users').findOne({ _id: userId });
 
     if (!user) {
       return res.status(401).json({ 
@@ -395,9 +402,15 @@ app.get('/api/user/profile/:userId', async (req, res) => {
     const { userId } = req.params;
 
     // Try to get user from database
-    const user = await db.collection('users').findOne({
-      $or: [{ _id: new ObjectId(userId) }, { email: userId }],
-    });
+    // Handle both ObjectId strings and email lookups
+    let query;
+    if (userId.length === 24 && /^[0-9a-fA-F]{24}$/.test(userId)) {
+      query = { $or: [{ _id: new ObjectId(userId) }, { email: userId }] };
+    } else {
+      query = { email: userId };
+    }
+    
+    const user = await db.collection('users').findOne(query);
 
     if (user) {
       res.json({
@@ -518,14 +531,28 @@ app.put('/api/user/profile/:userId', async (req, res) => {
 app.post('/api/user/profile/:userId/avatar', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { avatar } = req.body;
+    const avatar = req.body?.avatar || req.body?.url || req.body;
 
     console.log('Uploading avatar for userId:', userId);
+    console.log('Request body:', req.body);
+    console.log('Avatar data:', avatar);
 
-    if (!avatar) {
+    if (!avatar || (typeof avatar === 'object' && !avatar.avatar && !avatar.url)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Avatar data is required' 
+        message: 'Avatar data is required',
+        received: req.body 
+      });
+    }
+
+    // Extract avatar URL if it's wrapped in an object
+    const avatarUrl = typeof avatar === 'string' ? avatar : (avatar.avatar || avatar.url);
+
+    if (!avatarUrl) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid avatar data format',
+        received: req.body
       });
     }
 
@@ -534,7 +561,7 @@ app.post('/api/user/profile/:userId/avatar', async (req, res) => {
       { _id: new ObjectId(userId) },
       { 
         $set: { 
-          avatar,
+          avatar: avatarUrl,
           updatedAt: new Date() 
         } 
       }
@@ -550,7 +577,7 @@ app.post('/api/user/profile/:userId/avatar', async (req, res) => {
     res.json({
       success: true,
       message: 'Avatar uploaded successfully',
-      avatar,
+      avatar: avatarUrl,
     });
   } catch (error) {
     console.error('Avatar upload error:', error);
