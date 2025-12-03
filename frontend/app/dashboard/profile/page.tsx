@@ -351,7 +351,7 @@ export default function UserProfilePage() {
                 <div className="mt-6 pt-6 border-t border-neural-100">
                   <h3 className="font-semibold text-neural-900 mb-3">Connect</h3>
                   <div className="flex justify-center space-x-3">
-                    {profile.socialLinks.linkedin && (
+                    {profile.socialLinks?.linkedin && (
                       <a 
                         href={profile.socialLinks.linkedin} 
                         target="_blank" 
@@ -362,7 +362,7 @@ export default function UserProfilePage() {
                         <span className="text-sm font-medium">in</span>
                       </a>
                     )}
-                    {profile.socialLinks.twitter && (
+                    {profile.socialLinks?.twitter && (
                       <a 
                         href={profile.socialLinks.twitter} 
                         target="_blank" 
@@ -373,7 +373,7 @@ export default function UserProfilePage() {
                         <span className="text-sm font-medium">tw</span>
                       </a>
                     )}
-                    {profile.socialLinks.github && (
+                    {profile.socialLinks?.github && (
                       <a 
                         href={profile.socialLinks.github} 
                         target="_blank" 
@@ -575,7 +575,7 @@ export default function UserProfilePage() {
                           <label className="block text-sm font-medium text-neural-700 mb-2">LinkedIn URL</label>
                           <input 
                             type="url" 
-                            value={profile.socialLinks.linkedin}
+                            value={profile.socialLinks?.linkedin || ''}
                             onChange={(e) => handleInputChange('socialLinks.linkedin', e.target.value)}
                             className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
                               editingSection === 'professional' 
@@ -591,7 +591,7 @@ export default function UserProfilePage() {
                           <label className="block text-sm font-medium text-neural-700 mb-2">Twitter URL</label>
                           <input 
                             type="url" 
-                            value={profile.socialLinks.twitter}
+                            value={profile.socialLinks?.twitter || ''}
                             onChange={(e) => handleInputChange('socialLinks.twitter', e.target.value)}
                             className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
                               editingSection === 'professional' 
@@ -607,7 +607,7 @@ export default function UserProfilePage() {
                           <label className="block text-sm font-medium text-neural-700 mb-2">GitHub URL</label>
                           <input 
                             type="url" 
-                            value={profile.socialLinks.github}
+                            value={profile.socialLinks?.github || ''}
                             onChange={(e) => handleInputChange('socialLinks.github', e.target.value)}
                             className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent ${
                               editingSection === 'professional' 
