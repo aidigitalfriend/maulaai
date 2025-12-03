@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
 import os from 'os';
+import multer from 'multer';
 // import agentSubscriptionRoutes from './routes/agentSubscriptions.js';
 // import agentChatHistoryRoutes from './routes/agentChatHistory.js';
 // import agentUsageRoutes from './routes/agentUsage.js';
@@ -38,6 +39,13 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Configure multer for file uploads (memory storage for base64 conversion)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
 // Agent subscription routes
 // app.use('/api/agent/subscriptions', agentSubscriptionRoutes);
@@ -527,32 +535,36 @@ app.put('/api/user/profile/:userId', async (req, res) => {
   }
 });
 
-// Upload avatar endpoint
-app.post('/api/user/profile/:userId/avatar', async (req, res) => {
+// Upload avatar endpoint - using multer for file uploads
+app.post('/api/user/profile/:userId/avatar', upload.single('avatar'), async (req, res) => {
   try {
     const { userId } = req.params;
-    const avatar = req.body?.avatar || req.body?.url || req.body;
-
+    
     console.log('Uploading avatar for userId:', userId);
+    console.log('Request file:', req.file ? 'File received' : 'No file');
     console.log('Request body:', req.body);
-    console.log('Avatar data:', avatar);
 
-    if (!avatar || (typeof avatar === 'object' && !avatar.avatar && !avatar.url)) {
+    // Handle file upload or direct URL
+    let avatarUrl;
+    
+    if (req.file) {
+      // Convert uploaded file to base64 data URL
+      const base64 = req.file.buffer.toString('base64');
+      avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
+      console.log('✅ File converted to base64, size:', req.file.size);
+    } else if (req.body.avatar) {
+      // Direct avatar URL or base64 string from body
+      avatarUrl = req.body.avatar;
+      console.log('✅ Using avatar from body');
+    } else if (req.body.url) {
+      // URL from body
+      avatarUrl = req.body.url;
+      console.log('✅ Using URL from body');
+    } else {
       return res.status(400).json({ 
         success: false, 
-        message: 'Avatar data is required',
-        received: req.body 
-      });
-    }
-
-    // Extract avatar URL if it's wrapped in an object
-    const avatarUrl = typeof avatar === 'string' ? avatar : (avatar.avatar || avatar.url);
-
-    if (!avatarUrl) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid avatar data format',
-        received: req.body
+        message: 'Avatar file or URL is required',
+        received: { body: req.body, hasFile: !!req.file }
       });
     }
 
@@ -574,10 +586,12 @@ app.post('/api/user/profile/:userId/avatar', async (req, res) => {
       });
     }
 
+    console.log('✅ Avatar updated successfully in database');
+
     res.json({
       success: true,
       message: 'Avatar uploaded successfully',
-      avatar: avatarUrl,
+      avatarUrl: avatarUrl,
     });
   } catch (error) {
     console.error('Avatar upload error:', error);

@@ -151,10 +151,10 @@ class ProfileService {
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to upload avatar');
+        throw new Error(data.message || data.error || 'Failed to upload avatar');
       }
 
-      return data.avatarUrl;
+      return data.avatarUrl || data.avatar;
     } catch (error) {
       console.error('Upload avatar error:', error);
       throw error;
