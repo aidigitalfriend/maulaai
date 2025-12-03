@@ -1,5 +1,4 @@
-import mongoose from 'mongoose'
-import { MongoClient, MongoClientOptions } from 'mongodb'
+import { MongoClient, MongoClientOptions, Db } from 'mongodb'
 
 const MONGODB_URI = process.env.MONGODB_URI || ''
 
@@ -12,33 +11,7 @@ if (!MONGODB_URI) {
   console.warn('⚠️  MONGODB_URI is not set. Some features may not work until it is configured.')
 }
 
-// -------- Mongoose connection for Mongoose models --------
-let mongooseConn: typeof mongoose | null = null
-
-async function dbConnect() {
-  if (mongooseConn && mongoose.connection.readyState === 1) {
-    return mongooseConn
-  }
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is required for database connection')
-  }
-  mongoose.set('strictQuery', true)
-  // Prevent mongoose from buffering model operations when disconnected
-  mongoose.set('bufferCommands', false as any)
-  mongooseConn = await mongoose.connect(MONGODB_URI, {
-    dbName: process.env.MONGODB_DB || undefined,
-    serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
-    socketTimeoutMS: SOCKET_TIMEOUT_MS,
-    connectTimeoutMS: CONNECT_TIMEOUT_MS,
-    // retryWrites is default true on Atlas; keep explicit
-    retryWrites: true as any,
-  } as any)
-  return mongooseConn
-}
-
-export default dbConnect
-
-// -------- Native MongoDB client for NextAuth adapter (lazy) --------
+// -------- Native MongoDB client (Mongoose removed) --------
 
 // Allow global caching in dev to prevent multiple clients
 declare global {
@@ -66,3 +39,15 @@ export function getClientPromise(): Promise<MongoClient> {
   }
   return global._mongoClientPromise
 }
+
+export async function getDatabase(dbName?: string): Promise<Db> {
+  const client = await getClientPromise()
+  return client.db(dbName || process.env.MONGODB_DB || 'onelastai')
+}
+
+// Legacy dbConnect for compatibility
+async function dbConnect() {
+  return await getClientPromise()
+}
+
+export default dbConnect

@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document, Types } from 'mongoose'
+import { ObjectId } from 'mongodb'
 
-export interface ICommunityComment extends Document {
+export interface CommunityComment {
   postId: Types.ObjectId
   authorId: Types.ObjectId | null
   authorName: string
@@ -10,18 +10,4 @@ export interface ICommunityComment extends Document {
   updatedAt: Date
 }
 
-const CommunityCommentSchema = new Schema<ICommunityComment>(
-  {
-    postId: { type: Schema.Types.ObjectId, ref: 'CommunityPost', required: true, index: true },
-    authorId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
-    authorName: { type: String, required: true, trim: true },
-    authorAvatar: { type: String, default: '👤' },
-    content: { type: String, required: true, trim: true, maxlength: 3000 },
-  },
-  { timestamps: true }
-)
-
-CommunityCommentSchema.index({ createdAt: -1 })
-
-export default mongoose.models.CommunityComment ||
-  mongoose.model<ICommunityComment>('CommunityComment', CommunityCommentSchema)
+export default CommunityComment

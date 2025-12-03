@@ -9,14 +9,13 @@ import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
-import mongoose from 'mongoose';
 import os from 'os';
-import agentSubscriptionRoutes from './routes/agentSubscriptions.js';
-import agentChatHistoryRoutes from './routes/agentChatHistory.js';
-import agentUsageRoutes from './routes/agentUsage.js';
-import agentsRoutes from './routes/agents.js';
-import agentCollectionsRoutes from './routes/agentCollections.js';
-import communityRoutes from './routes/community.js';
+// import agentSubscriptionRoutes from './routes/agentSubscriptions.js';
+// import agentChatHistoryRoutes from './routes/agentChatHistory.js';
+// import agentUsageRoutes from './routes/agentUsage.js';
+// import agentsRoutes from './routes/agents.js';
+// import agentCollectionsRoutes from './routes/agentCollections.js';
+// import communityRoutes from './routes/community.js';
 
 dotenv.config();
 
@@ -41,18 +40,18 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 
 // Agent subscription routes
-app.use('/api/agent/subscriptions', agentSubscriptionRoutes);
-app.use('/api/agent/chat-history', agentChatHistoryRoutes);
-app.use('/api/agent/usage', agentUsageRoutes);
+// app.use('/api/agent/subscriptions', agentSubscriptionRoutes);
+// app.use('/api/agent/chat-history', agentChatHistoryRoutes);
+// app.use('/api/agent/usage', agentUsageRoutes);
 
 // Agents API routes
-app.use('/api/agents', agentsRoutes);
+// app.use('/api/agents', agentsRoutes);
 
 // Agent Collections API routes (individual agent data hubs)
-app.use('/api/agent-collections', agentCollectionsRoutes);
+// app.use('/api/agent-collections', agentCollectionsRoutes);
 
 // Community API routes
-app.use('/api/community', communityRoutes);
+// app.use('/api/community', communityRoutes);
 
 // MongoDB connection
 let client;
@@ -60,20 +59,17 @@ let db;
 
 async function connectToMongoDB() {
   try {
-    client = new MongoClient(process.env.MONGODB_URI);
-    await client.connect();
-    db = client.db('onelastai');
-    console.log('Connected to MongoDB successfully');
-
-    // Also connect Mongoose for agent subscription models
-    await mongoose.connect(process.env.MONGODB_URI, {
+    client = new MongoClient(process.env.MONGODB_URI, {
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
     });
-    console.log('Mongoose connected successfully');
+    await client.connect();
+    db = client.db('onelastai');
+    console.log('✅ Connected to MongoDB successfully');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('❌ MongoDB connection error:', error);
+    throw error;
   }
 }
 

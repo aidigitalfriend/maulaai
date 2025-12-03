@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { 
   UserIcon, 
   PencilIcon, 
@@ -16,11 +17,14 @@ import {
   XMarkIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
-import { useAuth } from '../../../hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { profileService, ProfileData } from '../../../services/profileService'
 
 export default function UserProfilePage() {
-  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const { state } = useAuth()
+  const user = state.user
+  const authLoading = state.isLoading
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -33,17 +37,23 @@ export default function UserProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!authLoading && !state.isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
+    
     if (user) {
       loadProfile()
     }
-  }, [user])
+  }, [user, authLoading, state.isAuthenticated, router])
 
   const loadProfile = async () => {
     if (!user) return
     
     try {
       setLoading(true)
-      const profileData = await profileService.getProfile(user._id)
+      const profileData = await profileService.getProfile(user.id || user.email)
       setProfile(profileData)
       setOriginalProfile(JSON.parse(JSON.stringify(profileData)))
     } catch (err) {
@@ -98,7 +108,7 @@ export default function UserProfilePage() {
     if (!user) return
     
     try {
-      await profileService.updatePreferences(user._id, preferences)
+      await profileService.updatePreferences(user.id || user.email, preferences)
       setSuccess('Preferences saved automatically')
       setTimeout(clearMessages, 3000)
     } catch (err) {
@@ -112,7 +122,7 @@ export default function UserProfilePage() {
     
     try {
       setSaving(true)
-      const updatedProfile = await profileService.updateProfile(user._id, profile)
+      const updatedProfile = await profileService.updateProfile(user.id || user.email, profile)
       setProfile(updatedProfile)
       setOriginalProfile(JSON.parse(JSON.stringify(updatedProfile)))
       setHasChanges(false)
@@ -144,7 +154,7 @@ export default function UserProfilePage() {
 
     try {
       setSaving(true)
-      const avatarUrl = await profileService.uploadAvatar(user._id, file)
+      const avatarUrl = await profileService.uploadAvatar(user.id || user.email, file)
       setProfile(prev => prev ? { ...prev, avatar: avatarUrl } : null)
       setSuccess('Avatar updated successfully!')
       setTimeout(clearMessages, 3000)
