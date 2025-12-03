@@ -199,7 +199,10 @@ app.post('/api/auth/verify', async (req, res) => {
     const token = authHeader?.replace('Bearer ', '') || tokenFromBody;
 
     if (!token) {
-      return res.status(400).json({ message: 'Token is required' });
+      return res.status(400).json({ 
+        valid: false, 
+        message: 'Token is required' 
+      });
     }
 
     const decoded = jwt.verify(
@@ -209,20 +212,28 @@ app.post('/api/auth/verify', async (req, res) => {
     const user = await db.collection('users').findOne({ _id: decoded.userId });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ 
+        valid: false, 
+        message: 'Invalid token' 
+      });
     }
 
     res.json({
+      valid: true,
       message: 'Token verified',
       user: {
         id: user._id,
         email: user.email,
         name: user.name,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
     console.error('Verify error:', error);
-    res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ 
+      valid: false, 
+      message: 'Invalid token' 
+    });
   }
 });
 
@@ -425,6 +436,128 @@ app.get('/api/user/profile/:userId', async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: 'Failed to fetch profile' });
+  }
+});
+
+// Update user profile endpoint
+app.put('/api/user/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updates = req.body;
+
+    console.log('Updating profile for userId:', userId);
+    console.log('Updates:', updates);
+
+    // Remove fields that shouldn't be updated directly
+    delete updates._id;
+    delete updates.password;
+    delete updates.createdAt;
+
+    // Update user in database
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          ...updates,
+          updatedAt: new Date() 
+        } 
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    // Fetch updated user
+    const updatedUser = await db.collection('users').findOne({
+      _id: new ObjectId(userId),
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      profile: {
+        name: updatedUser.name || 'User',
+        email: updatedUser.email,
+        avatar: updatedUser.avatar || null,
+        bio: updatedUser.bio || '',
+        phoneNumber: updatedUser.phoneNumber || '',
+        location: updatedUser.location || '',
+        timezone: updatedUser.timezone || 'UTC',
+        profession: updatedUser.profession || '',
+        company: updatedUser.company || '',
+        website: updatedUser.website || '',
+        socialLinks: updatedUser.socialLinks || {
+          linkedin: '',
+          twitter: '',
+          github: '',
+        },
+        preferences: updatedUser.preferences || {
+          emailNotifications: true,
+          smsNotifications: false,
+          marketingEmails: false,
+          productUpdates: true,
+        },
+        joinedAt: updatedUser.createdAt || new Date().toISOString(),
+        lastLoginAt: updatedUser.lastLoginAt || new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update profile' 
+    });
+  }
+});
+
+// Upload avatar endpoint
+app.post('/api/user/profile/:userId/avatar', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { avatar } = req.body;
+
+    console.log('Uploading avatar for userId:', userId);
+
+    if (!avatar) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Avatar data is required' 
+      });
+    }
+
+    // Update user avatar in database
+    const result = await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          avatar,
+          updatedAt: new Date() 
+        } 
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      avatar,
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to upload avatar' 
+    });
   }
 });
 
