@@ -207,9 +207,9 @@ app.post('/api/auth/verify', async (req, res) => {
     const token = authHeader?.replace('Bearer ', '') || tokenFromBody;
 
     if (!token) {
-      return res.status(400).json({ 
-        valid: false, 
-        message: 'Token is required' 
+      return res.status(400).json({
+        valid: false,
+        message: 'Token is required',
       });
     }
 
@@ -217,19 +217,19 @@ app.post('/api/auth/verify', async (req, res) => {
       token,
       process.env.JWT_SECRET || 'fallback-secret'
     );
-    
+
     // Handle both ObjectId and string userId
     let userId = decoded.userId;
     if (typeof userId === 'string' && userId.length === 24) {
       userId = new ObjectId(userId);
     }
-    
+
     const user = await db.collection('users').findOne({ _id: userId });
 
     if (!user) {
-      return res.status(401).json({ 
-        valid: false, 
-        message: 'Invalid token' 
+      return res.status(401).json({
+        valid: false,
+        message: 'Invalid token',
       });
     }
 
@@ -245,9 +245,9 @@ app.post('/api/auth/verify', async (req, res) => {
     });
   } catch (error) {
     console.error('Verify error:', error);
-    res.status(401).json({ 
-      valid: false, 
-      message: 'Invalid token' 
+    res.status(401).json({
+      valid: false,
+      message: 'Invalid token',
     });
   }
 });
@@ -417,7 +417,7 @@ app.get('/api/user/profile/:userId', async (req, res) => {
     } else {
       query = { email: userId };
     }
-    
+
     const user = await db.collection('users').findOne(query);
 
     if (user) {
@@ -477,18 +477,18 @@ app.put('/api/user/profile/:userId', async (req, res) => {
     // Update user in database
     const result = await db.collection('users').updateOne(
       { _id: new ObjectId(userId) },
-      { 
-        $set: { 
+      {
+        $set: {
           ...updates,
-          updatedAt: new Date() 
-        } 
+          updatedAt: new Date(),
+        },
       }
     );
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'User not found' 
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
       });
     }
 
@@ -528,79 +528,83 @@ app.put('/api/user/profile/:userId', async (req, res) => {
     });
   } catch (error) {
     console.error('Profile update error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to update profile' 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
     });
   }
 });
 
 // Upload avatar endpoint - using multer for file uploads
-app.post('/api/user/profile/:userId/avatar', upload.single('avatar'), async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    console.log('Uploading avatar for userId:', userId);
-    console.log('Request file:', req.file ? 'File received' : 'No file');
-    console.log('Request body:', req.body);
+app.post(
+  '/api/user/profile/:userId/avatar',
+  upload.single('avatar'),
+  async (req, res) => {
+    try {
+      const { userId } = req.params;
 
-    // Handle file upload or direct URL
-    let avatarUrl;
-    
-    if (req.file) {
-      // Convert uploaded file to base64 data URL
-      const base64 = req.file.buffer.toString('base64');
-      avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
-      console.log('✅ File converted to base64, size:', req.file.size);
-    } else if (req.body.avatar) {
-      // Direct avatar URL or base64 string from body
-      avatarUrl = req.body.avatar;
-      console.log('✅ Using avatar from body');
-    } else if (req.body.url) {
-      // URL from body
-      avatarUrl = req.body.url;
-      console.log('✅ Using URL from body');
-    } else {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Avatar file or URL is required',
-        received: { body: req.body, hasFile: !!req.file }
-      });
-    }
+      console.log('Uploading avatar for userId:', userId);
+      console.log('Request file:', req.file ? 'File received' : 'No file');
+      console.log('Request body:', req.body);
 
-    // Update user avatar in database
-    const result = await db.collection('users').updateOne(
-      { _id: new ObjectId(userId) },
-      { 
-        $set: { 
-          avatar: avatarUrl,
-          updatedAt: new Date() 
-        } 
+      // Handle file upload or direct URL
+      let avatarUrl;
+
+      if (req.file) {
+        // Convert uploaded file to base64 data URL
+        const base64 = req.file.buffer.toString('base64');
+        avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
+        console.log('✅ File converted to base64, size:', req.file.size);
+      } else if (req.body.avatar) {
+        // Direct avatar URL or base64 string from body
+        avatarUrl = req.body.avatar;
+        console.log('✅ Using avatar from body');
+      } else if (req.body.url) {
+        // URL from body
+        avatarUrl = req.body.url;
+        console.log('✅ Using URL from body');
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Avatar file or URL is required',
+          received: { body: req.body, hasFile: !!req.file },
+        });
       }
-    );
 
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'User not found' 
+      // Update user avatar in database
+      const result = await db.collection('users').updateOne(
+        { _id: new ObjectId(userId) },
+        {
+          $set: {
+            avatar: avatarUrl,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      console.log('✅ Avatar updated successfully in database');
+
+      res.json({
+        success: true,
+        message: 'Avatar uploaded successfully',
+        avatarUrl: avatarUrl,
+      });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload avatar',
       });
     }
-
-    console.log('✅ Avatar updated successfully in database');
-
-    res.json({
-      success: true,
-      message: 'Avatar uploaded successfully',
-      avatarUrl: avatarUrl,
-    });
-  } catch (error) {
-    console.error('Avatar upload error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to upload avatar' 
-    });
   }
-});
+);
 
 // User rewards endpoint
 app.get('/api/user/rewards/:userId', async (req, res) => {

@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 function PaymentContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { state } = useAuth()
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('card')
   const [userInfo, setUserInfo] = useState<{name: string, email: string} | null>(null)
@@ -24,24 +25,26 @@ function PaymentContent() {
   const price = searchParams.get('price') || '$1'
   const period = searchParams.get('period') || 'daily'
 
+  // Helper function to build login URL with return path
+  const buildLoginUrl = (returnUrl: string) => {
+    return `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`
+  }
+
   // Check authentication and get user info on mount
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!state.isAuthenticated) {
       // Build the current page URL to return to after login
       const currentUrl = `/payment?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}&plan=${plan}&price=${price}&period=${period}`
       const loginUrl = buildLoginUrl(currentUrl)
       router.push(loginUrl)
-    } else {
-      // Get user info from auth
-      const currentUser = getCurrentUser()
-      if (currentUser) {
-        setUserInfo({
-          name: currentUser.name || 'User',
-          email: currentUser.email || ''
-        })
-      }
+    } else if (state.user) {
+      // Get user info from auth state
+      setUserInfo({
+        name: state.user.name || 'User',
+        email: state.user.email || ''
+      })
     }
-  }, [agentName, agentSlug, plan, price, period, router])
+  }, [state.isAuthenticated, state.user, agentName, agentSlug, plan, price, period, router])
 
   // Calculate billing details
   const getBillingDetails = () => {
@@ -100,16 +103,15 @@ function PaymentContent() {
     setLoading(true)
     
     try {
-      // Get user info from auth
-      const currentUser = getCurrentUser()
-      if (!currentUser) {
+      // Get user info from auth state
+      if (!state.isAuthenticated || !state.user) {
         alert('Please log in to continue')
         router.push(buildLoginUrl(window.location.pathname + window.location.search))
         return
       }
       
-      const userId = currentUser.id || localStorage.getItem('userId') || 'user_' + Date.now()
-      const userEmail = currentUser.email || localStorage.getItem('userEmail') || 'user@example.com'
+      const userId = state.user.id || localStorage.getItem('userId') || 'user_' + Date.now()
+      const userEmail = state.user.email || localStorage.getItem('userEmail') || 'user@example.com'
       
       // Create Stripe checkout session
       const response = await fetch('/api/stripe/checkout', {
