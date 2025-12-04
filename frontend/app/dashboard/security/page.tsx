@@ -632,18 +632,24 @@ export default function SecuritySettingsPage() {
                   </div>
 
                   <div className="space-y-4">
-                    {(trustedDevices.length > 0
-                      ? trustedDevices
-                      : securityData.trustedDevices
-                    ).map((device) => (
-                      <div
-                        key={device.id}
-                        className={`p-4 border rounded-lg ${
-                          device.current
-                            ? 'border-brand-200 bg-brand-50'
-                            : 'border-neural-100'
-                        }`}
-                      >
+                    {trustedDevices.length === 0 ? (
+                      <div className="text-center py-12">
+                        <ShieldCheckIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                        <p className="text-neutral-500">No trusted devices found</p>
+                        <p className="text-sm text-neutral-400 mt-1">
+                          Devices will appear here after you log in
+                        </p>
+                      </div>
+                    ) : (
+                      trustedDevices.map((device) => (
+                        <div
+                          key={device.id}
+                          className={`p-4 border rounded-lg ${
+                            device.current
+                              ? 'border-brand-200 bg-brand-50'
+                              : 'border-neural-100'
+                          }`}
+                        >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <div className="p-2 bg-neural-100 rounded-lg mr-4">
@@ -678,7 +684,8 @@ export default function SecuritySettingsPage() {
                           )}
                         </div>
                       </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -716,14 +723,22 @@ export default function SecuritySettingsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(loginHistory.length > 0
-                          ? loginHistory
-                          : securityData.loginHistory
-                        ).map((login) => (
-                          <tr
-                            key={login.id}
-                            className="border-b border-neural-50"
-                          >
+                        {loginHistory.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="py-12 text-center">
+                              <ClockIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                              <p className="text-neutral-500">No login history found</p>
+                              <p className="text-sm text-neutral-400 mt-1">
+                                Your login activity will appear here
+                              </p>
+                            </td>
+                          </tr>
+                        ) : (
+                          loginHistory.map((login) => (
+                            <tr
+                              key={login.id}
+                              className="border-b border-neural-50"
+                            >
                             <td className="py-4 text-sm text-neural-900">
                               {formatDateTime(login.date)}
                             </td>
@@ -753,7 +768,8 @@ export default function SecuritySettingsPage() {
                               {login.ip}
                             </td>
                           </tr>
-                        ))}
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
