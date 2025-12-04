@@ -652,7 +652,9 @@ app.post('/api/user/security/change-password', async (req, res) => {
     }
 
     // Get user from database
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return res.status(404).json({
@@ -662,7 +664,10 @@ app.post('/api/user/security/change-password', async (req, res) => {
     }
 
     // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
 
     if (!isValidPassword) {
       return res.status(401).json({
@@ -721,7 +726,9 @@ app.post('/api/user/security/2fa/toggle', async (req, res) => {
       });
     }
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return res.status(404).json({
@@ -739,7 +746,7 @@ app.post('/api/user/security/2fa/toggle', async (req, res) => {
     if (enabled && !user.twoFactor?.secret) {
       const speakeasy = await import('speakeasy').catch(() => null);
       const crypto = await import('crypto');
-      
+
       // Generate backup codes
       const backupCodes = Array.from({ length: 10 }, () =>
         crypto.randomBytes(4).toString('hex').toUpperCase()
@@ -753,10 +760,9 @@ app.post('/api/user/security/2fa/toggle', async (req, res) => {
       };
     }
 
-    await db.collection('users').updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: updateData }
-    );
+    await db
+      .collection('users')
+      .updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
 
     // Log the 2FA change
     await db.collection('securityLogs').insertOne({
@@ -769,7 +775,9 @@ app.post('/api/user/security/2fa/toggle', async (req, res) => {
 
     res.json({
       success: true,
-      message: enabled ? '2FA enabled successfully' : '2FA disabled successfully',
+      message: enabled
+        ? '2FA enabled successfully'
+        : '2FA disabled successfully',
       backupCodes: enabled ? updateData['twoFactor.backupCodes'] : undefined,
     });
   } catch (error) {
@@ -786,7 +794,9 @@ app.get('/api/user/security/2fa/setup/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return res.status(404).json({
@@ -796,7 +806,8 @@ app.get('/api/user/security/2fa/setup/:userId', async (req, res) => {
     }
 
     const crypto = await import('crypto');
-    const secret = user.twoFactor?.secret || crypto.randomBytes(20).toString('hex');
+    const secret =
+      user.twoFactor?.secret || crypto.randomBytes(20).toString('hex');
 
     // If no secret exists, create one
     if (!user.twoFactor?.secret) {
@@ -839,7 +850,9 @@ app.get('/api/user/security/2fa/backup-codes/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return res.status(404).json({
@@ -949,8 +962,12 @@ app.get('/api/user/security/login-history/:userId', async (req, res) => {
         date: log.timestamp,
         location: log.location || 'Unknown',
         device: log.device || 'Unknown Device',
-        status: log.action === 'login_success' ? 'success' : 
-                log.action === 'login_blocked' ? 'blocked' : 'failed',
+        status:
+          log.action === 'login_success'
+            ? 'success'
+            : log.action === 'login_blocked'
+            ? 'blocked'
+            : 'failed',
         ip: log.ip,
       })),
     });
