@@ -126,10 +126,15 @@ app.post('/api/auth/login', async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
+      // Track failed login attempt
+      await trackLogin(user._id, req, 'failed').catch(console.error);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const token = generateToken(user._id);
+
+    // Track successful login
+    await trackLogin(user._id, req, 'success').catch(console.error);
 
     res.json({
       message: 'Login successful',
@@ -629,6 +634,404 @@ app.get('/api/user/rewards/:userId', async (req, res) => {
       .json({ success: false, message: 'Failed to fetch rewards' });
   }
 });
+
+// ----------------------------
+// SECURITY ENDPOINTS
+// ----------------------------
+
+// Change password endpoint
+app.post('/api/user/security/change-password', async (req, res) => {
+  try {
+    const { userId, currentPassword, newPassword } = req.body;
+
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID, current password, and new password are required',
+      });
+    }
+
+    // Get user from database
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect',
+      });
+    }
+
+    // Hash new password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password in database
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          password: hashedPassword,
+          passwordChangedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    // Log the password change in security history
+    await db.collection('securityLogs').insertOne({
+      userId: new ObjectId(userId),
+      action: 'password_changed',
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change password',
+    });
+  }
+});
+
+// Enable/Disable 2FA endpoint
+app.post('/api/user/security/2fa/toggle', async (req, res) => {
+  try {
+    const { userId, enabled } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required',
+      });
+    }
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    let updateData = {
+      'twoFactor.enabled': enabled,
+      updatedAt: new Date(),
+    };
+
+    // If enabling 2FA, generate secret and backup codes
+    if (enabled && !user.twoFactor?.secret) {
+      const speakeasy = await import('speakeasy').catch(() => null);
+      const crypto = await import('crypto');
+      
+      // Generate backup codes
+      const backupCodes = Array.from({ length: 10 }, () =>
+        crypto.randomBytes(4).toString('hex').toUpperCase()
+      );
+
+      updateData = {
+        ...updateData,
+        'twoFactor.secret': crypto.randomBytes(20).toString('hex'),
+        'twoFactor.backupCodes': backupCodes,
+        'twoFactor.method': 'authenticator',
+      };
+    }
+
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+
+    // Log the 2FA change
+    await db.collection('securityLogs').insertOne({
+      userId: new ObjectId(userId),
+      action: enabled ? '2fa_enabled' : '2fa_disabled',
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    res.json({
+      success: true,
+      message: enabled ? '2FA enabled successfully' : '2FA disabled successfully',
+      backupCodes: enabled ? updateData['twoFactor.backupCodes'] : undefined,
+    });
+  } catch (error) {
+    console.error('2FA toggle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to toggle 2FA',
+    });
+  }
+});
+
+// Get 2FA QR Code and backup codes
+app.get('/api/user/security/2fa/setup/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const crypto = await import('crypto');
+    const secret = user.twoFactor?.secret || crypto.randomBytes(20).toString('hex');
+
+    // If no secret exists, create one
+    if (!user.twoFactor?.secret) {
+      const backupCodes = Array.from({ length: 10 }, () =>
+        crypto.randomBytes(4).toString('hex').toUpperCase()
+      );
+
+      await db.collection('users').updateOne(
+        { _id: new ObjectId(userId) },
+        {
+          $set: {
+            'twoFactor.secret': secret,
+            'twoFactor.backupCodes': backupCodes,
+            updatedAt: new Date(),
+          },
+        }
+      );
+    }
+
+    // Generate QR code URL (for authenticator apps)
+    const qrCodeUrl = `otpauth://totp/OneLastAI:${user.email}?secret=${secret}&issuer=OneLastAI`;
+
+    res.json({
+      success: true,
+      secret,
+      qrCodeUrl,
+      backupCodes: user.twoFactor?.backupCodes || [],
+    });
+  } catch (error) {
+    console.error('2FA setup error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to setup 2FA',
+    });
+  }
+});
+
+// Get backup codes
+app.get('/api/user/security/2fa/backup-codes/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      backupCodes: user.twoFactor?.backupCodes || [],
+    });
+  } catch (error) {
+    console.error('Get backup codes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get backup codes',
+    });
+  }
+});
+
+// Get trusted devices
+app.get('/api/user/security/devices/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const devices = await db
+      .collection('trustedDevices')
+      .find({ userId: new ObjectId(userId) })
+      .sort({ lastSeen: -1 })
+      .toArray();
+
+    res.json({
+      success: true,
+      devices: devices.map((device) => ({
+        id: device._id,
+        name: device.name,
+        type: device.type,
+        lastSeen: device.lastSeen,
+        location: device.location,
+        browser: device.browser,
+        current: device.current || false,
+      })),
+    });
+  } catch (error) {
+    console.error('Get devices error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get devices',
+    });
+  }
+});
+
+// Remove trusted device
+app.delete('/api/user/security/devices/:userId/:deviceId', async (req, res) => {
+  try {
+    const { userId, deviceId } = req.params;
+
+    await db.collection('trustedDevices').deleteOne({
+      _id: new ObjectId(deviceId),
+      userId: new ObjectId(userId),
+    });
+
+    // Log the device removal
+    await db.collection('securityLogs').insertOne({
+      userId: new ObjectId(userId),
+      action: 'device_removed',
+      deviceId: new ObjectId(deviceId),
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    res.json({
+      success: true,
+      message: 'Device removed successfully',
+    });
+  } catch (error) {
+    console.error('Remove device error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove device',
+    });
+  }
+});
+
+// Get login history
+app.get('/api/user/security/login-history/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const loginHistory = await db
+      .collection('securityLogs')
+      .find({
+        userId: new ObjectId(userId),
+        action: { $in: ['login_success', 'login_failed', 'login_blocked'] },
+      })
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .toArray();
+
+    res.json({
+      success: true,
+      loginHistory: loginHistory.map((log) => ({
+        id: log._id,
+        date: log.timestamp,
+        location: log.location || 'Unknown',
+        device: log.device || 'Unknown Device',
+        status: log.action === 'login_success' ? 'success' : 
+                log.action === 'login_blocked' ? 'blocked' : 'failed',
+        ip: log.ip,
+      })),
+    });
+  } catch (error) {
+    console.error('Get login history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get login history',
+    });
+  }
+});
+
+// Track login (called during login)
+async function trackLogin(userId, req, status = 'success') {
+  try {
+    // Get device and location info
+    const userAgent = req.headers['user-agent'] || '';
+    const ip = req.ip || req.connection.remoteAddress;
+
+    // Parse user agent for device info
+    let deviceName = 'Unknown Device';
+    let deviceType = 'desktop';
+    let browser = 'Unknown Browser';
+
+    if (userAgent.includes('iPhone')) {
+      deviceName = 'iPhone';
+      deviceType = 'mobile';
+    } else if (userAgent.includes('iPad')) {
+      deviceName = 'iPad';
+      deviceType = 'tablet';
+    } else if (userAgent.includes('Android')) {
+      deviceName = 'Android Device';
+      deviceType = 'mobile';
+    } else if (userAgent.includes('Mac')) {
+      deviceName = 'MacBook';
+      deviceType = 'desktop';
+    } else if (userAgent.includes('Windows')) {
+      deviceName = 'Windows PC';
+      deviceType = 'desktop';
+    }
+
+    if (userAgent.includes('Chrome')) browser = 'Chrome';
+    else if (userAgent.includes('Safari')) browser = 'Safari';
+    else if (userAgent.includes('Firefox')) browser = 'Firefox';
+    else if (userAgent.includes('Edge')) browser = 'Edge';
+
+    // Log to security logs
+    await db.collection('securityLogs').insertOne({
+      userId: new ObjectId(userId),
+      action: `login_${status}`,
+      timestamp: new Date(),
+      ip,
+      userAgent,
+      device: deviceName,
+      browser,
+      location: 'Unknown', // Can be enhanced with IP geolocation
+    });
+
+    // Add/update trusted device
+    if (status === 'success') {
+      await db.collection('trustedDevices').updateOne(
+        {
+          userId: new ObjectId(userId),
+          browser,
+          type: deviceType,
+        },
+        {
+          $set: {
+            name: deviceName,
+            lastSeen: new Date(),
+            location: 'Unknown',
+            current: false,
+          },
+        },
+        { upsert: true }
+      );
+    }
+  } catch (error) {
+    console.error('Track login error:', error);
+  }
+}
 
 // Catch all other routes
 

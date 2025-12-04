@@ -1,12 +1,13 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RandomAgent() {
-  const router = useRouter()
-  const [checking, setChecking] = useState(true)
+  const router = useRouter();
+  const { state } = useAuth();
+  const [checking, setChecking] = useState(true);
 
   const availableAgents = [
     { slug: 'ben-sega', name: 'Ben Sega' },
@@ -26,23 +27,25 @@ export default function RandomAgent() {
     { slug: 'professor-astrology', name: 'Professor Astrology' },
     { slug: 'rook-jokey', name: 'Rook Jokey' },
     { slug: 'tech-wizard', name: 'Tech Wizard' },
-    { slug: 'travel-buddy', name: 'Travel Buddy' }
-  ]
+    { slug: 'travel-buddy', name: 'Travel Buddy' },
+  ];
 
   useEffect(() => {
     const checkSubscriptionAndRedirect = async () => {
       try {
         // Get a random agent
-        const randomIndex = Math.floor(Math.random() * availableAgents.length)
-        const randomAgent = availableAgents[randomIndex]
-        
-        // Get current user
-        const user = getCurrentUser()
-        
-        if (!user) {
+        const randomIndex = Math.floor(Math.random() * availableAgents.length);
+        const randomAgent = availableAgents[randomIndex];
+
+        // Check if user is authenticated
+        if (!state.isAuthenticated || !state.user) {
           // Not logged in, go to subscribe page
-          router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
-          return
+          router.push(
+            `/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${
+              randomAgent.slug
+            }`
+          );
+          return;
         }
 
         // Check if user has subscription for this agent via API
@@ -50,34 +53,42 @@ export default function RandomAgent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: user.id,
-            email: user.email,
+            userId: state.user.id,
+            email: state.user.email,
             agentId: randomAgent.slug,
           }),
-        })
+        });
 
-        const data = await response.json()
-        
+        const data = await response.json();
+
         if (data.hasAccess) {
           // User has subscription, go to agent chat
-          router.push(`/agents/${randomAgent.slug}`)
+          router.push(`/agents/${randomAgent.slug}`);
         } else {
           // No subscription, go to subscribe page
-          router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
+          router.push(
+            `/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${
+              randomAgent.slug
+            }`
+          );
         }
       } catch (error) {
-        console.error('Error checking subscription:', error)
+        console.error('Error checking subscription:', error);
         // On error, fallback to subscribe page
-        const randomIndex = Math.floor(Math.random() * availableAgents.length)
-        const randomAgent = availableAgents[randomIndex]
-        router.push(`/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${randomAgent.slug}`)
+        const randomIndex = Math.floor(Math.random() * availableAgents.length);
+        const randomAgent = availableAgents[randomIndex];
+        router.push(
+          `/subscribe?agent=${encodeURIComponent(randomAgent.name)}&slug=${
+            randomAgent.slug
+          }`
+        );
       } finally {
-        setChecking(false)
+        setChecking(false);
       }
-    }
+    };
 
-    checkSubscriptionAndRedirect()
-  }, [router])
+    checkSubscriptionAndRedirect();
+  }, [router, state.isAuthenticated, state.user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -87,5 +98,5 @@ export default function RandomAgent() {
         <p className="text-neutral-400">You'll be redirected shortly</p>
       </div>
     </div>
-  )
+  );
 }

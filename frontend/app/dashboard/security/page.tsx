@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 import { 
   ShieldCheckIcon,
   KeyIcon,
@@ -17,9 +18,26 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function SecuritySettingsPage() {
+  const { state } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
+  const [showBackupCodes, setShowBackupCodes] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+  
+  // Password change fields
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  
+  // 2FA data
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  
+  // Device and history data
+  const [trustedDevices, setTrustedDevices] = useState<any[]>([])
+  const [loginHistory, setLoginHistory] = useState<any[]>([])
 
   const [securityData] = useState({
     lastPasswordChange: '2024-10-15',
@@ -94,13 +112,6 @@ export default function SecuritySettingsPage() {
     securityScore: 85,
     recommendations: [
       {
-        id: 1,
-        type: 'warning',
-        title: 'Enable SMS Backup for 2FA',
-        description: 'Add SMS as a backup method for two-factor authentication',
-        priority: 'medium'
-      },
-      {
         id: 2,
         type: 'info',
         title: 'Review Login Locations',
@@ -109,6 +120,141 @@ export default function SecuritySettingsPage() {
       }
     ]
   })
+
+  // Fetch security data on mount
+  useEffect(() => {
+    if (state.user?.id) {
+      fetchSecurityData()
+    }
+  }, [state.user])
+
+  const fetchSecurityData = async () => {
+    try {
+      // Fetch trusted devices
+      const devicesRes = await fetch(`/api/user/security/devices/${state.user.id}`)
+      if (devicesRes.ok) {
+        const devicesData = await devicesRes.json()
+        setTrustedDevices(devicesData.devices || [])
+      }
+
+      // Fetch login history
+      const historyRes = await fetch(`/api/user/security/login-history/${state.user.id}`)
+      if (historyRes.ok) {
+        const historyData = await historyRes.json()
+        setLoginHistory(historyData.loginHistory || [])
+      }
+    } catch (error) {
+      console.error('Error fetching security data:', error)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setMessage({ type: 'error', text: 'Please fill in all password fields' })
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' })
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Password must be at least 8 characters' })
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/user/security/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: state.user.id,
+          currentPassword,
+          newPassword
+        })
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Password changed successfully' })
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to change password' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error changing password' })
+    }
+    setLoading(false)
+  }
+
+  const handleToggle2FA = async (enabled: boolean) => {
+    if (enabled && !qrCodeUrl) {
+      // Fetch QR code setup
+      try {
+        const res = await fetch(`/api/user/security/2fa/setup/${state.user.id}`)
+        const data = await res.json()
+        
+        if (data.success) {
+          setQrCodeUrl(data.qrCodeUrl)
+          setBackupCodes(data.backupCodes || [])
+          setShowQRCode(true)
+          setShowBackupCodes(true)
+        }
+      } catch (error) {
+        console.error('Error setting up 2FA:', error)
+      }
+    } else {
+      // Toggle 2FA
+      try {
+        const res = await fetch('/api/user/security/2fa/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: state.user.id,
+            enabled
+          })
+        })
+
+        const data = await res.json()
+        
+        if (data.success) {
+          setTwoFactorEnabled(enabled)
+          setMessage({ type: 'success', text: data.message })
+          
+          if (enabled && data.backupCodes) {
+            setBackupCodes(data.backupCodes)
+            setShowBackupCodes(true)
+          }
+        }
+      } catch (error) {
+        console.error('Error toggling 2FA:', error)
+      }
+    }
+  }
+
+  const handleRemoveDevice = async (deviceId: string) => {
+    if (!confirm('Are you sure you want to remove this device?')) return
+
+    try {
+      const res = await fetch(`/api/user/security/devices/${state.user.id}/${deviceId}`, {
+        method: 'DELETE'
+      })
+
+      const data = await res.json()
+      
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Device removed successfully' })
+        fetchSecurityData() // Refresh data
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error removing device' })
+    }
+  }
 
   const formatDateTime = (dateString) => {
     return new Date(dateString).toLocaleString('en-US', {
@@ -243,23 +389,28 @@ export default function SecuritySettingsPage() {
                   <div className="space-y-6">
                     {/* Change Password */}
                     <div className="border border-neural-100 rounded-lg p-6">
+                      {message.text && (
+                        <div className={`mb-4 p-3 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                          {message.text}
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h4 className="font-medium text-neural-900">Password</h4>
                           <p className="text-sm text-neural-600">Last changed on {formatDate(securityData.lastPasswordChange)}</p>
                         </div>
-                        <button className="btn-secondary">
-                          Change Password
-                        </button>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                           <label className="block text-sm font-medium text-neural-700 mb-2">Current Password</label>
                           <div className="relative">
                             <input 
                               type={showPassword ? 'text' : 'password'}
                               placeholder="Enter current password"
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
                               className="w-full p-3 pr-12 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
                             <button
@@ -280,10 +431,30 @@ export default function SecuritySettingsPage() {
                           <input 
                             type="password"
                             placeholder="Enter new password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-neural-700 mb-2">Confirm Password</label>
+                          <input 
+                            type="password"
+                            placeholder="Confirm new password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                           />
                         </div>
                       </div>
+                      
+                      <button 
+                        onClick={handleChangePassword}
+                        disabled={loading}
+                        className="btn-primary"
+                      >
+                        {loading ? 'Changing...' : 'Change Password'}
+                      </button>
                     </div>
 
                     {/* Two-Factor Authentication */}
@@ -297,7 +468,7 @@ export default function SecuritySettingsPage() {
                           <input 
                             type="checkbox" 
                             checked={twoFactorEnabled}
-                            onChange={(e) => setTwoFactorEnabled(e.target.checked)}
+                            onChange={(e) => handleToggle2FA(e.target.checked)}
                             className="sr-only peer"
                           />
                           <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
@@ -311,7 +482,7 @@ export default function SecuritySettingsPage() {
                               <CheckCircleIcon className="w-5 h-5 text-green-500 mr-3" />
                               <div>
                                 <p className="font-medium text-green-900">Authenticator App Active</p>
-                                <p className="text-sm text-green-700">{securityData.twoFactorAuth.backupCodes} backup codes remaining</p>
+                                <p className="text-sm text-green-700">{backupCodes.length || securityData.twoFactorAuth.backupCodes} backup codes available</p>
                               </div>
                             </div>
                             <button
@@ -319,27 +490,48 @@ export default function SecuritySettingsPage() {
                               className="btn-ghost text-green-600"
                             >
                               <QrCodeIcon className="w-4 h-4 mr-1" />
-                              QR Code
+                              View QR
                             </button>
                           </div>
                           
-                          {showQRCode && (
+                          {showQRCode && qrCodeUrl && (
                             <div className="p-6 bg-neural-50 rounded-lg text-center">
-                              <div className="w-32 h-32 bg-white border-2 border-neural-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                                <QrCodeIcon className="w-16 h-16 text-neural-400" />
+                              <div className="bg-white p-4 rounded-lg inline-block mb-4">
+                                <img 
+                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}`}
+                                  alt="2FA QR Code"
+                                  className="w-48 h-48"
+                                />
                               </div>
-                              <p className="text-sm text-neural-600">Scan this QR code with your authenticator app</p>
+                              <p className="text-sm text-neural-600">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
                             </div>
                           )}
                           
-                          <div className="flex space-x-4">
-                            <button className="btn-secondary flex-1">
-                              View Backup Codes
-                            </button>
-                            <button className="btn-secondary flex-1">
-                              Add SMS Backup
-                            </button>
-                          </div>
+                          <button 
+                            onClick={() => setShowBackupCodes(!showBackupCodes)}
+                            className="btn-secondary w-full"
+                          >
+                            {showBackupCodes ? 'Hide' : 'View'} Backup Codes
+                          </button>
+
+                          {showBackupCodes && backupCodes.length > 0 && (
+                            <div className="p-6 bg-yellow-50 rounded-lg">
+                              <div className="flex items-start mb-4">
+                                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="font-medium text-yellow-900">Save these backup codes</p>
+                                  <p className="text-sm text-yellow-700">Store them in a safe place. Each code can only be used once.</p>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 bg-white p-4 rounded-lg">
+                                {backupCodes.map((code, index) => (
+                                  <code key={index} className="text-sm font-mono text-neural-900 p-2 bg-neural-50 rounded">
+                                    {code}
+                                  </code>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -359,7 +551,7 @@ export default function SecuritySettingsPage() {
                   </div>
                   
                   <div className="space-y-4">
-                    {securityData.trustedDevices.map((device) => (
+                    {(trustedDevices.length > 0 ? trustedDevices : securityData.trustedDevices).map((device) => (
                       <div key={device.id} className={`p-4 border rounded-lg ${device.current ? 'border-brand-200 bg-brand-50' : 'border-neural-100'}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
@@ -380,7 +572,10 @@ export default function SecuritySettingsPage() {
                             </div>
                           </div>
                           {!device.current && (
-                            <button className="btn-ghost text-red-600 text-sm">
+                            <button 
+                              onClick={() => handleRemoveDevice(device.id)}
+                              className="btn-ghost text-red-600 text-sm"
+                            >
                               Remove
                             </button>
                           )}
@@ -414,7 +609,7 @@ export default function SecuritySettingsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {securityData.loginHistory.map((login) => (
+                        {(loginHistory.length > 0 ? loginHistory : securityData.loginHistory).map((login) => (
                           <tr key={login.id} className="border-b border-neural-50">
                             <td className="py-4 text-sm text-neural-900">
                               {formatDateTime(login.date)}
