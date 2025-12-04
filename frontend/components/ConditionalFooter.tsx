@@ -12,9 +12,19 @@ export default function ConditionalFooter() {
   const isAuthPage = pathname?.startsWith('/auth/');
   const isDashboardPage = pathname?.startsWith('/dashboard');
   const isLiveSupportPage = pathname === '/support/live-support';
+  const isLabPage = pathname?.startsWith('/lab');
+  const isToolsPage = pathname?.startsWith('/tools');
 
   // Don't render footer on these pages
-  if (isAgentPage || isStudioPage || isAuthPage || isDashboardPage || isLiveSupportPage) {
+  if (
+    isAgentPage ||
+    isStudioPage ||
+    isAuthPage ||
+    isDashboardPage ||
+    isLiveSupportPage ||
+    isLabPage ||
+    isToolsPage
+  ) {
     return null;
   }
 
