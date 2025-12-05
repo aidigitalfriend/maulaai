@@ -635,7 +635,9 @@ export default function SecuritySettingsPage() {
                     {trustedDevices.length === 0 ? (
                       <div className="text-center py-12">
                         <ShieldCheckIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                        <p className="text-neutral-500">No trusted devices found</p>
+                        <p className="text-neutral-500">
+                          No trusted devices found
+                        </p>
                         <p className="text-sm text-neutral-400 mt-1">
                           Devices will appear here after you log in
                         </p>
@@ -650,40 +652,40 @@ export default function SecuritySettingsPage() {
                               : 'border-neural-100'
                           }`}
                         >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="p-2 bg-neural-100 rounded-lg mr-4">
-                              {getDeviceIcon(device.type)}
-                            </div>
-                            <div>
-                              <div className="flex items-center">
-                                <h4 className="font-medium text-neural-900">
-                                  {device.name}
-                                </h4>
-                                {device.current && (
-                                  <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
-                                    Current
-                                  </span>
-                                )}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="p-2 bg-neural-100 rounded-lg mr-4">
+                                {getDeviceIcon(device.type)}
                               </div>
-                              <p className="text-sm text-neural-600">
-                                {device.browser} • {device.location}
-                              </p>
-                              <p className="text-xs text-neural-500">
-                                Last seen {formatDateTime(device.lastSeen)}
-                              </p>
+                              <div>
+                                <div className="flex items-center">
+                                  <h4 className="font-medium text-neural-900">
+                                    {device.name}
+                                  </h4>
+                                  {device.current && (
+                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
+                                      Current
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-neural-600">
+                                  {device.browser} • {device.location}
+                                </p>
+                                <p className="text-xs text-neural-500">
+                                  Last seen {formatDateTime(device.lastSeen)}
+                                </p>
+                              </div>
                             </div>
+                            {!device.current && (
+                              <button
+                                onClick={() => handleRemoveDevice(device.id)}
+                                className="btn-ghost text-red-600 text-sm"
+                              >
+                                Remove
+                              </button>
+                            )}
                           </div>
-                          {!device.current && (
-                            <button
-                              onClick={() => handleRemoveDevice(device.id)}
-                              className="btn-ghost text-red-600 text-sm"
-                            >
-                              Remove
-                            </button>
-                          )}
                         </div>
-                      </div>
                       ))
                     )}
                   </div>
@@ -727,7 +729,9 @@ export default function SecuritySettingsPage() {
                           <tr>
                             <td colSpan={5} className="py-12 text-center">
                               <ClockIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                              <p className="text-neutral-500">No login history found</p>
+                              <p className="text-neutral-500">
+                                No login history found
+                              </p>
                               <p className="text-sm text-neutral-400 mt-1">
                                 Your login activity will appear here
                               </p>
@@ -739,35 +743,35 @@ export default function SecuritySettingsPage() {
                               key={login.id}
                               className="border-b border-neural-50"
                             >
-                            <td className="py-4 text-sm text-neural-900">
-                              {formatDateTime(login.date)}
-                            </td>
-                            <td className="py-4 text-sm text-neural-600">
-                              {login.device}
-                            </td>
-                            <td className="py-4 text-sm text-neural-600">
-                              {login.location}
-                            </td>
-                            <td className="py-4">
-                              <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                                  login.status
-                                )}`}
-                              >
-                                {login.status === 'success' && (
-                                  <CheckCircleIcon className="w-3 h-3 mr-1" />
-                                )}
-                                {login.status === 'blocked' && (
-                                  <XCircleIcon className="w-3 h-3 mr-1" />
-                                )}
-                                {login.status.charAt(0).toUpperCase() +
-                                  login.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-4 text-sm text-neural-600 font-mono">
-                              {login.ip}
-                            </td>
-                          </tr>
+                              <td className="py-4 text-sm text-neural-900">
+                                {formatDateTime(login.date)}
+                              </td>
+                              <td className="py-4 text-sm text-neural-600">
+                                {login.device}
+                              </td>
+                              <td className="py-4 text-sm text-neural-600">
+                                {login.location}
+                              </td>
+                              <td className="py-4">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                                    login.status
+                                  )}`}
+                                >
+                                  {login.status === 'success' && (
+                                    <CheckCircleIcon className="w-3 h-3 mr-1" />
+                                  )}
+                                  {login.status === 'blocked' && (
+                                    <XCircleIcon className="w-3 h-3 mr-1" />
+                                  )}
+                                  {login.status.charAt(0).toUpperCase() +
+                                    login.status.slice(1)}
+                                </span>
+                              </td>
+                              <td className="py-4 text-sm text-neural-600 font-mono">
+                                {login.ip}
+                              </td>
+                            </tr>
                           ))
                         )}
                       </tbody>
