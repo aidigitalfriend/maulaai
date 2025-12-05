@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import speakeasy from 'speakeasy';
 import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
 import os from 'os';
@@ -131,6 +132,21 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Check if 2FA is enabled
+    if (user.twoFactor?.enabled && user.twoFactor?.secret) {
+      const tempToken = jwt.sign(
+        { userId: user._id.toString(), requiresTwoFactor: true },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
+      );
+      return res.json({
+        message: '2FA verification required',
+        requires2FA: true,
+        tempToken,
+        userId: user._id,
+      });
+    }
+
     const token = generateToken(user._id);
 
     // Track successful login
@@ -148,6 +164,101 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// 2FA Verification endpoint (for login)
+app.post('/api/auth/verify-2fa', async (req, res) => {
+  try {
+    const { tempToken, code, backupCode } = req.body;
+
+    // Verify temp token
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+      if (!decoded.requiresTwoFactor) {
+        return res.status(400).json({ success: false, message: 'Invalid verification token' });
+      }
+    } catch (err) {
+      return res.status(400).json({ success: false, message: 'Verification token expired' });
+    }
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.userId) });
+    if (!user || !user.twoFactor?.enabled) {
+      return res.status(400).json({ success: false, message: 'User not found or 2FA not enabled' });
+    }
+
+    let verified = false;
+    let usedBackupCode = false;
+
+    // Try backup code first
+    if (backupCode && user.twoFactor.backupCodes?.length > 0) {
+      const backupIndex = user.twoFactor.backupCodes.indexOf(backupCode);
+      if (backupIndex !== -1) {
+        verified = true;
+        usedBackupCode = true;
+        // Remove used backup code
+        user.twoFactor.backupCodes.splice(backupIndex, 1);
+        await db.collection('users').updateOne(
+          { _id: new ObjectId(decoded.userId) },
+          { $set: { 'twoFactor.backupCodes': user.twoFactor.backupCodes } }
+        );
+      }
+    }
+
+    // Try TOTP code if backup didn't work
+    if (!verified && code) {
+      verified = speakeasy.totp.verify({
+        secret: user.twoFactor.secret,
+        encoding: 'base32',
+        token: code,
+        window: 2,
+      });
+    }
+
+    if (!verified) {
+      // Track failed attempts
+      const failedAttempts = (user.twoFactor.failedAttempts || 0) + 1;
+      await db.collection('users').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        { $set: { 'twoFactor.failedAttempts': failedAttempts, 'twoFactor.lastFailedAttempt': new Date() } }
+      );
+
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code',
+        failedAttempts,
+      });
+    }
+
+    // Reset failed attempts on success
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(decoded.userId) },
+      { $set: { 'twoFactor.failedAttempts': 0, 'twoFactor.lastVerified': new Date() } }
+    );
+
+    // Track successful login
+    await trackLogin(user._id, req, 'success').catch(console.error);
+
+    // Generate full auth token
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: usedBackupCode ? '2FA verified with backup code' : '2FA verified successfully',
+      token,
+      userId: user._id,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+      usedBackupCode,
+      remainingBackupCodes: user.twoFactor.backupCodes?.length || 0,
+    });
+  } catch (error) {
+    console.error('2FA verification error:', error);
+    res.status(500).json({ success: false, message: 'Server error during verification' });
   }
 });
 
@@ -714,85 +825,23 @@ app.post('/api/user/security/change-password', async (req, res) => {
   }
 });
 
-// Enable/Disable 2FA endpoint
+// DEPRECATED: Old toggle endpoint - use verify/disable instead
 app.post('/api/user/security/2fa/toggle', async (req, res) => {
-  try {
-    const { userId, enabled } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required',
-      });
-    }
-
-    const user = await db
-      .collection('users')
-      .findOne({ _id: new ObjectId(userId) });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
-    let updateData = {
-      'twoFactor.enabled': enabled,
-      updatedAt: new Date(),
-    };
-
-    // If enabling 2FA, generate secret and backup codes
-    if (enabled && !user.twoFactor?.secret) {
-      const speakeasy = await import('speakeasy').catch(() => null);
-      const crypto = await import('crypto');
-
-      // Generate backup codes
-      const backupCodes = Array.from({ length: 10 }, () =>
-        crypto.randomBytes(4).toString('hex').toUpperCase()
-      );
-
-      updateData = {
-        ...updateData,
-        'twoFactor.secret': crypto.randomBytes(20).toString('hex'),
-        'twoFactor.backupCodes': backupCodes,
-        'twoFactor.method': 'authenticator',
-      };
-    }
-
-    await db
-      .collection('users')
-      .updateOne({ _id: new ObjectId(userId) }, { $set: updateData });
-
-    // Log the 2FA change
-    await db.collection('securityLogs').insertOne({
-      userId: new ObjectId(userId),
-      action: enabled ? '2fa_enabled' : '2fa_disabled',
-      timestamp: new Date(),
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-    });
-
-    res.json({
-      success: true,
-      message: enabled
-        ? '2FA enabled successfully'
-        : '2FA disabled successfully',
-      backupCodes: enabled ? updateData['twoFactor.backupCodes'] : undefined,
-    });
-  } catch (error) {
-    console.error('2FA toggle error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to toggle 2FA',
-    });
-  }
+  res.status(410).json({
+    success: false,
+    message: 'This endpoint is deprecated. Use /api/user/security/2fa/verify to enable 2FA, or /api/user/security/2fa/disable to disable it.',
+    migration: {
+      enable: 'POST /api/user/security/2fa/verify with { userId, code }',
+      disable: 'POST /api/user/security/2fa/disable with { userId, password }',
+    },
+  });
 });
 
-// Get 2FA QR Code and backup codes
+// Get 2FA QR Code (setup stage - not enabled yet)
 app.get('/api/user/security/2fa/setup/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log('2FA Setup request for user:', userId);
 
     const user = await db
       .collection('users')
@@ -805,36 +854,32 @@ app.get('/api/user/security/2fa/setup/:userId', async (req, res) => {
       });
     }
 
-    const crypto = await import('crypto');
-    const secret =
-      user.twoFactor?.secret || crypto.randomBytes(20).toString('hex');
+    // Generate new secret using speakeasy
+    const secret = speakeasy.generateSecret({
+      name: `OneLast.ai (${user.email})`,
+      issuer: 'OneLast.ai',
+      length: 32,
+    });
 
-    // If no secret exists, create one
-    if (!user.twoFactor?.secret) {
-      const backupCodes = Array.from({ length: 10 }, () =>
-        crypto.randomBytes(4).toString('hex').toUpperCase()
-      );
+    // Store as tempSecret (not enabled until verified)
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          'twoFactor.enabled': false,
+          'twoFactor.tempSecret': secret.base32,
+          'twoFactor.verified': false,
+          updatedAt: new Date(),
+        },
+      }
+    );
 
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(userId) },
-        {
-          $set: {
-            'twoFactor.secret': secret,
-            'twoFactor.backupCodes': backupCodes,
-            updatedAt: new Date(),
-          },
-        }
-      );
-    }
-
-    // Generate QR code URL (for authenticator apps)
-    const qrCodeUrl = `otpauth://totp/OneLastAI:${user.email}?secret=${secret}&issuer=OneLastAI`;
+    console.log('Generated 2FA secret for user:', userId);
 
     res.json({
       success: true,
-      secret,
-      qrCodeUrl,
-      backupCodes: user.twoFactor?.backupCodes || [],
+      qrCode: secret.otpauth_url,
+      secret: secret.base32,
     });
   } catch (error) {
     console.error('2FA setup error:', error);
@@ -842,6 +887,143 @@ app.get('/api/user/security/2fa/setup/:userId', async (req, res) => {
       success: false,
       message: 'Failed to setup 2FA',
     });
+  }
+});
+
+// Verify 2FA code and enable 2FA
+app.post('/api/user/security/2fa/verify', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+    console.log('2FA verification request:', { userId, code });
+
+    if (!code || code.length !== 6) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code format' });
+    }
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (!user.twoFactor?.tempSecret) {
+      return res.status(400).json({ success: false, message: 'No pending 2FA setup found. Please start setup again.' });
+    }
+
+    // Verify the code against the temp secret
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactor.tempSecret,
+      encoding: 'base32',
+      token: code,
+      window: 2,
+    });
+
+    if (!verified) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code' });
+    }
+
+    // Generate backup codes
+    const crypto = await import('crypto');
+    const backupCodes = Array.from({ length: 10 }, () =>
+      crypto.randomBytes(4).toString('hex')
+    );
+
+    // Move tempSecret to secret and enable 2FA
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          'twoFactor.enabled': true,
+          'twoFactor.secret': user.twoFactor.tempSecret,
+          'twoFactor.verified': true,
+          'twoFactor.backupCodes': backupCodes,
+          'twoFactor.enabledAt': new Date(),
+          updatedAt: new Date(),
+        },
+        $unset: {
+          'twoFactor.tempSecret': '',
+        },
+      }
+    );
+
+    // Log security event
+    await db.collection('securityLogs').insertOne({
+      userId: new ObjectId(userId),
+      action: '2fa_enabled',
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    console.log('2FA enabled for user:', userId);
+
+    res.json({
+      success: true,
+      message: '2FA enabled successfully',
+      backupCodes,
+    });
+  } catch (error) {
+    console.error('2FA verification error:', error);
+    res.status(500).json({ success: false, message: 'Server error during verification' });
+  }
+});
+
+// Disable 2FA (requires password)
+app.post('/api/user/security/2fa/disable', async (req, res) => {
+  try {
+    const { userId, password } = req.body;
+    console.log('2FA disable request for user:', userId);
+
+    if (!password) {
+      return res.status(400).json({ success: false, message: 'Password required to disable 2FA' });
+    }
+
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: 'Incorrect password' });
+    }
+
+    // Disable 2FA
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          'twoFactor.enabled': false,
+          'twoFactor.verified': false,
+          'twoFactor.disabledAt': new Date(),
+          updatedAt: new Date(),
+        },
+        $unset: {
+          'twoFactor.secret': '',
+          'twoFactor.tempSecret': '',
+          'twoFactor.backupCodes': '',
+        },
+      }
+    );
+
+    // Log security event
+    await db.collection('securityLogs').insertOne({
+      userId: new ObjectId(userId),
+      action: '2fa_disabled',
+      timestamp: new Date(),
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+
+    console.log('2FA disabled for user:', userId);
+
+    res.json({
+      success: true,
+      message: '2FA disabled successfully',
+    });
+  } catch (error) {
+    console.error('2FA disable error:', error);
+    res.status(500).json({ success: false, message: 'Server error during disable' });
   }
 });
 
