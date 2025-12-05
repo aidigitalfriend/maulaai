@@ -34,6 +34,8 @@ export default function SecuritySettingsPage() {
   // 2FA data
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verifying2FA, setVerifying2FA] = useState(false);
 
   // Device and history data
   const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
@@ -215,37 +217,100 @@ export default function SecuritySettingsPage() {
           setQrCodeUrl(data.qrCodeUrl);
           setBackupCodes(data.backupCodes || []);
           setShowQRCode(true);
-          setShowBackupCodes(true);
+          setVerifying2FA(true); // Show verification input
+          setMessage({
+            type: 'info',
+            text: 'Scan the QR code and enter the verification code',
+          });
         }
       } catch (error) {
         console.error('Error setting up 2FA:', error);
+        setMessage({ type: 'error', text: 'Error setting up 2FA' });
       }
-    } else {
-      // Toggle 2FA
+    } else if (!enabled) {
+      // Disable 2FA - require password confirmation
+      const password = prompt('Please enter your password to disable 2FA:');
+      if (!password) {
+        setMessage({ type: 'error', text: 'Password required to disable 2FA' });
+        return;
+      }
+
       try {
-        const res = await fetch('/api/user/security/2fa/toggle', {
+        const res = await fetch('/api/user/security/2fa/disable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: state.user.id,
-            enabled,
+            password,
           }),
         });
 
         const data = await res.json();
 
         if (data.success) {
-          setTwoFactorEnabled(enabled);
-          setMessage({ type: 'success', text: data.message });
-
-          if (enabled && data.backupCodes) {
-            setBackupCodes(data.backupCodes);
-            setShowBackupCodes(true);
-          }
+          setTwoFactorEnabled(false);
+          setShowQRCode(false);
+          setShowBackupCodes(false);
+          setQrCodeUrl('');
+          setBackupCodes([]);
+          setVerifying2FA(false);
+          setVerificationCode('');
+          setMessage({ type: 'success', text: '2FA has been disabled' });
+        } else {
+          setMessage({
+            type: 'error',
+            text: data.message || 'Failed to disable 2FA',
+          });
         }
       } catch (error) {
-        console.error('Error toggling 2FA:', error);
+        console.error('Error disabling 2FA:', error);
+        setMessage({ type: 'error', text: 'Error disabling 2FA' });
       }
+    }
+  };
+
+  const handleVerify2FACode = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      setMessage({ type: 'error', text: 'Please enter a valid 6-digit code' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch('/api/user/security/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: state.user.id,
+          code: verificationCode,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setTwoFactorEnabled(true);
+        setVerifying2FA(false);
+        setShowBackupCodes(true);
+        if (data.backupCodes) {
+          setBackupCodes(data.backupCodes);
+        }
+        setMessage({
+          type: 'success',
+          text: '2FA has been enabled successfully!',
+        });
+        setVerificationCode('');
+      } else {
+        setMessage({
+          type: 'error',
+          text: data.message || 'Invalid verification code',
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying 2FA code:', error);
+      setMessage({ type: 'error', text: 'Error verifying code' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -561,56 +626,99 @@ export default function SecuritySettingsPage() {
                           </div>
 
                           {showQRCode && qrCodeUrl && (
-                            <div className="p-6 bg-neural-50 rounded-lg text-center">
-                              <div className="bg-white p-4 rounded-lg inline-block mb-4">
-                                <img
-                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                                    qrCodeUrl
-                                  )}`}
-                                  alt="2FA QR Code"
-                                  className="w-48 h-48"
-                                />
+                            <div className="space-y-4">
+                              <div className="p-6 bg-neural-50 rounded-lg text-center">
+                                <div className="bg-white p-4 rounded-lg inline-block mb-4">
+                                  <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                      qrCodeUrl
+                                    )}`}
+                                    alt="2FA QR Code"
+                                    className="w-48 h-48"
+                                  />
+                                </div>
+                                <p className="text-sm text-neural-600">
+                                  Scan this QR code with your authenticator app
+                                  (Google Authenticator, Authy, etc.)
+                                </p>
                               </div>
-                              <p className="text-sm text-neural-600">
-                                Scan this QR code with your authenticator app
-                                (Google Authenticator, Authy, etc.)
-                              </p>
+
+                              {verifying2FA && (
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="block text-sm font-medium text-neural-700 mb-2">
+                                      Enter 6-Digit Verification Code
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={verificationCode}
+                                      onChange={(e) =>
+                                        setVerificationCode(
+                                          e.target.value
+                                            .replace(/\D/g, '')
+                                            .slice(0, 6)
+                                        )
+                                      }
+                                      placeholder="000000"
+                                      maxLength={6}
+                                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white border-2 border-neural-200 rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={handleVerify2FACode}
+                                    disabled={
+                                      loading || verificationCode.length !== 6
+                                    }
+                                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {loading
+                                      ? 'Verifying...'
+                                      : 'Verify & Enable 2FA'}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
 
-                          <button
-                            onClick={() => setShowBackupCodes(!showBackupCodes)}
-                            className="btn-secondary w-full"
-                          >
-                            {showBackupCodes ? 'Hide' : 'View'} Backup Codes
-                          </button>
+                          {twoFactorEnabled && backupCodes.length > 0 && (
+                            <button
+                              onClick={() =>
+                                setShowBackupCodes(!showBackupCodes)
+                              }
+                              className="btn-secondary w-full"
+                            >
+                              {showBackupCodes ? 'Hide' : 'View'} Backup Codes
+                            </button>
+                          )}
 
-                          {showBackupCodes && backupCodes.length > 0 && (
-                            <div className="p-6 bg-yellow-50 rounded-lg">
-                              <div className="flex items-start mb-4">
-                                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="font-medium text-yellow-900">
-                                    Save these backup codes
-                                  </p>
-                                  <p className="text-sm text-yellow-700">
-                                    Store them in a safe place. Each code can
-                                    only be used once.
-                                  </p>
+                          {showBackupCodes &&
+                            backupCodes.length > 0 &&
+                            twoFactorEnabled && (
+                              <div className="p-6 bg-yellow-50 rounded-lg">
+                                <div className="flex items-start mb-4">
+                                  <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="font-medium text-yellow-900">
+                                      Save these backup codes
+                                    </p>
+                                    <p className="text-sm text-yellow-700">
+                                      Store them in a safe place. Each code can
+                                      only be used once.
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 bg-white p-4 rounded-lg">
+                                  {backupCodes.map((code, index) => (
+                                    <code
+                                      key={index}
+                                      className="text-sm font-mono text-neural-900 p-2 bg-neural-50 rounded"
+                                    >
+                                      {code}
+                                    </code>
+                                  ))}
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 gap-2 bg-white p-4 rounded-lg">
-                                {backupCodes.map((code, index) => (
-                                  <code
-                                    key={index}
-                                    className="text-sm font-mono text-neural-900 p-2 bg-neural-50 rounded"
-                                  >
-                                    {code}
-                                  </code>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                            )}
                         </div>
                       )}
                     </div>

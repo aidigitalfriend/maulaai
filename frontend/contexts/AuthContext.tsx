@@ -104,17 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedToken && storedUser && !authStorage.isTokenExpired()) {
         // Try to verify with server, but don't logout on network errors
         try {
-          const response = await fetch(
-            `/api/auth/verify`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${storedToken}`,
-              },
-              credentials: 'include',
-            }
-          );
+          const response = await fetch(`/api/auth/verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${storedToken}`,
+            },
+            credentials: 'include',
+          });
 
           if (response.ok) {
             const data = await response.json();
@@ -141,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Network error or server down - trust local token if not expired
           console.log('⚠️ Could not verify with server, using local token');
         }
-        
+
         // If we reach here, either verification failed with network error
         // or server is down, but token exists and isn't expired locally
         // Trust the local token
@@ -170,15 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      const response = await fetch(
-        `/api/auth/login`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch(`/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Login failed');
@@ -191,6 +185,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authStorage.setUser(data.user);
         dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
       }
+
+      // Check if 2FA is required
+      if (data.requires2FA && data.tempToken && data.userId) {
+        // Store temp token for verification page
+        sessionStorage.setItem('tempToken', data.tempToken);
+        // Redirect to 2FA verification
+        if (typeof window !== 'undefined') {
+          window.location.href = `/auth/verify-2fa?token=${data.tempToken}&userId=${data.userId}`;
+        }
+        return;
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
       dispatch({ type: 'AUTH_ERROR', payload: message });
@@ -202,15 +207,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      const response = await fetch(
-        `/api/auth/signup`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ name, email, password }),
-        }
-      );
+      const response = await fetch(`/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name, email, password }),
+      });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Registration failed');
@@ -233,14 +235,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      const response = await fetch(
-        `/api/auth/reset-password`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const response = await fetch(`/api/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
       const data = await response.json();
       if (!response.ok)
@@ -257,14 +256,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = authStorage.getToken();
       if (token) {
-        await fetch(
-          `/api/auth/logout`,
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            credentials: 'include',
-          }
-        );
+        await fetch(`/api/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include',
+        });
       }
     } catch (error) {
       console.error('Logout error:', error);

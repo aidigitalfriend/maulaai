@@ -201,6 +201,22 @@ export default function DashboardOverviewPage() {
     loadUserData();
   }, [state.user]);
 
+  // Fetch real security settings including 2FA status
+  let realSecuritySettings = generateMockSecuritySettings();
+  if (state.user?.id) {
+    try {
+      const securityRes = fetch(`/api/user/security/${state.user.id}`);
+      if (securityRes.ok) {
+        const securityData = securityRes.json();
+        realSecuritySettings = {
+          ...realSecuritySettings,
+          twoFactorEnabled: securityData.user?.twoFactor?.enabled || false,
+        };
+      }
+    } catch (err) {
+      console.error('Error fetching security data:', err);
+    }
+  }
 
 
   if (isLoading) {
