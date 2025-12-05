@@ -176,16 +176,33 @@ export default function DashboardOverviewPage() {
         if (apiData) {
           setUserProfile(apiData.profile);
           setRewards(apiData.rewards);
-          // For now, still use mock data for settings and preferences
-          setSecuritySettings(generateMockSecuritySettings());
-          setPreferences(generateMockPreferences());
         } else {
           // Fallback to mock data with real user info
           setUserProfile(generateMockUserProfile(state.user));
-          setSecuritySettings(generateMockSecuritySettings());
-          setPreferences(generateMockPreferences());
           setRewards(generateMockRewards());
         }
+
+        // Fetch real security settings
+        let realSecuritySettings = generateMockSecuritySettings();
+        if (state.user?.id) {
+          try {
+            const securityRes = await fetch(`/api/user/security/${state.user.id}`);
+            if (securityRes.ok) {
+              const securityData = await securityRes.json();
+              realSecuritySettings = {
+                ...realSecuritySettings,
+                twoFactorEnabled: securityData.user?.twoFactor?.enabled || false,
+              };
+            }
+          } catch (err) {
+            console.error('Error fetching security data:', err);
+          }
+        }
+        setSecuritySettings(realSecuritySettings);
+        
+        // Fetch real preferences
+        setPreferences(generateMockPreferences());
+        
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading user data:', error);

@@ -177,15 +177,23 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
     try {
       decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
       if (!decoded.requiresTwoFactor) {
-        return res.status(400).json({ success: false, message: 'Invalid verification token' });
+        return res
+          .status(400)
+          .json({ success: false, message: 'Invalid verification token' });
       }
     } catch (err) {
-      return res.status(400).json({ success: false, message: 'Verification token expired' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Verification token expired' });
     }
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(decoded.userId) });
     if (!user || !user.twoFactor?.enabled) {
-      return res.status(400).json({ success: false, message: 'User not found or 2FA not enabled' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'User not found or 2FA not enabled' });
     }
 
     let verified = false;
@@ -199,10 +207,12 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
         usedBackupCode = true;
         // Remove used backup code
         user.twoFactor.backupCodes.splice(backupIndex, 1);
-        await db.collection('users').updateOne(
-          { _id: new ObjectId(decoded.userId) },
-          { $set: { 'twoFactor.backupCodes': user.twoFactor.backupCodes } }
-        );
+        await db
+          .collection('users')
+          .updateOne(
+            { _id: new ObjectId(decoded.userId) },
+            { $set: { 'twoFactor.backupCodes': user.twoFactor.backupCodes } }
+          );
       }
     }
 
@@ -219,10 +229,17 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
     if (!verified) {
       // Track failed attempts
       const failedAttempts = (user.twoFactor.failedAttempts || 0) + 1;
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(decoded.userId) },
-        { $set: { 'twoFactor.failedAttempts': failedAttempts, 'twoFactor.lastFailedAttempt': new Date() } }
-      );
+      await db
+        .collection('users')
+        .updateOne(
+          { _id: new ObjectId(decoded.userId) },
+          {
+            $set: {
+              'twoFactor.failedAttempts': failedAttempts,
+              'twoFactor.lastFailedAttempt': new Date(),
+            },
+          }
+        );
 
       return res.status(400).json({
         success: false,
@@ -232,10 +249,17 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
     }
 
     // Reset failed attempts on success
-    await db.collection('users').updateOne(
-      { _id: new ObjectId(decoded.userId) },
-      { $set: { 'twoFactor.failedAttempts': 0, 'twoFactor.lastVerified': new Date() } }
-    );
+    await db
+      .collection('users')
+      .updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        {
+          $set: {
+            'twoFactor.failedAttempts': 0,
+            'twoFactor.lastVerified': new Date(),
+          },
+        }
+      );
 
     // Track successful login
     await trackLogin(user._id, req, 'success').catch(console.error);
@@ -245,7 +269,9 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
 
     res.json({
       success: true,
-      message: usedBackupCode ? '2FA verified with backup code' : '2FA verified successfully',
+      message: usedBackupCode
+        ? '2FA verified with backup code'
+        : '2FA verified successfully',
       token,
       userId: user._id,
       user: {
@@ -258,7 +284,9 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
     });
   } catch (error) {
     console.error('2FA verification error:', error);
-    res.status(500).json({ success: false, message: 'Server error during verification' });
+    res
+      .status(500)
+      .json({ success: false, message: 'Server error during verification' });
   }
 });
 
@@ -829,7 +857,8 @@ app.post('/api/user/security/change-password', async (req, res) => {
 app.post('/api/user/security/2fa/toggle', async (req, res) => {
   res.status(410).json({
     success: false,
-    message: 'This endpoint is deprecated. Use /api/user/security/2fa/verify to enable 2FA, or /api/user/security/2fa/disable to disable it.',
+    message:
+      'This endpoint is deprecated. Use /api/user/security/2fa/verify to enable 2FA, or /api/user/security/2fa/disable to disable it.',
     migration: {
       enable: 'POST /api/user/security/2fa/verify with { userId, code }',
       disable: 'POST /api/user/security/2fa/disable with { userId, password }',
@@ -897,16 +926,27 @@ app.post('/api/user/security/2fa/verify', async (req, res) => {
     console.log('2FA verification request:', { userId, code });
 
     if (!code || code.length !== 6) {
-      return res.status(400).json({ success: false, message: 'Invalid verification code format' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid verification code format' });
     }
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
     }
 
     if (!user.twoFactor?.tempSecret) {
-      return res.status(400).json({ success: false, message: 'No pending 2FA setup found. Please start setup again.' });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'No pending 2FA setup found. Please start setup again.',
+        });
     }
 
     // Verify the code against the temp secret
@@ -918,7 +958,9 @@ app.post('/api/user/security/2fa/verify', async (req, res) => {
     });
 
     if (!verified) {
-      return res.status(400).json({ success: false, message: 'Invalid verification code' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid verification code' });
     }
 
     // Generate backup codes
@@ -963,7 +1005,9 @@ app.post('/api/user/security/2fa/verify', async (req, res) => {
     });
   } catch (error) {
     console.error('2FA verification error:', error);
-    res.status(500).json({ success: false, message: 'Server error during verification' });
+    res
+      .status(500)
+      .json({ success: false, message: 'Server error during verification' });
   }
 });
 
@@ -974,18 +1018,26 @@ app.post('/api/user/security/2fa/disable', async (req, res) => {
     console.log('2FA disable request for user:', userId);
 
     if (!password) {
-      return res.status(400).json({ success: false, message: 'Password required to disable 2FA' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Password required to disable 2FA' });
     }
 
-    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ success: false, message: 'Incorrect password' });
+      return res
+        .status(401)
+        .json({ success: false, message: 'Incorrect password' });
     }
 
     // Disable 2FA
@@ -1023,7 +1075,9 @@ app.post('/api/user/security/2fa/disable', async (req, res) => {
     });
   } catch (error) {
     console.error('2FA disable error:', error);
-    res.status(500).json({ success: false, message: 'Server error during disable' });
+    res
+      .status(500)
+      .json({ success: false, message: 'Server error during disable' });
   }
 });
 

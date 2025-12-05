@@ -132,6 +132,16 @@ export default function SecuritySettingsPage() {
 
   const fetchSecurityData = async () => {
     try {
+      // Fetch current 2FA status
+      const securityRes = await fetch(`/api/user/security/${state.user.id}`);
+      if (securityRes.ok) {
+        const securityData = await securityRes.json();
+        setTwoFactorEnabled(securityData.user?.twoFactor?.enabled || false);
+        if (securityData.user?.twoFactor?.backupCodes) {
+          setBackupCodes(securityData.user.twoFactor.backupCodes);
+        }
+      }
+
       // Fetch trusted devices
       const devicesRes = await fetch(
         `/api/user/security/devices/${state.user.id}`
@@ -205,8 +215,9 @@ export default function SecuritySettingsPage() {
   };
 
   const handleToggle2FA = async (enabled: boolean) => {
-    if (enabled && !qrCodeUrl) {
+    if (enabled) {
       // Fetch QR code setup
+      setLoading(true);
       try {
         const res = await fetch(
           `/api/user/security/2fa/setup/${state.user.id}`
@@ -214,18 +225,21 @@ export default function SecuritySettingsPage() {
         const data = await res.json();
 
         if (data.success) {
-          setQrCodeUrl(data.qrCodeUrl);
-          setBackupCodes(data.backupCodes || []);
+          setQrCodeUrl(data.qrCode || data.qrCodeUrl); // Backend returns 'qrCode'
           setShowQRCode(true);
-          setVerifying2FA(true); // Show verification input
+          setVerifying2FA(true);
           setMessage({
             type: 'info',
-            text: 'Scan the QR code and enter the verification code',
+            text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
           });
+        } else {
+          setMessage({ type: 'error', text: data.message || 'Error setting up 2FA' });
         }
       } catch (error) {
         console.error('Error setting up 2FA:', error);
         setMessage({ type: 'error', text: 'Error setting up 2FA' });
+      } finally {
+        setLoading(false);
       }
     } else if (!enabled) {
       // Disable 2FA - require password confirmation
@@ -600,8 +614,79 @@ export default function SecuritySettingsPage() {
                         </label>
                       </div>
 
-                      {twoFactorEnabled && (
-                        <div className="space-y-4">
+                      {/* Show QR code when setting up (verifying) */}
+                      {verifying2FA && showQRCode && qrCodeUrl && (
+                        <div className="space-y-4 mt-4">
+                          <div className="p-6 bg-white border-2 border-brand-200 rounded-lg">
+                            <div className="text-center">
+                              <div className="bg-white p-4 rounded-lg inline-block mb-4 border border-neural-200">
+                                <img
+                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+                                    qrCodeUrl
+                                  )}`}
+                                  alt="2FA QR Code"
+                                  className="w-64 h-64"
+                                />
+                              </div>
+                              <p className="text-sm text-neural-600 mb-2">
+                                Scan this QR code with your authenticator app
+                              </p>
+                              <p className="text-xs text-neural-500">
+                                (Google Authenticator, Authy, Microsoft Authenticator, etc.)
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-neural-700 mb-2">
+                                Enter 6-Digit Verification Code
+                              </label>
+                              <input
+                                type="text"
+                                value={verificationCode}
+                                onChange={(e) =>
+                                  setVerificationCode(
+                                    e.target.value
+                                      .replace(/\D/g, '')
+                                      .slice(0, 6)
+                                  )
+                                }
+                                placeholder="000000"
+                                maxLength={6}
+                                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white border-2 border-neural-200 rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
+                              />
+                            </div>
+                            <button
+                              onClick={handleVerify2FACode}
+                              disabled={
+                                loading || verificationCode.length !== 6
+                              }
+                              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {loading
+                                ? 'Verifying...'
+                                : 'Verify & Enable 2FA'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setVerifying2FA(false);
+                                setShowQRCode(false);
+                                setQrCodeUrl('');
+                                setVerificationCode('');
+                                setMessage({ type: '', text: '' });
+                              }}
+                              className="btn-ghost w-full"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Show status when 2FA is enabled */}
+                      {twoFactorEnabled && !verifying2FA && (
+                        <div className="space-y-4 mt-4">
                           <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                             <div className="flex items-center">
                               <CheckCircleIcon className="w-5 h-5 text-green-500 mr-3" />
@@ -610,77 +695,14 @@ export default function SecuritySettingsPage() {
                                   Authenticator App Active
                                 </p>
                                 <p className="text-sm text-green-700">
-                                  {backupCodes.length ||
-                                    securityData.twoFactorAuth.backupCodes}{' '}
-                                  backup codes available
+                                  {backupCodes.length} backup codes available
                                 </p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => setShowQRCode(!showQRCode)}
-                              className="btn-ghost text-green-600"
-                            >
-                              <QrCodeIcon className="w-4 h-4 mr-1" />
-                              View QR
-                            </button>
                           </div>
 
-                          {showQRCode && qrCodeUrl && (
-                            <div className="space-y-4">
-                              <div className="p-6 bg-neural-50 rounded-lg text-center">
-                                <div className="bg-white p-4 rounded-lg inline-block mb-4">
-                                  <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                                      qrCodeUrl
-                                    )}`}
-                                    alt="2FA QR Code"
-                                    className="w-48 h-48"
-                                  />
-                                </div>
-                                <p className="text-sm text-neural-600">
-                                  Scan this QR code with your authenticator app
-                                  (Google Authenticator, Authy, etc.)
-                                </p>
-                              </div>
-
-                              {verifying2FA && (
-                                <div className="space-y-3">
-                                  <div>
-                                    <label className="block text-sm font-medium text-neural-700 mb-2">
-                                      Enter 6-Digit Verification Code
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={verificationCode}
-                                      onChange={(e) =>
-                                        setVerificationCode(
-                                          e.target.value
-                                            .replace(/\D/g, '')
-                                            .slice(0, 6)
-                                        )
-                                      }
-                                      placeholder="000000"
-                                      maxLength={6}
-                                      className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white border-2 border-neural-200 rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
-                                    />
-                                  </div>
-                                  <button
-                                    onClick={handleVerify2FACode}
-                                    disabled={
-                                      loading || verificationCode.length !== 6
-                                    }
-                                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {loading
-                                      ? 'Verifying...'
-                                      : 'Verify & Enable 2FA'}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {twoFactorEnabled && backupCodes.length > 0 && (
+                          {(
+                          {twoFactorEnabled && !verifying2FA && backupCodes.length > 0 && (
                             <button
                               onClick={() =>
                                 setShowBackupCodes(!showBackupCodes)
