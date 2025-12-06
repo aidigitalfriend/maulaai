@@ -229,17 +229,15 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
     if (!verified) {
       // Track failed attempts
       const failedAttempts = (user.twoFactor.failedAttempts || 0) + 1;
-      await db
-        .collection('users')
-        .updateOne(
-          { _id: new ObjectId(decoded.userId) },
-          {
-            $set: {
-              'twoFactor.failedAttempts': failedAttempts,
-              'twoFactor.lastFailedAttempt': new Date(),
-            },
-          }
-        );
+      await db.collection('users').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        {
+          $set: {
+            'twoFactor.failedAttempts': failedAttempts,
+            'twoFactor.lastFailedAttempt': new Date(),
+          },
+        }
+      );
 
       return res.status(400).json({
         success: false,
@@ -249,17 +247,15 @@ app.post('/api/auth/verify-2fa', async (req, res) => {
     }
 
     // Reset failed attempts on success
-    await db
-      .collection('users')
-      .updateOne(
-        { _id: new ObjectId(decoded.userId) },
-        {
-          $set: {
-            'twoFactor.failedAttempts': 0,
-            'twoFactor.lastVerified': new Date(),
-          },
-        }
-      );
+    await db.collection('users').updateOne(
+      { _id: new ObjectId(decoded.userId) },
+      {
+        $set: {
+          'twoFactor.failedAttempts': 0,
+          'twoFactor.lastVerified': new Date(),
+        },
+      }
+    );
 
     // Track successful login
     await trackLogin(user._id, req, 'success').catch(console.error);
@@ -941,12 +937,10 @@ app.post('/api/user/security/2fa/verify', async (req, res) => {
     }
 
     if (!user.twoFactor?.tempSecret) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: 'No pending 2FA setup found. Please start setup again.',
-        });
+      return res.status(400).json({
+        success: false,
+        message: 'No pending 2FA setup found. Please start setup again.',
+      });
     }
 
     // Verify the code against the temp secret
@@ -1256,19 +1250,20 @@ async function trackLogin(userId, req, status = 'success') {
   try {
     // Get device and location info
     const userAgent = req.headers['user-agent'] || '';
-    
+
     // Get real client IP (handle proxy/load balancer)
-    let ip = req.headers['x-forwarded-for'] || 
-             req.headers['x-real-ip'] || 
-             req.ip || 
-             req.connection.remoteAddress || 
-             '';
-    
+    let ip =
+      req.headers['x-forwarded-for'] ||
+      req.headers['x-real-ip'] ||
+      req.ip ||
+      req.connection.remoteAddress ||
+      '';
+
     // If multiple IPs in X-Forwarded-For, take the first (client IP)
     if (ip.includes(',')) {
       ip = ip.split(',')[0].trim();
     }
-    
+
     // Remove IPv6 prefix if present
     ip = ip.replace('::ffff:', '');
 
@@ -1303,12 +1298,21 @@ async function trackLogin(userId, req, status = 'success') {
     let location = 'Unknown';
     try {
       // Skip geolocation for localhost/private IPs
-      if (ip && !ip.startsWith('127.') && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
-        const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city,regionName`);
+      if (
+        ip &&
+        !ip.startsWith('127.') &&
+        !ip.startsWith('192.168.') &&
+        !ip.startsWith('10.')
+      ) {
+        const geoResponse = await fetch(
+          `http://ip-api.com/json/${ip}?fields=status,country,city,regionName`
+        );
         const geoData = await geoResponse.json();
-        
+
         if (geoData.status === 'success') {
-          location = `${geoData.city || geoData.regionName || ''}, ${geoData.country || ''}`.trim();
+          location = `${geoData.city || geoData.regionName || ''}, ${
+            geoData.country || ''
+          }`.trim();
           if (location === ',') location = geoData.country || 'Unknown';
         }
       } else {
@@ -1353,6 +1357,276 @@ async function trackLogin(userId, req, status = 'success') {
     console.error('Track login error:', error);
   }
 }
+
+// ----------------------------
+// SUBSCRIPTION SYSTEM ENDPOINTS
+// ----------------------------
+
+// Check if user has subscription/access to an agent
+app.post('/api/subscriptions/check', async (req, res) => {
+  try {
+    const { userId, email, agentId } = req.body;
+
+    if (!userId && !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID or email required',
+        hasAccess: false,
+      });
+    }
+
+    // Find user
+    const user = await db.collection('users').findOne({
+      $or: [
+        userId ? { _id: new ObjectId(userId) } : null,
+        email ? { email: email.toLowerCase() } : null,
+      ].filter(Boolean),
+    });
+
+    if (!user) {
+      return res.json({
+        success: true,
+        hasAccess: false,
+        subscription: null,
+      });
+    }
+
+    // Check for active subscription
+    const subscription = await db.collection('subscriptions').findOne({
+      userId: user._id,
+      agentId,
+      status: 'active',
+      expiresAt: { $gt: new Date() },
+    });
+
+    res.json({
+      success: true,
+      hasAccess: !!subscription,
+      subscription: subscription
+        ? {
+            id: subscription._id,
+            plan: subscription.plan,
+            expiresAt: subscription.expiresAt,
+            autoRenew: subscription.autoRenew || false,
+          }
+        : null,
+    });
+  } catch (error) {
+    console.error('Check subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check subscription',
+      hasAccess: false,
+    });
+  }
+});
+
+// Get pricing plans
+app.get('/api/subscriptions/pricing', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      perAgentPricing: true,
+      plans: [
+        {
+          id: 'daily',
+          name: 'daily',
+          displayName: 'Daily Plan',
+          description: '$1 per day per agent - Perfect for short-term projects',
+          billingPeriod: 'day',
+          priceFormatted: '$1.00',
+          price: 1.0,
+          period: 'day',
+        },
+        {
+          id: 'weekly',
+          name: 'weekly',
+          displayName: 'Weekly Plan',
+          description: '$5 per week per agent - Great for weekly projects',
+          billingPeriod: 'week',
+          priceFormatted: '$5.00',
+          price: 5.0,
+          period: 'week',
+        },
+        {
+          id: 'monthly',
+          name: 'monthly',
+          displayName: 'Monthly Plan',
+          description:
+            '$19 per month per agent - Best value for regular usage',
+          billingPeriod: 'month',
+          priceFormatted: '$19.00',
+          price: 19.0,
+          period: 'month',
+        },
+      ],
+    },
+  });
+});
+
+// Create subscription (for testing - in production use Stripe webhook)
+app.post('/api/subscriptions/create', async (req, res) => {
+  try {
+    const { userId, email, agentId, plan, paymentMethod } = req.body;
+
+    if (!userId && !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID or email required',
+      });
+    }
+
+    if (!agentId || !plan) {
+      return res.status(400).json({
+        success: false,
+        message: 'Agent ID and plan required',
+      });
+    }
+
+    // Find user
+    const user = await db.collection('users').findOne({
+      $or: [
+        userId ? { _id: new ObjectId(userId) } : null,
+        email ? { email: email.toLowerCase() } : null,
+      ].filter(Boolean),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Calculate expiration date
+    const now = new Date();
+    const expiresAt = new Date(now);
+
+    switch (plan) {
+      case 'daily':
+        expiresAt.setDate(expiresAt.getDate() + 1);
+        break;
+      case 'weekly':
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        break;
+      case 'monthly':
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid plan',
+        });
+    }
+
+    // Create subscription
+    const subscription = {
+      userId: user._id,
+      agentId,
+      plan,
+      status: 'active',
+      createdAt: now,
+      expiresAt,
+      autoRenew: false,
+      paymentMethod: paymentMethod || 'stripe',
+    };
+
+    const result = await db.collection('subscriptions').insertOne(subscription);
+
+    res.json({
+      success: true,
+      message: 'Subscription created successfully',
+      subscription: {
+        id: result.insertedId,
+        ...subscription,
+      },
+    });
+  } catch (error) {
+    console.error('Create subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create subscription',
+    });
+  }
+});
+
+// Get user's subscriptions
+app.get('/api/subscriptions/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const subscriptions = await db
+      .collection('subscriptions')
+      .find({ userId: new ObjectId(userId) })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json({
+      success: true,
+      subscriptions: subscriptions.map((sub) => ({
+        id: sub._id,
+        agentId: sub.agentId,
+        plan: sub.plan,
+        status: sub.status,
+        expiresAt: sub.expiresAt,
+        autoRenew: sub.autoRenew || false,
+        createdAt: sub.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error('Get user subscriptions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get subscriptions',
+    });
+  }
+});
+
+// Cancel subscription
+app.post('/api/subscriptions/cancel', async (req, res) => {
+  try {
+    const { subscriptionId, userId } = req.body;
+
+    if (!subscriptionId || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subscription ID and user ID required',
+      });
+    }
+
+    const result = await db.collection('subscriptions').updateOne(
+      {
+        _id: new ObjectId(subscriptionId),
+        userId: new ObjectId(userId),
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          cancelledAt: new Date(),
+          autoRenew: false,
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Subscription cancelled successfully',
+    });
+  } catch (error) {
+    console.error('Cancel subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel subscription',
+    });
+  }
+});
 
 // Catch all other routes
 
