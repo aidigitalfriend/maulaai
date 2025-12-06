@@ -1452,8 +1452,7 @@ app.get('/api/subscriptions/pricing', (req, res) => {
           id: 'monthly',
           name: 'monthly',
           displayName: 'Monthly Plan',
-          description:
-            '$19 per month per agent - Best value for regular usage',
+          description: '$19 per month per agent - Best value for regular usage',
           billingPeriod: 'month',
           priceFormatted: '$19.00',
           price: 19.0,
