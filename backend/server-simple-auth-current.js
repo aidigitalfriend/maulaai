@@ -1256,7 +1256,21 @@ async function trackLogin(userId, req, status = 'success') {
   try {
     // Get device and location info
     const userAgent = req.headers['user-agent'] || '';
-    const ip = req.ip || req.connection.remoteAddress;
+    
+    // Get real client IP (handle proxy/load balancer)
+    let ip = req.headers['x-forwarded-for'] || 
+             req.headers['x-real-ip'] || 
+             req.ip || 
+             req.connection.remoteAddress || 
+             '';
+    
+    // If multiple IPs in X-Forwarded-For, take the first (client IP)
+    if (ip.includes(',')) {
+      ip = ip.split(',')[0].trim();
+    }
+    
+    // Remove IPv6 prefix if present
+    ip = ip.replace('::ffff:', '');
 
     // Parse user agent for device info
     let deviceName = 'Unknown Device';
@@ -1285,6 +1299,25 @@ async function trackLogin(userId, req, status = 'success') {
     else if (userAgent.includes('Firefox')) browser = 'Firefox';
     else if (userAgent.includes('Edge')) browser = 'Edge';
 
+    // Get location from IP geolocation
+    let location = 'Unknown';
+    try {
+      // Skip geolocation for localhost/private IPs
+      if (ip && !ip.startsWith('127.') && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
+        const geoResponse = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city,regionName`);
+        const geoData = await geoResponse.json();
+        
+        if (geoData.status === 'success') {
+          location = `${geoData.city || geoData.regionName || ''}, ${geoData.country || ''}`.trim();
+          if (location === ',') location = geoData.country || 'Unknown';
+        }
+      } else {
+        location = 'Local Network';
+      }
+    } catch (geoError) {
+      console.error('Geolocation error:', geoError);
+    }
+
     // Log to security logs
     await db.collection('securityLogs').insertOne({
       userId: new ObjectId(userId),
@@ -1294,7 +1327,7 @@ async function trackLogin(userId, req, status = 'success') {
       userAgent,
       device: deviceName,
       browser,
-      location: 'Unknown', // Can be enhanced with IP geolocation
+      location,
     });
 
     // Add/update trusted device
@@ -1309,7 +1342,7 @@ async function trackLogin(userId, req, status = 'success') {
           $set: {
             name: deviceName,
             lastSeen: new Date(),
-            location: 'Unknown',
+            location,
             current: false,
           },
         },
