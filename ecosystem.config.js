@@ -9,7 +9,13 @@
  */
 
 const path = require('path');
-const { getBasePath, getFrontendPath, getBackendPath, getEnvPaths, detectEnvironment } = require('./path-config');
+const {
+  getBasePath,
+  getFrontendPath,
+  getBackendPath,
+  getEnvPaths,
+  detectEnvironment,
+} = require('./path-config');
 
 // Auto-detect paths or use environment override
 const HOME = process.env.HOME || '/home/ubuntu';
@@ -29,12 +35,15 @@ module.exports = {
       cwd: FRONTEND_CWD,
       // Use a shell wrapper to export variables from root .env before starting Next.js
       script: 'bash',
-      args: ['-lc', `set -a; source ${ENV_PATHS.root}; export PORT=3000; exec npm start`],
+      args: [
+        '-lc',
+        `set -a; source ${ENV_PATHS.root}; export PORT=3000; exec npm start`,
+      ],
       // Keep as reference; env vars are sourced via bash wrapper above
       // env_file: ENV_PATHS.root,
       env: {
         NODE_ENV: process.env.NODE_ENV || 'production',
-        PORT: 3000
+        PORT: 3000,
       },
       instances: 1,
       exec_mode: 'fork',
@@ -48,7 +57,7 @@ module.exports = {
       restart_delay: 4000,
       kill_timeout: 5000,
       listen_timeout: 10000,
-      shutdown_with_message: true
+      shutdown_with_message: true,
     },
 
     // Backend API Server with Authentication
@@ -60,7 +69,7 @@ module.exports = {
       env_file: ENV_PATHS.backend,
       env: {
         NODE_ENV: process.env.NODE_ENV || 'production',
-        PORT: 3005
+        PORT: 3005,
       },
       instances: 1,
       exec_mode: 'fork',
@@ -74,8 +83,8 @@ module.exports = {
       restart_delay: 4000,
       kill_timeout: 5000,
       listen_timeout: 10000,
-      shutdown_with_message: true
-    }
+      shutdown_with_message: true,
+    },
   ],
 
   // Deployment configuration (optional)
@@ -86,8 +95,9 @@ module.exports = {
       ref: 'origin/main',
       repo: 'git@github.com:aidigitalfriend/shiny-friend-disco.git',
       path: '/var/www/shiny-friend-disco',
-      'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.js',
-      'pre-setup': ''
-    }
-  }
-}
+      'post-deploy':
+        'npm install && npm run build && pm2 reload ecosystem.config.js',
+      'pre-setup': '',
+    },
+  },
+};
