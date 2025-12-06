@@ -1081,6 +1081,41 @@ app.post('/api/user/security/2fa/disable', async (req, res) => {
   }
 });
 
+// Get user security settings (2FA status, backup codes, etc)
+app.get('/api/user/security/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await db
+      .collection('users')
+      .findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        twoFactor: {
+          enabled: user.twoFactor?.enabled || false,
+          backupCodes: user.twoFactor?.backupCodes || [],
+        },
+        lastPasswordChange: user.lastPasswordChange || null,
+      },
+    });
+  } catch (error) {
+    console.error('Get security settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get security settings',
+    });
+  }
+});
+
 // Get backup codes
 app.get('/api/user/security/2fa/backup-codes/:userId', async (req, res) => {
   try {
