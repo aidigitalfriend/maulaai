@@ -9,8 +9,6 @@ import {
   GiftIcon,
   StarIcon,
   TrophyIcon,
-  BadgeCheckIcon,
-  SettingsIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -169,40 +167,49 @@ export default function DashboardOverviewPage() {
     // Load user data from API
     const loadUserData = async () => {
       try {
-        // Use the authenticated user's ID if available
-        const userId = state.user?.id || state.user?.email || 'guest';
-        const apiData = await fetchUserData(userId);
-
-        if (apiData) {
-          setUserProfile(apiData.profile);
-          setRewards(apiData.rewards);
-        } else {
-          // Fallback to mock data with real user info
-          setUserProfile(generateMockUserProfile(state.user));
-          setRewards(generateMockRewards());
-        }
-
-        // Fetch real security settings
-        let realSecuritySettings = generateMockSecuritySettings();
+        // Only fetch if we have a valid user ID
         if (state.user?.id) {
+          const apiData = await fetchUserData(state.user.id);
+
+          if (apiData) {
+            setUserProfile(apiData.profile);
+            setRewards(apiData.rewards);
+          } else {
+            // Fallback to mock data with real user info
+            setUserProfile(generateMockUserProfile(state.user));
+            setRewards(generateMockRewards());
+          }
+
+          // Fetch real security settings with actual 2FA status
           try {
-            const securityRes = await fetch(`/api/user/security/${state.user.id}`);
+            const securityRes = await fetch(
+              `/api/user/security/${state.user.id}`
+            );
             if (securityRes.ok) {
               const securityData = await securityRes.json();
-              realSecuritySettings = {
-                ...realSecuritySettings,
-                twoFactorEnabled: securityData.user?.twoFactor?.enabled || false,
+              const realSecuritySettings = {
+                ...generateMockSecuritySettings(),
+                twoFactorEnabled:
+                  securityData.user?.twoFactor?.enabled || false,
               };
+              setSecuritySettings(realSecuritySettings);
+            } else {
+              setSecuritySettings(generateMockSecuritySettings());
             }
           } catch (err) {
             console.error('Error fetching security data:', err);
+            setSecuritySettings(generateMockSecuritySettings());
           }
+        } else {
+          // No user logged in, use mock data
+          setUserProfile(generateMockUserProfile(state.user));
+          setRewards(generateMockRewards());
+          setSecuritySettings(generateMockSecuritySettings());
         }
-        setSecuritySettings(realSecuritySettings);
-        
+
         // Fetch real preferences
         setPreferences(generateMockPreferences());
-        
+
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading user data:', error);
@@ -217,8 +224,6 @@ export default function DashboardOverviewPage() {
 
     loadUserData();
   }, [state.user]);
-
-
 
   if (isLoading) {
     return (
