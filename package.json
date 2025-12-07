@@ -18,7 +18,9 @@
     "start:backend": "cd backend && npm run start",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "clean": "rimraf frontend/.next frontend/node_modules backend/.next backend/node_modules",
-    "lint": "cd frontend && npm run lint && cd ../backend && npm run lint"
+    "clean:all": "npm run clean && rimraf node_modules package-lock.json",
+    "lint": "cd frontend && npm run lint && cd ../backend && npm run lint",
+    "reset": "npm run clean:all && npm run install:all"
   },
   "devDependencies": {
     "@types/uuid": "^10.0.0",

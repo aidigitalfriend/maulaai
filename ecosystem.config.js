@@ -63,7 +63,7 @@ module.exports = {
     // Backend API Server with Authentication
     {
       name: 'shiny-backend',
-      cwd: APP_DIR,
+      cwd: BACKEND_CWD,
       script: 'server-simple-auth-current.js',
       // Load backend-specific environment variables
       env_file: ENV_PATHS.backend,

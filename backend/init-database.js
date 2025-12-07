@@ -16,25 +16,25 @@ const __dirname = dirname(__filename)
 // Load environment variables
 dotenv.config({ path: join(__dirname, '.env') })
 
-// Import all models
-import User from './models/User.ts'
-import JobApplication from './models/JobApplication.ts'
-import ContactMessage from './models/ContactMessage.ts'
-import CommunityPost from './models/CommunityPost.ts'
-import CommunityComment from './models/CommunityComment.ts'
-import CommunityLike from './models/CommunityLike.ts'
-import Subscription from './models/Subscription.ts'
-import Presence from './models/Presence.ts'
-import Notification from './models/Notification.ts'
-import EmailQueue from './models/EmailQueue.ts'
-import Agent from './models/Agent.ts'
+// Import all models (compiled from TypeScript)
+import User from './models/User.js'
+import JobApplication from './models/JobApplication.js'
+import ContactMessage from './models/ContactMessage.js'
+import CommunityPost from './models/CommunityPost.js'
+import CommunityComment from './models/CommunityComment.js'
+import CommunityLike from './models/CommunityLike.js'
+import Subscription from './models/Subscription.js'
+import Presence from './models/Presence.js'
+import Notification from './models/Notification.js'
+import EmailQueue from './models/EmailQueue.js'
+import Agent from './models/Agent.js'
 
 // Pricing and Subscription Models
-import Plan from './models/Plan.ts'
-import Payment from './models/Payment.ts'
-import Coupon from './models/Coupon.ts'
-import Billing from './models/Billing.ts'
-import Invoice from './models/InvoiceFixed.ts'
+import Plan from './models/Plan.js'
+import Payment from './models/Payment.js'
+import Coupon from './models/Coupon.js'
+import Billing from './models/Billing.js'
+import Invoice from './models/InvoiceFixed.js'
 import { 
   Visitor, 
   PageView, 
