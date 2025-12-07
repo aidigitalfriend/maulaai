@@ -1739,7 +1739,11 @@ app.post('/api/webhooks/stripe', async (req, res) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -1782,21 +1786,25 @@ app.post('/api/webhooks/stripe', async (req, res) => {
 // Stripe webhook event handlers
 async function handleCheckoutSessionCompleted(session) {
   console.log('Processing checkout.session.completed:', session.id);
-  
+
   if (session.mode === 'subscription' && session.subscription) {
     // Handle subscription checkout
-    const subscription = await stripe.subscriptions.retrieve(session.subscription);
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription
+    );
     await handleSubscriptionCreated(subscription);
   }
 }
 
 async function handleSubscriptionCreated(subscription) {
   console.log('Processing subscription created:', subscription.id);
-  
+
   try {
     const customer = await stripe.customers.retrieve(subscription.customer);
-    const user = await db.collection('users').findOne({ email: customer.email });
-    
+    const user = await db
+      .collection('users')
+      .findOne({ email: customer.email });
+
     if (user) {
       const subscriptionDoc = {
         userId: user._id,
@@ -1822,14 +1830,16 @@ async function handleSubscriptionCreated(subscription) {
 
 async function handleSubscriptionUpdated(subscription) {
   console.log('Processing subscription updated:', subscription.id);
-  
+
   try {
     await db.collection('subscriptions').updateOne(
       { stripeSubscriptionId: subscription.id },
       {
         $set: {
           status: subscription.status,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodStart: new Date(
+            subscription.current_period_start * 1000
+          ),
           currentPeriodEnd: new Date(subscription.current_period_end * 1000),
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           updatedAt: new Date(),
@@ -1844,7 +1854,7 @@ async function handleSubscriptionUpdated(subscription) {
 
 async function handleSubscriptionDeleted(subscription) {
   console.log('Processing subscription deleted:', subscription.id);
-  
+
   try {
     await db.collection('subscriptions').updateOne(
       { stripeSubscriptionId: subscription.id },
@@ -1863,16 +1873,18 @@ async function handleSubscriptionDeleted(subscription) {
 
 async function handleInvoicePaid(invoice) {
   console.log('Processing invoice paid:', invoice.id);
-  
+
   if (invoice.subscription) {
-    const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+    const subscription = await stripe.subscriptions.retrieve(
+      invoice.subscription
+    );
     await handleSubscriptionUpdated(subscription);
   }
 }
 
 async function handleInvoicePaymentFailed(invoice) {
   console.log('Processing invoice payment failed:', invoice.id);
-  
+
   if (invoice.subscription) {
     // Mark subscription as past due or handle failed payment
     await db.collection('subscriptions').updateOne(
