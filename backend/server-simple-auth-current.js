@@ -1729,12 +1729,28 @@ app.get('/api/user/analytics', (req, res) => {
 // STRIPE WEBHOOK HANDLER
 // ----------------------------
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-11-20.acacia',
-});
+// Initialize Stripe only if secret key is available
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  try {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-11-20.acacia',
+    });
+    console.log('✅ Stripe initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize Stripe:', error.message);
+  }
+} else {
+  console.warn('⚠️ STRIPE_SECRET_KEY not found - Stripe webhooks will be disabled');
+}
 
 // Stripe webhook endpoint
 app.post('/api/webhooks/stripe', async (req, res) => {
+  if (!stripe) {
+    console.error('Stripe not initialized - webhook rejected');
+    return res.status(500).json({ error: 'Stripe not configured' });
+  }
+
   const sig = req.headers['stripe-signature'];
   let event;
 
