@@ -1741,7 +1741,9 @@ if (process.env.STRIPE_SECRET_KEY) {
     console.error('❌ Failed to initialize Stripe:', error.message);
   }
 } else {
-  console.warn('⚠️ STRIPE_SECRET_KEY not found - Stripe webhooks will be disabled');
+  console.warn(
+    '⚠️ STRIPE_SECRET_KEY not found - Stripe webhooks will be disabled'
+  );
 }
 
 // Stripe webhook endpoint
