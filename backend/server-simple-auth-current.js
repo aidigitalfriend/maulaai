@@ -12,6 +12,7 @@ import jwt from 'jsonwebtoken';
 import { MongoClient, ObjectId } from 'mongodb';
 import os from 'os';
 import multer from 'multer';
+import Stripe from 'stripe';
 // import agentSubscriptionRoutes from './routes/agentSubscriptions.js';
 // import agentChatHistoryRoutes from './routes/agentChatHistory.js';
 // import agentUsageRoutes from './routes/agentUsage.js';
@@ -39,7 +40,14 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: '10mb' }));
+// Parse JSON for all routes except Stripe webhook (which needs raw body)
+app.use((req, res, next) => {
+  if (req.path === '/api/webhooks/stripe') {
+    express.raw({ type: 'application/json' })(req, res, next);
+  } else {
+    express.json({ limit: '10mb' })(req, res, next);
+  }
+});
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Configure multer for file uploads (memory storage for base64 conversion)
@@ -1716,6 +1724,168 @@ app.get('/api/user/analytics', (req, res) => {
     });
   }
 });
+
+// ----------------------------
+// STRIPE WEBHOOK HANDLER
+// ----------------------------
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2024-11-20.acacia',
+});
+
+// Stripe webhook endpoint
+app.post('/api/webhooks/stripe', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  console.log('Stripe webhook event received:', event.type);
+
+  try {
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object);
+        break;
+      case 'customer.subscription.created':
+        await handleSubscriptionCreated(event.data.object);
+        break;
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object);
+        break;
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object);
+        break;
+      case 'invoice.paid':
+        await handleInvoicePaid(event.data.object);
+        break;
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event.data.object);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Webhook handler error:', error);
+    res.status(500).json({ error: 'Webhook handler failed' });
+  }
+});
+
+// Stripe webhook event handlers
+async function handleCheckoutSessionCompleted(session) {
+  console.log('Processing checkout.session.completed:', session.id);
+  
+  if (session.mode === 'subscription' && session.subscription) {
+    // Handle subscription checkout
+    const subscription = await stripe.subscriptions.retrieve(session.subscription);
+    await handleSubscriptionCreated(subscription);
+  }
+}
+
+async function handleSubscriptionCreated(subscription) {
+  console.log('Processing subscription created:', subscription.id);
+  
+  try {
+    const customer = await stripe.customers.retrieve(subscription.customer);
+    const user = await db.collection('users').findOne({ email: customer.email });
+    
+    if (user) {
+      const subscriptionDoc = {
+        userId: user._id,
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: subscription.customer,
+        status: subscription.status,
+        priceId: subscription.items.data[0].price.id,
+        plan: subscription.items.data[0].price.nickname || 'unknown',
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await db.collection('subscriptions').insertOne(subscriptionDoc);
+      console.log('Subscription saved to database:', subscription.id);
+    }
+  } catch (error) {
+    console.error('Error handling subscription created:', error);
+  }
+}
+
+async function handleSubscriptionUpdated(subscription) {
+  console.log('Processing subscription updated:', subscription.id);
+  
+  try {
+    await db.collection('subscriptions').updateOne(
+      { stripeSubscriptionId: subscription.id },
+      {
+        $set: {
+          status: subscription.status,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          updatedAt: new Date(),
+        },
+      }
+    );
+    console.log('Subscription updated in database:', subscription.id);
+  } catch (error) {
+    console.error('Error handling subscription updated:', error);
+  }
+}
+
+async function handleSubscriptionDeleted(subscription) {
+  console.log('Processing subscription deleted:', subscription.id);
+  
+  try {
+    await db.collection('subscriptions').updateOne(
+      { stripeSubscriptionId: subscription.id },
+      {
+        $set: {
+          status: 'canceled',
+          updatedAt: new Date(),
+        },
+      }
+    );
+    console.log('Subscription canceled in database:', subscription.id);
+  } catch (error) {
+    console.error('Error handling subscription deleted:', error);
+  }
+}
+
+async function handleInvoicePaid(invoice) {
+  console.log('Processing invoice paid:', invoice.id);
+  
+  if (invoice.subscription) {
+    const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+    await handleSubscriptionUpdated(subscription);
+  }
+}
+
+async function handleInvoicePaymentFailed(invoice) {
+  console.log('Processing invoice payment failed:', invoice.id);
+  
+  if (invoice.subscription) {
+    // Mark subscription as past due or handle failed payment
+    await db.collection('subscriptions').updateOne(
+      { stripeSubscriptionId: invoice.subscription },
+      {
+        $set: {
+          status: 'past_due',
+          updatedAt: new Date(),
+        },
+      }
+    );
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`🚀 Auth server running on port ${PORT}`);
