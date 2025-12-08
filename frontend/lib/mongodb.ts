@@ -1,15 +1,17 @@
 import mongoose from 'mongoose'
 import { MongoClient, MongoClientOptions } from 'mongodb'
+import { logEnvironmentStatus } from './environment-checker'
 
 const MONGODB_URI = process.env.MONGODB_URI || ''
 
-// Tunable timeouts to prevent hanging connections
-const SERVER_SELECTION_TIMEOUT_MS = parseInt(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || '5000', 10)
-const CONNECT_TIMEOUT_MS = parseInt(process.env.MONGODB_CONNECT_TIMEOUT_MS || '5000', 10)
-const SOCKET_TIMEOUT_MS = parseInt(process.env.MONGODB_SOCKET_TIMEOUT_MS || '10000', 10)
+// Tunable timeouts to prevent hanging connections (reduced for faster RSC failure)
+const SERVER_SELECTION_TIMEOUT_MS = parseInt(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || '3000', 10)
+const CONNECT_TIMEOUT_MS = parseInt(process.env.MONGODB_CONNECT_TIMEOUT_MS || '3000', 10)
+const SOCKET_TIMEOUT_MS = parseInt(process.env.MONGODB_SOCKET_TIMEOUT_MS || '5000', 10)
 
 if (!MONGODB_URI) {
   console.warn('⚠️  MONGODB_URI is not set. Some features may not work until it is configured.')
+  logEnvironmentStatus()
 }
 
 // -------- Mongoose connection for Mongoose models --------
@@ -20,20 +22,35 @@ async function dbConnect() {
     return mongooseConn
   }
   if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is required for database connection')
+    const error = new Error('MONGODB_URI is required for database connection')
+    console.error('❌ Database connection failed:', error.message)
+    logEnvironmentStatus()
+    throw error
   }
-  mongoose.set('strictQuery', true)
-  // Prevent mongoose from buffering model operations when disconnected
-  mongoose.set('bufferCommands', false as any)
-  mongooseConn = await mongoose.connect(MONGODB_URI, {
-    dbName: process.env.MONGODB_DB || undefined,
-    serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
-    socketTimeoutMS: SOCKET_TIMEOUT_MS,
-    connectTimeoutMS: CONNECT_TIMEOUT_MS,
-    // retryWrites is default true on Atlas; keep explicit
-    retryWrites: true as any,
-  } as any)
-  return mongooseConn
+  
+  try {
+    mongoose.set('strictQuery', true)
+    // Prevent mongoose from buffering model operations when disconnected
+    mongoose.set('bufferCommands', false as any)
+    
+    console.log('🔌 Connecting to MongoDB...')
+    mongooseConn = await mongoose.connect(MONGODB_URI, {
+      dbName: process.env.MONGODB_DB || undefined,
+      serverSelectionTimeoutMS: SERVER_SELECTION_TIMEOUT_MS,
+      socketTimeoutMS: SOCKET_TIMEOUT_MS,
+      connectTimeoutMS: CONNECT_TIMEOUT_MS,
+      // retryWrites is default true on Atlas; keep explicit
+      retryWrites: true as any,
+    } as any)
+    
+    console.log('✅ MongoDB connected successfully')
+    return mongooseConn
+    
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error)
+    logEnvironmentStatus()
+    throw error
+  }
 }
 
 export default dbConnect

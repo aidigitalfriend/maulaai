@@ -20,15 +20,16 @@ class RSCErrorBoundary extends Component<Props, State> {
   static getDerivedStateFromError(error: Error): State {
     // Check if this is an RSC-related error we want to suppress
     const errorMessage = error.message || '';
-    const isRSCError = errorMessage.includes('_rsc=') || 
-                       errorMessage.includes('503') ||
-                       errorMessage.includes('Service Unavailable');
-    
+    const isRSCError =
+      errorMessage.includes('_rsc=') ||
+      errorMessage.includes('503') ||
+      errorMessage.includes('Service Unavailable');
+
     if (isRSCError) {
       // Silently handle RSC errors - don't show error boundary
       return { hasError: false };
     }
-    
+
     // Let other errors through to be properly handled
     return { hasError: true, error };
   }
@@ -36,10 +37,11 @@ class RSCErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log non-RSC errors for debugging
     const errorMessage = error.message || '';
-    const isRSCError = errorMessage.includes('_rsc=') || 
-                       errorMessage.includes('503') ||
-                       errorMessage.includes('Service Unavailable');
-    
+    const isRSCError =
+      errorMessage.includes('_rsc=') ||
+      errorMessage.includes('503') ||
+      errorMessage.includes('Service Unavailable');
+
     if (!isRSCError) {
       console.error('Uncaught error:', error, errorInfo);
     }

@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { checkEnvironmentVariables } from '@/lib/environment-checker';
 
 const JWT_SECRET =
   process.env.JWT_SECRET ||
@@ -23,6 +24,16 @@ const JWT_SECRET =
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check environment first
+    const envStatus = checkEnvironmentVariables();
+    if (!envStatus.isValid) {
+      console.error('❌ Auth signup failed - missing environment variables:', envStatus.missing);
+      return NextResponse.json(
+        { message: 'Server configuration error' },
+        { status: 503 }
+      );
+    }
+
     const { email, name, password, authMethod } = await request.json();
 
     // Validation

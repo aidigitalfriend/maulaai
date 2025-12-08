@@ -3,11 +3,22 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { checkEnvironmentVariables } from '@/lib/environment-checker';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check environment first
+    const envStatus = checkEnvironmentVariables();
+    if (!envStatus.isValid) {
+      console.error('❌ Auth login failed - missing environment variables:', envStatus.missing);
+      return NextResponse.json(
+        { message: 'Server configuration error' },
+        { status: 503 }
+      );
+    }
+
     const { email, password } = await request.json();
 
     // Validate input
@@ -18,8 +29,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database
-    await dbConnect();
+    // Connect to database with timeout
+    await Promise.race([
+      dbConnect(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+      )
+    ]);
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() });
