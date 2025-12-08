@@ -30,10 +30,24 @@ export async function GET(
       );
     }
 
+    // Debug logging
+    console.log('🔒 Security API Debug:');
+    console.log('Session User ID:', sessionUser._id.toString());
+    console.log('Requested User ID:', params.userId);
+    
     // Check if user is requesting their own security info
     if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+      console.log('❌ Security Access denied - User ID mismatch');
+      return NextResponse.json({ 
+        message: 'Access denied',
+        debug: {
+          sessionUserId: sessionUser._id.toString(),
+          requestedUserId: params.userId
+        }
+      }, { status: 403 });
     }
+
+    console.log('✅ Security Access granted for user:', params.userId);
 
     // Connect to database
     await dbConnect();

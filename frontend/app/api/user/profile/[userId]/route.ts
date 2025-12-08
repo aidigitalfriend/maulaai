@@ -30,10 +30,25 @@ export async function GET(
       );
     }
 
+    // Debug logging
+    console.log('🔍 Profile API Debug:');
+    console.log('Session User ID:', sessionUser._id.toString());
+    console.log('Requested User ID:', params.userId);
+    console.log('IDs Match:', sessionUser._id.toString() === params.userId);
+
     // Check if user is requesting their own profile
     if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+      console.log('❌ Profile Access denied - User ID mismatch');
+      return NextResponse.json({ 
+        message: 'Access denied',
+        debug: {
+          sessionUserId: sessionUser._id.toString(),
+          requestedUserId: params.userId
+        }
+      }, { status: 403 });
     }
+
+    console.log('✅ Profile Access granted for user:', params.userId);
 
     // Find user by ID (same as sessionUser, but keep for consistency)
     const user = await User.findById(params.userId).select('-password');
