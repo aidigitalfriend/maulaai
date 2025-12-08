@@ -13,8 +13,10 @@ const nextConfig = {
     externalDir: true,
   },
 
-  // Add empty turbopack config to silence warnings
-  turbopack: {},
+  // Fix turbopack root directory warning
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
 
   webpack: (config, { isServer }) => {
     if (isServer) {
@@ -40,9 +42,8 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'onelastai.co' },
       { protocol: 'https', hostname: 'www.onelastai.co' },
+      { protocol: 'http', hostname: 'localhost' },
     ],
-    // Keep localhost for dev convenience
-    domains: ['localhost'],
     unoptimized: false,
     // Fix CSP for Next.js images - allow inline scripts for Stripe, Cloudflare and other integrations
     contentSecurityPolicy:
@@ -61,13 +62,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   // ✅ SECURITY: Disable source maps in production
   productionBrowserSourceMaps:
     process.env.NODE_ENV === 'production' ? false : true,
+
+  // Set output file tracing root to resolve lockfile warnings
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 
   // ✅ SECURITY: Add security headers
   async headers() {

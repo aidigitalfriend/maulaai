@@ -701,7 +701,6 @@ export default function SecuritySettingsPage() {
                             </div>
                           </div>
 
-                          {(
                           {twoFactorEnabled && !verifying2FA && backupCodes.length > 0 && (
                             <button
                               onClick={() =>
