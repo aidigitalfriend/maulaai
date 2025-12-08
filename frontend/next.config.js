@@ -13,6 +13,8 @@ const nextConfig = {
     externalDir: true,
     // Enable partial prerendering for better prefetch behavior
     ppr: false,
+    // Disable aggressive prefetching to reduce RSC errors
+    optimisticClientCache: false,
   },
 
   // Move server external packages to correct location

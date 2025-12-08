@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import ConditionalFooter from '@/components/ConditionalFooter';
+import RSCErrorBoundary from '@/components/RSCErrorBoundary';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LoadingProvider } from '@/lib/loading-context';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
@@ -88,19 +89,55 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth overflow-x-hidden">
       <body className="min-h-screen flex flex-col overflow-x-hidden">
+        {/* Console Error Filter - Suppress RSC 503 errors */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                'use strict';
+                const originalError = console.error;
+                const suppressPatterns = [
+                  /GET.*\\?_rsc=.*503.*Service Unavailable/,
+                  /_rsc=.*503/,
+                  /Service Unavailable.*_rsc/,
+                  /Failed to fetch.*_rsc/
+                ];
+                function shouldSuppress(message) {
+                  const messageStr = String(message);
+                  return suppressPatterns.some(pattern => pattern.test(messageStr));
+                }
+                console.error = function(...args) {
+                  const message = args.join(' ');
+                  if (!shouldSuppress(message)) {
+                    originalError.apply(console, args);
+                  }
+                };
+                if (typeof window !== 'undefined') {
+                  window.addEventListener('unhandledrejection', function(event) {
+                    if (event.reason && typeof event.reason === 'string' && event.reason.includes('_rsc=')) {
+                      event.preventDefault();
+                    }
+                  });
+                }
+              })();
+            `,
+          }}
+        />
         <LoadingProvider>
           <AuthProvider>
-            {/* Global Splash Screen - Temporarily disabled */}
-            {/* <SplashScreenWrapper /> */}
+            <RSCErrorBoundary>
+              {/* Global Splash Screen - Temporarily disabled */}
+              {/* <SplashScreenWrapper /> */}
 
-            {/* Global Navigation - Fix #2: Consistent Navigation */}
-            <Header />
+              {/* Global Navigation - Fix #2: Consistent Navigation */}
+              <Header />
 
-            {/* Main Content Area - Fix #1: Proper Layout System */}
-            <main className="flex-1">{children}</main>
+              {/* Main Content Area - Fix #1: Proper Layout System */}
+              <main className="flex-1">{children}</main>
 
-            {/* Conditional Footer - Hidden on agent pages */}
-            <ConditionalFooter />
+              {/* Conditional Footer - Hidden on agent pages */}
+              <ConditionalFooter />
+            </RSCErrorBoundary>
           </AuthProvider>
         </LoadingProvider>
       </body>
