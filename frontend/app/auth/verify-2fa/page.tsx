@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import {
+  ShieldCheckIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 
 function Verify2FAContent() {
   const router = useRouter();
@@ -41,7 +44,7 @@ function Verify2FAContent() {
       inputRefs.current[index + 1]?.focus();
     }
 
-    if (index === 5 && value && newCode.every(digit => digit)) {
+    if (index === 5 && value && newCode.every((digit) => digit)) {
       handleVerify(newCode.join(''));
     }
   };
@@ -69,10 +72,19 @@ function Verify2FAContent() {
   };
 
   const handleVerify = async (codeToVerify?: string) => {
-    const verificationCode = codeToVerify || (useBackupCode ? backupCodeInput : code.join(''));
-    
-    if (!verificationCode || (useBackupCode && verificationCode.length < 8) || (!useBackupCode && verificationCode.length !== 6)) {
-      setError(useBackupCode ? 'Please enter a valid backup code' : 'Please enter all 6 digits');
+    const verificationCode =
+      codeToVerify || (useBackupCode ? backupCodeInput : code.join(''));
+
+    if (
+      !verificationCode ||
+      (useBackupCode && verificationCode.length < 8) ||
+      (!useBackupCode && verificationCode.length !== 6)
+    ) {
+      setError(
+        useBackupCode
+          ? 'Please enter a valid backup code'
+          : 'Please enter all 6 digits'
+      );
       return;
     }
 
@@ -123,8 +135,8 @@ function Verify2FAContent() {
               Two-Factor Authentication
             </h1>
             <p className="text-neural-600">
-              {useBackupCode 
-                ? 'Enter one of your backup codes' 
+              {useBackupCode
+                ? 'Enter one of your backup codes'
                 : 'Enter the 6-digit code from your authenticator app'}
             </p>
           </div>
@@ -138,11 +150,16 @@ function Verify2FAContent() {
 
           {!useBackupCode ? (
             <>
-              <div className="flex justify-center gap-2 mb-6" onPaste={handlePaste}>
+              <div
+                className="flex justify-center gap-2 mb-6"
+                onPaste={handlePaste}
+              >
                 {code.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => { inputRefs.current[index] = el; }}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
@@ -157,7 +174,7 @@ function Verify2FAContent() {
 
               <button
                 onClick={() => handleVerify()}
-                disabled={loading || code.some(digit => !digit)}
+                disabled={loading || code.some((digit) => !digit)}
                 className="w-full btn-primary mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Verifying...' : 'Verify Code'}
@@ -169,7 +186,9 @@ function Verify2FAContent() {
                 <input
                   type="text"
                   value={backupCodeInput}
-                  onChange={(e) => setBackupCodeInput(e.target.value.toUpperCase())}
+                  onChange={(e) =>
+                    setBackupCodeInput(e.target.value.toUpperCase())
+                  }
                   placeholder="Enter backup code"
                   className="w-full p-4 border-2 border-neural-200 rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-200 focus:outline-none text-center font-mono text-lg"
                   disabled={loading}
@@ -196,11 +215,16 @@ function Verify2FAContent() {
             }}
             className="w-full text-sm text-brand-600 hover:text-brand-700 font-medium mb-4"
           >
-            {useBackupCode ? '← Use authenticator code' : 'Use backup code instead'}
+            {useBackupCode
+              ? '← Use authenticator code'
+              : 'Use backup code instead'}
           </button>
 
           <div className="text-center">
-            <Link href="/auth/login" className="text-sm text-neural-600 hover:text-neural-900">
+            <Link
+              href="/auth/login"
+              className="text-sm text-neural-600 hover:text-neural-900"
+            >
               ← Back to login
             </Link>
           </div>
@@ -209,7 +233,10 @@ function Verify2FAContent() {
         <div className="mt-6 text-center">
           <p className="text-sm text-neural-600">
             Lost access to your authenticator?{' '}
-            <Link href="/support/contact-us" className="text-brand-600 hover:text-brand-700">
+            <Link
+              href="/support/contact-us"
+              className="text-brand-600 hover:text-brand-700"
+            >
               Contact support
             </Link>
           </p>
@@ -221,7 +248,13 @@ function Verify2FAContent() {
 
 export default function Verify2FAPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <Verify2FAContent />
     </Suspense>
   );

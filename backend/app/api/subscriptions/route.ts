@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@backend/lib/mongodb';
-import Subscription from '@backend/models/Subscription';
+import dbConnect from '@/lib/mongodb';
+import Subscription from '@/models/Subscription';
 
 /**
  * GET /api/subscriptions

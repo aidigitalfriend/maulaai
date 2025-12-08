@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@backend/lib/mongodb';
-import Subscription from '@backend/models/Subscription';
+import dbConnect from '@/lib/mongodb';
+import Subscription from '@/models/Subscription';
 
 /**
  * POST /api/subscriptions/check
@@ -26,12 +26,14 @@ export async function POST(request: NextRequest) {
       status: { $in: ['active', 'trialing'] },
       currentPeriodEnd: { $gte: new Date() },
     };
-    
+
     if (userId) query.userId = userId;
     if (email) query.email = email;
 
     // Find active subscription
-    const subscription = await Subscription.findOne(query).sort({ createdAt: -1 });
+    const subscription = await Subscription.findOne(query).sort({
+      createdAt: -1,
+    });
 
     if (!subscription) {
       return NextResponse.json({
