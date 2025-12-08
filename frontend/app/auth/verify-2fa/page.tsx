@@ -93,7 +93,7 @@ function Verify2FAContent() {
       const data = await res.json();
 
       if (res.ok && data.token) {
-        localStorage.setItem('token', data.token);
+        // HttpOnly cookies handle token storage securely
         router.push('/dashboard');
       } else {
         setError(data.message || 'Invalid code. Please try again.');

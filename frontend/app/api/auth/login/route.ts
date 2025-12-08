@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json(
       {
         message: 'Login successful',
+        success: true,
         user: {
           id: user._id.toString(),
           email: user.email,
@@ -87,9 +88,9 @@ export async function POST(request: NextRequest) {
 
     // Set secure HttpOnly cookie (not accessible to JavaScript)
     response.cookies.set('auth_token', token, {
-      httpOnly: true,           // Prevents XSS attacks
-      secure: true,             // HTTPS only
-      sameSite: 'strict',       // CSRF protection
+      httpOnly: true, // Prevents XSS attacks
+      secure: true, // HTTPS only
+      sameSite: 'strict', // CSRF protection
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
       path: '/',
     });

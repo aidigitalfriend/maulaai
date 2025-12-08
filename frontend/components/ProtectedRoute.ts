@@ -41,45 +41,43 @@ export class ProtectedRouteLogic {
       this.state.error = null;
 
       // Check localStorage first for quick response
-      const storedUser = localStorage.getItem('user');
-      const storedToken = localStorage.getItem('authToken');
-
-      if (!storedToken) {
-        this.state.isAuthenticated = false;
-        return false;
-      }
+      const storedUser = localStorage.getItem('auth_user');
 
       if (storedUser) {
         this.state.user = JSON.parse(storedUser);
         this.state.isAuthenticated = true;
       }
 
-      // Verify with server
-      const response = await fetch('/api/auth/me', {
+      // Verify with server using HttpOnly cookie
+      const response = await fetch('/api/auth/verify', {
+        method: 'POST',
+        credentials: 'include', // Sends HttpOnly cookies automatically
         headers: {
-          Authorization: `Bearer ${storedToken}`,
+          'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (response.ok) {
         const userData = await response.json();
-        this.state.isAuthenticated = true;
-        this.state.user = userData.user;
+        if (userData.valid && userData.user) {
+          this.state.isAuthenticated = true;
+          this.state.user = userData.user;
 
-        // Update localStorage with fresh data
-        localStorage.setItem('user', JSON.stringify(userData.user));
+          // Update localStorage with fresh user data (no tokens)
+          localStorage.setItem('auth_user', JSON.stringify(userData.user));
 
-        return true;
+          return true;
+        } else {
+          this.state.isAuthenticated = false;
+          this.state.user = null;
+          localStorage.removeItem('auth_user');
+          return false;
+        }
       } else {
-        // Token invalid or expired
+        // Authentication failed
         this.state.isAuthenticated = false;
         this.state.user = null;
-
-        // Clear invalid tokens
-        localStorage.removeItem('user');
-        localStorage.removeItem('authToken');
-
+        localStorage.removeItem('auth_user');
         return false;
       }
     } catch (error) {
@@ -151,35 +149,7 @@ export class ProtectedRouteLogic {
     return this.state.user;
   }
 
-  // Method to handle token refresh
-  async refreshToken(): Promise<boolean> {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) return false;
-
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('authToken', data.accessToken);
-
-        if (data.refreshToken) {
-          localStorage.setItem('refreshToken', data.refreshToken);
-        }
-
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      return false;
-    }
-  }
+  // Note: Token refresh not needed with HttpOnly cookies - server handles token renewal
 
   // Handle logout
   async logout(): Promise<void> {
@@ -196,10 +166,8 @@ export class ProtectedRouteLogic {
       this.state.isAuthenticated = false;
       this.state.user = null;
 
-      // Clear localStorage
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
+      // Clear user data from localStorage (HttpOnly cookie cleared by server)
+      localStorage.removeItem('auth_user');
 
       // Track logout
       this.trackSecurityEvent('user_logout');

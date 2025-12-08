@@ -12,7 +12,7 @@ export const secureAuthStorage = {
    */
   setUser: (user: any) => {
     if (typeof window === 'undefined') return;
-    
+
     try {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
       console.log('✅ User data saved to localStorage');
@@ -26,7 +26,7 @@ export const secureAuthStorage = {
    */
   getUser: () => {
     if (typeof window === 'undefined') return null;
-    
+
     try {
       const userData = localStorage.getItem(USER_KEY);
       return userData ? JSON.parse(userData) : null;
@@ -66,7 +66,7 @@ export const secureAuthStorage = {
    */
   clearUser: () => {
     if (typeof window === 'undefined') return;
-    
+
     try {
       localStorage.removeItem(USER_KEY);
       console.log('✅ User data cleared from localStorage');
@@ -90,7 +90,7 @@ export const secureAuthStorage = {
 
       // Clear local user data regardless of server response
       secureAuthStorage.clearUser();
-      
+
       if (response.ok) {
         console.log('✅ Logged out successfully');
         return true;

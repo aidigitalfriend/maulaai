@@ -91,7 +91,7 @@ function DashboardContent() {
   const fetchAnalytics = async () => {
     try {
       // Get current user to pass to analytics endpoint
-      const userStr = localStorage.getItem('user')
+      const userStr = localStorage.getItem('auth_user')
       let queryParams = ''
       
       if (userStr) {

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     console.log('🚪 Logout endpoint called');
-    
+
     // Create response
     const response = NextResponse.json(
       { message: 'Logged out successfully' },
@@ -21,12 +21,8 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Auth cookie cleared');
     return response;
-    
   } catch (error) {
     console.error('❌ Logout error:', error);
-    return NextResponse.json(
-      { message: 'Logout failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Logout failed' }, { status: 500 });
   }
 }

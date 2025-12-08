@@ -282,16 +282,17 @@ export class VerifyEmailLogic {
 
   /**
    * Store user session after verification
+   * Note: With HttpOnly cookies, tokens are handled by server
    */
   private storeUserSession(token: string, user: any): void {
     try {
-      // Store in localStorage or cookies
+      // Store only user data (tokens handled by HttpOnly cookies)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('auth_user', JSON.stringify(user));
+        console.log('✅ User session stored (HttpOnly cookie authentication)');
       }
     } catch (error) {
-      console.error('Error storing user session:', error);
+      console.error('❌ Error storing user session:', error);
     }
   }
 

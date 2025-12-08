@@ -84,9 +84,8 @@ export class HeaderLogic {
       this.state.user = null;
       this.state.isProfileMenuOpen = false;
 
-      // Clear localStorage
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
+      // Clear user data from localStorage (HttpOnly cookie cleared by server)
+      localStorage.removeItem('auth_user');
 
       // Track sign out
       this.trackAuthEvent('sign_out');
@@ -101,30 +100,39 @@ export class HeaderLogic {
   async checkAuthStatus(): Promise<void> {
     try {
       // Check localStorage first for quick UI update
-      const storedUser = localStorage.getItem('user');
+      const storedUser = localStorage.getItem('auth_user');
       if (storedUser) {
         this.state.user = JSON.parse(storedUser);
         this.state.isAuthenticated = true;
       }
 
-      // Verify with server
-      const response = await fetch('/api/auth/me', {
+      // Verify with server using HttpOnly cookie
+      const response = await fetch('/api/auth/verify', {
+        method: 'POST',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         const userData = await response.json();
-        this.state.isAuthenticated = true;
-        this.state.user = userData.user;
+        if (userData.valid && userData.user) {
+          this.state.isAuthenticated = true;
+          this.state.user = userData.user;
 
-        // Update localStorage
-        localStorage.setItem('user', JSON.stringify(userData.user));
+          // Update localStorage with user data only (no tokens)
+          localStorage.setItem('auth_user', JSON.stringify(userData.user));
+        } else {
+          this.state.isAuthenticated = false;
+          this.state.user = null;
+          localStorage.removeItem('auth_user');
+        }
       } else {
         // Not authenticated
         this.state.isAuthenticated = false;
         this.state.user = null;
-        localStorage.removeItem('user');
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('auth_user');
       }
     } catch (error) {
       console.error('Auth status check failed:', error);

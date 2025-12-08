@@ -4,24 +4,9 @@ import { NextRequest, NextResponse } from 'next/server'
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key'
 
 function getTokenFromRequest(request: NextRequest): string | null {
-  // Check Authorization header
-  const authHeader = request.headers.get('authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7)
-  }
-
-  // Check cookies
-  const cookieHeader = request.headers.get('cookie')
-  if (!cookieHeader) return null
-
-  const cookies = Object.fromEntries(cookieHeader.split(';').map(c => {
-    const [k, ...v] = c.split('=')
-    return [k.trim(), decodeURIComponent((v||[]).join('='))]
-  }))
-
-  if (cookies.token) return cookies.token
-
-  return null
+  // Get token from HttpOnly cookie (secure)
+  const token = request.cookies.get('auth_token')?.value
+  return token || null
 }
 
 export function verifyRequest(request: NextRequest) {

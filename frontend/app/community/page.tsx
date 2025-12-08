@@ -75,8 +75,8 @@ export default function CommunityPage() {
 
         await fetch('/api/community/presence/ping', {
           method: 'POST',
+          credentials: 'include', // Use HttpOnly cookies
           headers: {
-            Authorization: `Bearer ${userProfile.token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -149,13 +149,13 @@ export default function CommunityPage() {
   useEffect(() => {
     const loadUserProfile = async () => {
       const token =
-        localStorage.getItem('auth_token') ||
+        // HttpOnly cookies handle authentication automatically
         document.cookie.match(/token=([^;]+)/)?.[1];
       if (!token) return;
 
       try {
         const res = await fetch('/api/user/profile', {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include', // Use HttpOnly cookies
         });
         if (res.ok) {
           const profile = await res.json();
@@ -239,8 +239,8 @@ export default function CommunityPage() {
       const endpoint = isLiked ? 'unlike' : 'like';
       const res = await fetch(`/api/community/posts/${messageId}/${endpoint}`, {
         method: 'POST',
+        credentials: 'include', // Use HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${userProfile.token}`,
           'Content-Type': 'application/json',
         },
       });

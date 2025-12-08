@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'AUTH_LOGOUT' });
     } catch (error) {
       console.error('❌ Session check error:', error);
-      
+
       // On error, try to use local user data if available
       const storedUser = secureAuthStorage.getUser();
       if (storedUser) {
@@ -197,7 +197,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         secureAuthStorage.setUser(data.user);
         dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
-        console.log('✅ Registration successful - HttpOnly cookie authentication');
+        console.log(
+          '✅ Registration successful - HttpOnly cookie authentication'
+        );
       }
 
       return { success: true, user: data.user };
@@ -250,7 +252,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getAuthToken = (): string | null => {
     // With HttpOnly cookies, tokens are not accessible to client-side JavaScript
     // This method is deprecated for security - use server-side verification instead
-    console.warn('⚠️ getAuthToken() deprecated - HttpOnly cookies are not accessible to client-side JS');
+    console.warn(
+      '⚠️ getAuthToken() deprecated - HttpOnly cookies are not accessible to client-side JS'
+    );
     return null;
   };
 

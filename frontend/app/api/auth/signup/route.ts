@@ -85,11 +85,11 @@ export async function POST(request: NextRequest) {
       expiresIn: '7d',
     });
 
-    // Return success with token and user info
-    return NextResponse.json(
+    // Create response without token in JSON (security improvement)
+    const response = NextResponse.json(
       {
         message: 'User created successfully',
-        token,
+        success: true,
         user: {
           id: newUser._id.toString(),
           email: newUser.email,
@@ -101,6 +101,17 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+
+    // Set secure HttpOnly cookie (not accessible to JavaScript)
+    response.cookies.set('auth_token', token, {
+      httpOnly: true, // Prevents XSS attacks
+      secure: true, // HTTPS only
+      sameSite: 'strict', // CSRF protection
+      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Signup error:', error);
     return NextResponse.json(
