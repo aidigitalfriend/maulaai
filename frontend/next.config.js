@@ -11,7 +11,12 @@ const nextConfig = {
   // Enable importing from parent directory (monorepo structure)
   experimental: {
     externalDir: true,
+    // Enable partial prerendering for better prefetch behavior
+    ppr: false,
   },
+
+  // Move server external packages to correct location
+  serverExternalPackages: ['mongoose', 'mongodb'],
 
   // Fix turbopack root directory warning and enable turbopack
   turbopack: {},
@@ -81,6 +86,21 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Special handling for RSC requests to prevent 503 errors
+      {
+        source: '/:path*',
+        has: [{ type: 'query', key: '_rsc' }],
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'X-RSC-Request',
+            value: 'true',
           },
         ],
       },

@@ -63,6 +63,13 @@ echo "📦 Pulling latest changes..."
 git stash || echo "No changes to stash"
 git pull origin main
 
+# Build frontend for production
+echo "🔨 Building frontend for production..."
+cd ~/shiny-friend-disco/frontend
+npm ci
+npm run build
+cd ~/shiny-friend-disco
+
 # Update NGINX configuration
 echo "🔧 Updating NGINX..."
 sudo cp nginx/onelastai.co.conf /etc/nginx/sites-available/onelastai.co
