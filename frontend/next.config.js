@@ -13,10 +13,8 @@ const nextConfig = {
     externalDir: true,
   },
 
-  // Fix turbopack root directory warning - commented out for production
-  // turbopack: {
-  //   root: path.resolve(__dirname),
-  // },
+  // Fix turbopack root directory warning and enable turbopack
+  turbopack: {},
 
   webpack: (config, { isServer }) => {
     // Prioritize .tsx over .ts for component resolution
