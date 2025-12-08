@@ -4,13 +4,13 @@ import { checkEnvironmentVariables } from '@/lib/environment-checker';
 /**
  * GET /api/debug/environment
  * Diagnostic endpoint to check environment status in production
- * 
+ *
  * IMPORTANT: This should be removed or secured in production
  */
 export async function GET(request: NextRequest) {
   try {
     const envStatus = checkEnvironmentVariables();
-    
+
     // Don't expose actual values, just status
     const diagnostics = {
       timestamp: new Date().toISOString(),
@@ -24,28 +24,33 @@ export async function GET(request: NextRequest) {
         missingVars: envStatus.missing,
         hasMongoUri: !!process.env.MONGODB_URI,
         hasJwtSecret: !!process.env.JWT_SECRET,
-        mongoUriFormat: process.env.MONGODB_URI ? 
-          (process.env.MONGODB_URI.startsWith('mongodb') ? 'valid' : 'invalid') : 'missing'
+        mongoUriFormat: process.env.MONGODB_URI
+          ? process.env.MONGODB_URI.startsWith('mongodb')
+            ? 'valid'
+            : 'invalid'
+          : 'missing',
       },
       serverInfo: {
         platform: process.platform,
         nodeVersion: process.version,
-        pid: process.pid
-      }
+        pid: process.pid,
+      },
     };
 
     return NextResponse.json({
       success: true,
-      diagnostics
+      diagnostics,
     });
-    
   } catch (error) {
     console.error('❌ Environment diagnostic failed:', error);
-    
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }

@@ -8,7 +8,7 @@ import {
   useMemo,
   ReactNode,
 } from 'react';
-import authStorage from '@/lib/auth-storage';
+import secureAuthStorage from '@/lib/secure-auth-storage';
 
 export interface User {
   id: string;
@@ -98,64 +98,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      const storedToken = authStorage.getToken();
-      const storedUser = authStorage.getUser();
+      // Check if we have user data locally
+      const storedUser = secureAuthStorage.getUser();
 
-      if (storedToken && storedUser && !authStorage.isTokenExpired()) {
-        // Try to verify with server, but don't logout on network errors
-        try {
-          const response = await fetch(`/api/auth/verify`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${storedToken}`,
-            },
-            credentials: 'include',
-          });
+      // Verify session with server (HttpOnly cookie sent automatically)
+      const { valid, user } = await secureAuthStorage.verifySession();
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.valid) {
-              console.log('✅ Session verified with server');
-              dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
-              authStorage.refreshExpiry();
-              return;
-            } else {
-              // Server says token is invalid, logout
-              console.log('⚠️ Server rejected token');
-              authStorage.clearAll();
-              dispatch({ type: 'AUTH_LOGOUT' });
-              return;
-            }
-          } else if (response.status === 401) {
-            // Unauthorized - token is invalid
-            console.log('⚠️ Token unauthorized');
-            authStorage.clearAll();
-            dispatch({ type: 'AUTH_LOGOUT' });
-            return;
-          }
-        } catch (verifyError) {
-          // Network error or server down - trust local token if not expired
-          console.log('⚠️ Could not verify with server, using local token');
-        }
+      if (valid && user) {
+        console.log('✅ Session verified with server via HttpOnly cookie');
+        // Update stored user data if server returned updated info
+        secureAuthStorage.setUser(user);
+        dispatch({ type: 'AUTH_SUCCESS', payload: user });
+        return;
+      }
 
-        // If we reach here, either verification failed with network error
-        // or server is down, but token exists and isn't expired locally
-        // Trust the local token
-        console.log('✅ Session restored from local storage (offline)');
+      // If server verification failed but we have local user data,
+      // still try to use it (for offline scenarios)
+      if (storedUser) {
+        console.log('⚠️ Server verification failed, but using local user data');
         dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
         return;
       }
 
-      // No valid token found
-      authStorage.clearAll();
+      // No valid session found
+      console.log('❌ No valid session found');
+      secureAuthStorage.clearUser();
       dispatch({ type: 'AUTH_LOGOUT' });
     } catch (error) {
-      console.error('Session check error:', error);
-      // Don't logout on errors - just use whatever state we have
-      const storedToken = authStorage.getToken();
-      const storedUser = authStorage.getUser();
-      if (storedToken && storedUser) {
+      console.error('❌ Session check error:', error);
+      
+      // On error, try to use local user data if available
+      const storedUser = secureAuthStorage.getUser();
+      if (storedUser) {
+        console.log('⚠️ Using cached user data due to error');
         dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
       } else {
         dispatch({ type: 'AUTH_LOGOUT' });
@@ -167,23 +142,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      const response = await fetch(`/api/auth/login`, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        credentials: 'include', // Important: enables HttpOnly cookies
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Login failed');
 
-      if (data.token) {
-        authStorage.setToken(data.token, 7);
-      }
-
+      // With HttpOnly cookies, no token is returned in response
       if (data.user) {
-        authStorage.setUser(data.user);
+        secureAuthStorage.setUser(data.user);
         dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
+        console.log('✅ Login successful - HttpOnly cookie authentication');
       }
 
       // Check if 2FA is required
@@ -196,10 +169,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return;
       }
+
+      return { success: true, user: data.user };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
+      console.error('❌ Login error:', message);
       dispatch({ type: 'AUTH_ERROR', payload: message });
-      throw error;
+      return { success: false, error: message };
     }
   };
 
@@ -217,19 +193,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Registration failed');
 
-      if (data.token) {
-        authStorage.setToken(data.token, 7);
+      // With HttpOnly cookies, no token is returned in response
+      if (data.user) {
+        secureAuthStorage.setUser(data.user);
+        dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
+        console.log('✅ Registration successful - HttpOnly cookie authentication');
       }
 
-      if (data.user) {
-        authStorage.setUser(data.user);
-        dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
-      }
+      return { success: true, user: data.user };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Registration failed';
+      console.error('❌ Registration error:', message);
       dispatch({ type: 'AUTH_ERROR', payload: message });
-      throw error;
+      return { success: false, error: message };
     }
   };
 
@@ -254,18 +231,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      const token = authStorage.getToken();
-      if (token) {
-        await fetch(`/api/auth/logout`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: 'include',
-        });
-      }
+      // Call logout endpoint to clear HttpOnly cookie on server
+      await secureAuthStorage.logout();
+      console.log('✅ Logout successful - HttpOnly cookie cleared');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
     } finally {
-      authStorage.clearAll();
+      // Clear local user data
+      secureAuthStorage.clearUser();
       dispatch({ type: 'AUTH_LOGOUT' });
     }
   };
@@ -275,7 +248,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const getAuthToken = (): string | null => {
-    return authStorage.getToken();
+    // With HttpOnly cookies, tokens are not accessible to client-side JavaScript
+    // This method is deprecated for security - use server-side verification instead
+    console.warn('⚠️ getAuthToken() deprecated - HttpOnly cookies are not accessible to client-side JS');
+    return null;
   };
 
   const contextValue = useMemo(

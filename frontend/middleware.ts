@@ -24,14 +24,17 @@ export function middleware(req: NextRequest) {
     try {
       const envStatus = checkEnvironmentVariables();
       if (!envStatus.isValid) {
-        console.error('❌ RSC request failed - environment not ready:', pathname);
+        console.error(
+          '❌ RSC request failed - environment not ready:',
+          pathname
+        );
         // Return a proper RSC error response
         return new Response('Service temporarily unavailable', {
           status: 503,
           headers: {
             'Content-Type': 'text/plain',
-            'X-RSC-Error': 'Environment not ready'
-          }
+            'X-RSC-Error': 'Environment not ready',
+          },
         });
       }
     } catch (error) {
@@ -40,8 +43,8 @@ export function middleware(req: NextRequest) {
         status: 503,
         headers: {
           'Content-Type': 'text/plain',
-          'X-RSC-Error': 'Environment check failed'
-        }
+          'X-RSC-Error': 'Environment check failed',
+        },
       });
     }
 

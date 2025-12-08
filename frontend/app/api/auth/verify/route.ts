@@ -11,19 +11,18 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Auth verify endpoint called');
     
-    // Get token from Authorization header
-    const authHeader = request.headers.get('authorization');
+    // Get token from HttpOnly cookie instead of Authorization header
+    const token = request.cookies.get('auth_token')?.value;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No token provided');
+    if (!token) {
+      console.log('❌ No authentication token in cookie');
       return NextResponse.json(
-        { message: 'No token provided' },
+        { message: 'No authentication token' },
         { status: 401 }
       );
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    console.log('🎫 Token received, verifying...');
+    console.log('🎫 Token received from cookie, verifying...');
     
     // Verify JWT token
     let decoded;
@@ -57,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     // Return user data
     return NextResponse.json({
-      message: 'Token valid',
+      valid: true,
       user: {
         id: user._id.toString(),
         email: user.email,
@@ -71,8 +70,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Token verification error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
+      { valid: false, message: 'Invalid token' },
+      { status: 401 }
     );
   }
+}
+
+// Add POST method for AuthContext compatibility
+export async function POST(request: NextRequest) {
+  return GET(request); // Use same logic as GET
 }

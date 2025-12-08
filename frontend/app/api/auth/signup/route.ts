@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
     // Check environment first
     const envStatus = checkEnvironmentVariables();
     if (!envStatus.isValid) {
-      console.error('❌ Auth signup failed - missing environment variables:', envStatus.missing);
+      console.error(
+        '❌ Auth signup failed - missing environment variables:',
+        envStatus.missing
+      );
       return NextResponse.json(
         { message: 'Server configuration error' },
         { status: 503 }

@@ -12,7 +12,10 @@ export async function POST(request: NextRequest) {
     // Check environment first
     const envStatus = checkEnvironmentVariables();
     if (!envStatus.isValid) {
-      console.error('❌ Auth login failed - missing environment variables:', envStatus.missing);
+      console.error(
+        '❌ Auth login failed - missing environment variables:',
+        envStatus.missing
+      );
       return NextResponse.json(
         { message: 'Server configuration error' },
         { status: 503 }
@@ -32,9 +35,9 @@ export async function POST(request: NextRequest) {
     // Connect to database with timeout
     await Promise.race([
       dbConnect(),
-      new Promise((_, reject) => 
+      new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Database connection timeout')), 5000)
-      )
+      ),
     ]);
 
     // Find user by email
@@ -66,11 +69,10 @@ export async function POST(request: NextRequest) {
     user.lastLoginAt = new Date();
     await user.save();
 
-    // Return success with user info and token
-    return NextResponse.json(
+    // Create response without token in JSON (security improvement)
+    const response = NextResponse.json(
       {
         message: 'Login successful',
-        token,
         user: {
           id: user._id.toString(),
           email: user.email,
@@ -82,6 +84,17 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    // Set secure HttpOnly cookie (not accessible to JavaScript)
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,           // Prevents XSS attacks
+      secure: true,             // HTTPS only
+      sameSite: 'strict',       // CSRF protection
+      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
