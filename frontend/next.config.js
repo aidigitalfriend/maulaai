@@ -13,12 +13,15 @@ const nextConfig = {
     externalDir: true,
   },
 
-  // Fix turbopack root directory warning
-  turbopack: {
-    root: path.resolve(__dirname),
-  },
+  // Fix turbopack root directory warning - commented out for production
+  // turbopack: {
+  //   root: path.resolve(__dirname),
+  // },
 
   webpack: (config, { isServer }) => {
+    // Prioritize .tsx over .ts for component resolution
+    config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
+
     if (isServer) {
       // Add backend directory to module resolution for server-side imports
       const backendPath = path.resolve(__dirname, '../backend');
@@ -67,8 +70,8 @@ const nextConfig = {
   productionBrowserSourceMaps:
     process.env.NODE_ENV === 'production' ? false : true,
 
-  // Set output file tracing root to resolve lockfile warnings
-  outputFileTracingRoot: path.join(__dirname, '../../'),
+  // Set output file tracing root to resolve lockfile warnings - commented out for production
+  // outputFileTracingRoot: path.join(__dirname, '../../'),
 
   // ✅ SECURITY: Add security headers
   async headers() {
