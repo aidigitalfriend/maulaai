@@ -1,7 +1,12 @@
 /**
- * Secure Auth Storage Utility
- * Handles user data in localStorage and relies on HttpOnly cookies for tokens
- * This is XSS-safe because tokens are not accessible to JavaScript
+ * Secure Auth Storage Utility for HttpOnly Session Cookies
+ *
+ * IMPORTANT: With HttpOnly cookies, localStorage is used ONLY for UI display data
+ * - Session ID: Stored in HttpOnly cookie (not accessible to JavaScript)
+ * - User Identity: Always verified via server session validation
+ * - localStorage: Contains user profile data for UI rendering only
+ *
+ * This prevents localStorage user ID from overriding server session user ID
  */
 
 const USER_KEY = 'auth_user';

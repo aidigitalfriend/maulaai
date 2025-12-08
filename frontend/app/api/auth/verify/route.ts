@@ -13,10 +13,7 @@ export async function GET(request: NextRequest) {
 
     if (!sessionId) {
       console.log('❌ No session ID in cookie');
-      return NextResponse.json(
-        { message: 'No session ID' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
     console.log('🎫 Session ID received from cookie, verifying...');
@@ -27,12 +24,15 @@ export async function GET(request: NextRequest) {
     // Find user with valid session
     const user = await User.findOne({
       sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() }
+      sessionExpiry: { $gt: new Date() },
     }).select('-password');
 
     if (!user) {
       console.log('❌ Invalid or expired session');
-      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
+      return NextResponse.json(
+        { message: 'Invalid or expired session' },
+        { status: 401 }
+      );
     }
 
     console.log('✅ Session verified for user:', user.email);

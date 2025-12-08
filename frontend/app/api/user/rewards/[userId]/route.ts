@@ -11,10 +11,7 @@ export async function GET(
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json(
-        { message: 'No session ID' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
     // Connect to database
@@ -23,11 +20,14 @@ export async function GET(
     // Find user with valid session
     const sessionUser = await User.findOne({
       sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() }
+      sessionExpiry: { $gt: new Date() },
     }).select('-password');
 
     if (!sessionUser) {
-      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
+      return NextResponse.json(
+        { message: 'Invalid or expired session' },
+        { status: 401 }
+      );
     }
 
     // Check if user is requesting their own rewards

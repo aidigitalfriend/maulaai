@@ -17,6 +17,11 @@ export interface IUser extends Document {
   resetPasswordExpires?: Date;
   sessionId?: string;
   sessionExpiry?: Date;
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string;
+  tempTwoFactorSecret?: string;
+  backupCodes?: string[];
+  tempBackupCodes?: string[];
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -80,6 +85,26 @@ const UserSchema = new Schema<IUser>(
     sessionExpiry: {
       type: Date,
       default: null,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+      default: null,
+    },
+    tempTwoFactorSecret: {
+      type: String,
+      default: null,
+    },
+    backupCodes: {
+      type: [String],
+      default: [],
+    },
+    tempBackupCodes: {
+      type: [String],
+      default: [],
     },
   },
   {
@@ -158,6 +183,10 @@ UserSchema.methods.toJSON = function () {
   delete user.password;
   delete user.resetPasswordToken;
   delete user.resetPasswordExpires;
+  delete user.twoFactorSecret;
+  delete user.tempTwoFactorSecret;
+  delete user.backupCodes;
+  delete user.tempBackupCodes;
   delete user.__v;
   return user;
 };

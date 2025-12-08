@@ -11,10 +11,7 @@ export async function GET(
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json(
-        { message: 'No session ID' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
     // Connect to database
@@ -23,11 +20,14 @@ export async function GET(
     // Find user with valid session
     const sessionUser = await User.findOne({
       sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() }
+      sessionExpiry: { $gt: new Date() },
     }).select('-password');
 
     if (!sessionUser) {
-      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
+      return NextResponse.json(
+        { message: 'Invalid or expired session' },
+        { status: 401 }
+      );
     }
 
     // Check if user is requesting their own security info
@@ -47,41 +47,56 @@ export async function GET(
 
     return NextResponse.json(
       {
+        user: {
+          twoFactor: {
+            enabled: user.twoFactorEnabled || false,
+            method: user.twoFactorMethod || 'authenticator',
+            backupCodes: user.backupCodes || [],
+          },
+        },
         security: {
           emailVerified: !!user.emailVerified,
-          twoFactorEnabled: false, // Not implemented yet
+          twoFactorEnabled: user.twoFactorEnabled || false,
           lastLoginAt: user.lastLoginAt,
           accountCreatedAt: user.createdAt,
           passwordLastChanged: user.updatedAt,
           authMethod: user.authMethod || 'password',
           isActive: user.isActive !== false,
           securityScore: {
-            score: 75,
+            score: user.twoFactorEnabled ? 95 : 75,
             maxScore: 100,
-            recommendations: [
-              {
-                id: 'enable_2fa',
-                title: 'Enable Two-Factor Authentication',
-                description: 'Add an extra layer of security to your account',
-                priority: 'high',
-                completed: false,
-              },
-              {
-                id: 'strong_password',
-                title: 'Use Strong Password',
-                description: 'Your password meets security requirements',
-                priority: 'medium',
-                completed: true,
-              },
-            ],
+            recommendations: user.twoFactorEnabled
+              ? []
+              : [
+                  {
+                    id: 'enable_2fa',
+                    title: 'Enable Two-Factor Authentication',
+                    description:
+                      'Add an extra layer of security to your account',
+                    priority: 'high',
+                    completed: false,
+                  },
+                ],
           },
+          trustedDevices: [
+            {
+              id: 1,
+              name: 'Current Device',
+              type: 'desktop',
+              lastSeen: new Date().toISOString(),
+              location: 'Current Location',
+              browser: 'Current Browser',
+              current: true,
+            },
+          ],
           loginHistory: [
             {
-              timestamp: user.lastLoginAt || user.createdAt,
-              ipAddress: 'XXX.XXX.XXX.XXX', // Masked for security
-              userAgent: 'Browser',
-              location: 'Unknown',
-              success: true,
+              id: 1,
+              date: user.lastLoginAt || user.createdAt,
+              location: 'Current Location',
+              device: 'Current Device',
+              status: 'success',
+              ip: '127.0.0.1',
             },
           ],
           activeSessions: [
@@ -89,7 +104,7 @@ export async function GET(
               id: 'current',
               createdAt: user.lastLoginAt || user.createdAt,
               lastActivity: new Date().toISOString(),
-              ipAddress: 'XXX.XXX.XXX.XXX',
+              ipAddress: '127.0.0.1',
               userAgent: 'Current Browser',
               isCurrent: true,
             },
@@ -116,10 +131,7 @@ export async function POST(
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json(
-        { message: 'No session ID' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
     // Connect to database
@@ -128,11 +140,14 @@ export async function POST(
     // Find user with valid session
     const sessionUser = await User.findOne({
       sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() }
+      sessionExpiry: { $gt: new Date() },
     }).select('-password');
 
     if (!sessionUser) {
-      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
+      return NextResponse.json(
+        { message: 'Invalid or expired session' },
+        { status: 401 }
+      );
     }
 
     // Check if user is updating their own security settings

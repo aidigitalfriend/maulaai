@@ -13,46 +13,13 @@ LOCAL_GITHUB_KEY="$HOME/.ssh/github_shiny-friend-disco"
 
 echo "🚀 Setting up GitHub SSH on production server..."
 
-# Step 1: Copy SSH keys to production server
-echo "📤 Copying SSH keys to production server..."
-scp -i "$SSH_KEY_FILE" "${LOCAL_GITHUB_KEY}" "${LOCAL_GITHUB_KEY}.pub" "$SERVER:~/.ssh/"
-
-# Step 2: Set proper permissions and configure SSH on server
-echo "🔧 Configuring SSH on production server..."
-ssh -i "$SSH_KEY_FILE" "$SERVER" << 'EOF'
-# Set proper permissions
-chmod 600 ~/.ssh/github_shiny-friend-disco
-chmod 644 ~/.ssh/github_shiny-friend-disco.pub
-
-# Add to SSH config
-cat >> ~/.ssh/config << 'SSHCONFIG'
-
-# GitHub SSH configuration for shiny-friend-disco
-Host github-shiny-friend-disco
-    HostName github.com
-    User git
-    IdentityFile ~/.ssh/github_shiny-friend-disco
-    IdentitiesOnly yes
-
-SSHCONFIG
-
-# Add to ssh-agent
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/github_shiny-friend-disco
-
-# Test GitHub connection
-echo "🧪 Testing GitHub SSH connection..."
-ssh -T git@github-shiny-friend-disco || echo "✅ SSH test completed"
-
-EOF
-
-# Step 3: Update git remote on server and pull latest changes
-echo "🔄 Updating git configuration on server..."
+# Step 1: Deploy from public repository
+echo "🔄 Deploying from public GitHub repository..."
 ssh -i "$SSH_KEY_FILE" "$SERVER" << 'EOF'
 cd ~/shiny-friend-disco
 
-# Update git remote to use SSH
-git remote set-url origin git@github-shiny-friend-disco:aidigitalfriend/shiny-friend-disco.git
+# Update git remote to use HTTPS (public repo)
+git remote set-url origin https://github.com/aidigitalfriend/shiny-friend-disco.git
 
 # Verify remote
 echo "📋 Git remote configuration:"

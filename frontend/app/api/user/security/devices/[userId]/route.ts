@@ -30,37 +30,36 @@ export async function GET(
       );
     }
 
-    // Check if user is requesting their own profile
+    // Check if user is requesting their own device info
     if (sessionUser._id.toString() !== params.userId) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    // Find user by ID (same as sessionUser, but keep for consistency)
-    const user = await User.findById(params.userId).select('-password');
-
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(
+    // Mock trusted devices data (in real app, this would come from user's device history)
+    const devices = [
       {
-        profile: {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          authMethod: user.authMethod,
-          createdAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt,
-          emailVerified: user.emailVerified,
-          isActive: user.isActive || true,
-          preferences: user.preferences || {},
-          avatar: user.avatar || null,
-        },
+        id: 1,
+        name: 'Current Device',
+        type: 'desktop',
+        lastSeen: new Date().toISOString(),
+        location: 'Current Location',
+        browser: 'Current Browser',
+        current: true,
       },
-      { status: 200 }
-    );
+      {
+        id: 2,
+        name: 'iPhone',
+        type: 'mobile',
+        lastSeen: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        location: 'Previous Location',
+        browser: 'Safari Mobile',
+        current: false,
+      },
+    ];
+
+    return NextResponse.json({ devices }, { status: 200 });
   } catch (error) {
-    console.error('Profile fetch error:', error);
+    console.error('Devices fetch error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
@@ -68,7 +67,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export async function DELETE(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
@@ -96,52 +95,20 @@ export async function PUT(
       );
     }
 
-    // Check if user is updating their own profile
+    // Check if user is managing their own devices
     if (sessionUser._id.toString() !== params.userId) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    const { name, preferences, avatar } = await request.json();
+    const { deviceId } = await request.json();
 
-    // Connect to database
-    await dbConnect();
-
-    // Update user profile
-    const user = await User.findByIdAndUpdate(
-      params.userId,
-      {
-        ...(name && { name }),
-        ...(preferences && { preferences }),
-        ...(avatar !== undefined && { avatar }),
-        updatedAt: new Date(),
-      },
-      { new: true, select: '-password' }
-    );
-
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
-
+    // Mock device removal (in real app, this would remove from user's device list)
     return NextResponse.json(
-      {
-        message: 'Profile updated successfully',
-        profile: {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          authMethod: user.authMethod,
-          createdAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt,
-          emailVerified: user.emailVerified,
-          isActive: user.isActive || true,
-          preferences: user.preferences || {},
-          avatar: user.avatar || null,
-        },
-      },
+      { message: 'Device removed successfully' },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Profile update error:', error);
+    console.error('Device removal error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

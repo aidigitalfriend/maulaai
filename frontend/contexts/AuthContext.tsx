@@ -98,43 +98,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      // Check if we have user data locally
-      const storedUser = secureAuthStorage.getUser();
-
-      // Verify session with server (HttpOnly cookie sent automatically)
+      // With HttpOnly cookies, ONLY verify session with server
+      // Do NOT use localStorage for user identity
       const { valid, user } = await secureAuthStorage.verifySession();
 
       if (valid && user) {
         console.log('✅ Session verified with server via HttpOnly cookie');
-        // Update stored user data if server returned updated info
+        console.log('✅ User ID from session:', user.id);
+        // Store user data for UI display only (not for identity)
         secureAuthStorage.setUser(user);
         dispatch({ type: 'AUTH_SUCCESS', payload: user });
         return;
       }
 
-      // If server verification failed but we have local user data,
-      // still try to use it (for offline scenarios)
-      if (storedUser) {
-        console.log('⚠️ Server verification failed, but using local user data');
-        dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
-        return;
-      }
-
-      // No valid session found
+      // No valid session found - clear any old localStorage data
       console.log('❌ No valid session found');
       secureAuthStorage.clearUser();
       dispatch({ type: 'AUTH_LOGOUT' });
     } catch (error) {
       console.error('❌ Session check error:', error);
-
-      // On error, try to use local user data if available
-      const storedUser = secureAuthStorage.getUser();
-      if (storedUser) {
-        console.log('⚠️ Using cached user data due to error');
-        dispatch({ type: 'AUTH_SUCCESS', payload: storedUser });
-      } else {
-        dispatch({ type: 'AUTH_LOGOUT' });
-      }
+      // On session error, always clear and logout - no localStorage fallback
+      secureAuthStorage.clearUser();
+      dispatch({ type: 'AUTH_LOGOUT' });
     }
   };
 
@@ -154,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // With HttpOnly cookies, no token is returned in response
       if (data.user) {
+        console.log('✅ Login successful - User ID from server:', data.user.id);
         secureAuthStorage.setUser(data.user);
         dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
         console.log('✅ Login successful - HttpOnly cookie authentication');
@@ -195,6 +181,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // With HttpOnly cookies, no token is returned in response
       if (data.user) {
+        console.log(
+          '✅ Registration successful - User ID from server:',
+          data.user.id
+        );
         secureAuthStorage.setUser(data.user);
         dispatch({ type: 'AUTH_SUCCESS', payload: data.user });
         console.log(

@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Generate secure session ID
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    
+
     // Store session in user document
     user.sessionId = sessionId;
     user.sessionExpiry = sessionExpiry;

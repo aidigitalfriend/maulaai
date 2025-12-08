@@ -20,10 +20,13 @@ export async function GET(request: NextRequest) {
     try {
       decoded = jwt.verify(token, JWT_SECRET) as any;
     } catch (jwtError) {
-      return NextResponse.json({ 
-        message: 'Invalid token', 
-        error: jwtError instanceof Error ? jwtError.message : 'Unknown error' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          message: 'Invalid token',
+          error: jwtError instanceof Error ? jwtError.message : 'Unknown error',
+        },
+        { status: 401 }
+      );
     }
 
     return NextResponse.json({
@@ -32,14 +35,16 @@ export async function GET(request: NextRequest) {
       tokenUserId: decoded.userId,
       tokenInfo: {
         issued: new Date(decoded.iat * 1000),
-        expires: new Date(decoded.exp * 1000)
-      }
+        expires: new Date(decoded.exp * 1000),
+      },
     });
-
   } catch (error) {
     console.error('Debug token error:', error);
     return NextResponse.json(
-      { message: 'Internal server error', error: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

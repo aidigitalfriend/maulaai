@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Clear Auth Storage</title>
+  </head>
+  <body>
+    <h1>Clear Authentication Storage</h1>
+    <p>
+      This will clear any old user data from localStorage that might be causing
+      403 errors.
+    </p>
+    <button onclick="clearStorage()">Clear Storage</button>
+    <div id="result"></div>
+
+    <script>
+      function clearStorage() {
+        try {
+          // Clear auth user data
+          localStorage.removeItem('auth_user');
+
+          // Clear any other auth-related keys
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (
+              key &&
+              (key.includes('auth') ||
+                key.includes('user') ||
+                key.includes('session'))
+            ) {
+              keysToRemove.push(key);
+            }
+          }
+
+          keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+          document.getElementById('result').innerHTML =
+            '<p style="color: green;">✅ Storage cleared! Removed keys: ' +
+            JSON.stringify(['auth_user'].concat(keysToRemove)) +
+            '</p>' +
+            '<p>Now refresh the main site to get fresh user data from session.</p>';
+        } catch (error) {
+          document.getElementById('result').innerHTML =
+            '<p style="color: red;">❌ Error: ' + error.message + '</p>';
+        }
+      }
+    </script>
+  </body>
+</html>
