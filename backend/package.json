@@ -5,11 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node server-simple.js",
-    "dev:watch": "nodemon --ext js,ts --watch . server-simple.js",
-    "dev:socket": "node server.js",
+    "dev:watch": "nodemon --ext js --watch . server-simple.js",
     "build": "echo \"No backend build needed (Express API)\"",
     "start": "node server-simple.js",
-    "start:socket": "node server.js",
     "lint": "echo \"No backend lint configured\"",
     "seed:core": "node scripts/populate-core-collections.js"
   },
@@ -18,7 +16,6 @@
     "@google-cloud/translate": "^9.3.0",
     "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^1.10.0",
-    "@next-auth/mongodb-adapter": "^1.1.3",
     "@sendgrid/mail": "^8.1.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.5",
@@ -45,7 +42,6 @@
     "microsoft-cognitiveservices-speech-sdk": "^1.47.0",
     "mongodb": "^5.9.0",
     "multer": "^2.0.2",
-    "next-auth": "^4.24.13",
     "nodemailer": "^7.0.10",
     "openai": "^6.10.0",
     "socket.io": "^4.8.1",

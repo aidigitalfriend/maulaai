@@ -28,13 +28,6 @@ const nextConfig = {
     config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
 
     if (isServer) {
-      // Add backend directory to module resolution for server-side imports
-      const backendPath = path.resolve(__dirname, '../backend');
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@backend': backendPath,
-      };
-
       // Externalize mongoose and other native modules for serverless
       config.externals = config.externals || [];
       config.externals.push({

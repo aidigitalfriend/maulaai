@@ -39,13 +39,16 @@ export async function GET(
     // Check if user is requesting their own profile
     if (sessionUser._id.toString() !== params.userId) {
       console.log('❌ Profile Access denied - User ID mismatch');
-      return NextResponse.json({ 
-        message: 'Access denied',
-        debug: {
-          sessionUserId: sessionUser._id.toString(),
-          requestedUserId: params.userId
-        }
-      }, { status: 403 });
+      return NextResponse.json(
+        {
+          message: 'Access denied',
+          debug: {
+            sessionUserId: sessionUser._id.toString(),
+            requestedUserId: params.userId,
+          },
+        },
+        { status: 403 }
+      );
     }
 
     console.log('✅ Profile Access granted for user:', params.userId);
