@@ -1,52 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
-import jwt from 'jsonwebtoken';
 
 export const dynamic = 'force-dynamic';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Auth verify endpoint called');
 
-    // Get token from HttpOnly cookie instead of Authorization header
-    const token = request.cookies.get('auth_token')?.value;
+    // Get session ID from HttpOnly cookie
+    const sessionId = request.cookies.get('session_id')?.value;
 
-    if (!token) {
-      console.log('❌ No authentication token in cookie');
+    if (!sessionId) {
+      console.log('❌ No session ID in cookie');
       return NextResponse.json(
-        { message: 'No authentication token' },
+        { message: 'No session ID' },
         { status: 401 }
       );
     }
 
-    console.log('🎫 Token received from cookie, verifying...');
-
-    // Verify JWT token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as any;
-      console.log('✅ Token verified for user:', decoded.userId);
-    } catch (jwtError) {
-      console.log('❌ Invalid token:', jwtError);
-      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
-    }
+    console.log('🎫 Session ID received from cookie, verifying...');
 
     // Connect to database
-    console.log('🔌 Connecting to database...');
     await dbConnect();
 
-    // Find user by ID from token
-    const user = await User.findById(decoded.userId).select('-password');
+    // Find user with valid session
+    const user = await User.findOne({
+      sessionId: sessionId,
+      sessionExpiry: { $gt: new Date() }
+    }).select('-password');
 
     if (!user) {
-      console.log('❌ User not found for ID:', decoded.userId);
-      return NextResponse.json({ message: 'User not found' }, { status: 401 });
+      console.log('❌ Invalid or expired session');
+      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
     }
 
-    console.log('✅ User verified:', user.email);
+    console.log('✅ Session verified for user:', user.email);
 
     // Return user data
     return NextResponse.json(
@@ -64,9 +53,9 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ Token verification error:', error);
+    console.error('❌ Session verification error:', error);
     return NextResponse.json(
-      { valid: false, message: 'Invalid token' },
+      { valid: false, message: 'Session verification failed' },
       { status: 401 }
     );
   }

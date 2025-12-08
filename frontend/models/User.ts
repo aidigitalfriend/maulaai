@@ -15,6 +15,8 @@ export interface IUser extends Document {
   role: 'user' | 'admin' | 'moderator';
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  sessionId?: string;
+  sessionExpiry?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -68,6 +70,14 @@ const UserSchema = new Schema<IUser>(
       default: null,
     },
     resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
+    sessionId: {
+      type: String,
+      default: null,
+    },
+    sessionExpiry: {
       type: Date,
       default: null,
     },

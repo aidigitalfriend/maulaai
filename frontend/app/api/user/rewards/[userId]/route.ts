@@ -1,35 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Get token from HttpOnly cookie
-    const token = request.cookies.get('auth_token')?.value;
+    // Get session ID from HttpOnly cookie
+    const sessionId = request.cookies.get('session_id')?.value;
 
-    if (!token) {
+    if (!sessionId) {
       return NextResponse.json(
-        { message: 'No authentication token' },
+        { message: 'No session ID' },
         { status: 401 }
       );
     }
 
-    // Verify JWT token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as any;
-    } catch (jwtError) {
-      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    // Connect to database
+    await dbConnect();
+
+    // Find user with valid session
+    const sessionUser = await User.findOne({
+      sessionId: sessionId,
+      sessionExpiry: { $gt: new Date() }
+    }).select('-password');
+
+    if (!sessionUser) {
+      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
     }
 
     // Check if user is requesting their own rewards
-    if (decoded.userId !== params.userId) {
+    if (sessionUser._id.toString() !== params.userId) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 

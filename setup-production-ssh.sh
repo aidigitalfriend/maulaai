@@ -65,8 +65,16 @@ git pull origin main
 
 # Build frontend for production
 echo "🔨 Building frontend for production..."
-cd ~/shiny-friend-disco/frontend
-npm ci
+cd ~/shiny-friend-disco
+
+# Remove conflicting lockfiles to fix bcryptjs version mismatch
+echo "🧹 Cleaning up conflicting package locks..."
+rm -f package-lock.json
+rm -f frontend/package-lock.json
+
+# Install dependencies fresh
+cd frontend
+npm install
 npm run build
 cd ~/shiny-friend-disco
 

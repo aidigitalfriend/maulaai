@@ -10,8 +10,8 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Clear the HttpOnly cookie by setting it with maxAge 0
-    response.cookies.set('auth_token', '', {
+    // Clear the HttpOnly session cookie by setting it with maxAge 0
+    response.cookies.set('session_id', '', {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',

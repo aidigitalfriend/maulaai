@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { checkEnvironmentVariables } from '@/lib/environment-checker';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,10 +58,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    // Generate secure session ID
+    const sessionId = crypto.randomBytes(32).toString('hex');
+    const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    
+    // Store session in user document
+    user.sessionId = sessionId;
+    user.sessionExpiry = sessionExpiry;
 
     // Update last login time
     user.lastLoginAt = new Date();
@@ -86,8 +87,8 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Set secure HttpOnly cookie (not accessible to JavaScript)
-    response.cookies.set('auth_token', token, {
+    // Set secure HttpOnly session cookie (not accessible to JavaScript)
+    response.cookies.set('session_id', sessionId, {
       httpOnly: true, // Prevents XSS attacks
       secure: true, // HTTPS only
       sameSite: 'strict', // CSRF protection
