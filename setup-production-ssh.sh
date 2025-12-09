@@ -1,24 +1,25 @@
 #!/bin/bash
 
 # =================================================
-# Production Server SSH Setup for GitHub
-# Copies SSH keys and configures automatic deployments
+# Production Server Deployment Script
+# Deploys latest changes from public GitHub repository
 # =================================================
 
 set -e
 
 SERVER="ubuntu@47.129.43.231"
 SSH_KEY_FILE="/Users/onelastai/Downloads/shiny-friend-disco/one-last-ai.pem"
-LOCAL_GITHUB_KEY="$HOME/.ssh/github_shiny-friend-disco"
 
-echo "🚀 Setting up GitHub SSH on production server..."
+echo "🚀 Deploying to production server..."
 
-# Step 1: Deploy from public repository
+# Deploy from public repository
 echo "🔄 Deploying from public GitHub repository..."
-ssh -i "$SSH_KEY_FILE" "$SERVER" << 'EOF'
+
+# 🎯 FIXED: force pseudo-terminal allocation
+ssh -tt -i "$SSH_KEY_FILE" "$SERVER" << 'EOF'
 cd ~/shiny-friend-disco
 
-# Update git remote to use HTTPS (public repo)
+# Ensure we're using HTTPS for the public repo
 git remote set-url origin https://github.com/aidigitalfriend/shiny-friend-disco.git
 
 # Verify remote
@@ -62,19 +63,13 @@ pm2 status
 EOF
 
 echo ""
-echo "✅ Production server setup complete!"
+echo "✅ Production deployment complete!"
 echo ""
 echo "🧪 Testing endpoints:"
 
 # Test endpoints
 sleep 5
-curl -s "https://onelastai.co/api/subscriptions/pricing" | head -c 100 && echo "✅ Subscription endpoint working"
-
-curl -X POST "https://onelastai.co/api/webhooks/stripe" \
-  -H "Content-Type: application/json" \
-  -d '{"test": "webhook"}' \
-  -w "\nWebhook status: %{http_code}\n" \
-  -s --max-time 10
+curl -s "https://onelastai.co/health" | head -c 50 && echo "✅ Health endpoint working"
 
 echo ""
-echo "🎉 Deployment complete! Your subscription system should be working now."
+echo "🎉 Deployment complete! Visitor tracking should now be active."

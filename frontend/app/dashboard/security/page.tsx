@@ -149,13 +149,8 @@ export default function SecuritySettingsPage() {
       console.error('Error fetching security data:', error);
     }
   };
-      );
-      if (devicesRes.ok) {
-        const devicesData = await devicesRes.json();
-        setTrustedDevices(devicesData.devices || []);
-      }
 
-      // Fetch login history
+  // Fetch login history
       const historyRes = await fetch(
         `/api/user/security/login-history/${state.user.id}`,
         { credentials: 'include' }
