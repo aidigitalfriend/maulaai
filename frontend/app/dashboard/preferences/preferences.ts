@@ -218,6 +218,7 @@ export class PreferencesLogic {
       const response = await fetch(`/api/user/preferences/${userId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -305,6 +306,7 @@ export class PreferencesLogic {
       const response = await fetch(`/api/user/preferences/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ preferences: this.state.preferences }),
       });
 

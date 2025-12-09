@@ -202,7 +202,9 @@ export class RewardsLogic {
    */
   private async fetchUserRewards(userId: string): Promise<UserRewards> {
     try {
-      const response = await fetch(`/api/user/rewards/${userId}`);
+      const response = await fetch(`/api/user/rewards/${userId}`, {
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch user rewards');
       }
@@ -234,7 +236,9 @@ export class RewardsLogic {
    */
   private async fetchAchievements(userId: string): Promise<Achievement[]> {
     try {
-      const response = await fetch(`/api/user/achievements/${userId}`);
+      const response = await fetch(`/api/user/achievements/${userId}`, {
+        credentials: 'include',
+      });
       if (!response.ok) return [];
       const data = await response.json();
       return data.achievements || [];
@@ -249,7 +253,9 @@ export class RewardsLogic {
    */
   private async fetchBadges(userId: string): Promise<Badge[]> {
     try {
-      const response = await fetch(`/api/user/badges/${userId}`);
+      const response = await fetch(`/api/user/badges/${userId}`, {
+        credentials: 'include',
+      });
       if (!response.ok) return [];
       const data = await response.json();
       return data.badges || [];
@@ -266,7 +272,9 @@ export class RewardsLogic {
     userId: string
   ): Promise<PointsTransaction[]> {
     try {
-      const response = await fetch(`/api/user/points-history/${userId}`);
+      const response = await fetch(`/api/user/points-history/${userId}`, {
+        credentials: 'include',
+      });
       if (!response.ok) return [];
       const data = await response.json();
       return data.history || [];
@@ -552,6 +560,7 @@ export class RewardsLogic {
       const response = await fetch(`/api/user/streak/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -742,6 +751,7 @@ export class RewardsLogic {
       const response = await fetch(`/api/user/check-achievements/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
       if (response.ok) {

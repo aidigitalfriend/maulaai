@@ -12,13 +12,42 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Helper function for API calls with timeout
+const fetchWithTimeout = async (
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = 10000
+) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw error;
+  }
+};
+
 // API data fetching functions
 const fetchUserData = async (userId: string) => {
   try {
-    const [profileRes, rewardsRes] = await Promise.all([
-      fetch(`/api/user/profile/${userId}`).catch(() => null),
-      fetch(`/api/user/rewards/${userId}`).catch(() => null),
-    ]);
+    // Load data sequentially to reduce server load
+    const profileRes = await fetchWithTimeout(`/api/user/profile/${userId}`, {
+      credentials: 'include',
+    }).catch(() => null);
+
+    const rewardsRes = await fetchWithTimeout(`/api/user/rewards/${userId}`, {
+      credentials: 'include',
+    }).catch(() => null);
 
     if (profileRes?.ok && rewardsRes?.ok) {
       const profile = await profileRes.json();
@@ -172,8 +201,21 @@ export default function DashboardOverviewPage() {
           const apiData = await fetchUserData(state.user.id);
 
           if (apiData) {
-            setUserProfile(apiData.profile);
-            setRewards(apiData.rewards);
+            // Use real data from API
+            setUserProfile({
+              ...apiData.profile,
+              joinedDate: apiData.profile.createdAt
+                ? new Date(apiData.profile.createdAt)
+                    .toISOString()
+                    .split('T')[0]
+                : '2024-01-15',
+              lastActive: apiData.profile.updatedAt
+                ? new Date(apiData.profile.updatedAt)
+                    .toISOString()
+                    .split('T')[0]
+                : new Date().toISOString().split('T')[0],
+            });
+            setRewards(apiData.rewards || generateMockRewards());
           } else {
             // Fallback to mock data with real user info
             setUserProfile(generateMockUserProfile(state.user));
@@ -182,17 +224,24 @@ export default function DashboardOverviewPage() {
 
           // Fetch real security settings with actual 2FA status
           try {
-            const securityRes = await fetch(
-              `/api/user/security/${state.user.id}`
+            const securityRes = await fetchWithTimeout(
+              `/api/user/security/${state.user.id}`,
+              { credentials: 'include' },
+              8000 // 8 second timeout for security data
             );
             if (securityRes.ok) {
               const securityData = await securityRes.json();
-              const realSecuritySettings = {
-                ...generateMockSecuritySettings(),
-                twoFactorEnabled:
-                  securityData.user?.twoFactor?.enabled || false,
-              };
-              setSecuritySettings(realSecuritySettings);
+              // Use real security data
+              setSecuritySettings({
+                passwordLastChanged: securityData.data?.passwordLastChanged
+                  ? new Date(securityData.data.passwordLastChanged)
+                      .toISOString()
+                      .split('T')[0]
+                  : '2024-10-15',
+                twoFactorEnabled: securityData.data?.twoFactorEnabled || false,
+                trustedDevices: securityData.data?.trustedDevices || [],
+                loginHistory: securityData.data?.loginHistory || [],
+              });
             } else {
               setSecuritySettings(generateMockSecuritySettings());
             }

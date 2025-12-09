@@ -55,9 +55,7 @@ export default function UserProfilePage() {
 
     try {
       setLoading(true);
-      const profileData = await profileService.getProfile(
-        user.id || user.email
-      );
+      const profileData = await profileService.getProfile();
       setProfile(profileData);
       setOriginalProfile(JSON.parse(JSON.stringify(profileData)));
     } catch (err) {
@@ -129,10 +127,7 @@ export default function UserProfilePage() {
 
     try {
       setSaving(true);
-      const updatedProfile = await profileService.updateProfile(
-        user.id || user.email,
-        profile
-      );
+      const updatedProfile = await profileService.updateProfile(profile);
       setProfile(updatedProfile);
       setOriginalProfile(JSON.parse(JSON.stringify(updatedProfile)));
       setHasChanges(false);

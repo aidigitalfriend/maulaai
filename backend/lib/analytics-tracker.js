@@ -3,36 +3,46 @@
  * Core tracking functions for all user interactions
  */
 
-import mongoose from 'mongoose'
-import { Visitor, Session, PageView, ChatInteraction, ToolUsage, LabExperiment, UserEvent, ApiUsage } from '../models/Analytics.js'
+import { getClientPromise } from './mongodb.ts';
+import { detectDevice, detectBrowser, detectOS } from './device-detection.js';
 
 // ============================================
 // TRACK VISITOR
 // ============================================
 export async function trackVisitor(data) {
   try {
-    const { visitorId, userId, ipAddress, userAgent, country, city } = data
+    const { visitorId, userId, ipAddress, userAgent, country, city } = data;
 
     // Detect device, browser, OS from userAgent
-    const device = detectDevice(userAgent)
-    const browser = detectBrowser(userAgent)
-    const os = detectOS(userAgent)
+    const device = detectDevice(userAgent);
+    const browser = detectBrowser(userAgent);
+    const os = detectOS(userAgent);
+
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const visitors = db.collection('visitors');
 
     // Check if visitor exists
-    const existingVisitor = await Visitor.findOne({ visitorId })
+    const existingVisitor = await visitors.findOne({ visitorId });
 
     if (existingVisitor) {
       // Update existing visitor
-      existingVisitor.lastVisit = new Date()
-      existingVisitor.visitCount += 1
+      const updateData = {
+        lastVisit: new Date(),
+        visitCount: existingVisitor.visitCount + 1,
+        isActive: true,
+      };
       if (userId && !existingVisitor.userId) {
-        existingVisitor.userId = userId
+        updateData.userId = userId;
+        updateData.isRegistered = true;
       }
-      await existingVisitor.save()
-      return existingVisitor
+
+      await visitors.updateOne({ visitorId }, { $set: updateData });
+
+      return { ...existingVisitor, ...updateData };
     } else {
       // Create new visitor
-      const visitor = new Visitor({
+      const visitorData = {
         visitorId,
         userId,
         firstVisit: new Date(),
@@ -41,16 +51,23 @@ export async function trackVisitor(data) {
         device,
         browser,
         os,
-        country,
-        city,
-        ipAddress
-      })
-      await visitor.save()
-      return visitor
+        country: country || 'Unknown',
+        city: city || 'Unknown',
+        ipAddress,
+        userAgent,
+        landingPage: '/',
+        isRegistered: !!userId,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await visitors.insertOne(visitorData);
+      return visitorData;
     }
   } catch (error) {
-    console.error('Error tracking visitor:', error)
-    return null
+    console.error('Error tracking visitor:', error);
+    return null;
   }
 }
 
@@ -59,36 +76,50 @@ export async function trackVisitor(data) {
 // ============================================
 export async function createSession(data) {
   try {
-    const { sessionId, visitorId, userId } = data
+    const { sessionId, visitorId, userId } = data;
+
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const sessions = db.collection('sessions');
 
     // Check if session exists
-    const existingSession = await Session.findOne({ sessionId })
+    const existingSession = await sessions.findOne({ sessionId });
 
     if (existingSession) {
       // Update existing session
-      existingSession.lastActivity = new Date()
+      const updateData = {
+        lastActivity: new Date(),
+        isActive: true,
+      };
       if (userId && !existingSession.userId) {
-        existingSession.userId = userId
+        updateData.userId = userId;
       }
-      await existingSession.save()
-      return existingSession
+
+      await sessions.updateOne({ sessionId }, { $set: updateData });
+
+      return { ...existingSession, ...updateData };
     } else {
       // Create new session
-      const session = new Session({
+      const sessionData = {
         sessionId,
         visitorId,
         userId,
         startTime: new Date(),
         lastActivity: new Date(),
         pageViews: 0,
-        events: 0
-      })
-      await session.save()
-      return session
+        events: 0,
+        duration: 0,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await sessions.insertOne(sessionData);
+      return sessionData;
     }
   } catch (error) {
-    console.error('Error creating session:', error)
-    return null
+    console.error('Error creating session:', error);
+    return null;
   }
 }
 
@@ -97,7 +128,7 @@ export async function createSession(data) {
 // ============================================
 export async function trackPageView(data) {
   try {
-    const { visitorId, sessionId, userId, url, title, referrer } = data
+    const { visitorId, sessionId, userId, url, title, referrer } = data;
 
     const pageView = new PageView({
       visitorId,
@@ -106,23 +137,23 @@ export async function trackPageView(data) {
       url,
       title,
       referrer,
-      timestamp: new Date()
-    })
+      timestamp: new Date(),
+    });
 
-    await pageView.save()
+    await pageView.save();
 
     // Update session page view count
-    const session = await Session.findOne({ sessionId })
+    const session = await Session.findOne({ sessionId });
     if (session) {
-      session.pageViews += 1
-      session.lastActivity = new Date()
-      await session.save()
+      session.pageViews += 1;
+      session.lastActivity = new Date();
+      await session.save();
     }
 
-    return pageView
+    return pageView;
   } catch (error) {
-    console.error('Error tracking page view:', error)
-    return null
+    console.error('Error tracking page view:', error);
+    return null;
   }
 }
 
@@ -131,17 +162,17 @@ export async function trackPageView(data) {
 // ============================================
 export async function updatePageView(pageViewId, timeSpent, scrollDepth) {
   try {
-    const pageView = await PageView.findById(pageViewId)
+    const pageView = await PageView.findById(pageViewId);
     if (pageView) {
-      pageView.timeSpent = timeSpent
-      pageView.scrollDepth = scrollDepth
-      await pageView.save()
-      return pageView
+      pageView.timeSpent = timeSpent;
+      pageView.scrollDepth = scrollDepth;
+      await pageView.save();
+      return pageView;
     }
-    return null
+    return null;
   } catch (error) {
-    console.error('Error updating page view:', error)
-    return null
+    console.error('Error updating page view:', error);
+    return null;
   }
 }
 
@@ -160,8 +191,8 @@ export async function trackChatInteraction(data) {
       aiResponse,
       responseTime,
       model,
-      language
-    } = data
+      language,
+    } = data;
 
     const interaction = new ChatInteraction({
       visitorId,
@@ -174,23 +205,23 @@ export async function trackChatInteraction(data) {
       responseTime,
       model,
       language,
-      timestamp: new Date()
-    })
+      timestamp: new Date(),
+    });
 
-    await interaction.save()
+    await interaction.save();
 
     // Update session event count
-    const session = await Session.findOne({ sessionId })
+    const session = await Session.findOne({ sessionId });
     if (session) {
-      session.events += 1
-      session.lastActivity = new Date()
-      await session.save()
+      session.events += 1;
+      session.lastActivity = new Date();
+      await session.save();
     }
 
-    return interaction
+    return interaction;
   } catch (error) {
-    console.error('Error tracking chat interaction:', error)
-    return null
+    console.error('Error tracking chat interaction:', error);
+    return null;
   }
 }
 
@@ -199,19 +230,19 @@ export async function trackChatInteraction(data) {
 // ============================================
 export async function updateChatFeedback(interactionId, satisfied, feedback) {
   try {
-    const interaction = await ChatInteraction.findById(interactionId)
+    const interaction = await ChatInteraction.findById(interactionId);
     if (interaction) {
-      interaction.satisfied = satisfied
+      interaction.satisfied = satisfied;
       if (feedback) {
-        interaction.feedback = feedback
+        interaction.feedback = feedback;
       }
-      await interaction.save()
-      return interaction
+      await interaction.save();
+      return interaction;
     }
-    return null
+    return null;
   } catch (error) {
-    console.error('Error updating chat feedback:', error)
-    return null
+    console.error('Error updating chat feedback:', error);
+    return null;
   }
 }
 
@@ -230,8 +261,8 @@ export async function trackToolUsage(data) {
       output,
       success,
       error,
-      executionTime
-    } = data
+      executionTime,
+    } = data;
 
     const toolUsage = new ToolUsage({
       visitorId,
@@ -244,23 +275,23 @@ export async function trackToolUsage(data) {
       success,
       error,
       executionTime,
-      timestamp: new Date()
-    })
+      timestamp: new Date(),
+    });
 
-    await toolUsage.save()
+    await toolUsage.save();
 
     // Update session event count
-    const session = await Session.findOne({ sessionId })
+    const session = await Session.findOne({ sessionId });
     if (session) {
-      session.events += 1
-      session.lastActivity = new Date()
-      await session.save()
+      session.events += 1;
+      session.lastActivity = new Date();
+      await session.save();
     }
 
-    return toolUsage
+    return toolUsage;
   } catch (error) {
-    console.error('Error tracking tool usage:', error)
-    return null
+    console.error('Error tracking tool usage:', error);
+    return null;
   }
 }
 
@@ -281,8 +312,8 @@ export async function trackLabExperiment(data) {
       success,
       error,
       processingTime,
-      rating
-    } = data
+      rating,
+    } = data;
 
     const experiment = new LabExperiment({
       visitorId,
@@ -297,23 +328,23 @@ export async function trackLabExperiment(data) {
       error,
       processingTime,
       rating,
-      timestamp: new Date()
-    })
+      timestamp: new Date(),
+    });
 
-    await experiment.save()
+    await experiment.save();
 
     // Update session event count
-    const session = await Session.findOne({ sessionId })
+    const session = await Session.findOne({ sessionId });
     if (session) {
-      session.events += 1
-      session.lastActivity = new Date()
-      await session.save()
+      session.events += 1;
+      session.lastActivity = new Date();
+      await session.save();
     }
 
-    return experiment
+    return experiment;
   } catch (error) {
-    console.error('Error tracking lab experiment:', error)
-    return null
+    console.error('Error tracking lab experiment:', error);
+    return null;
   }
 }
 
@@ -330,8 +361,8 @@ export async function trackUserEvent(data) {
       eventName,
       eventData,
       success,
-      error
-    } = data
+      error,
+    } = data;
 
     const event = new UserEvent({
       visitorId,
@@ -342,23 +373,23 @@ export async function trackUserEvent(data) {
       eventData,
       success,
       error,
-      timestamp: new Date()
-    })
+      timestamp: new Date(),
+    });
 
-    await event.save()
+    await event.save();
 
     // Update session event count
-    const session = await Session.findOne({ sessionId })
+    const session = await Session.findOne({ sessionId });
     if (session) {
-      session.events += 1
-      session.lastActivity = new Date()
-      await session.save()
+      session.events += 1;
+      session.lastActivity = new Date();
+      await session.save();
     }
 
-    return event
+    return event;
   } catch (error) {
-    console.error('Error tracking user event:', error)
-    return null
+    console.error('Error tracking user event:', error);
+    return null;
   }
 }
 
@@ -375,8 +406,8 @@ export async function trackApiUsage(data) {
       statusCode,
       responseTime,
       userAgent,
-      ipAddress
-    } = data
+      ipAddress,
+    } = data;
 
     const apiUsage = new ApiUsage({
       visitorId,
@@ -387,14 +418,14 @@ export async function trackApiUsage(data) {
       responseTime,
       userAgent,
       ipAddress,
-      timestamp: new Date()
-    })
+      timestamp: new Date(),
+    });
 
-    await apiUsage.save()
-    return apiUsage
+    await apiUsage.save();
+    return apiUsage;
   } catch (error) {
-    console.error('Error tracking API usage:', error)
-    return null
+    console.error('Error tracking API usage:', error);
+    return null;
   }
 }
 
@@ -403,16 +434,16 @@ export async function trackApiUsage(data) {
 // ============================================
 export async function updateSessionActivity(sessionId) {
   try {
-    const session = await Session.findOne({ sessionId })
+    const session = await Session.findOne({ sessionId });
     if (session) {
-      session.lastActivity = new Date()
-      await session.save()
-      return session
+      session.lastActivity = new Date();
+      await session.save();
+      return session;
     }
-    return null
+    return null;
   } catch (error) {
-    console.error('Error updating session activity:', error)
-    return null
+    console.error('Error updating session activity:', error);
+    return null;
   }
 }
 
@@ -421,27 +452,42 @@ export async function updateSessionActivity(sessionId) {
 // ============================================
 export async function getVisitorStats(visitorId) {
   try {
-    const visitor = await Visitor.findOne({ visitorId })
-    const sessions = await Session.find({ visitorId }).sort({ startTime: -1 })
-    const pageViews = await PageView.countDocuments({ visitorId })
-    const chats = await ChatInteraction.countDocuments({ visitorId })
-    const tools = await ToolUsage.countDocuments({ visitorId })
-    const labs = await LabExperiment.countDocuments({ visitorId })
-    const events = await UserEvent.countDocuments({ visitorId })
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+
+    const visitors = db.collection('visitors');
+    const sessions = db.collection('sessions');
+    const pageViews = db.collection('pageviews');
+    const chatInteractions = db.collection('chat_interactions');
+    const toolUsage = db.collection('tool_usage');
+    const labExperiments = db.collection('lab_experiments');
+    const userEvents = db.collection('user_events');
+
+    const visitor = await visitors.findOne({ visitorId });
+    const sessionList = await sessions
+      .find({ visitorId })
+      .sort({ startTime: -1 })
+      .limit(10)
+      .toArray();
+    const pageViewsCount = await pageViews.countDocuments({ visitorId });
+    const chatsCount = await chatInteractions.countDocuments({ visitorId });
+    const toolsCount = await toolUsage.countDocuments({ visitorId });
+    const labsCount = await labExperiments.countDocuments({ visitorId });
+    const eventsCount = await userEvents.countDocuments({ visitorId });
 
     return {
       visitor,
-      sessionsCount: sessions.length,
-      sessions: sessions.slice(0, 10), // Last 10 sessions
-      pageViews,
-      chats,
-      tools,
-      labs,
-      events
-    }
+      sessionsCount: sessionList.length,
+      sessions: sessionList,
+      pageViews: pageViewsCount,
+      chats: chatsCount,
+      tools: toolsCount,
+      labs: labsCount,
+      events: eventsCount,
+    };
   } catch (error) {
-    console.error('Error getting visitor stats:', error)
-    return null
+    console.error('Error getting visitor stats:', error);
+    return null;
   }
 }
 
@@ -450,12 +496,14 @@ export async function getVisitorStats(visitorId) {
 // ============================================
 export async function getSessionStats(sessionId) {
   try {
-    const session = await Session.findOne({ sessionId })
-    const pageViews = await PageView.find({ sessionId }).sort({ timestamp: 1 })
-    const chats = await ChatInteraction.find({ sessionId }).sort({ timestamp: 1 })
-    const tools = await ToolUsage.find({ sessionId }).sort({ timestamp: 1 })
-    const labs = await LabExperiment.find({ sessionId }).sort({ timestamp: 1 })
-    const events = await UserEvent.find({ sessionId }).sort({ timestamp: 1 })
+    const session = await Session.findOne({ sessionId });
+    const pageViews = await PageView.find({ sessionId }).sort({ timestamp: 1 });
+    const chats = await ChatInteraction.find({ sessionId }).sort({
+      timestamp: 1,
+    });
+    const tools = await ToolUsage.find({ sessionId }).sort({ timestamp: 1 });
+    const labs = await LabExperiment.find({ sessionId }).sort({ timestamp: 1 });
+    const events = await UserEvent.find({ sessionId }).sort({ timestamp: 1 });
 
     return {
       session,
@@ -465,16 +513,16 @@ export async function getSessionStats(sessionId) {
       labs,
       events,
       timeline: [
-        ...pageViews.map(p => ({ type: 'pageView', data: p })),
-        ...chats.map(c => ({ type: 'chat', data: c })),
-        ...tools.map(t => ({ type: 'tool', data: t })),
-        ...labs.map(l => ({ type: 'lab', data: l })),
-        ...events.map(e => ({ type: 'event', data: e }))
-      ].sort((a, b) => a.data.timestamp - b.data.timestamp)
-    }
+        ...pageViews.map((p) => ({ type: 'pageView', data: p })),
+        ...chats.map((c) => ({ type: 'chat', data: c })),
+        ...tools.map((t) => ({ type: 'tool', data: t })),
+        ...labs.map((l) => ({ type: 'lab', data: l })),
+        ...events.map((e) => ({ type: 'event', data: e })),
+      ].sort((a, b) => a.data.timestamp - b.data.timestamp),
+    };
   } catch (error) {
-    console.error('Error getting session stats:', error)
-    return null
+    console.error('Error getting session stats:', error);
+    return null;
   }
 }
 
@@ -483,38 +531,38 @@ export async function getSessionStats(sessionId) {
 // ============================================
 export async function getRealtimeStats() {
   try {
-    const now = new Date()
-    const fiveMinutesAgo = new Date(now - 5 * 60 * 1000)
-    const oneHourAgo = new Date(now - 60 * 60 * 1000)
-    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000)
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now - 5 * 60 * 1000);
+    const oneHourAgo = new Date(now - 60 * 60 * 1000);
+    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
 
     const activeSessions = await Session.countDocuments({
-      lastActivity: { $gte: fiveMinutesAgo }
-    })
+      lastActivity: { $gte: fiveMinutesAgo },
+    });
 
     const recentVisitors = await Visitor.countDocuments({
-      lastVisit: { $gte: oneHourAgo }
-    })
+      lastVisit: { $gte: oneHourAgo },
+    });
 
     const todayVisitors = await Visitor.countDocuments({
-      lastVisit: { $gte: oneDayAgo }
-    })
+      lastVisit: { $gte: oneDayAgo },
+    });
 
     const recentPageViews = await PageView.countDocuments({
-      timestamp: { $gte: oneHourAgo }
-    })
+      timestamp: { $gte: oneHourAgo },
+    });
 
     const recentChats = await ChatInteraction.countDocuments({
-      timestamp: { $gte: oneHourAgo }
-    })
+      timestamp: { $gte: oneHourAgo },
+    });
 
     const recentTools = await ToolUsage.countDocuments({
-      timestamp: { $gte: oneHourAgo }
-    })
+      timestamp: { $gte: oneHourAgo },
+    });
 
     const recentLabs = await LabExperiment.countDocuments({
-      timestamp: { $gte: oneHourAgo }
-    })
+      timestamp: { $gte: oneHourAgo },
+    });
 
     return {
       activeSessions,
@@ -524,11 +572,11 @@ export async function getRealtimeStats() {
       recentChats,
       recentTools,
       recentLabs,
-      timestamp: now
-    }
+      timestamp: now,
+    };
   } catch (error) {
-    console.error('Error getting realtime stats:', error)
-    return null
+    console.error('Error getting realtime stats:', error);
+    return null;
   }
 }
 
@@ -536,36 +584,36 @@ export async function getRealtimeStats() {
 // HELPERS: Device/Browser/OS Detection
 // ============================================
 export function detectDevice(userAgent) {
-  if (!userAgent) return 'Unknown'
-  if (/mobile/i.test(userAgent)) return 'Mobile'
-  if (/tablet/i.test(userAgent)) return 'Tablet'
-  return 'Desktop'
+  if (!userAgent) return 'Unknown';
+  if (/mobile/i.test(userAgent)) return 'Mobile';
+  if (/tablet/i.test(userAgent)) return 'Tablet';
+  return 'Desktop';
 }
 
 export function detectBrowser(userAgent) {
-  if (!userAgent) return 'Unknown'
-  if (/chrome/i.test(userAgent) && !/edg/i.test(userAgent)) return 'Chrome'
-  if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) return 'Safari'
-  if (/firefox/i.test(userAgent)) return 'Firefox'
-  if (/edg/i.test(userAgent)) return 'Edge'
-  if (/opera|opr/i.test(userAgent)) return 'Opera'
-  return 'Unknown'
+  if (!userAgent) return 'Unknown';
+  if (/chrome/i.test(userAgent) && !/edg/i.test(userAgent)) return 'Chrome';
+  if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) return 'Safari';
+  if (/firefox/i.test(userAgent)) return 'Firefox';
+  if (/edg/i.test(userAgent)) return 'Edge';
+  if (/opera|opr/i.test(userAgent)) return 'Opera';
+  return 'Unknown';
 }
 
 export function detectOS(userAgent) {
-  if (!userAgent) return 'Unknown'
-  if (/windows/i.test(userAgent)) return 'Windows'
-  if (/mac os/i.test(userAgent)) return 'macOS'
-  if (/linux/i.test(userAgent)) return 'Linux'
-  if (/android/i.test(userAgent)) return 'Android'
-  if (/ios|iphone|ipad/i.test(userAgent)) return 'iOS'
-  return 'Unknown'
+  if (!userAgent) return 'Unknown';
+  if (/windows/i.test(userAgent)) return 'Windows';
+  if (/mac os/i.test(userAgent)) return 'macOS';
+  if (/linux/i.test(userAgent)) return 'Linux';
+  if (/android/i.test(userAgent)) return 'Android';
+  if (/ios|iphone|ipad/i.test(userAgent)) return 'iOS';
+  return 'Unknown';
 }
 
 export function generateVisitorId() {
-  return `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 export function generateSessionId() {
-  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }

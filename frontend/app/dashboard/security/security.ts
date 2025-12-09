@@ -141,7 +141,9 @@ export class SecurityLogic {
    * Fetch security settings from API
    */
   private async fetchSecuritySettings(userId: string): Promise<any> {
-    const response = await fetch(`/api/user/security/${userId}`);
+    const response = await fetch(`/api/user/security/${userId}`, {
+      credentials: 'include',
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch security settings');
     }
@@ -154,7 +156,9 @@ export class SecurityLogic {
    */
   private async fetchTrustedDevices(userId: string): Promise<TrustedDevice[]> {
     try {
-      const response = await fetch(`/api/user/security/devices/${userId}`);
+      const response = await fetch(`/api/user/security/devices/${userId}`, {
+        credentials: 'include',
+      });
       if (!response.ok) return [];
       const data = await response.json();
       return data.devices || [];
@@ -170,7 +174,10 @@ export class SecurityLogic {
   private async fetchLoginHistory(userId: string): Promise<LoginHistoryItem[]> {
     try {
       const response = await fetch(
-        `/api/user/security/login-history/${userId}`
+        `/api/user/security/login-history/${userId}`,
+        {
+          credentials: 'include',
+        }
       );
       if (!response.ok) return [];
       const data = await response.json();
@@ -201,6 +208,7 @@ export class SecurityLogic {
       const response = await fetch('/api/user/security/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           userId,
           currentPassword: passwordData.currentPassword,
@@ -243,6 +251,7 @@ export class SecurityLogic {
       const response = await fetch('/api/user/security/2fa/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId }),
       });
 
@@ -285,6 +294,7 @@ export class SecurityLogic {
       const response = await fetch('/api/user/security/2fa/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           userId,
           verificationCode,
@@ -328,6 +338,7 @@ export class SecurityLogic {
       const response = await fetch('/api/user/security/2fa/disable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId, password }),
       });
 
@@ -363,6 +374,7 @@ export class SecurityLogic {
       const response = await fetch(`/api/user/security/devices/${deviceId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId }),
       });
 
@@ -400,6 +412,7 @@ export class SecurityLogic {
       const response = await fetch('/api/user/security/logout-all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId }),
       });
 
@@ -440,6 +453,7 @@ export class SecurityLogic {
       const response = await fetch('/api/user/security/2fa/backup-codes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ userId, password }),
       });
 

@@ -132,19 +132,23 @@ export default function SecuritySettingsPage() {
 
   const fetchSecurityData = async () => {
     try {
-      // Fetch current 2FA status
-      const securityRes = await fetch(`/api/user/security/${state.user.id}`);
+      // Fetch current security data
+      const securityRes = await fetch(`/api/user/security/${state.user.id}`, {
+        credentials: 'include',
+      });
       if (securityRes.ok) {
         const securityData = await securityRes.json();
-        setTwoFactorEnabled(securityData.user?.twoFactor?.enabled || false);
-        if (securityData.user?.twoFactor?.backupCodes) {
-          setBackupCodes(securityData.user.twoFactor.backupCodes);
-        }
+        setTwoFactorEnabled(securityData.data?.twoFactorEnabled || false);
+        setTrustedDevices(securityData.data?.trustedDevices || []);
+        setLoginHistory(securityData.data?.loginHistory || []);
       }
 
-      // Fetch trusted devices
-      const devicesRes = await fetch(
-        `/api/user/security/devices/${state.user.id}`
+      // Fetch trusted devices (if separate endpoint exists)
+      // For now, using data from security endpoint above
+    } catch (error) {
+      console.error('Error fetching security data:', error);
+    }
+  };
       );
       if (devicesRes.ok) {
         const devicesData = await devicesRes.json();
@@ -153,7 +157,8 @@ export default function SecuritySettingsPage() {
 
       // Fetch login history
       const historyRes = await fetch(
-        `/api/user/security/login-history/${state.user.id}`
+        `/api/user/security/login-history/${state.user.id}`,
+        { credentials: 'include' }
       );
       if (historyRes.ok) {
         const historyData = await historyRes.json();
@@ -188,8 +193,8 @@ export default function SecuritySettingsPage() {
       const res = await fetch('/api/user/security/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          userId: state.user.id,
           currentPassword,
           newPassword,
         }),
@@ -233,7 +238,10 @@ export default function SecuritySettingsPage() {
             text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
           });
         } else {
-          setMessage({ type: 'error', text: data.message || 'Error setting up 2FA' });
+          setMessage({
+            type: 'error',
+            text: data.message || 'Error setting up 2FA',
+          });
         }
       } catch (error) {
         console.error('Error setting up 2FA:', error);
@@ -253,10 +261,7 @@ export default function SecuritySettingsPage() {
         const res = await fetch('/api/user/security/2fa/disable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: state.user.id,
-            password,
-          }),
+          credentials: 'include',
         });
 
         const data = await res.json();
@@ -294,8 +299,8 @@ export default function SecuritySettingsPage() {
       const res = await fetch('/api/user/security/2fa/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          userId: state.user.id,
           code: verificationCode,
         }),
       });
@@ -632,7 +637,8 @@ export default function SecuritySettingsPage() {
                                 Scan this QR code with your authenticator app
                               </p>
                               <p className="text-xs text-neural-500">
-                                (Google Authenticator, Authy, Microsoft Authenticator, etc.)
+                                (Google Authenticator, Authy, Microsoft
+                                Authenticator, etc.)
                               </p>
                             </div>
                           </div>
@@ -664,9 +670,7 @@ export default function SecuritySettingsPage() {
                               }
                               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {loading
-                                ? 'Verifying...'
-                                : 'Verify & Enable 2FA'}
+                              {loading ? 'Verifying...' : 'Verify & Enable 2FA'}
                             </button>
                             <button
                               onClick={() => {
@@ -701,16 +705,18 @@ export default function SecuritySettingsPage() {
                             </div>
                           </div>
 
-                          {twoFactorEnabled && !verifying2FA && backupCodes.length > 0 && (
-                            <button
-                              onClick={() =>
-                                setShowBackupCodes(!showBackupCodes)
-                              }
-                              className="btn-secondary w-full"
-                            >
-                              {showBackupCodes ? 'Hide' : 'View'} Backup Codes
-                            </button>
-                          )}
+                          {twoFactorEnabled &&
+                            !verifying2FA &&
+                            backupCodes.length > 0 && (
+                              <button
+                                onClick={() =>
+                                  setShowBackupCodes(!showBackupCodes)
+                                }
+                                className="btn-secondary w-full"
+                              >
+                                {showBackupCodes ? 'Hide' : 'View'} Backup Codes
+                              </button>
+                            )}
 
                           {showBackupCodes &&
                             backupCodes.length > 0 &&

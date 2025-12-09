@@ -37,9 +37,9 @@ class ProfileService {
     this.baseUrl = '/api';
   }
 
-  async getProfile(userId: string): Promise<ProfileData> {
+  async getProfile(): Promise<ProfileData> {
     try {
-      const response = await fetch(`${this.baseUrl}/user/profile/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/user/profile`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -65,12 +65,9 @@ class ProfileService {
     }
   }
 
-  async updateProfile(
-    userId: string,
-    profileData: Partial<ProfileData>
-  ): Promise<ProfileData> {
+  async updateProfile(profileData: Partial<ProfileData>): Promise<ProfileData> {
     try {
-      const response = await fetch(`${this.baseUrl}/user/profile/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
