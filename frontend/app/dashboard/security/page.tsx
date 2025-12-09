@@ -150,20 +150,6 @@ export default function SecuritySettingsPage() {
     }
   };
 
-  // Fetch login history
-      const historyRes = await fetch(
-        `/api/user/security/login-history/${state.user.id}`,
-        { credentials: 'include' }
-      );
-      if (historyRes.ok) {
-        const historyData = await historyRes.json();
-        setLoginHistory(historyData.loginHistory || []);
-      }
-    } catch (error) {
-      console.error('Error fetching security data:', error);
-    }
-  };
-
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       setMessage({ type: 'error', text: 'Please fill in all password fields' });
