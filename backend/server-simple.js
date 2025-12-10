@@ -34,6 +34,8 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3003',
+    'https://onelastai.co',
+    'https://www.onelastai.co',
   ],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -141,14 +143,17 @@ function detectDeviceName(userAgent) {
 }
 
 function detectDeviceType(userAgent) {
-  if (userAgent.includes('Mobile') || userAgent.includes('iPhone')) return 'mobile';
-  if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'tablet';
+  if (userAgent.includes('Mobile') || userAgent.includes('iPhone'))
+    return 'mobile';
+  if (userAgent.includes('iPad') || userAgent.includes('Tablet'))
+    return 'tablet';
   return 'desktop';
 }
 
 function detectBrowser(userAgent) {
   if (userAgent.includes('Chrome')) return 'Chrome';
-  if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+  if (userAgent.includes('Safari') && !userAgent.includes('Chrome'))
+    return 'Safari';
   if (userAgent.includes('Firefox')) return 'Firefox';
   if (userAgent.includes('Edge')) return 'Edge';
   return 'Unknown Browser';
@@ -156,29 +161,30 @@ function detectBrowser(userAgent) {
 
 function calculateSecurityScore(userSecurity) {
   let score = 50; // Base score
-  
+
   // Two-factor authentication (+25 points)
   if (userSecurity.twoFactorEnabled) score += 25;
-  
+
   // Password age (max 15 points - lose points if password is old)
-  const passwordAge = Date.now() - new Date(userSecurity.passwordLastChanged).getTime();
+  const passwordAge =
+    Date.now() - new Date(userSecurity.passwordLastChanged).getTime();
   const daysOld = passwordAge / (1000 * 60 * 60 * 24);
   if (daysOld < 90) score += 15;
   else if (daysOld < 180) score += 10;
   else if (daysOld < 365) score += 5;
-  
+
   // Login history (+5 points if no failed attempts)
   if (userSecurity.failedLoginAttempts === 0) score += 5;
-  
+
   // Account not locked (+5 points)
   if (!userSecurity.accountLocked) score += 5;
-  
+
   return Math.min(100, Math.max(0, score));
 }
 
 function generateSecurityRecommendations(userSecurity) {
   const recommendations = [];
-  
+
   // 2FA recommendation
   if (!userSecurity.twoFactorEnabled) {
     recommendations.push({
@@ -189,9 +195,10 @@ function generateSecurityRecommendations(userSecurity) {
       priority: 'high',
     });
   }
-  
+
   // Password age recommendation
-  const passwordAge = Date.now() - new Date(userSecurity.passwordLastChanged).getTime();
+  const passwordAge =
+    Date.now() - new Date(userSecurity.passwordLastChanged).getTime();
   const daysOld = passwordAge / (1000 * 60 * 60 * 24);
   if (daysOld > 180) {
     recommendations.push({
@@ -202,7 +209,7 @@ function generateSecurityRecommendations(userSecurity) {
       priority: 'medium',
     });
   }
-  
+
   // Failed login attempts warning
   if (userSecurity.failedLoginAttempts > 3) {
     recommendations.push({
@@ -213,7 +220,7 @@ function generateSecurityRecommendations(userSecurity) {
       priority: 'high',
     });
   }
-  
+
   // Default if no recommendations
   if (recommendations.length === 0) {
     recommendations.push({
@@ -224,7 +231,7 @@ function generateSecurityRecommendations(userSecurity) {
       priority: 'low',
     });
   }
-  
+
   return recommendations;
 }
 
@@ -1145,15 +1152,15 @@ app.get('/api/user/analytics', async (req, res) => {
     const { userId, email } = req.query;
 
     if (!userId && !email) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'User ID or email is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'User ID or email is required',
       });
     }
 
     const client = await getClientPromise();
     const db = client.db(process.env.MONGODB_DB || 'onelastai');
-    
+
     // Get collections
     const users = db.collection('users');
     const conversationAnalytics = db.collection('conversationanalytics');
@@ -1171,9 +1178,9 @@ app.get('/api/user/analytics', async (req, res) => {
     }
 
     if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'User not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
       });
     }
 
@@ -1188,48 +1195,53 @@ app.get('/api/user/analytics', async (req, res) => {
       totalMessages,
       totalApiCalls,
       recentInteractions,
-      dailyUsageData
+      dailyUsageData,
     ] = await Promise.all([
       // Count total conversations
       chatInteractions.countDocuments({ userId: userObjectId }),
-      
+
       // Count total messages (estimate: 2x conversations)
       chatInteractions.countDocuments({ userId: userObjectId }),
-      
+
       // Count API calls (use performance metrics if available)
       performanceMetrics.countDocuments({ userId: userObjectId }),
-      
+
       // Get recent chat interactions
-      chatInteractions.find({ userId: userObjectId })
+      chatInteractions
+        .find({ userId: userObjectId })
         .sort({ timestamp: -1 })
         .limit(10)
         .toArray(),
-        
+
       // Get daily usage for last 7 days
-      chatInteractions.aggregate([
-        {
-          $match: {
-            userId: userObjectId,
-            timestamp: { $gte: sevenDaysAgo }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              date: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } }
+      chatInteractions
+        .aggregate([
+          {
+            $match: {
+              userId: userObjectId,
+              timestamp: { $gte: sevenDaysAgo },
             },
-            conversations: { $sum: 1 },
-            messages: { $sum: 1 }
-          }
-        },
-        { $sort: { "_id.date": 1 } }
-      ]).toArray()
+          },
+          {
+            $group: {
+              _id: {
+                date: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$timestamp' },
+                },
+              },
+              conversations: { $sum: 1 },
+              messages: { $sum: 1 },
+            },
+          },
+          { $sort: { '_id.date': 1 } },
+        ])
+        .toArray(),
     ]);
 
     // Calculate metrics
     const messagesCount = totalMessages * 2; // Estimate 2 messages per conversation
     const apiCallsCount = Math.max(totalApiCalls, totalConversations); // At least 1 API call per conversation
-    
+
     // Build analytics data matching frontend interface
     const analyticsData = {
       subscription: {
@@ -1237,52 +1249,76 @@ app.get('/api/user/analytics', async (req, res) => {
         status: user.subscription?.status || 'active',
         price: user.subscription?.price || 49.99,
         period: user.subscription?.period || 'monthly',
-        renewalDate: user.subscription?.renewalDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        daysUntilRenewal: Math.ceil((new Date(user.subscription?.renewalDate || Date.now() + 30 * 24 * 60 * 60 * 1000) - now) / (24 * 60 * 60 * 1000))
+        renewalDate:
+          user.subscription?.renewalDate ||
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
+        daysUntilRenewal: Math.ceil(
+          (new Date(
+            user.subscription?.renewalDate ||
+              Date.now() + 30 * 24 * 60 * 60 * 1000
+          ) -
+            now) /
+            (24 * 60 * 60 * 1000)
+        ),
       },
       usage: {
         conversations: {
           current: totalConversations,
           limit: 10000,
           percentage: Math.min((totalConversations / 10000) * 100, 100),
-          unit: 'conversations'
+          unit: 'conversations',
         },
         agents: {
           current: Math.min(8, Math.ceil(totalConversations / 10)), // Estimate agents used
           limit: 18,
-          percentage: Math.min((Math.min(8, Math.ceil(totalConversations / 10)) / 18) * 100, 100),
-          unit: 'agents'
+          percentage: Math.min(
+            (Math.min(8, Math.ceil(totalConversations / 10)) / 18) * 100,
+            100
+          ),
+          unit: 'agents',
         },
         apiCalls: {
           current: apiCallsCount,
           limit: 50000,
           percentage: Math.min((apiCallsCount / 50000) * 100, 100),
-          unit: 'calls'
+          unit: 'calls',
         },
         storage: {
           current: Math.ceil(messagesCount * 0.5), // Estimate 0.5KB per message
           limit: 10000,
-          percentage: Math.min((Math.ceil(messagesCount * 0.5) / 10000) * 100, 100),
-          unit: 'KB'
+          percentage: Math.min(
+            (Math.ceil(messagesCount * 0.5) / 10000) * 100,
+            100
+          ),
+          unit: 'KB',
         },
         messages: {
           current: messagesCount,
           limit: 100000,
           percentage: Math.min((messagesCount / 100000) * 100, 100),
-          unit: 'messages'
-        }
+          unit: 'messages',
+        },
       },
-      dailyUsage: dailyUsageData.map(day => ({
+      dailyUsage: dailyUsageData.map((day) => ({
         date: day._id.date,
         conversations: day.conversations,
         messages: day.messages,
-        apiCalls: day.conversations // Approximate API calls as conversations
+        apiCalls: day.conversations, // Approximate API calls as conversations
       })),
       weeklyTrend: {
-        conversationsChange: totalConversations > 0 ? `+${Math.floor(Math.random() * 20 + 5)}%` : '+0%',
-        messagesChange: messagesCount > 0 ? `+${Math.floor(Math.random() * 25 + 10)}%` : '+0%',
-        apiCallsChange: apiCallsCount > 0 ? `+${Math.floor(Math.random() * 15 + 8)}%` : '+0%',
-        responseTimeChange: `-${Math.floor(Math.random() * 10 + 2)}%`
+        conversationsChange:
+          totalConversations > 0
+            ? `+${Math.floor(Math.random() * 20 + 5)}%`
+            : '+0%',
+        messagesChange:
+          messagesCount > 0
+            ? `+${Math.floor(Math.random() * 25 + 10)}%`
+            : '+0%',
+        apiCallsChange:
+          apiCallsCount > 0 ? `+${Math.floor(Math.random() * 15 + 8)}%` : '+0%',
+        responseTimeChange: `-${Math.floor(Math.random() * 10 + 2)}%`,
       },
       agentPerformance: [
         {
@@ -1290,52 +1326,64 @@ app.get('/api/user/analytics', async (req, res) => {
           conversations: Math.floor(totalConversations * 0.2),
           messages: Math.floor(messagesCount * 0.2),
           avgResponseTime: 1200 + Math.floor(Math.random() * 800),
-          successRate: 94 + Math.floor(Math.random() * 5)
+          successRate: 94 + Math.floor(Math.random() * 5),
         },
         {
           name: 'Tech Wizard',
           conversations: Math.floor(totalConversations * 0.15),
           messages: Math.floor(messagesCount * 0.15),
           avgResponseTime: 1100 + Math.floor(Math.random() * 600),
-          successRate: 92 + Math.floor(Math.random() * 6)
+          successRate: 92 + Math.floor(Math.random() * 6),
         },
         {
           name: 'Comedy King',
           conversations: Math.floor(totalConversations * 0.12),
           messages: Math.floor(messagesCount * 0.12),
           avgResponseTime: 900 + Math.floor(Math.random() * 400),
-          successRate: 89 + Math.floor(Math.random() * 8)
-        }
+          successRate: 89 + Math.floor(Math.random() * 8),
+        },
       ],
-      recentActivity: recentInteractions.slice(0, 5).map(interaction => ({
-        timestamp: interaction.timestamp?.toISOString() || new Date().toISOString(),
+      recentActivity: recentInteractions.slice(0, 5).map((interaction) => ({
+        timestamp:
+          interaction.timestamp?.toISOString() || new Date().toISOString(),
         agent: interaction.agentName || 'Unknown Agent',
         action: 'chat_message',
-        status: 'completed'
+        status: 'completed',
       })),
       costAnalysis: {
         currentMonth: Math.ceil(apiCallsCount * 0.002), // $0.002 per API call
         projectedMonth: Math.ceil(apiCallsCount * 0.002 * 1.2),
         breakdown: [
-          { category: 'API Calls', cost: Math.ceil(apiCallsCount * 0.002 * 0.7), percentage: 70 },
-          { category: 'Storage', cost: Math.ceil(apiCallsCount * 0.002 * 0.2), percentage: 20 },
-          { category: 'Bandwidth', cost: Math.ceil(apiCallsCount * 0.002 * 0.1), percentage: 10 }
-        ]
+          {
+            category: 'API Calls',
+            cost: Math.ceil(apiCallsCount * 0.002 * 0.7),
+            percentage: 70,
+          },
+          {
+            category: 'Storage',
+            cost: Math.ceil(apiCallsCount * 0.002 * 0.2),
+            percentage: 20,
+          },
+          {
+            category: 'Bandwidth',
+            cost: Math.ceil(apiCallsCount * 0.002 * 0.1),
+            percentage: 10,
+          },
+        ],
       },
       topAgents: [
         { name: 'Einstein', usage: Math.floor(totalConversations * 0.2) },
         { name: 'Tech Wizard', usage: Math.floor(totalConversations * 0.15) },
-        { name: 'Comedy King', usage: Math.floor(totalConversations * 0.12) }
-      ]
+        { name: 'Comedy King', usage: Math.floor(totalConversations * 0.12) },
+      ],
     };
 
     res.json(analyticsData);
-    
   } catch (error) {
     console.error('Analytics error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch analytics data' 
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch analytics data',
     });
   }
 });
@@ -1379,63 +1427,65 @@ app.get('/api/user/rewards/:userId', async (req, res) => {
     if (!rewardsData) {
       // Check user's activity to give appropriate starting rewards
       const chatInteractions = db.collection('chat_interactions');
-      const userActivity = await chatInteractions.countDocuments({ userId: sessionUser._id });
-      
+      const userActivity = await chatInteractions.countDocuments({
+        userId: sessionUser._id,
+      });
+
       // Calculate starting rewards based on existing activity
       const startingPoints = Math.min(userActivity * 10, 500); // 10 points per interaction, max 500
       const startingLevel = Math.floor(startingPoints / 100) + 1;
       const pointsThisLevel = startingPoints % 100;
       const pointsToNextLevel = 100 - pointsThisLevel;
-      
+
       // Give starter badge if user has some activity
       const starterBadges = [];
       const rewardHistory = [];
-      
+
       if (userActivity > 0) {
         starterBadges.push({
           id: 'first_chat',
           name: 'First Steps',
           description: 'Your first AI conversation',
           earnedAt: new Date(),
-          points: 50
+          points: 50,
         });
         rewardHistory.push({
           title: 'First Steps Badge',
           points: 50,
           date: new Date(),
-          type: 'badge'
+          type: 'badge',
         });
       }
-      
+
       if (userActivity >= 5) {
         starterBadges.push({
           id: 'getting_started',
           name: 'Getting Started',
           description: 'Completed 5 AI conversations',
           earnedAt: new Date(),
-          points: 100
+          points: 100,
         });
         rewardHistory.push({
           title: 'Getting Started Badge',
           points: 100,
           date: new Date(),
-          type: 'badge'
+          type: 'badge',
         });
       }
-      
+
       if (userActivity >= 10) {
         starterBadges.push({
           id: 'ai_enthusiast',
           name: 'AI Enthusiast',
           description: 'Active AI user with 10+ conversations',
           earnedAt: new Date(),
-          points: 200
+          points: 200,
         });
         rewardHistory.push({
           title: 'AI Enthusiast Badge',
           points: 200,
           date: new Date(),
-          type: 'badge'
+          type: 'badge',
         });
       }
 
@@ -1455,7 +1505,8 @@ app.get('/api/user/rewards/:userId', async (req, res) => {
         statistics: {
           totalBadgesEarned: starterBadges.length,
           totalAchievementsCompleted: 0,
-          averagePointsPerDay: userActivity > 0 ? Math.ceil(startingPoints / 7) : 0,
+          averagePointsPerDay:
+            userActivity > 0 ? Math.ceil(startingPoints / 7) : 0,
           daysActive: Math.min(userActivity, 30),
         },
         createdAt: new Date(),
@@ -1603,8 +1654,17 @@ app.put('/api/user/preferences/:userId', async (req, res) => {
 
     // Validate and sanitize update data
     const allowedFields = [
-      'theme', 'language', 'timezone', 'dateFormat', 'timeFormat', 'currency',
-      'notifications', 'dashboard', 'accessibility', 'privacy', 'integrations'
+      'theme',
+      'language',
+      'timezone',
+      'dateFormat',
+      'timeFormat',
+      'currency',
+      'notifications',
+      'dashboard',
+      'accessibility',
+      'privacy',
+      'integrations',
     ];
 
     const sanitizedUpdate = {};
@@ -1630,7 +1690,9 @@ app.put('/api/user/preferences/:userId', async (req, res) => {
     }
 
     // Get updated preferences
-    const updatedPreferences = await userPreferences.findOne({ userId: userId });
+    const updatedPreferences = await userPreferences.findOne({
+      userId: userId,
+    });
     const { _id, ...preferencesData } = updatedPreferences;
 
     return res.json({
@@ -1679,12 +1741,16 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     // Build query for chat interactions
     const chatInteractions = db.collection('chat_interactions');
     const query = { userId: sessionUser._id };
-    
+
     // Add search functionality
     if (search) {
       query.$or = [
         { agentName: { $regex: search, $options: 'i' } },
-        { messages: { $elemMatch: { content: { $regex: search, $options: 'i' } } } }
+        {
+          messages: {
+            $elemMatch: { content: { $regex: search, $options: 'i' } },
+          },
+        },
       ];
     }
 
@@ -1701,19 +1767,22 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
       .toArray();
 
     // Transform conversations for frontend
-    const transformedConversations = conversations.map(conv => {
+    const transformedConversations = conversations.map((conv) => {
       const messageCount = conv.messages ? conv.messages.length : 0;
-      const lastMessage = conv.messages && conv.messages.length > 0 
-        ? conv.messages[conv.messages.length - 1] 
-        : null;
-      
+      const lastMessage =
+        conv.messages && conv.messages.length > 0
+          ? conv.messages[conv.messages.length - 1]
+          : null;
+
       // Calculate approximate duration (estimate based on message count)
       const estimatedDuration = Math.max(1, Math.ceil(messageCount * 1.5)); // ~1.5 min per message
-      
+
       // Get conversation topic (use first user message or fallback)
       let topic = 'General Conversation';
       if (conv.messages && conv.messages.length > 0) {
-        const firstUserMessage = conv.messages.find(msg => msg.role === 'user');
+        const firstUserMessage = conv.messages.find(
+          (msg) => msg.role === 'user'
+        );
         if (firstUserMessage && firstUserMessage.content) {
           // Extract first 50 characters as topic
           topic = firstUserMessage.content.substring(0, 50);
@@ -1725,14 +1794,20 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
         id: conv._id.toString(),
         agent: conv.agentName || 'Assistant',
         topic: topic,
-        date: conv.timestamp ? conv.timestamp.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        date: conv.timestamp
+          ? conv.timestamp.toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
         duration: `${estimatedDuration}m`,
         messageCount: messageCount,
-        lastMessage: lastMessage ? {
-          content: lastMessage.content.substring(0, 100) + (lastMessage.content.length > 100 ? '...' : ''),
-          timestamp: lastMessage.timestamp || conv.timestamp
-        } : null,
-        timestamp: conv.timestamp || new Date()
+        lastMessage: lastMessage
+          ? {
+              content:
+                lastMessage.content.substring(0, 100) +
+                (lastMessage.content.length > 100 ? '...' : ''),
+              timestamp: lastMessage.timestamp || conv.timestamp,
+            }
+          : null,
+        timestamp: conv.timestamp || new Date(),
       };
     });
 
@@ -1746,11 +1821,10 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
           total: total,
           totalPages: totalPages,
           hasNext: parseInt(page) < totalPages,
-          hasPrev: parseInt(page) > 1
-        }
-      }
+          hasPrev: parseInt(page) > 1,
+        },
+      },
     });
-
   } catch (error) {
     console.error('Conversation history error:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -1797,9 +1871,9 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     const plans = db.collection('plans');
 
     // Get user's active subscription
-    const activeSubscription = await subscriptions.findOne({ 
+    const activeSubscription = await subscriptions.findOne({
       user: sessionUser._id,
-      status: { $in: ['active', 'trialing', 'past_due'] }
+      status: { $in: ['active', 'trialing', 'past_due'] },
     });
 
     // Get user's plan details
@@ -1811,10 +1885,10 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     // If no subscription, create default billing data
     if (!activeSubscription) {
       // Get default free plan
-      const freePlan = await plans.findOne({ type: 'free' }) || {
+      const freePlan = (await plans.findOne({ type: 'free' })) || {
         name: 'Free Plan',
         pricing: { amount: 0, currency: 'USD' },
-        features: { apiCalls: 100, storage: 1024 } // 1GB in MB
+        features: { apiCalls: 100, storage: 1024 }, // 1GB in MB
       };
 
       const billingData = {
@@ -1825,18 +1899,31 @@ app.get('/api/user/billing/:userId', async (req, res) => {
           currency: 'USD',
           period: 'monthly',
           status: 'active',
-          renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          daysUntilRenewal: 30
+          renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
+          daysUntilRenewal: 30,
         },
         usage: {
           currentPeriod: {
-            apiCalls: { used: 0, limit: freePlan.features?.apiCalls || 100, percentage: 0 },
-            storage: { used: 0, limit: freePlan.features?.storage || 1024, percentage: 0, unit: 'MB' }
+            apiCalls: {
+              used: 0,
+              limit: freePlan.features?.apiCalls || 100,
+              percentage: 0,
+            },
+            storage: {
+              used: 0,
+              limit: freePlan.features?.storage || 1024,
+              percentage: 0,
+              unit: 'MB',
+            },
           },
           billingCycle: {
             start: new Date().toISOString().split('T')[0],
-            end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-          }
+            end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split('T')[0],
+          },
         },
         invoices: [],
         paymentMethods: [],
@@ -1846,50 +1933,70 @@ app.get('/api/user/billing/:userId', async (req, res) => {
           subscription: 0,
           usage: 0,
           taxes: 0,
-          total: 0
-        }
+          total: 0,
+        },
       };
 
       return res.json({ success: true, data: billingData });
     }
 
     // Get current billing period usage
-    const currentPeriodStart = activeSubscription.billing?.currentPeriodStart || new Date();
-    const currentPeriodEnd = activeSubscription.billing?.currentPeriodEnd || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    
+    const currentPeriodStart =
+      activeSubscription.billing?.currentPeriodStart || new Date();
+    const currentPeriodEnd =
+      activeSubscription.billing?.currentPeriodEnd ||
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
     // Get usage metrics for current period
     const usageData = await usageMetrics.findOne({
       user: sessionUser._id,
       period: {
         $gte: currentPeriodStart,
-        $lt: currentPeriodEnd
-      }
+        $lt: currentPeriodEnd,
+      },
     });
 
     // Get recent invoices (last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    
-    const userInvoices = await invoices.find({
-      user: sessionUser._id,
-      createdAt: { $gte: sixMonthsAgo }
-    }).sort({ createdAt: -1 }).limit(12).toArray();
+
+    const userInvoices = await invoices
+      .find({
+        user: sessionUser._id,
+        createdAt: { $gte: sixMonthsAgo },
+      })
+      .sort({ createdAt: -1 })
+      .limit(12)
+      .toArray();
 
     // Get payment history
-    const paymentHistory = await payments.find({
-      user: sessionUser._id,
-      createdAt: { $gte: sixMonthsAgo }
-    }).sort({ createdAt: -1 }).limit(10).toArray();
+    const paymentHistory = await payments
+      .find({
+        user: sessionUser._id,
+        createdAt: { $gte: sixMonthsAgo },
+      })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .toArray();
 
     // Calculate usage statistics
-    const planLimits = currentPlan?.features || { apiCalls: 10000, storage: 10240 }; // 10GB default
+    const planLimits = currentPlan?.features || {
+      apiCalls: 10000,
+      storage: 10240,
+    }; // 10GB default
     const currentUsage = {
       apiCalls: usageData?.apiCalls || Math.floor(Math.random() * 500), // Mock data if none exists
-      storage: usageData?.storage || Math.floor(Math.random() * 2048) // Mock storage usage
+      storage: usageData?.storage || Math.floor(Math.random() * 2048), // Mock storage usage
     };
 
-    const apiCallsPercentage = Math.min(100, Math.round((currentUsage.apiCalls / planLimits.apiCalls) * 100));
-    const storagePercentage = Math.min(100, Math.round((currentUsage.storage / planLimits.storage) * 100));
+    const apiCallsPercentage = Math.min(
+      100,
+      Math.round((currentUsage.apiCalls / planLimits.apiCalls) * 100)
+    );
+    const storagePercentage = Math.min(
+      100,
+      Math.round((currentUsage.storage / planLimits.storage) * 100)
+    );
 
     // Build comprehensive billing response
     const billingData = {
@@ -1901,58 +2008,71 @@ app.get('/api/user/billing/:userId', async (req, res) => {
         period: activeSubscription.billing?.interval || 'monthly',
         status: activeSubscription.status || 'active',
         renewalDate: currentPeriodEnd.toISOString().split('T')[0],
-        daysUntilRenewal: Math.ceil((currentPeriodEnd - new Date()) / (1000 * 60 * 60 * 24))
+        daysUntilRenewal: Math.ceil(
+          (currentPeriodEnd - new Date()) / (1000 * 60 * 60 * 24)
+        ),
       },
       usage: {
         currentPeriod: {
           apiCalls: {
             used: currentUsage.apiCalls,
             limit: planLimits.apiCalls,
-            percentage: apiCallsPercentage
+            percentage: apiCallsPercentage,
           },
           storage: {
             used: currentUsage.storage,
             limit: planLimits.storage,
             percentage: storagePercentage,
-            unit: 'MB'
-          }
+            unit: 'MB',
+          },
         },
         billingCycle: {
           start: currentPeriodStart.toISOString().split('T')[0],
-          end: currentPeriodEnd.toISOString().split('T')[0]
-        }
+          end: currentPeriodEnd.toISOString().split('T')[0],
+        },
       },
-      invoices: userInvoices.map(inv => ({
+      invoices: userInvoices.map((inv) => ({
         id: inv._id.toString(),
-        number: inv.invoiceNumber || `INV-${inv._id.toString().slice(-6).toUpperCase()}`,
+        number:
+          inv.invoiceNumber ||
+          `INV-${inv._id.toString().slice(-6).toUpperCase()}`,
         date: inv.createdAt.toISOString().split('T')[0],
         amount: `$${((inv.financial?.total || 0) / 100).toFixed(2)}`,
-        status: inv.status || 'paid'
+        status: inv.status || 'paid',
       })),
       paymentMethods: [], // Could be enhanced with stored payment methods
-      billingHistory: paymentHistory.map(payment => ({
+      billingHistory: paymentHistory.map((payment) => ({
         id: payment._id.toString(),
         date: payment.createdAt.toISOString().split('T')[0],
-        description: payment.description || `${currentPlan?.name || 'Professional'} Plan`,
+        description:
+          payment.description || `${currentPlan?.name || 'Professional'} Plan`,
         amount: `$${((payment.amount || 0) / 100).toFixed(2)}`,
         status: payment.status || 'completed',
-        method: payment.paymentMethod || 'card'
+        method: payment.paymentMethod || 'card',
       })),
-      upcomingCharges: activeSubscription.status === 'active' ? [{
-        description: `${currentPlan?.name || 'Professional'} Plan - Next billing cycle`,
-        amount: `$${((activeSubscription.billing?.amount || 4999) / 100).toFixed(2)}`,
-        date: currentPeriodEnd.toISOString().split('T')[0]
-      }] : [],
+      upcomingCharges:
+        activeSubscription.status === 'active'
+          ? [
+              {
+                description: `${
+                  currentPlan?.name || 'Professional'
+                } Plan - Next billing cycle`,
+                amount: `$${(
+                  (activeSubscription.billing?.amount || 4999) / 100
+                ).toFixed(2)}`,
+                date: currentPeriodEnd.toISOString().split('T')[0],
+              },
+            ]
+          : [],
       costBreakdown: {
         subscription: (activeSubscription.billing?.amount || 4999) / 100,
         usage: 0, // Could calculate overage fees
         taxes: ((activeSubscription.billing?.amount || 4999) / 100) * 0.08, // 8% tax estimate
-        total: ((activeSubscription.billing?.amount || 4999) / 100) * 1.08
-      }
+        total: ((activeSubscription.billing?.amount || 4999) / 100) * 1.08,
+      },
     };
 
     return res.json({ success: true, data: billingData });
-
   } catch (error) {
     console.error('Billing error:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -2052,107 +2172,152 @@ app.get('/api/agent/performance/:agentId', async (req, res) => {
 
     // Get agent info (map common agent names)
     const agentMap = {
-      'einstein': { name: 'Einstein', type: 'Physics & Science', avatar: '🧠' },
-      'tech-wizard': { name: 'Tech Wizard', type: 'Technology & Programming', avatar: '🧙‍♂️' },
-      'comedy-king': { name: 'Comedy King', type: 'Entertainment & Humor', avatar: '😄' },
-      'chef-biew': { name: 'Chef Biew', type: 'Cooking & Recipes', avatar: '👨‍🍳' },
-      'ben-sega': { name: 'Ben Sega', type: 'Gaming & Entertainment', avatar: '🎮' },
-      'default': { name: 'AI Assistant', type: 'General Purpose', avatar: '🤖' }
+      einstein: { name: 'Einstein', type: 'Physics & Science', avatar: '🧠' },
+      'tech-wizard': {
+        name: 'Tech Wizard',
+        type: 'Technology & Programming',
+        avatar: '🧙‍♂️',
+      },
+      'comedy-king': {
+        name: 'Comedy King',
+        type: 'Entertainment & Humor',
+        avatar: '😄',
+      },
+      'chef-biew': {
+        name: 'Chef Biew',
+        type: 'Cooking & Recipes',
+        avatar: '👨‍🍳',
+      },
+      'ben-sega': {
+        name: 'Ben Sega',
+        type: 'Gaming & Entertainment',
+        avatar: '🎮',
+      },
+      default: { name: 'AI Assistant', type: 'General Purpose', avatar: '🤖' },
     };
-    
+
     const agentInfo = agentMap[agentId] || agentMap['default'];
 
     // Get conversation metrics for the agent
-    const conversationStats = await chatInteractions.aggregate([
-      {
-        $match: {
-          agentName: { $regex: agentInfo.name, $options: 'i' },
-          timestamp: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalConversations: { $sum: 1 },
-          totalMessages: { $sum: { $size: { $ifNull: ["$messages", []] } } },
-          avgResponseTime: { $avg: "$responseTime" },
-          uniqueUsers: { $addToSet: "$userId" }
-        }
-      }
-    ]).toArray();
+    const conversationStats = await chatInteractions
+      .aggregate([
+        {
+          $match: {
+            agentName: { $regex: agentInfo.name, $options: 'i' },
+            timestamp: { $gte: startDate },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalConversations: { $sum: 1 },
+            totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
+            avgResponseTime: { $avg: '$responseTime' },
+            uniqueUsers: { $addToSet: '$userId' },
+          },
+        },
+      ])
+      .toArray();
 
     const stats = conversationStats[0] || {
       totalConversations: 0,
       totalMessages: 0,
       avgResponseTime: 0,
-      uniqueUsers: []
+      uniqueUsers: [],
     };
 
     // Get performance trends (compare with previous period)
-    const previousPeriodStart = new Date(startDate.getTime() - (now.getTime() - startDate.getTime()));
-    const previousStats = await chatInteractions.aggregate([
-      {
-        $match: {
-          agentName: { $regex: agentInfo.name, $options: 'i' },
-          timestamp: { $gte: previousPeriodStart, $lt: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalConversations: { $sum: 1 },
-          totalMessages: { $sum: { $size: { $ifNull: ["$messages", []] } } },
-          avgResponseTime: { $avg: "$responseTime" }
-        }
-      }
-    ]).toArray();
+    const previousPeriodStart = new Date(
+      startDate.getTime() - (now.getTime() - startDate.getTime())
+    );
+    const previousStats = await chatInteractions
+      .aggregate([
+        {
+          $match: {
+            agentName: { $regex: agentInfo.name, $options: 'i' },
+            timestamp: { $gte: previousPeriodStart, $lt: startDate },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalConversations: { $sum: 1 },
+            totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
+            avgResponseTime: { $avg: '$responseTime' },
+          },
+        },
+      ])
+      .toArray();
 
     const prevStats = previousStats[0] || {
       totalConversations: 0,
       totalMessages: 0,
-      avgResponseTime: 0
+      avgResponseTime: 0,
     };
 
     // Calculate trends
     const calculateTrend = (current, previous) => {
       if (previous === 0) return { change: '+100%', trend: 'up' };
       const percentChange = ((current - previous) / previous) * 100;
-      const change = percentChange >= 0 ? `+${percentChange.toFixed(1)}%` : `${percentChange.toFixed(1)}%`;
+      const change =
+        percentChange >= 0
+          ? `+${percentChange.toFixed(1)}%`
+          : `${percentChange.toFixed(1)}%`;
       return { change, trend: percentChange >= 0 ? 'up' : 'down' };
     };
 
-    const conversationTrend = calculateTrend(stats.totalConversations, prevStats.totalConversations);
-    const messageTrend = calculateTrend(stats.totalMessages, prevStats.totalMessages);
-    const responseTimeTrend = calculateTrend(prevStats.avgResponseTime || 1, stats.avgResponseTime || 1); // Inverted for response time
+    const conversationTrend = calculateTrend(
+      stats.totalConversations,
+      prevStats.totalConversations
+    );
+    const messageTrend = calculateTrend(
+      stats.totalMessages,
+      prevStats.totalMessages
+    );
+    const responseTimeTrend = calculateTrend(
+      prevStats.avgResponseTime || 1,
+      stats.avgResponseTime || 1
+    ); // Inverted for response time
 
     // Get recent activity
-    const recentActivity = await chatInteractions.find({
-      agentName: { $regex: agentInfo.name, $options: 'i' },
-      timestamp: { $gte: startDate }
-    })
-    .sort({ timestamp: -1 })
-    .limit(10)
-    .toArray();
+    const recentActivity = await chatInteractions
+      .find({
+        agentName: { $regex: agentInfo.name, $options: 'i' },
+        timestamp: { $gte: startDate },
+      })
+      .sort({ timestamp: -1 })
+      .limit(10)
+      .toArray();
 
     // Transform recent activity
-    const transformedActivity = recentActivity.map(activity => {
+    const transformedActivity = recentActivity.map((activity) => {
       const minutesAgo = Math.floor((now - activity.timestamp) / (1000 * 60));
-      const timeAgo = minutesAgo < 60 ? `${minutesAgo} min ago` : `${Math.floor(minutesAgo / 60)} hours ago`;
-      
+      const timeAgo =
+        minutesAgo < 60
+          ? `${minutesAgo} min ago`
+          : `${Math.floor(minutesAgo / 60)} hours ago`;
+
       // Get first user message as description
-      const firstMessage = activity.messages?.find(msg => msg.role === 'user');
-      const description = firstMessage?.content?.substring(0, 60) + '...' || 'New conversation started';
+      const firstMessage = activity.messages?.find(
+        (msg) => msg.role === 'user'
+      );
+      const description =
+        firstMessage?.content?.substring(0, 60) + '...' ||
+        'New conversation started';
 
       return {
         timestamp: timeAgo,
         type: 'conversation',
         description: description,
-        user: activity.userId || 'Anonymous'
+        user: activity.userId || 'Anonymous',
       };
     });
 
     // Calculate satisfaction score (mock based on agent popularity)
-    const satisfactionScore = Math.min(5.0, 4.0 + (stats.totalConversations / 100) * 0.5);
+    const satisfactionScore = Math.min(
+      5.0,
+      4.0 + (stats.totalConversations / 100) * 0.5
+    );
 
     // Build performance response
     const performanceData = {
@@ -2160,45 +2325,45 @@ app.get('/api/agent/performance/:agentId', async (req, res) => {
         name: agentInfo.name,
         type: agentInfo.type,
         avatar: agentInfo.avatar,
-        status: stats.totalConversations > 0 ? 'active' : 'idle'
+        status: stats.totalConversations > 0 ? 'active' : 'idle',
       },
       metrics: {
         totalConversations: stats.totalConversations,
         totalMessages: stats.totalMessages,
-        averageResponseTime: Math.round((stats.avgResponseTime || 1.2) * 10) / 10, // Round to 1 decimal
+        averageResponseTime:
+          Math.round((stats.avgResponseTime || 1.2) * 10) / 10, // Round to 1 decimal
         satisfactionScore: Math.round(satisfactionScore * 10) / 10,
         activeUsers: stats.uniqueUsers.length,
-        uptime: 99.9 // Mock uptime
+        uptime: 99.9, // Mock uptime
       },
       trends: {
         conversations: {
           value: stats.totalConversations,
           change: conversationTrend.change,
-          trend: conversationTrend.trend
+          trend: conversationTrend.trend,
         },
         messages: {
           value: stats.totalMessages,
           change: messageTrend.change,
-          trend: messageTrend.trend
+          trend: messageTrend.trend,
         },
         responseTime: {
           value: Math.round((stats.avgResponseTime || 1.2) * 10) / 10,
           change: responseTimeTrend.change,
-          trend: responseTimeTrend.trend
+          trend: responseTimeTrend.trend,
         },
         satisfaction: {
           value: Math.round(satisfactionScore * 10) / 10,
           change: '+0.1',
-          trend: 'up'
-        }
+          trend: 'up',
+        },
       },
       recentActivity: transformedActivity,
       timeRange: timeRange,
-      dataRefreshed: new Date().toISOString()
+      dataRefreshed: new Date().toISOString(),
     };
 
     return res.json({ success: true, data: performanceData });
-
   } catch (error) {
     console.error('Agent performance error:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -2245,7 +2410,7 @@ app.get('/api/user/security/:userId', async (req, res) => {
       // Get user agent and IP for current session
       const userAgent = req.get('User-Agent') || 'Unknown Browser';
       const userIP = req.ip || req.connection.remoteAddress || 'unknown';
-      
+
       // Create a current device entry
       const currentDevice = {
         id: 1,
@@ -2255,16 +2420,16 @@ app.get('/api/user/security/:userId', async (req, res) => {
         location: 'Current Location',
         browser: detectBrowser(userAgent),
         current: true,
-        ipAddress: userIP
+        ipAddress: userIP,
       };
-      
+
       // Create current login entry
       const currentLogin = {
         timestamp: new Date(),
         ipAddress: userIP,
         userAgent: userAgent,
         success: true,
-        location: 'Current Location'
+        location: 'Current Location',
       };
 
       const defaultSecurity = {
@@ -2290,7 +2455,7 @@ app.get('/api/user/security/:userId', async (req, res) => {
             title: 'Enable Two-Factor Authentication',
             description: 'Secure your account with 2FA for better protection',
             priority: 'high',
-          }
+          },
         ],
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -2305,9 +2470,9 @@ app.get('/api/user/security/:userId', async (req, res) => {
       ...userSecurity,
       securityScore: calculateSecurityScore(userSecurity),
       recommendations: generateSecurityRecommendations(userSecurity),
-      lastPasswordChange: userSecurity.passwordLastChanged ? 
-        userSecurity.passwordLastChanged.toISOString().split('T')[0] : 
-        new Date().toISOString().split('T')[0]
+      lastPasswordChange: userSecurity.passwordLastChanged
+        ? userSecurity.passwordLastChanged.toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
     };
 
     // Return security data

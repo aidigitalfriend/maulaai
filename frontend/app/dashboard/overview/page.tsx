@@ -41,13 +41,19 @@ const fetchWithTimeout = async (
 const fetchUserData = async (userId: string) => {
   try {
     // Load data sequentially to reduce server load
-    const profileRes = await fetchWithTimeout(`https://onelastai.co/api/user/profile/${userId}`, {
-      credentials: 'include',
-    }).catch(() => null);
+    const profileRes = await fetchWithTimeout(
+      `https://onelastai.co/api/user/profile/${userId}`,
+      {
+        credentials: 'include',
+      }
+    ).catch(() => null);
 
-    const rewardsRes = await fetchWithTimeout(`https://onelastai.co/api/user/rewards/${userId}`, {
-      credentials: 'include',
-    }).catch(() => null);
+    const rewardsRes = await fetchWithTimeout(
+      `https://onelastai.co/api/user/rewards/${userId}`,
+      {
+        credentials: 'include',
+      }
+    ).catch(() => null);
 
     if (profileRes?.ok && rewardsRes?.ok) {
       const profile = await profileRes.json();

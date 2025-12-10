@@ -133,9 +133,12 @@ export default function SecuritySettingsPage() {
   const fetchSecurityData = async () => {
     try {
       // Fetch current security data
-      const securityRes = await fetch(`https://onelastai.co/api/user/security/${state.user.id}`, {
-        credentials: 'include'
-      });
+      const securityRes = await fetch(
+        `https://onelastai.co/api/user/security/${state.user.id}`,
+        {
+          credentials: 'include',
+        }
+      );
       if (securityRes.ok) {
         const securityData = await securityRes.json();
         setTwoFactorEnabled(securityData.data?.twoFactorEnabled || false);
@@ -171,15 +174,18 @@ export default function SecuritySettingsPage() {
 
     setLoading(true);
     try {
-      const res = await fetch('https://onelastai.co/api/user/security/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          currentPassword,
-          newPassword
-        })
-      });
+      const res = await fetch(
+        'https://onelastai.co/api/user/security/change-password',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+          }),
+        }
+      );
 
       const data = await res.json();
 
@@ -239,11 +245,14 @@ export default function SecuritySettingsPage() {
       }
 
       try {
-        const res = await fetch('https://onelastai.co/api/user/security/2fa/disable', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
+        const res = await fetch(
+          'https://onelastai.co/api/user/security/2fa/disable',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          }
+        );
 
         const data = await res.json();
 
@@ -277,14 +286,17 @@ export default function SecuritySettingsPage() {
 
     try {
       setLoading(true);
-      const res = await fetch('https://onelastai.co/api/user/security/2fa/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          code: verificationCode,
-        }),
-      });
+      const res = await fetch(
+        'https://onelastai.co/api/user/security/2fa/verify',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            code: verificationCode,
+          }),
+        }
+      );
 
       const data = await res.json();
 

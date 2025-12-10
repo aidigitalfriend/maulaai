@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import {
   Cog6ToothIcon,
   PaintBrushIcon,
   BellIcon,
@@ -15,14 +15,14 @@ import {
   SunIcon,
   DevicePhoneMobileIcon,
   LanguageIcon,
-  ClockIcon
-} from '@heroicons/react/24/outline'
+  ClockIcon,
+} from '@heroicons/react/24/outline';
 
 export default function PreferencesPage() {
-  const { state } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState({ type: '', text: '' })
+  const { state } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [preferences, setPreferences] = useState({
     theme: 'system',
     language: 'en',
@@ -34,123 +34,138 @@ export default function PreferencesPage() {
       email: {
         enabled: true,
         frequency: 'immediate',
-        types: ['security', 'billing', 'updates']
+        types: ['security', 'billing', 'updates'],
       },
       push: {
         enabled: true,
-        types: ['messages', 'reminders']
+        types: ['messages', 'reminders'],
       },
       sms: {
         enabled: false,
-        types: []
-      }
+        types: [],
+      },
     },
     dashboard: {
       defaultView: 'overview',
       widgets: ['profile', 'security', 'rewards', 'analytics'],
-      layout: 'grid'
+      layout: 'grid',
     },
     accessibility: {
       highContrast: false,
       largeText: false,
       reduceMotion: false,
-      screenReader: false
+      screenReader: false,
     },
     privacy: {
       showOnlineStatus: true,
       allowDataCollection: true,
-      shareUsageStats: false
+      shareUsageStats: false,
     },
-    integrations: {}
-  })
+    integrations: {},
+  });
 
   // Fetch preferences on mount
   useEffect(() => {
     if (state.user?.id) {
-      fetchPreferences()
+      fetchPreferences();
     }
-  }, [state.user])
+  }, [state.user]);
 
   const fetchPreferences = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`https://onelastai.co/api/user/preferences/${state.user.id}`, {
-        credentials: 'include'
-      });
-      
+      setLoading(true);
+      const response = await fetch(
+        `https://onelastai.co/api/user/preferences/${state.user.id}`,
+        {
+          credentials: 'include',
+        }
+      );
+
       if (response.ok) {
-        const result = await response.json()
-        setPreferences(result.data)
+        const result = await response.json();
+        setPreferences(result.data);
       } else {
-        setMessage({ type: 'error', text: 'Failed to load preferences' })
+        setMessage({ type: 'error', text: 'Failed to load preferences' });
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error)
-      setMessage({ type: 'error', text: 'Error loading preferences' })
+      console.error('Error fetching preferences:', error);
+      setMessage({ type: 'error', text: 'Error loading preferences' });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const savePreferences = async (updatedPrefs) => {
     try {
-      setSaving(true)
+      setSaving(true);
       const response = await fetch(`/api/user/preferences/${state.user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(updatedPrefs)
-      })
-      
+        body: JSON.stringify(updatedPrefs),
+      });
+
       if (response.ok) {
-        const result = await response.json()
-        setPreferences(result.data)
-        setMessage({ type: 'success', text: 'Preferences saved successfully!' })
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+        const result = await response.json();
+        setPreferences(result.data);
+        setMessage({
+          type: 'success',
+          text: 'Preferences saved successfully!',
+        });
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {
-        setMessage({ type: 'error', text: 'Failed to save preferences' })
+        setMessage({ type: 'error', text: 'Failed to save preferences' });
       }
     } catch (error) {
-      console.error('Error saving preferences:', error)
-      setMessage({ type: 'error', text: 'Error saving preferences' })
+      console.error('Error saving preferences:', error);
+      setMessage({ type: 'error', text: 'Error saving preferences' });
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const updatePreference = (path, value) => {
-    const newPrefs = { ...preferences }
-    const keys = path.split('.')
-    let current = newPrefs
-    
+    const newPrefs = { ...preferences };
+    const keys = path.split('.');
+    let current = newPrefs;
+
     for (let i = 0; i < keys.length - 1; i++) {
-      if (!current[keys[i]]) current[keys[i]] = {}
-      current = current[keys[i]]
+      if (!current[keys[i]]) current[keys[i]] = {};
+      current = current[keys[i]];
     }
-    
-    current[keys[keys.length - 1]] = value
-    setPreferences(newPrefs)
-    
+
+    current[keys[keys.length - 1]] = value;
+    setPreferences(newPrefs);
+
     // Auto-save preferences after a short delay
-    clearTimeout(updatePreference.timeoutId)
+    clearTimeout(updatePreference.timeoutId);
     updatePreference.timeoutId = setTimeout(() => {
-      savePreferences(newPrefs)
-    }, 500)
-  }
+      savePreferences(newPrefs);
+    }, 500);
+  };
 
   const themes = [
-    { id: 'light', name: 'Light', icon: SunIcon, description: 'Clean and bright interface' },
+    {
+      id: 'light',
+      name: 'Light',
+      icon: SunIcon,
+      description: 'Clean and bright interface',
+    },
     { id: 'dark', name: 'Dark', description: 'Easy on the eyes in low light' },
-    { id: 'system', name: 'System', description: 'Matches your device settings' }
-  ]
+    {
+      id: 'system',
+      name: 'System',
+      description: 'Matches your device settings',
+    },
+  ];
 
   const colors = [
     { id: 'brand', name: 'Brand Blue', color: 'bg-brand-500' },
     { id: 'blue', name: 'Ocean Blue', color: 'bg-blue-500' },
     { id: 'green', name: 'Forest Green', color: 'bg-green-500' },
     { id: 'purple', name: 'Royal Purple', color: 'bg-purple-500' },
-    { id: 'orange', name: 'Sunset Orange', color: 'bg-orange-500' }
-  ]
+    { id: 'orange', name: 'Sunset Orange', color: 'bg-orange-500' },
+  ];
 
   const languages = [
     { code: 'en', name: 'English', native: 'English' },
@@ -158,8 +173,8 @@ export default function PreferencesPage() {
     { code: 'fr', name: 'French', native: 'Français' },
     { code: 'de', name: 'German', native: 'Deutsch' },
     { code: 'ja', name: 'Japanese', native: '日本語' },
-    { code: 'zh', name: 'Chinese', native: '中文' }
-  ]
+    { code: 'zh', name: 'Chinese', native: '中文' },
+  ];
 
   // Show loading state
   if (loading) {
@@ -170,7 +185,7 @@ export default function PreferencesPage() {
           <p className="text-neural-600">Loading your preferences...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -183,7 +198,9 @@ export default function PreferencesPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
                 Preferences
               </h1>
-              <p className="text-neural-600">Customize your experience and interface settings</p>
+              <p className="text-neural-600">
+                Customize your experience and interface settings
+              </p>
             </div>
             <div className="flex items-center space-x-4">
               {saving && (
@@ -197,14 +214,18 @@ export default function PreferencesPage() {
               </Link>
             </div>
           </div>
-          
+
           {/* Status Message */}
           {message.text && (
-            <div className={`p-4 rounded-lg mb-4 ${
-              message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
-              message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
-              'bg-blue-50 text-blue-700 border border-blue-200'
-            }`}>
+            <div
+              className={`p-4 rounded-lg mb-4 ${
+                message.type === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : message.type === 'error'
+                  ? 'bg-red-50 text-red-700 border border-red-200'
+                  : 'bg-blue-50 text-blue-700 border border-blue-200'
+              }`}
+            >
               {message.text}
             </div>
           )}
@@ -215,18 +236,21 @@ export default function PreferencesPage() {
       <section className="py-16 px-4">
         <div className="container-custom max-w-4xl">
           <div className="space-y-8">
-            
             {/* Appearance Settings */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
               <div className="flex items-center mb-6">
                 <PaintBrushIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">Appearance</h3>
+                <h3 className="text-xl font-semibold text-neural-900">
+                  Appearance
+                </h3>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Theme Mode */}
                 <div>
-                  <h4 className="font-medium text-neural-900 mb-3">Theme Mode</h4>
+                  <h4 className="font-medium text-neural-900 mb-3">
+                    Theme Mode
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {themes.map((theme) => (
                       <div
@@ -239,10 +263,16 @@ export default function PreferencesPage() {
                         }`}
                       >
                         <div className="flex items-center mb-2">
-                          {theme.icon && <theme.icon className="w-5 h-5 mr-2" />}
-                          <h5 className="font-medium text-neural-900">{theme.name}</h5>
+                          {theme.icon && (
+                            <theme.icon className="w-5 h-5 mr-2" />
+                          )}
+                          <h5 className="font-medium text-neural-900">
+                            {theme.name}
+                          </h5>
                         </div>
-                        <p className="text-sm text-neural-600">{theme.description}</p>
+                        <p className="text-sm text-neural-600">
+                          {theme.description}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -253,7 +283,9 @@ export default function PreferencesPage() {
                   <h4 className="font-medium text-neural-900 mb-3">Language</h4>
                   <select
                     value={preferences.language || 'en'}
-                    onChange={(e) => updatePreference('language', e.target.value)}
+                    onChange={(e) =>
+                      updatePreference('language', e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
                     {languages.map((lang) => (
@@ -269,7 +301,9 @@ export default function PreferencesPage() {
                   <h4 className="font-medium text-neural-900 mb-3">Timezone</h4>
                   <select
                     value={preferences.timezone || 'UTC'}
-                    onChange={(e) => updatePreference('timezone', e.target.value)}
+                    onChange={(e) =>
+                      updatePreference('timezone', e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
                     <option value="UTC">UTC</option>
@@ -289,35 +323,53 @@ export default function PreferencesPage() {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
               <div className="flex items-center mb-6">
                 <BellIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">Notifications</h3>
+                <h3 className="text-xl font-semibold text-neural-900">
+                  Notifications
+                </h3>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Email Notifications */}
                 <div className="border border-neural-100 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h4 className="font-medium text-neural-900">Email Notifications</h4>
-                      <p className="text-sm text-neural-600">Receive updates and alerts via email</p>
+                      <h4 className="font-medium text-neural-900">
+                        Email Notifications
+                      </h4>
+                      <p className="text-sm text-neural-600">
+                        Receive updates and alerts via email
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={preferences.notifications.email.enabled}
-                        onChange={(e) => updatePreference('notifications.email.enabled', e.target.checked)}
+                        onChange={(e) =>
+                          updatePreference(
+                            'notifications.email.enabled',
+                            e.target.checked
+                          )
+                        }
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
                     </label>
                   </div>
-                  
+
                   {preferences.notifications.email.enabled && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-neural-700 mb-2">Frequency</label>
-                        <select 
+                        <label className="block text-sm font-medium text-neural-700 mb-2">
+                          Frequency
+                        </label>
+                        <select
                           value={preferences.notifications.email.frequency}
-                          onChange={(e) => updatePreference('notifications.email.frequency', e.target.value)}
+                          onChange={(e) =>
+                            updatePreference(
+                              'notifications.email.frequency',
+                              e.target.value
+                            )
+                          }
                           className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                         >
                           <option value="immediate">Immediate</option>
@@ -325,24 +377,37 @@ export default function PreferencesPage() {
                           <option value="weekly">Weekly Summary</option>
                         </select>
                       </div>
-                      
+
                       <div>
-                        <label className="block text-sm font-medium text-neural-700 mb-3">Notification Types</label>
+                        <label className="block text-sm font-medium text-neural-700 mb-3">
+                          Notification Types
+                        </label>
                         <div className="space-y-3">
-                          {Object.entries(preferences.notifications.email.types).map(([type, enabled]) => (
-                            <div key={type} className="flex items-center justify-between">
+                          {Object.entries(
+                            preferences.notifications.email.types
+                          ).map(([type, enabled]) => (
+                            <div
+                              key={type}
+                              className="flex items-center justify-between"
+                            >
                               <span className="text-sm text-neural-700 capitalize">
                                 {type === 'system' && 'System Updates'}
                                 {type === 'security' && 'Security Alerts'}
                                 {type === 'updates' && 'Product Updates'}
-                                {type === 'marketing' && 'Marketing & Promotions'}
+                                {type === 'marketing' &&
+                                  'Marketing & Promotions'}
                                 {type === 'community' && 'Community Activity'}
                               </span>
                               <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                  type="checkbox" 
+                                <input
+                                  type="checkbox"
                                   checked={enabled}
-                                  onChange={(e) => updatePreference(`notifications.email.types.${type}`, e.target.checked)}
+                                  onChange={(e) =>
+                                    updatePreference(
+                                      `notifications.email.types.${type}`,
+                                      e.target.checked
+                                    )
+                                  }
                                   className="sr-only peer"
                                 />
                                 <div className="w-9 h-5 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
@@ -359,55 +424,89 @@ export default function PreferencesPage() {
                 <div className="border border-neural-100 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h4 className="font-medium text-neural-900">Push Notifications</h4>
-                      <p className="text-sm text-neural-600">Receive instant notifications on your device</p>
+                      <h4 className="font-medium text-neural-900">
+                        Push Notifications
+                      </h4>
+                      <p className="text-sm text-neural-600">
+                        Receive instant notifications on your device
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={preferences.notifications.push.enabled}
-                        onChange={(e) => updatePreference('notifications.push.enabled', e.target.checked)}
+                        onChange={(e) =>
+                          updatePreference(
+                            'notifications.push.enabled',
+                            e.target.checked
+                          )
+                        }
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
                     </label>
                   </div>
-                  
+
                   {preferences.notifications.push.enabled && (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h5 className="font-medium text-neural-900">Quiet Hours</h5>
-                          <p className="text-sm text-neural-600">Disable notifications during specified hours</p>
+                          <h5 className="font-medium text-neural-900">
+                            Quiet Hours
+                          </h5>
+                          <p className="text-sm text-neural-600">
+                            Disable notifications during specified hours
+                          </p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={preferences.notifications.push.quiet.enabled}
-                            onChange={(e) => updatePreference('notifications.push.quiet.enabled', e.target.checked)}
+                          <input
+                            type="checkbox"
+                            checked={
+                              preferences.notifications.push.quiet.enabled
+                            }
+                            onChange={(e) =>
+                              updatePreference(
+                                'notifications.push.quiet.enabled',
+                                e.target.checked
+                              )
+                            }
                             className="sr-only peer"
                           />
                           <div className="w-9 h-5 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
                         </label>
                       </div>
-                      
+
                       {preferences.notifications.push.quiet.enabled && (
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-neural-700 mb-2">From</label>
-                            <input 
-                              type="time" 
+                            <label className="block text-sm font-medium text-neural-700 mb-2">
+                              From
+                            </label>
+                            <input
+                              type="time"
                               value={preferences.notifications.push.quiet.start}
-                              onChange={(e) => updatePreference('notifications.push.quiet.start', e.target.value)}
+                              onChange={(e) =>
+                                updatePreference(
+                                  'notifications.push.quiet.start',
+                                  e.target.value
+                                )
+                              }
                               className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-neural-700 mb-2">To</label>
-                            <input 
-                              type="time" 
+                            <label className="block text-sm font-medium text-neural-700 mb-2">
+                              To
+                            </label>
+                            <input
+                              type="time"
                               value={preferences.notifications.push.quiet.end}
-                              onChange={(e) => updatePreference('notifications.push.quiet.end', e.target.value)}
+                              onChange={(e) =>
+                                updatePreference(
+                                  'notifications.push.quiet.end',
+                                  e.target.value
+                                )
+                              }
                               className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
                           </div>
@@ -423,15 +522,21 @@ export default function PreferencesPage() {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
               <div className="flex items-center mb-6">
                 <GlobeAltIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">Language & Region</h3>
+                <h3 className="text-xl font-semibold text-neural-900">
+                  Language & Region
+                </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-neural-700 mb-2">Primary Language</label>
-                  <select 
+                  <label className="block text-sm font-medium text-neural-700 mb-2">
+                    Primary Language
+                  </label>
+                  <select
                     value={preferences.language.primary}
-                    onChange={(e) => updatePreference('language.primary', e.target.value)}
+                    onChange={(e) =>
+                      updatePreference('language.primary', e.target.value)
+                    }
                     className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   >
                     {languages.map((lang) => (
@@ -441,12 +546,16 @@ export default function PreferencesPage() {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-neural-700 mb-2">Secondary Language</label>
-                  <select 
+                  <label className="block text-sm font-medium text-neural-700 mb-2">
+                    Secondary Language
+                  </label>
+                  <select
                     value={preferences.language.secondary}
-                    onChange={(e) => updatePreference('language.secondary', e.target.value)}
+                    onChange={(e) =>
+                      updatePreference('language.secondary', e.target.value)
+                    }
                     className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   >
                     <option value="">None</option>
@@ -458,18 +567,27 @@ export default function PreferencesPage() {
                   </select>
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium text-neural-900">Auto-detect Language</h4>
-                    <p className="text-sm text-neural-600">Automatically detect content language</p>
+                    <h4 className="font-medium text-neural-900">
+                      Auto-detect Language
+                    </h4>
+                    <p className="text-sm text-neural-600">
+                      Automatically detect content language
+                    </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={preferences.language.autoDetect}
-                      onChange={(e) => updatePreference('language.autoDetect', e.target.checked)}
+                      onChange={(e) =>
+                        updatePreference(
+                          'language.autoDetect',
+                          e.target.checked
+                        )
+                      }
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
@@ -482,27 +600,30 @@ export default function PreferencesPage() {
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
               <div className="flex items-center mb-6">
                 <EyeIcon className="w-6 h-6 text-brand-500 mr-3" />
-                <h3 className="text-xl font-semibold text-neural-900">Accessibility</h3>
+                <h3 className="text-xl font-semibold text-neural-900">
+                  Accessibility
+                </h3>
               </div>
-              
+
               <div className="space-y-6">
                 {Object.entries({
                   highContrast: {
                     title: 'High Contrast',
-                    description: 'Increase color contrast for better visibility'
+                    description:
+                      'Increase color contrast for better visibility',
                   },
                   reduceMotion: {
                     title: 'Reduce Motion',
-                    description: 'Minimize animations and transitions'
+                    description: 'Minimize animations and transitions',
                   },
                   screenReader: {
                     title: 'Screen Reader Support',
-                    description: 'Enhanced compatibility with screen readers'
+                    description: 'Enhanced compatibility with screen readers',
                   },
                   keyboardNavigation: {
                     title: 'Keyboard Navigation',
-                    description: 'Enable keyboard shortcuts and navigation'
-                  }
+                    description: 'Enable keyboard shortcuts and navigation',
+                  },
                 }).map(([key, { title, description }]) => (
                   <div key={key} className="flex items-center justify-between">
                     <div>
@@ -510,10 +631,15 @@ export default function PreferencesPage() {
                       <p className="text-sm text-neural-600">{description}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={preferences.accessibility[key]}
-                        onChange={(e) => updatePreference(`accessibility.${key}`, e.target.checked)}
+                        onChange={(e) =>
+                          updatePreference(
+                            `accessibility.${key}`,
+                            e.target.checked
+                          )
+                        }
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
@@ -525,16 +651,12 @@ export default function PreferencesPage() {
 
             {/* Save Button */}
             <div className="flex justify-end space-x-4">
-              <button className="btn-secondary">
-                Reset to Default
-              </button>
-              <button className="btn-primary">
-                Save Preferences
-              </button>
+              <button className="btn-secondary">Reset to Default</button>
+              <button className="btn-primary">Save Preferences</button>
             </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

@@ -1,47 +1,50 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import {
   TrophyIcon,
   StarIcon,
   SparklesIcon,
-  ChartBarIcon
-} from '@heroicons/react/24/outline'
+  ChartBarIcon,
+} from '@heroicons/react/24/outline';
 
 export default function RewardsCenterPage() {
-  const { state } = useAuth()
-  const [activeTab, setActiveTab] = useState('overview')
-  const [loading, setLoading] = useState(true)
-  const [rewardsData, setRewardsData] = useState(null)
+  const { state } = useAuth();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(true);
+  const [rewardsData, setRewardsData] = useState(null);
 
   // Fetch rewards data on mount
   useEffect(() => {
     if (state.user?.id) {
-      fetchRewardsData()
+      fetchRewardsData();
     }
-  }, [state.user])
+  }, [state.user]);
 
   const fetchRewardsData = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`https://onelastai.co/api/user/rewards/${state.user.id}`, {
-        credentials: 'include'
-      });
-      
+      setLoading(true);
+      const response = await fetch(
+        `https://onelastai.co/api/user/rewards/${state.user.id}`,
+        {
+          credentials: 'include',
+        }
+      );
+
       if (response.ok) {
-        const result = await response.json()
-        setRewardsData(result.data)
+        const result = await response.json();
+        setRewardsData(result.data);
       } else {
-        console.error('Failed to fetch rewards data')
+        console.error('Failed to fetch rewards data');
       }
     } catch (error) {
-      console.error('Error fetching rewards:', error)
+      console.error('Error fetching rewards:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Show loading state
   if (loading) {
@@ -52,20 +55,23 @@ export default function RewardsCenterPage() {
           <p className="text-neural-600">Loading your rewards...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Use real data or fallback to default values
-  const currentLevel = rewardsData?.currentLevel || 1
-  const totalPoints = rewardsData?.totalPoints || 0
-  const pointsToNextLevel = rewardsData?.pointsToNextLevel || 100
-  const badgesEarned = rewardsData?.badges?.length || 0
-  const totalBadges = 8 // Total available badges
-  const leaderboardRank = Math.max(1, Math.floor(Math.random() * 20) + 1) // Mock leaderboard ranking
-  
+  const currentLevel = rewardsData?.currentLevel || 1;
+  const totalPoints = rewardsData?.totalPoints || 0;
+  const pointsToNextLevel = rewardsData?.pointsToNextLevel || 100;
+  const badgesEarned = rewardsData?.badges?.length || 0;
+  const totalBadges = 8; // Total available badges
+  const leaderboardRank = Math.max(1, Math.floor(Math.random() * 20) + 1); // Mock leaderboard ranking
+
   // Calculate level progress percentage
-  const pointsThisLevel = rewardsData?.pointsThisLevel || 0
-  const levelProgress = pointsToNextLevel > 0 ? (pointsThisLevel / (pointsThisLevel + pointsToNextLevel)) * 100 : 0
+  const pointsThisLevel = rewardsData?.pointsThisLevel || 0;
+  const levelProgress =
+    pointsToNextLevel > 0
+      ? (pointsThisLevel / (pointsThisLevel + pointsToNextLevel)) * 100
+      : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
@@ -77,7 +83,9 @@ export default function RewardsCenterPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
                 My Rewards
               </h1>
-              <p className="text-neural-600">Track your progress, earn rewards, and unlock achievements</p>
+              <p className="text-neural-600">
+                Track your progress, earn rewards, and unlock achievements
+              </p>
             </div>
             <Link href="/dashboard/overview" className="btn-secondary">
               Back to Dashboard
@@ -89,7 +97,6 @@ export default function RewardsCenterPage() {
       {/* Rewards Content */}
       <section className="py-16 px-4">
         <div className="container-custom max-w-6xl">
-          
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl p-6 text-white">
@@ -99,38 +106,54 @@ export default function RewardsCenterPage() {
               </div>
               <h3 className="text-lg font-semibold mb-2">Current Level</h3>
               <div className="w-full bg-white/20 rounded-full h-2 mb-2">
-                <div 
+                <div
                   className="bg-white rounded-full h-2 transition-all duration-300"
                   style={{ width: `${levelProgress}%` }}
                 ></div>
               </div>
-              <p className="text-sm opacity-90">{pointsToNextLevel} points to next level</p>
+              <p className="text-sm opacity-90">
+                {pointsToNextLevel} points to next level
+              </p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-neural-100">
               <div className="flex items-center justify-between mb-4">
                 <StarIcon className="w-8 h-8 text-yellow-500" />
-                <span className="text-2xl font-bold text-neural-900">{totalPoints.toLocaleString()}</span>
+                <span className="text-2xl font-bold text-neural-900">
+                  {totalPoints.toLocaleString()}
+                </span>
               </div>
-              <h3 className="text-lg font-semibold text-neural-900 mb-2">Total Points</h3>
+              <h3 className="text-lg font-semibold text-neural-900 mb-2">
+                Total Points
+              </h3>
               <p className="text-sm text-neural-600">Lifetime points earned</p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-neural-100">
               <div className="flex items-center justify-between mb-4">
                 <SparklesIcon className="w-8 h-8 text-purple-500" />
-                <span className="text-2xl font-bold text-neural-900">{badgesEarned}</span>
+                <span className="text-2xl font-bold text-neural-900">
+                  {badgesEarned}
+                </span>
               </div>
-              <h3 className="text-lg font-semibold text-neural-900 mb-2">Badges Earned</h3>
-              <p className="text-sm text-neural-600">Out of {totalBadges} available</p>
+              <h3 className="text-lg font-semibold text-neural-900 mb-2">
+                Badges Earned
+              </h3>
+              <p className="text-sm text-neural-600">
+                Out of {totalBadges} available
+              </p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-neural-100">
               <div className="flex items-center justify-between mb-4">
                 <ChartBarIcon className="w-8 h-8 text-green-500" />
-                <span className="text-2xl font-bold text-neural-900">#{leaderboardRank}</span>
+                <span className="text-2xl font-bold text-neural-900">
+                  #{leaderboardRank}
+                </span>
               </div>
-              <h3 className="text-lg font-semibold text-neural-900 mb-2">Leaderboard</h3>
+              <h3 className="text-lg font-semibold text-neural-900 mb-2">
+                Leaderboard
+              </h3>
               <p className="text-sm text-neural-600">Current ranking</p>
             </div>
           </div>
@@ -165,25 +188,39 @@ export default function RewardsCenterPage() {
           <div className="space-y-8">
             {activeTab === 'overview' && (
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-                <h3 className="text-xl font-semibold text-neural-900 mb-6">Recent Activity</h3>
+                <h3 className="text-xl font-semibold text-neural-900 mb-6">
+                  Recent Activity
+                </h3>
                 <div className="space-y-4">
-                  {rewardsData?.rewardHistory && rewardsData.rewardHistory.length > 0 ? (
-                    rewardsData.rewardHistory.slice(0, 5).map((reward, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-neural-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mr-4">
-                            <SparklesIcon className="w-4 h-4" />
+                  {rewardsData?.rewardHistory &&
+                  rewardsData.rewardHistory.length > 0 ? (
+                    rewardsData.rewardHistory
+                      .slice(0, 5)
+                      .map((reward, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-neural-50 rounded-lg"
+                        >
+                          <div className="flex items-center">
+                            <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mr-4">
+                              <SparklesIcon className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-neural-900">
+                                {reward.title}
+                              </h4>
+                              <p className="text-sm text-neural-600">
+                                {reward.date
+                                  ? new Date(reward.date).toLocaleDateString()
+                                  : 'Recently'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-medium text-neural-900">{reward.title}</h4>
-                            <p className="text-sm text-neural-600">
-                              {reward.date ? new Date(reward.date).toLocaleDateString() : 'Recently'}
-                            </p>
-                          </div>
+                          <span className="font-semibold text-brand-600">
+                            +{reward.points}
+                          </span>
                         </div>
-                        <span className="font-semibold text-brand-600">+{reward.points}</span>
-                      </div>
-                    ))
+                      ))
                   ) : (
                     <div className="text-center py-12">
                       <TrophyIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
@@ -194,19 +231,28 @@ export default function RewardsCenterPage() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Show available badges */}
                 {rewardsData?.badges && rewardsData.badges.length > 0 && (
                   <div className="mt-8">
-                    <h4 className="text-lg font-semibold text-neural-900 mb-4">Your Badges</h4>
+                    <h4 className="text-lg font-semibold text-neural-900 mb-4">
+                      Your Badges
+                    </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {rewardsData.badges.map((badge, index) => (
-                        <div key={index} className="text-center p-4 bg-neural-50 rounded-lg">
+                        <div
+                          key={index}
+                          className="text-center p-4 bg-neural-50 rounded-lg"
+                        >
                           <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full mx-auto mb-2 flex items-center justify-center">
                             <SparklesIcon className="w-6 h-6 text-white" />
                           </div>
-                          <h5 className="font-medium text-neural-900 text-sm">{badge.name}</h5>
-                          <p className="text-xs text-neural-600 mt-1">{badge.description}</p>
+                          <h5 className="font-medium text-neural-900 text-sm">
+                            {badge.name}
+                          </h5>
+                          <p className="text-xs text-neural-600 mt-1">
+                            {badge.description}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -221,16 +267,24 @@ export default function RewardsCenterPage() {
                   <div className="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <SparklesIcon className="w-10 h-10 text-brand-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-neural-900 mb-4">Coming Soon!</h3>
+                  <h3 className="text-2xl font-bold text-neural-900 mb-4">
+                    Coming Soon!
+                  </h3>
                   <p className="text-neural-600 mb-6">
-                    We're working hard to bring you an amazing {activeTab} experience. 
-                    Stay tuned for exciting updates!
+                    We're working hard to bring you an amazing {activeTab}{' '}
+                    experience. Stay tuned for exciting updates!
                   </p>
                   <div className="flex items-center justify-center space-x-4">
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-brand-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div
+                        className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"
+                        style={{ animationDelay: '0.1s' }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-brand-500 rounded-full animate-bounce"
+                        style={{ animationDelay: '0.2s' }}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -240,5 +294,5 @@ export default function RewardsCenterPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
+import {
   ChatBubbleLeftRightIcon,
   MagnifyingGlassIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
 export const dynamic = 'force-dynamic';
@@ -23,7 +23,7 @@ export default function ConversationHistoryPage() {
     total: 0,
     totalPages: 0,
     hasNext: false,
-    hasPrev: false
+    hasPrev: false,
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
@@ -48,17 +48,20 @@ export default function ConversationHistoryPage() {
     try {
       if (search) setSearching(true);
       else setLoading(true);
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limit.toString(),
-        ...(search && { search })
+        ...(search && { search }),
       });
-      
-      const response = await fetch(`https://onelastai.co/api/user/conversations/${state.user.id}?${params}`, {
-        credentials: 'include'
-      });
-      
+
+      const response = await fetch(
+        `https://onelastai.co/api/user/conversations/${state.user.id}?${params}`,
+        {
+          credentials: 'include',
+        }
+      );
+
       if (response.ok) {
         const result = await response.json();
         setConversations(result.data.conversations);
@@ -116,7 +119,7 @@ export default function ConversationHistoryPage() {
               Back to Dashboard
             </Link>
           </div>
-          
+
           {/* Search */}
           <form onSubmit={handleSearch} className="max-w-md">
             <div className="relative">
@@ -176,8 +179,12 @@ export default function ConversationHistoryPage() {
                       </div>
                       <div className="text-right ml-4">
                         <p className="text-sm text-neural-600">{conv.date}</p>
-                        <p className="text-xs text-neural-500">{conv.duration}</p>
-                        <p className="text-xs text-neural-500">{conv.messageCount} messages</p>
+                        <p className="text-xs text-neural-500">
+                          {conv.duration}
+                        </p>
+                        <p className="text-xs text-neural-500">
+                          {conv.messageCount} messages
+                        </p>
                       </div>
                     </div>
                   </motion.div>
@@ -195,11 +202,11 @@ export default function ConversationHistoryPage() {
                     <ChevronLeftIcon className="w-4 h-4 mr-1" />
                     Previous
                   </button>
-                  
+
                   <span className="text-neural-600">
                     Page {pagination.page} of {pagination.totalPages}
                   </span>
-                  
+
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={!pagination.hasNext}
@@ -219,9 +226,14 @@ export default function ConversationHistoryPage() {
                 No conversations found
               </h3>
               <p className="text-neural-600 mb-6">
-                {searchTerm ? 'Try adjusting your search terms' : 'Start a conversation to see your history here'}
+                {searchTerm
+                  ? 'Try adjusting your search terms'
+                  : 'Start a conversation to see your history here'}
               </p>
-              <Link href="/dashboard/overview" className="btn-primary inline-block">
+              <Link
+                href="/dashboard/overview"
+                className="btn-primary inline-block"
+              >
                 Back to Dashboard
               </Link>
             </div>

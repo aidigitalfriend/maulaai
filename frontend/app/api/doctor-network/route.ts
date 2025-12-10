@@ -26,38 +26,54 @@ const MAX_MESSAGES_PER_SESSION = 20;
 // Comprehensive network knowledge base
 const NETWORK_KNOWLEDGE_BASE = {
   ipAddress: {
-    definition: "An IP address is like your home address for the internet - it tells other computers where to send data.",
-    types: "IPv4 uses 4 numbers (like 192.168.1.1) while IPv6 uses longer addresses with letters and numbers.",
-    privacy: "Your public IP can reveal your general location and ISP, but not your exact address or personal information."
+    definition:
+      'An IP address is like your home address for the internet - it tells other computers where to send data.',
+    types:
+      'IPv4 uses 4 numbers (like 192.168.1.1) while IPv6 uses longer addresses with letters and numbers.',
+    privacy:
+      'Your public IP can reveal your general location and ISP, but not your exact address or personal information.',
   },
   security: {
-    vpn: "A VPN (Virtual Private Network) creates a secure tunnel for your internet traffic, hiding your real IP address.",
-    proxy: "A proxy server acts as a middleman between you and websites, can hide your IP but isn't always secure.",
-    tor: "Tor routes your traffic through multiple servers for maximum anonymity, but can be slow.",
-    threats: "High threat IPs might be associated with spam, malware, or suspicious activities."
+    vpn: 'A VPN (Virtual Private Network) creates a secure tunnel for your internet traffic, hiding your real IP address.',
+    proxy:
+      "A proxy server acts as a middleman between you and websites, can hide your IP but isn't always secure.",
+    tor: 'Tor routes your traffic through multiple servers for maximum anonymity, but can be slow.',
+    threats:
+      'High threat IPs might be associated with spam, malware, or suspicious activities.',
   },
   networking: {
-    isp: "Your ISP (Internet Service Provider) gives you internet access and assigns your IP address.",
+    isp: 'Your ISP (Internet Service Provider) gives you internet access and assigns your IP address.',
     asn: "ASN (Autonomous System Number) identifies your ISP's network infrastructure on the internet.",
-    dns: "DNS translates website names (like google.com) into IP addresses that computers understand.",
-    ports: "Ports are like doors on your computer - different services use different port numbers."
+    dns: 'DNS translates website names (like google.com) into IP addresses that computers understand.',
+    ports:
+      'Ports are like doors on your computer - different services use different port numbers.',
   },
   location: {
-    geolocation: "IP geolocation can show your city/region but isn't always 100% accurate.",
-    timezone: "Your IP's timezone helps websites show you local times and relevant content.",
-    accuracy: "Location accuracy varies - it might be off by several miles or show your ISP's location instead."
-  }
+    geolocation:
+      "IP geolocation can show your city/region but isn't always 100% accurate.",
+    timezone:
+      "Your IP's timezone helps websites show you local times and relevant content.",
+    accuracy:
+      "Location accuracy varies - it might be off by several miles or show your ISP's location instead.",
+  },
 };
 
 // Common questions and their focused responses
 const COMMON_QUESTIONS = {
-  "what is my ip": "Your IP address is shown above! It's your unique identifier on the internet, assigned by your ISP.",
-  "is my ip safe": "Check the security analysis above. Green indicators are good, while red flags (VPN/Proxy/Tor) might indicate additional privacy tools.",
-  "what is asn": "ASN stands for Autonomous System Number - it's like a unique ID for your ISP's network infrastructure.",
-  "what is isp": "ISP means Internet Service Provider - the company that gives you internet access (like Comcast, Verizon, etc.).",
-  "vpn vs proxy": "VPNs encrypt all your traffic and are more secure, while proxies just hide your IP for web browsing.",
-  "can people find me": "Your IP shows general location (city/region) and ISP, but not your exact address or personal details.",
-  "why different location": "IP location isn't always accurate - it might show your ISP's server location instead of yours."
+  'what is my ip':
+    "Your IP address is shown above! It's your unique identifier on the internet, assigned by your ISP.",
+  'is my ip safe':
+    'Check the security analysis above. Green indicators are good, while red flags (VPN/Proxy/Tor) might indicate additional privacy tools.',
+  'what is asn':
+    "ASN stands for Autonomous System Number - it's like a unique ID for your ISP's network infrastructure.",
+  'what is isp':
+    'ISP means Internet Service Provider - the company that gives you internet access (like Comcast, Verizon, etc.).',
+  'vpn vs proxy':
+    'VPNs encrypt all your traffic and are more secure, while proxies just hide your IP for web browsing.',
+  'can people find me':
+    'Your IP shows general location (city/region) and ISP, but not your exact address or personal details.',
+  'why different location':
+    "IP location isn't always accurate - it might show your ISP's server location instead of yours.",
 };
 
 // Multi-language system prompts
@@ -193,11 +209,14 @@ Persönlichkeit:
 Begrüßung:
 "Hallo! Ich bin Doctor Network 👨‍⚕️, erstellt von OneLastAI, um Ihnen zu helfen, alles über Ihre Internetverbindung und Netzwerke zu verstehen. Ich bin hier, um Ihre netzwerkbezogenen Fragen zu beantworten - völlig kostenlos! Was möchten Sie heute über Ihre IP, Netzwerk oder Internet wissen?"
 
-WICHTIG: Antworten Sie immer nur auf Deutsch, unabhängig von der Sprache des Benutzers.`
+WICHTIG: Antworten Sie immer nur auf Deutsch, unabhängig von der Sprache des Benutzers.`,
 };
 
 function getDoctorNetworkPrompt(language: string = 'en'): string {
-  return DOCTOR_NETWORK_PROMPTS[language as keyof typeof DOCTOR_NETWORK_PROMPTS] || DOCTOR_NETWORK_PROMPTS.en;
+  return (
+    DOCTOR_NETWORK_PROMPTS[language as keyof typeof DOCTOR_NETWORK_PROMPTS] ||
+    DOCTOR_NETWORK_PROMPTS.en
+  );
 }
 
 class AIProvider {
@@ -205,60 +224,70 @@ class AIProvider {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error('Gemini API key not configured');
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: messages.map(msg => ({
-          role: msg.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: msg.content }]
-        })),
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 500,
-          topK: 40,
-          topP: 0.95,
-        }
-      }),
-      signal: AbortSignal.timeout(10000)
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: messages.map((msg) => ({
+            role: msg.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: msg.content }],
+          })),
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500,
+            topK: 40,
+            topP: 0.95,
+          },
+        }),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
 
     if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-    
+
     const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I couldn\'t generate a response right now.';
+    return (
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "I apologize, but I couldn't generate a response right now."
+    );
   }
 
   static async callAnthropic(messages: any[]): Promise<string> {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error('Anthropic API key not configured');
 
-    const systemMessage = messages.find(m => m.role === 'system');
-    const conversationMessages = messages.filter(m => m.role !== 'system');
+    const systemMessage = messages.find((m) => m.role === 'system');
+    const conversationMessages = messages.filter((m) => m.role !== 'system');
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
         model: 'claude-3-sonnet-20240229',
         max_tokens: 500,
         system: systemMessage?.content || getDoctorNetworkPrompt('en'),
-        messages: conversationMessages.map(msg => ({
+        messages: conversationMessages.map((msg) => ({
           role: msg.role,
-          content: msg.content
-        }))
+          content: msg.content,
+        })),
       }),
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(10000),
     });
 
-    if (!response.ok) throw new Error(`Anthropic API error: ${response.status}`);
-    
+    if (!response.ok)
+      throw new Error(`Anthropic API error: ${response.status}`);
+
     const data = await response.json();
-    return data.content?.[0]?.text || 'I apologize, but I couldn\'t generate a response right now.';
+    return (
+      data.content?.[0]?.text ||
+      "I apologize, but I couldn't generate a response right now."
+    );
   }
 
   static async callOpenAI(messages: any[]): Promise<string> {
@@ -269,21 +298,24 @@ class AIProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages: messages,
         max_tokens: 500,
-        temperature: 0.7
+        temperature: 0.7,
       }),
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) throw new Error(`OpenAI API error: ${response.status}`);
-    
+
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || 'I apologize, but I couldn\'t generate a response right now.';
+    return (
+      data.choices?.[0]?.message?.content ||
+      "I apologize, but I couldn't generate a response right now."
+    );
   }
 
   static async callMistral(messages: any[]): Promise<string> {
@@ -292,38 +324,47 @@ class AIProvider {
 
     try {
       // Use direct HTTP call instead of SDK to avoid JSON parsing issues
-      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'mistral-small-latest',
-          messages: messages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          })),
-          max_tokens: 500,
-          temperature: 0.7
-        })
-      });
+      const response = await fetch(
+        'https://api.mistral.ai/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'mistral-small-latest',
+            messages: messages.map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+            max_tokens: 500,
+            temperature: 0.7,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Mistral API returned ${response.status}: ${await response.text()}`);
+        throw new Error(
+          `Mistral API returned ${response.status}: ${await response.text()}`
+        );
       }
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
-      
+
       if (typeof content === 'string') {
         return content;
       }
-      
-      return 'I apologize, but I couldn\'t generate a response right now.';
+
+      return "I apologize, but I couldn't generate a response right now.";
     } catch (error) {
       console.error('Mistral API error:', error);
-      throw new Error(`Mistral API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Mistral API error: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 }
@@ -332,11 +373,11 @@ async function getAIResponse(messages: any[]): Promise<string> {
   // Use backend chat API which has proven working Mistral integration
   try {
     console.log('[Doctor Network] Calling backend chat API with Mistral...');
-    
+
     // Get the last user message
     const lastMessage = messages[messages.length - 1];
     const userMessage = lastMessage?.content || '';
-    
+
     const response = await fetch('https://onelastai.co/api/chat', {
       method: 'POST',
       headers: {
@@ -345,8 +386,8 @@ async function getAIResponse(messages: any[]): Promise<string> {
       body: JSON.stringify({
         message: userMessage,
         model: 'mistral-small-latest',
-        agentId: 'doctor-network'
-      })
+        agentId: 'doctor-network',
+      }),
     });
 
     if (!response.ok) {
@@ -355,11 +396,14 @@ async function getAIResponse(messages: any[]): Promise<string> {
 
     const data = await response.json();
     console.log('[Doctor Network] Backend responded successfully');
-    return data.response || data.message || 'I apologize, but I couldn\'t generate a response right now.';
-    
+    return (
+      data.response ||
+      data.message ||
+      "I apologize, but I couldn't generate a response right now."
+    );
   } catch (error) {
     console.error('[Doctor Network] Backend API error:', error);
-    
+
     // Fallback message
     return `I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment. 🔄
 
@@ -376,101 +420,139 @@ For immediate help, check the IP information displayed above or try refreshing t
 // Advanced security analysis for proactive alerts
 function analyzeSecurityThreats(ipContext: any): string[] {
   const alerts: string[] = [];
-  
+
   if (!ipContext || !ipContext.security) return alerts;
-  
+
   const security = ipContext.security;
-  
+
   if (security.isTor) {
-    alerts.push('🚨 **Tor Network Alert**: This IP is associated with the Tor anonymity network. While Tor is legal and used for privacy, it can also be used to hide malicious activities. Monitor for unusual behavior.');
+    alerts.push(
+      '🚨 **Tor Network Alert**: This IP is associated with the Tor anonymity network. While Tor is legal and used for privacy, it can also be used to hide malicious activities. Monitor for unusual behavior.'
+    );
   }
-  
+
   if (security.isProxy) {
-    alerts.push('⚠️ **Proxy Server Detected**: This IP appears to be using a proxy server. Proxies can hide the real origin of traffic, which may be used for legitimate privacy reasons or to bypass restrictions.');
+    alerts.push(
+      '⚠️ **Proxy Server Detected**: This IP appears to be using a proxy server. Proxies can hide the real origin of traffic, which may be used for legitimate privacy reasons or to bypass restrictions.'
+    );
   }
-  
+
   if (security.isVPN) {
-    alerts.push('🛡️ **VPN Connection**: This IP is likely connected through a VPN service. VPNs are generally good for privacy but can affect location accuracy and may be flagged by some services.');
+    alerts.push(
+      '🛡️ **VPN Connection**: This IP is likely connected through a VPN service. VPNs are generally good for privacy but can affect location accuracy and may be flagged by some services.'
+    );
   }
-  
+
   if (security.isHosting) {
-    alerts.push('🏢 **Hosting/Data Center IP**: This IP belongs to a hosting provider or data center rather than a residential ISP. This is common for servers, cloud services, or some VPN providers.');
+    alerts.push(
+      '🏢 **Hosting/Data Center IP**: This IP belongs to a hosting provider or data center rather than a residential ISP. This is common for servers, cloud services, or some VPN providers.'
+    );
   }
-  
+
   if (security.threat === 'high') {
-    alerts.push('🔴 **High Threat Level**: This IP has been flagged with a high threat level. This could indicate association with spam, malware, or other suspicious activities. Exercise caution.');
+    alerts.push(
+      '🔴 **High Threat Level**: This IP has been flagged with a high threat level. This could indicate association with spam, malware, or other suspicious activities. Exercise caution.'
+    );
   }
-  
+
   return alerts;
 }
 
 // Check for common questions and provide quick responses
 function getQuickResponse(userMessage: string, ipContext?: any): string | null {
   const lowerMessage = userMessage.toLowerCase().trim();
-  
+
   // Check common questions
   for (const [question, answer] of Object.entries(COMMON_QUESTIONS)) {
     if (lowerMessage.includes(question)) {
       return answer;
     }
   }
-  
+
   // IP-specific quick responses with advanced security analysis
   if (ipContext) {
     if (lowerMessage.includes('my ip') || lowerMessage.includes('this ip')) {
       const securityAlerts = analyzeSecurityThreats(ipContext);
-      let response = `Your IP address is ${ipContext.ip}. ${ipContext.location?.city ? `It shows you're in ${ipContext.location.city}, ${ipContext.location.country}` : 'Location data is not available'} and your ISP is ${ipContext.network?.isp || 'unknown'}.`;
-      
+      let response = `Your IP address is ${ipContext.ip}. ${
+        ipContext.location?.city
+          ? `It shows you're in ${ipContext.location.city}, ${ipContext.location.country}`
+          : 'Location data is not available'
+      } and your ISP is ${ipContext.network?.isp || 'unknown'}.`;
+
       if (securityAlerts.length > 0) {
-        response += '\n\n**Security Analysis:**\n' + securityAlerts.join('\n\n');
+        response +=
+          '\n\n**Security Analysis:**\n' + securityAlerts.join('\n\n');
       } else {
-        response += '\n\n✅ This IP appears normal with no significant security flags.';
+        response +=
+          '\n\n✅ This IP appears normal with no significant security flags.';
       }
-      
+
       return response;
     }
-    
-    if (lowerMessage.includes('safe') || lowerMessage.includes('secure') || lowerMessage.includes('threat')) {
+
+    if (
+      lowerMessage.includes('safe') ||
+      lowerMessage.includes('secure') ||
+      lowerMessage.includes('threat')
+    ) {
       const securityAlerts = analyzeSecurityThreats(ipContext);
-      
+
       if (securityAlerts.length > 0) {
-        return '**Security Analysis for your IP:**\n\n' + securityAlerts.join('\n\n') + '\n\nWould you like me to explain any of these findings in more detail?';
+        return (
+          '**Security Analysis for your IP:**\n\n' +
+          securityAlerts.join('\n\n') +
+          '\n\nWould you like me to explain any of these findings in more detail?'
+        );
       } else {
         return '✅ Your IP appears safe with no significant security concerns. Your connection looks normal with no proxy, VPN, or Tor usage detected, and no threat indicators found.';
       }
     }
-    
+
     if (lowerMessage.includes('vpn') || lowerMessage.includes('proxy')) {
       const isVPN = ipContext.security?.isVPN;
       const isProxy = ipContext.security?.isProxy;
-      
+
       if (isVPN || isProxy) {
-        return `🔍 **Detection Results**: ${isVPN ? 'VPN usage detected' : ''} ${isProxy ? 'Proxy server detected' : ''}. ${isVPN ? 'VPNs encrypt your traffic and hide your real IP for privacy.' : ''} ${isProxy ? 'Proxies can hide your IP but may not encrypt your data.' : ''} This affects location accuracy and some services may block these connections.`;
+        return `🔍 **Detection Results**: ${
+          isVPN ? 'VPN usage detected' : ''
+        } ${isProxy ? 'Proxy server detected' : ''}. ${
+          isVPN
+            ? 'VPNs encrypt your traffic and hide your real IP for privacy.'
+            : ''
+        } ${
+          isProxy
+            ? 'Proxies can hide your IP but may not encrypt your data.'
+            : ''
+        } This affects location accuracy and some services may block these connections.`;
       } else {
         return '✅ No VPN or proxy usage detected. You appear to be connecting directly through your ISP without any intermediate privacy tools.';
       }
     }
   }
-  
+
   return null; // No quick response found
 }
 
 function buildContextualPrompt(userMessage: string, ipContext?: any): string {
   let contextInfo = '';
-  
+
   if (ipContext) {
     // Build comprehensive context for AI to provide intelligent, natural responses
     contextInfo = `\n\n[IP CONTEXT - Use this information to answer naturally when relevant]
 User's IP: ${ipContext.ip}`;
-    
+
     if (ipContext.location) {
       contextInfo += `
-Location: ${ipContext.location.city || 'Unknown'}, ${ipContext.location.country || 'Unknown'}
+Location: ${ipContext.location.city || 'Unknown'}, ${
+        ipContext.location.country || 'Unknown'
+      }
 Region: ${ipContext.location.region || 'Unknown'}
 Timezone: ${ipContext.location.timezone || 'Unknown'}
-Coordinates: ${ipContext.location.latitude || 'Unknown'}, ${ipContext.location.longitude || 'Unknown'}`;
+Coordinates: ${ipContext.location.latitude || 'Unknown'}, ${
+        ipContext.location.longitude || 'Unknown'
+      }`;
     }
-    
+
     if (ipContext.network) {
       contextInfo += `
 ISP/Provider: ${ipContext.network.isp || 'Unknown'}
@@ -478,24 +560,29 @@ ASN: ${ipContext.network.asn || 'Unknown'}
 Organization: ${ipContext.network.organization || 'Unknown'}
 Network Type: ${ipContext.network.connectionType || 'Unknown'}`;
     }
-    
+
     if (ipContext.security) {
       const securityFlags = [];
       if (ipContext.security.isVPN) securityFlags.push('VPN detected');
       if (ipContext.security.isProxy) securityFlags.push('Proxy detected');
       if (ipContext.security.isTor) securityFlags.push('Tor network');
-      if (ipContext.security.isHosting) securityFlags.push('Hosting/Datacenter IP');
-      
+      if (ipContext.security.isHosting)
+        securityFlags.push('Hosting/Datacenter IP');
+
       contextInfo += `
-Security Analysis: ${securityFlags.length > 0 ? securityFlags.join(', ') : 'Direct connection, no privacy tools detected'}
+Security Analysis: ${
+        securityFlags.length > 0
+          ? securityFlags.join(', ')
+          : 'Direct connection, no privacy tools detected'
+      }
 Threat Level: ${ipContext.security.threat || 'None'}`;
-      
+
       if (ipContext.security.threatScore) {
         contextInfo += `
 Threat Score: ${ipContext.security.threatScore}/100`;
       }
     }
-    
+
     contextInfo += `\n
 [INSTRUCTIONS]
 - When user asks about "my IP", "this IP", "VPN", "proxy", "security", etc., use the above context naturally
@@ -505,7 +592,7 @@ Threat Score: ${ipContext.security.threatScore}/100`;
 - Explain technical terms in simple language
 - If security concerns exist, explain them clearly but don't alarm unnecessarily`;
   }
-  
+
   return userMessage + contextInfo;
 }
 
@@ -514,14 +601,20 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[Doctor Network] Parsing request body...');
     const body: ChatRequest = await request.json();
-    console.log('[Doctor Network] Request body parsed:', JSON.stringify(body).substring(0, 100));
+    console.log(
+      '[Doctor Network] Request body parsed:',
+      JSON.stringify(body).substring(0, 100)
+    );
     const { message, conversation = [], language = 'en', ipContext } = body;
 
     if (!message || typeof message !== 'string') {
-      return NextResponse.json({
-        error: 'Message is required',
-        code: 'MISSING_MESSAGE'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Message is required',
+          code: 'MISSING_MESSAGE',
+        },
+        { status: 400 }
+      );
     }
 
     // Enforce message limit per session (20 messages)
@@ -532,28 +625,28 @@ export async function POST(request: NextRequest) {
           id: Date.now().toString(),
           type: 'assistant',
           content: `🔄 **Session Limit Reached**\n\nYou've reached the ${MAX_MESSAGES_PER_SESSION}-message limit for this session! This helps us keep Doctor Network free for everyone.\n\n**To continue chatting:**\n• Simply refresh your browser to start a new conversation\n• All your IP information will remain available\n• Doctor Network will be ready to help again!\n\nThank you for using Doctor Network by OneLastAI! 👨‍⚕️`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
         metadata: {
           limitReached: true,
           messagesUsed: conversation.length,
           maxMessages: MAX_MESSAGES_PER_SESSION,
-          model: 'doctor-network'
-        }
+          model: 'doctor-network',
+        },
       });
     }
 
     // Build conversation history for AI
     const conversationMessages = [
       { role: 'system', content: getDoctorNetworkPrompt(language) },
-      ...conversation.map(msg => ({
+      ...conversation.map((msg) => ({
         role: msg.type === 'user' ? 'user' : 'assistant',
-        content: msg.content
+        content: msg.content,
       })),
-      { 
-        role: 'user', 
-        content: buildContextualPrompt(message, ipContext)
-      }
+      {
+        role: 'user',
+        content: buildContextualPrompt(message, ipContext),
+      },
     ];
 
     // Always get AI response for natural, conversational answers
@@ -569,29 +662,34 @@ export async function POST(request: NextRequest) {
         id: messageId,
         type: 'assistant',
         content: aiResponse,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       metadata: {
         model: 'doctor-network',
         responseTime: Date.now(),
-        hasContext: !!ipContext
-      }
+        hasContext: !!ipContext,
+      },
     });
-
   } catch (error) {
     console.error('Doctor Network API error:', error);
-    
+
     if (error instanceof Error && error.name === 'AbortError') {
-      return NextResponse.json({
-        error: 'Request timeout. Please try again.',
-        code: 'TIMEOUT'
-      }, { status: 408 });
+      return NextResponse.json(
+        {
+          error: 'Request timeout. Please try again.',
+          code: 'TIMEOUT',
+        },
+        { status: 408 }
+      );
     }
-    
-    return NextResponse.json({
-      error: 'Sorry, I\'m having technical difficulties. Please try again.',
-      code: 'INTERNAL_ERROR'
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        error: "Sorry, I'm having technical difficulties. Please try again.",
+        code: 'INTERNAL_ERROR',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -604,7 +702,7 @@ export async function GET() {
     version: '1.0.0',
     endpoints: {
       chat: 'POST /',
-      health: 'GET /'
-    }
+      health: 'GET /',
+    },
   });
 }
