@@ -1,0 +1,191 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": [
+      "_id",
+      "createdAt",
+      "email",
+      "name",
+      "updatedAt"
+    ],
+    "properties": {
+      "_id": {
+        "bsonType": "objectId"
+      },
+      "__v": {
+        "bsonType": "int"
+      },
+      "authMethod": {
+        "bsonType": "string"
+      },
+      "avatar": {
+        "bsonType": "null"
+      },
+      "backupCodes": {
+        "bsonType": "array"
+      },
+      "bio": {
+        "bsonType": "string"
+      },
+      "company": {
+        "bsonType": "string"
+      },
+      "createdAt": {
+        "bsonType": "date"
+      },
+      "email": {
+        "bsonType": "string"
+      },
+      "emailVerified": {
+        "bsonType": [
+          "date",
+          "null"
+        ]
+      },
+      "image": {
+        "bsonType": "null"
+      },
+      "isActive": {
+        "bsonType": "bool"
+      },
+      "joinedAt": {
+        "bsonType": "string"
+      },
+      "lastLoginAt": {
+        "bsonType": [
+          "null",
+          "date"
+        ]
+      },
+      "location": {
+        "bsonType": "string"
+      },
+      "name": {
+        "bsonType": "string"
+      },
+      "password": {
+        "bsonType": "string"
+      },
+      "passwordChangedAt": {
+        "bsonType": "date"
+      },
+      "phoneNumber": {
+        "bsonType": "string"
+      },
+      "preferences": {
+        "bsonType": "object",
+        "properties": {
+          "emailNotifications": {
+            "bsonType": "bool"
+          },
+          "marketingEmails": {
+            "bsonType": "bool"
+          },
+          "productUpdates": {
+            "bsonType": "bool"
+          },
+          "smsNotifications": {
+            "bsonType": "bool"
+          }
+        },
+        "required": [
+          "emailNotifications",
+          "marketingEmails",
+          "productUpdates",
+          "smsNotifications"
+        ]
+      },
+      "profession": {
+        "bsonType": "string"
+      },
+      "resetPasswordExpires": {
+        "bsonType": "null"
+      },
+      "resetPasswordToken": {
+        "bsonType": "null"
+      },
+      "role": {
+        "bsonType": "string"
+      },
+      "sessionExpiry": {
+        "bsonType": "date"
+      },
+      "sessionId": {
+        "bsonType": "string"
+      },
+      "socialLinks": {
+        "bsonType": "object",
+        "properties": {
+          "github": {
+            "bsonType": "string"
+          },
+          "linkedin": {
+            "bsonType": "string"
+          },
+          "twitter": {
+            "bsonType": "string"
+          }
+        },
+        "required": [
+          "github",
+          "linkedin",
+          "twitter"
+        ]
+      },
+      "tempBackupCodes": {
+        "bsonType": "array"
+      },
+      "tempTwoFactorSecret": {
+        "bsonType": "null"
+      },
+      "timezone": {
+        "bsonType": "string"
+      },
+      "twoFactor": {
+        "bsonType": "object",
+        "properties": {
+          "backupCodes": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "enabled": {
+            "bsonType": "bool"
+          },
+          "secret": {
+            "bsonType": "string"
+          },
+          "tempSecret": {
+            "bsonType": "string"
+          },
+          "verified": {
+            "bsonType": "bool"
+          }
+        },
+        "required": [
+          "backupCodes",
+          "enabled",
+          "secret",
+          "tempSecret",
+          "verified"
+        ]
+      },
+      "twoFactorEnabled": {
+        "bsonType": "bool"
+      },
+      "twoFactorSecret": {
+        "bsonType": "null"
+      },
+      "updatedAt": {
+        "bsonType": "date"
+      },
+      "verified": {
+        "bsonType": "bool"
+      },
+      "website": {
+        "bsonType": "string"
+      }
+    }
+  }
+}

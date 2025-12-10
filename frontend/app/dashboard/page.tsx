@@ -151,7 +151,7 @@ function DashboardContent() {
         }
       }
 
-      const response = await fetch(`/api/user/analytics${queryParams}`);
+      const response = await fetch(`https://onelastai.co/api/user/analytics${queryParams}`);
       const data = await response.json();
       setAnalyticsData(data);
       setLoading(false);

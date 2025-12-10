@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 import { 
   Cog6ToothIcon,
   PaintBrushIcon,
@@ -18,76 +19,123 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function PreferencesPage() {
+  const { state } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
   const [preferences, setPreferences] = useState({
-    theme: {
-      mode: 'light', // light, dark, system
-      primaryColor: 'brand', // brand, blue, green, purple, orange
-      fontSize: 'medium', // small, medium, large
-      compactMode: false
-    },
+    theme: 'system',
+    language: 'en',
+    timezone: 'UTC',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: '12h',
+    currency: 'USD',
     notifications: {
       email: {
         enabled: true,
-        frequency: 'immediate', // immediate, daily, weekly
-        types: {
-          system: true,
-          security: true,
-          updates: true,
-          marketing: false,
-          community: true
-        }
+        frequency: 'immediate',
+        types: ['security', 'billing', 'updates']
       },
       push: {
         enabled: true,
-        quiet: {
-          enabled: false,
-          start: '22:00',
-          end: '08:00'
-        }
+        types: ['messages', 'reminders']
       },
-      desktop: {
+      sms: {
         enabled: false,
-        sound: true
+        types: []
       }
     },
-    language: {
-      primary: 'en',
-      secondary: 'es',
-      autoDetect: true
+    dashboard: {
+      defaultView: 'overview',
+      widgets: ['profile', 'security', 'rewards', 'analytics'],
+      layout: 'grid'
     },
     accessibility: {
       highContrast: false,
+      largeText: false,
       reduceMotion: false,
-      screenReader: false,
-      keyboardNavigation: true
+      screenReader: false
     },
     privacy: {
-      profileVisibility: 'public', // public, private, friends
-      activityTracking: true,
-      analytics: true,
-      dataSharing: false
+      showOnlineStatus: true,
+      allowDataCollection: true,
+      shareUsageStats: false
     },
-    advanced: {
-      autoSave: true,
-      autoBackup: true,
-      debugMode: false,
-      betaFeatures: false
-    }
+    integrations: {}
   })
 
-  const updatePreference = (path, value) => {
-    setPreferences(prev => {
-      const newPrefs = { ...prev }
-      const keys = path.split('.')
-      let current = newPrefs
+  // Fetch preferences on mount
+  useEffect(() => {
+    if (state.user?.id) {
+      fetchPreferences()
+    }
+  }, [state.user])
+
+  const fetchPreferences = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`https://onelastai.co/api/user/preferences/${state.user.id}`, {
+        credentials: 'include'
+      });
       
-      for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]]
+      if (response.ok) {
+        const result = await response.json()
+        setPreferences(result.data)
+      } else {
+        setMessage({ type: 'error', text: 'Failed to load preferences' })
       }
+    } catch (error) {
+      console.error('Error fetching preferences:', error)
+      setMessage({ type: 'error', text: 'Error loading preferences' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const savePreferences = async (updatedPrefs) => {
+    try {
+      setSaving(true)
+      const response = await fetch(`/api/user/preferences/${state.user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updatedPrefs)
+      })
       
-      current[keys[keys.length - 1]] = value
-      return newPrefs
-    })
+      if (response.ok) {
+        const result = await response.json()
+        setPreferences(result.data)
+        setMessage({ type: 'success', text: 'Preferences saved successfully!' })
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+      } else {
+        setMessage({ type: 'error', text: 'Failed to save preferences' })
+      }
+    } catch (error) {
+      console.error('Error saving preferences:', error)
+      setMessage({ type: 'error', text: 'Error saving preferences' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const updatePreference = (path, value) => {
+    const newPrefs = { ...preferences }
+    const keys = path.split('.')
+    let current = newPrefs
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!current[keys[i]]) current[keys[i]] = {}
+      current = current[keys[i]]
+    }
+    
+    current[keys[keys.length - 1]] = value
+    setPreferences(newPrefs)
+    
+    // Auto-save preferences after a short delay
+    clearTimeout(updatePreference.timeoutId)
+    updatePreference.timeoutId = setTimeout(() => {
+      savePreferences(newPrefs)
+    }, 500)
   }
 
   const themes = [
@@ -113,6 +161,18 @@ export default function PreferencesPage() {
     { code: 'zh', name: 'Chinese', native: '中文' }
   ]
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+          <p className="text-neural-600">Loading your preferences...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
       {/* Header */}
@@ -125,10 +185,29 @@ export default function PreferencesPage() {
               </h1>
               <p className="text-neural-600">Customize your experience and interface settings</p>
             </div>
-            <Link href="/dashboard/overview" className="btn-secondary">
-              Back to Dashboard
-            </Link>
+            <div className="flex items-center space-x-4">
+              {saving && (
+                <div className="flex items-center text-brand-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500 mr-2"></div>
+                  <span className="text-sm">Saving...</span>
+                </div>
+              )}
+              <Link href="/dashboard/overview" className="btn-secondary">
+                Back to Dashboard
+              </Link>
+            </div>
           </div>
+          
+          {/* Status Message */}
+          {message.text && (
+            <div className={`p-4 rounded-lg mb-4 ${
+              message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
+              message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
+              'bg-blue-50 text-blue-700 border border-blue-200'
+            }`}>
+              {message.text}
+            </div>
+          )}
         </div>
       </section>
 
@@ -152,9 +231,9 @@ export default function PreferencesPage() {
                     {themes.map((theme) => (
                       <div
                         key={theme.id}
-                        onClick={() => updatePreference('theme.mode', theme.id)}
+                        onClick={() => updatePreference('theme', theme.id)}
                         className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                          preferences.theme.mode === theme.id
+                          preferences.theme === theme.id
                             ? 'border-brand-500 bg-brand-50'
                             : 'border-neural-200 hover:border-neural-300'
                         }`}
@@ -169,62 +248,39 @@ export default function PreferencesPage() {
                   </div>
                 </div>
 
-                {/* Primary Color */}
+                {/* Language Selection */}
                 <div>
-                  <h4 className="font-medium text-neural-900 mb-3">Primary Color</h4>
-                  <div className="flex flex-wrap gap-3">
-                    {colors.map((color) => (
-                      <div
-                        key={color.id}
-                        onClick={() => updatePreference('theme.primaryColor', color.id)}
-                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                          preferences.theme.primaryColor === color.id
-                            ? 'border-brand-500 bg-brand-50'
-                            : 'border-neural-200 hover:border-neural-300'
-                        }`}
-                      >
-                        <div className={`w-4 h-4 rounded-full ${color.color} mr-2`}></div>
-                        <span className="text-sm font-medium text-neural-900">{color.name}</span>
-                      </div>
+                  <h4 className="font-medium text-neural-900 mb-3">Language</h4>
+                  <select
+                    value={preferences.language || 'en'}
+                    onChange={(e) => updatePreference('language', e.target.value)}
+                    className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    {languages.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.native} ({lang.name})
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
-                {/* Font Size */}
+                {/* Timezone */}
                 <div>
-                  <h4 className="font-medium text-neural-900 mb-3">Font Size</h4>
-                  <div className="flex space-x-4">
-                    {['small', 'medium', 'large'].map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => updatePreference('theme.fontSize', size)}
-                        className={`px-4 py-2 rounded-lg border transition-colors ${
-                          preferences.theme.fontSize === size
-                            ? 'border-brand-500 bg-brand-50 text-brand-700'
-                            : 'border-neural-200 hover:border-neural-300'
-                        }`}
-                      >
-                        {size.charAt(0).toUpperCase() + size.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Compact Mode */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-neural-900">Compact Mode</h4>
-                    <p className="text-sm text-neural-600">Reduce spacing and padding for more content</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={preferences.theme.compactMode}
-                      onChange={(e) => updatePreference('theme.compactMode', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
-                  </label>
+                  <h4 className="font-medium text-neural-900 mb-3">Timezone</h4>
+                  <select
+                    value={preferences.timezone || 'UTC'}
+                    onChange={(e) => updatePreference('timezone', e.target.value)}
+                    className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="UTC">UTC</option>
+                    <option value="America/New_York">Eastern Time</option>
+                    <option value="America/Chicago">Central Time</option>
+                    <option value="America/Denver">Mountain Time</option>
+                    <option value="America/Los_Angeles">Pacific Time</option>
+                    <option value="Europe/London">London</option>
+                    <option value="Europe/Paris">Paris</option>
+                    <option value="Asia/Tokyo">Tokyo</option>
+                  </select>
                 </div>
               </div>
             </div>

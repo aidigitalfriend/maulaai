@@ -8,6 +8,25 @@ export interface IUser extends Document {
   authMethod: 'password' | 'passwordless';
   emailVerified?: Date;
   image?: string;
+  avatar?: string; // Profile avatar URL
+  bio?: string; // Profile bio
+  phoneNumber?: string; // Profile phone
+  location?: string; // Profile location
+  timezone?: string; // Profile timezone
+  profession?: string; // Professional info
+  company?: string; // Professional info
+  website?: string; // Professional info
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+  };
+  preferences?: {
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    marketingEmails?: boolean;
+    productUpdates?: boolean;
+  };
   createdAt: Date;
   updatedAt: Date;
   lastLoginAt?: Date;
@@ -56,6 +75,70 @@ const UserSchema = new Schema<IUser>(
     image: {
       type: String,
       default: null,
+    },
+    avatar: {
+      type: String,
+      default: null,
+    },
+    bio: {
+      type: String,
+      default: null,
+    },
+    phoneNumber: {
+      type: String,
+      default: null,
+    },
+    location: {
+      type: String,
+      default: null,
+    },
+    timezone: {
+      type: String,
+      default: null,
+    },
+    profession: {
+      type: String,
+      default: null,
+    },
+    company: {
+      type: String,
+      default: null,
+    },
+    website: {
+      type: String,
+      default: null,
+    },
+    socialLinks: {
+      linkedin: {
+        type: String,
+        default: null,
+      },
+      twitter: {
+        type: String,
+        default: null,
+      },
+      github: {
+        type: String,
+        default: null,
+      },
+    },
+    preferences: {
+      emailNotifications: {
+        type: Boolean,
+        default: true,
+      },
+      smsNotifications: {
+        type: Boolean,
+        default: false,
+      },
+      marketingEmails: {
+        type: Boolean,
+        default: true,
+      },
+      productUpdates: {
+        type: Boolean,
+        default: true,
+      },
     },
     lastLoginAt: {
       type: Date,

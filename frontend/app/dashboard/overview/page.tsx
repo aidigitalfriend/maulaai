@@ -41,11 +41,11 @@ const fetchWithTimeout = async (
 const fetchUserData = async (userId: string) => {
   try {
     // Load data sequentially to reduce server load
-    const profileRes = await fetchWithTimeout(`/api/user/profile/${userId}`, {
+    const profileRes = await fetchWithTimeout(`https://onelastai.co/api/user/profile/${userId}`, {
       credentials: 'include',
     }).catch(() => null);
 
-    const rewardsRes = await fetchWithTimeout(`/api/user/rewards/${userId}`, {
+    const rewardsRes = await fetchWithTimeout(`https://onelastai.co/api/user/rewards/${userId}`, {
       credentials: 'include',
     }).catch(() => null);
 
@@ -225,7 +225,7 @@ export default function DashboardOverviewPage() {
           // Fetch real security settings with actual 2FA status
           try {
             const securityRes = await fetchWithTimeout(
-              `/api/user/security/${state.user.id}`,
+              `https://onelastai.co/api/user/security/${state.user.id}`,
               { credentials: 'include' },
               8000 // 8 second timeout for security data
             );

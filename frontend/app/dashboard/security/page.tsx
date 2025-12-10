@@ -133,8 +133,8 @@ export default function SecuritySettingsPage() {
   const fetchSecurityData = async () => {
     try {
       // Fetch current security data
-      const securityRes = await fetch(`/api/user/security/${state.user.id}`, {
-        credentials: 'include',
+      const securityRes = await fetch(`https://onelastai.co/api/user/security/${state.user.id}`, {
+        credentials: 'include'
       });
       if (securityRes.ok) {
         const securityData = await securityRes.json();
@@ -171,14 +171,14 @@ export default function SecuritySettingsPage() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/user/security/change-password', {
+      const res = await fetch('https://onelastai.co/api/user/security/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           currentPassword,
-          newPassword,
-        }),
+          newPassword
+        })
       });
 
       const data = await res.json();
@@ -239,7 +239,7 @@ export default function SecuritySettingsPage() {
       }
 
       try {
-        const res = await fetch('/api/user/security/2fa/disable', {
+        const res = await fetch('https://onelastai.co/api/user/security/2fa/disable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -277,7 +277,7 @@ export default function SecuritySettingsPage() {
 
     try {
       setLoading(true);
-      const res = await fetch('/api/user/security/2fa/verify', {
+      const res = await fetch('https://onelastai.co/api/user/security/2fa/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

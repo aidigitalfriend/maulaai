@@ -337,7 +337,7 @@ async function getAIResponse(messages: any[]): Promise<string> {
     const lastMessage = messages[messages.length - 1];
     const userMessage = lastMessage?.content || '';
     
-    const response = await fetch('http://localhost:3001/api/chat', {
+    const response = await fetch('https://onelastai.co/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

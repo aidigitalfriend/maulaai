@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { TrendingUp, TrendingDown, Activity, Users, MessageSquare, Clock, Target, Zap } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, Users, MessageSquare, Clock, Target, Zap, ChevronRight } from 'lucide-react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Link from 'next/link'
 
@@ -38,53 +38,94 @@ function AgentPerformanceDashboard() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<AgentPerformanceData | null>(null)
   const [selectedAgent, setSelectedAgent] = useState('einstein')
+  const [timeRange, setTimeRange] = useState('7d')
+
+  const agentOptions = [
+    { id: 'einstein', name: 'Einstein', icon: '🧠' },
+    { id: 'tech-wizard', name: 'Tech Wizard', icon: '🧙‍♂️' },
+    { id: 'comedy-king', name: 'Comedy King', icon: '😄' },
+    { id: 'chef-biew', name: 'Chef Biew', icon: '👨‍🍳' },
+    { id: 'ben-sega', name: 'Ben Sega', icon: '🎮' },
+    { id: 'default', name: 'AI Assistant', icon: '🤖' }
+  ]
+
+  const timeRangeOptions = [
+    { id: '1d', name: 'Last 24 Hours' },
+    { id: '7d', name: 'Last 7 Days' },
+    { id: '30d', name: 'Last 30 Days' }
+  ]
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Simulate API call - replace with actual endpoint
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const response = await fetch(`https://onelastai.co/api/agent/performance/${selectedAgent}?timeRange=${timeRange}`, {
+          credentials: 'include'
+        });
         
-        // Mock data - replace with actual API response
+        if (response.ok) {
+          const result = await response.json();
+          setData(result.data);
+        } else {
+          console.error('Failed to fetch agent performance data');
+          // Fallback to mock data if API fails
+          setData({
+            agent: {
+              name: 'Einstein',
+              type: 'Physics & Science',
+              avatar: '🧠',
+              status: 'active'
+            },
+            metrics: {
+              totalConversations: 0,
+              totalMessages: 0,
+              averageResponseTime: 1.2,
+              satisfactionScore: 4.8,
+              activeUsers: 0,
+              uptime: 99.9
+            },
+            trends: {
+              conversations: { value: 0, change: '+0%', trend: 'up' },
+              messages: { value: 0, change: '+0%', trend: 'up' },
+              responseTime: { value: 1.2, change: '+0s', trend: 'up' },
+              satisfaction: { value: 4.8, change: '+0', trend: 'up' }
+            },
+            recentActivity: []
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch agent performance data:', error)
+        // Fallback data
         setData({
           agent: {
             name: 'Einstein',
             type: 'Physics & Science',
             avatar: '🧠',
-            status: 'active'
+            status: 'idle'
           },
           metrics: {
-            totalConversations: 1247,
-            totalMessages: 8934,
-            averageResponseTime: 1.2,
+            totalConversations: 0,
+            totalMessages: 0,
+            averageResponseTime: 0,
             satisfactionScore: 4.8,
-            activeUsers: 89,
+            activeUsers: 0,
             uptime: 99.9
           },
           trends: {
-            conversations: { value: 1247, change: '+12.5%', trend: 'up' },
-            messages: { value: 8934, change: '+8.3%', trend: 'up' },
-            responseTime: { value: 1.2, change: '-0.2s', trend: 'up' },
-            satisfaction: { value: 4.8, change: '+0.1', trend: 'up' }
+            conversations: { value: 0, change: '+0%', trend: 'up' },
+            messages: { value: 0, change: '+0%', trend: 'up' },
+            responseTime: { value: 0, change: '+0s', trend: 'up' },
+            satisfaction: { value: 4.8, change: '+0', trend: 'up' }
           },
-          recentActivity: [
-            { timestamp: '2 min ago', type: 'conversation', description: 'New conversation started about quantum physics' },
-            { timestamp: '5 min ago', type: 'message', description: 'Explained relativity theory to user' },
-            { timestamp: '12 min ago', type: 'conversation', description: 'Help with physics homework completed' },
-            { timestamp: '18 min ago', type: 'message', description: 'Provided research paper recommendations' },
-            { timestamp: '25 min ago', type: 'conversation', description: 'Discussed spacetime curvature' }
-          ]
-        })
-      } catch (error) {
-        console.error('Failed to fetch agent performance data:', error)
+          recentActivity: []
+        });
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [selectedAgent])
+  }, [selectedAgent, timeRange])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -144,9 +185,60 @@ function AgentPerformanceDashboard() {
             <p className="text-gray-600">Monitor your AI agent's performance and usage metrics</p>
           </div>
           <div className="flex items-center gap-4 mt-4 sm:mt-0">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(data.agent.status)}`}>
-              {data.agent.status.charAt(0).toUpperCase() + data.agent.status.slice(1)}
-            </span>
+            <Link href="/dashboard/overview" className="btn-secondary">
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Agent Selection */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Agent
+              </label>
+              <select
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {agentOptions.map(agent => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.icon} {agent.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Time Range Selection */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Time Range
+              </label>
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {timeRangeOptions.map(range => (
+                  <option key={range.id} value={range.id}>
+                    {range.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Badge */}
+            <div className="flex items-end">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Status:</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(data.agent.status)}`}>
+                  {data.agent.status.charAt(0).toUpperCase() + data.agent.status.slice(1)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

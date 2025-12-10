@@ -581,34 +581,8 @@ export async function getRealtimeStats() {
 }
 
 // ============================================
-// HELPERS: Device/Browser/OS Detection
+// HELPERS: Utility Functions
 // ============================================
-export function detectDevice(userAgent) {
-  if (!userAgent) return 'Unknown';
-  if (/mobile/i.test(userAgent)) return 'Mobile';
-  if (/tablet/i.test(userAgent)) return 'Tablet';
-  return 'Desktop';
-}
-
-export function detectBrowser(userAgent) {
-  if (!userAgent) return 'Unknown';
-  if (/chrome/i.test(userAgent) && !/edg/i.test(userAgent)) return 'Chrome';
-  if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) return 'Safari';
-  if (/firefox/i.test(userAgent)) return 'Firefox';
-  if (/edg/i.test(userAgent)) return 'Edge';
-  if (/opera|opr/i.test(userAgent)) return 'Opera';
-  return 'Unknown';
-}
-
-export function detectOS(userAgent) {
-  if (!userAgent) return 'Unknown';
-  if (/windows/i.test(userAgent)) return 'Windows';
-  if (/mac os/i.test(userAgent)) return 'macOS';
-  if (/linux/i.test(userAgent)) return 'Linux';
-  if (/android/i.test(userAgent)) return 'Android';
-  if (/ios|iphone|ipad/i.test(userAgent)) return 'iOS';
-  return 'Unknown';
-}
 
 export function generateVisitorId() {
   return `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

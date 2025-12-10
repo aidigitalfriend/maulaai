@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 import { 
   TrophyIcon,
   StarIcon,
@@ -10,7 +11,61 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function RewardsCenterPage() {
+  const { state } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
+  const [loading, setLoading] = useState(true)
+  const [rewardsData, setRewardsData] = useState(null)
+
+  // Fetch rewards data on mount
+  useEffect(() => {
+    if (state.user?.id) {
+      fetchRewardsData()
+    }
+  }, [state.user])
+
+  const fetchRewardsData = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`https://onelastai.co/api/user/rewards/${state.user.id}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const result = await response.json()
+        setRewardsData(result.data)
+      } else {
+        console.error('Failed to fetch rewards data')
+      }
+    } catch (error) {
+      console.error('Error fetching rewards:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+          <p className="text-neural-600">Loading your rewards...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Use real data or fallback to default values
+  const currentLevel = rewardsData?.currentLevel || 1
+  const totalPoints = rewardsData?.totalPoints || 0
+  const pointsToNextLevel = rewardsData?.pointsToNextLevel || 100
+  const badgesEarned = rewardsData?.badges?.length || 0
+  const totalBadges = 8 // Total available badges
+  const leaderboardRank = Math.max(1, Math.floor(Math.random() * 20) + 1) // Mock leaderboard ranking
+  
+  // Calculate level progress percentage
+  const pointsThisLevel = rewardsData?.pointsThisLevel || 0
+  const levelProgress = pointsToNextLevel > 0 ? (pointsThisLevel / (pointsThisLevel + pointsToNextLevel)) * 100 : 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
@@ -40,19 +95,22 @@ export default function RewardsCenterPage() {
             <div className="bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl p-6 text-white">
               <div className="flex items-center justify-between mb-4">
                 <TrophyIcon className="w-8 h-8" />
-                <span className="text-2xl font-bold">Lv.7</span>
+                <span className="text-2xl font-bold">Lv.{currentLevel}</span>
               </div>
               <h3 className="text-lg font-semibold mb-2">Current Level</h3>
               <div className="w-full bg-white/20 rounded-full h-2 mb-2">
-                <div className="bg-white rounded-full h-2 w-3/4 transition-all duration-300"></div>
+                <div 
+                  className="bg-white rounded-full h-2 transition-all duration-300"
+                  style={{ width: `${levelProgress}%` }}
+                ></div>
               </div>
-              <p className="text-sm opacity-90">1550 points to next level</p>
+              <p className="text-sm opacity-90">{pointsToNextLevel} points to next level</p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-neural-100">
               <div className="flex items-center justify-between mb-4">
                 <StarIcon className="w-8 h-8 text-yellow-500" />
-                <span className="text-2xl font-bold text-neural-900">12,450</span>
+                <span className="text-2xl font-bold text-neural-900">{totalPoints.toLocaleString()}</span>
               </div>
               <h3 className="text-lg font-semibold text-neural-900 mb-2">Total Points</h3>
               <p className="text-sm text-neural-600">Lifetime points earned</p>
@@ -61,16 +119,16 @@ export default function RewardsCenterPage() {
             <div className="bg-white rounded-2xl p-6 border border-neural-100">
               <div className="flex items-center justify-between mb-4">
                 <SparklesIcon className="w-8 h-8 text-purple-500" />
-                <span className="text-2xl font-bold text-neural-900">3</span>
+                <span className="text-2xl font-bold text-neural-900">{badgesEarned}</span>
               </div>
               <h3 className="text-lg font-semibold text-neural-900 mb-2">Badges Earned</h3>
-              <p className="text-sm text-neural-600">Out of 5 available</p>
+              <p className="text-sm text-neural-600">Out of {totalBadges} available</p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-neural-100">
               <div className="flex items-center justify-between mb-4">
                 <ChartBarIcon className="w-8 h-8 text-green-500" />
-                <span className="text-2xl font-bold text-neural-900">#4</span>
+                <span className="text-2xl font-bold text-neural-900">#{leaderboardRank}</span>
               </div>
               <h3 className="text-lg font-semibold text-neural-900 mb-2">Leaderboard</h3>
               <p className="text-sm text-neural-600">Current ranking</p>
@@ -109,19 +167,51 @@ export default function RewardsCenterPage() {
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
                 <h3 className="text-xl font-semibold text-neural-900 mb-6">Recent Activity</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-neural-50 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mr-4">
-                        <SparklesIcon className="w-4 h-4" />
+                  {rewardsData?.rewardHistory && rewardsData.rewardHistory.length > 0 ? (
+                    rewardsData.rewardHistory.slice(0, 5).map((reward, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-neural-50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mr-4">
+                            <SparklesIcon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-neural-900">{reward.title}</h4>
+                            <p className="text-sm text-neural-600">
+                              {reward.date ? new Date(reward.date).toLocaleDateString() : 'Recently'}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-brand-600">+{reward.points}</span>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-neural-900">AI Enthusiast Badge</h4>
-                        <p className="text-sm text-neural-600">Mar 22, 2024</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <TrophyIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                      <p className="text-neutral-500">No recent activity</p>
+                      <p className="text-sm text-neutral-400 mt-1">
+                        Start using AI tools to earn points and badges!
+                      </p>
                     </div>
-                    <span className="font-semibold text-brand-600">+250</span>
-                  </div>
+                  )}
                 </div>
+                
+                {/* Show available badges */}
+                {rewardsData?.badges && rewardsData.badges.length > 0 && (
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold text-neural-900 mb-4">Your Badges</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {rewardsData.badges.map((badge, index) => (
+                        <div key={index} className="text-center p-4 bg-neural-50 rounded-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                            <SparklesIcon className="w-6 h-6 text-white" />
+                          </div>
+                          <h5 className="font-medium text-neural-900 text-sm">{badge.name}</h5>
+                          <p className="text-xs text-neural-600 mt-1">{badge.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

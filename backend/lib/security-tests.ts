@@ -14,7 +14,7 @@
  * 7. Security headers presence
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001'
+const BACKEND_URL = process.env.BACKEND_URL || 'https://onelastai.co'
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000'
 
 // Test utilities
