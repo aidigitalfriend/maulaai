@@ -6,11 +6,7 @@ import { useLoading } from '@/lib/loading-context';
 import SplashScreen from '@/components/SplashScreen';
 
 export default function SplashScreenWrapper() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  const { isLoading } = mounted ? useLoading() : { isLoading: true };
+  const { isLoading } = useLoading();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
 

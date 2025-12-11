@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import type { AnalyticsData } from '@/models/analytics';
 import {
   TrendingUp,
   TrendingDown,
@@ -18,148 +20,24 @@ import {
   X,
 } from 'lucide-react';
 
-interface AnalyticsData {
-  subscription: {
-    plan: string;
-    status: string;
-    price: number;
-    period: string;
-    renewalDate: string;
-    daysUntilRenewal: number;
-  };
-  usage: {
-    conversations: {
-      current: number;
-      limit: number;
-      percentage: number;
-      unit?: string;
-    };
-    agents: {
-      current: number;
-      limit: number;
-      percentage: number;
-      unit?: string;
-    };
-    apiCalls: {
-      current: number;
-      limit: number;
-      percentage: number;
-      unit?: string;
-    };
-    storage: {
-      current: number;
-      limit: number;
-      percentage: number;
-      unit?: string;
-    };
-    messages: {
-      current: number;
-      limit: number;
-      percentage: number;
-      unit?: string;
-    };
-  };
-  dailyUsage: Array<{
-    date: string;
-    conversations: number;
-    messages: number;
-    apiCalls: number;
-  }>;
-  weeklyTrend: {
-    conversationsChange: string;
-    messagesChange: string;
-    apiCallsChange: string;
-    responseTimeChange: string;
-  };
-  agentPerformance: Array<{
-    name: string;
-    conversations: number;
-    messages: number;
-    avgResponseTime: number;
-    successRate: number;
-  }>;
-  recentActivity: Array<{
-    timestamp: string;
-    agent: string;
-    action: string;
-    status: string;
-  }>;
-  costAnalysis: {
-    currentMonth: number;
-    projectedMonth: number;
-    breakdown: Array<{ category: string; cost: number; percentage: number }>;
-  };
-  topAgents: Array<{ name: string; usage: number }>;
-}
-
-// Mock data fallback function
-function getMockAnalyticsData(): AnalyticsData {
-  return {
-    subscription: {
-      plan: "Professional",
-      status: "active", 
-      price: 29,
-      period: "month",
-      renewalDate: "2024-01-15",
-      daysUntilRenewal: 15
-    },
-    usage: {
-      conversations: { current: 847, limit: 2000, percentage: 42.35 },
-      agents: { current: 8, limit: 15, percentage: 53.33 },
-      apiCalls: { current: 12450, limit: 25000, percentage: 49.8 },
-      storage: { current: 2.1, limit: 10, percentage: 21 },
-      messages: { current: 3420, limit: 10000, percentage: 34.2 }
-    },
-    dailyUsage: [
-      { date: '2024-01-01', conversations: 45, messages: 120, apiCalls: 300 },
-      { date: '2024-01-02', conversations: 52, messages: 140, apiCalls: 350 },
-      { date: '2024-01-03', conversations: 38, messages: 95, apiCalls: 280 }
-    ],
-    weeklyTrend: {
-      conversationsChange: '+12%',
-      messagesChange: '+8%', 
-      apiCallsChange: '+15%',
-      responseTimeChange: '-0.2s'
-    },
-    agentPerformance: [
-      { name: 'Einstein', conversations: 234, messages: 850, avgResponseTime: 1.2, successRate: 96.5 },
-      { name: 'Tech Wizard', conversations: 189, messages: 720, avgResponseTime: 0.9, successRate: 94.2 },
-      { name: 'Chef Biew', conversations: 156, messages: 580, avgResponseTime: 1.1, successRate: 97.1 }
-    ],
-    recentActivity: [
-      { timestamp: '2 mins ago', agent: 'Einstein', action: 'Conversation started', status: 'active' },
-      { timestamp: '5 mins ago', agent: 'Tech Wizard', action: 'API call completed', status: 'success' },
-      { timestamp: '8 mins ago', agent: 'Chef Biew', action: 'Message processed', status: 'success' }
-    ],
-    costAnalysis: {
-      currentMonth: 24.50,
-      projectedMonth: 28.75,
-      breakdown: [
-        { category: 'API Calls', cost: 12.30, percentage: 50 },
-        { category: 'Storage', cost: 6.20, percentage: 25 },
-        { category: 'Processing', cost: 6.00, percentage: 25 }
-      ]
-    },
-    topAgents: [
-      { name: 'Einstein', usage: 35 },
-      { name: 'Tech Wizard', usage: 28 },
-      { name: 'Chef Biew', usage: 22 }
-    ]
-  };
-}
-
 function DashboardContent() {
   const searchParams = useSearchParams();
+  const { state } = useAuth();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
     null
   );
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [subscriptionSuccess, setSubscriptionSuccess] = useState<{
     agent: string;
     slug: string;
     plan: string;
   } | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
     // Check for subscription success
@@ -181,60 +59,74 @@ function DashboardContent() {
         window.history.replaceState({}, '', url.toString());
       }
     }
-
-    fetchAnalytics();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchAnalytics, 30000);
-    return () => clearInterval(interval);
   }, [searchParams]);
 
-  const fetchAnalytics = async () => {
-    try {
-      // Get current user to pass to analytics endpoint
-      const userStr = localStorage.getItem('auth_user');
-      let queryParams = '';
+  const fetchAnalytics = useCallback(async () => {
+    if (!state.user) return;
 
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          if (user.id) {
-            queryParams = `?userId=${encodeURIComponent(user.id)}`;
-          } else if (user.email) {
-            queryParams = `?email=${encodeURIComponent(user.email)}`;
-          }
-        } catch (e) {
-          console.error('Error parsing user data:', e);
-        }
-      }
+    setError(null);
 
-      const response = await fetch(
-        `https://onelastai.co/api/user/analytics${queryParams}`,
-        {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAnalyticsData(data);
-      } else {
-        // Fallback to mock data if API fails
-        console.warn('Analytics API failed, using mock data');
-        setAnalyticsData(getMockAnalyticsData());
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-      // Fallback to mock data on error
-      setAnalyticsData(getMockAnalyticsData());
-      setLoading(false);
+    if (!hasLoadedRef.current) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
     }
-  };
 
-  if (loading || !analyticsData) {
+    const controller = new AbortController();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = controller;
+
+    try {
+      const response = await fetch('/api/user/analytics', {
+        credentials: 'include',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      const payload: unknown = await response.json();
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload === 'object' && 'error' in payload
+            ? (payload as { error?: string }).error
+            : undefined) ||
+          (payload && typeof payload === 'object' && 'message' in payload
+            ? (payload as { message?: string }).message
+            : undefined) ||
+          'Failed to load analytics';
+        throw new Error(message);
+      }
+
+      setAnalyticsData(payload as AnalyticsData);
+      setLastUpdated(new Date());
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        return;
+      }
+      console.error('Error fetching analytics:', err);
+      setError((err as Error).message || 'Unable to load analytics');
+    } finally {
+      hasLoadedRef.current = true;
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [state.user]);
+
+  useEffect(() => {
+    if (!state.user) return;
+
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 30000);
+
+    return () => {
+      clearInterval(interval);
+      abortControllerRef.current?.abort();
+    };
+  }, [state.user, fetchAnalytics]);
+
+  if (loading) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -246,6 +138,40 @@ function DashboardContent() {
       </ProtectedRoute>
     );
   }
+
+  if (!analyticsData) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+          <div className="text-center max-w-lg">
+            <h2 className="text-2xl font-semibold text-neural-900 mb-3">
+              {error || 'Unable to load analytics right now'}
+            </h2>
+            <p className="text-neural-600 mb-6">
+              Please verify your session is active and try refreshing the data.
+            </p>
+            <button
+              onClick={() => fetchAnalytics()}
+              className="btn-primary"
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? 'Refreshing...' : 'Retry'}
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  const successRate =
+    analyticsData.agentPerformance?.length > 0
+      ? (
+          analyticsData.agentPerformance.reduce(
+            (sum, agent) => sum + (agent.successRate || 0),
+            0
+          ) / analyticsData.agentPerformance.length
+        ).toFixed(1)
+      : '0.0';
 
   const getStatusColor = (percentage: number) => {
     if (percentage >= 90) return 'text-red-600';
@@ -286,7 +212,7 @@ function DashboardContent() {
     },
     {
       label: 'Success Rate',
-      value: '94.2%',
+      value: `${successRate}%`,
       change: '+1.3% this week',
       trend: 'up',
       icon: CheckCircle,
@@ -367,6 +293,21 @@ function DashboardContent() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="container-custom section-padding-lg">
+          {error && analyticsData && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p className="font-semibold">Real-time data may be delayed.</p>
+                <p className="text-sm">{error}</p>
+              </div>
+              <button
+                onClick={() => fetchAnalytics()}
+                className="btn-secondary"
+                disabled={isRefreshing}
+              >
+                {isRefreshing ? 'Refreshing…' : 'Retry'}
+              </button>
+            </div>
+          )}
           {/* Subscription Success Message */}
           {showSuccessMessage && subscriptionSuccess && (
             <div className="mb-8 bg-green-50 border border-green-200 rounded-xl p-6">
@@ -408,6 +349,11 @@ function DashboardContent() {
                 Monitor your AI agents, track usage, and manage your
                 subscription in real-time.
               </p>
+              {lastUpdated && (
+                <p className="text-sm text-neural-500 mt-2">
+                  Last updated {lastUpdated.toLocaleTimeString()}
+                </p>
+              )}
             </div>
 
             {/* Subscription Badge */}
@@ -542,40 +488,53 @@ function DashboardContent() {
               <div className="space-y-4">
                 {/* Chart */}
                 <div className="flex items-end justify-between h-48 gap-2">
-                  {analyticsData.dailyUsage.map((day, index) => {
-                    const maxConversations = Math.max(
-                      ...analyticsData.dailyUsage.map((d) => d.conversations)
-                    );
-                    const height = (day.conversations / maxConversations) * 100;
-                    return (
-                      <div
-                        key={index}
-                        className="flex-1 flex flex-col items-center group"
-                      >
-                        <div className="relative w-full">
-                          <div
-                            className="w-full bg-gradient-to-t from-brand-500 to-brand-300 rounded-t-lg transition-all duration-300 group-hover:from-brand-600 group-hover:to-brand-400 cursor-pointer"
-                            style={{ height: `${height}%`, minHeight: '20px' }}
-                          >
-                            {/* Tooltip */}
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-neural-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10">
-                              <p className="font-semibold">
-                                {day.conversations} conversations
-                              </p>
-                              <p>{day.messages} messages</p>
-                              <p>{day.apiCalls} API calls</p>
+                  {analyticsData.dailyUsage.length > 0 ? (
+                    analyticsData.dailyUsage.map((day, index) => {
+                      const maxConversations = Math.max(
+                        ...analyticsData.dailyUsage.map(
+                          (d) => d.conversations || 0
+                        ),
+                        1
+                      );
+                      const height =
+                        (day.conversations / maxConversations) * 100 || 0;
+                      return (
+                        <div
+                          key={index}
+                          className="flex-1 flex flex-col items-center group"
+                        >
+                          <div className="relative w-full">
+                            <div
+                              className="w-full bg-gradient-to-t from-brand-500 to-brand-300 rounded-t-lg transition-all duration-300 group-hover:from-brand-600 group-hover:to-brand-400 cursor-pointer"
+                              style={{
+                                height: `${height}%`,
+                                minHeight: '20px',
+                              }}
+                            >
+                              {/* Tooltip */}
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-neural-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10">
+                                <p className="font-semibold">
+                                  {day.conversations} conversations
+                                </p>
+                                <p>{day.messages} messages</p>
+                                <p>{day.apiCalls} API calls</p>
+                              </div>
                             </div>
                           </div>
+                          <span className="text-xs text-neural-500 mt-2">
+                            {new Date(day.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
                         </div>
-                        <span className="text-xs text-neural-500 mt-2">
-                          {new Date(day.date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  ) : (
+                    <div className="w-full text-center text-sm text-neural-500">
+                      No activity recorded for the past week.
+                    </div>
+                  )}
                 </div>
 
                 {/* Legend */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +20,35 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const fetchBillingData = useCallback(async () => {
+    if (!state.user?.id) return;
+
+    try {
+      setError('');
+      setLoading(true);
+      const response = await fetch(`/api/user/billing/${state.user.id}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setBillingData(result.data);
+      } else {
+        setError('Failed to load billing data');
+      }
+    } catch (err) {
+      console.error('Error fetching billing data:', err);
+      setError('Error loading billing information');
+    } finally {
+      setLoading(false);
+    }
+  }, [state.user?.id]);
+
+  // Fetch billing data on mount
+  useEffect(() => {
+    fetchBillingData();
+  }, [fetchBillingData]);
+
   if (!state.isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
@@ -34,37 +63,6 @@ export default function BillingPage() {
       </div>
     );
   }
-
-  // Fetch billing data on mount
-  useEffect(() => {
-    if (state.user?.id) {
-      fetchBillingData();
-    }
-  }, [state.user]);
-
-  const fetchBillingData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `https://onelastai.co/api/user/billing/${state.user.id}`,
-        {
-          credentials: 'include',
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        setBillingData(result.data);
-      } else {
-        setError('Failed to load billing data');
-      }
-    } catch (err) {
-      console.error('Error fetching billing data:', err);
-      setError('Error loading billing information');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Show loading state
   if (loading) {

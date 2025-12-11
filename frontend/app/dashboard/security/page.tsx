@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -14,8 +14,42 @@ import {
   XCircleIcon,
   EyeIcon,
   EyeSlashIcon,
-  QrCodeIcon,
 } from '@heroicons/react/24/outline';
+
+type Recommendation = {
+  id: string | number;
+  type?: string;
+  title: string;
+  description?: string;
+  priority?: 'high' | 'medium' | 'low';
+};
+
+type TrustedDevice = {
+  id: string;
+  name: string;
+  type: string;
+  lastSeen: string;
+  location: string;
+  browser: string;
+  current: boolean;
+  ipAddress?: string;
+};
+
+type LoginHistoryEntry = {
+  id: string;
+  date: string;
+  device: string;
+  location: string;
+  status: string;
+  ip: string;
+};
+
+type SecurityOverview = {
+  securityScore: number;
+  recommendations: Recommendation[];
+  lastPasswordChange: string;
+  twoFactorSecret?: string;
+};
 
 export default function SecuritySettingsPage() {
   const { state } = useAuth();
@@ -25,6 +59,7 @@ export default function SecuritySettingsPage() {
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [fetchState, setFetchState] = useState({ loading: true, error: '' });
 
   // Password change fields
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,120 +73,136 @@ export default function SecuritySettingsPage() {
   const [verifying2FA, setVerifying2FA] = useState(false);
 
   // Device and history data
-  const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
-  const [loginHistory, setLoginHistory] = useState<any[]>([]);
+  const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([]);
+  const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
+  const [securityOverview, setSecurityOverview] =
+    useState<SecurityOverview | null>(null);
 
-  const [securityData] = useState({
-    lastPasswordChange: '2024-10-15',
-    twoFactorAuth: {
-      enabled: true,
-      method: 'authenticator',
-      backupCodes: 8,
+  const defaultRecommendations: Recommendation[] = [
+    {
+      id: 'enable-2fa',
+      type: 'warning',
+      title: 'Enable Two-Factor Authentication',
+      description: 'Secure your account with 2FA for better protection',
+      priority: 'high',
     },
-    trustedDevices: [
-      {
-        id: 1,
-        name: 'MacBook Pro',
-        type: 'desktop',
-        lastSeen: '2025-11-26T10:30:00Z',
-        location: 'San Francisco, CA',
-        browser: 'Chrome 119',
-        current: true,
-      },
-      {
-        id: 2,
-        name: 'iPhone 15 Pro',
-        type: 'mobile',
-        lastSeen: '2025-11-25T18:45:00Z',
-        location: 'San Francisco, CA',
-        browser: 'Safari Mobile',
-        current: false,
-      },
-      {
-        id: 3,
-        name: 'iPad Air',
-        type: 'tablet',
-        lastSeen: '2025-11-24T14:20:00Z',
-        location: 'Oakland, CA',
-        browser: 'Safari',
-        current: false,
-      },
-    ],
-    loginHistory: [
-      {
-        id: 1,
-        date: '2025-11-26T10:30:00Z',
-        location: 'San Francisco, CA',
-        device: 'MacBook Pro',
-        status: 'success',
-        ip: '192.168.1.100',
-      },
-      {
-        id: 2,
-        date: '2025-11-25T18:45:00Z',
-        location: 'San Francisco, CA',
-        device: 'iPhone 15 Pro',
-        status: 'success',
-        ip: '192.168.1.101',
-      },
-      {
-        id: 3,
-        date: '2025-11-25T09:15:00Z',
-        location: 'Unknown',
-        device: 'Unknown Device',
-        status: 'blocked',
-        ip: '203.0.113.42',
-      },
-      {
-        id: 4,
-        date: '2025-11-24T14:20:00Z',
-        location: 'Oakland, CA',
-        device: 'iPad Air',
-        status: 'success',
-        ip: '192.168.0.50',
-      },
-    ],
-    securityScore: 85,
-    recommendations: [
-      {
-        id: 2,
-        type: 'info',
-        title: 'Review Login Locations',
-        description: 'Recent login from unknown location detected',
-        priority: 'high',
-      },
-    ],
-  });
+  ];
+
+  const normalizeDevices = (devices: any[] = []): TrustedDevice[] =>
+    devices.map((device, index) => ({
+      id: String(device.id ?? device._id ?? index),
+      name:
+        device.name ||
+        device.deviceName ||
+        device.model ||
+        device.agent ||
+        'Unknown Device',
+      type: device.type || device.deviceType || 'desktop',
+      lastSeen:
+        device.lastSeen ||
+        device.updatedAt ||
+        device.timestamp ||
+        device.addedDate ||
+        new Date().toISOString(),
+      location: device.location || device.geoLocation || 'Unknown location',
+      browser: device.browser || device.userAgent || 'Unknown browser',
+      current: Boolean(device.current ?? device.isCurrent ?? false),
+      ipAddress: device.ipAddress || device.ip || device.lastKnownIp || '',
+    }));
+
+  const normalizeLoginHistory = (history: any[] = []): LoginHistoryEntry[] =>
+    history.map((entry, index) => {
+      const timestamp =
+        entry.date ||
+        entry.timestamp ||
+        entry.time ||
+        entry.createdAt ||
+        new Date().toISOString();
+      const status =
+        entry.status ||
+        (entry.success === false
+          ? 'blocked'
+          : entry.success === true
+          ? 'success'
+          : 'warning');
+
+      return {
+        id: String(entry.id ?? entry._id ?? index),
+        date: timestamp,
+        device:
+          entry.device ||
+          entry.deviceName ||
+          entry.userAgent ||
+          'Unknown Device',
+        location: entry.location || entry.geoLocation || 'Unknown location',
+        status,
+        ip: entry.ip || entry.ipAddress || entry.ip_address || '—',
+      };
+    });
+
+  const fetchSecurityData = useCallback(
+    async (options?: { signal?: AbortSignal; silent?: boolean }) => {
+      if (!state.user?.id) return;
+
+      if (!options?.silent) {
+        setFetchState({ loading: true, error: '' });
+      }
+
+      try {
+        const res = await fetch(`/api/user/security/${state.user.id}`, {
+          credentials: 'include',
+          signal: options?.signal,
+        });
+
+        if (!res.ok) {
+          throw new Error('Unable to load security settings at the moment');
+        }
+
+        const payload = await res.json();
+        const data = payload.data || payload.security || payload;
+
+        setSecurityOverview({
+          securityScore: data?.securityScore ?? 0,
+          recommendations: data?.recommendations ?? [],
+          lastPasswordChange:
+            data?.lastPasswordChange ||
+            data?.passwordLastChanged ||
+            new Date().toISOString(),
+          twoFactorSecret: data?.twoFactorSecret || '',
+        });
+
+        setTwoFactorEnabled(Boolean(data?.twoFactorEnabled));
+        setBackupCodes(data?.backupCodes ?? []);
+        setTrustedDevices(normalizeDevices(data?.trustedDevices));
+        setLoginHistory(normalizeLoginHistory(data?.loginHistory));
+        setFetchState({ loading: false, error: '' });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+
+        console.error('Error fetching security data:', error);
+        setFetchState({
+          loading: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Unable to load security settings',
+        });
+      }
+    },
+    [state.user?.id]
+  );
 
   // Fetch security data on mount
   useEffect(() => {
-    if (state.user?.id) {
-      fetchSecurityData();
-    }
-  }, [state.user]);
+    if (!state.user?.id) return;
 
-  const fetchSecurityData = async () => {
-    try {
-      // Fetch current security data
-      const securityRes = await fetch(
-        `https://onelastai.co/api/user/security/${state.user.id}`,
-        {
-          credentials: 'include',
-        }
-      );
-      if (securityRes.ok) {
-        const securityData = await securityRes.json();
-        setTwoFactorEnabled(securityData.data?.twoFactorEnabled || false);
-        setTrustedDevices(securityData.data?.trustedDevices || []);
-        setLoginHistory(securityData.data?.loginHistory || []);
-      }
+    const controller = new AbortController();
+    fetchSecurityData({ signal: controller.signal });
 
-      // Fetch trusted devices (if separate endpoint exists)
-      // For now, using data from security endpoint above
-    } catch (error) {
-      console.error('Error fetching security data:', error);
-    }
-  };
+    return () => controller.abort();
+  }, [state.user?.id, fetchSecurityData]);
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -174,18 +225,15 @@ export default function SecuritySettingsPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(
-        'https://onelastai.co/api/user/security/change-password',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            currentPassword,
-            newPassword,
-          }),
-        }
-      );
+      const res = await fetch('/api/user/security/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
 
       const data = await res.json();
 
@@ -194,6 +242,7 @@ export default function SecuritySettingsPage() {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
+        fetchSecurityData({ silent: true });
       } else {
         setMessage({
           type: 'error',
@@ -208,34 +257,15 @@ export default function SecuritySettingsPage() {
 
   const handleToggle2FA = async (enabled: boolean) => {
     if (enabled) {
-      // Fetch QR code setup
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/user/security/2fa/setup/${state.user.id}`
-        );
-        const data = await res.json();
-
-        if (data.success) {
-          setQrCodeUrl(data.qrCode || data.qrCodeUrl); // Backend returns 'qrCode'
-          setShowQRCode(true);
-          setVerifying2FA(true);
-          setMessage({
-            type: 'info',
-            text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
-          });
-        } else {
-          setMessage({
-            type: 'error',
-            text: data.message || 'Error setting up 2FA',
-          });
-        }
-      } catch (error) {
-        console.error('Error setting up 2FA:', error);
-        setMessage({ type: 'error', text: 'Error setting up 2FA' });
-      } finally {
-        setLoading(false);
-      }
+      const otpUrl = buildOtpAuthUrl();
+      setQrCodeUrl(otpUrl);
+      setShowQRCode(true);
+      setVerifying2FA(true);
+      setTwoFactorEnabled(true);
+      setMessage({
+        type: 'info',
+        text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
+      });
     } else if (!enabled) {
       // Disable 2FA - require password confirmation
       const password = prompt('Please enter your password to disable 2FA:');
@@ -245,14 +275,11 @@ export default function SecuritySettingsPage() {
       }
 
       try {
-        const res = await fetch(
-          'https://onelastai.co/api/user/security/2fa/disable',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-          }
-        );
+        const res = await fetch('/api/user/security/2fa/disable', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
 
         const data = await res.json();
 
@@ -265,6 +292,7 @@ export default function SecuritySettingsPage() {
           setVerifying2FA(false);
           setVerificationCode('');
           setMessage({ type: 'success', text: '2FA has been disabled' });
+          fetchSecurityData({ silent: true });
         } else {
           setMessage({
             type: 'error',
@@ -286,17 +314,14 @@ export default function SecuritySettingsPage() {
 
     try {
       setLoading(true);
-      const res = await fetch(
-        'https://onelastai.co/api/user/security/2fa/verify',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            code: verificationCode,
-          }),
-        }
-      );
+      const res = await fetch('/api/user/security/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          code: verificationCode,
+        }),
+      });
 
       const data = await res.json();
 
@@ -312,6 +337,7 @@ export default function SecuritySettingsPage() {
           text: '2FA has been enabled successfully!',
         });
         setVerificationCode('');
+        fetchSecurityData({ silent: true });
       } else {
         setMessage({
           type: 'error',
@@ -327,29 +353,72 @@ export default function SecuritySettingsPage() {
   };
 
   const handleRemoveDevice = async (deviceId: string) => {
+    if (!state.user?.id) return;
+
     if (!confirm('Are you sure you want to remove this device?')) return;
 
     try {
-      const res = await fetch(
-        `/api/user/security/devices/${state.user.id}/${deviceId}`,
-        {
-          method: 'DELETE',
-        }
+      const updatedDevices = trustedDevices.filter(
+        (device) => device.id !== deviceId
       );
 
-      const data = await res.json();
+      const res = await fetch(`/api/user/security/${state.user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ trustedDevices: updatedDevices }),
+      });
 
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Device removed successfully' });
-        fetchSecurityData(); // Refresh data
+      if (!res.ok) {
+        throw new Error('Failed to remove device');
       }
+
+      setTrustedDevices(updatedDevices);
+      setMessage({ type: 'success', text: 'Device removed successfully' });
+      fetchSecurityData({ silent: true });
     } catch (error) {
       setMessage({ type: 'error', text: 'Error removing device' });
     }
   };
 
-  const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
+  const handleRemoveAllDevices = async () => {
+    if (!state.user?.id) return;
+
+    if (
+      !confirm(
+        'Remove all trusted devices? This will require re-trusting each device.'
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/user/security/${state.user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ trustedDevices: [] }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to clear trusted devices');
+      }
+
+      setTrustedDevices([]);
+      setMessage({ type: 'success', text: 'All trusted devices removed' });
+      fetchSecurityData({ silent: true });
+    } catch (error) {
+      console.error('Error clearing devices', error);
+      setMessage({ type: 'error', text: 'Unable to remove devices' });
+    }
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return '—';
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) return '—';
+
+    return parsed.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -358,8 +427,12 @@ export default function SecuritySettingsPage() {
     });
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '—';
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) return '—';
+
+    return parsed.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -389,6 +462,20 @@ export default function SecuritySettingsPage() {
     }
   };
 
+  const buildOtpAuthUrl = () => {
+    const label = encodeURIComponent(state.user?.email || 'user@onelastai.co');
+    const secret =
+      securityOverview?.twoFactorSecret ||
+      Math.random().toString(36).substring(2, 18).toUpperCase();
+    return `otpauth://totp/OneLastAI:${label}?secret=${secret}&issuer=OneLastAI`;
+  };
+
+  const securityScore = securityOverview?.securityScore ?? 0;
+  const recommendations = securityOverview?.recommendations?.length
+    ? securityOverview.recommendations
+    : defaultRecommendations;
+  const lastPasswordChange = securityOverview?.lastPasswordChange;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
       {/* Header */}
@@ -413,6 +500,26 @@ export default function SecuritySettingsPage() {
       {/* Security Content */}
       <section className="py-16 px-4">
         <div className="container-custom max-w-6xl">
+          {fetchState.error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+              <div className="flex items-center justify-between">
+                <p>{fetchState.error}</p>
+                <button
+                  className="text-sm font-medium underline"
+                  onClick={() => fetchSecurityData()}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+          {fetchState.loading && !fetchState.error && (
+            <div className="mb-6 rounded-xl border border-brand-100 bg-brand-50/70 px-4 py-3 text-brand-800">
+              Syncing your latest security activity...
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Security Score */}
             <div className="lg:col-span-1">
@@ -437,17 +544,14 @@ export default function SecuritySettingsPage() {
                       fill="transparent"
                       strokeDasharray={`${2 * Math.PI * 40}`}
                       strokeDashoffset={`${
-                        2 *
-                        Math.PI *
-                        40 *
-                        (1 - securityData.securityScore / 100)
+                        2 * Math.PI * 40 * (1 - securityScore / 100)
                       }`}
                       className="text-brand-500"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-2xl font-bold text-neural-900">
-                      {securityData.securityScore}%
+                      {securityScore}%
                     </span>
                   </div>
                 </div>
@@ -460,7 +564,7 @@ export default function SecuritySettingsPage() {
                 </p>
 
                 <div className="space-y-2 text-left">
-                  {securityData.recommendations.map((rec) => (
+                  {recommendations.map((rec) => (
                     <div
                       key={rec.id}
                       className={`p-3 rounded-lg ${
@@ -521,8 +625,7 @@ export default function SecuritySettingsPage() {
                             Password
                           </h4>
                           <p className="text-sm text-neural-600">
-                            Last changed on{' '}
-                            {formatDate(securityData.lastPasswordChange)}
+                            Last changed on {formatDate(lastPasswordChange)}
                           </p>
                         </div>
                       </div>
@@ -672,6 +775,7 @@ export default function SecuritySettingsPage() {
                                 setQrCodeUrl('');
                                 setVerificationCode('');
                                 setMessage({ type: '', text: '' });
+                                setTwoFactorEnabled(false);
                               }}
                               className="btn-ghost w-full"
                             >
@@ -754,7 +858,10 @@ export default function SecuritySettingsPage() {
                         Trusted Devices
                       </h3>
                     </div>
-                    <button className="btn-ghost text-red-600">
+                    <button
+                      className="btn-ghost text-red-600"
+                      onClick={handleRemoveAllDevices}
+                    >
                       Remove All
                     </button>
                   </div>

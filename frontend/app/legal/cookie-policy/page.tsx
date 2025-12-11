@@ -1,16 +1,63 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { X, Cookie, Settings, Shield, Eye } from 'lucide-react'
+import { useState } from 'react';
+import { X, Cookie, Settings, Shield, Eye } from 'lucide-react';
 
 interface ArticleReference {
-  title: string
-  content: string
-  source: string
+  title: string;
+  content: string;
+  source: string;
+}
+
+interface ArticlePopupProps {
+  article: ArticleReference;
+  onClose: () => void;
+}
+
+function ArticlePopup({ article, onClose }: ArticlePopupProps) {
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 rounded-2xl max-w-3xl w-full max-h-[85vh] shadow-2xl border border-brand-500/20 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-neural-700/50 bg-neural-800/50">
+          <h3 className="text-xl font-bold text-white">{article.title}</h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-neural-700/50 rounded-lg transition-colors text-neural-400 hover:text-white"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="text-neural-200 whitespace-pre-line leading-relaxed">
+            {article.content}
+          </div>
+          <div className="pt-4 border-t border-neural-700/50">
+            <p className="text-sm text-brand-400 font-medium">
+              Source: {article.source}
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-neural-700/50 bg-neural-800/50">
+          <button
+            onClick={onClose}
+            className="w-full px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function CookiePolicyPage() {
-  const [selectedArticle, setSelectedArticle] = useState<ArticleReference | null>(null)
+  const [selectedArticle, setSelectedArticle] =
+    useState<ArticleReference | null>(null);
 
   const articles: Record<string, ArticleReference> = {
     ePrivacy: {
@@ -31,7 +78,7 @@ Cookie Categories:
 
 Penalties:
 Non-compliance can result in fines up to €20 million or 4% of global annual revenue under GDPR enforcement.`,
-      source: 'Directive 2002/58/EC (as amended by Directive 2009/136/EC)'
+      source: 'Directive 2002/58/EC (as amended by Directive 2009/136/EC)',
     },
     ccpaOptOut: {
       title: 'CCPA Cookie Opt-Out Rights',
@@ -54,46 +101,9 @@ Cookie Disclosure Requirements:
 
 Enforcement:
 The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500 per intentional violation.`,
-      source: 'California Civil Code § 1798.100 et seq.'
-    }
-  }
-
-  const ArticlePopup = ({ article }: { article: ArticleReference }) => (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 rounded-2xl max-w-3xl w-full max-h-[85vh] shadow-2xl border border-brand-500/20 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-neural-700/50 bg-neural-800/50">
-          <h3 className="text-xl font-bold text-white">{article.title}</h3>
-          <button
-            onClick={() => setSelectedArticle(null)}
-            className="p-2 hover:bg-neural-700/50 rounded-lg transition-colors text-neural-400 hover:text-white"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          <div className="text-neural-200 whitespace-pre-line leading-relaxed">
-            {article.content}
-          </div>
-          <div className="pt-4 border-t border-neural-700/50">
-            <p className="text-sm text-brand-400 font-medium">Source: {article.source}</p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-neural-700/50 bg-neural-800/50">
-          <button
-            onClick={() => setSelectedArticle(null)}
-            className="w-full px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+      source: 'California Civil Code § 1798.100 et seq.',
+    },
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white">
@@ -103,8 +113,12 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
           <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent">
             Cookie Policy
           </h1>
-          <p className="text-neural-400 text-lg">Last updated: November 6, 2025</p>
-          <p className="text-neural-300 mt-2">Effective Date: November 6, 2025</p>
+          <p className="text-neural-400 text-lg">
+            Last updated: November 6, 2025
+          </p>
+          <p className="text-neural-300 mt-2">
+            Effective Date: November 6, 2025
+          </p>
         </div>
       </div>
 
@@ -116,95 +130,148 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
             <div className="flex items-start gap-4 mb-4">
               <Cookie className="text-brand-400 flex-shrink-0 mt-1" size={36} />
               <div>
-                <h2 className="text-3xl font-bold mb-3 text-brand-400">1. Introduction</h2>
+                <h2 className="text-3xl font-bold mb-3 text-brand-400">
+                  1. Introduction
+                </h2>
                 <p className="text-neural-200 leading-relaxed mb-4">
-                  This Cookie Policy explains how One Last AI ("we," "our," or "us") uses cookies and similar 
-                  tracking technologies on our website at{' '}
-                  <a href="https://onelastai.co" className="text-brand-400 hover:text-brand-300 underline">onelastai.co</a>.
+                  This Cookie Policy explains how One Last AI ("we," "our," or
+                  "us") uses cookies and similar tracking technologies on our
+                  website at{' '}
+                  <a
+                    href="https://onelastai.co"
+                    className="text-brand-400 hover:text-brand-300 underline"
+                  >
+                    onelastai.co
+                  </a>
+                  .
                 </p>
                 <p className="text-neural-200 leading-relaxed">
-                  By using our website, you consent to our use of cookies in accordance with this policy and our{' '}
-                  <a href="/legal/privacy-policy" className="text-brand-400 hover:text-brand-300 underline">Privacy Policy</a>. 
-                  You can manage your cookie preferences at any time.
+                  By using our website, you consent to our use of cookies in
+                  accordance with this policy and our{' '}
+                  <a
+                    href="/legal/privacy-policy"
+                    className="text-brand-400 hover:text-brand-300 underline"
+                  >
+                    Privacy Policy
+                  </a>
+                  . You can manage your cookie preferences at any time.
                 </p>
               </div>
             </div>
             <div className="bg-brand-900/20 rounded-xl p-6 border border-brand-500/30 mt-6">
               <p className="text-neural-200">
-                <strong className="text-white">Legal Framework:</strong> Our cookie practices comply with the{' '}
+                <strong className="text-white">Legal Framework:</strong> Our
+                cookie practices comply with the{' '}
                 <button
                   onClick={() => setSelectedArticle(articles.ePrivacy)}
                   className="text-brand-400 hover:text-brand-300 underline font-medium"
                 >
                   ePrivacy Directive (EU Cookie Law)
-                </button>, GDPR, and{' '}
+                </button>
+                , GDPR, and{' '}
                 <button
                   onClick={() => setSelectedArticle(articles.ccpaOptOut)}
                   className="text-brand-400 hover:text-brand-300 underline font-medium"
                 >
                   CCPA requirements
-                </button>.
+                </button>
+                .
               </p>
             </div>
           </section>
 
           {/* What Are Cookies */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">2. What Are Cookies?</h2>
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">
+              2. What Are Cookies?
+            </h2>
             <p className="text-neural-200 mb-4">
-              Cookies are small text files stored on your device when you visit a website. They help websites:
+              Cookies are small text files stored on your device when you visit
+              a website. They help websites:
             </p>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                <p className="font-semibold text-brand-300 mb-2">📝 Remember You</p>
-                <p className="text-neural-200 text-sm">Store login status and preferences</p>
+                <p className="font-semibold text-brand-300 mb-2">
+                  📝 Remember You
+                </p>
+                <p className="text-neural-200 text-sm">
+                  Store login status and preferences
+                </p>
               </div>
               <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                <p className="font-semibold text-brand-300 mb-2">📊 Analyze Usage</p>
-                <p className="text-neural-200 text-sm">Track how visitors use the site</p>
+                <p className="font-semibold text-brand-300 mb-2">
+                  📊 Analyze Usage
+                </p>
+                <p className="text-neural-200 text-sm">
+                  Track how visitors use the site
+                </p>
               </div>
               <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                <p className="font-semibold text-brand-300 mb-2">⚡ Improve Performance</p>
-                <p className="text-neural-200 text-sm">Optimize loading times and functionality</p>
+                <p className="font-semibold text-brand-300 mb-2">
+                  ⚡ Improve Performance
+                </p>
+                <p className="text-neural-200 text-sm">
+                  Optimize loading times and functionality
+                </p>
               </div>
               <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                <p className="font-semibold text-brand-300 mb-2">🎯 Personalize Experience</p>
-                <p className="text-neural-200 text-sm">Customize content and features</p>
+                <p className="font-semibold text-brand-300 mb-2">
+                  🎯 Personalize Experience
+                </p>
+                <p className="text-neural-200 text-sm">
+                  Customize content and features
+                </p>
               </div>
             </div>
 
             <div className="mt-6 space-y-4">
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">Cookie Types by Duration</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">
+                  Cookie Types by Duration
+                </h3>
                 <div className="space-y-3">
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Session Cookies</p>
+                    <p className="font-semibold text-white mb-2">
+                      Session Cookies
+                    </p>
                     <p className="text-neural-200 text-sm">
-                      Temporary cookies deleted when you close your browser. Used for essential site functions.
+                      Temporary cookies deleted when you close your browser.
+                      Used for essential site functions.
                     </p>
                   </div>
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Persistent Cookies</p>
+                    <p className="font-semibold text-white mb-2">
+                      Persistent Cookies
+                    </p>
                     <p className="text-neural-200 text-sm">
-                      Remain on your device until expiration or manual deletion. Remember preferences between visits.
+                      Remain on your device until expiration or manual deletion.
+                      Remember preferences between visits.
                     </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">Cookie Types by Source</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">
+                  Cookie Types by Source
+                </h3>
                 <div className="space-y-3">
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">First-Party Cookies</p>
+                    <p className="font-semibold text-white mb-2">
+                      First-Party Cookies
+                    </p>
                     <p className="text-neural-200 text-sm">
-                      Set by One Last AI directly. We have full control over these cookies.
+                      Set by One Last AI directly. We have full control over
+                      these cookies.
                     </p>
                   </div>
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Third-Party Cookies</p>
+                    <p className="font-semibold text-white mb-2">
+                      Third-Party Cookies
+                    </p>
                     <p className="text-neural-200 text-sm">
-                      Set by external services (e.g., Google Analytics). Subject to third-party privacy policies.
+                      Set by external services (e.g., Google Analytics). Subject
+                      to third-party privacy policies.
                     </p>
                   </div>
                 </div>
@@ -214,26 +281,36 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
 
           {/* Cookies We Use */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">3. Cookies We Use</h2>
-            
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">
+              3. Cookies We Use
+            </h2>
+
             <div className="space-y-6">
               {/* Strictly Necessary */}
               <div className="bg-green-900/20 rounded-xl p-6 border border-green-500/30">
                 <div className="flex items-start gap-3 mb-4">
-                  <Shield className="text-green-400 flex-shrink-0 mt-1" size={28} />
+                  <Shield
+                    className="text-green-400 flex-shrink-0 mt-1"
+                    size={28}
+                  />
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">3.1 Strictly Necessary Cookies</h3>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      3.1 Strictly Necessary Cookies
+                    </h3>
                     <p className="text-neural-200 text-sm">
-                      These cookies are essential for the website to function. We do not need your consent for these.
+                      These cookies are essential for the website to function.
+                      We do not need your consent for these.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-neural-900/70">
                       <tr className="border-b border-neural-700">
-                        <th className="text-left p-3 text-white">Cookie Name</th>
+                        <th className="text-left p-3 text-white">
+                          Cookie Name
+                        </th>
                         <th className="text-left p-3 text-white">Purpose</th>
                         <th className="text-left p-3 text-white">Duration</th>
                       </tr>
@@ -246,17 +323,23 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                       </tr>
                       <tr className="border-b border-neural-700/50">
                         <td className="p-3 font-mono text-xs">csrf_token</td>
-                        <td className="p-3">Prevents cross-site request forgery</td>
+                        <td className="p-3">
+                          Prevents cross-site request forgery
+                        </td>
                         <td className="p-3">Session</td>
                       </tr>
                       <tr className="border-b border-neural-700/50">
-                        <td className="p-3 font-mono text-xs">cookie_consent</td>
+                        <td className="p-3 font-mono text-xs">
+                          cookie_consent
+                        </td>
                         <td className="p-3">Stores your cookie preferences</td>
                         <td className="p-3">1 year</td>
                       </tr>
                       <tr>
                         <td className="p-3 font-mono text-xs">load_balancer</td>
-                        <td className="p-3">Routes requests to correct server</td>
+                        <td className="p-3">
+                          Routes requests to correct server
+                        </td>
                         <td className="p-3">Session</td>
                       </tr>
                     </tbody>
@@ -269,37 +352,51 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                 <div className="flex items-start gap-3 mb-4">
                   <Eye className="text-blue-400 flex-shrink-0 mt-1" size={28} />
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">3.2 Performance & Analytics Cookies</h3>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      3.2 Performance & Analytics Cookies
+                    </h3>
                     <p className="text-neural-200 text-sm">
-                      Help us understand how visitors use our site. We need your consent for these.
+                      Help us understand how visitors use our site. We need your
+                      consent for these.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/30">
-                    <h4 className="font-semibold text-white mb-2">Google Analytics</h4>
+                    <h4 className="font-semibold text-white mb-2">
+                      Google Analytics
+                    </h4>
                     <p className="text-neural-200 text-sm mb-3">
-                      We use Google Analytics to track website usage, visitor demographics, and traffic sources.
+                      We use Google Analytics to track website usage, visitor
+                      demographics, and traffic sources.
                     </p>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead className="bg-neural-900/70">
                           <tr className="border-b border-neural-700">
                             <th className="text-left p-2 text-white">Cookie</th>
-                            <th className="text-left p-2 text-white">Purpose</th>
-                            <th className="text-left p-2 text-white">Duration</th>
+                            <th className="text-left p-2 text-white">
+                              Purpose
+                            </th>
+                            <th className="text-left p-2 text-white">
+                              Duration
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="text-neural-200">
                           <tr className="border-b border-neural-700/50">
                             <td className="p-2 font-mono">_ga</td>
-                            <td className="p-2">Distinguishes unique visitors</td>
+                            <td className="p-2">
+                              Distinguishes unique visitors
+                            </td>
                             <td className="p-2">2 years</td>
                           </tr>
                           <tr className="border-b border-neural-700/50">
                             <td className="p-2 font-mono">_gid</td>
-                            <td className="p-2">Distinguishes users for 24 hours</td>
+                            <td className="p-2">
+                              Distinguishes users for 24 hours
+                            </td>
                             <td className="p-2">24 hours</td>
                           </tr>
                           <tr>
@@ -312,9 +409,9 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                     </div>
                     <p className="text-neural-300 text-xs mt-3">
                       Data is anonymized. See{' '}
-                      <a 
-                        href="https://policies.google.com/privacy" 
-                        target="_blank" 
+                      <a
+                        href="https://policies.google.com/privacy"
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-brand-400 hover:text-brand-300 underline"
                       >
@@ -324,23 +421,32 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                   </div>
 
                   <div className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/30">
-                    <h4 className="font-semibold text-white mb-2">Performance Monitoring</h4>
+                    <h4 className="font-semibold text-white mb-2">
+                      Performance Monitoring
+                    </h4>
                     <p className="text-neural-200 text-sm mb-3">
-                      Track page load times, API response times, and errors to improve service quality.
+                      Track page load times, API response times, and errors to
+                      improve service quality.
                     </p>
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead className="bg-neural-900/70">
                           <tr className="border-b border-neural-700">
                             <th className="text-left p-2 text-white">Cookie</th>
-                            <th className="text-left p-2 text-white">Purpose</th>
-                            <th className="text-left p-2 text-white">Duration</th>
+                            <th className="text-left p-2 text-white">
+                              Purpose
+                            </th>
+                            <th className="text-left p-2 text-white">
+                              Duration
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="text-neural-200">
                           <tr>
                             <td className="p-2 font-mono">perf_metrics</td>
-                            <td className="p-2">Stores performance timing data</td>
+                            <td className="p-2">
+                              Stores performance timing data
+                            </td>
                             <td className="p-2">7 days</td>
                           </tr>
                         </tbody>
@@ -353,28 +459,40 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
               {/* Functional */}
               <div className="bg-purple-900/20 rounded-xl p-6 border border-purple-500/30">
                 <div className="flex items-start gap-3 mb-4">
-                  <Settings className="text-purple-400 flex-shrink-0 mt-1" size={28} />
+                  <Settings
+                    className="text-purple-400 flex-shrink-0 mt-1"
+                    size={28}
+                  />
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">3.3 Functional Cookies</h3>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      3.3 Functional Cookies
+                    </h3>
                     <p className="text-neural-200 text-sm">
-                      Remember your preferences and provide enhanced features. Consent required.
+                      Remember your preferences and provide enhanced features.
+                      Consent required.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-neural-900/70">
                       <tr className="border-b border-neural-700">
-                        <th className="text-left p-3 text-white">Cookie Name</th>
+                        <th className="text-left p-3 text-white">
+                          Cookie Name
+                        </th>
                         <th className="text-left p-3 text-white">Purpose</th>
                         <th className="text-left p-3 text-white">Duration</th>
                       </tr>
                     </thead>
                     <tbody className="text-neural-200">
                       <tr className="border-b border-neural-700/50">
-                        <td className="p-3 font-mono text-xs">theme_preference</td>
-                        <td className="p-3">Remembers dark/light mode choice</td>
+                        <td className="p-3 font-mono text-xs">
+                          theme_preference
+                        </td>
+                        <td className="p-3">
+                          Remembers dark/light mode choice
+                        </td>
                         <td className="p-3">1 year</td>
                       </tr>
                       <tr className="border-b border-neural-700/50">
@@ -383,13 +501,19 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                         <td className="p-3">1 year</td>
                       </tr>
                       <tr className="border-b border-neural-700/50">
-                        <td className="p-3 font-mono text-xs">agent_preferences</td>
+                        <td className="p-3 font-mono text-xs">
+                          agent_preferences
+                        </td>
                         <td className="p-3">Saves favorite AI agents</td>
                         <td className="p-3">6 months</td>
                       </tr>
                       <tr>
-                        <td className="p-3 font-mono text-xs">voice_settings</td>
-                        <td className="p-3">Remembers voice interaction preferences</td>
+                        <td className="p-3 font-mono text-xs">
+                          voice_settings
+                        </td>
+                        <td className="p-3">
+                          Remembers voice interaction preferences
+                        </td>
                         <td className="p-3">6 months</td>
                       </tr>
                     </tbody>
@@ -401,22 +525,27 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
 
           {/* Third-Party Services */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">4. Third-Party Services</h2>
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">
+              4. Third-Party Services
+            </h2>
             <p className="text-neural-200 mb-4">
-              We integrate the following third-party services that may set cookies:
+              We integrate the following third-party services that may set
+              cookies:
             </p>
-            
+
             <div className="space-y-4">
               <div className="bg-neural-900/50 rounded-xl p-6 border border-neural-700/30">
-                <h3 className="text-lg font-semibold text-white mb-3">Google Analytics</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  Google Analytics
+                </h3>
                 <p className="text-neural-200 text-sm mb-2">
                   Website analytics and visitor insights
                 </p>
                 <p className="text-neural-300 text-xs">
                   Privacy Policy:{' '}
-                  <a 
-                    href="https://policies.google.com/privacy" 
-                    target="_blank" 
+                  <a
+                    href="https://policies.google.com/privacy"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-400 hover:text-brand-300 underline"
                   >
@@ -425,9 +554,9 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                 </p>
                 <p className="text-neural-300 text-xs mt-1">
                   Opt-out:{' '}
-                  <a 
-                    href="https://tools.google.com/dlpage/gaoptout" 
-                    target="_blank" 
+                  <a
+                    href="https://tools.google.com/dlpage/gaoptout"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-400 hover:text-brand-300 underline"
                   >
@@ -437,15 +566,17 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
               </div>
 
               <div className="bg-neural-900/50 rounded-xl p-6 border border-neural-700/30">
-                <h3 className="text-lg font-semibold text-white mb-3">Payment Processors (Stripe, PayPal)</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  Payment Processors (Stripe, PayPal)
+                </h3>
                 <p className="text-neural-200 text-sm mb-2">
                   Secure payment processing and fraud prevention
                 </p>
                 <p className="text-neural-300 text-xs">
                   Stripe Privacy:{' '}
-                  <a 
-                    href="https://stripe.com/privacy" 
-                    target="_blank" 
+                  <a
+                    href="https://stripe.com/privacy"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-400 hover:text-brand-300 underline"
                   >
@@ -454,9 +585,9 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                 </p>
                 <p className="text-neural-300 text-xs mt-1">
                   PayPal Privacy:{' '}
-                  <a 
-                    href="https://www.paypal.com/privacy" 
-                    target="_blank" 
+                  <a
+                    href="https://www.paypal.com/privacy"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-400 hover:text-brand-300 underline"
                   >
@@ -466,15 +597,17 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
               </div>
 
               <div className="bg-neural-900/50 rounded-xl p-6 border border-neural-700/30">
-                <h3 className="text-lg font-semibold text-white mb-3">Cloudflare</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  Cloudflare
+                </h3>
                 <p className="text-neural-200 text-sm mb-2">
                   CDN, DDoS protection, and performance optimization
                 </p>
                 <p className="text-neural-300 text-xs">
                   Privacy Policy:{' '}
-                  <a 
-                    href="https://www.cloudflare.com/privacy" 
-                    target="_blank" 
+                  <a
+                    href="https://www.cloudflare.com/privacy"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-400 hover:text-brand-300 underline"
                   >
@@ -487,11 +620,15 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
 
           {/* Managing Cookies */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">5. Managing Your Cookie Preferences</h2>
-            
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">
+              5. Managing Your Cookie Preferences
+            </h2>
+
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">5.1 Cookie Settings on Our Site</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">
+                  5.1 Cookie Settings on Our Site
+                </h3>
                 <p className="text-neural-200 mb-3">
                   You can manage your cookie preferences at any time:
                 </p>
@@ -500,25 +637,32 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                     Open Cookie Preferences
                   </button>
                   <p className="text-neural-300 text-sm mt-3">
-                    Adjust settings for analytics, functional, and other non-essential cookies
+                    Adjust settings for analytics, functional, and other
+                    non-essential cookies
                   </p>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">5.2 Browser Settings</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">
+                  5.2 Browser Settings
+                </h3>
                 <p className="text-neural-200 mb-3">
                   Most browsers allow you to control cookies through settings:
                 </p>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Google Chrome</p>
+                    <p className="font-semibold text-white mb-2">
+                      Google Chrome
+                    </p>
                     <p className="text-neural-200 text-sm">
                       Settings → Privacy and Security → Cookies
                     </p>
                   </div>
                   <div className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Mozilla Firefox</p>
+                    <p className="font-semibold text-white mb-2">
+                      Mozilla Firefox
+                    </p>
                     <p className="text-neural-200 text-sm">
                       Options → Privacy & Security → Cookies
                     </p>
@@ -530,7 +674,9 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                     </p>
                   </div>
                   <div className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Microsoft Edge</p>
+                    <p className="font-semibold text-white mb-2">
+                      Microsoft Edge
+                    </p>
                     <p className="text-neural-200 text-sm">
                       Settings → Privacy → Cookies
                     </p>
@@ -539,13 +685,15 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">5.3 Opt-Out Tools</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">
+                  5.3 Opt-Out Tools
+                </h3>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2">
                   <li>
                     <strong className="text-white">Google Analytics:</strong>{' '}
-                    <a 
-                      href="https://tools.google.com/dlpage/gaoptout" 
-                      target="_blank" 
+                    <a
+                      href="https://tools.google.com/dlpage/gaoptout"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-400 hover:text-brand-300 underline"
                     >
@@ -553,13 +701,16 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                     </a>
                   </li>
                   <li>
-                    <strong className="text-white">Do Not Track (DNT):</strong> Enable in browser settings (we honor DNT signals)
+                    <strong className="text-white">Do Not Track (DNT):</strong>{' '}
+                    Enable in browser settings (we honor DNT signals)
                   </li>
                   <li>
-                    <strong className="text-white">Global Privacy Control:</strong>{' '}
-                    <a 
-                      href="https://globalprivacycontrol.org" 
-                      target="_blank" 
+                    <strong className="text-white">
+                      Global Privacy Control:
+                    </strong>{' '}
+                    <a
+                      href="https://globalprivacycontrol.org"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-400 hover:text-brand-300 underline"
                     >
@@ -571,8 +722,10 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
 
               <div className="bg-amber-900/20 rounded-xl p-6 border border-amber-500/30">
                 <p className="text-neural-200">
-                  <strong className="text-white">Important:</strong> Blocking strictly necessary cookies may prevent 
-                  you from using essential features of our platform, including login and account management.
+                  <strong className="text-white">Important:</strong> Blocking
+                  strictly necessary cookies may prevent you from using
+                  essential features of our platform, including login and
+                  account management.
                 </p>
               </div>
             </div>
@@ -580,29 +733,65 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
 
           {/* Updates */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">6. Updates to This Policy</h2>
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">
+              6. Updates to This Policy
+            </h2>
             <p className="text-neural-200">
-              We may update this Cookie Policy from time to time to reflect changes in our practices or for legal compliance. 
-              Updates will be posted on this page with a new "Last Updated" date. Significant changes will be communicated 
-              via email or platform notification.
+              We may update this Cookie Policy from time to time to reflect
+              changes in our practices or for legal compliance. Updates will be
+              posted on this page with a new "Last Updated" date. Significant
+              changes will be communicated via email or platform notification.
             </p>
           </section>
 
           {/* Contact */}
           <section className="bg-gradient-to-r from-brand-900/30 to-accent-900/30 rounded-2xl p-8 border border-brand-500/30">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">7. Contact Us About Cookies</h2>
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">
+              7. Contact Us About Cookies
+            </h2>
             <div className="space-y-3 text-neural-200">
-              <p><strong className="text-white">Cookie Questions:</strong></p>
-              <p>Email: <a href="mailto:privacy@onelastai.co" className="text-brand-400 hover:text-brand-300 underline">privacy@onelastai.co</a></p>
-              <p>Support: <a href="mailto:support@onelastai.co" className="text-brand-400 hover:text-brand-300 underline">support@onelastai.co</a></p>
-              <p>Website: <a href="https://onelastai.co" className="text-brand-400 hover:text-brand-300 underline">https://onelastai.co</a></p>
+              <p>
+                <strong className="text-white">Cookie Questions:</strong>
+              </p>
+              <p>
+                Email:{' '}
+                <a
+                  href="mailto:privacy@onelastai.co"
+                  className="text-brand-400 hover:text-brand-300 underline"
+                >
+                  privacy@onelastai.co
+                </a>
+              </p>
+              <p>
+                Support:{' '}
+                <a
+                  href="mailto:support@onelastai.co"
+                  className="text-brand-400 hover:text-brand-300 underline"
+                >
+                  support@onelastai.co
+                </a>
+              </p>
+              <p>
+                Website:{' '}
+                <a
+                  href="https://onelastai.co"
+                  className="text-brand-400 hover:text-brand-300 underline"
+                >
+                  https://onelastai.co
+                </a>
+              </p>
             </div>
           </section>
         </div>
       </div>
 
       {/* Article Popup */}
-      {selectedArticle && <ArticlePopup article={selectedArticle} />}
+      {selectedArticle && (
+        <ArticlePopup
+          article={selectedArticle}
+          onClose={() => setSelectedArticle(null)}
+        />
+      )}
     </div>
-  )
+  );
 }

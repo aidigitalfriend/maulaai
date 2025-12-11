@@ -8,7 +8,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import os from 'os';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
@@ -1150,13 +1150,7 @@ app.put('/api/user/profile', async (req, res) => {
 app.get('/api/user/analytics', async (req, res) => {
   try {
     const { userId, email } = req.query;
-
-    if (!userId && !email) {
-      return res.status(400).json({
-        success: false,
-        error: 'User ID or email is required',
-      });
-    }
+    const sessionId = req.cookies?.session_id;
 
     const client = await getClientPromise();
     const db = client.db(process.env.MONGODB_DB || 'onelastai');
@@ -1169,12 +1163,35 @@ app.get('/api/user/analytics', async (req, res) => {
     const performanceMetrics = db.collection('performancemetrics');
     const chatInteractions = db.collection('chat_interactions');
 
-    // Find user
+    // Find user via identifier or session
     let user;
     if (userId) {
-      user = await users.findOne({ _id: userId });
-    } else {
+      try {
+        user = await users.findOne({ _id: new ObjectId(userId) });
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid user ID',
+        });
+      }
+    } else if (email) {
       user = await users.findOne({ email: email.toLowerCase() });
+    } else if (sessionId) {
+      user = await users.findOne({
+        sessionId,
+        sessionExpiry: { $gt: new Date() },
+      });
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired session',
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'User identifier or active session required',
+      });
     }
 
     if (!user) {
@@ -1184,7 +1201,17 @@ app.get('/api/user/analytics', async (req, res) => {
       });
     }
 
-    const userObjectId = user._id;
+    let userObjectId;
+    try {
+      userObjectId =
+        user._id instanceof ObjectId ? user._id : new ObjectId(user._id);
+    } catch (error) {
+      console.error('Invalid user _id format:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'User document is malformed',
+      });
+    }
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);

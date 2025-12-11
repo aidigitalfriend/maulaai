@@ -7,7 +7,7 @@
     "dev:3100": "cross-env PORT=3100 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "export": "cross-env NEXT_EXPORT=true next build && next export"
   },
   "dependencies": {

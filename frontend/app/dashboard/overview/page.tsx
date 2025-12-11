@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -39,156 +39,40 @@ const fetchWithTimeout = async (
 
 // API data fetching functions
 const fetchUserData = async (userId: string) => {
-  try {
-    // Load data sequentially to reduce server load
-    const profileRes = await fetchWithTimeout(
-      `https://onelastai.co/api/user/profile/${userId}`,
-      {
-        credentials: 'include',
-      }
-    ).catch(() => null);
+  const [profileRes, rewardsRes] = await Promise.all([
+    fetchWithTimeout(`/api/user/profile`, {
+      credentials: 'include',
+      cache: 'no-store',
+    }),
+    fetchWithTimeout(`/api/user/rewards/${userId}`, {
+      credentials: 'include',
+      cache: 'no-store',
+    }),
+  ]);
 
-    const rewardsRes = await fetchWithTimeout(
-      `https://onelastai.co/api/user/rewards/${userId}`,
-      {
-        credentials: 'include',
-      }
-    ).catch(() => null);
-
-    if (profileRes?.ok && rewardsRes?.ok) {
-      const profile = await profileRes.json();
-      const rewards = await rewardsRes.json();
-
-      return {
-        profile: profile.profile,
-        rewards: rewards.rewards,
-      };
-    }
-    // Return null to fallback to mock data instead of throwing error
-    return null;
-  } catch (error) {
-    console.error('API fetch error:', error);
-    return null;
+  if (!profileRes) {
+    throw new Error('Unable to reach profile service');
   }
+
+  const profileJson = await profileRes.json();
+  if (!profileRes.ok || !profileJson?.profile) {
+    throw new Error(profileJson?.message || 'Failed to load profile');
+  }
+
+  if (!rewardsRes) {
+    throw new Error('Unable to reach rewards service');
+  }
+
+  const rewardsJson = await rewardsRes.json();
+  if (!rewardsRes.ok) {
+    throw new Error(rewardsJson?.message || 'Failed to load rewards');
+  }
+
+  return {
+    profile: profileJson.profile,
+    rewards: rewardsJson.data,
+  };
 };
-
-// Mock data generator functions (fallback) - uses real user data when available
-const generateMockUserProfile = (authUser?: any) => ({
-  name: authUser?.name || 'John Doe',
-  email: authUser?.email || 'john@example.com',
-  avatar: authUser?.avatar || '/api/placeholder/150/150',
-  bio: 'AI enthusiast and developer passionate about creating intelligent solutions.',
-  phoneNumber: '+1 (555) 123-4567',
-  location: 'San Francisco, CA',
-  timezone: 'Pacific Time (PT)',
-  profession: 'AI Developer',
-  company: 'Tech Innovation Inc.',
-  website: 'https://johndoe.dev',
-  socialLinks: {
-    linkedin: 'https://linkedin.com/in/johndoe',
-    twitter: 'https://twitter.com/johndoe',
-    github: 'https://github.com/johndoe',
-  },
-  joinedDate: authUser?.joinedAt || '2024-01-15',
-  lastActive: authUser?.lastLoginAt || new Date().toISOString().split('T')[0],
-});
-
-const generateMockSecuritySettings = () => ({
-  passwordLastChanged: '2025-10-15',
-  twoFactorEnabled: true,
-  trustedDevices: [
-    {
-      name: 'MacBook Pro',
-      lastUsed: '2025-11-26',
-      location: 'San Francisco, CA',
-    },
-    {
-      name: 'iPhone 15',
-      lastUsed: '2025-11-25',
-      location: 'San Francisco, CA',
-    },
-  ],
-  recentLogins: [
-    {
-      timestamp: '2025-11-26 09:30 AM',
-      location: 'San Francisco, CA',
-      success: true,
-    },
-    {
-      timestamp: '2025-11-25 08:45 PM',
-      location: 'San Francisco, CA',
-      success: true,
-    },
-    {
-      timestamp: '2025-11-25 02:15 PM',
-      location: 'San Francisco, CA',
-      success: true,
-    },
-  ],
-});
-
-const generateMockPreferences = () => ({
-  theme: 'system',
-  language: 'English (US)',
-  timezone: 'Pacific Time (PT)',
-  dateFormat: 'MM/DD/YYYY',
-  timeFormat: '12h',
-  currency: 'USD',
-  notifications: {
-    email: true,
-    push: true,
-    sms: false,
-  },
-  accessibility: {
-    highContrast: false,
-    largeText: false,
-    reduceMotion: false,
-  },
-});
-
-const generateMockRewards = () => ({
-  points: 2450,
-  level: 7,
-  nextLevelPoints: 3000,
-  badges: [
-    {
-      name: 'Early Adopter',
-      description: 'One of our first users',
-      icon: '🌟',
-      category: 'Milestone',
-    },
-    {
-      name: 'AI Expert',
-      description: 'Completed 100+ AI tasks',
-      icon: '🤖',
-      category: 'Achievement',
-    },
-    {
-      name: 'Community Helper',
-      description: 'Helped 50+ users',
-      icon: '🤝',
-      category: 'Social',
-    },
-  ],
-  streaks: {
-    current: 15,
-    longest: 28,
-  },
-  achievements: [
-    {
-      name: 'Daily User',
-      progress: 15,
-      maxProgress: 30,
-      description: 'Use platform daily for 30 days',
-    },
-    {
-      name: 'Feature Explorer',
-      progress: 8,
-      maxProgress: 10,
-      description: 'Try 10 different features',
-    },
-  ],
-});
 
 export default function DashboardOverviewPage() {
   const { state } = useAuth(); // Get authenticated user
@@ -197,88 +81,77 @@ export default function DashboardOverviewPage() {
   const [preferences, setPreferences] = useState<any>(null);
   const [rewards, setRewards] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadUserData = useCallback(async () => {
+    if (!state.user?.id) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const [profileRewards, securityRes, preferencesRes] = await Promise.all([
+        fetchUserData(state.user.id),
+        fetchWithTimeout(`/api/user/security/${state.user.id}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        }),
+        fetchWithTimeout(`/api/user/preferences/${state.user.id}`, {
+          credentials: 'include',
+          cache: 'no-store',
+        }),
+      ]);
+
+      if (profileRewards) {
+        const profile = profileRewards.profile;
+        setUserProfile({
+          ...profile,
+          joinedDate: profile.createdAt
+            ? new Date(profile.createdAt).toISOString().split('T')[0]
+            : 'N/A',
+          lastActive: profile.updatedAt
+            ? new Date(profile.updatedAt).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+        });
+        setRewards(profileRewards.rewards || null);
+      }
+
+      if (securityRes) {
+        const securityJson = await securityRes.json();
+        if (!securityRes.ok) {
+          throw new Error(
+            securityJson?.message || 'Failed to load security data'
+          );
+        }
+        setSecuritySettings(securityJson.data);
+      }
+
+      if (preferencesRes) {
+        const preferencesJson = await preferencesRes.json();
+        if (!preferencesRes.ok) {
+          throw new Error(
+            preferencesJson?.message || 'Failed to load preferences'
+          );
+        }
+        setPreferences(preferencesJson.data);
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      setError(
+        err instanceof Error ? err.message : 'Unable to load dashboard data'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [state.user?.id]);
 
   useEffect(() => {
-    // Load user data from API
-    const loadUserData = async () => {
-      try {
-        // Only fetch if we have a valid user ID
-        if (state.user?.id) {
-          const apiData = await fetchUserData(state.user.id);
-
-          if (apiData) {
-            // Use real data from API
-            setUserProfile({
-              ...apiData.profile,
-              joinedDate: apiData.profile.createdAt
-                ? new Date(apiData.profile.createdAt)
-                    .toISOString()
-                    .split('T')[0]
-                : '2024-01-15',
-              lastActive: apiData.profile.updatedAt
-                ? new Date(apiData.profile.updatedAt)
-                    .toISOString()
-                    .split('T')[0]
-                : new Date().toISOString().split('T')[0],
-            });
-            setRewards(apiData.rewards || generateMockRewards());
-          } else {
-            // Fallback to mock data with real user info
-            setUserProfile(generateMockUserProfile(state.user));
-            setRewards(generateMockRewards());
-          }
-
-          // Fetch real security settings with actual 2FA status
-          try {
-            const securityRes = await fetchWithTimeout(
-              `https://onelastai.co/api/user/security/${state.user.id}`,
-              { credentials: 'include' },
-              8000 // 8 second timeout for security data
-            );
-            if (securityRes.ok) {
-              const securityData = await securityRes.json();
-              // Use real security data
-              setSecuritySettings({
-                passwordLastChanged: securityData.data?.passwordLastChanged
-                  ? new Date(securityData.data.passwordLastChanged)
-                      .toISOString()
-                      .split('T')[0]
-                  : '2024-10-15',
-                twoFactorEnabled: securityData.data?.twoFactorEnabled || false,
-                trustedDevices: securityData.data?.trustedDevices || [],
-                loginHistory: securityData.data?.loginHistory || [],
-              });
-            } else {
-              setSecuritySettings(generateMockSecuritySettings());
-            }
-          } catch (err) {
-            console.error('Error fetching security data:', err);
-            setSecuritySettings(generateMockSecuritySettings());
-          }
-        } else {
-          // No user logged in, use mock data
-          setUserProfile(generateMockUserProfile(state.user));
-          setRewards(generateMockRewards());
-          setSecuritySettings(generateMockSecuritySettings());
-        }
-
-        // Fetch real preferences
-        setPreferences(generateMockPreferences());
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        // Fallback to mock data on error with real user info
-        setUserProfile(generateMockUserProfile(state.user));
-        setSecuritySettings(generateMockSecuritySettings());
-        setPreferences(generateMockPreferences());
-        setRewards(generateMockRewards());
-        setIsLoading(false);
-      }
-    };
-
+    if (!state.user?.id) {
+      setIsLoading(false);
+      return;
+    }
     loadUserData();
-  }, [state.user]);
+  }, [state.user?.id, loadUserData]);
 
   if (isLoading) {
     return (
@@ -290,6 +163,26 @@ export default function DashboardOverviewPage() {
       </div>
     );
   }
+
+  const quickStats = [
+    {
+      label: 'AI Interactions',
+      value: rewards?.rewardHistory?.length ?? 0,
+    },
+    {
+      label: 'Days Active',
+      value: rewards?.statistics?.daysActive ?? 0,
+    },
+    {
+      label: 'Features Customized',
+      value: preferences?.dashboard?.widgets?.length ?? 0,
+    },
+    {
+      label: 'Security Score',
+      value: securitySettings?.securityScore ?? 0,
+      suffix: '%',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -316,6 +209,23 @@ export default function DashboardOverviewPage() {
       {/* Main Dashboard Sections */}
       <section className="section-padding">
         <div className="container-custom max-w-6xl">
+          {error && (
+            <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="font-semibold text-red-800">
+                  Unable to refresh some account data
+                </p>
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+              <button
+                onClick={loadUserData}
+                className="btn-secondary self-start md:self-auto"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Refreshing...' : 'Retry'}
+              </button>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* User Profile Section */}
             <Link href="/dashboard/profile" className="group">
@@ -411,8 +321,8 @@ export default function DashboardOverviewPage() {
                         ).toLocaleDateString()}
                       </p>
                       <p>
-                        📱 {securitySettings.trustedDevices.length} trusted
-                        devices
+                        📱 {securitySettings.trustedDevices?.length || 0}{' '}
+                        trusted devices
                       </p>
                     </div>
                   </div>
@@ -562,22 +472,20 @@ export default function DashboardOverviewPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-brand-600 mb-2">142</div>
-              <div className="text-sm text-neural-600">AI Interactions</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">15</div>
-              <div className="text-sm text-neural-600">Days Active</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">8</div>
-              <div className="text-sm text-neural-600">Features Used</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">97%</div>
-              <div className="text-sm text-neural-600">Satisfaction</div>
-            </div>
+            {quickStats.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="bg-white p-6 rounded-lg shadow-sm border border-neural-200 text-center"
+              >
+                <div className="text-3xl font-bold text-neural-900 mb-2">
+                  {typeof stat.value === 'number'
+                    ? stat.value.toLocaleString()
+                    : stat.value}{' '}
+                  {stat.suffix || ''}
+                </div>
+                <div className="text-sm text-neural-600">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

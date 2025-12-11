@@ -3,51 +3,59 @@
  * How to integrate emotional TTS with chat components
  */
 
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useEmotionalTTS, useAgentPersonality } from '@/lib/emotional-tts-client'
-import { EmotionalTTSConfig } from '@/lib/emotional-tts-service'
+import { useState } from 'react';
+import {
+  useEmotionalTTS,
+  useAgentPersonality,
+} from '@/lib/emotional-tts-client';
+import { EmotionalTTSConfig } from '@/lib/emotional-tts-service';
 
 interface EmotionalChatProps {
-  agentId: string
-  agentName: string
+  agentId: string;
+  agentName: string;
 }
 
 export function EmotionalChatDemo({ agentId, agentName }: EmotionalChatProps) {
-  const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState<Array<{ text: string; emotion: string; provider: string }>>([])
-  
-  const { speakAndPlay, loading, isPlaying, error } = useEmotionalTTS(agentId)
-  const { personality } = useAgentPersonality(agentId)
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<
+    Array<{ text: string; emotion: string; provider: string }>
+  >([]);
+
+  const { speakAndPlay, loading, isPlaying, error, test } =
+    useEmotionalTTS(agentId);
+  const { personality } = useAgentPersonality(agentId);
 
   const handleSend = async () => {
-    if (!message.trim()) return
+    if (!message.trim()) return;
 
     try {
       // Speak with auto-detected emotion
-      const result = await speakAndPlay(message)
-      
-      setMessages(prev => [...prev, {
-        text: message,
-        emotion: result?.emotion || 'neutral',
-        provider: result?.provider || 'unknown'
-      }])
-      
-      setMessage('')
+      const result = await speakAndPlay(message);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: message,
+          emotion: result?.emotion || 'neutral',
+          provider: result?.provider || 'unknown',
+        },
+      ]);
+
+      setMessage('');
     } catch (err) {
-      console.error('TTS error:', err)
+      console.error('TTS error:', err);
     }
-  }
+  };
 
   const testVoice = async () => {
     try {
-      const { test } = useEmotionalTTS(agentId)
-      await test()
+      await test();
     } catch (err) {
-      console.error('Test error:', err)
+      console.error('Test error:', err);
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
@@ -56,13 +64,26 @@ export function EmotionalChatDemo({ agentId, agentName }: EmotionalChatProps) {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           {agentName} - Emotional Voice Demo
         </h2>
-        
+
         {personality && (
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <div>Gender: <span className="font-medium">{personality.gender}</span></div>
-            <div>Base Emotion: <span className="font-medium">{personality.baseEmotion}</span></div>
-            <div>Style: <span className="font-medium">{personality.defaultStyle}</span></div>
-            <div>Providers: <span className="font-medium">{Object.keys(personality.providers).length}</span></div>
+            <div>
+              Gender: <span className="font-medium">{personality.gender}</span>
+            </div>
+            <div>
+              Base Emotion:{' '}
+              <span className="font-medium">{personality.baseEmotion}</span>
+            </div>
+            <div>
+              Style:{' '}
+              <span className="font-medium">{personality.defaultStyle}</span>
+            </div>
+            <div>
+              Providers:{' '}
+              <span className="font-medium">
+                {Object.keys(personality.providers).length}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -107,7 +128,7 @@ export function EmotionalChatDemo({ agentId, agentName }: EmotionalChatProps) {
           {isPlaying && '🔊 Speaking...'}
           {!loading && !isPlaying && '🎤 Speak with Emotion'}
         </button>
-        
+
         <button
           onClick={testVoice}
           disabled={loading || isPlaying}
@@ -132,21 +153,28 @@ export function EmotionalChatDemo({ agentId, agentName }: EmotionalChatProps) {
             Recent Messages:
           </h3>
           {messages.map((msg, i) => (
-            <div 
-              key={i}
-              className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-            >
+            <div key={i} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <p className="text-gray-900 dark:text-white mb-1">{msg.text}</p>
               <div className="flex gap-4 text-xs text-gray-600 dark:text-gray-400">
-                <span>Emotion: <span className="font-medium text-blue-600 dark:text-blue-400">{msg.emotion}</span></span>
-                <span>Provider: <span className="font-medium text-green-600 dark:text-green-400">{msg.provider}</span></span>
+                <span>
+                  Emotion:{' '}
+                  <span className="font-medium text-blue-600 dark:text-blue-400">
+                    {msg.emotion}
+                  </span>
+                </span>
+                <span>
+                  Provider:{' '}
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {msg.provider}
+                  </span>
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -155,14 +183,14 @@ export function EmotionalChatDemo({ agentId, agentName }: EmotionalChatProps) {
  */
 
 export function AdvancedEmotionalTTS({ agentId }: { agentId: string }) {
-  const [text, setText] = useState('')
-  const [emotion, setEmotion] = useState<string>('neutral')
-  const [style, setStyle] = useState<string>('conversational')
-  const [intensity, setIntensity] = useState(0.5)
-  const [speed, setSpeed] = useState(1.0)
-  const [pitch, setPitch] = useState(0)
-  
-  const { speak, speakAndPlay, loading, isPlaying } = useEmotionalTTS(agentId)
+  const [text, setText] = useState('');
+  const [emotion, setEmotion] = useState<string>('neutral');
+  const [style, setStyle] = useState<string>('conversational');
+  const [intensity, setIntensity] = useState(0.5);
+  const [speed, setSpeed] = useState(1.0);
+  const [pitch, setPitch] = useState(0);
+
+  const { speak, speakAndPlay, loading, isPlaying } = useEmotionalTTS(agentId);
 
   const handleSpeak = async () => {
     const config: Partial<EmotionalTTSConfig> = {
@@ -170,11 +198,11 @@ export function AdvancedEmotionalTTS({ agentId }: { agentId: string }) {
       style: style as any,
       intensity,
       speed,
-      pitch
-    }
+      pitch,
+    };
 
-    await speakAndPlay(text, config)
-  }
+    await speakAndPlay(text, config);
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
@@ -277,7 +305,8 @@ export function AdvancedEmotionalTTS({ agentId }: { agentId: string }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Pitch: {pitch > 0 ? '+' : ''}{pitch}
+            Pitch: {pitch > 0 ? '+' : ''}
+            {pitch}
           </label>
           <input
             type="range"
@@ -303,15 +332,21 @@ export function AdvancedEmotionalTTS({ agentId }: { agentId: string }) {
         {!loading && !isPlaying && '🎤 Speak with Custom Settings'}
       </button>
     </div>
-  )
+  );
 }
 
 /**
  * SIMPLE INTEGRATION WITH EXISTING CHAT
  */
 
-export function SimpleTTSButton({ text, agentId }: { text: string; agentId: string }) {
-  const { speakAndPlay, isPlaying } = useEmotionalTTS(agentId)
+export function SimpleTTSButton({
+  text,
+  agentId,
+}: {
+  text: string;
+  agentId: string;
+}) {
+  const { speakAndPlay, isPlaying } = useEmotionalTTS(agentId);
 
   return (
     <button
@@ -322,5 +357,5 @@ export function SimpleTTSButton({ text, agentId }: { text: string; agentId: stri
     >
       {isPlaying ? '🔊' : '🔉'}
     </button>
-  )
+  );
 }

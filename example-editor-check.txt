@@ -1,0 +1,3 @@
+VS Code editor verification file.
+Timestamp: December 11, 2025.
+If you can read this, the editor is working! 🚀

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, FormEvent } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,20 +13,146 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+type ConversationItem = {
+  id: string;
+  agent: string;
+  topic: string;
+  date: string;
+  duration: string;
+  messageCount: number;
+  lastMessage?: {
+    content: string;
+    timestamp?: string;
+  } | null;
+};
+
+type PaginationState = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+};
+
+const DEFAULT_PAGINATION: PaginationState = {
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 0,
+  hasNext: false,
+  hasPrev: false,
+};
+
+const normalizePagination = (
+  payload?: Partial<PaginationState>
+): PaginationState => {
+  const page = Number(payload?.page ?? DEFAULT_PAGINATION.page);
+  const limit = Number(payload?.limit ?? DEFAULT_PAGINATION.limit);
+  const total = Number(payload?.total ?? DEFAULT_PAGINATION.total);
+  const totalPages = Number(
+    payload?.totalPages ?? DEFAULT_PAGINATION.totalPages
+  );
+
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNext: Boolean(payload?.hasNext ?? page < totalPages),
+    hasPrev: Boolean(payload?.hasPrev ?? page > 1),
+  };
+};
+
 export default function ConversationHistoryPage() {
   const { state } = useAuth();
-  const [conversations, setConversations] = useState([]);
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
-  });
+  const [pagination, setPagination] =
+    useState<PaginationState>(DEFAULT_PAGINATION);
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
+  const [error, setError] = useState('');
+
+  const fetchConversations = useCallback(
+    async (
+      page = 1,
+      search = '',
+      options?: { signal?: AbortSignal; silent?: boolean }
+    ) => {
+      if (!state.user?.id) return;
+
+      const isSearchRequest = Boolean(search);
+
+      if (!options?.silent) {
+        setError('');
+        if (isSearchRequest) setSearching(true);
+        else setLoading(true);
+      }
+
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: pagination.limit.toString(),
+          ...(search && { search }),
+        });
+
+        const response = await fetch(
+          `/api/user/conversations/${state.user.id}?${params.toString()}`,
+          {
+            credentials: 'include',
+            signal: options?.signal,
+          }
+        );
+
+        if (!response.ok) {
+          const message =
+            response.status === 404
+              ? 'No conversations found for your account yet.'
+              : 'Unable to load conversations right now.';
+          throw new Error(message);
+        }
+
+        const result = await response.json();
+        const data = result.data || {};
+        setConversations(data.conversations || []);
+        setPagination(normalizePagination(data.pagination));
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+
+        console.error('Error fetching conversations:', err);
+        setConversations([]);
+        setPagination(normalizePagination());
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Something went wrong while loading conversations.'
+        );
+      } finally {
+        setLoading(false);
+        setSearching(false);
+      }
+    },
+    [state.user?.id, pagination.limit]
+  );
+
+  // Load conversations on mount
+  useEffect(() => {
+    if (!state.user?.id) return;
+
+    const controller = new AbortController();
+    fetchConversations(1, '', { signal: controller.signal });
+
+    return () => controller.abort();
+  }, [state.user?.id, fetchConversations]);
+
+  const emptyStateCopy = useMemo(() => {
+    if (error) return error;
+    if (searchTerm) return 'Try adjusting your search terms';
+    return 'Start a conversation to see your history here';
+  }, [error, searchTerm]);
 
   if (!state.isAuthenticated) {
     return (
@@ -43,51 +169,8 @@ export default function ConversationHistoryPage() {
     );
   }
 
-  // Fetch conversations
-  const fetchConversations = async (page = 1, search = '') => {
-    try {
-      if (search) setSearching(true);
-      else setLoading(true);
-
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: pagination.limit.toString(),
-        ...(search && { search }),
-      });
-
-      const response = await fetch(
-        `https://onelastai.co/api/user/conversations/${state.user.id}?${params}`,
-        {
-          credentials: 'include',
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        setConversations(result.data.conversations);
-        setPagination(result.data.pagination);
-      } else {
-        console.error('Failed to fetch conversations');
-        setConversations([]);
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      setConversations([]);
-    } finally {
-      setLoading(false);
-      setSearching(false);
-    }
-  };
-
-  // Load conversations on mount
-  useEffect(() => {
-    if (state.user?.id) {
-      fetchConversations();
-    }
-  }, [state.user]);
-
   // Handle search
-  const handleSearch = (e) => {
+  const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       fetchConversations(1, searchTerm.trim());
@@ -97,8 +180,8 @@ export default function ConversationHistoryPage() {
   };
 
   // Handle pagination
-  const handlePageChange = (newPage) => {
-    fetchConversations(newPage, searchTerm);
+  const handlePageChange = (newPage: number) => {
+    fetchConversations(newPage, searchTerm, { silent: true });
   };
 
   return (
@@ -167,7 +250,7 @@ export default function ConversationHistoryPage() {
                         <div className="flex items-center mb-2">
                           <ChatBubbleLeftRightIcon className="w-5 h-5 text-brand-500 mr-2" />
                           <h3 className="font-semibold text-neural-900">
-                            {conv.agent}
+                            {conv.agent || 'Assistant'}
                           </h3>
                         </div>
                         <p className="text-neural-700 mb-2">{conv.topic}</p>
@@ -225,11 +308,7 @@ export default function ConversationHistoryPage() {
               <h3 className="text-xl font-semibold text-neural-900 mb-2">
                 No conversations found
               </h3>
-              <p className="text-neural-600 mb-6">
-                {searchTerm
-                  ? 'Try adjusting your search terms'
-                  : 'Start a conversation to see your history here'}
-              </p>
+              <p className="text-neural-600 mb-6">{emptyStateCopy}</p>
               <Link
                 href="/dashboard/overview"
                 className="btn-primary inline-block"

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import {
   TrendingUp,
   TrendingDown,
@@ -10,10 +11,12 @@ import {
   Clock,
   Target,
   Zap,
-  ChevronRight,
+  RefreshCcw,
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+
+type TrendDirection = 'up' | 'down';
 
 interface AgentPerformanceData {
   agent: {
@@ -31,242 +34,265 @@ interface AgentPerformanceData {
     uptime: number;
   };
   trends: {
-    conversations: { value: number; change: string; trend: 'up' | 'down' };
-    messages: { value: number; change: string; trend: 'up' | 'down' };
-    responseTime: { value: number; change: string; trend: 'up' | 'down' };
-    satisfaction: { value: number; change: string; trend: 'up' | 'down' };
+    conversations: { value: number; change: string; trend: TrendDirection };
+    messages: { value: number; change: string; trend: TrendDirection };
+    responseTime: { value: number; change: string; trend: TrendDirection };
+    satisfaction: { value: number; change: string; trend: TrendDirection };
   };
   recentActivity: Array<{
     timestamp: string;
-    type: 'conversation' | 'message' | 'error';
+    type: string;
     description: string;
     user?: string;
   }>;
+  timeRange: string;
+  dataRefreshed?: string;
 }
 
+const agentOptions = [
+  { id: 'einstein', name: 'Einstein', icon: '🧠' },
+  { id: 'tech-wizard', name: 'Tech Wizard', icon: '🧙‍♂️' },
+  { id: 'comedy-king', name: 'Comedy King', icon: '😄' },
+  { id: 'chef-biew', name: 'Chef Biew', icon: '👨‍🍳' },
+  { id: 'ben-sega', name: 'Ben Sega', icon: '🎮' },
+  { id: 'default', name: 'AI Assistant', icon: '🤖' },
+];
+
+const timeRangeOptions = [
+  { id: '1d', name: 'Last 24 Hours' },
+  { id: '7d', name: 'Last 7 Days' },
+  { id: '30d', name: 'Last 30 Days' },
+];
+
+const statusBadgeMap: Record<string, string> = {
+  active: 'bg-green-50 text-green-700 border border-green-100',
+  idle: 'bg-yellow-50 text-yellow-700 border border-yellow-100',
+  maintenance: 'bg-red-50 text-red-600 border border-red-100',
+};
+
+const getTrendIcon = (trend: TrendDirection) =>
+  trend === 'up' ? (
+    <TrendingUp className="w-4 h-4 text-green-500" />
+  ) : (
+    <TrendingDown className="w-4 h-4 text-red-500" />
+  );
+
 function AgentPerformanceDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<AgentPerformanceData | null>(null);
-  const [selectedAgent, setSelectedAgent] = useState('einstein');
+  const { state } = useAuth();
+  const [selectedAgent, setSelectedAgent] = useState(agentOptions[0].id);
   const [timeRange, setTimeRange] = useState('7d');
+  const [data, setData] = useState<AgentPerformanceData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const hasLoadedRef = useRef(false);
 
-  const agentOptions = [
-    { id: 'einstein', name: 'Einstein', icon: '🧠' },
-    { id: 'tech-wizard', name: 'Tech Wizard', icon: '🧙‍♂️' },
-    { id: 'comedy-king', name: 'Comedy King', icon: '😄' },
-    { id: 'chef-biew', name: 'Chef Biew', icon: '👨‍🍳' },
-    { id: 'ben-sega', name: 'Ben Sega', icon: '🎮' },
-    { id: 'default', name: 'AI Assistant', icon: '🤖' },
-  ];
+  const fetchPerformance = useCallback(async () => {
+    if (!state.user) return;
 
-  const timeRangeOptions = [
-    { id: '1d', name: 'Last 24 Hours' },
-    { id: '7d', name: 'Last 7 Days' },
-    { id: '30d', name: 'Last 30 Days' },
-  ];
+    setError(null);
+
+    if (!hasLoadedRef.current) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+
+    const controller = new AbortController();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = controller;
+
+    try {
+      const response = await fetch(
+        `/api/agent/performance/${selectedAgent}?timeRange=${timeRange}`,
+        {
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal,
+        }
+      );
+
+      const payload: unknown = await response.json();
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload === 'object' && 'message' in payload
+            ? (payload as { message?: string }).message
+            : undefined) ||
+          (payload && typeof payload === 'object' && 'error' in payload
+            ? (payload as { error?: string }).error
+            : undefined) ||
+          'Failed to load agent performance';
+        throw new Error(message);
+      }
+
+      const typedPayload = payload as { data?: AgentPerformanceData };
+      if (!typedPayload.data) {
+        throw new Error('Agent performance response was empty');
+      }
+
+      setData(typedPayload.data);
+      setLastUpdated(
+        typedPayload.data.dataRefreshed
+          ? new Date(typedPayload.data.dataRefreshed)
+          : new Date()
+      );
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        return;
+      }
+      console.error('Error fetching agent performance:', err);
+      setError((err as Error).message || 'Unable to load agent metrics');
+      setData(null);
+    } finally {
+      hasLoadedRef.current = true;
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [state.user, selectedAgent, timeRange]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `https://onelastai.co/api/agent/performance/${selectedAgent}?timeRange=${timeRange}`,
-          {
-            credentials: 'include',
-          }
-        );
+    if (!state.user) return;
 
-        if (response.ok) {
-          const result = await response.json();
-          setData(result.data);
-        } else {
-          console.error('Failed to fetch agent performance data');
-          // Fallback to mock data if API fails
-          setData({
-            agent: {
-              name: 'Einstein',
-              type: 'Physics & Science',
-              avatar: '🧠',
-              status: 'active',
-            },
-            metrics: {
-              totalConversations: 0,
-              totalMessages: 0,
-              averageResponseTime: 1.2,
-              satisfactionScore: 4.8,
-              activeUsers: 0,
-              uptime: 99.9,
-            },
-            trends: {
-              conversations: { value: 0, change: '+0%', trend: 'up' },
-              messages: { value: 0, change: '+0%', trend: 'up' },
-              responseTime: { value: 1.2, change: '+0s', trend: 'up' },
-              satisfaction: { value: 4.8, change: '+0', trend: 'up' },
-            },
-            recentActivity: [],
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch agent performance data:', error);
-        // Fallback data
-        setData({
-          agent: {
-            name: 'Einstein',
-            type: 'Physics & Science',
-            avatar: '🧠',
-            status: 'idle',
-          },
-          metrics: {
-            totalConversations: 0,
-            totalMessages: 0,
-            averageResponseTime: 0,
-            satisfactionScore: 4.8,
-            activeUsers: 0,
-            uptime: 99.9,
-          },
-          trends: {
-            conversations: { value: 0, change: '+0%', trend: 'up' },
-            messages: { value: 0, change: '+0%', trend: 'up' },
-            responseTime: { value: 0, change: '+0s', trend: 'up' },
-            satisfaction: { value: 4.8, change: '+0', trend: 'up' },
-          },
-          recentActivity: [],
-        });
-      } finally {
-        setLoading(false);
-      }
+    fetchPerformance();
+    return () => {
+      abortControllerRef.current?.abort();
     };
+  }, [state.user, fetchPerformance]);
 
-    fetchData();
-  }, [selectedAgent, timeRange]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'text-green-600 bg-green-100';
-      case 'idle':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'maintenance':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getTrendIcon = (trend: 'up' | 'down') => {
-    return trend === 'up' ? (
-      <TrendingUp className="w-4 h-4 text-green-500" />
-    ) : (
-      <TrendingDown className="w-4 h-4 text-red-500" />
-    );
-  };
+  const statusBadge =
+    statusBadgeMap[data?.agent.status ?? ''] ||
+    'bg-neural-100 text-neural-600 border border-neural-200';
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="container-custom section-padding">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
-              ))}
-            </div>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
+            <p className="text-neural-600">Loading agent performance...</p>
           </div>
         </div>
-      </div>
+      </ProtectedRoute>
     );
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="container-custom section-padding">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Error Loading Performance Data
-            </h1>
-            <p className="text-gray-600 mb-8">
-              Unable to load agent performance metrics.
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
+          <div className="max-w-lg text-center">
+            <h2 className="text-2xl font-semibold text-neural-900 mb-3">
+              {error || 'Unable to load agent metrics'}
+            </h2>
+            <p className="text-neural-600 mb-6">
+              Confirm your session is active and refresh the metrics.
             </p>
-            <Link href="/dashboard" className="btn-primary">
-              Back to Dashboard
-            </Link>
+            <button
+              onClick={() => fetchPerformance()}
+              className="btn-primary"
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? 'Refreshing…' : 'Retry fetch'}
+            </button>
           </div>
         </div>
-      </div>
+      </ProtectedRoute>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Agent Performance
-            </h1>
-            <p className="text-gray-600">
-              Monitor your AI agent's performance and usage metrics
-            </p>
-          </div>
-          <div className="flex items-center gap-4 mt-4 sm:mt-0">
-            <Link href="/dashboard/overview" className="btn-secondary">
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Agent Selection */}
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Agent
-              </label>
-              <select
-                value={selectedAgent}
-                onChange={(e) => setSelectedAgent(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {agentOptions.map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.icon} {agent.name}
-                  </option>
-                ))}
-              </select>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="container-custom section-padding">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+              <p className="text-sm text-neural-500">Agent performance</p>
+              <h1 className="text-3xl font-bold text-neural-900">
+                {data.agent.name}
+              </h1>
+              <p className="text-neural-600">
+                Monitoring {data.agent.type} ·{' '}
+                {timeRangeOptions.find((t) => t.id === timeRange)?.name}
+              </p>
+              {lastUpdated && (
+                <p className="text-xs text-neural-500 mt-2">
+                  Last updated{' '}
+                  {lastUpdated.toLocaleTimeString([], {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })}
+                </p>
+              )}
             </div>
-
-            {/* Time Range Selection */}
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time Range
-              </label>
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/dashboard" className="btn-secondary">
+                Back to Dashboard
+              </Link>
+              <button
+                onClick={() => fetchPerformance()}
+                className="btn-primary inline-flex items-center gap-2"
+                disabled={isRefreshing}
               >
-                {timeRangeOptions.map((range) => (
-                  <option key={range.id} value={range.id}>
-                    {range.name}
-                  </option>
-                ))}
-              </select>
+                <RefreshCcw
+                  className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                />
+                {isRefreshing ? 'Refreshing…' : 'Refresh data'}
+              </button>
             </div>
+          </div>
 
-            {/* Status Badge */}
-            <div className="flex items-end">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Status:
+          {error && (
+            <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4">
+              <p className="font-medium">Real-time fetch warning</p>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl border border-neural-200 p-6 mb-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <div>
+                <label className="block text-sm font-medium text-neural-600 mb-2">
+                  Select agent
+                </label>
+                <select
+                  value={selectedAgent}
+                  onChange={(event) => setSelectedAgent(event.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-neural-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                >
+                  {agentOptions.map((agentOption) => (
+                    <option key={agentOption.id} value={agentOption.id}>
+                      {agentOption.icon} {agentOption.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neural-600 mb-2">
+                  Time range
+                </label>
+                <select
+                  value={timeRange}
+                  onChange={(event) => setTimeRange(event.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-neural-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                >
+                  {timeRangeOptions.map((range) => (
+                    <option key={range.id} value={range.id}>
+                      {range.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col justify-end">
+                <span className="text-xs uppercase text-neural-500 mb-1">
+                  Status
                 </span>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                    data.agent.status
-                  )}`}
+                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusBadge}`}
                 >
                   {data.agent.status.charAt(0).toUpperCase() +
                     data.agent.status.slice(1)}
@@ -274,140 +300,172 @@ function AgentPerformanceDashboard() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Agent Info */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="text-4xl">{data.agent.avatar}</div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {data.agent.name}
-              </h2>
-              <p className="text-gray-600">{data.agent.type}</p>
+          <div className="bg-white rounded-3xl border border-neural-200 p-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="text-5xl" role="img" aria-label={data.agent.name}>
+                {data.agent.avatar}
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-neural-900">
+                  {data.agent.name}
+                </h2>
+                <p className="text-neural-600">{data.agent.type}</p>
+                <p className="text-sm text-neural-500 mt-2">
+                  {(data.metrics.totalConversations || 0).toLocaleString()}{' '}
+                  conversations in this window
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <MessageSquare className="w-8 h-8 text-blue-600" />
-              {getTrendIcon(data.trends.conversations.trend)}
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {data.metrics.totalConversations.toLocaleString()}
-            </h3>
-            <p className="text-sm text-gray-600">Total Conversations</p>
-            <p className="text-xs text-green-600 mt-1">
-              {data.trends.conversations.change}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Zap className="w-8 h-8 text-purple-600" />
-              {getTrendIcon(data.trends.messages.trend)}
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {data.metrics.totalMessages.toLocaleString()}
-            </h3>
-            <p className="text-sm text-gray-600">Total Messages</p>
-            <p className="text-xs text-green-600 mt-1">
-              {data.trends.messages.change}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Clock className="w-8 h-8 text-green-600" />
-              {getTrendIcon(data.trends.responseTime.trend)}
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {data.metrics.averageResponseTime}s
-            </h3>
-            <p className="text-sm text-gray-600">Avg Response Time</p>
-            <p className="text-xs text-green-600 mt-1">
-              {data.trends.responseTime.change}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Target className="w-8 h-8 text-orange-600" />
-              {getTrendIcon(data.trends.satisfaction.trend)}
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {data.metrics.satisfactionScore}/5
-            </h3>
-            <p className="text-sm text-gray-600">Satisfaction Score</p>
-            <p className="text-xs text-green-600 mt-1">
-              {data.trends.satisfaction.change}
-            </p>
-          </div>
-        </div>
-
-        {/* Additional Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-8 h-8 text-indigo-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {data.metrics.activeUsers}
-            </h3>
-            <p className="text-sm text-gray-600">Active Users</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-2">
-              <Activity className="w-8 h-8 text-red-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {data.metrics.uptime}%
-            </h3>
-            <p className="text-sm text-gray-600">Uptime</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <Link href="/dashboard" className="block text-center btn-primary">
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            {data.recentActivity.map((activity, index) => (
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 mb-8">
+            {[
+              {
+                label: 'Total conversations',
+                value: data.metrics.totalConversations.toLocaleString(),
+                change: data.trends.conversations.change,
+                icon: MessageSquare,
+                trend: data.trends.conversations.trend,
+              },
+              {
+                label: 'Total messages',
+                value: data.metrics.totalMessages.toLocaleString(),
+                change: data.trends.messages.change,
+                icon: Zap,
+                trend: data.trends.messages.trend,
+              },
+              {
+                label: 'Avg response time',
+                value: `${data.metrics.averageResponseTime.toFixed(1)} s`,
+                change: data.trends.responseTime.change,
+                icon: Clock,
+                trend: data.trends.responseTime.trend,
+              },
+              {
+                label: 'Satisfaction score',
+                value: `${data.metrics.satisfactionScore.toFixed(1)}/5`,
+                change: data.trends.satisfaction.change,
+                icon: Target,
+                trend: data.trends.satisfaction.trend,
+              },
+            ].map((metric) => (
               <div
-                key={index}
-                className="flex items-start gap-3 p-3 rounded-lg bg-gray-50"
+                key={metric.label}
+                className="bg-white rounded-2xl border border-neural-200 p-6 shadow-sm"
               >
-                <div className="w-2 h-2 rounded-full bg-blue-600 mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">
-                    {activity.description}
-                  </p>
-                  <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-neural-500">{metric.label}</p>
+                  <metric.icon className="w-5 h-5 text-brand-500" />
                 </div>
+                <p className="text-3xl font-bold text-neural-900">
+                  {metric.value}
+                </p>
+                <p
+                  className={`text-sm mt-2 flex items-center gap-1 ${
+                    metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {getTrendIcon(metric.trend)}
+                  {metric.change}
+                </p>
               </div>
             ))}
           </div>
+
+          <div className="grid gap-6 lg:grid-cols-3 mb-8">
+            <div className="bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm text-neural-500">Active users</p>
+                  <p className="text-3xl font-bold text-neural-900">
+                    {data.metrics.activeUsers.toLocaleString()}
+                  </p>
+                </div>
+                <Users className="w-6 h-6 text-brand-500" />
+              </div>
+              <p className="text-sm text-neural-600">
+                Unique people who interacted with this agent during the selected
+                window.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm text-neural-500">Uptime</p>
+                  <p className="text-3xl font-bold text-neural-900">
+                    {data.metrics.uptime}%
+                  </p>
+                </div>
+                <Activity className="w-6 h-6 text-brand-500" />
+              </div>
+              <p className="text-sm text-neural-600">
+                Availability is tracked via health pings from the agent runtime.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-neural-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm text-neural-500">Response insights</p>
+                  <p className="text-3xl font-bold text-neural-900">
+                    {(data.metrics.averageResponseTime || 0).toFixed(1)}s
+                  </p>
+                </div>
+                <Clock className="w-6 h-6 text-brand-500" />
+              </div>
+              <p className="text-sm text-neural-600">
+                Aim to keep response times under 2s for best satisfaction.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-neural-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-neural-500">Recent activity</p>
+                <h3 className="text-xl font-semibold text-neural-900">
+                  Conversation timeline
+                </h3>
+              </div>
+            </div>
+            {data.recentActivity.length === 0 ? (
+              <p className="text-neural-500">
+                No conversations during this window.
+              </p>
+            ) : (
+              <ul className="space-y-4">
+                {data.recentActivity.map((activity) => (
+                  <li
+                    key={`${activity.timestamp}-${activity.user}`}
+                    className="flex items-start gap-4 border-b border-neural-100 pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-brand-50 text-brand-700 flex items-center justify-center text-sm font-semibold">
+                      {activity.user?.[0]?.toUpperCase() || 'A'}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-neural-900 font-medium">
+                        {activity.description}
+                      </p>
+                      <p className="text-sm text-neural-500 mt-1">
+                        {activity.user || 'Anonymous user'}
+                      </p>
+                    </div>
+                    <div className="text-right text-sm text-neural-500">
+                      {activity.timestamp}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
 
 export default function AgentPerformancePage() {
-  return (
-    <ProtectedRoute>
-      <AgentPerformanceDashboard />
-    </ProtectedRoute>
-  );
+  return <AgentPerformanceDashboard />;
 }
