@@ -146,8 +146,10 @@ export async function GET(
 
     if (!userSecurity) {
       const userAgent = request.headers.get('user-agent') || 'Unknown Browser';
-      const forwardedIp =
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+      const forwardedIp = request.headers
+        .get('x-forwarded-for')
+        ?.split(',')[0]
+        ?.trim();
       const userIP = forwardedIp || (request as any).ip || 'unknown';
 
       const currentDevice = {

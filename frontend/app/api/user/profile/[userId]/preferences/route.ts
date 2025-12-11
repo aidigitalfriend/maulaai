@@ -27,9 +27,16 @@ export async function PATCH(
       );
     }
 
-    if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (params.userId && params.userId !== sessionUserId) {
+      console.warn('Preferences update mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: params.userId,
+      });
     }
+
+    const targetUserId = sessionUserId;
 
     const body = await request.json();
     const preferences = body.preferences || {};
@@ -68,7 +75,7 @@ export async function PATCH(
     };
 
     const updatedUser = await User.findByIdAndUpdate(
-      params.userId,
+      targetUserId,
       {
         $set: {
           preferences: mergedPreferences,

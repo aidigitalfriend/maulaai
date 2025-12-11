@@ -2,8 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 
-const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB to allow higher quality avatars
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '6mb',
+    },
+  },
+};
 
 export async function POST(
   request: NextRequest,
@@ -30,9 +41,16 @@ export async function POST(
       );
     }
 
-    if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (params.userId && params.userId !== sessionUserId) {
+      console.warn('Avatar upload mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: params.userId,
+      });
     }
+
+    const targetUserId = sessionUserId;
 
     const formData = await request.formData();
     const avatar = formData.get('avatar');
@@ -49,8 +67,10 @@ export async function POST(
 
     if (fileSize > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
-        { message: 'File too large. Max size is 2MB.' },
-        { status: 400 }
+        {
+          message: 'File too large. Max size is 5MB. Please compress the image.',
+        },
+        { status: 413 }
       );
     }
 
@@ -67,7 +87,7 @@ export async function POST(
     const dataUrl = `data:${mimeType};base64,${base64}`;
 
     const updatedUser = await User.findByIdAndUpdate(
-      params.userId,
+      targetUserId,
       {
         $set: {
           avatar: dataUrl,

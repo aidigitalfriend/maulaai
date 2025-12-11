@@ -38,13 +38,10 @@ export async function GET(
     const sessionUserId = sessionUser._id.toString();
 
     if (userId && userId !== sessionUserId) {
-      console.warn(
-        'Preferences access mismatch. Defaulting to session user.',
-        {
-          sessionUserId,
-          requestedUserId: userId,
-        }
-      );
+      console.warn('Preferences access mismatch. Defaulting to session user.', {
+        sessionUserId,
+        requestedUserId: userId,
+      });
     }
 
     const targetUserId = sessionUserId;

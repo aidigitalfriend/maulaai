@@ -23,6 +23,12 @@ const nextConfig = {
   // Fix turbopack root directory warning and enable turbopack
   turbopack: {},
 
+  api: {
+    bodyParser: {
+      sizeLimit: '6mb',
+    },
+  },
+
   webpack: (config, { isServer }) => {
     // Prioritize .tsx over .ts for component resolution
     config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
