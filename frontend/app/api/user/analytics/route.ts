@@ -9,9 +9,7 @@ const BACKEND_BASE_URL =
 
 function buildFallbackAnalytics(): AnalyticsData {
   const now = new Date();
-  const renewalDate = new Date(
-    now.getTime() + 30 * 24 * 60 * 60 * 1000
-  )
+  const renewalDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split('T')[0];
 
