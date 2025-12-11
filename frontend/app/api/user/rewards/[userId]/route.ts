@@ -28,14 +28,23 @@ export async function GET(
       );
     }
 
-    if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (params.userId && params.userId !== sessionUserId) {
+      console.warn('Rewards access mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: params.userId,
+      });
     }
+
+    const targetUserId = sessionUserId;
 
     const rewardsCenters = db.collection('rewardscenters');
     const chatInteractions = db.collection('chat_interactions');
 
-    let rewardsData = await rewardsCenters.findOne({ userId: params.userId });
+    let rewardsData = (await rewardsCenters.findOne({
+      userId: targetUserId,
+    })) as Record<string, any> | null;
 
     if (!rewardsData) {
       const userActivity = await chatInteractions.countDocuments({
@@ -98,8 +107,8 @@ export async function GET(
         });
       }
 
-      const defaultRewards = {
-        userId: params.userId,
+      const defaultRewards: Record<string, any> = {
+        userId: targetUserId,
         currentLevel: startingLevel,
         totalPoints: startingPoints,
         pointsThisLevel,
@@ -126,7 +135,7 @@ export async function GET(
       rewardsData = defaultRewards;
     }
 
-    const { _id, ...rewards } = rewardsData;
+    const { _id, ...rewards } = (rewardsData || {}) as Record<string, any>;
     return NextResponse.json({ success: true, data: rewards });
   } catch (error) {
     console.error('Rewards fetch error:', error);

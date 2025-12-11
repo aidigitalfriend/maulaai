@@ -128,19 +128,27 @@ export async function GET(
       );
     }
 
-    if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (params.userId && params.userId !== sessionUserId) {
+      console.warn('Security access mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: params.userId,
+      });
     }
 
+    const targetUserId = sessionUserId;
+
     const userSecurities = db.collection('usersecurities');
-    let userSecurity = await userSecurities.findOne({ userId: params.userId });
+    let userSecurity = (await userSecurities.findOne({
+      userId: targetUserId,
+    })) as Record<string, any> | null;
 
     if (!userSecurity) {
       const userAgent = request.headers.get('user-agent') || 'Unknown Browser';
-      const userIP =
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-        request.ip ||
-        'unknown';
+      const forwardedIp =
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+      const userIP = forwardedIp || (request as any).ip || 'unknown';
 
       const currentDevice = {
         id: `device-${Date.now()}`,
@@ -162,8 +170,8 @@ export async function GET(
       };
 
       const now = new Date();
-      const defaultSecurity = {
-        userId: params.userId,
+      const defaultSecurity: Record<string, any> = {
+        userId: targetUserId,
         email: sessionUser.email,
         passwordLastChanged: sessionUser.updatedAt || now,
         twoFactorEnabled: sessionUser.twoFactorEnabled || false,
@@ -202,17 +210,17 @@ export async function GET(
       lastLoginAt: sessionUser.lastLoginAt,
       accountCreatedAt: sessionUser.createdAt,
       passwordLastChanged:
-        userSecurity.passwordLastChanged || sessionUser.updatedAt,
-      twoFactorEnabled: userSecurity.twoFactorEnabled || false,
-      twoFactorMethod: userSecurity.twoFactorMethod || 'authenticator',
-      backupCodes: userSecurity.backupCodes || [],
-      trustedDevices: userSecurity.trustedDevices || [],
-      loginHistory: userSecurity.loginHistory || [],
-      activeSessions: userSecurity.activeSessions || [],
-      failedLoginAttempts: userSecurity.failedLoginAttempts || 0,
-      accountLocked: userSecurity.accountLocked || false,
-      securityScore: calculateSecurityScore(userSecurity),
-      recommendations: generateSecurityRecommendations(userSecurity),
+        userSecurity?.passwordLastChanged || sessionUser.updatedAt,
+      twoFactorEnabled: userSecurity?.twoFactorEnabled || false,
+      twoFactorMethod: userSecurity?.twoFactorMethod || 'authenticator',
+      backupCodes: userSecurity?.backupCodes || [],
+      trustedDevices: userSecurity?.trustedDevices || [],
+      loginHistory: userSecurity?.loginHistory || [],
+      activeSessions: userSecurity?.activeSessions || [],
+      failedLoginAttempts: userSecurity?.failedLoginAttempts || 0,
+      accountLocked: userSecurity?.accountLocked || false,
+      securityScore: calculateSecurityScore(userSecurity || {}),
+      recommendations: generateSecurityRecommendations(userSecurity || {}),
     };
 
     return NextResponse.json({ success: true, data: securityData });
@@ -252,8 +260,13 @@ export async function POST(
       );
     }
 
-    if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (params.userId && params.userId !== sessionUserId) {
+      console.warn('Security action mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: params.userId,
+      });
     }
 
     const { action } = await request.json();

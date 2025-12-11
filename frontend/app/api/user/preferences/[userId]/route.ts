@@ -35,19 +35,28 @@ export async function GET(
       );
     }
 
-    // Check if user is requesting their own preferences
-    if (sessionUser._id.toString() !== userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (userId && userId !== sessionUserId) {
+      console.warn(
+        'Preferences access mismatch. Defaulting to session user.',
+        {
+          sessionUserId,
+          requestedUserId: userId,
+        }
+      );
     }
+
+    const targetUserId = sessionUserId;
 
     // Get user preferences from userpreferences collection
     const userPreferences = db.collection('userpreferences');
-    let preferences = await userPreferences.findOne({ userId });
+    let preferences = await userPreferences.findOne({ userId: targetUserId });
 
     // If no preferences exist, create default
     if (!preferences) {
-      const defaultPreferences = {
-        userId,
+      const defaultPreferences: Record<string, any> = {
+        userId: targetUserId,
         theme: 'system',
         language: 'en',
         timezone: 'UTC',
@@ -91,7 +100,7 @@ export async function GET(
       };
 
       await userPreferences.insertOne(defaultPreferences);
-      preferences = defaultPreferences;
+      preferences = defaultPreferences as any;
     }
 
     // Return preferences data
@@ -138,10 +147,16 @@ export async function PUT(
       );
     }
 
-    // Check if user is updating their own preferences
-    if (sessionUser._id.toString() !== userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (userId && userId !== sessionUserId) {
+      console.warn('Preferences update mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: userId,
+      });
     }
+
+    const targetUserId = sessionUserId;
 
     // Validate and sanitize update data
     const allowedFields = [
@@ -170,7 +185,7 @@ export async function PUT(
 
     const userPreferences = db.collection('userpreferences');
     const result = await userPreferences.updateOne(
-      { userId },
+      { userId: targetUserId },
       { $set: sanitizedUpdate },
       { upsert: true }
     );
@@ -182,7 +197,9 @@ export async function PUT(
       );
     }
 
-    const updatedPreferences = await userPreferences.findOne({ userId });
+    const updatedPreferences = await userPreferences.findOne({
+      userId: targetUserId,
+    });
     const { _id, ...preferencesData } = updatedPreferences as any;
 
     return NextResponse.json({
