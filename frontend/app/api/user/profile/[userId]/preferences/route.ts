@@ -35,8 +35,16 @@ export async function PATCH(
     const preferences = body.preferences || {};
 
     const allowedPreferenceKeys: Array<
-      'emailNotifications' | 'smsNotifications' | 'marketingEmails' | 'productUpdates'
-    > = ['emailNotifications', 'smsNotifications', 'marketingEmails', 'productUpdates'];
+      | 'emailNotifications'
+      | 'smsNotifications'
+      | 'marketingEmails'
+      | 'productUpdates'
+    > = [
+      'emailNotifications',
+      'smsNotifications',
+      'marketingEmails',
+      'productUpdates',
+    ];
 
     const sanitizedPreferences: Record<string, boolean> = {};
 

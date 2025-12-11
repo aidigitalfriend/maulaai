@@ -114,7 +114,7 @@ cd frontend
 rm -rf node_modules node_modules/.cache .next || true
 
 echo "📦 Installing frontend dependencies"
-npm ci --omit=dev
+npm ci
 
 echo "🏗️ Building Next.js frontend"
 npm run build
