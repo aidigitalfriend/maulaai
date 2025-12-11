@@ -1408,9 +1408,11 @@ app.get('/api/user/analytics', async (req, res) => {
     res.json(analyticsData);
   } catch (error) {
     console.error('Analytics error:', error);
+    // Return a generic error for clients, but include details for debugging
     res.status(500).json({
       success: false,
       error: 'Failed to fetch analytics data',
+      details: error?.message || String(error),
     });
   }
 });
