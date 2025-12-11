@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import { getClientPromise } from '@/lib/mongodb';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Get session ID from HttpOnly cookie
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    // Connect to database
-    await dbConnect();
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const users = db.collection('users');
 
-    // Find user with valid session
-    const sessionUser = await User.findOne({
-      sessionId: sessionId,
+    const sessionUser = await users.findOne({
+      sessionId,
       sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
@@ -30,74 +28,106 @@ export async function GET(
       );
     }
 
-    // Debug logging
-    console.log('🏆 Rewards API Debug:');
-    console.log('Session User ID:', sessionUser._id.toString());
-    console.log('Requested User ID:', params.userId);
-
-    // Check if user is requesting their own rewards
     if (sessionUser._id.toString() !== params.userId) {
-      console.log('❌ Rewards Access denied - User ID mismatch');
-      return NextResponse.json(
-        {
-          message: 'Access denied',
-          debug: {
-            sessionUserId: sessionUser._id.toString(),
-            requestedUserId: params.userId,
-          },
-        },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    console.log('✅ Rewards Access granted for user:', params.userId);
+    const rewardsCenters = db.collection('rewardscenters');
+    const chatInteractions = db.collection('chat_interactions');
 
-    // Connect to database
-    await dbConnect();
+    let rewardsData = await rewardsCenters.findOne({ userId: params.userId });
 
-    // Find user by ID
-    const user = await User.findById(params.userId);
+    if (!rewardsData) {
+      const userActivity = await chatInteractions.countDocuments({
+        userId: sessionUser._id,
+      });
 
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
-    }
+      const startingPoints = Math.min(userActivity * 10, 500);
+      const startingLevel = Math.floor(startingPoints / 100) + 1;
+      const pointsThisLevel = startingPoints % 100;
+      const pointsToNextLevel = 100 - pointsThisLevel;
 
-    // Return mock rewards data for now
-    return NextResponse.json(
-      {
-        rewards: {
+      const starterBadges: any[] = [];
+      const rewardHistory: any[] = [];
+
+      if (userActivity > 0) {
+        starterBadges.push({
+          id: 'first_chat',
+          name: 'First Steps',
+          description: 'Your first AI conversation',
+          earnedAt: new Date(),
+          points: 50,
+        });
+        rewardHistory.push({
+          title: 'First Steps Badge',
+          points: 50,
+          date: new Date(),
+          type: 'badge',
+        });
+      }
+
+      if (userActivity >= 5) {
+        starterBadges.push({
+          id: 'getting_started',
+          name: 'Getting Started',
+          description: 'Completed 5 AI conversations',
+          earnedAt: new Date(),
           points: 100,
-          level: 1,
-          badges: [
-            {
-              id: 'welcome',
-              name: 'Welcome Badge',
-              description: 'Earned for joining the platform',
-              earnedAt: user.createdAt,
-              icon: '🎉',
-            },
-          ],
-          achievements: [
-            {
-              id: 'first_login',
-              name: 'First Steps',
-              description: 'Completed your first login',
-              progress: 100,
-              maxProgress: 100,
-              earnedAt: user.lastLoginAt || user.createdAt,
-            },
-          ],
-          streak: {
-            current: 1,
-            longest: 1,
-            lastActivity: user.lastLoginAt || user.createdAt,
-          },
-          nextLevelPoints: 500,
-          totalPointsEarned: 100,
+        });
+        rewardHistory.push({
+          title: 'Getting Started Badge',
+          points: 100,
+          date: new Date(),
+          type: 'badge',
+        });
+      }
+
+      if (userActivity >= 10) {
+        starterBadges.push({
+          id: 'ai_enthusiast',
+          name: 'AI Enthusiast',
+          description: 'Active AI user with 10+ conversations',
+          earnedAt: new Date(),
+          points: 200,
+        });
+        rewardHistory.push({
+          title: 'AI Enthusiast Badge',
+          points: 200,
+          date: new Date(),
+          type: 'badge',
+        });
+      }
+
+      const defaultRewards = {
+        userId: params.userId,
+        currentLevel: startingLevel,
+        totalPoints: startingPoints,
+        pointsThisLevel,
+        pointsToNextLevel,
+        badges: starterBadges,
+        achievements: [],
+        rewardHistory,
+        streaks: {
+          current: userActivity > 0 ? 1 : 0,
+          longest: userActivity > 0 ? Math.min(userActivity, 7) : 0,
         },
-      },
-      { status: 200 }
-    );
+        statistics: {
+          totalBadgesEarned: starterBadges.length,
+          totalAchievementsCompleted: 0,
+          averagePointsPerDay:
+            userActivity > 0 ? Math.ceil(startingPoints / 7) : 0,
+          daysActive: Math.min(userActivity, 30),
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await rewardsCenters.insertOne(defaultRewards);
+      rewardsData = defaultRewards;
+    }
+
+    const { _id, ...rewards } = rewardsData;
+    return NextResponse.json({ success: true, data: rewards });
   } catch (error) {
     console.error('Rewards fetch error:', error);
     return NextResponse.json(

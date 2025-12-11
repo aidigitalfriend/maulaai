@@ -18,51 +18,125 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 
+const defaultPreferences = {
+  theme: 'system',
+  // Store language as structured preferences for advanced settings
+  language: {
+    primary: 'en',
+    secondary: '',
+    autoDetect: false,
+  },
+  timezone: 'UTC',
+  dateFormat: 'MM/DD/YYYY',
+  timeFormat: '12h',
+  currency: 'USD',
+  notifications: {
+    email: {
+      enabled: true,
+      frequency: 'immediate',
+      types: ['security', 'billing', 'updates'],
+    },
+    push: {
+      enabled: true,
+      types: ['messages', 'reminders'],
+      // Ensure quiet hours object always exists to avoid runtime errors
+      quiet: {
+        enabled: false,
+        start: '22:00',
+        end: '07:00',
+      },
+    },
+    sms: {
+      enabled: false,
+      types: [],
+    },
+  },
+  dashboard: {
+    defaultView: 'overview',
+    widgets: ['profile', 'security', 'rewards', 'analytics'],
+    layout: 'grid',
+  },
+  accessibility: {
+    highContrast: false,
+    largeText: false,
+    reduceMotion: false,
+    screenReader: false,
+    keyboardNavigation: false,
+  },
+  privacy: {
+    showOnlineStatus: true,
+    allowDataCollection: true,
+    shareUsageStats: false,
+  },
+  integrations: {},
+} as const;
+
+function normalizePreferences(raw: any) {
+  const merged: any = {
+    ...defaultPreferences,
+    ...(raw || {}),
+  };
+
+  // Deep-merge notifications with safe defaults
+  merged.notifications = {
+    ...defaultPreferences.notifications,
+    ...(raw?.notifications || {}),
+    email: {
+      ...defaultPreferences.notifications.email,
+      ...(raw?.notifications?.email || {}),
+    },
+    push: {
+      ...defaultPreferences.notifications.push,
+      ...(raw?.notifications?.push || {}),
+      quiet: {
+        ...defaultPreferences.notifications.push.quiet,
+        ...(raw?.notifications?.push?.quiet || {}),
+      },
+    },
+    sms: {
+      ...defaultPreferences.notifications.sms,
+      ...(raw?.notifications?.sms || {}),
+    },
+  };
+
+  // Merge nested objects that are read as flags
+  merged.accessibility = {
+    ...defaultPreferences.accessibility,
+    ...(raw?.accessibility || {}),
+  };
+
+  merged.privacy = {
+    ...defaultPreferences.privacy,
+    ...(raw?.privacy || {}),
+  };
+
+  // Normalize language: accept legacy string or structured object
+  const lang = raw?.language ?? defaultPreferences.language;
+  if (typeof lang === 'string') {
+    merged.language = {
+      primary: lang || 'en',
+      secondary: '',
+      autoDetect: false,
+    };
+  } else {
+    merged.language = {
+      primary: lang?.primary || 'en',
+      secondary: lang?.secondary || '',
+      autoDetect: !!lang?.autoDetect,
+    };
+  }
+
+  return merged;
+}
+
 export default function PreferencesPage() {
   const { state } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [preferences, setPreferences] = useState({
-    theme: 'system',
-    language: 'en',
-    timezone: 'UTC',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    currency: 'USD',
-    notifications: {
-      email: {
-        enabled: true,
-        frequency: 'immediate',
-        types: ['security', 'billing', 'updates'],
-      },
-      push: {
-        enabled: true,
-        types: ['messages', 'reminders'],
-      },
-      sms: {
-        enabled: false,
-        types: [],
-      },
-    },
-    dashboard: {
-      defaultView: 'overview',
-      widgets: ['profile', 'security', 'rewards', 'analytics'],
-      layout: 'grid',
-    },
-    accessibility: {
-      highContrast: false,
-      largeText: false,
-      reduceMotion: false,
-      screenReader: false,
-    },
-    privacy: {
-      showOnlineStatus: true,
-      allowDataCollection: true,
-      shareUsageStats: false,
-    },
-    integrations: {},
-  });
+  const [preferences, setPreferences] = useState(() =>
+    normalizePreferences(defaultPreferences)
+  );
 
   // Fetch preferences on mount
   useEffect(() => {
@@ -74,16 +148,13 @@ export default function PreferencesPage() {
   const fetchPreferences = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `https://onelastai.co/api/user/preferences/${state.user.id}`,
-        {
-          credentials: 'include',
-        }
-      );
+      const response = await fetch(`/api/user/preferences/${state.user.id}`, {
+        credentials: 'include',
+      });
 
       if (response.ok) {
         const result = await response.json();
-        setPreferences(result.data);
+        setPreferences(normalizePreferences(result.data));
       } else {
         setMessage({ type: 'error', text: 'Failed to load preferences' });
       }
@@ -107,7 +178,7 @@ export default function PreferencesPage() {
 
       if (response.ok) {
         const result = await response.json();
-        setPreferences(result.data);
+        setPreferences(normalizePreferences(result.data));
         setMessage({
           type: 'success',
           text: 'Preferences saved successfully!',
@@ -282,9 +353,9 @@ export default function PreferencesPage() {
                 <div>
                   <h4 className="font-medium text-neural-900 mb-3">Language</h4>
                   <select
-                    value={preferences.language || 'en'}
+                    value={(preferences.language as any)?.primary || 'en'}
                     onChange={(e) =>
-                      updatePreference('language', e.target.value)
+                      updatePreference('language.primary', e.target.value)
                     }
                     className="w-full px-3 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >

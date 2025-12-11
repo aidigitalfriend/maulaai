@@ -70,9 +70,21 @@ export async function GET(
           createdAt: user.createdAt,
           lastLoginAt: user.lastLoginAt,
           emailVerified: user.emailVerified,
-          isActive: user.isActive || true,
+          isActive: user.isActive ?? true,
           preferences: user.preferences || {},
           avatar: user.avatar || null,
+          bio: user.bio || '',
+          phoneNumber: user.phoneNumber || '',
+          location: user.location || '',
+          timezone: user.timezone || '',
+          profession: user.profession || '',
+          company: user.company || '',
+          website: user.website || '',
+          socialLinks: {
+            linkedin: user.socialLinks?.linkedin || '',
+            twitter: user.socialLinks?.twitter || '',
+            github: user.socialLinks?.github || '',
+          },
         },
       },
       { status: 200 }
@@ -119,20 +131,58 @@ export async function PUT(
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    const { name, preferences, avatar } = await request.json();
+    const payload = await request.json();
 
-    // Connect to database
-    await dbConnect();
+    const allowedFields = [
+      'name',
+      'email',
+      'bio',
+      'phoneNumber',
+      'location',
+      'timezone',
+      'profession',
+      'company',
+      'website',
+      'socialLinks',
+      'preferences',
+      'avatar',
+    ] as const;
 
-    // Update user profile
+    const updateData: Record<string, any> = {};
+
+    for (const field of allowedFields) {
+      if (payload[field] === undefined) continue;
+
+      if (field === 'socialLinks') {
+        updateData.socialLinks = {
+          linkedin: payload.socialLinks?.linkedin || '',
+          twitter: payload.socialLinks?.twitter || '',
+          github: payload.socialLinks?.github || '',
+        };
+      } else if (field === 'preferences') {
+        updateData.preferences = {
+          ...(sessionUser.preferences || {}),
+          ...payload.preferences,
+        };
+      } else if (field === 'email' && typeof payload.email === 'string') {
+        updateData.email = payload.email.trim().toLowerCase();
+      } else {
+        updateData[field] = payload[field];
+      }
+    }
+
+    if (!Object.keys(updateData).length) {
+      return NextResponse.json(
+        { message: 'No valid updates supplied' },
+        { status: 400 }
+      );
+    }
+
+    updateData.updatedAt = new Date();
+
     const user = await User.findByIdAndUpdate(
       params.userId,
-      {
-        ...(name && { name }),
-        ...(preferences && { preferences }),
-        ...(avatar !== undefined && { avatar }),
-        updatedAt: new Date(),
-      },
+      { $set: updateData },
       { new: true, select: '-password' }
     );
 
@@ -151,9 +201,21 @@ export async function PUT(
           createdAt: user.createdAt,
           lastLoginAt: user.lastLoginAt,
           emailVerified: user.emailVerified,
-          isActive: user.isActive || true,
+          isActive: user.isActive ?? true,
           preferences: user.preferences || {},
           avatar: user.avatar || null,
+          bio: user.bio || '',
+          phoneNumber: user.phoneNumber || '',
+          location: user.location || '',
+          timezone: user.timezone || '',
+          profession: user.profession || '',
+          company: user.company || '',
+          website: user.website || '',
+          socialLinks: {
+            linkedin: user.socialLinks?.linkedin || '',
+            twitter: user.socialLinks?.twitter || '',
+            github: user.socialLinks?.github || '',
+          },
         },
       },
       { status: 200 }

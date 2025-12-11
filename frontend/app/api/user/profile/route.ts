@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
+        success: true,
         profile: {
           id: user._id.toString(),
           email: user.email,
@@ -43,6 +44,18 @@ export async function GET(request: NextRequest) {
           isActive: user.isActive ?? true,
           preferences: user.preferences || {},
           avatar: user.avatar || null,
+          bio: user.bio || '',
+          phoneNumber: user.phoneNumber || '',
+          location: user.location || '',
+          timezone: user.timezone || '',
+          profession: user.profession || '',
+          company: user.company || '',
+          website: user.website || '',
+          socialLinks: {
+            linkedin: user.socialLinks?.linkedin || '',
+            twitter: user.socialLinks?.twitter || '',
+            github: user.socialLinks?.github || '',
+          },
         },
       },
       { status: 200 }

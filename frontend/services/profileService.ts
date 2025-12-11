@@ -51,17 +51,46 @@ class ProfileService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: UpdateProfileResponse = await response.json();
+      const data: any = await response.json();
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch profile');
+      const apiProfile = data.profile || data;
+      if (!apiProfile) {
+        throw new Error('No profile data in response');
       }
 
-      return data.profile;
+      // Map backend profile shape into the richer ProfileData shape,
+      // using safe fallbacks for optional fields so we never show mock data.
+      const mappedProfile: ProfileData = {
+        name: apiProfile.name || 'User',
+        email: apiProfile.email || '',
+        avatar: apiProfile.avatar || '',
+        bio: apiProfile.bio || '',
+        phoneNumber: apiProfile.phoneNumber || '',
+        location: apiProfile.location || '',
+        timezone: apiProfile.timezone || '',
+        profession: apiProfile.profession || '',
+        company: apiProfile.company || '',
+        website: apiProfile.website || '',
+        socialLinks: {
+          linkedin: apiProfile.socialLinks?.linkedin || '',
+          twitter: apiProfile.socialLinks?.twitter || '',
+          github: apiProfile.socialLinks?.github || '',
+        },
+        preferences: {
+          emailNotifications:
+            apiProfile.preferences?.emailNotifications ?? true,
+          smsNotifications: apiProfile.preferences?.smsNotifications ?? false,
+          marketingEmails: apiProfile.preferences?.marketingEmails ?? true,
+          productUpdates: apiProfile.preferences?.productUpdates ?? true,
+        },
+      };
+
+      return mappedProfile;
     } catch (error) {
       console.error('Get profile error:', error);
-      // Return default profile for development
-      return this.getDefaultProfile();
+      // Surface the error so the dashboard can show a proper error state
+      // instead of misleading mock data.
+      throw error;
     }
   }
 
@@ -158,32 +187,6 @@ class ProfileService {
       console.error('Upload avatar error:', error);
       throw error;
     }
-  }
-
-  private getDefaultProfile(): ProfileData {
-    return {
-      name: 'John Doe',
-      email: 'user@onelastai.com',
-      avatar: '',
-      bio: 'AI enthusiast and developer passionate about creating intelligent solutions that bridge the gap between human creativity and machine efficiency.',
-      phoneNumber: '+1 (555) 123-4567',
-      location: 'San Francisco, CA',
-      timezone: 'Pacific Time (PT)',
-      profession: 'AI Developer',
-      company: 'Tech Innovation Inc.',
-      website: 'https://johndoe.dev',
-      socialLinks: {
-        linkedin: 'https://linkedin.com/in/johndoe',
-        twitter: 'https://twitter.com/johndoe',
-        github: 'https://github.com/johndoe',
-      },
-      preferences: {
-        emailNotifications: true,
-        smsNotifications: false,
-        marketingEmails: true,
-        productUpdates: true,
-      },
-    };
   }
 }
 
