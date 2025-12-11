@@ -30,8 +30,13 @@ export async function GET(
       );
     }
 
-    if (sessionUser._id.toString() !== params.userId) {
-      return NextResponse.json({ message: 'Access denied' }, { status: 403 });
+    const sessionUserId = sessionUser._id.toString();
+
+    if (params.userId && params.userId !== sessionUserId) {
+      console.warn('Billing access mismatch. Using session user.', {
+        sessionUserId,
+        requestedUserId: params.userId,
+      });
     }
 
     const subscriptions = db.collection('subscriptions');

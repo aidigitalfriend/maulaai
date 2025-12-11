@@ -3,6 +3,10 @@ import { getClientPromise } from '@/lib/mongodb';
 
 const DB_NAME = process.env.MONGODB_DB || 'onelastai';
 
+const MAX_TRUSTED_DEVICES = 10;
+const MAX_LOGIN_HISTORY = 25;
+const MAX_ACTIVE_SESSIONS = 10;
+
 function detectDeviceName(userAgent: string) {
   if (userAgent.includes('iPhone')) return 'iPhone';
   if (userAgent.includes('iPad')) return 'iPad';
@@ -28,6 +32,160 @@ function detectBrowser(userAgent: string) {
   if (userAgent.includes('Firefox')) return 'Firefox';
   if (userAgent.includes('Edge')) return 'Edge';
   return 'Unknown Browser';
+}
+
+function getRequestIp(request: NextRequest): string {
+  const prioritizedHeaders = [
+    'x-forwarded-for',
+    'x-real-ip',
+    'cf-connecting-ip',
+    'x-vercel-forwarded-for',
+    'x-vercel-ip',
+  ];
+
+  for (const header of prioritizedHeaders) {
+    const value = request.headers.get(header);
+    if (value) {
+      return value.split(',')[0].trim();
+    }
+  }
+
+  return (request as any).ip || 'unknown';
+}
+
+function getLocationFromHeaders(request: NextRequest) {
+  const city =
+    request.headers.get('cf-ipcity') ||
+    request.headers.get('x-vercel-ip-city') ||
+    '';
+  const country =
+    request.headers.get('cf-ipcountry') ||
+    request.headers.get('x-vercel-ip-country') ||
+    '';
+
+  if (city || country) {
+    return `${city ? `${city}, ` : ''}${country}`.trim();
+  }
+
+  return 'Current Session';
+}
+
+function buildDeviceMetadata(userAgent: string) {
+  return {
+    name: detectDeviceName(userAgent),
+    type: detectDeviceType(userAgent),
+    browser: detectBrowser(userAgent),
+  };
+}
+
+function updateSecurityTracking(
+  userSecurity: Record<string, any>,
+  context: {
+    userAgent: string;
+    userIP: string;
+    location: string;
+    sessionId: string;
+    sessionUser: any;
+  }
+) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const { name, type, browser } = buildDeviceMetadata(context.userAgent);
+
+  let trustedDevices = Array.isArray(userSecurity?.trustedDevices)
+    ? [...userSecurity.trustedDevices]
+    : [];
+  trustedDevices = trustedDevices.map((device) => ({
+    ...device,
+    current: false,
+  }));
+
+  const existingDeviceIndex = trustedDevices.findIndex(
+    (device) =>
+      device.name === name &&
+      device.browser === browser &&
+      device.type === type
+  );
+
+  const updatedDevice = {
+    id: existingDeviceIndex >= 0 ? trustedDevices[existingDeviceIndex].id : `device-${Date.now()}`,
+    name,
+    type,
+    lastSeen: nowIso,
+    location: context.location,
+    browser,
+    current: true,
+    ipAddress: context.userIP,
+  };
+
+  if (existingDeviceIndex >= 0) {
+    trustedDevices[existingDeviceIndex] = updatedDevice;
+  } else {
+    trustedDevices = [updatedDevice, ...trustedDevices].slice(
+      0,
+      MAX_TRUSTED_DEVICES
+    );
+  }
+
+  let loginHistory = Array.isArray(userSecurity?.loginHistory)
+    ? [...userSecurity.loginHistory]
+    : [];
+  const lastEntry = loginHistory[0];
+  const isDuplicate = lastEntry
+    ? (() => {
+        const lastDate = new Date(lastEntry.date || lastEntry.timestamp || 0);
+        return (
+          lastEntry.ip === context.userIP &&
+          Math.abs(now.getTime() - lastDate.getTime()) < 60 * 1000
+        );
+      })()
+    : false;
+
+  const loginEntry = {
+    id: `login-${Date.now()}`,
+    date: nowIso,
+    device: `${browser} on ${name}`,
+    location: context.location,
+    status: 'success',
+    ip: context.userIP,
+    userAgent: context.userAgent,
+  };
+
+  if (!isDuplicate) {
+    loginHistory = [loginEntry, ...loginHistory].slice(0, MAX_LOGIN_HISTORY);
+  }
+
+  let activeSessions = Array.isArray(userSecurity?.activeSessions)
+    ? [...userSecurity.activeSessions]
+    : [];
+  activeSessions = activeSessions.map((session) => ({
+    ...session,
+    isCurrent: false,
+  }));
+
+  const activeSessionRecord = {
+    id: context.sessionId,
+    createdAt: context.sessionUser.lastLoginAt || context.sessionUser.createdAt || now,
+    lastActivity: now,
+    ipAddress: context.userIP,
+    userAgent: context.userAgent,
+    isCurrent: true,
+  };
+
+  const existingSessionIndex = activeSessions.findIndex(
+    (session) => session.id === context.sessionId
+  );
+
+  if (existingSessionIndex >= 0) {
+    activeSessions[existingSessionIndex] = activeSessionRecord;
+  } else {
+    activeSessions = [activeSessionRecord, ...activeSessions].slice(
+      0,
+      MAX_ACTIVE_SESSIONS
+    );
+  }
+
+  return { trustedDevices, loginHistory, activeSessions };
 }
 
 function calculateSecurityScore(userSecurity: any) {
@@ -144,32 +302,29 @@ export async function GET(
       userId: targetUserId,
     })) as Record<string, any> | null;
 
-    if (!userSecurity) {
-      const userAgent = request.headers.get('user-agent') || 'Unknown Browser';
-      const forwardedIp = request.headers
-        .get('x-forwarded-for')
-        ?.split(',')[0]
-        ?.trim();
-      const userIP = forwardedIp || (request as any).ip || 'unknown';
+    const userAgent = request.headers.get('user-agent') || 'Unknown Browser';
+    const userIP = getRequestIp(request);
+    const location = getLocationFromHeaders(request);
 
+    if (!userSecurity) {
       const currentDevice = {
         id: `device-${Date.now()}`,
         name: detectDeviceName(userAgent),
         type: detectDeviceType(userAgent),
         lastSeen: new Date().toISOString(),
-        location: 'Current Session',
+        location,
         browser: detectBrowser(userAgent),
         current: true,
         ipAddress: userIP,
       };
 
-      const currentLogin = {
-        timestamp: new Date(),
-        ipAddress: userIP,
-        userAgent,
-        success: true,
-        location: 'Current Session',
-      };
+        const currentLogin = {
+          timestamp: new Date(),
+          ipAddress: userIP,
+          userAgent,
+          success: true,
+          location,
+        };
 
       const now = new Date();
       const defaultSecurity: Record<string, any> = {
@@ -203,6 +358,42 @@ export async function GET(
 
       await userSecurities.insertOne(defaultSecurity);
       userSecurity = defaultSecurity;
+    }
+
+    const trackingUpdates = updateSecurityTracking(userSecurity, {
+      userAgent,
+      userIP,
+      location,
+      sessionId,
+      sessionUser,
+    });
+
+    const needsTrackingUpdate =
+      JSON.stringify(trackingUpdates.trustedDevices) !==
+        JSON.stringify(userSecurity.trustedDevices || []) ||
+      JSON.stringify(trackingUpdates.loginHistory) !==
+        JSON.stringify(userSecurity.loginHistory || []) ||
+      JSON.stringify(trackingUpdates.activeSessions) !==
+        JSON.stringify(userSecurity.activeSessions || []);
+
+    if (needsTrackingUpdate) {
+      await userSecurities.updateOne(
+        { userId: targetUserId },
+        {
+          $set: {
+            trustedDevices: trackingUpdates.trustedDevices,
+            loginHistory: trackingUpdates.loginHistory,
+            activeSessions: trackingUpdates.activeSessions,
+            updatedAt: new Date(),
+            lastLoginAt: new Date(),
+          },
+        }
+      );
+
+      userSecurity = {
+        ...userSecurity,
+        ...trackingUpdates,
+      };
     }
 
     const securityData = {
