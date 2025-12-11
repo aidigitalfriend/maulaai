@@ -21,7 +21,9 @@ const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB || 'onelastai';
 
 if (!uri) {
-  console.error('❌ MONGODB_URI is not set. Please configure it in your .env file.');
+  console.error(
+    '❌ MONGODB_URI is not set. Please configure it in your .env file.'
+  );
   process.exit(1);
 }
 
@@ -40,36 +42,39 @@ async function migrateCollection(db, collectionName) {
   const collection = db.collection(collectionName);
 
   // Count how many docs currently have string userId
-  const stringCount = await collection.countDocuments({ userId: { $type: 'string' } });
+  const stringCount = await collection.countDocuments({
+    userId: { $type: 'string' },
+  });
   if (!stringCount) {
-    console.log(`✅ ${collectionName}: no string userId fields found (nothing to migrate).`);
+    console.log(
+      `✅ ${collectionName}: no string userId fields found (nothing to migrate).`
+    );
     return;
   }
 
-  console.log(`▶️  ${collectionName}: migrating ${stringCount} documents with string userId → ObjectId...`);
+  console.log(
+    `▶️  ${collectionName}: migrating ${stringCount} documents with string userId → ObjectId...`
+  );
 
   // Use aggregation pipeline style update so we can use $toObjectId
   // Requires MongoDB 4.2+
-  const result = await collection.updateMany(
-    { userId: { $type: 'string' } },
-    [
-      {
-        $set: {
-          userId: {
-            $convert: {
-              input: '$userId',
-              to: 'objectId',
-              onError: '$userId', // leave as-is if conversion fails
-              onNull: '$userId',
-            },
+  const result = await collection.updateMany({ userId: { $type: 'string' } }, [
+    {
+      $set: {
+        userId: {
+          $convert: {
+            input: '$userId',
+            to: 'objectId',
+            onError: '$userId', // leave as-is if conversion fails
+            onNull: '$userId',
           },
         },
       },
-    ],
-  );
+    },
+  ]);
 
   console.log(
-    `   ➜ ${collectionName}: matched ${result.matchedCount}, modified ${result.modifiedCount} documents.`,
+    `   ➜ ${collectionName}: matched ${result.matchedCount}, modified ${result.modifiedCount} documents.`
   );
 }
 
@@ -87,7 +92,9 @@ async function run() {
       await migrateCollection(db, name);
     }
 
-    console.log('✅ Migration complete. You can now rely on analytics.userId being an ObjectId.');
+    console.log(
+      '✅ Migration complete. You can now rely on analytics.userId being an ObjectId.'
+    );
   } catch (err) {
     console.error('❌ Migration failed:', err);
     process.exitCode = 1;
