@@ -14,7 +14,8 @@ const visitorSchema = new Schema(
   {
     visitorId: { type: String, required: true, unique: true, index: true },
     sessionId: { type: String, required: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     firstVisit: { type: Date, required: true, default: Date.now },
     lastVisit: { type: Date, required: true, default: Date.now },
     visitCount: { type: Number, required: true, default: 1 },
@@ -47,7 +48,8 @@ const sessionSchema = new Schema(
   {
     sessionId: { type: String, required: true, unique: true, index: true },
     visitorId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     startTime: { type: Date, required: true, default: Date.now },
     lastActivity: { type: Date, required: true, default: Date.now },
     pageViews: { type: Number, default: 0 },
@@ -68,7 +70,8 @@ const pageViewSchema = new Schema(
   {
     visitorId: { type: String, required: true, index: true },
     sessionId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     url: { type: String, required: true },
     title: { type: String },
     referrer: { type: String },
@@ -88,7 +91,8 @@ const chatInteractionSchema = new Schema(
   {
     visitorId: { type: String, required: true, index: true },
     sessionId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     agentId: { type: String, required: true },
     agentName: { type: String, required: true },
     userMessage: { type: String, required: true },
@@ -115,7 +119,8 @@ const toolUsageSchema = new Schema(
   {
     visitorId: { type: String, required: true, index: true },
     sessionId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     toolId: { type: String, required: true },
     toolName: { type: String, required: true },
     action: { type: String, required: true },
@@ -138,7 +143,8 @@ const labExperimentSchema = new Schema(
   {
     visitorId: { type: String, required: true, index: true },
     sessionId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     experimentId: { type: String, required: true },
     experimentName: { type: String, required: true },
     parameters: { type: Schema.Types.Mixed },
@@ -160,7 +166,8 @@ const userEventSchema = new Schema(
   {
     visitorId: { type: String, required: true, index: true },
     sessionId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     eventType: { type: String, required: true },
     eventName: { type: String, required: true },
     properties: { type: Schema.Types.Mixed },
@@ -179,7 +186,8 @@ const apiUsageSchema = new Schema(
   {
     visitorId: { type: String, required: true, index: true },
     sessionId: { type: String, required: true, index: true },
-    userId: { type: String, index: true },
+    // Link to users collection (normalized as ObjectId)
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     endpoint: { type: String, required: true },
     method: { type: String, required: true },
     statusCode: { type: Number, required: true },
