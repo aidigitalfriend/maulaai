@@ -104,17 +104,17 @@ git reset --hard origin/main
 
 echo "🔧 Installing backend dependencies"
 cd backend
-npm install --production
+npm ci --omit=dev
 pm2 restart shiny-backend || true
 
 cd ..
 
 echo "🧹 Cleaning frontend cache"
 cd frontend
-rm -rf node_modules/.cache || true
+rm -rf node_modules node_modules/.cache .next || true
 
 echo "📦 Installing frontend dependencies"
-npm install --production
+npm ci --omit=dev
 
 echo "🏗️ Building Next.js frontend"
 npm run build
