@@ -74,6 +74,39 @@ const fetchUserData = async (userId: string) => {
   };
 };
 
+const formatLanguagePreference = (language: any): string => {
+  if (!language) return 'Not set';
+
+  if (typeof language === 'string') {
+    return language;
+  }
+
+  if (typeof language === 'object') {
+    const primary = language.primary || language.code || '';
+    const secondary = language.secondary || '';
+    const parts = [primary, secondary].filter(Boolean).join(' / ');
+
+    const autoDetectLabel =
+      typeof language.autoDetect === 'boolean'
+        ? language.autoDetect
+          ? ' (Auto-detect on)'
+          : ' (Auto-detect off)'
+        : '';
+
+    if (parts) {
+      return `${parts}${autoDetectLabel}`.trim();
+    }
+
+    const objectValues = Object.values(language)
+      .filter((value) => value !== undefined && value !== null)
+      .join(', ');
+
+    return objectValues || 'Not set';
+  }
+
+  return String(language);
+};
+
 export default function DashboardOverviewPage() {
   const { state } = useAuth(); // Get authenticated user
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -362,7 +395,9 @@ export default function DashboardOverviewPage() {
                       </div>
                       <div>
                         <p className="text-neural-600">Language</p>
-                        <p className="font-medium">{preferences.language}</p>
+                        <p className="font-medium">
+                          {formatLanguagePreference(preferences.language)}
+                        </p>
                       </div>
                     </div>
                     <div className="text-sm text-neural-700">

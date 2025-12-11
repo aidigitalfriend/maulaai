@@ -68,7 +68,8 @@ export async function POST(
     if (fileSize > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
         {
-          message: 'File too large. Max size is 5MB. Please compress the image.',
+          message:
+            'File too large. Max size is 5MB. Please compress the image.',
         },
         { status: 413 }
       );
