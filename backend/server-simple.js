@@ -1232,20 +1232,33 @@ app.get('/api/user/analytics', async (req, res) => {
       { sort: { createdAt: -1 } }
     );
 
+    const rawBillingAmount = activeSubscription?.billing?.amount;
+    const parsedBillingAmount =
+      typeof rawBillingAmount === 'number'
+        ? rawBillingAmount
+        : rawBillingAmount !== undefined && rawBillingAmount !== null
+        ? Number(rawBillingAmount)
+        : null;
+    const hasBillableSubscription =
+      Number.isFinite(parsedBillingAmount) && parsedBillingAmount > 0;
+    const realSubscription = hasBillableSubscription
+      ? activeSubscription
+      : null;
+
     let subscribedPlanDoc = null;
-    if (activeSubscription?.plan) {
+    if (realSubscription?.plan) {
       try {
         subscribedPlanDoc = await plansCollection.findOne({
-          _id: activeSubscription.plan,
+          _id: realSubscription.plan,
         });
       } catch (planError) {
         console.warn('Unable to load subscribed plan document:', planError);
       }
     }
 
-    const inferredPlanKey = activeSubscription
-      ? normalizePlanKey(activeSubscription.billing?.interval) ||
-        derivePlanKeyFromName(activeSubscription.planName) ||
+    const inferredPlanKey = realSubscription
+      ? normalizePlanKey(realSubscription.billing?.interval) ||
+        derivePlanKeyFromName(realSubscription.planName) ||
         normalizePlanKey(subscribedPlanDoc?.billingPeriod) ||
         derivePlanKeyFromName(subscribedPlanDoc?.name) ||
         null
@@ -1257,9 +1270,9 @@ app.get('/api/user/analytics', async (req, res) => {
       PLAN_TEMPLATES[0];
 
     const renewalDateCandidate =
-      coerceDate(activeSubscription?.billing?.currentPeriodEnd) ||
-      coerceDate(activeSubscription?.billing?.periodEnd) ||
-      coerceDate(activeSubscription?.billing?.cycleEnd);
+      coerceDate(realSubscription?.billing?.currentPeriodEnd) ||
+      coerceDate(realSubscription?.billing?.periodEnd) ||
+      coerceDate(realSubscription?.billing?.cycleEnd);
 
     const resolvedRenewalDate =
       renewalDateCandidate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -1269,7 +1282,7 @@ app.get('/api/user/analytics', async (req, res) => {
       : 0;
 
     const resolvedAmountCents =
-      activeSubscription?.billing?.amount ??
+      realSubscription?.billing?.amount ??
       subscribedPlanDoc?.pricing?.amount ??
       subscribedPlanDoc?.price?.amount ??
       fallbackPriceCents;
@@ -1281,27 +1294,26 @@ app.get('/api/user/analytics', async (req, res) => {
         : Number(resolvedAmountCents) || 0;
 
     const resolvedBillingInterval =
-      activeSubscription?.billing?.interval ||
+      realSubscription?.billing?.interval ||
       subscribedPlanDoc?.billingPeriod ||
       templateFallback?.billingPeriod ||
       'monthly';
 
-    const resolvedPlanName = activeSubscription
+    const resolvedPlanName = realSubscription
       ? subscribedPlanDoc?.displayName ||
         subscribedPlanDoc?.name ||
-        activeSubscription.planName ||
+        realSubscription.planName ||
         (inferredPlanKey
           ? `${
-              inferredPlanKey.charAt(0).toUpperCase() +
-              inferredPlanKey.slice(1)
+              inferredPlanKey.charAt(0).toUpperCase() + inferredPlanKey.slice(1)
             } Access`
           : templateFallback?.name || 'Paid Access')
       : 'No Active Plan';
 
-    const subscriptionSummary = activeSubscription
+    const subscriptionSummary = realSubscription
       ? {
           plan: resolvedPlanName,
-          status: activeSubscription.status || 'active',
+          status: realSubscription.status || 'active',
           price: Math.max(0, normalizedAmountCents) / 100,
           period: resolvedBillingInterval,
           renewalDate: resolvedRenewalDate.toISOString().split('T')[0],

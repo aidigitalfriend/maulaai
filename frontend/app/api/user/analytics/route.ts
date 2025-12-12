@@ -8,19 +8,14 @@ const BACKEND_BASE_URL =
   process.env.BACKEND_API_BASE_URL || 'http://127.0.0.1:3005';
 
 function buildFallbackAnalytics(): AnalyticsData {
-  const now = new Date();
-  const renewalDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split('T')[0];
-
   return {
     subscription: {
-      plan: 'Monthly Access',
-      status: 'active',
-      price: 19,
-      period: 'monthly',
-      renewalDate,
-      daysUntilRenewal: 30,
+      plan: 'No Active Plan',
+      status: 'inactive',
+      price: 0,
+      period: 'none',
+      renewalDate: 'N/A',
+      daysUntilRenewal: 0,
     },
     usage: {
       conversations: {
