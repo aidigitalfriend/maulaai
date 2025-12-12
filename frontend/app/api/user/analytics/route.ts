@@ -15,9 +15,9 @@ function buildFallbackAnalytics(): AnalyticsData {
 
   return {
     subscription: {
-      plan: 'Professional',
+      plan: 'Monthly Access',
       status: 'active',
-      price: 49.99,
+      price: 19,
       period: 'monthly',
       renewalDate,
       daysUntilRenewal: 30,

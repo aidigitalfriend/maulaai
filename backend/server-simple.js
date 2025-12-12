@@ -1162,6 +1162,8 @@ app.get('/api/user/analytics', async (req, res) => {
     const agentMetrics = db.collection('agentmetrics');
     const performanceMetrics = db.collection('performancemetrics');
     const chatInteractions = db.collection('chat_interactions');
+    const subscriptionsCollection = db.collection('subscriptions');
+    const plansCollection = db.collection('plans');
 
     // Find user via identifier or session
     let user;
@@ -1215,6 +1217,110 @@ app.get('/api/user/analytics', async (req, res) => {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const coerceDate = (value) => {
+      if (!value) return null;
+      const dateInstance = value instanceof Date ? value : new Date(value);
+      return Number.isNaN(dateInstance?.getTime()) ? null : dateInstance;
+    };
+
+    const activeSubscription = await subscriptionsCollection.findOne(
+      {
+        user: userObjectId,
+        status: { $in: ['active', 'trialing', 'past_due'] },
+      },
+      { sort: { createdAt: -1 } }
+    );
+
+    let subscribedPlanDoc = null;
+    if (activeSubscription?.plan) {
+      try {
+        subscribedPlanDoc = await plansCollection.findOne({
+          _id: activeSubscription.plan,
+        });
+      } catch (planError) {
+        console.warn('Unable to load subscribed plan document:', planError);
+      }
+    }
+
+    const inferredPlanKey = activeSubscription
+      ? normalizePlanKey(activeSubscription.billing?.interval) ||
+        derivePlanKeyFromName(activeSubscription.planName) ||
+        normalizePlanKey(subscribedPlanDoc?.billingPeriod) ||
+        derivePlanKeyFromName(subscribedPlanDoc?.name) ||
+        null
+      : null;
+
+    const templateFallback =
+      PLAN_TEMPLATES.find((tpl) => tpl.key === inferredPlanKey) ||
+      PLAN_TEMPLATES.find((tpl) => tpl.key === 'monthly') ||
+      PLAN_TEMPLATES[0];
+
+    const renewalDateCandidate =
+      coerceDate(activeSubscription?.billing?.currentPeriodEnd) ||
+      coerceDate(activeSubscription?.billing?.periodEnd) ||
+      coerceDate(activeSubscription?.billing?.cycleEnd);
+
+    const resolvedRenewalDate =
+      renewalDateCandidate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const fallbackPriceCents = templateFallback
+      ? Math.round(templateFallback.defaultPrice * 100)
+      : 0;
+
+    const resolvedAmountCents =
+      activeSubscription?.billing?.amount ??
+      subscribedPlanDoc?.pricing?.amount ??
+      subscribedPlanDoc?.price?.amount ??
+      fallbackPriceCents;
+
+    const normalizedAmountCents =
+      typeof resolvedAmountCents === 'number' &&
+      Number.isFinite(resolvedAmountCents)
+        ? resolvedAmountCents
+        : Number(resolvedAmountCents) || 0;
+
+    const resolvedBillingInterval =
+      activeSubscription?.billing?.interval ||
+      subscribedPlanDoc?.billingPeriod ||
+      templateFallback?.billingPeriod ||
+      'monthly';
+
+    const resolvedPlanName = activeSubscription
+      ? subscribedPlanDoc?.displayName ||
+        subscribedPlanDoc?.name ||
+        activeSubscription.planName ||
+        (inferredPlanKey
+          ? `${
+              inferredPlanKey.charAt(0).toUpperCase() +
+              inferredPlanKey.slice(1)
+            } Access`
+          : templateFallback?.name || 'Paid Access')
+      : 'No Active Plan';
+
+    const subscriptionSummary = activeSubscription
+      ? {
+          plan: resolvedPlanName,
+          status: activeSubscription.status || 'active',
+          price: Math.max(0, normalizedAmountCents) / 100,
+          period: resolvedBillingInterval,
+          renewalDate: resolvedRenewalDate.toISOString().split('T')[0],
+          daysUntilRenewal: Math.max(
+            0,
+            Math.ceil(
+              (resolvedRenewalDate.getTime() - now.getTime()) /
+                (24 * 60 * 60 * 1000)
+            )
+          ),
+        }
+      : {
+          plan: 'No Active Plan',
+          status: 'inactive',
+          price: 0,
+          period: 'none',
+          renewalDate: 'N/A',
+          daysUntilRenewal: 0,
+        };
 
     // Aggregate real data from collections
     const [
@@ -1271,25 +1377,7 @@ app.get('/api/user/analytics', async (req, res) => {
 
     // Build analytics data matching frontend interface
     const analyticsData = {
-      subscription: {
-        plan: user.subscription?.plan || 'Professional',
-        status: user.subscription?.status || 'active',
-        price: user.subscription?.price || 49.99,
-        period: user.subscription?.period || 'monthly',
-        renewalDate:
-          user.subscription?.renewalDate ||
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split('T')[0],
-        daysUntilRenewal: Math.ceil(
-          (new Date(
-            user.subscription?.renewalDate ||
-              Date.now() + 30 * 24 * 60 * 60 * 1000
-          ) -
-            now) /
-            (24 * 60 * 60 * 1000)
-        ),
-      },
+      subscription: subscriptionSummary,
       usage: {
         conversations: {
           current: totalConversations,
