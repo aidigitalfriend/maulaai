@@ -313,7 +313,7 @@ export default function LiveSupportPage() {
         userId: auth.state.user?.id || '',
         userEmail: auth.state.user?.email || '',
         userName: userProfile?.name || '',
-        subscription: userProfile?.subscription || 'Free',
+        subscription: userProfile?.subscription || 'Monthly',
         issue: inputText,
         status: 'escalated',
         createdAt: new Date(),

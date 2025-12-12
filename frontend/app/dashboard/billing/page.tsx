@@ -176,17 +176,77 @@ export default function BillingPage() {
             </div>
             <div className="flex space-x-4">
               <Link href="/pricing" className="btn-secondary">
-                {billingData?.currentPlan?.type === 'free'
-                  ? 'Upgrade Plan'
+                {billingData?.currentPlan?.status !== 'active'
+                  ? 'Choose Plan'
                   : 'Change Plan'}
               </Link>
-              {billingData?.currentPlan?.type !== 'free' && (
+              {billingData?.currentPlan?.status === 'active' && (
                 <button className="btn-outline text-red-600 border-red-200 hover:bg-red-50">
                   Cancel Subscription
                 </button>
               )}
             </div>
           </motion.div>
+
+          {billingData?.planOptions?.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-neural-900">
+                  Plan Status
+                </h2>
+                <ClockIcon className="w-6 h-6 text-brand-500" />
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {billingData.planOptions.map((plan) => (
+                  <div
+                    key={plan.id || plan.key}
+                    className="p-5 rounded-lg border border-neural-200 bg-neural-50"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-lg font-semibold text-neural-900">
+                          {plan.name}
+                        </p>
+                        <p className="text-sm text-neural-500">
+                          ${Number(plan.price ?? 0).toFixed(2)} /{' '}
+                          {plan.billingPeriod}
+                        </p>
+                      </div>
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                          plan.status === 'active'
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-neural-200 text-neural-600'
+                        }`}
+                      >
+                        {plan.status === 'active' ? 'Active' : 'Not Active'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-neural-600 mb-4">
+                      {plan.description || 'Per-agent subscription'}
+                    </p>
+                    <Link
+                      href="/pricing/per-agent"
+                      className={`block text-center text-sm font-medium px-4 py-2 rounded-md transition-colors ${
+                        plan.status === 'active'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-brand-500 text-white hover:bg-brand-600'
+                      }`}
+                    >
+                      {plan.status === 'active'
+                        ? 'Current Plan'
+                        : 'Activate Plan'}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Usage Statistics */}
           <motion.div

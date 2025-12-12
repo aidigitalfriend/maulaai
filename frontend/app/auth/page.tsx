@@ -1,7 +1,12 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { UserIcon, LockClosedIcon, ArrowRightIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link';
+import {
+  UserIcon,
+  LockClosedIcon,
+  ArrowRightIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/outline';
 
 export default function AuthPage() {
   return (
@@ -20,8 +25,9 @@ export default function AuthPage() {
               Welcome to AI Agents
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Join our platform to access powerful AI agents, save your conversations, 
-              and unlock personalized experiences tailored just for you.
+              Join our platform to access powerful AI agents, save your
+              conversations, and unlock personalized experiences tailored just
+              for you.
             </p>
           </div>
 
@@ -38,9 +44,10 @@ export default function AuthPage() {
                 Create Account
               </h2>
               <p className="text-gray-600 mb-6">
-                New to our platform? Sign up to start your AI journey with personalized agents and saved conversations.
+                New to our platform? Sign up to start your AI journey with
+                personalized agents and saved conversations.
               </p>
-              <Link 
+              <Link
                 href="/auth/signup"
                 className="group w-full inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
@@ -48,7 +55,7 @@ export default function AuthPage() {
                 <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
               <p className="text-sm text-gray-500 mt-4">
-                Free forever • No credit card required
+                Paid per-agent access • Starting at $1/day
               </p>
             </div>
 
@@ -63,18 +70,17 @@ export default function AuthPage() {
                 Welcome Back
               </h2>
               <p className="text-gray-600 mb-6">
-                Already have an account? Sign in to continue your conversations and access your personalized AI agents.
+                Already have an account? Sign in to continue your conversations
+                and access your personalized AI agents.
               </p>
-              <Link 
+              <Link
                 href="/auth/login"
                 className="group w-full inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Sign In
                 <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <p className="text-sm text-gray-500 mt-4">
-                Secure • Fast • Easy
-              </p>
+              <p className="text-sm text-gray-500 mt-4">Secure • Fast • Easy</p>
             </div>
           </div>
 
@@ -88,44 +94,56 @@ export default function AuthPage() {
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">💬</span>
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Saved Conversations</h4>
-                <p className="text-sm text-gray-600">Your chat history persists across sessions</p>
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Saved Conversations
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Your chat history persists across sessions
+                </p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🤖</span>
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-2">18 AI Agents</h4>
-                <p className="text-sm text-gray-600">Access to all specialized AI assistants</p>
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  18 AI Agents
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Access to all specialized AI assistants
+                </p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">⚡</span>
                 </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Personalized Experience</h4>
-                <p className="text-sm text-gray-600">Tailored recommendations and preferences</p>
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Personalized Experience
+                </h4>
+                <p className="text-sm text-gray-600">
+                  Tailored recommendations and preferences
+                </p>
               </div>
             </div>
           </div>
 
           {/* Additional Links */}
           <div className="text-center space-x-6">
-            <Link 
-              href="/auth/reset-password" 
+            <Link
+              href="/auth/reset-password"
               className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               Forgot Password?
             </Link>
             <span className="text-gray-300">•</span>
-            <Link 
-              href="/legal" 
+            <Link
+              href="/legal"
               className="text-gray-600 hover:text-gray-800 transition-colors"
             >
               Terms & Privacy
             </Link>
             <span className="text-gray-300">•</span>
-            <Link 
-              href="/support" 
+            <Link
+              href="/support"
               className="text-gray-600 hover:text-gray-800 transition-colors"
             >
               Need Help?
@@ -134,5 +152,5 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

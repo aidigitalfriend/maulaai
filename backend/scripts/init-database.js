@@ -309,56 +309,73 @@ async function createSampleData() {
     await sampleAgent.save();
     console.log('✅ Created sample agent');
 
-    // Create sample pricing plans
-    const freePlan = new Plan({
-      name: 'Free',
-      displayName: 'Free Plan',
-      description: 'Basic AI access with limited usage',
-      type: 'free',
-      billingPeriod: 'monthly',
-      price: {
-        amount: 0,
-        currency: 'USD',
+    // Create per-agent pricing plans
+    const planTemplates = [
+      {
+        name: 'Daily',
+        displayName: 'Daily Agent Access',
+        description: '$1 per day per agent',
+        billingPeriod: 'daily',
+        amount: 100,
+        usageCap: 500,
       },
-      features: {
-        limits: {
-          apiCallsPerMonth: 100,
-          storageGB: 1,
-          maxAgents: 1,
-        },
+      {
+        name: 'Weekly',
+        displayName: 'Weekly Agent Access',
+        description: '$5 per week per agent',
+        billingPeriod: 'weekly',
+        amount: 500,
+        usageCap: 2500,
       },
-      isActive: true,
-      isPublic: true,
-    });
-    await freePlan.save();
+      {
+        name: 'Monthly',
+        displayName: 'Monthly Agent Access',
+        description: '$19 per month per agent',
+        billingPeriod: 'monthly',
+        amount: 1900,
+        usageCap: 15000,
+      },
+    ];
 
-    const proPlan = new Plan({
-      name: 'Pro',
-      displayName: 'Pro Plan',
-      description: 'Advanced AI features for power users',
-      type: 'paid',
-      billingPeriod: 'monthly',
-      price: {
-        amount: 2900, // $29.00
-        currency: 'USD',
-      },
-      features: {
-        limits: {
-          apiCallsPerMonth: 10000,
-          storageGB: 50,
-          maxAgents: 10,
-        },
-      },
-      isActive: true,
-      isPublic: true,
-    });
-    await proPlan.save();
-    console.log('✅ Created sample pricing plans');
+    const [dailyPlan, weeklyPlan, monthlyPlan] = await Promise.all(
+      planTemplates.map((template) =>
+        Plan.create({
+          name: template.name,
+          displayName: template.displayName,
+          description: template.description,
+          type: 'per-agent',
+          billingPeriod: template.billingPeriod,
+          price: {
+            amount: template.amount,
+            currency: 'USD',
+          },
+          pricing: {
+            amount: template.amount,
+            currency: 'USD',
+            interval:
+              template.billingPeriod === 'daily'
+                ? 'day'
+                : template.billingPeriod === 'weekly'
+                ? 'week'
+                : 'month',
+          },
+          features: {
+            limits: {
+              agentAccess: 1,
+              apiCallsPerMonth: template.usageCap,
+            },
+          },
+          isActive: true,
+          isPublic: true,
+        })
+      )
+    );
+    console.log('✅ Created per-agent pricing plans');
 
     // Create sample subscription for user
     const sampleSubscription = new Subscription({
       userId: sampleUser._id,
-      planId: freePlan._id,
+      planId: monthlyPlan._id,
       status: 'active',
       currentPeriodStart: new Date(),
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
@@ -396,7 +413,7 @@ async function createSampleData() {
     const sampleBilling = new Billing({
       user: sampleUser._id,
       subscription: sampleSubscription._id,
-      plan: freePlan._id,
+      plan: monthlyPlan._id,
       billingPeriod: {
         start: new Date(),
         end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -404,9 +421,9 @@ async function createSampleData() {
         periodNumber: 1,
       },
       financial: {
-        baseAmount: 0,
-        subtotal: 0,
-        totalAmount: 0,
+        baseAmount: monthlyPlan.price.amount,
+        subtotal: monthlyPlan.price.amount,
+        totalAmount: monthlyPlan.price.amount,
         amountDue: 0,
         currency: 'USD',
       },
@@ -426,18 +443,18 @@ async function createSampleData() {
       financial: {
         lineItems: [
           {
-            description: 'Free Plan - Monthly Subscription',
+            description: 'Monthly Agent Access - Subscription',
             quantity: 1,
-            unitPrice: 0,
-            amount: 0,
+            unitPrice: monthlyPlan.price.amount,
+            amount: monthlyPlan.price.amount,
             type: 'subscription',
-            planId: freePlan._id,
+            planId: monthlyPlan._id,
           },
         ],
-        subtotal: 0,
-        total: 0,
+        subtotal: monthlyPlan.price.amount,
+        total: monthlyPlan.price.amount,
         amountDue: 0,
-        amountPaid: 0,
+        amountPaid: monthlyPlan.price.amount,
         currency: 'USD',
       },
       dates: {

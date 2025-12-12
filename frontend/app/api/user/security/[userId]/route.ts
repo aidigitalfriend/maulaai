@@ -102,13 +102,14 @@ function updateSecurityTracking(
 
   const existingDeviceIndex = trustedDevices.findIndex(
     (device) =>
-      device.name === name &&
-      device.browser === browser &&
-      device.type === type
+      device.name === name && device.browser === browser && device.type === type
   );
 
   const updatedDevice = {
-    id: existingDeviceIndex >= 0 ? trustedDevices[existingDeviceIndex].id : `device-${Date.now()}`,
+    id:
+      existingDeviceIndex >= 0
+        ? trustedDevices[existingDeviceIndex].id
+        : `device-${Date.now()}`,
     name,
     type,
     lastSeen: nowIso,
@@ -165,7 +166,8 @@ function updateSecurityTracking(
 
   const activeSessionRecord = {
     id: context.sessionId,
-    createdAt: context.sessionUser.lastLoginAt || context.sessionUser.createdAt || now,
+    createdAt:
+      context.sessionUser.lastLoginAt || context.sessionUser.createdAt || now,
     lastActivity: now,
     ipAddress: context.userIP,
     userAgent: context.userAgent,
@@ -318,13 +320,13 @@ export async function GET(
         ipAddress: userIP,
       };
 
-        const currentLogin = {
-          timestamp: new Date(),
-          ipAddress: userIP,
-          userAgent,
-          success: true,
-          location,
-        };
+      const currentLogin = {
+        timestamp: new Date(),
+        ipAddress: userIP,
+        userAgent,
+        success: true,
+        location,
+      };
 
       const now = new Date();
       const defaultSecurity: Record<string, any> = {

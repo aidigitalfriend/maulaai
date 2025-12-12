@@ -1860,6 +1860,121 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
   }
 });
 
+const PLAN_TEMPLATES = [
+  {
+    key: 'daily',
+    name: 'Daily Agent Access',
+    description: '$1 per day per agent',
+    defaultPrice: 1,
+    billingPeriod: 'daily',
+    interval: 'day',
+    slugMatches: ['daily-agent-access', 'daily-agent'],
+  },
+  {
+    key: 'weekly',
+    name: 'Weekly Agent Access',
+    description: '$5 per week per agent',
+    defaultPrice: 5,
+    billingPeriod: 'weekly',
+    interval: 'week',
+    slugMatches: ['weekly-agent-access', 'weekly-agent'],
+  },
+  {
+    key: 'monthly',
+    name: 'Monthly Agent Access',
+    description: '$19 per month per agent',
+    defaultPrice: 19,
+    billingPeriod: 'monthly',
+    interval: 'month',
+    slugMatches: ['monthly-agent-access', 'monthly-agent'],
+  },
+];
+
+const normalizePlanKey = (value) => {
+  if (!value || typeof value !== 'string') return null;
+  const normalized = value.toLowerCase();
+  if (normalized.startsWith('day')) return 'daily';
+  if (normalized.startsWith('week')) return 'weekly';
+  if (normalized.startsWith('month')) return 'monthly';
+  return normalized;
+};
+
+const derivePlanKeyFromName = (value) => {
+  if (!value || typeof value !== 'string') return null;
+  const normalized = value.toLowerCase();
+  if (normalized.includes('daily')) return 'daily';
+  if (normalized.includes('week')) return 'weekly';
+  if (normalized.includes('month')) return 'monthly';
+  return null;
+};
+
+const buildPlanOptions = (planDocs = []) => {
+  return PLAN_TEMPLATES.map((template) => {
+    const match = planDocs.find((doc) => {
+      const slug = (doc.slug || '').toLowerCase();
+      const name = (doc.name || '').toLowerCase();
+      const displayName = (doc.displayName || '').toLowerCase();
+      const billingPeriod = (
+        doc.billingPeriod ||
+        doc?.pricing?.interval ||
+        doc?.price?.interval ||
+        ''
+      ).toLowerCase();
+      return (
+        slug.includes(template.key) ||
+        template.slugMatches?.some((candidate) =>
+          candidate ? slug.includes(candidate) : false
+        ) ||
+        name.includes(template.key) ||
+        displayName.includes(template.key) ||
+        billingPeriod.startsWith(template.interval.replace('ly', ''))
+      );
+    });
+
+    const amountCents =
+      match?.pricing?.amount ??
+      match?.price?.amount ??
+      Math.round(template.defaultPrice * 100);
+
+    const currency =
+      match?.pricing?.currency ?? match?.price?.currency ?? 'USD';
+
+    return {
+      id: match?._id?.toString() ?? template.key,
+      key: template.key,
+      name: match?.displayName || match?.name || template.name,
+      description: match?.description || template.description,
+      price: amountCents / 100,
+      currency,
+      billingPeriod: template.billingPeriod,
+      interval: template.interval,
+      status: 'not_active',
+      isActive: false,
+    };
+  });
+};
+
+const applyPlanStatuses = (planOptions, activeKey) =>
+  planOptions.map((plan) => {
+    const isActive = activeKey ? plan.key === activeKey : false;
+    return {
+      ...plan,
+      status: isActive ? 'active' : 'not_active',
+      isActive,
+    };
+  });
+
+const getUsageDefaults = (planKey) => {
+  switch (planKey) {
+    case 'daily':
+      return { apiCalls: 500, storage: 1024 };
+    case 'weekly':
+      return { apiCalls: 2500, storage: 2048 };
+    default:
+      return { apiCalls: 15000, storage: 10240 };
+  }
+};
+
 // GET /api/user/billing/:userId - Get comprehensive billing data
 app.get('/api/user/billing/:userId', async (req, res) => {
   try {
@@ -1899,6 +2014,9 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     const usageMetrics = db.collection('usagemetrics');
     const plans = db.collection('plans');
 
+    const planDocs = await plans.find({}).toArray();
+    const basePlanOptions = buildPlanOptions(planDocs);
+
     // Get user's active subscription
     const activeSubscription = await subscriptions.findOne({
       user: sessionUser._id,
@@ -1913,45 +2031,43 @@ app.get('/api/user/billing/:userId', async (req, res) => {
 
     // If no subscription, create default billing data
     if (!activeSubscription) {
-      // Get default free plan
-      const freePlan = (await plans.findOne({ type: 'free' })) || {
-        name: 'Free Plan',
-        pricing: { amount: 0, currency: 'USD' },
-        features: { apiCalls: 100, storage: 1024 }, // 1GB in MB
-      };
+      const planOptions = applyPlanStatuses(basePlanOptions, null);
+      const fallbackPlanKey =
+        planOptions.find((plan) => plan.key === 'monthly')?.key ||
+        planOptions[0]?.key ||
+        'monthly';
+      const usageDefaults = getUsageDefaults(fallbackPlanKey);
+      const billingCycleEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       const billingData = {
         currentPlan: {
-          name: freePlan.name || 'Free Plan',
-          type: 'free',
+          name: 'No Active Plan',
+          type: 'none',
           price: 0,
           currency: 'USD',
-          period: 'monthly',
-          status: 'active',
-          renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split('T')[0],
-          daysUntilRenewal: 30,
+          period: fallbackPlanKey,
+          status: 'inactive',
+          renewalDate: null,
+          daysUntilRenewal: 0,
         },
+        planOptions,
         usage: {
           currentPeriod: {
             apiCalls: {
               used: 0,
-              limit: freePlan.features?.apiCalls || 100,
+              limit: usageDefaults.apiCalls,
               percentage: 0,
             },
             storage: {
               used: 0,
-              limit: freePlan.features?.storage || 1024,
+              limit: usageDefaults.storage,
               percentage: 0,
               unit: 'MB',
             },
           },
           billingCycle: {
             start: new Date().toISOString().split('T')[0],
-            end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .split('T')[0],
+            end: billingCycleEnd.toISOString().split('T')[0],
           },
         },
         invoices: [],
@@ -2027,11 +2143,24 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       Math.round((currentUsage.storage / planLimits.storage) * 100)
     );
 
+    const activePlanKey =
+      normalizePlanKey(activeSubscription?.billing?.interval) ||
+      derivePlanKeyFromName(activeSubscription?.planName) ||
+      normalizePlanKey(currentPlan?.billingPeriod);
+    const planOptions = applyPlanStatuses(basePlanOptions, activePlanKey);
+
     // Build comprehensive billing response
     const billingData = {
       currentPlan: {
-        name: currentPlan?.name || 'Professional',
-        type: currentPlan?.type || 'pro',
+        name:
+          currentPlan?.name ||
+          currentPlan?.displayName ||
+          `${
+            activePlanKey
+              ? activePlanKey.charAt(0).toUpperCase() + activePlanKey.slice(1)
+              : 'Monthly'
+          } Access`,
+        type: activePlanKey || currentPlan?.type || 'paid',
         price: activeSubscription.billing?.amount / 100 || 49.99, // Convert cents to dollars
         currency: activeSubscription.billing?.currency || 'USD',
         period: activeSubscription.billing?.interval || 'monthly',
@@ -2041,6 +2170,7 @@ app.get('/api/user/billing/:userId', async (req, res) => {
           (currentPeriodEnd - new Date()) / (1000 * 60 * 60 * 24)
         ),
       },
+      planOptions,
       usage: {
         currentPeriod: {
           apiCalls: {
@@ -2084,7 +2214,9 @@ app.get('/api/user/billing/:userId', async (req, res) => {
           ? [
               {
                 description: `${
-                  currentPlan?.name || 'Professional'
+                  currentPlan?.name ||
+                  currentPlan?.displayName ||
+                  'Monthly Agent Access'
                 } Plan - Next billing cycle`,
                 amount: `$${(
                   (activeSubscription.billing?.amount || 4999) / 100
