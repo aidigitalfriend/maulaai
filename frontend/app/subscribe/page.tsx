@@ -12,6 +12,8 @@ function SubscriptionContent() {
   const agentName = searchParams.get('agent') || 'AI Agent';
   const agentSlug = searchParams.get('slug') || 'agent';
   const [checking, setChecking] = useState(true);
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Check authentication and subscription status on mount
   useEffect(() => {
@@ -114,16 +116,46 @@ function SubscriptionContent() {
     },
   ];
 
-  const handleSubscribe = (plan: any) => {
-    // Redirect to payment page with agent and plan details
-    const params = new URLSearchParams({
-      agent: agentName,
-      slug: agentSlug,
-      plan: plan.type.toLowerCase(),
-      price: plan.price,
-      period: plan.billingCycle,
-    });
-    window.location.href = `/payment?${params.toString()}`;
+  const handleSubscribe = async (plan: any) => {
+    setErrorMessage(null);
+
+    if (!state.isAuthenticated || !state.user) {
+      const currentUrl = `/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`;
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
+
+    setProcessingPlan(plan.billingCycle);
+
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentId: agentSlug,
+          agentName,
+          plan: plan.billingCycle,
+          userId: state.user.id,
+          userEmail: state.user.email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success || !data.url) {
+        throw new Error(data.error || 'Failed to start checkout session');
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Stripe checkout error:', error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to start checkout. Please try again.';
+      setErrorMessage(message);
+      setProcessingPlan(null);
+    }
   };
 
   return (
@@ -147,6 +179,12 @@ function SubscriptionContent() {
         </div>
 
         {/* Subscription Plans */}
+        {errorMessage && (
+          <div className="max-w-3xl mx-auto mb-8 bg-red-500/10 border border-red-500/20 text-red-100 p-4 rounded-lg text-center">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
           {subscriptionPlans.map((plan, index) => (
             <div
@@ -186,13 +224,20 @@ function SubscriptionContent() {
 
               <button
                 onClick={() => handleSubscribe(plan)}
+                disabled={processingPlan === plan.billingCycle}
                 className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
                   plan.recommended
                     ? 'bg-brand-500 hover:bg-brand-600 text-white'
                     : 'bg-neutral-700 hover:bg-neutral-600 text-white'
+                } ${
+                  processingPlan === plan.billingCycle
+                    ? 'opacity-70 cursor-not-allowed'
+                    : ''
                 }`}
               >
-                Subscribe {plan.type}
+                {processingPlan === plan.billingCycle
+                  ? 'Redirecting to Stripe...'
+                  : `Subscribe ${plan.type}`}
               </button>
             </div>
           ))}

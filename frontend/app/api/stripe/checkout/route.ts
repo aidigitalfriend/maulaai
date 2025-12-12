@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
 
     // Build success and cancel URLs
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const successUrl = `${baseUrl}/subscription-success?session_id={CHECKOUT_SESSION_ID}&agent=${encodeURIComponent(agentName)}`
-    const cancelUrl = `${baseUrl}/payment?agent=${encodeURIComponent(agentName)}&slug=${agentId}&plan=${plan}&cancelled=true`
+    const successUrl = `${baseUrl}/subscription-success?session_id={CHECKOUT_SESSION_ID}&agent=${encodeURIComponent(agentName)}&slug=${agentId}`
+    const cancelUrl = `${baseUrl}/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentId}&plan=${plan}&cancelled=true`
 
     // Create Stripe checkout session
     const session = await createCheckoutSession({

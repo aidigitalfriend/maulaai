@@ -30,11 +30,15 @@ function PaymentContent() {
 
   // Helper function to build login URL with return path
   const buildLoginUrl = (returnUrl: string) => {
-    return `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+    return `/auth/login?redirect=${encodeURIComponent(returnUrl)}`;
   };
 
   // Check authentication and get user info on mount
   useEffect(() => {
+    if (state.isLoading) {
+      return;
+    }
+
     if (!state.isAuthenticated) {
       // Build the current page URL to return to after login
       const currentUrl = `/payment?agent=${encodeURIComponent(
@@ -50,6 +54,7 @@ function PaymentContent() {
       });
     }
   }, [
+    state.isLoading,
     state.isAuthenticated,
     state.user,
     agentName,
