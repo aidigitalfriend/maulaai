@@ -8,7 +8,7 @@ module.exports = {
     // Frontend Next.js Application
     {
       name: 'shiny-frontend',
-      cwd: '/Users/onelastai/Downloads/shiny-friend-disco/frontend',
+      cwd: '/home/ubuntu/shiny-friend-disco/frontend',
       script: 'npm',
       args: 'start',
       env: {
@@ -33,11 +33,11 @@ module.exports = {
     // Backend API Server with Authentication
     {
       name: 'shiny-backend',
-      cwd: '/Users/onelastai/Downloads/shiny-friend-disco/backend',
+      cwd: '/home/ubuntu/shiny-friend-disco/backend',
       script: 'bash',
       args: [
         '-lc',
-        `set -a; source /Users/onelastai/Downloads/shiny-friend-disco/backend/.env; export PORT=3005; exec node server-simple.js`,
+        `set -a; source /home/ubuntu/shiny-friend-disco/backend/.env; export PORT=3005; exec node server-simple.js`,
       ],
       env: {
         NODE_ENV: 'production',
