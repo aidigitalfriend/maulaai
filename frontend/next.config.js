@@ -27,23 +27,7 @@ const nextConfig = {
   // BUNDLE SIZE OPTIMIZATIONS
   // ============================================
 
-  // Enable SWC minification for smaller bundles
-  swcMinify: true,
-
-  // Optimize chunks and bundle splitting
-  optimizeFonts: true,
-
-  // Enable compression
-  compress: true,
-
-  // Reduce bundle size by optimizing CSS
-  optimizeCss: true,
-
-  api: {
-    bodyParser: {
-      sizeLimit: '6mb',
-    },
-  },
+  // Bundle optimizations are handled automatically in Next.js 16
 
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Prioritize .tsx over .ts for component resolution
