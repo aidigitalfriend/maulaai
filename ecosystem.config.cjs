@@ -33,12 +33,9 @@ module.exports = {
     // Backend API Server with Authentication
     {
       name: 'shiny-backend',
-      cwd: '/Users/onelastai/Downloads/shiny-friend-disco/backend',
-      script: 'bash',
-      args: [
-        '-lc',
-        `set -a; source /Users/onelastai/Downloads/shiny-friend-disco/backend/.env; export PORT=3005; exec node server-simple.js`,
-      ],
+      cwd: '/home/ubuntu/shiny-friend-disco/backend',
+      script: 'server-simple.js',
+      interpreter: '/usr/bin/node',
       env: {
         NODE_ENV: 'production',
         PORT: 3005,

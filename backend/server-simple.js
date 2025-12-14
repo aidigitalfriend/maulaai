@@ -8,6 +8,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import os from 'os';
+import mongoose from 'mongoose';
 import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
