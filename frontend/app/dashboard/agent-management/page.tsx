@@ -1,0 +1,335 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '@/services/agentSubscriptionService';
+import { allAgents } from '@/app/agents/registry';
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Unlock,
+} from 'lucide-react';
+
+interface AgentCardState {
+  agentId: string;
+  agentName: string;
+  isUnlocked: boolean;
+  subscription?: AgentSubscription | null;
+}
+
+type PlanType = "daily" | "weekly" | "monthly";
+
+const PLAN_LABELS: Record<PlanType, string> = {
+  daily: "Daily",
+  weekly: "Weekly",
+  monthly: "Monthly",
+};
+
+const PLAN_ACTIONS: Record<PlanType, { upgrades: PlanType[]; downgrades: PlanType[] }> = {
+  daily: {
+    upgrades: ["weekly", "monthly"],
+    downgrades: [],
+  },
+  weekly: {
+    upgrades: ["monthly"],
+    downgrades: ["daily"],
+  },
+  monthly: {
+    upgrades: [],
+    downgrades: ["weekly", "daily"],
+  },
+};
+
+export default function AgentManagementPage() {
+  const { user } = useAuth();
+  const userId = user?.id;
+  const router = useRouter();
+  const [subscriptions, setSubscriptions] = useState<AgentSubscription[] | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSubscriptions = async () => {
+      if (!userId) {
+        setSubscriptions([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const data = await agentSubscriptionService.getUserSubscriptions(userId);
+        if (isMounted) {
+          setSubscriptions(data);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Failed to load subscriptions", err);
+        if (isMounted) {
+          setError("Unable to load subscription information. Please try again later.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadSubscriptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  const agentStates: AgentCardState[] = useMemo(() => {
+    if (!subscriptions || subscriptions.length === 0) {
+      return allAgents.map((agent) => ({
+        agentId: agent.id,
+        agentName: agent.name,
+        isUnlocked: false,
+      }));
+    }
+
+    return allAgents.map((agent) => {
+      const subscription = subscriptions.find(
+        (sub) => sub.agentId === agent.id && sub.status === "active"
+      );
+      return {
+        agentId: agent.id,
+        agentName: agent.name,
+        isUnlocked: Boolean(subscription),
+        subscription,
+      };
+    });
+  }, [subscriptions]);
+
+  const goToPricing = (
+    agentId: string,
+    agentName: string,
+    options?: { plan?: string; intent?: 'upgrade' | 'downgrade' | 'cancel' }
+  ) => {
+    const params = new URLSearchParams({ agent: agentId, name: agentName });
+    if (options?.plan) {
+      params.set('plan', options.plan);
+    }
+    if (options?.intent) {
+      params.set('intent', options.intent);
+    }
+    router.push(`/pricing/overview?${params.toString()}`);
+  };
+
+  const handlePlanChange = (
+    agentId: string,
+    agentName: string,
+    plan: PlanType,
+    intent: 'upgrade' | 'downgrade'
+  ) => {
+    goToPricing(agentId, agentName, { plan, intent });
+  };
+
+  const handleCardClick = (agentId: string, agentName: string) => {
+    goToPricing(agentId, agentName);
+  };
+
+  const handleCancelSubscription = (agentId: string, agentName: string) => {
+    goToPricing(agentId, agentName, { intent: 'cancel' });
+  };
+
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="container-custom section-padding-lg space-y-10">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-widest text-brand-500 font-semibold mb-2">
+                  Subscription Hub
+                </p>
+                <h1 className="text-4xl md:text-5xl font-bold text-neural-900">
+                  Agent Management
+                </h1>
+                <p className="text-neural-600 max-w-2xl mt-3">
+                  Unlock specialized agents, manage upgrades or downgrades, and adjust your plan on a per-agent basis. Cards stay locked until you subscribe, keeping billing under your control.
+                </p>
+              </div>
+              <div className="bg-white shadow-sm border border-neural-100 rounded-xl p-5 max-w-sm w-full">
+                <div className="flex items-center gap-3 mb-3">
+                  <ShieldCheck className="w-6 h-6 text-brand-600" />
+                  <div>
+                    <p className="text-sm text-neural-500">Current Plan</p>
+                    <p className="text-lg font-semibold text-neural-900">
+                      {subscriptions && subscriptions.length > 0
+                        ? `${subscriptions.length} active agents`
+                        : "Free Tier"}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-sm text-neural-600">
+                  Use the action buttons on each card to upgrade, downgrade, or cancel. Clicking any locked card takes you to pricing to unlock it instantly.
+                </p>
+              </div>
+            </div>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                {error}
+              </div>
+            )}
+          </div>
+
+          {isLoading && (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
+            </div>
+          )}
+
+          {!isLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {agentStates.map((agent) => {
+                const subscriptionPlan = agent.subscription?.plan as PlanType | undefined;
+                const actions = subscriptionPlan ? PLAN_ACTIONS[subscriptionPlan] : PLAN_ACTIONS.daily;
+
+                return (
+                <div
+                  key={agent.agentId}
+                  className={`relative rounded-2xl border p-6 shadow-sm transition-all duration-300 group ${
+                    agent.isUnlocked
+                      ? "bg-white border-green-200 hover:border-green-300"
+                      : "bg-white/80 border-neural-100 hover:border-brand-200"
+                  }`}
+                >
+                  {!agent.isUnlocked && (
+                    <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
+                      <Lock className="w-10 h-10 text-brand-500 mb-3" />
+                      <p className="font-semibold text-neural-800 mb-2">
+                        Unlock {agent.agentName}
+                      </p>
+                      <p className="text-sm text-neural-600 mb-4">
+                        Get instant access by choosing a plan.
+                      </p>
+                      <button
+                        onClick={() => handleCardClick(agent.agentId, agent.agentName)}
+                        className="btn-primary inline-flex items-center gap-2"
+                      >
+                        Unlock Now
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-sm uppercase tracking-wide text-neural-500">Agent</p>
+                      <h3 className="text-2xl font-bold text-neural-900">{agent.agentName}</h3>
+                    </div>
+                    {agent.isUnlocked ? (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-600">
+                        <Unlock className="w-4 h-4" /> Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-neural-500">
+                        <Lock className="w-4 h-4" /> Locked
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-neural-600 mb-5">
+                    {agent.isUnlocked
+                      ? `Currently on ${PLAN_LABELS[subscriptionPlan ?? "daily"]} plan. Upgrade, downgrade, or cancel anytime.`
+                      : `Unlock to ${agent.agentName} to explore personalized capabilities.`}
+                  </p>
+
+                  <div className="space-y-3">
+                    {agent.isUnlocked && (
+                      <button
+                        onClick={() => handleCancelSubscription(agent.agentId, agent.agentName)}
+                        className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        Cancel Subscription
+                        <span className="text-xs uppercase tracking-widest font-semibold">Stop</span>
+                      </button>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {actions.downgrades.map((plan) => (
+                        <button
+                          key={`downgrade-${agent.agentId}-${plan}`}
+                          onClick={() => handlePlanChange(agent.agentId, agent.agentName, plan, 'downgrade')}
+                          className="inline-flex items-center justify-between px-4 py-3 rounded-xl border border-amber-200 text-amber-700 hover:bg-amber-50"
+                        >
+                          <div className="text-left">
+                            <p className="text-sm font-semibold">Downgrade</p>
+                            <p className="text-xs text-neural-500">to {PLAN_LABELS[plan]}</p>
+                          </div>
+                          <ArrowDown className="w-4 h-4" />
+                        </button>
+                      ))}
+                      {actions.upgrades.map((plan) => (
+                        <button
+                          key={`upgrade-${agent.agentId}-${plan}`}
+                          onClick={() => handlePlanChange(agent.agentId, agent.agentName, plan, 'upgrade')}
+                          className="inline-flex items-center justify-between px-4 py-3 rounded-xl border border-brand-200 text-brand-700 hover:bg-brand-50"
+                        >
+                          <div className="text-left">
+                            <p className="text-sm font-semibold">Upgrade</p>
+                            <p className="text-xs text-neural-500">to {PLAN_LABELS[plan]}</p>
+                          </div>
+                          <ArrowUp className="w-4 h-4" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {!agent.isUnlocked && (
+                    <button
+                      onClick={() => handleCardClick(agent.agentId, agent.agentName)}
+                      className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100"
+                    >
+                      Unlock to {agent.agentName}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl border border-neural-100 p-8 shadow-sm">
+            <h2 className="text-2xl font-bold text-neural-900 mb-4">
+              How Agent Management Works
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {["Choose", "Manage", "Optimize"].map((step, index) => (
+                <div key={step} className="p-5 rounded-xl border border-neural-100">
+                  <p className="text-sm font-semibold text-brand-500 mb-2">
+                    Step {index + 1}
+                  </p>
+                  <h3 className="text-xl font-semibold text-neural-900 mb-2">
+                    {step}
+                  </h3>
+                  <p className="text-neural-600 text-sm">
+                    {index === 0 && "Select any locked agent to see plan options and unlock via the pricing flow."}
+                    {index === 1 && "Use upgrade, downgrade, or cancel buttons based on your current plan tier."}
+                    {index === 2 && "Switch plans anytime and redirect to Stripe checkout to confirm changes."}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
+}

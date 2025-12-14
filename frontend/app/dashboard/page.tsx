@@ -287,6 +287,20 @@ function DashboardContent() {
         'Optimization Tips',
       ],
     },
+    {
+      title: 'Agent Management',
+      description:
+        'Manage access, unlock agents, and adjust plans with quick upgrade and downgrade actions.',
+      icon: '🛠️',
+      href: '/dashboard/agent-management',
+      stats: [
+        'Unlock Agents',
+        'Upgrade or Downgrade',
+        'Cancel Plans',
+        'Stripe Checkout Redirect',
+      ],
+      badge: 'BETA',
+    },
   ];
 
   const normalizedSubscriptionStatus = analyticsData.subscription.status
