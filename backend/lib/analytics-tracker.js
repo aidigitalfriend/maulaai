@@ -3,7 +3,7 @@
  * Core tracking functions for all user interactions
  */
 
-import { getClientPromise } from './mongodb.ts';
+import { getClientPromise } from './mongodb.js';
 import { detectDevice, detectBrowser, detectOS } from './device-detection.js';
 
 // ============================================
