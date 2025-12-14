@@ -16,13 +16,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST(request: NextRequest) {
+  console.log('🔥 STRIPE WEBHOOK RECEIVED - STARTING PROCESSING');
+
   try {
     const body = await request.text();
     const headersList = headers();
     const signature = headersList.get('stripe-signature');
 
+    console.log('📨 Webhook headers received:', {
+      hasSignature: !!signature,
+      contentType: headersList.get('content-type'),
+      userAgent: headersList.get('user-agent'),
+    });
+
     if (!signature) {
-      console.error('No Stripe signature found');
+      console.error('❌ No Stripe signature found');
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
     }
 
@@ -30,15 +38,26 @@ export async function POST(request: NextRequest) {
     let event: Stripe.Event;
     try {
       event = verifyWebhookSignature(body, signature);
+      console.log('✅ Webhook signature verified successfully');
     } catch (err) {
-      console.error('Webhook signature verification failed:', err);
+      console.error('❌ Webhook signature verification failed:', err);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    console.log('Stripe webhook event received:', event.type);
+    console.log('🎯 Stripe webhook event received:', {
+      type: event.type,
+      id: event.id,
+      created: event.created,
+      livemode: event.livemode,
+    });
 
     // Connect to MongoDB
+    console.log('🔌 Connecting to MongoDB...');
     await connectToDatabase();
+    console.log('✅ Connected to MongoDB successfully');
+
+    // Handle different event types
+    switch (event.type) {
 
     // Handle different event types
     switch (event.type) {
@@ -84,9 +103,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Webhook handler error:', error);
+    console.error('💥 WEBHOOK HANDLER ERROR:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return NextResponse.json(
-      { error: 'Webhook handler failed' },
+      { error: 'Webhook handler failed', details: error.message },
       { status: 500 }
     );
   }
@@ -98,7 +121,11 @@ export async function POST(request: NextRequest) {
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
 ) {
-  console.log('Processing checkout session:', session.id);
+  console.log('🛒 Processing checkout session completed:', {
+    sessionId: session.id,
+    paymentStatus: session.payment_status,
+    status: session.status,
+  });
 
   const {
     client_reference_id: userId,
@@ -107,8 +134,15 @@ async function handleCheckoutSessionCompleted(
   } = session;
   const metadata = session.metadata;
 
+  console.log('👤 Session data extracted:', {
+    userId,
+    email,
+    subscriptionId,
+    metadata,
+  });
+
   if (!metadata || !userId || !email || !subscriptionId) {
-    console.error('Missing required session data:', {
+    console.error('❌ Missing required session data:', {
       userId,
       email,
       subscriptionId,
@@ -118,12 +152,20 @@ async function handleCheckoutSessionCompleted(
   }
 
   // Get full subscription details from Stripe
+  console.log('🔍 Fetching subscription details from Stripe:', subscriptionId);
   const subscription = await stripe.subscriptions.retrieve(
     subscriptionId as string
   );
+  console.log('✅ Subscription details retrieved:', {
+    id: subscription.id,
+    status: subscription.status,
+    items: subscription.items.data.length,
+  });
 
   // Save subscription to MongoDB
+  console.log('💾 Saving subscription to database...');
   await saveSubscriptionToDatabase(subscription, userId, email, metadata);
+  console.log('✅ Subscription saved successfully');
 }
 
 /**
@@ -342,32 +384,42 @@ async function saveAgentSubscriptionToDatabase(
   userId: string,
   metadata: Stripe.Metadata | undefined
 ) {
+  console.log('🤖 Starting agent subscription save process:', {
+    userId,
+    metadata,
+  });
+
   const { agentId, agentName, plan } = metadata || {};
   const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
+  console.log('📋 Extracted metadata:', { agentId, agentName, plan });
+
   if (!agentId || !agentName || !plan) {
     console.error(
-      'Missing required metadata for agent subscription:',
+      '❌ Missing required metadata for agent subscription:',
       metadata
     );
     return;
   }
 
   const price = subscription.items.data[0]?.price?.unit_amount || 0;
+  console.log('💰 Subscription price:', price);
 
   // Check if agent subscription already exists
+  console.log('🔍 Checking for existing agent subscription...');
   const existingSubscription = await AgentSubscriptionModel.findOne({
     userId,
     agentId,
   });
 
   if (existingSubscription) {
-    console.log('Agent subscription already exists, updating status');
+    console.log('📝 Agent subscription already exists, updating status');
     existingSubscription.status = 'active';
     existingSubscription.expiryDate = new Date(
       subscription.current_period_end * 1000
     );
     await existingSubscription.save();
+    console.log('✅ Existing agent subscription updated');
     return;
   }
 
@@ -388,6 +440,12 @@ async function saveAgentSubscriptionToDatabase(
       expiryDate = new Date(subscription.current_period_end * 1000);
   }
 
+  console.log('📅 Calculated expiry date:', {
+    plan,
+    startDate,
+    expiryDate,
+  });
+
   // Create new agent subscription record
   const newAgentSubscription = new AgentSubscriptionModel({
     userId,
@@ -400,8 +458,15 @@ async function saveAgentSubscriptionToDatabase(
     autoRenew: !subscription.cancel_at_period_end,
   });
 
+  console.log('💾 Saving new agent subscription to database...');
   await newAgentSubscription.save();
-  console.log('Agent subscription saved to database:', agentId);
+  console.log('✅ Agent subscription saved successfully:', {
+    id: newAgentSubscription._id,
+    agentId,
+    userId,
+    plan,
+    status: 'active',
+  });
 }
 
 /**

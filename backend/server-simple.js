@@ -3946,6 +3946,26 @@ async function initializeOptimizations() {
   try {
     console.log('🔧 Initializing database optimizations...');
 
+    // Initialize Mongoose connection for Mongoose models
+    console.log('🔌 Connecting to MongoDB with Mongoose...');
+    const mongoose = (await import('mongoose')).default;
+
+    mongoose.set('strictQuery', true);
+    mongoose.set('bufferCommands', false);
+
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: process.env.MONGODB_DB || undefined,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+      maxPoolSize: 10,
+      retryWrites: true,
+      retryReads: true,
+      readPreference: 'primaryPreferred',
+    });
+
+    console.log('✅ Mongoose connected successfully');
+
     // Monitor database connection
     connectionConfig.monitorConnection();
 

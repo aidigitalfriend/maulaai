@@ -25,7 +25,6 @@
     "@types/uuid": "^11.0.0",
     "@types/ws": "^8.18.1",
     "ai-app-monorepo": "file:..",
-    "aws-sdk": "^2.1692.0",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
