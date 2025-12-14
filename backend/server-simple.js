@@ -19,6 +19,7 @@ import {
   trackPageViewMiddleware,
 } from './lib/tracking-middleware.js';
 import analyticsRouter from './routes/analytics.js';
+import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
 
 dotenv.config();
 
@@ -3779,6 +3780,9 @@ app.post('/api/translate', async (req, res) => {
 
 // Analytics routes
 app.use('/api', analyticsRouter);
+
+// Agent subscriptions routes
+app.use('/api/agent/subscriptions', agentSubscriptionsRouter);
 
 // IP information endpoint (used by frontend /tools/ip-info)
 // GET /api/ipinfo?ip=1.2.3.4
