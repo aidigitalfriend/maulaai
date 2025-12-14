@@ -16,6 +16,7 @@ import {
   Lock,
   ShieldCheck,
   Unlock,
+  RefreshCw,
 } from 'lucide-react';
 import { useSubscribeRedirect } from '@/hooks/useSubscribeRedirect';
 
@@ -97,8 +98,33 @@ export default function AgentManagementPage() {
 
     loadSubscriptions();
 
+    // Refresh subscriptions when page becomes visible (user returns from checkout)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && userId) {
+        // Add a small delay to allow webhook processing
+        setTimeout(() => {
+          loadSubscriptions();
+        }, 2000);
+      }
+    };
+
+    // Also refresh when window gains focus
+    const handleFocus = () => {
+      if (userId) {
+        // Add a small delay to allow webhook processing
+        setTimeout(() => {
+          loadSubscriptions();
+        }, 1000);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
     return () => {
       isMounted = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [userId]);
 
@@ -161,6 +187,29 @@ export default function AgentManagementPage() {
     goToSubscribe(agentId, agentName, { intent: 'cancel' });
   };
 
+  const handleRefreshSubscriptions = () => {
+    if (userId) {
+      const loadSubscriptions = async () => {
+        setIsLoading(true);
+        try {
+          const data = await agentSubscriptionService.getUserSubscriptions(
+            userId
+          );
+          setSubscriptions(data);
+          setError(null);
+        } catch (err) {
+          console.error('Failed to load subscriptions', err);
+          setError(
+            'Unable to load subscription information. Please try again later.'
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadSubscriptions();
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -181,16 +230,26 @@ export default function AgentManagementPage() {
                 </p>
               </div>
               <div className="bg-white shadow-sm border border-neural-100 rounded-xl p-5 max-w-sm w-full">
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-6 h-6 text-brand-600" />
-                  <div>
-                    <p className="text-sm text-neural-500">
-                      Current Active Agents
-                    </p>
-                    <p className="text-3xl font-bold text-neural-900">
-                      {activeAgentCount}
-                    </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-6 h-6 text-brand-600" />
+                    <div>
+                      <p className="text-sm text-neural-500">
+                        Current Active Agents
+                      </p>
+                      <p className="text-3xl font-bold text-neural-900">
+                        {activeAgentCount}
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    onClick={handleRefreshSubscriptions}
+                    disabled={isLoading}
+                    className="p-2 rounded-lg hover:bg-neural-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Refresh subscription status"
+                  >
+                    <RefreshCw className={`w-5 h-5 text-neural-500 ${isLoading ? 'animate-spin' : ''}`} />
+                  </button>
                 </div>
               </div>
             </div>

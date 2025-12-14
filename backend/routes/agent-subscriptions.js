@@ -3,60 +3,87 @@
  * Simple pricing: $1 daily, $5 weekly, $19 monthly per agent
  */
 
-import express from 'express'
-import mongoose from 'mongoose'
-import Plan from '../models/Plan.ts'
-import Subscription from '../models/Subscription.ts'
-import Agent from '../models/Agent.ts'
-import User from '../models/User.ts'
-import Coupon from '../models/Coupon.ts'
+import express from 'express';
+import mongoose from 'mongoose';
+import AgentSubscription from '../models/AgentSubscription.js';
+import User from '../models/User.js';
+import Agent from '../models/Agent.ts';
 
-const router = express.Router()
+const router = express.Router();
 
 // Get available pricing plans
 router.get('/pricing', async (req, res) => {
   try {
-    const plans = await Plan.find({ isActive: true, isPublic: true })
-      .sort({ 'pricing.amount': 1 })
-      .select('name displayName description billingPeriod price pricing features metadata')
-    
+    // Hardcoded pricing plans for now
+    const plans = [
+      {
+        id: 'daily',
+        name: 'daily',
+        displayName: 'Daily Access',
+        description: 'Pay per day access to any agent',
+        billingPeriod: 'daily',
+        price: { amount: 100 }, // $1.00 in cents
+        priceFormatted: '$1.00',
+        period: 'daily',
+        features: ['Full agent access', '24-hour validity', 'Cancel anytime'],
+        savings: null,
+        recommended: false,
+      },
+      {
+        id: 'weekly',
+        name: 'weekly',
+        displayName: 'Weekly Access',
+        description: 'Weekly subscription to any agent',
+        billingPeriod: 'weekly',
+        price: { amount: 500 }, // $5.00 in cents
+        priceFormatted: '$5.00',
+        period: 'weekly',
+        features: ['Full agent access', '7-day validity', 'Save 30% vs daily'],
+        savings: 'Save 30%',
+        recommended: true,
+      },
+      {
+        id: 'monthly',
+        name: 'monthly',
+        displayName: 'Monthly Access',
+        description: 'Monthly subscription to any agent',
+        billingPeriod: 'monthly',
+        price: { amount: 1900 }, // $19.00 in cents
+        priceFormatted: '$19.00',
+        period: 'monthly',
+        features: ['Full agent access', '30-day validity', 'Save 68% vs daily'],
+        savings: 'Save 68%',
+        recommended: false,
+      },
+    ];
+
     const pricingResponse = {
       perAgentPricing: true,
-      plans: plans.map(plan => ({
-        id: plan._id,
-        name: plan.name,
-        displayName: plan.displayName,
-        description: plan.description,
-        billingPeriod: plan.billingPeriod,
-        price: plan.price,
-        priceFormatted: `$${(plan.price.amount / 100).toFixed(2)}`,
-        period: plan.billingPeriod,
-        features: plan.features,
-        savings: plan.metadata?.savings || null,
-        recommended: plan.metadata?.recommended || false
-      }))
-    }
-    
+      plans: plans,
+    };
+
     res.json({
       success: true,
-      data: pricingResponse
-    })
+      data: pricingResponse,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch pricing plans',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
 // Get available agents
 router.get('/agents', async (req, res) => {
   try {
     const agents = await Agent.find({ isActive: true, isPublic: true })
-      .select('agentId name description category avatar features tags capabilities isPremium')
-      .sort({ name: 1 })
-    
+      .select(
+        'agentId name description category avatar features tags capabilities isPremium'
+      )
+      .sort({ name: 1 });
+
     res.json({
       success: true,
       data: {
@@ -65,380 +92,306 @@ router.get('/agents', async (req, res) => {
         pricing: {
           perAgent: true,
           daily: '$1.00',
-          weekly: '$5.00', 
-          monthly: '$19.00'
-        }
-      }
-    })
+          weekly: '$5.00',
+          monthly: '$19.00',
+        },
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch agents',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
 // Get user's active agent subscriptions
 router.get('/subscriptions/:userId', async (req, res) => {
   try {
-    const { userId } = req.params
-    
-    const subscriptions = await Subscription.find({ 
-      user: userId,
-      status: { $in: ['active', 'trial'] }
-    })
-    .populate('plan', 'name displayName billingPeriod price')
-    .populate('user', 'email name')
-    .select('agentId agentName status billing usage metadata createdAt')
-    
+    const { userId } = req.params;
+
+    const subscriptions = await AgentSubscription.find({
+      userId: userId,
+      status: 'active',
+    }).sort({ createdAt: -1 });
+
     // Group by agent
-    const agentSubscriptions = subscriptions.map(sub => ({
+    const agentSubscriptions = subscriptions.map((sub) => ({
       subscriptionId: sub._id,
       agentId: sub.agentId,
-      agentName: sub.agentName,
+      agentName: sub.agentName || `Agent ${sub.agentId}`,
       status: sub.status,
       plan: sub.plan,
-      billing: {
-        currentPeriodStart: sub.billing?.currentPeriodStart,
-        currentPeriodEnd: sub.billing?.currentPeriodEnd,
-        amount: sub.billing?.amount,
-        currency: sub.billing?.currency
-      },
-      usage: sub.usage,
-      subscribedAt: sub.createdAt
-    }))
-    
+      price: sub.price,
+      startDate: sub.startDate,
+      expiryDate: sub.expiryDate,
+      autoRenew: sub.autoRenew,
+      subscribedAt: sub.createdAt,
+    }));
+
     res.json({
       success: true,
       data: {
         userId,
         activeSubscriptions: agentSubscriptions,
-        totalSubscriptions: agentSubscriptions.length
-      }
-    })
+        totalSubscriptions: agentSubscriptions.length,
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch user subscriptions',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
+// Subscribe to an agent
 // Subscribe to an agent
 router.post('/subscribe', async (req, res) => {
   try {
-    const { userId, agentId, planId, couponCode } = req.body
-    
+    const { userId, agentId, planId, couponCode } = req.body;
+
     // Validate required fields
     if (!userId || !agentId || !planId) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: userId, agentId, planId'
-      })
+        error: 'Missing required fields: userId, agentId, planId',
+      });
     }
-    
+
+    // Validate planId (should be daily, weekly, or monthly)
+    const validPlans = ['daily', 'weekly', 'monthly'];
+    if (!validPlans.includes(planId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid plan. Must be: daily, weekly, or monthly',
+      });
+    }
+
     // Check if user exists
-    const user = await User.findById(userId)
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'User not found'
-      })
+        error: 'User not found',
+      });
     }
-    
-    // Check if agent exists
-    const agent = await Agent.findOne({ 
+
+    // Check if agent exists (try both _id and agentId)
+    const agent = await Agent.findOne({
       $or: [{ _id: agentId }, { agentId: agentId }],
-      isActive: true 
-    })
+      isActive: true,
+    });
     if (!agent) {
       return res.status(404).json({
         success: false,
-        error: 'Agent not found or inactive'
-      })
+        error: 'Agent not found or inactive',
+      });
     }
-    
-    // Check if plan exists
-    const plan = await Plan.findById(planId)
-    if (!plan || !plan.isActive) {
-      return res.status(404).json({
-        success: false,
-        error: 'Plan not found or inactive'
-      })
-    }
-    
+
     // Check if user already has active subscription for this agent
-    const existingSubscription = await Subscription.findOne({
-      user: userId,
-      agentId: agent.agentId || agent._id,
-      status: { $in: ['active', 'trial'] }
-    })
-    
+    const existingSubscription = await AgentSubscription.findOne({
+      userId: userId,
+      agentId: agent.agentId || agent._id.toString(),
+      status: 'active',
+    });
+
     if (existingSubscription) {
       return res.status(409).json({
         success: false,
         error: 'User already has an active subscription for this agent',
-        data: {
-          existingSubscription: existingSubscription._id,
-          agentName: existingSubscription.agentName
-        }
-      })
+      });
     }
-    
-    // Apply coupon if provided
-    let discount = 0
-    let couponDetails = null
-    if (couponCode) {
-      const coupon = await Coupon.findOne({ 
-        code: couponCode.toUpperCase(),
-        status: 'active'
-      })
-      
-      if (coupon && coupon.canBeUsedBy(user, { planId, amount: plan.price.amount })) {
-        const discountResult = coupon.calculateDiscount(plan.price.amount)
-        discount = discountResult.amount
-        couponDetails = {
-          code: coupon.code,
-          name: coupon.name,
-          discount: discountResult
-        }
-      }
-    }
-    
-    // Calculate billing period dates
-    const now = new Date()
-    let periodEnd = new Date(now)
-    
-    switch (plan.billingPeriod) {
+
+    // Calculate price and expiry date
+    let price = 0;
+    switch (planId) {
       case 'daily':
-        periodEnd.setDate(periodEnd.getDate() + 1)
-        break
+        price = 1.0;
+        break;
       case 'weekly':
-        periodEnd.setDate(periodEnd.getDate() + 7)
-        break
+        price = 5.0;
+        break;
       case 'monthly':
-        periodEnd.setMonth(periodEnd.getMonth() + 1)
-        break
-      default:
-        periodEnd.setMonth(periodEnd.getMonth() + 1)
+        price = 19.0;
+        break;
     }
-    
+
+    const startDate = new Date();
+    const expiryDate = AgentSubscription.calculateExpiryDate(planId, startDate);
+
     // Create subscription
-    const subscription = new Subscription({
-      user: userId,
+    const subscription = new AgentSubscription({
+      userId: userId,
+      agentId: agent.agentId || agent._id.toString(),
       plan: planId,
-      status: 'active', // In production, this would be 'pending' until payment
-      agentId: agent.agentId || agent._id,
-      agentName: agent.name,
-      billing: {
-        interval: plan.billingPeriod === 'daily' ? 'day' : 
-                 plan.billingPeriod === 'weekly' ? 'week' : 'month',
-        intervalCount: 1,
-        amount: plan.price.amount - discount,
-        currency: plan.price.currency,
-        startDate: now,
-        currentPeriodStart: now,
-        currentPeriodEnd: periodEnd
-      },
-      usage: {
-        current: {
-          apiCalls: 0,
-          totalSessions: 0
-        }
-      },
-      metadata: {
-        agentSubscription: true,
-        agentDetails: {
-          id: agent.agentId || agent._id,
-          name: agent.name,
-          category: agent.category,
-          avatar: agent.avatar
-        },
-        originalAmount: plan.price.amount,
-        discountApplied: discount,
-        coupon: couponDetails
-      }
-    })
-    
-    await subscription.save()
-    
-    // Record coupon usage if applied
-    if (couponCode && couponDetails) {
-      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() })
-      if (coupon) {
-        await coupon.recordUsage({
-          userId,
-          subscriptionId: subscription._id,
-          discountAmount: discount,
-          originalAmount: plan.price.amount
-        })
-      }
-    }
-    
-    res.status(201).json({
+      price: price,
+      status: 'active',
+      startDate: startDate,
+      expiryDate: expiryDate,
+      autoRenew: true,
+    });
+
+    await subscription.save();
+
+    res.json({
       success: true,
-      message: `Successfully subscribed to ${agent.name}`,
       data: {
         subscriptionId: subscription._id,
-        agent: {
-          id: agent.agentId || agent._id,
-          name: agent.name,
-          category: agent.category
-        },
-        plan: {
-          name: plan.name,
-          period: plan.billingPeriod,
-          amount: plan.price.amount - discount,
-          originalAmount: plan.price.amount,
-          discount: discount
-        },
-        billing: {
-          startDate: now,
-          endDate: periodEnd,
-          nextBilling: periodEnd
-        },
-        coupon: couponDetails
-      }
-    })
-    
+        userId: userId,
+        agentId: agent.agentId || agent._id.toString(),
+        agentName: agent.name || `Agent ${agent.agentId}`,
+        plan: planId,
+        price: price,
+        status: 'active',
+        startDate: startDate,
+        expiryDate: expiryDate,
+        message: 'Subscription created successfully',
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to create subscription',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
 // Unsubscribe from an agent
 router.delete('/unsubscribe/:subscriptionId', async (req, res) => {
   try {
-    const { subscriptionId } = req.params
-    const { userId } = req.body
-    
+    const { subscriptionId } = req.params;
+    const { userId } = req.body;
+
     const subscription = await Subscription.findOne({
       _id: subscriptionId,
       user: userId,
-      status: { $in: ['active', 'trial'] }
-    }).populate('plan', 'name').populate('user', 'email name')
-    
+      status: { $in: ['active', 'trial'] },
+    })
+      .populate('plan', 'name')
+      .populate('user', 'email name');
+
     if (!subscription) {
       return res.status(404).json({
         success: false,
-        error: 'Subscription not found or already inactive'
-      })
+        error: 'Subscription not found or already inactive',
+      });
     }
-    
+
     // Cancel subscription
-    subscription.status = 'canceled'
-    subscription.billing.canceledAt = new Date()
-    await subscription.save()
-    
+    subscription.status = 'canceled';
+    subscription.billing.canceledAt = new Date();
+    await subscription.save();
+
     res.json({
       success: true,
       message: `Successfully unsubscribed from ${subscription.agentName}`,
       data: {
         subscriptionId: subscription._id,
         agentName: subscription.agentName,
-        canceledAt: subscription.billing.canceledAt
-      }
-    })
-    
+        canceledAt: subscription.billing.canceledAt,
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to cancel subscription',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
 // Check if user has access to specific agent
 router.get('/access/:userId/:agentId', async (req, res) => {
   try {
-    const { userId, agentId } = req.params
-    
+    const { userId, agentId } = req.params;
+
     const subscription = await Subscription.findOne({
       user: userId,
       agentId: agentId,
       status: 'active',
-      'billing.currentPeriodEnd': { $gt: new Date() }
-    }).populate('plan', 'name displayName billingPeriod')
-    
-    const hasAccess = !!subscription
-    
+      'billing.currentPeriodEnd': { $gt: new Date() },
+    }).populate('plan', 'name displayName billingPeriod');
+
+    const hasAccess = !!subscription;
+
     res.json({
       success: true,
       data: {
         hasAccess,
         agentId,
         userId,
-        subscription: hasAccess ? {
-          id: subscription._id,
-          plan: subscription.plan,
-          expiresAt: subscription.billing.currentPeriodEnd,
-          usage: subscription.usage
-        } : null
-      }
-    })
-    
+        subscription: hasAccess
+          ? {
+              id: subscription._id,
+              plan: subscription.plan,
+              expiresAt: subscription.billing.currentPeriodEnd,
+              usage: subscription.usage,
+            }
+          : null,
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to check agent access',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
 // Validate coupon code
 router.post('/validate-coupon', async (req, res) => {
   try {
-    const { couponCode, userId, planId } = req.body
-    
+    const { couponCode, userId, planId } = req.body;
+
     if (!couponCode) {
       return res.status(400).json({
         success: false,
-        error: 'Coupon code is required'
-      })
+        error: 'Coupon code is required',
+      });
     }
-    
+
     const coupon = await Coupon.findOne({
       code: couponCode.toUpperCase(),
-      status: 'active'
-    })
-    
+      status: 'active',
+    });
+
     if (!coupon) {
       return res.status(404).json({
         success: false,
-        error: 'Invalid or expired coupon code'
-      })
+        error: 'Invalid or expired coupon code',
+      });
     }
-    
-    const user = await User.findById(userId)
-    const plan = await Plan.findById(planId)
-    
+
+    const user = await User.findById(userId);
+    const plan = await Plan.findById(planId);
+
     if (!user || !plan) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid user or plan'
-      })
+        error: 'Invalid user or plan',
+      });
     }
-    
-    const validation = coupon.canBeUsedBy(user, { planId, amount: plan.price.amount })
-    
+
+    const validation = coupon.canBeUsedBy(user, {
+      planId,
+      amount: plan.price.amount,
+    });
+
     if (!validation.canUse) {
       return res.status(400).json({
         success: false,
         error: 'Coupon cannot be used',
-        issues: validation.issues
-      })
+        issues: validation.issues,
+      });
     }
-    
-    const discountResult = coupon.calculateDiscount(plan.price.amount)
-    
+
+    const discountResult = coupon.calculateDiscount(plan.price.amount);
+
     res.json({
       success: true,
       data: {
@@ -447,21 +400,20 @@ router.post('/validate-coupon', async (req, res) => {
           code: coupon.code,
           name: coupon.name,
           description: coupon.description,
-          type: coupon.type
+          type: coupon.type,
         },
         discount: discountResult,
         originalAmount: plan.price.amount,
-        finalAmount: plan.price.amount - discountResult.amount
-      }
-    })
-    
+        finalAmount: plan.price.amount - discountResult.amount,
+      },
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'Failed to validate coupon',
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-})
+});
 
-export default router
+export default router;

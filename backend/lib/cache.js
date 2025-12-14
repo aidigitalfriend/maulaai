@@ -5,7 +5,6 @@
 
 import rateLimit from 'express-rate-limit';
 import Redis from 'ioredis';
-import { createClient } from 'redis';
 
 // ============================================
 // RATE LIMITING CONFIGURATIONS
