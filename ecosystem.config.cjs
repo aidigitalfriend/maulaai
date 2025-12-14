@@ -8,7 +8,7 @@ module.exports = {
     // Frontend Next.js Application
     {
       name: 'shiny-frontend',
-      cwd: '/Users/onelastai/Downloads/shiny-friend-disco/frontend',
+      cwd: '/home/ubuntu/shiny-friend-disco/frontend',
       script: 'npm',
       args: 'start',
       env: {
