@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 interface SubscribeRedirectOptions {
   agentName?: string;
   agentSlug?: string;
+  plan?: string;
+  intent?: string;
 }
 
 export function useSubscribeRedirect(
@@ -19,9 +21,20 @@ export function useSubscribeRedirect(
       const agentName = options?.agentName ?? defaultAgentName;
       const agentSlug = options?.agentSlug ?? defaultAgentSlug;
 
-      const subscribeUrl = `/subscribe?agent=${encodeURIComponent(
-        agentName
-      )}&slug=${encodeURIComponent(agentSlug)}`;
+      const params = new URLSearchParams({
+        agent: agentName,
+        slug: agentSlug,
+      });
+
+      if (options?.plan) {
+        params.set('plan', options.plan);
+      }
+
+      if (options?.intent) {
+        params.set('intent', options.intent);
+      }
+
+      const subscribeUrl = `/subscribe?${params.toString()}`;
       router.push(subscribeUrl);
     },
     [defaultAgentName, defaultAgentSlug, router]
