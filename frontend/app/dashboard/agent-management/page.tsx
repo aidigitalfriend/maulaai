@@ -54,7 +54,8 @@ const PLAN_ACTIONS: Record<
 };
 
 export default function AgentManagementPage() {
-  const { user } = useAuth();
+  const { state } = useAuth();
+  const user = state.user;
   const userId = user?.id;
   const [subscriptions, setSubscriptions] = useState<
     AgentSubscription[] | null
@@ -248,7 +249,11 @@ export default function AgentManagementPage() {
                     className="p-2 rounded-lg hover:bg-neural-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title="Refresh subscription status"
                   >
-                    <RefreshCw className={`w-5 h-5 text-neural-500 ${isLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`w-5 h-5 text-neural-500 ${
+                        isLoading ? 'animate-spin' : ''
+                      }`}
+                    />
                   </button>
                 </div>
               </div>

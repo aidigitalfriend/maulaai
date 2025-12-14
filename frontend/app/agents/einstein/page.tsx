@@ -173,7 +173,8 @@ const callEinsteinAI = async (
 
 export default function EinsteinPage() {
   const agentId = 'einstein';
-  const { user } = useAuth();
+  const { state } = useAuth();
+  const user = state.user;
   const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 

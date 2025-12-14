@@ -1,7 +1,9 @@
-// Agent subscription service for API interactions
-const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://onelastai.co/api' 
-  : 'http://localhost:3005/api';
+import { connectToDatabase } from '../lib/mongodb-client';
+import { getAgentSubscriptionModel } from '../models/AgentSubscription';
+const API_BASE =
+  process.env.NODE_ENV === 'production'
+    ? 'https://onelastai.co/api'
+    : 'http://localhost:3005/api';
 
 export interface AgentSubscription {
   _id: string;
@@ -33,42 +35,45 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     price: 1,
     period: 'day',
     description: 'Perfect for short-term projects',
-    priceFormatted: '$1.00'
+    priceFormatted: '$1.00',
   },
   {
     id: 'weekly',
-    name: 'weekly', 
+    name: 'weekly',
     displayName: 'Weekly Plan',
     price: 5,
     period: 'week',
     description: 'Great for weekly projects',
-    priceFormatted: '$5.00'
+    priceFormatted: '$5.00',
   },
   {
     id: 'monthly',
     name: 'monthly',
-    displayName: 'Monthly Plan', 
+    displayName: 'Monthly Plan',
     price: 19,
     period: 'month',
     description: 'Best value for ongoing work',
-    priceFormatted: '$19.00'
-  }
+    priceFormatted: '$19.00',
+  },
 ];
 
 class AgentSubscriptionService {
   // Check if user has active subscription for agent
-  async checkSubscription(userId: string, agentId: string): Promise<{
+  async checkSubscription(
+    userId: string,
+    agentId: string
+  ): Promise<{
     hasActiveSubscription: boolean;
     subscription: AgentSubscription | null;
   }> {
     try {
-      const response = await fetch(`${API_BASE}/agent/subscriptions/check/${userId}/${agentId}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to check subscription: ${response.statusText}`);
-      }
-      
-      return await response.json();
+      await connectToDatabase();
+      const AgentSubscriptionModel = await getAgentSubscriptionModel();
+      const subscription = await AgentSubscriptionModel.findOne({ userId, agentId, status: 'active' });
+      return {
+        hasActiveSubscription: !!subscription,
+        subscription: subscription || null
+      };
     } catch (error) {
       console.error('Error checking subscription:', error);
       return { hasActiveSubscription: false, subscription: null };
@@ -76,19 +81,29 @@ class AgentSubscriptionService {
   }
 
   // Create new subscription
-  async createSubscription(userId: string, agentId: string, plan: string): Promise<AgentSubscription> {
+  async createSubscription(
+    userId: string,
+    agentId: string,
+    plan: string
+  ): Promise<AgentSubscription> {
     try {
-      const response = await fetch(`${API_BASE}/agent/subscriptions/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId, agentId, plan }),
-      });
+      const response = await fetch(
+        `${API_BASE}/agent/subscriptions/subscribe`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId, agentId, plan }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to create subscription: ${response.statusText}`);
+        throw new Error(
+          errorData.error ||
+            `Failed to create subscription: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -99,17 +114,15 @@ class AgentSubscriptionService {
     }
   }
 
-  // Get user's all subscriptions
+  // Get user's all subscriptions - Direct DB query (sync with webhook)
   async getUserSubscriptions(userId: string): Promise<AgentSubscription[]> {
     try {
-      const response = await fetch(`${API_BASE}/agent/subscriptions/user/${userId}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch subscriptions: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      return data.subscriptions || [];
+      await connectToDatabase();
+      const AgentSubscriptionModel = await getAgentSubscriptionModel();
+      const subscriptions = await AgentSubscriptionModel.find({ userId }).sort({
+        createdAt: -1,
+      });
+      return subscriptions;
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
       return [];
@@ -119,12 +132,17 @@ class AgentSubscriptionService {
   // Cancel subscription
   async cancelSubscription(subscriptionId: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE}/agent/subscriptions/${subscriptionId}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `${API_BASE}/agent/subscriptions/${subscriptionId}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Failed to cancel subscription: ${response.statusText}`);
+        throw new Error(
+          `Failed to cancel subscription: ${response.statusText}`
+        );
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
@@ -133,23 +151,32 @@ class AgentSubscriptionService {
   }
 
   // Update subscription
-  async updateSubscription(subscriptionId: string, updates: { 
-    status?: string; 
-    autoRenew?: boolean; 
-    plan?: string; 
-  }): Promise<AgentSubscription> {
+  async updateSubscription(
+    subscriptionId: string,
+    updates: {
+      status?: string;
+      autoRenew?: boolean;
+      plan?: string;
+    }
+  ): Promise<AgentSubscription> {
     try {
-      const response = await fetch(`${API_BASE}/agent/subscriptions/${subscriptionId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      });
+      const response = await fetch(
+        `${API_BASE}/agent/subscriptions/${subscriptionId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updates),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to update subscription: ${response.statusText}`);
+        throw new Error(
+          errorData.error ||
+            `Failed to update subscription: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -162,7 +189,7 @@ class AgentSubscriptionService {
 
   // Get plan by ID
   getPlan(planId: string): SubscriptionPlan | undefined {
-    return SUBSCRIPTION_PLANS.find(plan => plan.id === planId);
+    return SUBSCRIPTION_PLANS.find((plan) => plan.id === planId);
   }
 
   // Format expiry date
@@ -173,7 +200,7 @@ class AgentSubscriptionService {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 
