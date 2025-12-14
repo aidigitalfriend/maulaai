@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb-client';
-import { getSubscriptionModel } from '@/models/Subscription';
+import { getAgentSubscriptionModel } from '@/models/AgentSubscription';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,14 +26,14 @@ export async function POST(request: NextRequest) {
     }
 
     await connectToDatabase();
-    const Subscription = await getSubscriptionModel();
+    const AgentSubscription = await getAgentSubscriptionModel();
 
-    const match = await Subscription.findOne({
+    const match = await AgentSubscription.findOne({
       agentId,
-      ...(userId ? { userId } : { email: String(email).toLowerCase() }),
-      status: { $in: ['active', 'trialing'] },
-      currentPeriodEnd: { $gt: new Date() },
-    }).sort({ currentPeriodEnd: -1 });
+      userId,
+      status: 'active',
+      expiryDate: { $gt: new Date() },
+    }).sort({ expiryDate: -1 });
 
     if (!match) {
       return NextResponse.json({
@@ -50,16 +50,11 @@ export async function POST(request: NextRequest) {
       subscription: {
         id: match._id?.toString?.() ?? match._id,
         agentId: match.agentId,
-        agentName: match.agentName,
         plan: match.plan,
         status: match.status,
-        currentPeriodEnd: match.currentPeriodEnd,
-        daysUntilRenewal:
-          typeof match.getDaysUntilRenewal === 'function'
-            ? match.getDaysUntilRenewal()
-            : daysUntil(match.currentPeriodEnd),
+        expiryDate: match.expiryDate,
+        daysUntilRenewal: daysUntil(match.expiryDate),
         price: match.price,
-        currency: match.currency,
       },
     });
   } catch (error) {

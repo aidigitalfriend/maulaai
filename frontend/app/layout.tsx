@@ -89,35 +89,38 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth overflow-x-hidden">
       <body className="min-h-screen flex flex-col overflow-x-hidden">
-        {/* Console Error Filter - Suppress RSC 503 errors */}
+        {/* Console Error Filter - Suppress RSC 503 errors in production only */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 'use strict';
-                const originalError = console.error;
-                const suppressPatterns = [
-                  /GET.*\\?_rsc=.*503.*Service Unavailable/,
-                  /_rsc=.*503/,
-                  /Service Unavailable.*_rsc/,
-                  /Failed to fetch.*_rsc/
-                ];
-                function shouldSuppress(message) {
-                  const messageStr = String(message);
-                  return suppressPatterns.some(pattern => pattern.test(messageStr));
-                }
-                console.error = function(...args) {
-                  const message = args.join(' ');
-                  if (!shouldSuppress(message)) {
-                    originalError.apply(console, args);
+                // Only suppress RSC errors in production
+                if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+                  const originalError = console.error;
+                  const suppressPatterns = [
+                    /GET.*\\?_rsc=.*503.*Service Unavailable/,
+                    /_rsc=.*503/,
+                    /Service Unavailable.*_rsc/,
+                    /Failed to fetch.*_rsc/
+                  ];
+                  function shouldSuppress(message) {
+                    const messageStr = String(message);
+                    return suppressPatterns.some(pattern => pattern.test(messageStr));
                   }
-                };
-                if (typeof window !== 'undefined') {
-                  window.addEventListener('unhandledrejection', function(event) {
-                    if (event.reason && typeof event.reason === 'string' && event.reason.includes('_rsc=')) {
-                      event.preventDefault();
+                  console.error = function(...args) {
+                    const message = args.join(' ');
+                    if (!shouldSuppress(message)) {
+                      originalError.apply(console, args);
                     }
-                  });
+                  };
+                  if (typeof window !== 'undefined') {
+                    window.addEventListener('unhandledrejection', function(event) {
+                      if (event.reason && typeof event.reason === 'string' && event.reason.includes('_rsc=')) {
+                        event.preventDefault();
+                      }
+                    });
+                  }
                 }
               })();
             `,

@@ -23,6 +23,14 @@ import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
 import apiRouter from './routes/api-router.js';
 import { rateLimiters, cache } from './lib/cache.js';
 import { connectionConfig, indexManager, poolMonitor } from './lib/database.js';
+// Import models to ensure they are registered with Mongoose
+import AgentSubscription from './models/AgentSubscription.js';
+
+// Ensure model is registered
+if (!mongoose.models.AgentSubscription) {
+  console.log('Registering AgentSubscription model...');
+  // The model should already be registered by the import
+}
 
 dotenv.config();
 

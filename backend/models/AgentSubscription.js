@@ -86,7 +86,7 @@ AgentSubscriptionSchema.pre('save', function (next) {
 const AgentSubscription = mongoose.model(
   'AgentSubscription',
   AgentSubscriptionSchema,
-  'agentsubscriptions'
+  'subscriptions'
 );
 
 export default AgentSubscription;
