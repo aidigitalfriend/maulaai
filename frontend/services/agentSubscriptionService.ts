@@ -67,13 +67,15 @@ class AgentSubscriptionService {
     subscription: AgentSubscription | null;
   }> {
     try {
-      await connectToDatabase();
-      const AgentSubscriptionModel = await getAgentSubscriptionModel();
-      const subscription = await AgentSubscriptionModel.findOne({ userId, agentId, status: 'active' });
-      return {
-        hasActiveSubscription: !!subscription,
-        subscription: subscription || null
-      };
+      const response = await fetch(
+        `${API_BASE}/agent/subscriptions/check/${userId}/${agentId}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to check subscription: ${response.statusText}`);
+      }
+
+      return await response.json();
     } catch (error) {
       console.error('Error checking subscription:', error);
       return { hasActiveSubscription: false, subscription: null };
@@ -114,15 +116,19 @@ class AgentSubscriptionService {
     }
   }
 
-  // Get user's all subscriptions - Direct DB query (sync with webhook)
+  // Get user's all subscriptions
   async getUserSubscriptions(userId: string): Promise<AgentSubscription[]> {
     try {
-      await connectToDatabase();
-      const AgentSubscriptionModel = await getAgentSubscriptionModel();
-      const subscriptions = await AgentSubscriptionModel.find({ userId }).sort({
-        createdAt: -1,
-      });
-      return subscriptions;
+      const response = await fetch(
+        `${API_BASE}/agent/subscriptions/user/${userId}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get subscriptions: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.subscriptions || [];
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
       return [];
