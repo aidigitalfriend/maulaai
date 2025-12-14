@@ -123,6 +123,33 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Performance Monitoring Initialization */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                'use strict';
+                // Initialize performance monitoring
+                if (typeof window !== 'undefined') {
+                  window.addEventListener('load', function() {
+                    // Small delay to ensure all resources are loaded
+                    setTimeout(function() {
+                      // Import and initialize performance monitoring
+                      import('/lib/performance.js').then(function(module) {
+                        if (module.initPerformanceMonitoring) {
+                          module.initPerformanceMonitoring();
+                        }
+                      }).catch(function(err) {
+                        console.warn('Performance monitoring failed to load:', err);
+                      });
+                    }, 100);
+                  });
+                }
+              })();
+            `,
+          }}
+        />
+
         <LoadingProvider>
           <AuthProvider>
             <RSCErrorBoundary>

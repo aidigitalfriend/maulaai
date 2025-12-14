@@ -23,15 +23,91 @@ const nextConfig = {
   // Fix turbopack root directory warning and enable turbopack
   turbopack: {},
 
+  // ============================================
+  // BUNDLE SIZE OPTIMIZATIONS
+  // ============================================
+
+  // Enable SWC minification for smaller bundles
+  swcMinify: true,
+
+  // Optimize chunks and bundle splitting
+  optimizeFonts: true,
+
+  // Enable compression
+  compress: true,
+
+  // Reduce bundle size by optimizing CSS
+  optimizeCss: true,
+
   api: {
     bodyParser: {
       sizeLimit: '6mb',
     },
   },
 
-  webpack: (config, { isServer }) => {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Prioritize .tsx over .ts for component resolution
     config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
+
+    // ============================================
+    // CODE SPLITTING OPTIMIZATIONS
+    // ============================================
+
+    // Optimize chunk splitting for better caching
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          // Separate vendor chunks
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 10,
+          },
+          // Separate React and Next.js chunks
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+            name: 'react',
+            chunks: 'all',
+            priority: 20,
+          },
+          // Separate UI library chunks
+          ui: {
+            test: /[\\/]node_modules[\\/](@radix-ui|@headlessui|lucide-react)[\\/]/,
+            name: 'ui',
+            chunks: 'all',
+            priority: 15,
+          },
+          // Separate heavy libraries
+          heavy: {
+            test: /[\\/]node_modules[\\/](mongodb|mongoose|stripe|axios)[\\/]/,
+            name: 'heavy-libs',
+            chunks: 'async', // Load asynchronously
+            priority: 5,
+          },
+        },
+      },
+      // Enable module concatenation for smaller bundles
+      concatenateModules: !dev,
+      // Minimize bundle size in production
+      minimize: !dev,
+    };
+
+    // ============================================
+    // TREE SHAKING OPTIMIZATIONS
+    // ============================================
+
+    // Ensure tree shaking works properly
+    config.resolve.mainFields = ['module', 'main'];
+
+    // Add custom resolve aliases for better tree shaking
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Alias heavy components to lazy-loaded versions
+      '@/components/heavy': path.resolve(__dirname, 'components/lazy'),
+    };
 
     if (isServer) {
       // Externalize mongoose and other native modules for serverless
@@ -41,6 +117,36 @@ const nextConfig = {
         mongodb: 'commonjs mongodb',
       });
     }
+
+    // ============================================
+    // PERFORMANCE MONITORING
+    // ============================================
+
+    if (!dev) {
+      // Add bundle analyzer in production (optional)
+      if (process.env.ANALYZE === 'true') {
+        const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            reportFilename: './analyze/client.html',
+            openAnalyzer: false,
+          })
+        );
+      }
+
+      // Add compression plugin for better performance
+      const CompressionPlugin = require('compression-webpack-plugin');
+      config.plugins.push(
+        new CompressionPlugin({
+          algorithm: 'gzip',
+          test: /\.(js|css|html|svg)$/,
+          threshold: 10240, // Only compress files larger than 10kb
+          minRatio: 0.8,
+        })
+      );
+    }
+
     return config;
   },
 

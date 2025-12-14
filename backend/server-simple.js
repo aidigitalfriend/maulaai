@@ -20,6 +20,9 @@ import {
 } from './lib/tracking-middleware.js';
 import analyticsRouter from './routes/analytics.js';
 import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
+import apiRouter from './routes/api-router.js';
+import { rateLimiters, cache } from './lib/cache.js';
+import { connectionConfig, indexManager, poolMonitor } from './lib/database.js';
 
 dotenv.config();
 
@@ -3778,10 +3781,18 @@ app.post('/api/translate', async (req, res) => {
   app.use('/api/gamification', router);
 })();
 
-// Analytics routes
-app.use('/api', analyticsRouter);
+// ============================================
+// STANDARDIZED API ROUTER WITH OPTIMIZATIONS
+// ============================================
 
-// Agent subscriptions routes
+// Apply global rate limiting
+app.use('/api', rateLimiters.global);
+
+// Mount the centralized API router
+app.use('/api', apiRouter);
+
+// Legacy route mounts (to be migrated to api-router.js)
+app.use('/api', analyticsRouter);
 app.use('/api/agent/subscriptions', agentSubscriptionsRouter);
 
 // IP information endpoint (used by frontend /tools/ip-info)
@@ -3929,22 +3940,51 @@ app.use((err, req, res, next) => {
 
 // Start server
 const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
-app.listen(PORT, host, () => {
-  console.log(`🚀 Backend server running on ${host}:${PORT}`);
-  console.log(`📊 Health check: http://${host}:${PORT}/health`);
 
-  const hasAIService = !!(
-    process.env.OPENAI_API_KEY ||
-    process.env.ANTHROPIC_API_KEY ||
-    process.env.GEMINI_API_KEY ||
-    process.env.COHERE_API_KEY
-  );
+// Initialize database optimizations before starting server
+async function initializeOptimizations() {
+  try {
+    console.log('🔧 Initializing database optimizations...');
 
-  if (hasAIService) {
-    console.log('✅ AI services configured');
-  } else {
-    console.log('⚠️  No AI services configured - using simulation mode');
+    // Monitor database connection
+    connectionConfig.monitorConnection();
+
+    // Ensure indexes exist
+    await indexManager.ensureIndexes();
+
+    // Monitor slow queries in development
+    if (process.env.NODE_ENV !== 'production') {
+      poolMonitor.monitorSlowQueries(1000); // Log queries > 1 second
+    }
+
+    console.log('✅ Database optimizations initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize database optimizations:', error);
   }
+}
 
-  console.log('✅ Server started successfully');
+// Initialize and start server
+initializeOptimizations().then(() => {
+  app.listen(PORT, host, () => {
+    console.log(`🚀 Backend server running on ${host}:${PORT}`);
+    console.log(`📊 Health check: http://${host}:${PORT}/health`);
+
+    const hasAIService = !!(
+      process.env.OPENAI_API_KEY ||
+      process.env.ANTHROPIC_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      process.env.COHERE_API_KEY
+    );
+
+    if (hasAIService) {
+      console.log('✅ AI services configured');
+    } else {
+      console.log('⚠️  No AI services configured - using simulation mode');
+    }
+
+    console.log('✅ Server started successfully with optimizations');
+  });
+}).catch((error) => {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
 });
