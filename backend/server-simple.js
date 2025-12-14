@@ -1165,8 +1165,8 @@ app.get('/api/user/analytics', async (req, res) => {
     const { userId, email } = req.query;
     const sessionId = req.cookies?.session_id;
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
 
     // Get collections
     const users = db.collection('users');
