@@ -1356,13 +1356,19 @@ app.get('/api/user/analytics', async (req, res) => {
       dailyUsageData,
     ] = await Promise.all([
       // Count total conversations
-      chatInteractions.countDocuments({ userId: userObjectId }),
+      chatInteractions.countDocuments
+        ? chatInteractions.countDocuments({ userId: userObjectId })
+        : chatInteractions.count({ userId: userObjectId }),
 
       // Count total messages (estimate: 2x conversations)
-      chatInteractions.countDocuments({ userId: userObjectId }),
+      chatInteractions.countDocuments
+        ? chatInteractions.countDocuments({ userId: userObjectId })
+        : chatInteractions.count({ userId: userObjectId }),
 
       // Count API calls (use performance metrics if available)
-      performanceMetrics.countDocuments({ userId: userObjectId }),
+      performanceMetrics.countDocuments
+        ? performanceMetrics.countDocuments({ userId: userObjectId })
+        : performanceMetrics.count({ userId: userObjectId }),
 
       // Get recent chat interactions
       chatInteractions
