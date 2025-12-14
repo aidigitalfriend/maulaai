@@ -3,12 +3,12 @@
  * Wrapper for Stripe API functions used by API routes
  */
 
-import Stripe from 'stripe'
+import Stripe from 'stripe';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16',
-})
+});
 
 // Subscription plans with pricing
 export const SUBSCRIPTION_PLANS = {
@@ -30,9 +30,9 @@ export const SUBSCRIPTION_PLANS = {
     interval: 'month' as const,
     productId: process.env.STRIPE_PRODUCT_MONTHLY!,
   },
-}
+};
 
-export type SubscriptionPlan = keyof typeof SUBSCRIPTION_PLANS
+export type SubscriptionPlan = keyof typeof SUBSCRIPTION_PLANS;
 
 /**
  * Create a Stripe checkout session for agent subscription
@@ -46,18 +46,18 @@ export async function createCheckoutSession({
   successUrl,
   cancelUrl,
 }: {
-  agentId: string
-  agentName: string
-  plan: SubscriptionPlan
-  userId: string
-  userEmail: string
-  successUrl: string
-  cancelUrl: string
+  agentId: string;
+  agentName: string;
+  plan: SubscriptionPlan;
+  userId: string;
+  userEmail: string;
+  successUrl: string;
+  cancelUrl: string;
 }) {
-  const planDetails = SUBSCRIPTION_PLANS[plan]
-  
+  const planDetails = SUBSCRIPTION_PLANS[plan];
+
   if (!planDetails) {
-    throw new Error(`Invalid plan: ${plan}`)
+    throw new Error(`Invalid plan: ${plan}`);
   }
 
   // Get or create price for this product
@@ -65,11 +65,11 @@ export async function createCheckoutSession({
     product: planDetails.productId,
     active: true,
     limit: 10,
-  })
+  });
 
   let priceId = prices.data.find(
     (p) => p.recurring?.interval === planDetails.interval
-  )?.id
+  )?.id;
 
   // If price doesn't exist, create it
   if (!priceId) {
@@ -81,8 +81,8 @@ export async function createCheckoutSession({
         interval: planDetails.interval,
         interval_count: 1,
       },
-    })
-    priceId = price.id
+    });
+    priceId = price.id;
   }
 
   // Create checkout session
@@ -112,9 +112,9 @@ export async function createCheckoutSession({
         plan,
       },
     },
-  })
+  });
 
-  return session
+  return session;
 }
 
 /**
@@ -124,16 +124,20 @@ export function verifyWebhookSignature(
   payload: string | Buffer,
   signature: string
 ): Stripe.Event {
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
-  
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
   if (!webhookSecret) {
-    throw new Error('STRIPE_WEBHOOK_SECRET is not configured')
+    throw new Error('STRIPE_WEBHOOK_SECRET is not configured');
   }
 
   try {
-    return stripe.webhooks.constructEvent(payload, signature, webhookSecret)
+    return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err) {
-    throw new Error(`Webhook signature verification failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    throw new Error(
+      `Webhook signature verification failed: ${
+        err instanceof Error ? err.message : 'Unknown error'
+      }`
+    );
   }
 }
 
@@ -141,14 +145,14 @@ export function verifyWebhookSignature(
  * Get subscription by ID
  */
 export async function getSubscription(subscriptionId: string) {
-  return await stripe.subscriptions.retrieve(subscriptionId)
+  return await stripe.subscriptions.retrieve(subscriptionId);
 }
 
 /**
  * Cancel a subscription
  */
 export async function cancelSubscription(subscriptionId: string) {
-  return await stripe.subscriptions.cancel(subscriptionId)
+  return await stripe.subscriptions.cancel(subscriptionId);
 }
 
 /**
@@ -157,8 +161,8 @@ export async function cancelSubscription(subscriptionId: string) {
 export async function getCustomerSubscriptions(customerId: string) {
   const subscriptions = await stripe.subscriptions.list({
     customer: customerId,
-  })
-  return subscriptions.data
+  });
+  return subscriptions.data;
 }
 
 /**
@@ -168,8 +172,8 @@ export async function getCustomerByEmail(email: string) {
   const customers = await stripe.customers.list({
     email,
     limit: 1,
-  })
-  return customers.data[0] || null
+  });
+  return customers.data[0] || null;
 }
 
-export { stripe }
+export { stripe };
