@@ -1,31 +1,40 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentChatPanel from '../../../components/AgentChatPanel';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
 
-import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
+import { sendSecureMessage } from '../../../lib/secure-api-client'; // ✅ NEW: Secure API
 
 export default function KnightLogicPage() {
-  const agentId = 'knight-logic'
+  const agentId = 'knight-logic';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   // Check subscription status
   useEffect(() => {
@@ -37,7 +46,10 @@ export default function KnightLogicPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -70,15 +82,16 @@ export default function KnightLogicPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "⚔️ Greetings! I am Knight Logic, master of strategic thinking and logical problem-solving. Let us engage in thoughtful discourse and tackle challenges with wisdom and precision!",
+      content:
+        '⚔️ Greetings! I am Knight Logic, master of strategic thinking and logical problem-solving. Let us engage in thoughtful discourse and tackle challenges with wisdom and precision!',
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -88,10 +101,12 @@ export default function KnightLogicPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -100,31 +115,9 @@ export default function KnightLogicPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
-  };
-
-  // Subscription handlers
-  const handleSubscribe = async (plan: string) => {
-    if (!user?.id) {
-      throw new Error('Please log in to subscribe');
-    }
-
-    try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
-      setSubscription(newSubscription);
-      setHasActiveSubscription(true);
-      setShowSubscriptionModal(false);
-      
-      // Create initial chat session after successful subscription
-      if (sessions.length === 0) {
-        handleNewChat();
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      throw error;
-    }
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   const handleSubscriptionManage = () => {
@@ -140,13 +133,15 @@ export default function KnightLogicPage() {
     }
 
     try {
-      return await sendSecureMessage(message, 'knight-logic', 'gpt-3.5-turbo')
+      return await sendSecureMessage(message, 'knight-logic', 'gpt-3.5-turbo');
     } catch (error: any) {
-      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
+      return `Sorry, I encountered an error: ${
+        error.message || 'Please try again later.'
+      }`;
     }
-  }
+  };
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   if (subscriptionLoading) {
     return (
@@ -158,48 +153,47 @@ export default function KnightLogicPage() {
 
   return (
     <>
-    <AgentPageLayout
-      agentId={agentId}
-      agentName="Knight Logic"
-      sessions={sessions}
-      activeSessionId={activeSessionId}
-      onNewChat={handleNewChat}
-      onSelectChat={handleSelectChat}
-      onDeleteChat={handleDeleteChat}
-      onRenameChat={handleRenameChat}
-    >
-      {activeSessionId ? (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Knight Logic"
-          agentColor="from-indigo-500 to-blue-600"
-          placeholder="What problem needs unconventional thinking? 🐴"
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      ) : null}
-      
-      {/* Subscription Status */}
-      {user && (
-        <SubscriptionStatus
-          subscription={subscription}
-          agentName="Knight Logic"
-          onManage={handleSubscriptionManage}
-        />
-      )}
-    </AgentPageLayout>
+      <AgentPageLayout
+        agentId={agentId}
+        agentName="Knight Logic"
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
+        onRenameChat={handleRenameChat}
+      >
+        {activeSessionId ? (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Knight Logic"
+            agentColor="from-indigo-500 to-blue-600"
+            placeholder="What problem needs unconventional thinking? 🐴"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        ) : null}
 
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Knight Logic"
-      agentDescription="Master strategic thinking and logical problem-solving with your chess knight strategist"
-      onSubscribe={handleSubscribe}
-    />
+        {/* Subscription Status */}
+        {user && (
+          <SubscriptionStatus
+            subscription={subscription}
+            agentName="Knight Logic"
+            onManage={handleSubscriptionManage}
+          />
+        )}
+      </AgentPageLayout>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Knight Logic"
+        agentDescription="Master strategic thinking and logical problem-solving with your chess knight strategist"
+      />
     </>
-  )
+  );
 }

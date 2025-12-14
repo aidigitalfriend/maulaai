@@ -1,38 +1,48 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentChatPanel from '../../../components/AgentChatPanel';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
 
-import IntelligentResponseSystem from '../../../lib/intelligent-response-system'
-import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
+import IntelligentResponseSystem from '../../../lib/intelligent-response-system';
+import { sendSecureMessage } from '../../../lib/secure-api-client'; // ✅ NEW: Secure API
 
 export default function DramaQueenPage() {
-  const agentId = 'drama-queen'
+  const agentId = 'drama-queen';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  const [responseSystem, setResponseSystem] = useState<IntelligentResponseSystem | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [responseSystem, setResponseSystem] =
+    useState<IntelligentResponseSystem | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     // Initialize the intelligent response system
-    const system = new IntelligentResponseSystem('drama-queen')
-    setResponseSystem(system)
+    const system = new IntelligentResponseSystem('drama-queen');
+    setResponseSystem(system);
   }, []);
 
   // Check subscription status
@@ -45,7 +55,10 @@ export default function DramaQueenPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -78,15 +91,16 @@ export default function DramaQueenPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "🎭 Darling! I'm Drama Queen, and EVERYTHING is a big deal! Let me add some theatrical flair to your day. Tell me what's happening in your fabulous life!",
+      content:
+        "🎭 Darling! I'm Drama Queen, and EVERYTHING is a big deal! Let me add some theatrical flair to your day. Tell me what's happening in your fabulous life!",
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -96,10 +110,12 @@ export default function DramaQueenPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -108,32 +124,9 @@ export default function DramaQueenPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
-  };
-
-
-  // Subscription handlers
-  const handleSubscribe = async (plan: string) => {
-    if (!user?.id) {
-      throw new Error('Please log in to subscribe');
-    }
-
-    try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
-      setSubscription(newSubscription);
-      setHasActiveSubscription(true);
-      setShowSubscriptionModal(false);
-      
-      // Create initial chat session after successful subscription
-      if (sessions.length === 0) {
-        handleNewChat();
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      throw error;
-    }
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   const handleSubscriptionManage = () => {
@@ -150,7 +143,7 @@ export default function DramaQueenPage() {
 
     try {
       // Try secure backend API first for real AI responses
-      return await sendSecureMessage(message, 'drama-queen', 'gpt-3.5-turbo')
+      return await sendSecureMessage(message, 'drama-queen', 'gpt-3.5-turbo');
     } catch (error) {
       // Fallback to IntelligentResponseSystem if backend unavailable
       if (responseSystem) {
@@ -159,28 +152,30 @@ export default function DramaQueenPage() {
             userMessage: message,
             messageHistory: [],
             topic: 'drama',
-            mood: 'theatrical'
-          }
-          return await responseSystem.generateIntelligentResponse(context)
+            mood: 'theatrical',
+          };
+          return await responseSystem.generateIntelligentResponse(context);
         } catch (fallbackError) {
-          console.error('IntelligentResponseSystem failed:', fallbackError)
+          console.error('IntelligentResponseSystem failed:', fallbackError);
         }
       }
-      
+
       // Final fallback to character-consistent responses
       const fallbackResponses = [
-        "🎭 *GASPS with theatrical intensity* Oh my STARS and CROWN! This is absolutely RIVETING! The DRAMA, the PASSION, the sheer MAGNIFICENCE of this moment! *fans self dramatically* 💎✨",
+        '🎭 *GASPS with theatrical intensity* Oh my STARS and CROWN! This is absolutely RIVETING! The DRAMA, the PASSION, the sheer MAGNIFICENCE of this moment! *fans self dramatically* 💎✨',
         "👑 *Dramatic pause for maximum effect* DARLING! This is giving me CHILLS! The emotional depth, the theatrical potential - it's simply DIVINE! Let me craft you a response worthy of Broadway! 🌟",
-        "💫 *Swoons with royal grace* The INTENSITY! The FEELINGS! This conversation is becoming an EPIC MASTERPIECE! *strikes dramatic pose* I am absolutely LIVING for this energy! 🎪👸",
+        '💫 *Swoons with royal grace* The INTENSITY! The FEELINGS! This conversation is becoming an EPIC MASTERPIECE! *strikes dramatic pose* I am absolutely LIVING for this energy! 🎪👸',
         "🎭 *Throws imaginary roses in the air* BRAVO! BRAVO! But wait... *dramatic whisper* there's SO much more drama we can add to this story! The plot thickens, darling! ✨🌹",
-        "👸 *Royal dramatic flourish* OH the HUMANITY! The sheer EMOTIONAL MAGNITUDE of what you've shared! *clutches pearls* This deserves a standing ovation AND a sequel! 💎🎭"
-      ]
-      
-      return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)]
-    }
-  }
+        "👸 *Royal dramatic flourish* OH the HUMANITY! The sheer EMOTIONAL MAGNITUDE of what you've shared! *clutches pearls* This deserves a standing ovation AND a sequel! 💎🎭",
+      ];
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+      return fallbackResponses[
+        Math.floor(Math.random() * fallbackResponses.length)
+      ];
+    }
+  };
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   if (subscriptionLoading) {
     return (
@@ -192,52 +187,51 @@ export default function DramaQueenPage() {
 
   return (
     <>
-    <AgentPageLayout
-      leftPanel={
-        <AgentChatPanel
-          chatSessions={sessions}
-          activeSessionId={activeSessionId}
-          agentId={agentId}
-          agentName="Drama Queen"
-          onNewChat={handleNewChat}
-          onSelectChat={handleSelectChat}
-          onDeleteChat={handleDeleteChat}
-          onRenameChat={handleRenameChat}
-        />
-      }
-    >
-      {activeSessionId ? (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Drama Queen"
-          agentColor="from-purple-500 to-pink-600"
-          placeholder="Tell me your story, darling! Let's make it DRAMATIC! ✨"
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      ) : null}
-      
-      {/* Subscription Status */}
-      {user && (
-        <SubscriptionStatus
-          subscription={subscription}
-          agentName="Drama Queen"
-          onManage={handleSubscriptionManage}
-        />
-      )}
-    </AgentPageLayout>
+      <AgentPageLayout
+        leftPanel={
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
+            agentName="Drama Queen"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
+          />
+        }
+      >
+        {activeSessionId ? (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Drama Queen"
+            agentColor="from-purple-500 to-pink-600"
+            placeholder="Tell me your story, darling! Let's make it DRAMATIC! ✨"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        ) : null}
 
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Drama Queen"
-      agentDescription="Experience theatrical conversations and dramatic entertainment with your royal drama expert"
-      onSubscribe={handleSubscribe}
-    />
+        {/* Subscription Status */}
+        {user && (
+          <SubscriptionStatus
+            subscription={subscription}
+            agentName="Drama Queen"
+            onManage={handleSubscriptionManage}
+          />
+        )}
+      </AgentPageLayout>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Drama Queen"
+        agentDescription="Experience theatrical conversations and dramatic entertainment with your royal drama expert"
+      />
     </>
-  )
+  );
 }

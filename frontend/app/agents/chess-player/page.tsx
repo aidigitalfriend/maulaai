@@ -1,30 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
-import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentChatPanel from '../../../components/AgentChatPanel';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
+import { sendSecureMessage } from '../../../lib/secure-api-client'; // ✅ NEW: Secure API
 
 export default function ChessPlayerPage() {
-  const agentId = 'chess-player'
+  const agentId = 'chess-player';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   // Check subscription status
   useEffect(() => {
@@ -36,7 +45,10 @@ export default function ChessPlayerPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -69,15 +81,16 @@ export default function ChessPlayerPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "♟️ Welcome! I'm your Chess Player companion. Ready to discuss strategies, analyze positions, or talk about the beautiful game of chess? Let's make your next move brilliant!",
+      content:
+        "♟️ Welcome! I'm your Chess Player companion. Ready to discuss strategies, analyze positions, or talk about the beautiful game of chess? Let's make your next move brilliant!",
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -87,10 +100,12 @@ export default function ChessPlayerPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -99,31 +114,9 @@ export default function ChessPlayerPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
-  };
-
-  // Subscription handlers
-  const handleSubscribe = async (plan: string) => {
-    if (!user?.id) {
-      throw new Error('Please log in to subscribe');
-    }
-
-    try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
-      setSubscription(newSubscription);
-      setHasActiveSubscription(true);
-      setShowSubscriptionModal(false);
-      
-      // Create initial chat session after successful subscription
-      if (sessions.length === 0) {
-        handleNewChat();
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      throw error;
-    }
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   const handleSubscriptionManage = () => {
@@ -139,13 +132,15 @@ export default function ChessPlayerPage() {
     }
 
     try {
-      return await sendSecureMessage(message, 'chess-player', 'gpt-3.5-turbo')
+      return await sendSecureMessage(message, 'chess-player', 'gpt-3.5-turbo');
     } catch (error: any) {
-      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
+      return `Sorry, I encountered an error: ${
+        error.message || 'Please try again later.'
+      }`;
     }
-  }
+  };
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   if (subscriptionLoading) {
     return (
@@ -157,52 +152,51 @@ export default function ChessPlayerPage() {
 
   return (
     <>
-    <AgentPageLayout
-      leftPanel={
-        <AgentChatPanel
-          chatSessions={sessions}
-          activeSessionId={activeSessionId}
-          agentId={agentId}
-          agentName="Grandmaster Chess"
-          onNewChat={handleNewChat}
-          onSelectChat={handleSelectChat}
-          onDeleteChat={handleDeleteChat}
-          onRenameChat={handleRenameChat}
-        />
-      }
-    >
-      {activeSessionId ? (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Grandmaster Chess"
-          agentColor="from-slate-500 to-gray-600"
-          placeholder="Ask about strategy, chess moves, or tactical thinking..."
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      ) : null}
-      
-      {/* Subscription Status */}
-      {user && (
-        <SubscriptionStatus
-          subscription={subscription}
-          agentName="Grandmaster Chess"
-          onManage={handleSubscriptionManage}
-        />
-      )}
-    </AgentPageLayout>
+      <AgentPageLayout
+        leftPanel={
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
+            agentName="Grandmaster Chess"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
+          />
+        }
+      >
+        {activeSessionId ? (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Grandmaster Chess"
+            agentColor="from-slate-500 to-gray-600"
+            placeholder="Ask about strategy, chess moves, or tactical thinking..."
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        ) : null}
 
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Grandmaster Chess"
-      agentDescription="Master chess strategies and improve your game with expert tactical guidance"
-      onSubscribe={handleSubscribe}
-    />
+        {/* Subscription Status */}
+        {user && (
+          <SubscriptionStatus
+            subscription={subscription}
+            agentName="Grandmaster Chess"
+            onManage={handleSubscriptionManage}
+          />
+        )}
+      </AgentPageLayout>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Grandmaster Chess"
+        agentDescription="Master chess strategies and improve your game with expert tactical guidance"
+      />
     </>
-  )
+  );
 }

@@ -1,37 +1,47 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
-import IntelligentResponseSystem from '../../../lib/intelligent-response-system'
-import { sendSecureMessage } from '../../../lib/secure-api-client' // ✅ NEW: Secure API
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentChatPanel from '../../../components/AgentChatPanel';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
+import IntelligentResponseSystem from '../../../lib/intelligent-response-system';
+import { sendSecureMessage } from '../../../lib/secure-api-client'; // ✅ NEW: Secure API
 
 export default function ComedyKingPage() {
-  const agentId = 'comedy-king'
+  const agentId = 'comedy-king';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  const [responseSystem, setResponseSystem] = useState<IntelligentResponseSystem | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [responseSystem, setResponseSystem] =
+    useState<IntelligentResponseSystem | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     // Initialize the intelligent response system
-    const system = new IntelligentResponseSystem('comedy-king')
-    setResponseSystem(system)
+    const system = new IntelligentResponseSystem('comedy-king');
+    setResponseSystem(system);
   }, []);
 
   // Check subscription status
@@ -44,7 +54,10 @@ export default function ComedyKingPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -77,15 +90,16 @@ export default function ComedyKingPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "🎭 Hey there! I'm Comedy King, here to bring laughter and entertainment! Whether you need jokes, funny stories, or just a good laugh, I've got you covered. What's your mood today?",
+      content:
+        "🎭 Hey there! I'm Comedy King, here to bring laughter and entertainment! Whether you need jokes, funny stories, or just a good laugh, I've got you covered. What's your mood today?",
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -95,10 +109,12 @@ export default function ComedyKingPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -107,32 +123,9 @@ export default function ComedyKingPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
-  };
-
-
-  // Subscription handlers
-  const handleSubscribe = async (plan: string) => {
-    if (!user?.id) {
-      throw new Error('Please log in to subscribe');
-    }
-
-    try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
-      setSubscription(newSubscription);
-      setHasActiveSubscription(true);
-      setShowSubscriptionModal(false);
-      
-      // Create initial chat session after successful subscription
-      if (sessions.length === 0) {
-        handleNewChat();
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      throw error;
-    }
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   const handleSubscriptionManage = () => {
@@ -149,9 +142,9 @@ export default function ComedyKingPage() {
 
     try {
       // Try secure backend API first for real AI responses
-      return await sendSecureMessage(message, 'comedy-king', 'gpt-3.5-turbo')
+      return await sendSecureMessage(message, 'comedy-king', 'gpt-3.5-turbo');
     } catch (error: any) {
-      console.error('Comedy King chat error:', error)
+      console.error('Comedy King chat error:', error);
       // Fallback to IntelligentResponseSystem if backend unavailable
       if (responseSystem) {
         try {
@@ -159,29 +152,31 @@ export default function ComedyKingPage() {
             userMessage: message,
             messageHistory: [],
             topic: 'comedy',
-            mood: 'entertaining'
-          }
-          return await responseSystem.generateIntelligentResponse(context)
+            mood: 'entertaining',
+          };
+          return await responseSystem.generateIntelligentResponse(context);
         } catch (fallbackError) {
-          console.error('IntelligentResponseSystem failed:', fallbackError)
+          console.error('IntelligentResponseSystem failed:', fallbackError);
         }
       }
-      
+
       // Final fallback to character-consistent responses
       const fallbackResponses = [
-        "👑 My royal comedy sensors are tingling! That deserves a MAGNIFICENT response from your Comedy King! Let me craft you some premium royal humor... *adjusts comedy crown* 😂",
+        '👑 My royal comedy sensors are tingling! That deserves a MAGNIFICENT response from your Comedy King! Let me craft you some premium royal humor... *adjusts comedy crown* 😂',
         "🎭 By the power vested in me by the Comedy Kingdom Constitution, I declare this conversation HILARIOUS! Here's what your royal jester thinks... 👑",
-        "😂 *Royal comedy trumpet sounds* HEAR YE, HEAR YE! Your Comedy King has a DECREE about this topic! Prepare for maximum royal entertainment! 🎪",
+        '😂 *Royal comedy trumpet sounds* HEAR YE, HEAR YE! Your Comedy King has a DECREE about this topic! Prepare for maximum royal entertainment! 🎪',
         "👑 In my vast comedy kingdom experience, this reminds me of the time... *spins comedy tale with royal flair* The moral of the story? Everything's funnier with a crown! 😄",
         "🃏 ATTENTION comedy subjects! Your king has analyzed this with his royal comedy algorithms and the verdict is... PURE ENTERTAINMENT GOLD! Here's the royal take... 👑",
-        "😂 *Adjusts comedy crown ceremoniously* As the sovereign ruler of all things funny, I hereby bestow upon you... THE ROYAL COMEDIC WISDOM! Prepare to laugh, my loyal subject! 🏰"
-      ]
-      
-      return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)]
-    }
-  }
+        '😂 *Adjusts comedy crown ceremoniously* As the sovereign ruler of all things funny, I hereby bestow upon you... THE ROYAL COMEDIC WISDOM! Prepare to laugh, my loyal subject! 🏰',
+      ];
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+      return fallbackResponses[
+        Math.floor(Math.random() * fallbackResponses.length)
+      ];
+    }
+  };
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   if (subscriptionLoading) {
     return (
@@ -193,52 +188,51 @@ export default function ComedyKingPage() {
 
   return (
     <>
-    <AgentPageLayout
-      leftPanel={
-        <AgentChatPanel
-          chatSessions={sessions}
-          activeSessionId={activeSessionId}
-          agentId={agentId}
-          agentName="Comedy King"
-          onNewChat={handleNewChat}
-          onSelectChat={handleSelectChat}
-          onDeleteChat={handleDeleteChat}
-          onRenameChat={handleRenameChat}
-        />
-      }
-    >
-      {activeSessionId ? (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Comedy King"
-          agentColor="from-yellow-500 to-orange-600"
-          placeholder="👑 Tell your Comedy King what needs the royal funny treatment!"
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      ) : null}
-      
-      {/* Subscription Status */}
-      {user && (
-        <SubscriptionStatus
-          subscription={subscription}
-          agentName="Comedy King"
-          onManage={handleSubscriptionManage}
-        />
-      )}
-    </AgentPageLayout>
+      <AgentPageLayout
+        leftPanel={
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
+            agentName="Comedy King"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
+          />
+        }
+      >
+        {activeSessionId ? (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Comedy King"
+            agentColor="from-yellow-500 to-orange-600"
+            placeholder="👑 Tell your Comedy King what needs the royal funny treatment!"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        ) : null}
 
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Comedy King"
-      agentDescription="Enjoy premium comedy and entertainment from your royal humor expert"
-      onSubscribe={handleSubscribe}
-    />
+        {/* Subscription Status */}
+        {user && (
+          <SubscriptionStatus
+            subscription={subscription}
+            agentName="Comedy King"
+            onManage={handleSubscriptionManage}
+          />
+        )}
+      </AgentPageLayout>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Comedy King"
+        agentDescription="Enjoy premium comedy and entertainment from your royal humor expert"
+      />
     </>
-  )
+  );
 }

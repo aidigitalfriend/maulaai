@@ -1,30 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { sendSecureMessage } from '../../../lib/secure-api-client'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentChatPanel from '../../../components/AgentChatPanel';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { sendSecureMessage } from '../../../lib/secure-api-client';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
 
 export default function TechWizardPage() {
-  const agentId = 'tech-wizard'
+  const agentId = 'tech-wizard';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   // Check subscription status
   useEffect(() => {
@@ -36,7 +45,10 @@ export default function TechWizardPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -69,15 +81,16 @@ export default function TechWizardPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "💻 Hey! I'm Tech Wizard, your technology expert! Whether it's coding, cloud tech, DevOps, or the latest in tech trends, I'm here to help. What tech challenge can I help you with?",
+      content:
+        "💻 Hey! I'm Tech Wizard, your technology expert! Whether it's coding, cloud tech, DevOps, or the latest in tech trends, I'm here to help. What tech challenge can I help you with?",
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -87,10 +100,12 @@ export default function TechWizardPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -99,31 +114,9 @@ export default function TechWizardPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
-  };
-
-  // Subscription handlers
-  const handleSubscribe = async (plan: string) => {
-    if (!user?.id) {
-      throw new Error('Please log in to subscribe');
-    }
-
-    try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
-      setSubscription(newSubscription);
-      setHasActiveSubscription(true);
-      setShowSubscriptionModal(false);
-      
-      // Create initial chat session after successful subscription
-      if (sessions.length === 0) {
-        handleNewChat();
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      throw error;
-    }
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   const handleSubscriptionManage = () => {
@@ -137,18 +130,24 @@ export default function TechWizardPage() {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Tech Wizard!';
     }
-    
+
     try {
       // Use multiple fallback strategies for better reliability
-      return await sendSecureMessage(message, 'tech-wizard', 'gpt-4')
+      return await sendSecureMessage(message, 'tech-wizard', 'gpt-4');
     } catch (error: any) {
-      console.error('Tech Wizard chat error:', error)
+      console.error('Tech Wizard chat error:', error);
       // Fallback response if API fails
-      return `I'm Tech Wizard! I'd love to help you with ${message.includes('code') ? 'coding' : message.includes('tech') ? 'technology' : 'your tech question'}, but I'm having trouble connecting to my AI brain right now. Please try again in a moment, or check if the backend server is running properly.`
+      return `I'm Tech Wizard! I'd love to help you with ${
+        message.includes('code')
+          ? 'coding'
+          : message.includes('tech')
+          ? 'technology'
+          : 'your tech question'
+      }, but I'm having trouble connecting to my AI brain right now. Please try again in a moment, or check if the backend server is running properly.`;
     }
-  }
+  };
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   // Show loading state
   if (subscriptionLoading) {
@@ -175,48 +174,47 @@ export default function TechWizardPage() {
 
   return (
     <>
-    <AgentPageLayout
-      agentId={agentId}
-      agentName="Tech Wizard"
-      sessions={sessions}
-      activeSessionId={activeSessionId}
-      onNewChat={handleNewChat}
-      onSelectChat={handleSelectChat}
-      onDeleteChat={handleDeleteChat}
-      onRenameChat={handleRenameChat}
-    >
-      {activeSessionId && (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Tech Wizard"
-          agentColor="from-cyan-600 to-blue-700"
-          placeholder="What tech magic do you need help with? 🧙‍♂️"
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      )}
-      
-      {/* Subscription Status */}
-      {user && (
-        <SubscriptionStatus
-          subscription={subscription}
-          agentName="Tech Wizard"
-          onManage={handleSubscriptionManage}
-        />
-      )}
-    </AgentPageLayout>
+      <AgentPageLayout
+        agentId={agentId}
+        agentName="Tech Wizard"
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
+        onRenameChat={handleRenameChat}
+      >
+        {activeSessionId && (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Tech Wizard"
+            agentColor="from-cyan-600 to-blue-700"
+            placeholder="What tech magic do you need help with? 🧙‍♂️"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        )}
 
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Tech Wizard"
-      agentDescription="Get expert help with coding, cloud tech, DevOps, and the latest technology trends"
-      onSubscribe={handleSubscribe}
-    />
+        {/* Subscription Status */}
+        {user && (
+          <SubscriptionStatus
+            subscription={subscription}
+            agentName="Tech Wizard"
+            onManage={handleSubscriptionManage}
+          />
+        )}
+      </AgentPageLayout>
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Tech Wizard"
+        agentDescription="Get expert help with coding, cloud tech, DevOps, and the latest technology trends"
+      />
     </>
-  )
+  );
 }

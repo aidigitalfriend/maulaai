@@ -1,192 +1,116 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { XMarkIcon, CheckIcon, ClockIcon } from '@heroicons/react/24/outline'
-import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from '../services/agentSubscriptionService'
+import { useEffect, useRef } from 'react';
+import {
+  ArrowTopRightOnSquareIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+import { useSubscribeRedirect } from '../hooks/useSubscribeRedirect';
 
 interface SubscriptionModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubscribe: (plan: string) => Promise<void>
-  agentName: string
-  agentId: string
-  isLoading?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  agentName: string;
+  agentId: string;
+  agentDescription?: string;
 }
 
-export default function SubscriptionModal({ 
-  isOpen, 
-  onClose, 
-  onSubscribe, 
+export default function SubscriptionModal({
+  isOpen,
+  onClose,
   agentName,
   agentId,
-  isLoading = false
+  agentDescription,
 }: SubscriptionModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<string>('daily')
+  const redirectToSubscribe = useSubscribeRedirect(agentName, agentId);
+  const hasRedirectedRef = useRef(false);
 
-  if (!isOpen) return null
-
-  const handleSubscribe = async () => {
-    try {
-      await onSubscribe(selectedPlan)
-      onClose()
-    } catch (error) {
-      // Error handling will be done in parent component
-      console.error('Subscription error:', error)
+  useEffect(() => {
+    if (!isOpen) {
+      hasRedirectedRef.current = false;
+      return;
     }
-  }
 
-  const getPlanFeatures = (plan: SubscriptionPlan) => {
-    const baseFeatures = [
-      'Unlimited chat messages',
-      'Chat history saved',
-      'Real-time responses',
-      'Mobile & desktop access'
-    ]
-    
-    switch(plan.id) {
-      case 'daily':
-        return [...baseFeatures, '24-hour access']
-      case 'weekly':
-        return [...baseFeatures, '7-day access', 'Priority support']
-      case 'monthly':
-        return [...baseFeatures, '30-day access', 'Priority support', 'Advanced features']
-      default:
-        return baseFeatures
+    if (hasRedirectedRef.current) {
+      return;
     }
-  }
+
+    hasRedirectedRef.current = true;
+
+    const timeout = setTimeout(() => {
+      redirectToSubscribe();
+      onClose();
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [isOpen, redirectToSubscribe, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleRedirectNow = () => {
+    redirectToSubscribe();
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8">
+        <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Subscribe to {agentName}
-            </h2>
-            <p className="text-gray-600 mt-1">
-              Choose your plan to start chatting with {agentName}
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-500">
+              Subscription required
             </p>
+            <h2 className="text-2xl font-bold text-gray-900 mt-1">
+              Redirecting to subscribe
+            </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            disabled={isLoading}
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Close subscription modal"
           >
-            <XMarkIcon className="h-6 w-6 text-gray-500" />
+            <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
-        {/* Plans */}
-        <div className="p-6">
-          <div className="grid md:grid-cols-3 gap-6">
-            {SUBSCRIPTION_PLANS.map((plan) => (
-              <div
-                key={plan.id}
-                className={`
-                  relative border rounded-xl p-6 cursor-pointer transition-all duration-200
-                  ${selectedPlan === plan.id
-                    ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                  }
-                  ${plan.id === 'monthly' ? 'ring-2 ring-amber-200 border-amber-400' : ''}
-                `}
-                onClick={() => setSelectedPlan(plan.id)}
-              >
-                {/* Best Value Badge */}
-                {plan.id === 'monthly' && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-amber-500 text-white px-3 py-1 text-sm font-medium rounded-full">
-                      Best Value
-                    </span>
-                  </div>
-                )}
-
-                {/* Radio Button */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`
-                    w-5 h-5 rounded-full border-2 flex items-center justify-center
-                    ${selectedPlan === plan.id
-                      ? 'border-indigo-500 bg-indigo-500'
-                      : 'border-gray-300'
-                    }
-                  `}>
-                    {selectedPlan === plan.id && (
-                      <CheckIcon className="w-3 h-3 text-white" />
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">
-                      {plan.priceFormatted}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      per {plan.period}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Plan Name */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {plan.displayName}
-                </h3>
-                
-                {/* Description */}
-                <p className="text-gray-600 text-sm mb-4">
-                  {plan.description}
-                </p>
-
-                {/* Features */}
-                <ul className="space-y-2">
-                  {getPlanFeatures(plan).map((feature, index) => (
-                    <li key={index} className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <div className="h-12 w-12 rounded-full border-2 border-indigo-200 border-b-transparent animate-spin"></div>
           </div>
+          <h3 className="text-lg font-semibold text-indigo-900 mb-2">
+            Almost there...
+          </h3>
+          <p className="text-indigo-700">
+            We're sending you to the subscription center for{' '}
+            <span className="font-semibold">{agentName}</span>. You'll pick a
+            plan and complete checkout on the next screen.
+          </p>
+          {agentDescription && (
+            <p className="text-sm text-indigo-600 mt-3">{agentDescription}</p>
+          )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
-            <div className="text-sm text-gray-500">
-              <ClockIcon className="w-4 h-4 inline mr-1" />
-              Cancel anytime. No hidden fees.
-            </div>
-            
-            <div className="flex space-x-4">
-              <button
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubscribe}
-                disabled={isLoading}
-                className={`
-                  px-8 py-2 rounded-lg font-medium transition-colors
-                  ${isLoading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  }
-                `}
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  `Subscribe to ${SUBSCRIPTION_PLANS.find(p => p.id === selectedPlan)?.displayName}`
-                )}
-              </button>
-            </div>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleRedirectNow}
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-indigo-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Continue to subscribe
+              <ArrowTopRightOnSquareIcon className="h-5 w-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 inline-flex items-center justify-center font-medium py-3 px-4 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-white"
+            >
+              Stay here
+            </button>
           </div>
         </div>
+
+        <p className="text-sm text-gray-500 text-center mt-4">
+          You'll only need to do this once. After subscribing, you'll have
+          instant access to unlimited chats.
+        </p>
       </div>
     </div>
-  )
+  );
 }
