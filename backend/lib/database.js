@@ -21,7 +21,7 @@ export const connectionConfig = {
     family: 4, // Use IPv4, skip trying IPv6
     retryWrites: true,
     retryReads: true,
-    readPreference: 'primaryPreferred'
+    readPreference: 'primaryPreferred',
   },
 
   // Connection monitoring
@@ -47,11 +47,11 @@ export const connectionConfig = {
         name: conn.name,
         host: conn.host,
         port: conn.port,
-        poolSize: conn.db?.serverConfig?.poolSize || 0
+        poolSize: conn.db?.serverConfig?.poolSize || 0,
       };
       console.log('📊 DB Connection Stats:', stats);
     }, 300000); // Every 5 minutes
-  }
+  },
 };
 
 // ============================================
@@ -74,7 +74,7 @@ export const indexManager = {
         'global-subscriptions',
         'global-transactions',
         'global-usage_analytics',
-        'global-notification_settings'
+        'global-notification_settings',
       ];
 
       for (const collectionName of collections) {
@@ -85,14 +85,19 @@ export const indexManager = {
         if (!exists) continue;
 
         // Create optimized indexes
-        const indexes = await indexManager.getRecommendedIndexes(collectionName);
+        const indexes = await indexManager.getRecommendedIndexes(
+          collectionName
+        );
         for (const index of indexes) {
           try {
             await collection.createIndex(index.fields, index.options || {});
             console.log(`✅ Created index on ${collectionName}:`, index.fields);
           } catch (error) {
             if (!error.message.includes('already exists')) {
-              console.warn(`⚠️ Failed to create index on ${collectionName}:`, error.message);
+              console.warn(
+                `⚠️ Failed to create index on ${collectionName}:`,
+                error.message
+              );
             }
           }
         }
@@ -109,66 +114,66 @@ export const indexManager = {
         { fields: { email: 1 }, options: { unique: true } },
         { fields: { createdAt: -1 } },
         { fields: { lastLogin: -1 } },
-        { fields: { isActive: 1, createdAt: -1 } }
+        { fields: { isActive: 1, createdAt: -1 } },
       ],
       userprofiles: [
         { fields: { userId: 1 }, options: { unique: true } },
         { fields: { username: 1 }, options: { unique: true, sparse: true } },
         { fields: { createdAt: -1 } },
-        { fields: { updatedAt: -1 } }
+        { fields: { updatedAt: -1 } },
       ],
       user_sessions: [
         { fields: { userId: 1, createdAt: -1 } },
         { fields: { sessionToken: 1 }, options: { unique: true } },
-        { fields: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } }
+        { fields: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
       ],
       user_preferences: [
         { fields: { userId: 1 }, options: { unique: true } },
-        { fields: { updatedAt: -1 } }
+        { fields: { updatedAt: -1 } },
       ],
       'global-users': [
         { fields: { email: 1 }, options: { unique: true } },
         { fields: { createdAt: -1 } },
-        { fields: { subscriptionStatus: 1, createdAt: -1 } }
+        { fields: { subscriptionStatus: 1, createdAt: -1 } },
       ],
       'global-userprofiles': [
         { fields: { userId: 1 }, options: { unique: true } },
         { fields: { username: 1 }, options: { unique: true, sparse: true } },
         { fields: { reputation: -1 } },
-        { fields: { createdAt: -1 } }
+        { fields: { createdAt: -1 } },
       ],
       'global-user_sessions': [
         { fields: { userId: 1, createdAt: -1 } },
         { fields: { sessionToken: 1 }, options: { unique: true } },
-        { fields: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } }
+        { fields: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
       ],
       'global-user_preferences': [
-        { fields: { userId: 1 }, options: { unique: true } }
+        { fields: { userId: 1 }, options: { unique: true } },
       ],
       'global-subscriptions': [
         { fields: { userId: 1, status: 1 } },
         { fields: { planId: 1, status: 1 } },
         { fields: { currentPeriodEnd: 1 } },
-        { fields: { createdAt: -1 } }
+        { fields: { createdAt: -1 } },
       ],
       'global-transactions': [
         { fields: { userId: 1, createdAt: -1 } },
         { fields: { transactionId: 1 }, options: { unique: true } },
-        { fields: { status: 1, createdAt: -1 } }
+        { fields: { status: 1, createdAt: -1 } },
       ],
       'global-usage_analytics': [
         { fields: { userId: 1, date: -1 } },
         { fields: { eventType: 1, date: -1 } },
         { fields: { date: -1 } },
-        { fields: { createdAt: -1 } }
+        { fields: { createdAt: -1 } },
       ],
       'global-notification_settings': [
-        { fields: { userId: 1 }, options: { unique: true } }
-      ]
+        { fields: { userId: 1 }, options: { unique: true } },
+      ],
     };
 
     return indexes[collectionName] || [];
-  }
+  },
 };
 
 // ============================================
@@ -185,15 +190,15 @@ export const queryOptimizer = {
     const optimized = [...pipeline];
 
     // Ensure $match comes before $group, $sort, etc.
-    const matchIndex = optimized.findIndex(stage => stage.$match);
+    const matchIndex = optimized.findIndex((stage) => stage.$match);
     if (matchIndex > 0) {
       const matchStage = optimized.splice(matchIndex, 1)[0];
       optimized.unshift(matchStage);
     }
 
     // Add projection after $match but before $group
-    const groupIndex = optimized.findIndex(stage => stage.$group);
-    if (groupIndex > 0 && !optimized.some(stage => stage.$project)) {
+    const groupIndex = optimized.findIndex((stage) => stage.$group);
+    if (groupIndex > 0 && !optimized.some((stage) => stage.$project)) {
       optimized.splice(groupIndex, 0, { $project: { _id: 1 } });
     }
 
@@ -223,12 +228,12 @@ export const queryOptimizer = {
   batchOperations: {
     // Bulk write operations
     bulkWrite: async (collection, operations) => {
-      const bulkOps = operations.map(op => ({
+      const bulkOps = operations.map((op) => ({
         updateOne: {
           filter: op.filter,
           update: op.update,
-          upsert: op.upsert || false
-        }
+          upsert: op.upsert || false,
+        },
       }));
 
       return await collection.bulkWrite(bulkOps, { ordered: false });
@@ -241,13 +246,15 @@ export const queryOptimizer = {
       } catch (error) {
         if (error.code === 11000) {
           // Handle duplicate key errors
-          console.warn('⚠️ Bulk insert had duplicate key errors, some documents may not be inserted');
+          console.warn(
+            '⚠️ Bulk insert had duplicate key errors, some documents may not be inserted'
+          );
           return error.result;
         }
         throw error;
       }
-    }
-  }
+    },
+  },
 };
 
 // ============================================
@@ -265,12 +272,12 @@ export const poolMonitor = {
         inUse: conn.db?.serverConfig?.connections?.inUse || 0,
         available: conn.db?.serverConfig?.connections?.available || 0,
         created: conn.db?.serverConfig?.connections?.created || 0,
-        destroyed: conn.db?.serverConfig?.connections?.destroyed || 0
+        destroyed: conn.db?.serverConfig?.connections?.destroyed || 0,
       },
       operations: {
         pending: conn.db?.serverConfig?.operations?.pending || 0,
-        executing: conn.db?.serverConfig?.operations?.executing || 0
-      }
+        executing: conn.db?.serverConfig?.operations?.executing || 0,
+      },
     };
   },
 
@@ -281,11 +288,14 @@ export const poolMonitor = {
       setImmediate(() => {
         const duration = Date.now() - start;
         if (duration > thresholdMs) {
-          console.warn(`🐌 Slow query (${duration}ms): ${collection}.${method}`, {
-            query,
-            options,
-            duration
-          });
+          console.warn(
+            `🐌 Slow query (${duration}ms): ${collection}.${method}`,
+            {
+              query,
+              options,
+              duration,
+            }
+          );
         }
       });
     });
@@ -301,16 +311,16 @@ export const poolMonitor = {
       return {
         status: 'healthy',
         latency,
-        poolStats: poolMonitor.getStats()
+        poolStats: poolMonitor.getStats(),
       };
     } catch (error) {
       return {
         status: 'unhealthy',
         error: error.message,
-        poolStats: poolMonitor.getStats()
+        poolStats: poolMonitor.getStats(),
       };
     }
-  }
+  },
 };
 
 // ============================================
@@ -327,9 +337,9 @@ export const migrationHelpers = {
       if (collections.length === 0) {
         await db.createCollection(name, {
           validator: {
-            $jsonSchema: schema
+            $jsonSchema: schema,
           },
-          ...options
+          ...options,
         });
         console.log(`✅ Created collection: ${name}`);
       } else {
@@ -358,11 +368,13 @@ export const migrationHelpers = {
         migrated++;
       }
 
-      console.log(`✅ Migrated ${migrated} documents from ${fromCollection} to ${toCollection}`);
+      console.log(
+        `✅ Migrated ${migrated} documents from ${fromCollection} to ${toCollection}`
+      );
       return migrated;
     } catch (error) {
       console.error(`❌ Migration failed:`, error);
       throw error;
     }
-  }
+  },
 };

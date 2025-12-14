@@ -29,7 +29,7 @@ const validateRequest = (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array()
+      errors: errors.array(),
     });
   }
   next();
@@ -41,7 +41,7 @@ const globalLimiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: {
     success: false,
-    message: 'Too many requests from this IP, please try again later.'
+    message: 'Too many requests from this IP, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -53,7 +53,7 @@ const apiLimiter = rateLimit({
   max: 500, // limit each IP to 500 API requests per windowMs
   message: {
     success: false,
-    message: 'API rate limit exceeded, please try again later.'
+    message: 'API rate limit exceeded, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -65,7 +65,7 @@ const authLimiter = rateLimit({
   max: 10, // limit each IP to 10 auth attempts per windowMs
   message: {
     success: false,
-    message: 'Too many authentication attempts, please try again later.'
+    message: 'Too many authentication attempts, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -82,7 +82,7 @@ router.get('/health', (req, res) => {
     message: 'API is healthy',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -99,8 +99,8 @@ router.get('/version', (req, res) => {
       'analytics',
       'gamification',
       'community',
-      'subscriptions'
-    ]
+      'subscriptions',
+    ],
   });
 });
 
@@ -117,16 +117,14 @@ const authValidation = {
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 8 }),
     body('name').optional().isLength({ min: 1, max: 100 }),
-    body('authMethod').optional().isIn(['password', 'google', 'github'])
+    body('authMethod').optional().isIn(['password', 'google', 'github']),
   ],
   login: [
     body('email').isEmail().normalizeEmail(),
     body('password').exists(),
-    body('rememberMe').optional().isBoolean()
+    body('rememberMe').optional().isBoolean(),
   ],
-  resetPassword: [
-    body('email').isEmail().normalizeEmail()
-  ],
+  resetPassword: [body('email').isEmail().normalizeEmail()],
   changePassword: [
     body('currentPassword').exists(),
     body('newPassword').isLength({ min: 8 }),
@@ -135,8 +133,8 @@ const authValidation = {
         throw new Error('Password confirmation does not match');
       }
       return true;
-    })
-  ]
+    }),
+  ],
 };
 
 // Auth routes will be handled by frontend Next.js API routes
@@ -205,30 +203,30 @@ router.get('/docs', (req, res) => {
         signup: 'POST /api/auth/signup',
         login: 'POST /api/auth/login',
         logout: 'POST /api/auth/logout',
-        profile: 'GET /api/auth/profile'
+        profile: 'GET /api/auth/profile',
       },
       users: {
         profile: 'GET /api/users/profile',
         update: 'PUT /api/users/profile',
-        delete: 'DELETE /api/users/:id'
+        delete: 'DELETE /api/users/:id',
       },
       agents: {
         list: 'GET /api/agents',
         create: 'POST /api/agents',
         get: 'GET /api/agents/:id',
         update: 'PUT /api/agents/:id',
-        delete: 'DELETE /api/agents/:id'
+        delete: 'DELETE /api/agents/:id',
       },
       analytics: 'GET /api/analytics/*',
       gamification: 'GET /api/gamification/*',
       community: 'GET /api/community/*',
-      subscriptions: 'GET /api/subscriptions/*'
+      subscriptions: 'GET /api/subscriptions/*',
     },
     rateLimits: {
       global: '100 requests per 15 minutes',
       api: '500 requests per 15 minutes',
-      auth: '10 requests per 15 minutes'
-    }
+      auth: '10 requests per 15 minutes',
+    },
   });
 });
 
@@ -242,7 +240,7 @@ router.use('*', (req, res) => {
     success: false,
     message: 'API endpoint not found',
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
   });
 });
 
@@ -255,7 +253,7 @@ router.use((error, req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Validation error',
-      errors: Object.values(error.errors).map(err => err.message)
+      errors: Object.values(error.errors).map((err) => err.message),
     });
   }
 
@@ -263,14 +261,14 @@ router.use((error, req, res, next) => {
   if (error.name === 'JsonWebTokenError') {
     return res.status(401).json({
       success: false,
-      message: 'Invalid token'
+      message: 'Invalid token',
     });
   }
 
   if (error.name === 'TokenExpiredError') {
     return res.status(401).json({
       success: false,
-      message: 'Token expired'
+      message: 'Token expired',
     });
   }
 
@@ -278,14 +276,14 @@ router.use((error, req, res, next) => {
   if (error.name === 'MongoError' || error.name === 'MongoServerError') {
     return res.status(500).json({
       success: false,
-      message: 'Database error'
+      message: 'Database error',
     });
   }
 
   // Generic error
   res.status(500).json({
     success: false,
-    message: 'Internal server error'
+    message: 'Internal server error',
   });
 });
 

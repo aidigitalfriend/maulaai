@@ -3964,27 +3964,29 @@ async function initializeOptimizations() {
 }
 
 // Initialize and start server
-initializeOptimizations().then(() => {
-  app.listen(PORT, host, () => {
-    console.log(`🚀 Backend server running on ${host}:${PORT}`);
-    console.log(`📊 Health check: http://${host}:${PORT}/health`);
+initializeOptimizations()
+  .then(() => {
+    app.listen(PORT, host, () => {
+      console.log(`🚀 Backend server running on ${host}:${PORT}`);
+      console.log(`📊 Health check: http://${host}:${PORT}/health`);
 
-    const hasAIService = !!(
-      process.env.OPENAI_API_KEY ||
-      process.env.ANTHROPIC_API_KEY ||
-      process.env.GEMINI_API_KEY ||
-      process.env.COHERE_API_KEY
-    );
+      const hasAIService = !!(
+        process.env.OPENAI_API_KEY ||
+        process.env.ANTHROPIC_API_KEY ||
+        process.env.GEMINI_API_KEY ||
+        process.env.COHERE_API_KEY
+      );
 
-    if (hasAIService) {
-      console.log('✅ AI services configured');
-    } else {
-      console.log('⚠️  No AI services configured - using simulation mode');
-    }
+      if (hasAIService) {
+        console.log('✅ AI services configured');
+      } else {
+        console.log('⚠️  No AI services configured - using simulation mode');
+      }
 
-    console.log('✅ Server started successfully with optimizations');
+      console.log('✅ Server started successfully with optimizations');
+    });
+  })
+  .catch((error) => {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   });
-}).catch((error) => {
-  console.error('❌ Failed to start server:', error);
-  process.exit(1);
-});

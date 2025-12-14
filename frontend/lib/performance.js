@@ -102,7 +102,9 @@ class PerformanceMonitor {
             clsValue += entry.value;
           }
         }
-        this.recordMetric('layoutShift', clsValue, { entries: list.getEntries() });
+        this.recordMetric('layoutShift', clsValue, {
+          entries: list.getEntries(),
+        });
       });
       layoutShiftObserver.observe({ entryTypes: ['layout-shift'] });
     }
@@ -115,7 +117,8 @@ class PerformanceMonitor {
     if ('PerformanceObserver' in window) {
       const resourceObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (entry.duration > 1000) { // Log slow resources (>1s)
+          if (entry.duration > 1000) {
+            // Log slow resources (>1s)
             console.warn('🐌 Slow resource:', {
               name: entry.name,
               duration: entry.duration,
@@ -136,7 +139,11 @@ class PerformanceMonitor {
     if ('PerformanceObserver' in window) {
       const navigationObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          this.recordMetric('navigation', entry.loadEventEnd - entry.fetchStart, entry);
+          this.recordMetric(
+            'navigation',
+            entry.loadEventEnd - entry.fetchStart,
+            entry
+          );
         }
       });
       navigationObserver.observe({ entryTypes: ['navigation'] });
@@ -166,7 +173,7 @@ class PerformanceMonitor {
     }
 
     // Notify observers
-    this.observers.forEach(callback => callback(metric));
+    this.observers.forEach((callback) => callback(metric));
 
     // Log in development
     if (process.env.NODE_ENV === 'development') {
@@ -242,14 +249,18 @@ export const bundleMonitor = {
       setTimeout(() => {
         if ('performance' in window && 'getEntriesByType' in performance) {
           const resources = performance.getEntriesByType('resource');
-          const scripts = resources.filter(r => r.name.includes('.js'));
+          const scripts = resources.filter((r) => r.name.includes('.js'));
 
-          scripts.forEach(script => {
+          scripts.forEach((script) => {
             if (script.transferSize > 0) {
-              performanceMonitor.recordMetric('bundleSize', script.transferSize, {
-                url: script.name,
-                size: script.transferSize,
-              });
+              performanceMonitor.recordMetric(
+                'bundleSize',
+                script.transferSize,
+                {
+                  url: script.name,
+                  size: script.transferSize,
+                }
+              );
             }
           });
         }
@@ -266,9 +277,9 @@ export const bundleMonitor = {
     // Track dynamic imports
     const originalImport = window.import;
     if (originalImport) {
-      window.import = function(...args) {
+      window.import = function (...args) {
         const startTime = performance.now();
-        return originalImport.apply(this, args).then(module => {
+        return originalImport.apply(this, args).then((module) => {
           const loadTime = performance.now() - startTime;
           performanceMonitor.recordMetric('dynamicImport', loadTime, {
             module: args[0],
@@ -288,7 +299,8 @@ export const memoryMonitor = {
   /**
    * Monitor memory usage
    */
-  startMonitoring(interval = 30000) { // 30 seconds
+  startMonitoring(interval = 30000) {
+    // 30 seconds
     if (typeof window === 'undefined' || !performance.memory) return;
 
     const monitor = () => {
@@ -316,11 +328,15 @@ export const memoryMonitor = {
     setInterval(() => {
       if (performance.memory) {
         const currentSize = performance.memory.usedJSHeapSize;
-        if (currentSize > previousSize * 1.1) { // 10% increase
+        if (currentSize > previousSize * 1.1) {
+          // 10% increase
           leakCount++;
           if (leakCount > 3) {
             console.warn('🚨 Potential memory leak detected');
-            performanceMonitor.recordMetric('memoryLeak', currentSize - previousSize);
+            performanceMonitor.recordMetric(
+              'memoryLeak',
+              currentSize - previousSize
+            );
             leakCount = 0;
           }
         } else {
@@ -345,29 +361,32 @@ export const networkMonitor = {
 
     // Override fetch for monitoring
     const originalFetch = window.fetch;
-    window.fetch = function(...args) {
+    window.fetch = function (...args) {
       const startTime = performance.now();
-      return originalFetch.apply(this, args).then(response => {
-        const duration = performance.now() - startTime;
-        performanceMonitor.recordMetric('networkRequest', duration, {
-          url: args[0],
-          method: args[1]?.method || 'GET',
-          status: response.status,
+      return originalFetch
+        .apply(this, args)
+        .then((response) => {
+          const duration = performance.now() - startTime;
+          performanceMonitor.recordMetric('networkRequest', duration, {
+            url: args[0],
+            method: args[1]?.method || 'GET',
+            status: response.status,
+          });
+          return response;
+        })
+        .catch((error) => {
+          const duration = performance.now() - startTime;
+          performanceMonitor.recordMetric('networkError', duration, {
+            url: args[0],
+            error: error.message,
+          });
+          throw error;
         });
-        return response;
-      }).catch(error => {
-        const duration = performance.now() - startTime;
-        performanceMonitor.recordMetric('networkError', duration, {
-          url: args[0],
-          error: error.message,
-        });
-        throw error;
-      });
     };
 
     // Monitor XMLHttpRequest
     const originalOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url) {
+    XMLHttpRequest.prototype.open = function (method, url) {
       this._startTime = performance.now();
       this._url = url;
       this._method = method;
@@ -375,7 +394,7 @@ export const networkMonitor = {
     };
 
     const originalSend = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.send = function() {
+    XMLHttpRequest.prototype.send = function () {
       const xhr = this;
       const completeHandler = () => {
         if (xhr._startTime) {
@@ -391,7 +410,7 @@ export const networkMonitor = {
       if (this.addEventListener) {
         this.addEventListener('loadend', completeHandler);
       } else {
-        this.onreadystatechange = function() {
+        this.onreadystatechange = function () {
           if (this.readyState === 4) {
             completeHandler();
           }

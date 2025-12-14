@@ -24,7 +24,9 @@ export const LazyComponents = {
   AgentChat: lazy(() => import('@/components/agents/AgentChat')),
 
   // Analytics components (heavy due to charts)
-  AnalyticsDashboard: lazy(() => import('@/components/analytics/AnalyticsDashboard')),
+  AnalyticsDashboard: lazy(() =>
+    import('@/components/analytics/AnalyticsDashboard')
+  ),
   Charts: lazy(() => import('@/components/analytics/Charts')),
 
   // Settings components
@@ -106,11 +108,12 @@ export function loadComponent(Component, fallback = null) {
       console.error('Failed to load component:', error);
       // Return error component or fallback
       return {
-        default: () => fallback || (
-          <div className="flex items-center justify-center p-4">
-            <div className="text-red-500">Failed to load component</div>
-          </div>
-        )
+        default: () =>
+          fallback || (
+            <div className="flex items-center justify-center p-4">
+              <div className="text-red-500">Failed to load component</div>
+            </div>
+          ),
       };
     }
   });
@@ -137,7 +140,7 @@ export async function dynamicImport(importer, retries = 3) {
     } catch (error) {
       if (i === retries - 1) throw error;
       console.warn(`Import failed, retrying... (${i + 1}/${retries})`);
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
     }
   }
 }
@@ -159,19 +162,10 @@ export const RouteLazyLoading = {
   ],
 
   // Routes that should be lazy loaded with high priority
-  highPriority: [
-    '/ai-studio',
-    '/agents',
-    '/community',
-  ],
+  highPriority: ['/ai-studio', '/agents', '/community'],
 
   // Routes that should be lazy loaded with low priority
-  lowPriority: [
-    '/analytics',
-    '/settings',
-    '/profile',
-    '/billing',
-  ],
+  lowPriority: ['/analytics', '/settings', '/profile', '/billing'],
 };
 
 // ============================================

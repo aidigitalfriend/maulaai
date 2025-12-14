@@ -19,14 +19,14 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'Too many requests from this IP, please try again later.',
-      retryAfter: '15 minutes'
+      retryAfter: '15 minutes',
     },
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => {
       // Skip rate limiting for health checks
       return req.path === '/health' || req.path === '/version';
-    }
+    },
   }),
 
   // API rate limiter
@@ -36,7 +36,7 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'API rate limit exceeded, please try again later.',
-      retryAfter: '15 minutes'
+      retryAfter: '15 minutes',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -49,7 +49,7 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'Too many authentication attempts, please try again later.',
-      retryAfter: '15 minutes'
+      retryAfter: '15 minutes',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -63,7 +63,7 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'Upload rate limit exceeded, please try again later.',
-      retryAfter: '1 hour'
+      retryAfter: '1 hour',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -76,7 +76,7 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'Search rate limit exceeded, please try again later.',
-      retryAfter: '1 minute'
+      retryAfter: '1 minute',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -89,7 +89,7 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'Agent interaction rate limit exceeded, please try again later.',
-      retryAfter: '1 minute'
+      retryAfter: '1 minute',
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -102,11 +102,11 @@ export const rateLimiters = {
     message: {
       success: false,
       message: 'Posting rate limit exceeded, please try again later.',
-      retryAfter: '1 hour'
+      retryAfter: '1 hour',
     },
     standardHeaders: true,
     legacyHeaders: false,
-  })
+  }),
 };
 
 // ============================================
@@ -123,7 +123,9 @@ class CacheManager {
   async init() {
     try {
       // Try Redis first
-      this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+      this.client = new Redis(
+        process.env.REDIS_URL || 'redis://localhost:6379'
+      );
 
       this.client.on('connect', () => {
         console.log('✅ Redis cache connected');
@@ -131,12 +133,14 @@ class CacheManager {
       });
 
       this.client.on('error', (err) => {
-        console.warn('⚠️ Redis connection failed, falling back to in-memory cache:', err.message);
+        console.warn(
+          '⚠️ Redis connection failed, falling back to in-memory cache:',
+          err.message
+        );
         this.client = null;
         this.isConnected = false;
         this.memoryCache = new Map();
       });
-
     } catch (error) {
       console.warn('⚠️ Redis not available, using in-memory cache');
       this.memoryCache = new Map();
@@ -171,7 +175,7 @@ class CacheManager {
       } else if (this.memoryCache) {
         this.memoryCache.set(key, {
           data: value,
-          expires: Date.now() + (ttlSeconds * 1000)
+          expires: Date.now() + ttlSeconds * 1000,
         });
       }
     } catch (error) {
@@ -209,7 +213,9 @@ class CacheManager {
   // Cache middleware for Express
   middleware(ttlSeconds = 300, keyGenerator = null) {
     return async (req, res, next) => {
-      const key = keyGenerator ? keyGenerator(req) : `${req.method}:${req.originalUrl}`;
+      const key = keyGenerator
+        ? keyGenerator(req)
+        : `${req.method}:${req.originalUrl}`;
 
       try {
         const cached = await this.get(key);
@@ -219,8 +225,8 @@ class CacheManager {
 
         // Override res.json to cache the response
         const originalJson = res.json;
-        res.json = function(data) {
-          this.get(key).then(cached => {
+        res.json = function (data) {
+          this.get(key).then((cached) => {
             if (!cached) {
               this.set(key, data, ttlSeconds);
             }
@@ -249,7 +255,7 @@ export const cacheKeys = {
   analytics: (type, userId, date) => `analytics:${type}:${userId}:${date}`,
   community: (postId) => `community:${postId}`,
   search: (query, filters) => `search:${query}:${JSON.stringify(filters)}`,
-  api: (method, path) => `api:${method}:${path}`
+  api: (method, path) => `api:${method}:${path}`,
 };
 
 // ============================================
@@ -269,7 +275,7 @@ export const responseCache = {
     const age = Date.now() - new Date(lastModified).getTime();
     const ttl = Math.max(60, maxAge - Math.floor(age / 1000)); // Minimum 1 minute
     return responseCache.success(res, data, ttl);
-  }
+  },
 };
 
 // ============================================
@@ -306,5 +312,5 @@ export const queryCache = {
   analytics: async (type, params, queryFn, ttl = 1800) => {
     const key = `analytics:${type}:${JSON.stringify(params)}`;
     return queryCache.query(key, queryFn, ttl);
-  }
+  },
 };

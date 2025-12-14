@@ -15,19 +15,37 @@ export const commonValidation = {
 
   // Pagination
   pagination: [
-    query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-    query('sort').optional().isIn(['asc', 'desc', 'createdAt', '-createdAt', 'name', '-name']).withMessage('Invalid sort parameter')
+    query('page')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('Page must be a positive integer'),
+    query('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
+    query('sort')
+      .optional()
+      .isIn(['asc', 'desc', 'createdAt', '-createdAt', 'name', '-name'])
+      .withMessage('Invalid sort parameter'),
   ],
 
   // Search
-  search: query('search').optional().isLength({ min: 1, max: 100 }).withMessage('Search query must be 1-100 characters'),
+  search: query('search')
+    .optional()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Search query must be 1-100 characters'),
 
   // Date range
   dateRange: [
-    query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
-    query('endDate').optional().isISO8601().withMessage('Invalid end date format')
-  ]
+    query('startDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid start date format'),
+    query('endDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid end date format'),
+  ],
 };
 
 // ============================================
@@ -36,30 +54,58 @@ export const commonValidation = {
 
 export const userValidation = {
   create: [
-    body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
-    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-    body('name').isLength({ min: 1, max: 100 }).withMessage('Name must be 1-100 characters'),
-    body('role').optional().isIn(['user', 'admin', 'moderator']).withMessage('Invalid role'),
-    body('preferences').optional().isObject().withMessage('Preferences must be an object')
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Valid email required'),
+    body('password')
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters'),
+    body('name')
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Name must be 1-100 characters'),
+    body('role')
+      .optional()
+      .isIn(['user', 'admin', 'moderator'])
+      .withMessage('Invalid role'),
+    body('preferences')
+      .optional()
+      .isObject()
+      .withMessage('Preferences must be an object'),
   ],
 
   update: [
-    body('name').optional().isLength({ min: 1, max: 100 }).withMessage('Name must be 1-100 characters'),
-    body('email').optional().isEmail().normalizeEmail().withMessage('Valid email required'),
-    body('preferences').optional().isObject().withMessage('Preferences must be an object'),
-    body('isActive').optional().isBoolean().withMessage('isActive must be boolean')
+    body('name')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Name must be 1-100 characters'),
+    body('email')
+      .optional()
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Valid email required'),
+    body('preferences')
+      .optional()
+      .isObject()
+      .withMessage('Preferences must be an object'),
+    body('isActive')
+      .optional()
+      .isBoolean()
+      .withMessage('isActive must be boolean'),
   ],
 
   changePassword: [
     body('currentPassword').exists().withMessage('Current password required'),
-    body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+    body('newPassword')
+      .isLength({ min: 8 })
+      .withMessage('New password must be at least 8 characters'),
     body('confirmPassword').custom((value, { req }) => {
       if (value !== req.body.newPassword) {
         throw new Error('Password confirmation does not match');
       }
       return true;
-    })
-  ]
+    }),
+  ],
 };
 
 // ============================================
@@ -68,27 +114,70 @@ export const userValidation = {
 
 export const agentValidation = {
   create: [
-    body('name').isLength({ min: 1, max: 100 }).withMessage('Agent name required (1-100 chars)'),
-    body('description').optional().isLength({ max: 500 }).withMessage('Description max 500 characters'),
-    body('model').isIn(['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'mistral']).withMessage('Invalid model'),
-    body('temperature').optional().isFloat({ min: 0, max: 2 }).withMessage('Temperature must be 0-2'),
-    body('maxTokens').optional().isInt({ min: 1, max: 4000 }).withMessage('Max tokens must be 1-4000'),
-    body('systemPrompt').optional().isLength({ max: 2000 }).withMessage('System prompt max 2000 characters'),
+    body('name')
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Agent name required (1-100 chars)'),
+    body('description')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Description max 500 characters'),
+    body('model')
+      .isIn(['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'mistral'])
+      .withMessage('Invalid model'),
+    body('temperature')
+      .optional()
+      .isFloat({ min: 0, max: 2 })
+      .withMessage('Temperature must be 0-2'),
+    body('maxTokens')
+      .optional()
+      .isInt({ min: 1, max: 4000 })
+      .withMessage('Max tokens must be 1-4000'),
+    body('systemPrompt')
+      .optional()
+      .isLength({ max: 2000 })
+      .withMessage('System prompt max 2000 characters'),
     body('tools').optional().isArray().withMessage('Tools must be an array'),
-    body('isPublic').optional().isBoolean().withMessage('isPublic must be boolean')
+    body('isPublic')
+      .optional()
+      .isBoolean()
+      .withMessage('isPublic must be boolean'),
   ],
 
   update: [
-    body('name').optional().isLength({ min: 1, max: 100 }).withMessage('Agent name 1-100 chars'),
-    body('description').optional().isLength({ max: 500 }).withMessage('Description max 500 characters'),
-    body('model').optional().isIn(['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'mistral']).withMessage('Invalid model'),
-    body('temperature').optional().isFloat({ min: 0, max: 2 }).withMessage('Temperature must be 0-2'),
-    body('maxTokens').optional().isInt({ min: 1, max: 4000 }).withMessage('Max tokens must be 1-4000'),
-    body('systemPrompt').optional().isLength({ max: 2000 }).withMessage('System prompt max 2000 characters'),
+    body('name')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Agent name 1-100 chars'),
+    body('description')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Description max 500 characters'),
+    body('model')
+      .optional()
+      .isIn(['gpt-4', 'gpt-3.5-turbo', 'claude-3', 'mistral'])
+      .withMessage('Invalid model'),
+    body('temperature')
+      .optional()
+      .isFloat({ min: 0, max: 2 })
+      .withMessage('Temperature must be 0-2'),
+    body('maxTokens')
+      .optional()
+      .isInt({ min: 1, max: 4000 })
+      .withMessage('Max tokens must be 1-4000'),
+    body('systemPrompt')
+      .optional()
+      .isLength({ max: 2000 })
+      .withMessage('System prompt max 2000 characters'),
     body('tools').optional().isArray().withMessage('Tools must be an array'),
-    body('isPublic').optional().isBoolean().withMessage('isPublic must be boolean'),
-    body('isActive').optional().isBoolean().withMessage('isActive must be boolean')
-  ]
+    body('isPublic')
+      .optional()
+      .isBoolean()
+      .withMessage('isPublic must be boolean'),
+    body('isActive')
+      .optional()
+      .isBoolean()
+      .withMessage('isActive must be boolean'),
+  ],
 };
 
 // ============================================
@@ -97,20 +186,34 @@ export const agentValidation = {
 
 export const analyticsValidation = {
   track: [
-    body('event').isLength({ min: 1, max: 100 }).withMessage('Event name required (1-100 chars)'),
+    body('event')
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Event name required (1-100 chars)'),
     body('userId').optional().isMongoId().withMessage('Invalid user ID'),
-    body('sessionId').optional().isLength({ min: 1, max: 100 }).withMessage('Session ID max 100 chars'),
-    body('properties').optional().isObject().withMessage('Properties must be an object'),
-    body('timestamp').optional().isISO8601().withMessage('Invalid timestamp format')
+    body('sessionId')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Session ID max 100 chars'),
+    body('properties')
+      .optional()
+      .isObject()
+      .withMessage('Properties must be an object'),
+    body('timestamp')
+      .optional()
+      .isISO8601()
+      .withMessage('Invalid timestamp format'),
   ],
 
   query: [
-    query('event').optional().isLength({ min: 1, max: 100 }).withMessage('Event name max 100 chars'),
+    query('event')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Event name max 100 chars'),
     query('userId').optional().isMongoId().withMessage('Invalid user ID'),
     query('startDate').optional().isISO8601().withMessage('Invalid start date'),
     query('endDate').optional().isISO8601().withMessage('Invalid end date'),
-    ...commonValidation.pagination
-  ]
+    ...commonValidation.pagination,
+  ],
 };
 
 // ============================================
@@ -119,25 +222,52 @@ export const analyticsValidation = {
 
 export const communityValidation = {
   createPost: [
-    body('title').isLength({ min: 1, max: 200 }).withMessage('Title required (1-200 chars)'),
-    body('content').isLength({ min: 1, max: 10000 }).withMessage('Content required (max 10k chars)'),
+    body('title')
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Title required (1-200 chars)'),
+    body('content')
+      .isLength({ min: 1, max: 10000 })
+      .withMessage('Content required (max 10k chars)'),
     body('tags').optional().isArray().withMessage('Tags must be an array'),
-    body('tags.*').optional().isLength({ min: 1, max: 50 }).withMessage('Tag max 50 characters'),
-    body('isPublished').optional().isBoolean().withMessage('isPublished must be boolean')
+    body('tags.*')
+      .optional()
+      .isLength({ min: 1, max: 50 })
+      .withMessage('Tag max 50 characters'),
+    body('isPublished')
+      .optional()
+      .isBoolean()
+      .withMessage('isPublished must be boolean'),
   ],
 
   updatePost: [
-    body('title').optional().isLength({ min: 1, max: 200 }).withMessage('Title 1-200 chars'),
-    body('content').optional().isLength({ min: 1, max: 10000 }).withMessage('Content max 10k chars'),
+    body('title')
+      .optional()
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Title 1-200 chars'),
+    body('content')
+      .optional()
+      .isLength({ min: 1, max: 10000 })
+      .withMessage('Content max 10k chars'),
     body('tags').optional().isArray().withMessage('Tags must be an array'),
-    body('tags.*').optional().isLength({ min: 1, max: 50 }).withMessage('Tag max 50 characters'),
-    body('isPublished').optional().isBoolean().withMessage('isPublished must be boolean')
+    body('tags.*')
+      .optional()
+      .isLength({ min: 1, max: 50 })
+      .withMessage('Tag max 50 characters'),
+    body('isPublished')
+      .optional()
+      .isBoolean()
+      .withMessage('isPublished must be boolean'),
   ],
 
   createComment: [
-    body('content').isLength({ min: 1, max: 2000 }).withMessage('Comment required (max 2k chars)'),
-    body('parentId').optional().isMongoId().withMessage('Invalid parent comment ID')
-  ]
+    body('content')
+      .isLength({ min: 1, max: 2000 })
+      .withMessage('Comment required (max 2k chars)'),
+    body('parentId')
+      .optional()
+      .isMongoId()
+      .withMessage('Invalid parent comment ID'),
+  ],
 };
 
 // ============================================
@@ -146,16 +276,32 @@ export const communityValidation = {
 
 export const subscriptionValidation = {
   create: [
-    body('planId').isLength({ min: 1, max: 100 }).withMessage('Plan ID required'),
-    body('billingCycle').isIn(['monthly', 'yearly']).withMessage('Invalid billing cycle'),
-    body('paymentMethodId').optional().isLength({ min: 1, max: 100 }).withMessage('Invalid payment method ID')
+    body('planId')
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Plan ID required'),
+    body('billingCycle')
+      .isIn(['monthly', 'yearly'])
+      .withMessage('Invalid billing cycle'),
+    body('paymentMethodId')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Invalid payment method ID'),
   ],
 
   update: [
-    body('planId').optional().isLength({ min: 1, max: 100 }).withMessage('Invalid plan ID'),
-    body('billingCycle').optional().isIn(['monthly', 'yearly']).withMessage('Invalid billing cycle'),
-    body('isActive').optional().isBoolean().withMessage('isActive must be boolean')
-  ]
+    body('planId')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Invalid plan ID'),
+    body('billingCycle')
+      .optional()
+      .isIn(['monthly', 'yearly'])
+      .withMessage('Invalid billing cycle'),
+    body('isActive')
+      .optional()
+      .isBoolean()
+      .withMessage('isActive must be boolean'),
+  ],
 };
 
 // ============================================
@@ -178,7 +324,7 @@ export const sanitizeInput = {
   // Sanitize array of strings
   stringArray: (value) => {
     if (!Array.isArray(value)) return value;
-    return value.map(item => typeof item === 'string' ? item.trim() : item);
+    return value.map((item) => (typeof item === 'string' ? item.trim() : item));
   },
 
   // Deep sanitize object
@@ -198,5 +344,5 @@ export const sanitizeInput = {
       }
     }
     return sanitized;
-  }
+  },
 };
