@@ -17,18 +17,21 @@ export const SUBSCRIPTION_PLANS = {
     price: 1,
     interval: 'day' as const,
     productId: process.env.STRIPE_PRODUCT_DAILY!,
+    priceId: process.env.STRIPE_PRICE_DAILY!,
   },
   weekly: {
     name: 'Weekly Access',
     price: 5,
     interval: 'week' as const,
     productId: process.env.STRIPE_PRODUCT_WEEKLY!,
+    priceId: process.env.STRIPE_PRICE_WEEKLY!,
   },
   monthly: {
     name: 'Monthly Access',
     price: 19,
     interval: 'month' as const,
     productId: process.env.STRIPE_PRODUCT_MONTHLY!,
+    priceId: process.env.STRIPE_PRICE_MONTHLY!,
   },
 };
 
@@ -60,31 +63,6 @@ export async function createCheckoutSession({
     throw new Error(`Invalid plan: ${plan}`);
   }
 
-  // Get or create price for this product
-  const prices = await stripe.prices.list({
-    product: planDetails.productId,
-    active: true,
-    limit: 10,
-  });
-
-  let priceId = prices.data.find(
-    (p) => p.recurring?.interval === planDetails.interval
-  )?.id;
-
-  // If price doesn't exist, create it
-  if (!priceId) {
-    const price = await stripe.prices.create({
-      product: planDetails.productId,
-      unit_amount: planDetails.price * 100, // Convert to cents
-      currency: 'usd',
-      recurring: {
-        interval: planDetails.interval,
-        interval_count: 1,
-      },
-    });
-    priceId = price.id;
-  }
-
   // Create checkout session
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
@@ -92,7 +70,7 @@ export async function createCheckoutSession({
     customer_email: userEmail,
     line_items: [
       {
-        price: priceId,
+        price: planDetails.priceId,
         quantity: 1,
       },
     ],
