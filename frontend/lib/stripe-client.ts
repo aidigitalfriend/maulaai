@@ -16,19 +16,19 @@ export const SUBSCRIPTION_PLANS = {
     name: 'Daily Access',
     price: 1,
     interval: 'day' as const,
-    productId: process.env.STRIPE_DAILY_PRODUCT_ID!,
+    productId: process.env.STRIPE_PRODUCT_DAILY!,
   },
   weekly: {
     name: 'Weekly Access',
     price: 5,
     interval: 'week' as const,
-    productId: process.env.STRIPE_WEEKLY_PRODUCT_ID!,
+    productId: process.env.STRIPE_PRODUCT_WEEKLY!,
   },
   monthly: {
     name: 'Monthly Access',
     price: 19,
     interval: 'month' as const,
-    productId: process.env.STRIPE_MONTHLY_PRODUCT_ID!,
+    productId: process.env.STRIPE_PRODUCT_MONTHLY!,
   },
 }
 
@@ -60,6 +60,31 @@ export async function createCheckoutSession({
     throw new Error(`Invalid plan: ${plan}`)
   }
 
+  // Get or create price for this product
+  const prices = await stripe.prices.list({
+    product: planDetails.productId,
+    active: true,
+    limit: 10,
+  })
+
+  let priceId = prices.data.find(
+    (p) => p.recurring?.interval === planDetails.interval
+  )?.id
+
+  // If price doesn't exist, create it
+  if (!priceId) {
+    const price = await stripe.prices.create({
+      product: planDetails.productId,
+      unit_amount: planDetails.price * 100, // Convert to cents
+      currency: 'usd',
+      recurring: {
+        interval: planDetails.interval,
+        interval_count: 1,
+      },
+    })
+    priceId = price.id
+  }
+
   // Create checkout session
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
@@ -67,17 +92,7 @@ export async function createCheckoutSession({
     customer_email: userEmail,
     line_items: [
       {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${agentName} - ${planDetails.name}`,
-            description: `Subscribe to ${agentName} AI Agent`,
-          },
-          unit_amount: planDetails.price * 100, // Convert to cents
-          recurring: {
-            interval: planDetails.interval,
-          },
-        },
+        price: priceId,
         quantity: 1,
       },
     ],
