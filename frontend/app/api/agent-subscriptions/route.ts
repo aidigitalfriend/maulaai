@@ -6,8 +6,8 @@ const BACKEND_BASE = process.env.BACKEND_URL || 'http://localhost:3005'
 async function proxy(request: NextRequest) {
   try {
     const url = new URL(request.url)
-    const backendPath = url.pathname.replace(/^\/api/, '') || '/'
-    const backendUrl = `${BACKEND_BASE}${backendPath}${url.search}`
+    const backendPath = url.pathname + url.search
+    const backendUrl = `${BACKEND_BASE}${backendPath}`
 
     const init: RequestInit = {
       method: request.method,
