@@ -12,7 +12,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
-import { getClientPromise } from './lib/mongodb.ts';
+import { getClientPromise } from './lib/mongodb.js';
 import {
   initializeTracking,
   trackVisitorMiddleware,
