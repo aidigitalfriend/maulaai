@@ -183,6 +183,91 @@ const AGENT_PRODUCTS: Record<
       priceId: process.env['STRIPE_PRICE_PROFESSOR-ASTROLOGY_MONTHLY']!,
     },
   },
+  // Agents without Stripe products - use fallback to julie-girlfriend products
+  'nid-gaming': {
+    daily: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
+    },
+    weekly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
+    },
+    monthly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
+    },
+  },
+  'ben-sega': {
+    daily: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
+    },
+    weekly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
+    },
+    monthly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
+    },
+  },
+  'bishop-burger': {
+    daily: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
+    },
+    weekly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
+    },
+    monthly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
+    },
+  },
+  'knight-logic': {
+    daily: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
+    },
+    weekly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
+    },
+    monthly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
+    },
+  },
+  'lazy-pawn': {
+    daily: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
+    },
+    weekly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
+    },
+    monthly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
+    },
+  },
+  'rook-jokey': {
+    daily: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
+    },
+    weekly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
+    },
+    monthly: {
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
+    },
+  },
 };
 
 /**
@@ -194,7 +279,15 @@ export function getAgentSubscriptionPlan(
 ) {
   const agentProducts = AGENT_PRODUCTS[agentId];
   if (!agentProducts) {
-    throw new Error(`Agent ${agentId} not found in product mappings`);
+    console.warn(`Agent ${agentId} not found in product mappings, using fallback products`);
+    // Fallback to generic products if agent not configured
+    return {
+      name: `${agentId} ${plan.charAt(0).toUpperCase() + plan.slice(1)} Access`,
+      price: plan === 'daily' ? 1 : plan === 'weekly' ? 5 : 19,
+      interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
+      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
+      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
+    };
   }
 
   const planData = agentProducts[plan];
