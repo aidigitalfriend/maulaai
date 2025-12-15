@@ -1021,8 +1021,8 @@ app.get('/api/user/profile', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -1091,8 +1091,8 @@ app.put('/api/user/profile', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -1548,8 +1548,8 @@ app.get('/api/user/rewards/:userId', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -1686,8 +1686,8 @@ app.get('/api/user/preferences/:userId', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -1781,8 +1781,8 @@ app.put('/api/user/preferences/:userId', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -2662,8 +2662,8 @@ app.get('/api/user/security/:userId', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -2777,8 +2777,8 @@ app.put('/api/user/security/:userId', async (req, res) => {
       return res.status(401).json({ message: 'No session ID' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use Mongoose connection instead of native client
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
