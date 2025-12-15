@@ -279,14 +279,18 @@ export function getAgentSubscriptionPlan(
 ) {
   const agentProducts = AGENT_PRODUCTS[agentId];
   if (!agentProducts) {
-    console.warn(`Agent ${agentId} not found in product mappings, using fallback products`);
+    console.warn(
+      `Agent ${agentId} not found in product mappings, using fallback products`
+    );
     // Fallback to generic products if agent not configured
     return {
       name: `${agentId} ${plan.charAt(0).toUpperCase() + plan.slice(1)} Access`,
       price: plan === 'daily' ? 1 : plan === 'weekly' ? 5 : 19,
       interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
+      productId:
+        process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
+      priceId:
+        process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
     };
   }
 
@@ -359,9 +363,9 @@ export async function createCheckoutSession({
   // Get agent-specific plan details
   const planDetails = getAgentSubscriptionPlan(agentId, plan);
 
-  // Create checkout session for one-time payment (NOT recurring subscription)
+  // Create checkout session for subscription (but will cancel at period end - no auto-renewal)
   const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
+    mode: 'subscription',
     payment_method_types: ['card'],
     customer_email: userEmail,
     line_items: [
@@ -370,6 +374,16 @@ export async function createCheckoutSession({
         quantity: 1,
       },
     ],
+    subscription_data: {
+      metadata: {
+        userId,
+        agentId,
+        agentName,
+        plan,
+      },
+      // Cancel at period end - no auto-renewal
+      cancel_at_period_end: true,
+    },
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {

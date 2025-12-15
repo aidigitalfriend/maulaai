@@ -47,6 +47,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get subscription object (we use subscription mode with cancel_at_period_end)
+    const subscriptionData = session.subscription as Stripe.Subscription | null;
+    
+    if (!subscriptionData) {
+      console.error('❌ No subscription found in session');
+      return NextResponse.json(
+        { success: false, error: 'Subscription not found' },
+        { status: 400 }
+      );
+    }
+
     // Get customer email
     const customer = session.customer as Stripe.Customer;
     const customerEmail = customer?.email || session.customer_email;
@@ -59,10 +70,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract metadata
-    const agentId = session.metadata?.agentId;
-    const agentName = session.metadata?.agentName;
-    const plan = session.metadata?.plan as 'daily' | 'weekly' | 'monthly';
+    // Extract metadata (from subscription_data metadata)
+    const agentId = subscriptionData.metadata?.agentId || session.metadata?.agentId;
+    const agentName = subscriptionData.metadata?.agentName || session.metadata?.agentName;
+    const plan = (subscriptionData.metadata?.plan || session.metadata?.plan) as 'daily' | 'weekly' | 'monthly';
 
     if (!agentId || !agentName || !plan) {
       console.error('❌ Missing metadata:', { agentId, agentName, plan });
@@ -79,27 +90,17 @@ export async function POST(request: NextRequest) {
       agentName,
       plan,
       amount: session.amount_total,
+      subscriptionId: subscriptionData.id,
+      cancelAtPeriodEnd: subscriptionData.cancel_at_period_end,
     });
 
     // Connect to database and create/update access record
     await connectToDatabase();
     const AgentSubscription = await getAgentSubscriptionModel();
 
-    // Calculate expiry date based on plan (one-time purchase, no auto-renewal)
-    const startDate = new Date();
-    const expiryDate = new Date(startDate);
-
-    switch (plan) {
-      case 'daily':
-        expiryDate.setDate(expiryDate.getDate() + 1);
-        break;
-      case 'weekly':
-        expiryDate.setDate(expiryDate.getDate() + 7);
-        break;
-      case 'monthly':
-        expiryDate.setDate(expiryDate.getDate() + 30);
-        break;
-    }
+    // Use subscription period dates (cancel_at_period_end is true, so it won't auto-renew)
+    const startDate = new Date(subscriptionData.current_period_start * 1000);
+    const expiryDate = new Date(subscriptionData.current_period_end * 1000);
 
     // Get price from session
     const price = session.amount_total ? session.amount_total / 100 : 0;
