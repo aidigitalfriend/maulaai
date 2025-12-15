@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Get subscription object (we use subscription mode with cancel_at_period_end)
     const subscriptionData = session.subscription as Stripe.Subscription | null;
-    
+
     if (!subscriptionData) {
       console.error('❌ No subscription found in session');
       return NextResponse.json(
@@ -71,9 +71,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract metadata (from subscription_data metadata)
-    const agentId = subscriptionData.metadata?.agentId || session.metadata?.agentId;
-    const agentName = subscriptionData.metadata?.agentName || session.metadata?.agentName;
-    const plan = (subscriptionData.metadata?.plan || session.metadata?.plan) as 'daily' | 'weekly' | 'monthly';
+    const agentId =
+      subscriptionData.metadata?.agentId || session.metadata?.agentId;
+    const agentName =
+      subscriptionData.metadata?.agentName || session.metadata?.agentName;
+    const plan = (subscriptionData.metadata?.plan || session.metadata?.plan) as
+      | 'daily'
+      | 'weekly'
+      | 'monthly';
 
     if (!agentId || !agentName || !plan) {
       console.error('❌ Missing metadata:', { agentId, agentName, plan });
