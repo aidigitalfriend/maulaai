@@ -1,6 +1,6 @@
 /**
  * Stripe Client Library
- * Wrapper for Stripe API functions used by API routes
+ * Handles one-time payments for agent access (NOT recurring subscriptions)
  */
 
 import Stripe from 'stripe';
@@ -266,9 +266,9 @@ export async function createCheckoutSession({
   // Get agent-specific plan details
   const planDetails = getAgentSubscriptionPlan(agentId, plan);
 
-  // Create checkout session
+  // Create checkout session for one-time payment (NOT recurring subscription)
   const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
+    mode: 'payment',
     payment_method_types: ['card'],
     customer_email: userEmail,
     line_items: [
@@ -284,14 +284,6 @@ export async function createCheckoutSession({
       agentId,
       agentName,
       plan,
-    },
-    subscription_data: {
-      metadata: {
-        userId,
-        agentId,
-        agentName,
-        plan,
-      },
     },
   });
 

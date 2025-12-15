@@ -76,7 +76,8 @@ export async function getAgentSubscriptionModel() {
     },
     {
       timestamps: true,
-      collection: 'agentsubscriptions',
+      // Keep collection aligned with backend (see backend/models/AgentSubscription.js)
+      collection: 'subscriptions',
     }
   );
 
