@@ -5,6 +5,7 @@ import RSCErrorBoundary from '@/components/RSCErrorBoundary';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LoadingProvider } from '@/lib/loading-context';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
+import PerformanceInitializer from './components/PerformanceInitializer';
 import '@/styles/globals.css';
 
 // Metadata for SEO and browser tabs
@@ -126,33 +127,7 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Performance Monitoring Initialization */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                'use strict';
-                // Initialize performance monitoring
-                if (typeof window !== 'undefined') {
-                  window.addEventListener('load', function() {
-                    // Small delay to ensure all resources are loaded
-                    setTimeout(function() {
-                      // Import and initialize performance monitoring
-                      import('/lib/performance.js').then(function(module) {
-                        if (module.initPerformanceMonitoring) {
-                          module.initPerformanceMonitoring();
-                        }
-                      }).catch(function(err) {
-                        console.warn('Performance monitoring failed to load:', err);
-                      });
-                    }, 100);
-                  });
-                }
-              })();
-            `,
-          }}
-        />
-
+        <PerformanceInitializer />
         <LoadingProvider>
           <AuthProvider>
             <RSCErrorBoundary>

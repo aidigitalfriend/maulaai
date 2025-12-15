@@ -3,7 +3,7 @@
  * Web Vitals, Core Web Vitals, and custom performance metrics
  */
 
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals';
 
 // ============================================
 // CORE WEB VITALS MONITORING
@@ -44,27 +44,27 @@ class PerformanceMonitor {
    */
   monitorWebVitals() {
     // Cumulative Layout Shift
-    getCLS((metric) => {
+    onCLS((metric) => {
       this.recordMetric('CLS', metric.value, metric);
     });
 
     // First Input Delay
-    getFID((metric) => {
+    onFID((metric) => {
       this.recordMetric('FID', metric.value, metric);
     });
 
     // First Contentful Paint
-    getFCP((metric) => {
+    onFCP((metric) => {
       this.recordMetric('FCP', metric.value, metric);
     });
 
     // Largest Contentful Paint
-    getLCP((metric) => {
+    onLCP((metric) => {
       this.recordMetric('LCP', metric.value, metric);
     });
 
     // Time to First Byte
-    getTTFB((metric) => {
+    onTTFB((metric) => {
       this.recordMetric('TTFB', metric.value, metric);
     });
   }
