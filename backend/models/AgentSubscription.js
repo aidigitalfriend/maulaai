@@ -35,7 +35,12 @@ const AgentSubscriptionSchema = new mongoose.Schema({
   },
   autoRenew: {
     type: Boolean,
-    default: true,
+    default: false, // One-time purchase - no auto-renewal
+  },
+  stripeSubscriptionId: {
+    type: String,
+    sparse: true, // Sparse index allows multiple null values but enforces uniqueness for non-null
+    index: true,
   },
   createdAt: {
     type: Date,

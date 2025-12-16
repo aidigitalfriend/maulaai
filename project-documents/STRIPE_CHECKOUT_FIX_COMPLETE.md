@@ -21,6 +21,7 @@ The Stripe checkout code was trying to set `cancel_at_period_end: true` during c
 ### 1. **Updated Stripe Checkout Session Creation** ([frontend/lib/stripe-client.ts](../frontend/lib/stripe-client.ts))
 
 **Before**:
+
 ```typescript
 subscription_data: {
   metadata: { ... },
@@ -29,6 +30,7 @@ subscription_data: {
 ```
 
 **After**:
+
 ```typescript
 subscription_data: {
   metadata: {
@@ -46,16 +48,19 @@ subscription_data: {
 Updated three webhook handlers to set `cancel_at_period_end` after subscription creation:
 
 #### A. `handleCheckoutSessionCompleted`
+
 - Fetches subscription from Stripe
 - Calls `stripe.subscriptions.update()` to set `cancel_at_period_end: true`
 - Ensures `autoRenew = false` in database
 
 #### B. `handleSubscriptionCreated`
+
 - Checks for `cancelAtPeriodEnd` metadata flag
 - Updates subscription via Stripe API if needed
 - Sets `autoRenew = false` in database
 
 #### C. `handleSubscriptionUpdated`
+
 - Always sets `autoRenew = false` for any subscription updates
 - Maintains one-time purchase model consistency
 
@@ -79,12 +84,14 @@ Updated three webhook handlers to set `cancel_at_period_end` after subscription 
 ## 🔍 Verification
 
 ### Before Fix:
+
 ```bash
 ❌ POST /api/stripe/checkout → 500 Internal Server Error
 ❌ Stripe: "Received unknown parameter: subscription_data[cancel_at_period_end]"
 ```
 
 ### After Fix:
+
 ```bash
 ✅ POST /api/stripe/checkout → 200 OK
 ✅ Checkout session created successfully
@@ -97,6 +104,7 @@ Updated three webhook handlers to set `cancel_at_period_end` after subscription 
 **Deployed to Production**: December 16, 2025 @ 05:53 UTC  
 **Build Status**: ✅ Success (217 pages generated)  
 **PM2 Status**:
+
 - Backend (id: 6): Online, 94.0mb
 - Frontend (id: 7): Online, 60.8mb
 
@@ -110,12 +118,14 @@ Updated three webhook handlers to set `cancel_at_period_end` after subscription 
 To verify the fix works:
 
 1. **Test Purchase Flow**:
+
    - Go to https://onelastai.co/subscribe?agent=einstein&slug=einstein
    - Click "Purchase Weekly Access"
    - Complete Stripe checkout
    - Verify success page loads
 
 2. **Check Stripe Dashboard**:
+
    - Verify subscription created
    - Confirm `cancel_at_period_end: true` is set
    - Check no future renewals scheduled
@@ -140,7 +150,8 @@ To verify the fix works:
 
 ---
 
-**Next Steps**: 
+**Next Steps**:
+
 - Monitor Stripe webhook logs for successful processing
 - Test full purchase flow with real payment
 - Verify no duplicate subscriptions created

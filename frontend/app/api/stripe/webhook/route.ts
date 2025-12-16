@@ -166,7 +166,9 @@ async function handleCheckoutSessionCompleted(
       await stripe.subscriptions.update(subscription.id, {
         cancel_at_period_end: true,
       });
-      console.log('✅ Subscription set to cancel at period end (no auto-renewal)');
+      console.log(
+        '✅ Subscription set to cancel at period end (no auto-renewal)'
+      );
     } catch (error) {
       console.error('❌ Failed to set cancel_at_period_end:', error);
     }
@@ -175,6 +177,16 @@ async function handleCheckoutSessionCompleted(
   // Save subscription to MongoDB
   console.log('💾 Saving agent subscription to database...');
   const AgentSubscriptionModel = await getAgentSubscriptionModel();
+
+  // Check if subscription already exists by Stripe ID (avoid duplicates)
+  const existingByStripeId = await AgentSubscriptionModel.findOne({
+    stripeSubscriptionId: subscription.id,
+  });
+
+  if (existingByStripeId) {
+    console.log('ℹ️ Subscription already processed (Stripe ID):', subscription.id);
+    return;
+  }
 
   // Check if agent subscription already exists
   const existingSubscription = await AgentSubscriptionModel.findOne({
@@ -201,6 +213,7 @@ async function handleCheckoutSessionCompleted(
       startDate: new Date(subscription.current_period_start * 1000),
       expiryDate: new Date(subscription.current_period_end * 1000),
       autoRenew: false, // Always false for one-time purchase model
+      stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
     });
 
     await agentSub.save();
@@ -215,22 +228,37 @@ async function handleCheckoutSessionCompleted(
  */
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log('🆕 Subscription created:', subscription.id);
-  
+
   // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
   // If the subscription has the cancelAtPeriodEnd metadata flag, update it in Stripe
-  if (subscription.metadata?.cancelAtPeriodEnd === 'true' && !subscription.cancel_at_period_end) {
+  if (
+    subscription.metadata?.cancelAtPeriodEnd === 'true' &&
+    !subscription.cancel_at_period_end
+  ) {
     console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
     try {
       await stripe.subscriptions.update(subscription.id, {
         cancel_at_period_end: true,
       });
-      console.log('✅ Subscription set to cancel at period end (no auto-renewal)');
+      console.log(
+        '✅ Subscription set to cancel at period end (no auto-renewal)'
+      );
     } catch (error) {
       console.error('❌ Failed to set cancel_at_period_end:', error);
     }
   }
-  
+
   const AgentSubscriptionModel = await getAgentSubscriptionModel();
+
+  // Check if subscription already exists by Stripe ID (avoid duplicates)
+  const existingByStripeId = await AgentSubscriptionModel.findOne({
+    stripeSubscriptionId: subscription.id,
+  });
+
+  if (existingByStripeId) {
+    console.log('ℹ️ Subscription already processed (Stripe ID):', subscription.id);
+    return;
+  }
 
   const existingSubscription = await AgentSubscriptionModel.findOne({
     userId: subscription.metadata?.userId,
@@ -256,6 +284,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       startDate: new Date(subscription.current_period_start * 1000),
       expiryDate: new Date(subscription.current_period_end * 1000),
       autoRenew: false, // Always false for one-time purchase model
+      stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
     });
 
     await agentSub.save();

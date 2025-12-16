@@ -116,6 +116,32 @@ export async function POST(request: NextRequest) {
       agentId,
     });
 
+    // Check if subscription already exists (avoid duplicates)
+    const existingByStripeId = await AgentSubscription.findOne({
+      stripeSubscriptionId: subscriptionData.id,
+    });
+
+    if (existingByStripeId) {
+      console.log('✅ Subscription already verified:', subscriptionData.id);
+      return NextResponse.json({
+        success: true,
+        hasAccess: true,
+        subscription: {
+          id: existingByStripeId._id?.toString() || existingByStripeId._id,
+          agentId: existingByStripeId.agentId,
+          plan: existingByStripeId.plan,
+          status: existingByStripeId.status,
+          expiryDate: existingByStripeId.expiryDate,
+          daysRemaining: Math.ceil(
+            (existingByStripeId.expiryDate.getTime() - Date.now()) /
+              (1000 * 60 * 60 * 24)
+          ),
+          price: existingByStripeId.price,
+          autoRenew: false,
+        },
+      });
+    }
+
     let subscriptionRecord;
     if (existingSubscription) {
       // Update existing record - extend access
@@ -128,6 +154,7 @@ export async function POST(request: NextRequest) {
           startDate: startDate,
           expiryDate: expiryDate,
           autoRenew: false, // No auto-renewal for one-time payments
+          stripeSubscriptionId: subscriptionData.id, // Add Stripe ID
           updatedAt: new Date(),
         },
         { new: true }
@@ -143,6 +170,7 @@ export async function POST(request: NextRequest) {
         startDate: startDate,
         expiryDate: expiryDate,
         autoRenew: false, // No auto-renewal for one-time payments
+        stripeSubscriptionId: subscriptionData.id, // Add Stripe ID to prevent duplicates
       });
 
       await subscriptionRecord.save();

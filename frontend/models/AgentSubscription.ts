@@ -13,6 +13,7 @@ export interface IAgentSubscription {
   startDate: Date;
   expiryDate: Date;
   autoRenew: boolean;
+  stripeSubscriptionId?: string; // Optional Stripe subscription ID to prevent duplicates
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -72,6 +73,11 @@ export async function getAgentSubscriptionModel() {
       autoRenew: {
         type: Boolean,
         default: false, // One-time purchase - no auto-renewal
+      },
+      stripeSubscriptionId: {
+        type: String,
+        sparse: true, // Sparse index allows multiple null values but enforces uniqueness for non-null
+        index: true,
       },
     },
     {
