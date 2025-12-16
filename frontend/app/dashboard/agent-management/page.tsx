@@ -140,7 +140,8 @@ export default function AgentManagementPage() {
       };
     });
   }, [subscriptions]);
-agentId: string, agentName: string) => {
+
+  const goToSubscribe = (agentId: string, agentName: string) => {
     redirectToSubscribe({
       agentName,
       agentSlug: agentId,
