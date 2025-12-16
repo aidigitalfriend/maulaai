@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -18,7 +19,6 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useSubscribeRedirect } from '@/hooks/useSubscribeRedirect';
-import { useRouter } from 'next/navigation';
 
 interface AgentCardState {
   agentId: string;
@@ -37,9 +37,9 @@ const PLAN_LABELS: Record<PlanType, string> = {
 
 export default function AgentManagementPage() {
   const { state } = useAuth();
+  const router = useRouter();
   const user = state.user;
   const userId = user?.id;
-  const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<
     AgentSubscription[] | null
   >(null);
@@ -141,10 +141,16 @@ export default function AgentManagementPage() {
     });
   }, [subscriptions]);
 
-  const goToSubscribe = (agentId: string, agentName: string) => {
+  const goToSubscribe = (
+    agentId: string,
+    agentName: string,
+    options?: { plan?: string; intent?: 'upgrade' | 'downgrade' | 'cancel' }
+  ) => {
     redirectToSubscribe({
       agentName,
       agentSlug: agentId,
+      plan: options?.plan,
+      intent: options?.intent,
     });
   };
 
@@ -153,16 +159,11 @@ export default function AgentManagementPage() {
   };
 
   const handleCancelSubscription = (agentId: string, agentName: string) => {
-    redirectToSubscribe({
-      agentName,
-      agentSlug: agentId,
-      intent: 'cancel',
-    });
+    goToSubscribe(agentId, agentName, { intent: 'cancel' });
   };
 
   const handleChatWithAgent = (agentId: string) => {
-    router.push(`/agents/${agentId}`Name: string) => {
-    goToSubscribe(agentId, agentName, { intent: 'cancel' });
+    router.push(`/agents/${agentId}`);
   };
 
   const handleRefreshSubscriptions = () => {
@@ -202,16 +203,15 @@ export default function AgentManagementPage() {
                   Agent Management
                 </h1>
                 <p className="text-neural-600 max-w-2xl mt-3">
-                  Unlock specialized agents, manage upgrades or downgrades, and
-                  adjust your plan on a per-agent basis. Cards stay locked until
+                  Purchase access to specialized agents on a per-agent basis. Cards stay locked until
                   you subscribe, keeping billing under your control.
                 </p>
               </div>
               <div className="bg-white shadow-sm border border-neural-100 rounded-xl p-5 max-w-sm w-full">
                 <div className="flex items-center justify-between">
-                  Purchase access to specialized agents on a one-time basis. 
-                  Choose daily, weekly, or monthly durations. Access remains active 
-                  until expiration—no auto-renewal, complete
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-6 h-6 text-brand-600" />
+                    <div>
                       <p className="text-sm text-neural-500">
                         Current Active Agents
                       </p>
@@ -254,13 +254,6 @@ export default function AgentManagementPage() {
                 const subscriptionPlan = agent.subscription?.plan as
                   | PlanType
                   | undefined;
-                const actions = subscriptionPlan
-                  ? PLAN_ACTIONS[subscriptionPlan]
-                  : PLAN_ACTIONS.daily;
-
-                return (
-                  <div
-                    key={agent.agentId}
 
                 return (
                   <div
@@ -275,10 +268,10 @@ export default function AgentManagementPage() {
                       <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
                         <Lock className="w-10 h-10 text-brand-500 mb-3" />
                         <p className="font-semibold text-neural-800 mb-2">
-                          Purchase Access
+                          Purchase Access to {agent.agentName}
                         </p>
                         <p className="text-sm text-neural-600 mb-4">
-                          Get instant access by choosing a duration.
+                          Get instant access by choosing a plan.
                         </p>
                         <button
                           onClick={() =>
@@ -314,10 +307,10 @@ export default function AgentManagementPage() {
 
                     <p className="text-sm text-neural-600 mb-5">
                       {agent.isUnlocked
-                        ? `Active ${
+                        ? `Currently on ${
                             PLAN_LABELS[subscriptionPlan ?? 'daily']
-                          } access. Valid until expiration. Cancel anytime or repurchase after expiry.`
-                        : `Purchase ${agent.agentName} access for your preferred duration.`}
+                          } plan. You can cancel anytime.`
+                        : `Purchase access to ${agent.agentName} to explore personalized capabilities.`}
                     </p>
 
                     <div className="space-y-3">
@@ -325,12 +318,11 @@ export default function AgentManagementPage() {
                         <>
                           <button
                             onClick={() => handleChatWithAgent(agent.agentId)}
-                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-colors font-semibold"
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-brand-200 text-brand-700 hover:bg-brand-50"
                           >
-                            <MessageSquare className="w-5 h-5" />
-                            Chat with {agent.agentName}
+                            Chat with Agent
+                            <MessageSquare className="w-4 h-4" />
                           </button>
-                          
                           <button
                             onClick={() =>
                               handleCancelSubscription(
@@ -338,33 +330,40 @@ export default function AgentManagementPage() {
                                 agent.agentName
                               )
                             }
-                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
                           >
-                            Cancel Access
+                            Cancel Subscription
                             <span className="text-xs uppercase tracking-widest font-semibold">
                               Stop
                             </span>
                           </button>
                         </>
                       )}
+                    </div>
 
-                      {!agent.isUnlocked && (
-                        <button
-                          onClick={() =>
-                            handleCardClick(agent.agentId, agent.agentName)
-                          }
-                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100 transition-colors"
-                        >
-                          Purchase Access
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>me="bg-white rounded-2xl border border-neural-100 p-8 shadow-sm">
+                    {!agent.isUnlocked && (
+                      <button
+                        onClick={() =>
+                          handleCardClick(agent.agentId, agent.agentName)
+                        }
+                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100"
+                      >
+                        Purchase Access
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl border border-neural-100 p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-neural-900 mb-4">
               How Agent Management Works
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['Choose', 'Manage', 'Optimize'].map((step, index) => (
+              {['Choose', 'Access', 'Renew'].map((step, index) => (
                 <div
                   key={step}
                   className="p-5 rounded-xl border border-neural-100"
@@ -377,11 +376,11 @@ export default function AgentManagementPage() {
                   </h3>
                   <p className="text-neural-600 text-sm">
                     {index === 0 &&
-                      'Select any locked agent to see plan options and unlock via the pricing flow.'}
+                      'Select any locked agent to see plan options and purchase access.'}
                     {index === 1 &&
-                      'Use upgrade, downgrade, or cancel buttons based on your current plan tier.'}
+                      'Chat with your unlocked agents and access their specialized capabilities.'}
                     {index === 2 &&
-                      'Switch plans anytime and redirect to Stripe checkout to confirm changes.'}
+                      'Renew or cancel subscriptions anytime - no auto-renewal.'}
                   </p>
                 </div>
               ))}
@@ -392,24 +391,3 @@ export default function AgentManagementPage() {
     </ProtectedRoute>
   );
 }
-Access Works
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['Purchase', 'Access', 'Renew'].map((step, index) => (
-                <div
-                  key={step}
-                  className="p-5 rounded-xl border border-neural-100"
-                >
-                  <p className="text-sm font-semibold text-brand-500 mb-2">
-                    Step {index + 1}
-                  </p>
-                  <h3 className="text-xl font-semibold text-neural-900 mb-2">
-                    {step}
-                  </h3>
-                  <p className="text-neural-600 text-sm">
-                    {index === 0 &&
-                      'Select any locked agent and choose your preferred duration: daily, weekly, or monthly one-time purchase.'}
-                    {index === 1 &&
-                      'Use the "Chat with Agent" button to instantly access your active agents. Cancel anytime if needed.'}
-                    {index === 2 &&
-                      'After expiration, simply repurchase for your desired duration. No auto-renewal, complete control
