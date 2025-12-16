@@ -363,7 +363,8 @@ export async function createCheckoutSession({
   // Get agent-specific plan details
   const planDetails = getAgentSubscriptionPlan(agentId, plan);
 
-  // Create checkout session for subscription (but will cancel at period end - no auto-renewal)
+  // Create checkout session for subscription
+  // Note: cancel_at_period_end will be set via webhook after subscription is created
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
@@ -380,9 +381,8 @@ export async function createCheckoutSession({
         agentId,
         agentName,
         plan,
+        cancelAtPeriodEnd: 'true', // Flag for webhook to set cancel_at_period_end
       },
-      // Cancel at period end - no auto-renewal
-      cancel_at_period_end: true,
     },
     success_url: successUrl,
     cancel_url: cancelUrl,

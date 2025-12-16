@@ -156,7 +156,21 @@ async function handleCheckoutSessionCompleted(
     id: subscription.id,
     status: subscription.status,
     items: subscription.items.data.length,
+    cancel_at_period_end: subscription.cancel_at_period_end,
   });
+
+  // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
+  if (!subscription.cancel_at_period_end) {
+    console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
+    try {
+      await stripe.subscriptions.update(subscription.id, {
+        cancel_at_period_end: true,
+      });
+      console.log('✅ Subscription set to cancel at period end (no auto-renewal)');
+    } catch (error) {
+      console.error('❌ Failed to set cancel_at_period_end:', error);
+    }
+  }
 
   // Save subscription to MongoDB
   console.log('💾 Saving agent subscription to database...');
@@ -186,7 +200,7 @@ async function handleCheckoutSessionCompleted(
       status: subscription.status === 'active' ? 'active' : 'expired',
       startDate: new Date(subscription.current_period_start * 1000),
       expiryDate: new Date(subscription.current_period_end * 1000),
-      autoRenew: !subscription.cancel_at_period_end,
+      autoRenew: false, // Always false for one-time purchase model
     });
 
     await agentSub.save();
@@ -200,7 +214,22 @@ async function handleCheckoutSessionCompleted(
  * Handle subscription created
  */
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
-  console.log('Subscription created:', subscription.id);
+  console.log('🆕 Subscription created:', subscription.id);
+  
+  // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
+  // If the subscription has the cancelAtPeriodEnd metadata flag, update it in Stripe
+  if (subscription.metadata?.cancelAtPeriodEnd === 'true' && !subscription.cancel_at_period_end) {
+    console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
+    try {
+      await stripe.subscriptions.update(subscription.id, {
+        cancel_at_period_end: true,
+      });
+      console.log('✅ Subscription set to cancel at period end (no auto-renewal)');
+    } catch (error) {
+      console.error('❌ Failed to set cancel_at_period_end:', error);
+    }
+  }
+  
   const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
   const existingSubscription = await AgentSubscriptionModel.findOne({
@@ -226,11 +255,11 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       status: subscription.status === 'active' ? 'active' : 'expired',
       startDate: new Date(subscription.current_period_start * 1000),
       expiryDate: new Date(subscription.current_period_end * 1000),
-      autoRenew: !subscription.cancel_at_period_end,
+      autoRenew: false, // Always false for one-time purchase model
     });
 
     await agentSub.save();
-    console.log('Agent subscription created:', agentSub._id);
+    console.log('✅ Agent subscription created:', agentSub._id);
   }
 }
 
@@ -238,7 +267,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
  * Handle subscription updated
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  console.log('Subscription updated:', subscription.id);
+  console.log('🔄 Subscription updated:', subscription.id);
   const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
   const existingSubscription = await AgentSubscriptionModel.findOne({
@@ -268,11 +297,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       status: subscription.status === 'active' ? 'active' : 'expired',
       startDate: new Date(subscription.current_period_start * 1000),
       expiryDate: new Date(subscription.current_period_end * 1000),
-      autoRenew: !subscription.cancel_at_period_end,
+      autoRenew: false, // Always false for one-time purchase model
     });
 
     await agentSub.save();
-    console.log('Agent subscription created:', agentSub._id);
+    console.log('✅ Agent subscription created:', agentSub._id);
   } else {
     // Update existing subscription
     existingSubscription.status =
@@ -280,11 +309,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     existingSubscription.expiryDate = new Date(
       subscription.current_period_end * 1000
     );
-    existingSubscription.autoRenew = !subscription.cancel_at_period_end;
+    existingSubscription.autoRenew = false; // Always false for one-time purchase model
     existingSubscription.updatedAt = new Date();
 
     await existingSubscription.save();
-    console.log('Agent subscription updated:', existingSubscription._id);
+    console.log('✅ Agent subscription updated:', existingSubscription._id);
   }
 }
 
