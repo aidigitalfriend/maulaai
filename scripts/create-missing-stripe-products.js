@@ -2,7 +2,7 @@
 
 /**
  * 🎯 CREATE MISSING STRIPE PRODUCTS & PRICES
- * 
+ *
  * This script creates Stripe products and prices for the 6 missing agents:
  * - nid-gaming
  * - ben-sega
@@ -10,11 +10,11 @@
  * - knight-logic
  * - lazy-pawn
  * - rook-jokey
- * 
+ *
  * Each agent gets:
  * - 3 products (daily, weekly, monthly)
  * - 3 prices ($1, $5, $19)
- * 
+ *
  * Total: 18 products + 18 prices = 36 Stripe IDs
  */
 
@@ -35,51 +35,51 @@ const MISSING_AGENTS = [
     id: 'nid-gaming',
     name: 'Nid Gaming',
     description: 'Your gaming companion and strategy expert',
-    emoji: '🎮'
+    emoji: '🎮',
   },
   {
     id: 'ben-sega',
     name: 'Ben Sega',
     description: 'Retro gaming enthusiast and console expert',
-    emoji: '🕹️'
+    emoji: '🕹️',
   },
   {
     id: 'bishop-burger',
     name: 'Bishop Burger',
     description: 'Strategic thinker and food connoisseur',
-    emoji: '🍔'
+    emoji: '🍔',
   },
   {
     id: 'knight-logic',
     name: 'Knight Logic',
     description: 'Master of logical reasoning and problem solving',
-    emoji: '♞'
+    emoji: '♞',
   },
   {
     id: 'lazy-pawn',
     name: 'Lazy Pawn',
     description: 'Relaxed advisor for stress-free living',
-    emoji: '😴'
+    emoji: '😴',
   },
   {
     id: 'rook-jokey',
     name: 'Rook Jokey',
     description: 'Comedy expert with strategic wit',
-    emoji: '🃏'
-  }
+    emoji: '🃏',
+  },
 ];
 
 // Plan configurations
 const PLANS = [
   { interval: 'daily', name: 'Daily', price: 100, intervalCount: 1 }, // $1.00
   { interval: 'weekly', name: 'Weekly', price: 500, intervalCount: 1 }, // $5.00
-  { interval: 'monthly', name: 'Monthly', price: 1900, intervalCount: 1 } // $19.00
+  { interval: 'monthly', name: 'Monthly', price: 1900, intervalCount: 1 }, // $19.00
 ];
 
 // Store results for .env output
 const envOutput = {
   frontend: [],
-  backend: []
+  backend: [],
 };
 
 /**
@@ -87,7 +87,9 @@ const envOutput = {
  */
 async function createProductAndPrice(agent, plan) {
   try {
-    console.log(`\n${agent.emoji} Creating ${plan.name} plan for ${agent.name}...`);
+    console.log(
+      `\n${agent.emoji} Creating ${plan.name} plan for ${agent.name}...`
+    );
 
     // Create Product
     const product = await stripe.products.create({
@@ -97,8 +99,8 @@ async function createProductAndPrice(agent, plan) {
         agentId: agent.id,
         plan: plan.interval,
         createdBy: 'automated-script',
-        createdAt: new Date().toISOString()
-      }
+        createdAt: new Date().toISOString(),
+      },
     });
 
     console.log(`  ✅ Product created: ${product.id}`);
@@ -109,20 +111,30 @@ async function createProductAndPrice(agent, plan) {
       unit_amount: plan.price,
       currency: 'usd',
       recurring: {
-        interval: plan.interval === 'daily' ? 'day' : plan.interval === 'weekly' ? 'week' : 'month',
-        interval_count: plan.intervalCount
+        interval:
+          plan.interval === 'daily'
+            ? 'day'
+            : plan.interval === 'weekly'
+            ? 'week'
+            : 'month',
+        interval_count: plan.intervalCount,
       },
       metadata: {
         agentId: agent.id,
-        plan: plan.interval
-      }
+        plan: plan.interval,
+      },
     });
 
-    console.log(`  ✅ Price created: ${price.id} ($${(plan.price / 100).toFixed(2)})`);
+    console.log(
+      `  ✅ Price created: ${price.id} ($${(plan.price / 100).toFixed(2)})`
+    );
 
     return { product, price, agent, plan };
   } catch (error) {
-    console.error(`  ❌ Error creating ${plan.name} for ${agent.name}:`, error.message);
+    console.error(
+      `  ❌ Error creating ${plan.name} for ${agent.name}:`,
+      error.message
+    );
     throw error;
   }
 }
@@ -143,7 +155,7 @@ function generateEnvOutput(results) {
         name: agent.name,
         emoji: agent.emoji,
         products: {},
-        prices: {}
+        prices: {},
       };
     }
     agentGroups[agent.id].products[plan.interval] = product.id;
@@ -153,7 +165,7 @@ function generateEnvOutput(results) {
   // Generate output for each agent
   Object.entries(agentGroups).forEach(([agentId, data]) => {
     const envName = agentId.toUpperCase().replace(/-/g, '-');
-    
+
     console.log(`\n# ${data.emoji} ${data.name} (${agentId})`);
     console.log(`STRIPE_PRODUCT_${envName}_DAILY=${data.products.daily}`);
     console.log(`STRIPE_PRODUCT_${envName}_WEEKLY=${data.products.weekly}`);
@@ -164,7 +176,15 @@ function generateEnvOutput(results) {
   });
 
   console.log('\n' + '='.repeat(80));
-  console.log('✅ Total: ' + results.length + ' products + ' + results.length + ' prices = ' + (results.length * 2) + ' IDs');
+  console.log(
+    '✅ Total: ' +
+      results.length +
+      ' products + ' +
+      results.length +
+      ' prices = ' +
+      results.length * 2 +
+      ' IDs'
+  );
   console.log('='.repeat(80));
 }
 
@@ -175,9 +195,15 @@ async function main() {
   console.log('🚀 STRIPE PRODUCT CREATION SCRIPT');
   console.log('='.repeat(80));
   console.log('📦 Creating products for 6 missing agents...');
-  console.log('💳 Using Stripe account:', process.env.STRIPE_ACCOUNT_ID || 'Default');
-  console.log('🔑 API Key:', process.env.STRIPE_SECRET_KEY ? '✅ Found' : '❌ Missing');
-  
+  console.log(
+    '💳 Using Stripe account:',
+    process.env.STRIPE_ACCOUNT_ID || 'Default'
+  );
+  console.log(
+    '🔑 API Key:',
+    process.env.STRIPE_SECRET_KEY ? '✅ Found' : '❌ Missing'
+  );
+
   if (!process.env.STRIPE_SECRET_KEY) {
     console.error('\n❌ ERROR: STRIPE_SECRET_KEY not found in backend/.env');
     process.exit(1);
@@ -194,9 +220,9 @@ async function main() {
     for (const plan of PLANS) {
       const result = await createProductAndPrice(agent, plan);
       results.push(result);
-      
+
       // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
 
@@ -213,7 +239,7 @@ async function main() {
 }
 
 // Run the script
-main().catch(error => {
+main().catch((error) => {
   console.error('\n💥 FATAL ERROR:', error.message);
   process.exit(1);
 });

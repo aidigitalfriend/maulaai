@@ -26,6 +26,8 @@ import { rateLimiters, cache } from './lib/cache.js';
 import { connectionConfig, indexManager, poolMonitor } from './lib/database.js';
 // Import models to ensure they are registered with Mongoose
 import AgentSubscription from './models/AgentSubscription.js';
+// Import subscription cron job
+import { startSubscriptionExpirationCron } from './services/subscription-cron.js';
 
 // Ensure model is registered
 if (!mongoose.models.AgentSubscription) {
@@ -4017,6 +4019,9 @@ initializeOptimizations()
       } else {
         console.log('⚠️  No AI services configured - using simulation mode');
       }
+
+      // Start subscription expiration cron job
+      startSubscriptionExpirationCron();
 
       console.log('✅ Server started successfully with optimizations');
     });

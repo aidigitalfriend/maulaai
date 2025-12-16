@@ -1,39 +1,84 @@
 /**
  * Stripe Checkout API Route
  * Creates a Stripe checkout session for agent subscriptions
+ *
+ * CRITICAL: Validates that user doesn't already have active subscription
+ * before creating checkout session (prevents duplicate purchases)
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { createCheckoutSession } from '../../../../lib/stripe-client'
+import { NextRequest, NextResponse } from 'next/server';
+import { createCheckoutSession } from '../../../../lib/stripe-client';
+import { connectToDatabase } from '../../../../lib/mongodb-client';
+import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { agentId, agentName, plan, userId, userEmail } = body
+    const body = await request.json();
+    const { agentId, agentName, plan, userId, userEmail } = body;
 
     // Validate required fields
     if (!agentId || !agentName || !plan || !userId || !userEmail) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Missing required fields: agentId, agentName, plan, userId, userEmail' 
+        {
+          success: false,
+          error:
+            'Missing required fields: agentId, agentName, plan, userId, userEmail',
         },
         { status: 400 }
-      )
+      );
     }
 
     // Validate plan type
     if (!['daily', 'weekly', 'monthly'].includes(plan)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid plan. Must be daily, weekly, or monthly' },
+        {
+          success: false,
+          error: 'Invalid plan. Must be daily, weekly, or monthly',
+        },
         { status: 400 }
-      )
+      );
+    }
+
+    // ✅ CRITICAL: Check if user already has active subscription for this agent
+    await connectToDatabase();
+    const AgentSubscription = await getAgentSubscriptionModel();
+
+    const existingSubscription = await AgentSubscription.findOne({
+      userId: userId,
+      agentId: agentId,
+      status: 'active',
+      expiryDate: { $gt: new Date() }, // Not expired
+    });
+
+    if (existingSubscription) {
+      const daysRemaining = Math.ceil(
+        (existingSubscription.expiryDate.getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: `You already have an active ${existingSubscription.plan} subscription for ${agentName}`,
+          alreadySubscribed: true,
+          existingSubscription: {
+            plan: existingSubscription.plan,
+            expiryDate: existingSubscription.expiryDate,
+            daysRemaining: daysRemaining,
+          },
+        },
+        { status: 400 }
+      );
     }
 
     // Build success and cancel URLs
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const successUrl = `${baseUrl}/subscription-success?session_id={CHECKOUT_SESSION_ID}&agent=${encodeURIComponent(agentName)}&slug=${agentId}`
-    const cancelUrl = `${baseUrl}/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentId}&plan=${plan}&cancelled=true`
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const successUrl = `${baseUrl}/subscription-success?session_id={CHECKOUT_SESSION_ID}&agent=${encodeURIComponent(
+      agentName
+    )}&slug=${agentId}`;
+    const cancelUrl = `${baseUrl}/subscribe?agent=${encodeURIComponent(
+      agentName
+    )}&slug=${agentId}&plan=${plan}&cancelled=true`;
 
     // Create Stripe checkout session
     const session = await createCheckoutSession({
@@ -44,28 +89,30 @@ export async function POST(request: NextRequest) {
       userEmail,
       successUrl,
       cancelUrl,
-    })
+    });
 
     return NextResponse.json({
       success: true,
       url: session.url,
       sessionId: session.id,
-    })
-
+    });
   } catch (error) {
-    console.error('Checkout session creation error:', error)
-    
+    console.error('Checkout session creation error:', error);
+
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to create checkout session' 
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create checkout session',
       },
       { status: 500 }
-    )
+    );
   }
 }
 
 // Handle OPTIONS for CORS
 export async function OPTIONS() {
-  return NextResponse.json({}, { status: 200 })
+  return NextResponse.json({}, { status: 200 });
 }

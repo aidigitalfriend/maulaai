@@ -71,7 +71,7 @@ export async function getAgentSubscriptionModel() {
       },
       autoRenew: {
         type: Boolean,
-        default: true,
+        default: false, // One-time purchase - no auto-renewal
       },
     },
     {

@@ -147,6 +147,112 @@ router.get('/subscriptions/:userId', async (req, res) => {
   }
 });
 
+// ✅ Check if user has active subscription for specific agent
+router.post('/check-active', async (req, res) => {
+  try {
+    const { userId, agentId } = req.body;
+
+    if (!userId || !agentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId and agentId are required',
+      });
+    }
+
+    const subscription = await AgentSubscription.findOne({
+      userId: userId,
+      agentId: agentId,
+      status: 'active',
+      expiryDate: { $gt: new Date() }, // Not expired
+    });
+
+    if (subscription) {
+      const daysRemaining = Math.ceil(
+        (subscription.expiryDate - new Date()) / (1000 * 60 * 60 * 24)
+      );
+
+      return res.json({
+        success: true,
+        hasActive: true,
+        subscription: {
+          id: subscription._id,
+          plan: subscription.plan,
+          price: subscription.price,
+          status: subscription.status,
+          startDate: subscription.startDate,
+          expiryDate: subscription.expiryDate,
+          daysRemaining: daysRemaining,
+          autoRenew: subscription.autoRenew,
+        },
+      });
+    }
+
+    return res.json({
+      success: true,
+      hasActive: false,
+      subscription: null,
+    });
+  } catch (error) {
+    console.error('Check active subscription error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check subscription',
+      message: error.message,
+    });
+  }
+});
+
+// ✅ Cancel user's active subscription
+router.post('/cancel', async (req, res) => {
+  try {
+    const { userId, agentId } = req.body;
+
+    if (!userId || !agentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId and agentId are required',
+      });
+    }
+
+    const subscription = await AgentSubscription.findOne({
+      userId: userId,
+      agentId: agentId,
+      status: 'active',
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No active subscription found for this agent',
+      });
+    }
+
+    // Update status to cancelled (keep record for history)
+    subscription.status = 'cancelled';
+    await subscription.save();
+
+    res.json({
+      success: true,
+      message: 'Subscription cancelled successfully',
+      subscription: {
+        id: subscription._id,
+        agentId: subscription.agentId,
+        plan: subscription.plan,
+        status: 'cancelled',
+        wasExpiringOn: subscription.expiryDate,
+        cancelledAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('Cancel subscription error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to cancel subscription',
+      message: error.message,
+    });
+  }
+});
+
 // Subscribe to an agent
 // Subscribe to an agent
 router.post('/subscribe', async (req, res) => {
