@@ -26,7 +26,7 @@ function CancelContent() {
             Payment Cancelled
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Your subscription to <span className="font-semibold text-brand-600">{agentName}</span> was not completed
+            Your purchase of <span className="font-semibold text-brand-600">{agentName}</span> was not completed
           </p>
 
           {/* Info Box */}
@@ -61,7 +61,7 @@ function CancelContent() {
             <ul className="text-gray-700 space-y-2 text-sm">
               <li>• Having payment issues? <Link href="/support" className="text-brand-600 hover:underline">Contact Support</Link></li>
               <li>• Want to learn more about plans? <Link href="/pricing" className="text-brand-600 hover:underline">View Pricing</Link></li>
-              <li>• Questions about subscriptions? Check our <Link href="/legal/terms" className="text-brand-600 hover:underline">FAQ</Link></li>
+              <li>• Questions about pricing? Check our <Link href="/support/faqs" className="text-brand-600 hover:underline">FAQ</Link></li>
             </ul>
           </div>
         </div>

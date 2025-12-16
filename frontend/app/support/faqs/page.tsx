@@ -11,7 +11,7 @@ export default function FAQsPage() {
         },
         {
           q: 'How do I get started?',
-          a: 'Create your account, choose the AI agent you want, and activate either the $1 daily, $5 weekly, or $19 monthly subscription for that agent. Each plan unlocks the agent immediately and renews based on the interval you select.',
+          a: 'Create your account, choose the AI agent you want, and purchase access for $1/day, $5/week, or $19/month. Each purchase unlocks the agent immediately for the selected period. No auto-renewal—you only pay for what you use.',
         },
         {
           q: 'Do I need technical skills?',
@@ -28,23 +28,19 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'What are the pricing plans?',
-          a: 'We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each subscription gives you unlimited access to one AI agent of your choice. No free trials - all access is paid.',
+          a: 'We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each one-time purchase gives you unlimited access to one AI agent of your choice for the selected period. No auto-renewal, no recurring charges—pay only when you want access.',
         },
         {
           q: "What does 'per agent' mean?",
-          a: "Each subscription gives you access to exactly one AI agent. If you want to use multiple agents, you need separate subscriptions for each one. This ensures focused, dedicated access to each agent's unique capabilities.",
+          a: "Each purchase gives you access to exactly one AI agent. If you want to use multiple agents, you need separate purchases for each one. This ensures focused, dedicated access to each agent's unique capabilities. You can buy multiple agents simultaneously or sequentially.",
         },
         {
           q: 'Can I cancel anytime?',
-          a: "Yes! You can cancel your subscription at any time. You'll have access to your current plan until the end of your billing period, and all your data is preserved.",
+          a: "Yes! You can cancel your access at any time. Since there's no auto-renewal, you simply won't be charged again. If you cancel during your active period, you'll keep access until expiration, and you can re-purchase the same agent whenever you want.",
         },
         {
           q: 'Do you offer refunds?',
-          a: 'Yes. We offer full refunds within 30 days, 50% refunds between 30-60 days. After 60 days, no refunds are available but you can cancel anytime without further charges.',
-        },
-        {
-          q: 'Is there an annual billing option?',
-          a: 'Yes! Annual billing is available at a 17% discount. You can select annual billing during checkout or upgrade your existing monthly subscription.',
+          a: "Yes. We offer full refunds within 30 days, 50% refunds between 30-60 days. After 60 days, no refunds are available but you can cancel anytime without further charges. Since there's no auto-renewal, you only pay once per purchase.",
         },
         {
           q: 'What payment methods do you accept?',
@@ -61,7 +57,7 @@ export default function FAQsPage() {
         },
         {
           q: 'Can I change my plan?',
-          a: "Yes. You can upgrade or downgrade your plan at any time from your account settings. Changes take effect on your next billing cycle, and we'll pro-rate any differences.",
+          a: "Yes. Since each purchase is one-time, you can simply choose a different plan (daily/weekly/monthly) for your next purchase. No need to 'upgrade' or 'downgrade'—just pick what works best for you each time. Your active access continues until expiration.",
         },
         {
           q: 'How do I reset my password?',
@@ -86,11 +82,11 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'How many AI agents can I use simultaneously?',
-          a: 'You can use as many agents as you want simultaneously. Each agent is billed separately based on your plan. You can easily switch between agents or have multiple conversations at once.',
+          a: 'You can purchase and use as many agents as you want simultaneously. Each agent is purchased separately based on your chosen plan. You can easily switch between agents or have multiple conversations at once with different agents.',
         },
         {
           q: "Can I customize an agent's behavior?",
-          a: 'Yes. Monthly subscribers can fine-tune personality traits, guardrails, and saved prompts for each agent. Daily and weekly plans include light personalization like conversation context and saved preferences.',
+          a: 'Yes. Monthly access includes advanced personalization: fine-tune personality traits, set guardrails, and save custom prompts for each agent. Daily and weekly access includes basic personalization like conversation context and saved preferences.',
         },
         {
           q: 'What integrations are available?',
@@ -102,11 +98,11 @@ export default function FAQsPage() {
         },
         {
           q: 'What are the usage limits?',
-          a: 'Daily: 500 API calls per day, Weekly: 2,500 API calls per week, Monthly: 15,000 API calls per month. Rate limits reset at the end of each billing interval and apply per agent subscription.',
+          a: 'Daily: 500 API calls per day, Weekly: 2,500 API calls per week, Monthly: 15,000 API calls per month. Rate limits reset at the end of each access period and apply per agent purchase. These are generous limits designed for typical usage.',
         },
         {
           q: 'Can I use One Last AI for commercial purposes?',
-          a: 'Yes! All paid plans (daily, weekly, monthly) include commercial usage rights for the subscribed agent. Contact support if you need dedicated SLAs or multiple concurrent agents for a team.',
+          a: 'Yes! All paid plans (daily, weekly, monthly) include commercial usage rights for the purchased agent. Contact support if you need dedicated SLAs or multiple concurrent agents for a team. Each purchase includes full commercial rights.',
         },
       ],
     },

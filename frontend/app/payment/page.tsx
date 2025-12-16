@@ -177,10 +177,10 @@ function PaymentContent() {
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="text-6xl mb-6">💳</div>
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
-            Complete Your Subscription
+            Complete Your Purchase
           </h1>
           <p className="text-xl text-neural-600">
-            You're about to subscribe to{' '}
+            You're about to purchase access to{' '}
             <span className="font-semibold text-brand-600">{agentName}</span>
           </p>
         </div>
@@ -428,8 +428,8 @@ function PaymentContent() {
                 <span className="font-semibold capitalize">{plan}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Billing Cycle:</span>
-                <span className="font-semibold">Every {billing.cycle}</span>
+                <span className="text-gray-600">Access Period:</span>
+                <span className="font-semibold capitalize">{billing.cycle === 'day' ? '1 Day' : billing.cycle === 'week' ? '1 Week' : '1 Month'}</span>
               </div>
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
@@ -463,8 +463,7 @@ function PaymentContent() {
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-blue-800 text-sm">
-                <strong>Next billing:</strong> In {billing.nextBilling} from
-                today
+                <strong>Access expires:</strong> In {billing.nextBilling} from today (NO auto-renewal)
               </p>
             </div>
 
@@ -483,7 +482,7 @@ function PaymentContent() {
                   Processing...
                 </div>
               ) : (
-                `Subscribe for ${price}/${billing.cycle}`
+                `Purchase ${billing.cycle === 'day' ? 'Daily' : billing.cycle === 'week' ? 'Weekly' : 'Monthly'} Access for ${price}`
               )}
             </button>
 
@@ -494,12 +493,10 @@ function PaymentContent() {
                   <span className="mr-2">📋</span> Terms & Conditions
                 </h4>
                 <p className="text-xs text-gray-600 leading-relaxed mb-2">
-                  By subscribing, you agree to our Terms of Service. Your
-                  subscription will auto-renew at the end of each billing cycle.
-                  You maintain full control and can cancel anytime.
+                  By purchasing, you agree to our Terms of Service. This is a one-time purchase with NO auto-renewal. You'll need to purchase again when your access expires if you want to continue using the agent.
                 </p>
                 <Link
-                  href="/terms"
+                  href="/legal/terms-of-service"
                   className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors inline-flex items-center"
                 >
                   Read More →
@@ -511,12 +508,10 @@ function PaymentContent() {
                   <span className="mr-2">🔄</span> Refund Policy
                 </h4>
                 <p className="text-xs text-green-700 leading-relaxed mb-2">
-                  We offer a 7-day money-back guarantee. If you're not satisfied
-                  with your subscription, contact us within 7 days for a full
-                  refund, no questions asked.
+                  All sales are final. Since this is a one-time purchase with no commitment, we do not offer refunds. Please make sure you want to purchase before completing payment.
                 </p>
                 <Link
-                  href="/refund-policy"
+                  href="/legal/payments-refunds"
                   className="text-xs font-semibold text-green-700 hover:text-green-800 transition-colors inline-flex items-center"
                 >
                   Read More →

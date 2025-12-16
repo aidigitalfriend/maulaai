@@ -27,14 +27,14 @@ function SuccessContent() {
             🎉 Payment Successful!
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            You're now subscribed to <span className="font-semibold text-brand-600">{agentName}</span>
+            You now have access to <span className="font-semibold text-brand-600">{agentName}</span>
           </p>
 
           {/* Details */}
           <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
             <div className="space-y-4 text-left">
               <div className="flex justify-between items-center border-b pb-4">
-                <span className="text-gray-600">Subscription Status:</span>
+                <span className="text-gray-600">Access Status:</span>
                 <span className="font-semibold text-green-600">✅ Active</span>
               </div>
               <div className="flex justify-between items-center border-b pb-4">
@@ -71,9 +71,9 @@ function SuccessContent() {
             <h3 className="font-bold text-gray-900 mb-2">📧 What's Next?</h3>
             <ul className="text-gray-700 space-y-2 text-sm">
               <li>✓ A confirmation email has been sent to your inbox</li>
-              <li>✓ Your subscription is now active and ready to use</li>
-              <li>✓ You can manage your subscription from the Dashboard</li>
-              <li>✓ Cancel anytime with no penalties</li>
+              <li>✓ Your access is now active and ready to use</li>
+              <li>✓ You can manage your purchases from the Dashboard</li>
+              <li>✓ No auto-renewal - buy again when you want more access</li>
             </ul>
           </div>
         </div>

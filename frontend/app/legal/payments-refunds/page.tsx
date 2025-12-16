@@ -25,16 +25,16 @@ export default function PaymentsRefundsPage() {
             <h2 className="text-3xl font-bold mb-4 text-brand-400">1. Overview</h2>
             <p className="text-neural-200 leading-relaxed mb-4">
               This Payments & Refunds Policy explains the pricing structure, payment methods, billing procedures, 
-              and refund policy for One Last AI services. By subscribing to our services, you agree to these terms.
+              and refund policy for One Last AI services. By purchasing access to our services, you agree to these terms.
             </p>
             <div className="bg-brand-900/20 rounded-xl p-6 border border-brand-500/30 mt-4">
               <div className="flex gap-3">
                 <DollarSign className="text-brand-400 flex-shrink-0 mt-1" size={32} />
                 <div>
-                  <p className="text-white font-bold text-xl mb-2">$1 Daily Trial - Full Platform Access</p>
+                  <p className="text-white font-bold text-xl mb-2">One-Time Purchases - No Auto-Renewal</p>
                   <p className="text-neural-200">
-                    Experience our complete multi-agent AI platform for just $1.00 USD per day. 
-                    No hidden fees. Cancel anytime.
+                    Choose from $1/day, $5/week, or $19/month access to any AI agent. Each purchase is one-time only with NO automatic renewal. 
+                    You only pay when you want access.
                   </p>
                 </div>
               </div>
@@ -49,35 +49,35 @@ export default function PaymentsRefundsPage() {
               <div className="bg-gradient-to-br from-brand-900/30 to-accent-900/30 rounded-xl p-6 border border-brand-500/30">
                 <h3 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
                   <DollarSign className="text-brand-400" />
-                  $1.00 USD Daily Trial
+                  Simple Per-Agent Pricing
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <span className="text-brand-400 font-bold mt-1">✓</span>
                     <div>
-                      <p className="text-white font-semibold">Full Platform Access</p>
-                      <p className="text-neural-200 text-sm">All AI agents, tools, and features included</p>
+                      <p className="text-white font-semibold">One-Time Purchase</p>
+                      <p className="text-neural-200 text-sm">$1/day, $5/week, or $19/month - NO auto-renewal</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="text-brand-400 font-bold mt-1">✓</span>
                     <div>
-                      <p className="text-white font-semibold">Billed Daily</p>
-                      <p className="text-neural-200 text-sm">$1.00 charged every 24 hours</p>
+                      <p className="text-white font-semibold">Single Agent Access</p>
+                      <p className="text-neural-200 text-sm">Choose one AI agent per purchase</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="text-brand-400 font-bold mt-1">✓</span>
                     <div>
-                      <p className="text-white font-semibold">Cancel Anytime</p>
-                      <p className="text-neural-200 text-sm">No long-term commitment required</p>
+                      <p className="text-white font-semibold">No Recurring Charges</p>
+                      <p className="text-neural-200 text-sm">Manually repurchase when access expires if you want to continue</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="text-brand-400 font-bold mt-1">✓</span>
                     <div>
                       <p className="text-white font-semibold">Immediate Access</p>
-                      <p className="text-neural-200 text-sm">Start using all features right away</p>
+                      <p className="text-neural-200 text-sm">Start using your chosen agent right away</p>
                     </div>
                   </div>
                 </div>
@@ -116,14 +116,14 @@ export default function PaymentsRefundsPage() {
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-white">2.2 No Free Tier</h3>
                 <p className="text-neural-200">
-                  One Last AI does not offer a free tier. The $1 daily trial provides affordable access to our 
-                  premium platform. This low-cost model ensures:
+                  One Last AI does not offer a free tier. All agent access requires a one-time payment starting at $1/day. This low-cost model ensures:
                 </p>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2 mt-2">
                   <li>High-quality AI services without ads</li>
                   <li>Continuous platform improvements</li>
                   <li>Responsive customer support</li>
                   <li>Data privacy and security investments</li>
+                  <li>No surprise recurring charges</li>
                 </ul>
               </div>
             </div>
@@ -191,47 +191,42 @@ export default function PaymentsRefundsPage() {
 
           {/* Billing Terms */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">4. Billing Terms</h2>
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">4. Payment Terms</h2>
             
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">4.1 Automatic Daily Billing</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">4.1 One-Time Purchase - No Auto-Renewal</h3>
                 <p className="text-neural-200 mb-3">
-                  Your payment method will be charged <strong className="text-white">$1.00 USD every 24 hours</strong> 
-                  starting from your initial subscription:
+                  Your payment method will be charged <strong className="text-white">once</strong> when you purchase access:
                 </p>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2">
-                  <li>First charge occurs immediately upon subscription</li>
-                  <li>Subsequent charges occur at the same time daily</li>
-                  <li>Billing continues until you cancel</li>
-                  <li>No pro-rated refunds for partial days</li>
+                  <li>Charge occurs immediately upon purchase</li>
+                  <li><strong className="text-white">NO automatic renewal</strong> - you will NOT be charged again</li>
+                  <li>Access expires after your chosen period (1 day, 1 week, or 1 month)</li>
+                  <li>You must manually purchase again if you want continued access</li>
+                  <li>No surprises - you control when you pay</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-white">4.2 Payment Failures</h3>
                 <p className="text-neural-200 mb-3">
-                  If a payment fails:
+                  If a payment fails during purchase:
                 </p>
                 <div className="space-y-3">
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-amber-500/30">
                     <p className="text-neural-200">
-                      <strong className="text-white">Day 1:</strong> We'll retry the payment and send an email notification
+                      <strong className="text-white">Immediate:</strong> You'll see an error message and can retry with a different payment method
                     </p>
                   </div>
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-amber-500/30">
                     <p className="text-neural-200">
-                      <strong className="text-white">Day 2-3:</strong> Additional retry attempts with email reminders
+                      <strong className="text-white">No Access:</strong> Access is not granted until payment succeeds
                     </p>
                   </div>
-                  <div className="bg-neural-900/50 rounded-xl p-4 border border-red-500/30">
+                  <div className="bg-neural-900/50 rounded-xl p-4 border border-brand-500/30">
                     <p className="text-neural-200">
-                      <strong className="text-white">Day 4:</strong> Account suspended; access restricted until payment succeeds
-                    </p>
-                  </div>
-                  <div className="bg-neural-900/50 rounded-xl p-4 border border-red-500/30">
-                    <p className="text-neural-200">
-                      <strong className="text-white">Day 7:</strong> Account terminated if payment still fails
+                      <strong className="text-white">No Retries:</strong> Since there's no auto-renewal, we don't retry failed payments - you simply try again when ready
                     </p>
                   </div>
                 </div>
@@ -273,17 +268,16 @@ export default function PaymentsRefundsPage() {
                 <p className="text-neural-200 leading-relaxed mb-4 text-lg">
                   <strong className="text-red-400">ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.</strong>
                 </p>
-                <p className="text-neural-200 leading-relaxed">
-                  All payments made to One Last AI are <strong className="text-white">final, non-refundable, and 
+                <p className="text-neural-200 leading-relaxed"> All payments made to One Last AI are <strong className="text-white">final, non-refundable, and 
                   non-transferable</strong>. This includes but is not limited to:
                 </p>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2 mt-3">
-                  <li>Daily trial charges ($1.00 per day)</li>
-                  <li>Any subscription fees</li>
-                  <li>Additional service charges</li>
+                  <li>Daily access charges ($1.00 per day)</li>
+                  <li>Weekly access charges ($5.00 per week)</li>
+                  <li>Monthly access charges ($19.00 per month)</li>
+                  <li>Any one-time purchase fees</li>
                   <li>Payments made in error</li>
                   <li>Duplicate payments</li>
-                  <li>Charges after cancellation intent (if cancellation not completed properly)</li>
                 </ul>
               </div>
 
@@ -326,10 +320,9 @@ export default function PaymentsRefundsPage() {
                   <div className="flex items-start gap-3">
                     <span className="text-brand-400 font-bold mt-1 text-xl">4.</span>
                     <div>
-                      <p className="text-white font-semibold">Cancel Anytime Flexibility</p>
+                      <p className="text-white font-semibold">Transparent Pricing</p>
                       <p className="text-neural-200 text-sm">
-                        You can cancel your subscription at any time with no penalty. This provides flexibility 
-                        without requiring refunds.
+                        You know exactly what you're paying upfront with no hidden fees or recurring charges. Make an informed decision before purchase.
                       </p>
                     </div>
                   </div>
@@ -357,13 +350,13 @@ export default function PaymentsRefundsPage() {
                   <li>❌ Accidental purchases</li>
                   <li>❌ Change of mind</li>
                   <li>❌ Lack of usage</li>
-                  <li>❌ Forgotten cancellations</li>
+                  <li>❌ Early cancellation (access expires naturally, no pro-rated refunds)</li>
                   <li>❌ Billing disputes</li>
                   <li>❌ Feature requests not implemented</li>
                   <li>❌ Competitor comparisons</li>
                 </ul>
                 <p className="text-red-300 mt-4 font-semibold">
-                  By subscribing, you acknowledge and accept this no-refund policy.
+                  By purchasing, you acknowledge and accept this no-refund policy.
                 </p>
               </div>
 
@@ -381,8 +374,7 @@ export default function PaymentsRefundsPage() {
                     for technical assistance
                   </li>
                   <li>
-                    <strong className="text-white">Cancel Your Subscription:</strong> Stop future charges immediately 
-                    in account settings
+                    <strong className="text-white">Cancel Your Access:</strong> Stop using the agent and prevent accidental duplicate purchases
                   </li>
                   <li>
                     <strong className="text-white">Provide Feedback:</strong> Help us improve the platform for future users
@@ -400,21 +392,28 @@ export default function PaymentsRefundsPage() {
 
           {/* Cancellation */}
           <section className="bg-neural-800/50 rounded-2xl p-8 border border-neural-700/50">
-            <h2 className="text-3xl font-bold mb-6 text-brand-400">6. Cancellation Policy</h2>
+            <h2 className="text-3xl font-bold mb-6 text-brand-400">6. Cancellation & Access Management</h2>
             
             <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">6.1 How to Cancel</h3>
+              <div className="bg-brand-900/20 rounded-xl p-6 border border-brand-500/30 mb-6">
+                <h3 className="text-xl font-semibold mb-3 text-brand-300">Important: No Auto-Renewal = Simple Management</h3>
                 <p className="text-neural-200 mb-3">
-                  You can cancel your subscription at any time through:
+                  Since all purchases are one-time with <strong className="text-white">NO auto-renewal</strong>, there's nothing to "cancel" in the traditional sense. You're never automatically charged again. Your access simply expires after your chosen period (1 day, 1 week, or 1 month), and you can re-purchase whenever you want.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-white">6.1 Stopping Access Early (Optional)</h3>
+                <p className="text-neural-200 mb-3">
+                  If you want to stop using an agent before your access expires, you can cancel through:
                 </p>
                 <div className="space-y-3">
                   <div className="bg-neural-900/50 rounded-xl p-4 border border-neural-700/30">
-                    <p className="font-semibold text-white mb-2">Method 1: Account Settings</p>
+                    <p className="font-semibold text-white mb-2">Method 1: Agent Page</p>
                     <ol className="list-decimal pl-6 text-neural-200 text-sm space-y-1">
-                      <li>Log in to your account</li>
-                      <li>Navigate to Settings → Billing</li>
-                      <li>Click "Cancel Subscription"</li>
+                      <li>Go to /subscribe page</li>
+                      <li>Find your active agent</li>
+                      <li>Click "Cancel Subscription" button</li>
                       <li>Confirm cancellation</li>
                     </ol>
                   </div>
@@ -422,45 +421,47 @@ export default function PaymentsRefundsPage() {
                     <p className="font-semibold text-white mb-2">Method 2: Email Request</p>
                     <p className="text-neural-200 text-sm">
                       Email{' '}
-                      <a href="mailto:billing@onelastai.co" className="text-brand-400 hover:text-brand-300 underline">
-                        billing@onelastai.co
+                      <a href="mailto:support@onelastai.co" className="text-brand-400 hover:text-brand-300 underline">
+                        support@onelastai.co
                       </a>{' '}
-                      with your account email and "CANCEL SUBSCRIPTION" in the subject line
+                      with your account email, agent name, and "CANCEL ACCESS" in the subject line
                     </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-white">6.2 After Cancellation</h3>
+                <h3 className="text-xl font-semibold mb-3 text-white">6.2 What Happens When You Cancel</h3>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2">
                   <li>
-                    <strong className="text-white">Immediate Effect:</strong> No future charges will occur
+                    <strong className="text-white">Immediate Effect:</strong> Access is terminated and you can no longer use the agent
                   </li>
                   <li>
-                    <strong className="text-white">Access Until Period End:</strong> You retain access through the 
-                    end of your current paid day
+                    <strong className="text-white">No Future Charges:</strong> Since there's no auto-renewal anyway, you won't be charged again
                   </li>
                   <li>
-                    <strong className="text-white">Data Retention:</strong> Your data is kept for 30 days in case 
-                    you reactivate
+                    <strong className="text-white">Data Retention:</strong> Your conversation history is kept for 30 days
                   </li>
                   <li>
-                    <strong className="text-white">No Refund:</strong> Current day charge is not refunded
+                    <strong className="text-white">No Refund:</strong> Current purchase is not refunded (all sales final)
+                  </li>
+                  <li>
+                    <strong className="text-white">Can Re-purchase:</strong> You can buy access again anytime you want
                   </li>
                 </ul>
               </div>
 
               <div className="bg-brand-900/20 rounded-xl p-6 border border-brand-500/30">
-                <h3 className="text-xl font-semibold mb-3 text-brand-300">6.3 Reactivation</h3>
+                <h3 className="text-xl font-semibold mb-3 text-brand-300">6.3 Re-purchasing Access</h3>
                 <p className="text-neural-200 mb-2">
-                  You can reactivate your subscription anytime within 30 days:
+                  You can purchase access again at any time after expiration or cancellation:
                 </p>
                 <ul className="list-disc pl-6 text-neural-200 space-y-1">
-                  <li>Log in to your account</li>
-                  <li>Click "Reactivate Subscription"</li>
-                  <li>Billing resumes immediately at $1.00/day</li>
-                  <li>All previous data and settings restored</li>
+                  <li>Go to /subscribe page</li>
+                  <li>Choose the same or different agent</li>
+                  <li>Select your preferred plan ($1/day, $5/week, or $19/month)</li>
+                  <li>Complete payment - access starts immediately</li>
+                  <li>Your previous conversation history is restored if within 30 days</li>
                 </ul>
               </div>
             </div>
@@ -505,6 +506,7 @@ export default function PaymentsRefundsPage() {
                   <li>Duplicate transactions</li>
                   <li>Unauthorized account access</li>
                   <li>System processing errors</li>
+                  <li>Charged for duplicate active access to the same agent</li>
                 </ul>
                 <p className="text-neural-300 mt-3 text-sm">
                   These issues will be investigated and resolved within 5-7 business days.
@@ -521,12 +523,12 @@ export default function PaymentsRefundsPage() {
             </p>
             <ul className="list-disc pl-6 text-neural-200 space-y-2">
               <li>Be communicated at least 30 days in advance via email</li>
-              <li>Not affect current subscribers for 60 days after announcement</li>
-              <li>Apply to new subscribers immediately</li>
-              <li>Allow existing subscribers to cancel before new rates apply</li>
+              <li>Apply to all new purchases immediately upon announcement</li>
+              <li>Not affect any active access periods already purchased at the old price</li>
+              <li>Allow you to make final purchases at current prices before changes take effect</li>
             </ul>
             <p className="text-neural-300 mt-4 text-sm">
-              Continued use after price change effective date constitutes acceptance of new pricing.
+              Since there's no auto-renewal, you're never locked into new pricing - you simply choose whether to purchase again at the new rates.
             </p>
           </section>
 

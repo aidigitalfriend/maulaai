@@ -28,11 +28,11 @@ export default function Legal() {
     },
     {
       title: "Payments & Refunds",
-      description: "Policies regarding billing, payments, refunds, and subscription management.",
+      description: "Policies regarding one-time purchases, payments, refunds, and access management.",
       icon: "💳",
       href: "/legal/payments-refunds",
       lastUpdated: "December 15, 2023",
-      sections: ["Billing Terms", "Payment Methods", "Refund Policy", "Subscription Changes"]
+      sections: ["One-Time Purchase Terms", "Payment Methods", "No Refund Policy", "Cancellation"]
     },
     {
       title: "Reports",

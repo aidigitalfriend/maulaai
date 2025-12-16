@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { motion } from 'framer-motion'
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function PerAgentPricingPage() {
   const pricingOptions = [
     {
-      name: 'Daily Subscription',
+      name: 'Daily Access',
       description: 'Perfect for short-term projects or trying out agents',
       price: '$1',
       period: 'per day',
@@ -15,12 +15,13 @@ export default function PerAgentPricingPage() {
         'Unlimited conversations',
         'Real-time responses',
         'Voice interaction (if supported)',
-        'Cancel anytime'
+        'No auto-renewal',
+        'Cancel anytime',
       ],
-      color: 'from-blue-500 to-blue-600'
+      color: 'from-blue-500 to-blue-600',
     },
     {
-      name: 'Weekly Subscription',
+      name: 'Weekly Access',
       description: 'Great value for regular use and projects',
       price: '$5',
       period: 'per week',
@@ -29,14 +30,15 @@ export default function PerAgentPricingPage() {
         'Unlimited conversations',
         'Real-time responses',
         'Voice interaction (if supported)',
+        'No auto-renewal',
         'Cancel anytime',
-        'Save 29% vs daily'
+        'Save 29% vs daily',
       ],
       color: 'from-purple-500 to-purple-600',
-      recommended: true
+      recommended: true,
     },
     {
-      name: 'Monthly Subscription',
+      name: 'Monthly Access',
       description: 'Best value for ongoing work and long-term projects',
       price: '$19',
       period: 'per month',
@@ -45,13 +47,14 @@ export default function PerAgentPricingPage() {
         'Unlimited conversations',
         'Real-time responses',
         'Voice interaction (if supported)',
+        'No auto-renewal',
         'Cancel anytime',
         'Save 37% vs daily',
-        'Best value for extended use'
+        'Best value for extended use',
       ],
-      color: 'from-amber-500 to-amber-600'
-    }
-  ]
+      color: 'from-amber-500 to-amber-600',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900">
@@ -61,11 +64,12 @@ export default function PerAgentPricingPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
             Simple Per-Agent Pricing
           </h1>
-          <p className="text-neural-300">All agents use the same transparent pricing. Choose your billing cycle.</p>
+          <p className="text-neural-300">
+            All agents use the same transparent pricing. Choose your billing
+            cycle.
+          </p>
         </div>
       </section>
-
-
 
       {/* Pricing Cards */}
       <section className="py-16 px-4">
@@ -89,7 +93,9 @@ export default function PerAgentPricingPage() {
                   </div>
                 )}
 
-                <div className={`bg-gradient-to-br ${tier.color} p-6 text-white`}>
+                <div
+                  className={`bg-gradient-to-br ${tier.color} p-6 text-white`}
+                >
                   <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
                   <p className="text-white/90 text-sm">{tier.description}</p>
                 </div>
@@ -100,21 +106,31 @@ export default function PerAgentPricingPage() {
                     <p className="text-neural-400 text-sm mb-1">Starting at</p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-4xl font-bold text-white">
-                        {tier.dailyPrice || tier.weeklyPrice || tier.monthlyPrice}
+                        {tier.dailyPrice ||
+                          tier.weeklyPrice ||
+                          tier.monthlyPrice}
                       </span>
                     </div>
-                    <p className="text-neural-300 text-sm mt-2">{tier.perAgentPrice}</p>
+                    <p className="text-neural-300 text-sm mt-2">
+                      {tier.perAgentPrice}
+                    </p>
                   </div>
 
                   {/* Per-Agent Cost */}
                   <div className="p-3 bg-neural-700 rounded-lg mb-6 border border-neural-600">
-                    <p className="text-xs text-neural-400 mb-1">Pricing Structure</p>
-                    <p className="text-lg font-semibold text-white">One Agent at a Time</p>
+                    <p className="text-xs text-neural-400 mb-1">
+                      Pricing Structure
+                    </p>
+                    <p className="text-lg font-semibold text-white">
+                      One Agent at a Time
+                    </p>
                   </div>
 
                   {/* Included Agents */}
                   <div className="mb-6">
-                    <p className="text-sm font-semibold text-white mb-2">Includes:</p>
+                    <p className="text-sm font-semibold text-white mb-2">
+                      Includes:
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       <span className="text-xs px-2 py-1 bg-neural-700 text-neural-200 rounded border border-neural-600">
                         Any Single Agent
@@ -124,10 +140,15 @@ export default function PerAgentPricingPage() {
 
                   {/* Features */}
                   <div className="mb-8">
-                    <p className="text-sm font-semibold text-white mb-3">Features:</p>
+                    <p className="text-sm font-semibold text-white mb-3">
+                      Features:
+                    </p>
                     <ul className="space-y-2">
                       {tier.features.map((feature, j) => (
-                        <li key={j} className="flex items-start gap-2 text-sm text-neural-300">
+                        <li
+                          key={j}
+                          className="flex items-start gap-2 text-sm text-neural-300"
+                        >
                           <span className="text-brand-400 mt-0.5">✓</span>
                           {feature}
                         </li>
@@ -162,29 +183,93 @@ export default function PerAgentPricingPage() {
               <table className="w-full">
                 <thead className="bg-neural-700 border-b border-neural-600">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">Feature</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-white">Basic</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-brand-400">Professional</th>
-                    <th className="px-6 py-4 text-center text-sm font-semibold text-white">Enterprise</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white">
+                      Feature
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-white">
+                      Basic
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-brand-400">
+                      Professional
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-semibold text-white">
+                      Enterprise
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { feature: 'Chat Interface', basic: true, pro: true, ent: true },
-                    { feature: 'Voice Interaction', basic: false, pro: true, ent: true },
-                    { feature: 'Analytics', basic: 'Basic', pro: 'Advanced', ent: 'Real-time' },
-                    { feature: 'API Access', basic: false, pro: true, ent: true },
-                    { feature: 'Webhooks', basic: false, pro: false, ent: true },
-                    { feature: 'Custom Training', basic: false, pro: true, ent: true },
-                    { feature: 'Priority Support', basic: false, pro: true, ent: true },
-                    { feature: 'SLA Guarantee', basic: false, pro: false, ent: true },
-                    { feature: 'Monthly Interactions', basic: '1,000', pro: '10,000', ent: 'Unlimited' },
+                    {
+                      feature: 'Chat Interface',
+                      basic: true,
+                      pro: true,
+                      ent: true,
+                    },
+                    {
+                      feature: 'Voice Interaction',
+                      basic: false,
+                      pro: true,
+                      ent: true,
+                    },
+                    {
+                      feature: 'Analytics',
+                      basic: 'Basic',
+                      pro: 'Advanced',
+                      ent: 'Real-time',
+                    },
+                    {
+                      feature: 'API Access',
+                      basic: false,
+                      pro: true,
+                      ent: true,
+                    },
+                    {
+                      feature: 'Webhooks',
+                      basic: false,
+                      pro: false,
+                      ent: true,
+                    },
+                    {
+                      feature: 'Custom Training',
+                      basic: false,
+                      pro: true,
+                      ent: true,
+                    },
+                    {
+                      feature: 'Priority Support',
+                      basic: false,
+                      pro: true,
+                      ent: true,
+                    },
+                    {
+                      feature: 'SLA Guarantee',
+                      basic: false,
+                      pro: false,
+                      ent: true,
+                    },
+                    {
+                      feature: 'Monthly Interactions',
+                      basic: '1,000',
+                      pro: '10,000',
+                      ent: 'Unlimited',
+                    },
                   ].map((row, i) => (
-                    <tr key={i} className={`border-b border-neural-700 ${i % 2 === 0 ? 'bg-neural-750' : 'bg-neural-800'}`}>
-                      <td className="px-6 py-4 font-medium text-white">{row.feature}</td>
+                    <tr
+                      key={i}
+                      className={`border-b border-neural-700 ${
+                        i % 2 === 0 ? 'bg-neural-750' : 'bg-neural-800'
+                      }`}
+                    >
+                      <td className="px-6 py-4 font-medium text-white">
+                        {row.feature}
+                      </td>
                       <td className="px-6 py-4 text-center text-neural-300">
                         {typeof row.basic === 'boolean' ? (
-                          <span className={row.basic ? 'text-green-400' : 'text-neural-500'}>
+                          <span
+                            className={
+                              row.basic ? 'text-green-400' : 'text-neural-500'
+                            }
+                          >
                             {row.basic ? '✓' : '—'}
                           </span>
                         ) : (
@@ -193,7 +278,11 @@ export default function PerAgentPricingPage() {
                       </td>
                       <td className="px-6 py-4 text-center text-neural-300 bg-brand-500/10">
                         {typeof row.pro === 'boolean' ? (
-                          <span className={row.pro ? 'text-green-400' : 'text-neural-500'}>
+                          <span
+                            className={
+                              row.pro ? 'text-green-400' : 'text-neural-500'
+                            }
+                          >
                             {row.pro ? '✓' : '—'}
                           </span>
                         ) : (
@@ -202,7 +291,11 @@ export default function PerAgentPricingPage() {
                       </td>
                       <td className="px-6 py-4 text-center text-neural-300">
                         {typeof row.ent === 'boolean' ? (
-                          <span className={row.ent ? 'text-green-400' : 'text-neural-500'}>
+                          <span
+                            className={
+                              row.ent ? 'text-green-400' : 'text-neural-500'
+                            }
+                          >
                             {row.ent ? '✓' : '—'}
                           </span>
                         ) : (
@@ -223,27 +316,32 @@ export default function PerAgentPricingPage() {
             transition={{ delay: 0.4 }}
             className="mt-16 max-w-2xl mx-auto"
           >
-            <h2 className="text-2xl font-bold text-white mb-8">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-white mb-8">
+              Frequently Asked Questions
+            </h2>
             <div className="space-y-4">
               {[
                 {
                   q: 'Can I change plans anytime?',
-                  a: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle.'
+                  a: 'Yes! Since each purchase is one-time with no auto-renewal, simply choose a different plan when you repurchase. Your current access continues until expiration.',
                 },
                 {
                   q: 'Do you offer enterprise plans?',
-                  a: 'Yes! Contact our sales team for custom enterprise pricing and dedicated support.'
+                  a: 'Yes! Contact our sales team for custom enterprise pricing, volume discounts, and dedicated support.',
                 },
                 {
                   q: 'Is there a free trial?',
-                  a: 'No, we don\'t offer free trials. All agent access requires a paid subscription starting at $1/day.'
+                  a: "No, we don't offer free trials. All agent access requires payment starting at $1/day. With no auto-renewal, you only pay once per purchase.",
                 },
                 {
-                  q: 'What about bulk agent discounts?',
-                  a: 'Yes, we offer volume discounts for 10+ agents. Contact our sales team for details.'
-                }
+                  q: 'Will I be charged automatically?',
+                  a: 'No! There is NO auto-renewal. Each purchase is one-time only. You must manually purchase again when your access expires if you want to continue using the agent.',
+                },
               ].map((faq, i) => (
-                <div key={i} className="p-4 bg-neural-800 rounded-lg border border-neural-700">
+                <div
+                  key={i}
+                  className="p-4 bg-neural-800 rounded-lg border border-neural-700"
+                >
                   <h3 className="font-semibold text-white mb-2">{faq.q}</h3>
                   <p className="text-neural-300 text-sm">{faq.a}</p>
                 </div>
@@ -259,13 +357,18 @@ export default function PerAgentPricingPage() {
             className="mt-16 p-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-lg text-center text-white"
           >
             <h2 className="text-2xl font-bold mb-3">Ready to get started?</h2>
-            <p className="mb-6 text-white/90">Choose your plan and start building amazing AI experiences today.</p>
-            <Link href="/auth/signup" className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-neural-50 transition">
+            <p className="mb-6 text-white/90">
+              Choose your plan and start building amazing AI experiences today.
+            </p>
+            <Link
+              href="/auth/signup"
+              className="inline-block px-8 py-3 bg-white text-brand-600 font-semibold rounded-lg hover:bg-neural-50 transition"
+            >
               Get Started
             </Link>
           </motion.div>
         </div>
       </section>
     </div>
-  )
+  );
 }

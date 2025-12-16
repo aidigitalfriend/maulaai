@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function PricingOverview() {
   const plans = [
@@ -12,10 +12,10 @@ export default function PricingOverview() {
         'Unlimited conversations',
         'Real-time responses',
         'Voice interaction (if supported)',
-        'Cancel anytime'
+        'Cancel anytime',
       ],
       cta: 'Choose Agent',
-      href: '/agents'
+      href: '/agents',
     },
     {
       name: 'Weekly',
@@ -28,11 +28,11 @@ export default function PricingOverview() {
         'Real-time responses',
         'Voice interaction (if supported)',
         'Cancel anytime',
-        'Save 29% vs daily'
+        'Save 29% vs daily',
       ],
       cta: 'Choose Agent',
       href: '/agents',
-      popular: true
+      popular: true,
     },
     {
       name: 'Monthly',
@@ -46,12 +46,12 @@ export default function PricingOverview() {
         'Voice interaction (if supported)',
         'Cancel anytime',
         'Save 37% vs daily',
-        'Best value'
+        'Best value',
       ],
       cta: 'Choose Agent',
-      href: '/agents'
-    }
-  ]
+      href: '/agents',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -61,7 +61,9 @@ export default function PricingOverview() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-xl text-neural-600 leading-relaxed mb-8">
-            Simple per-agent pricing. Each subscription gives you unlimited access to one AI agent of your choice.
+            Simple per-agent pricing. Each purchase gives you unlimited access
+            to one AI agent for your chosen period. No auto-renewal—pay only
+            when you want access.
           </p>
         </div>
 
@@ -82,11 +84,15 @@ export default function PricingOverview() {
                   </span>
                 </div>
               )}
-              
+
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-neural-800 mb-2">{plan.name}</h3>
+                <h3 className="text-2xl font-bold text-neural-800 mb-2">
+                  {plan.name}
+                </h3>
                 <div className="flex items-baseline justify-center gap-1 mb-2">
-                  <span className="text-4xl font-bold text-neural-800">{plan.price}</span>
+                  <span className="text-4xl font-bold text-neural-800">
+                    {plan.price}
+                  </span>
                   <span className="text-neural-600">{plan.period}</span>
                 </div>
                 <p className="text-sm text-neural-500 mb-4">per agent</p>
@@ -96,8 +102,18 @@ export default function PricingOverview() {
               <ul className="space-y-4 mb-8">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-5 h-5 text-green-500 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <span className="text-neural-700">{feature}</span>
                   </li>
@@ -120,11 +136,14 @@ export default function PricingOverview() {
 
         <div className="text-center mt-16">
           <p className="text-neural-600 mb-4">Need a custom solution?</p>
-          <Link href="/support/contact-us" className="text-brand-600 hover:text-brand-700 font-medium">
+          <Link
+            href="/support/contact-us"
+            className="text-brand-600 hover:text-brand-700 font-medium"
+          >
             Contact our sales team →
           </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }

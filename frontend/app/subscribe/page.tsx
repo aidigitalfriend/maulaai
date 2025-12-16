@@ -94,14 +94,14 @@ function SubscriptionContent() {
       // Successfully cancelled - refresh to show pricing plans
       setActiveSubscription(null);
       alert(
-        'Subscription cancelled successfully. You can purchase a new plan anytime.'
+        'Access cancelled successfully. You can purchase again anytime to continue using this agent.'
       );
     } catch (error) {
       console.error('Cancel subscription error:', error);
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'Failed to cancel subscription. Please try again.'
+          : 'Failed to cancel access. Please try again.'
       );
     } finally {
       setCancelling(false);
@@ -114,7 +114,7 @@ function SubscriptionContent() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
-          <p className="text-neural-600">Checking subscription status...</p>
+          <p className="text-neural-600">Checking access status...</p>
         </div>
       </div>
     );
@@ -129,7 +129,7 @@ function SubscriptionContent() {
         'Full access to ' + agentName,
         'Unlimited conversations',
         'Real-time responses',
-        'Cancel anytime',
+        'No auto-renewal',
       ],
       recommended: false,
       billingCycle: 'daily',
@@ -142,7 +142,7 @@ function SubscriptionContent() {
         'Full access to ' + agentName,
         'Unlimited conversations',
         'Real-time responses',
-        'Cancel anytime',
+        'No auto-renewal',
         'Save 29% vs daily',
       ],
       recommended: true,
@@ -156,7 +156,7 @@ function SubscriptionContent() {
         'Full access to ' + agentName,
         'Unlimited conversations',
         'Real-time responses',
-        'Cancel anytime',
+        'No auto-renewal',
         'Save 39% vs daily',
         'Best value',
       ],
@@ -232,18 +232,18 @@ function SubscriptionContent() {
           <div className="text-6xl mb-6">🤖</div>
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
             {activeSubscription
-              ? `Manage ${agentName} Subscription`
-              : `Subscribe to ${agentName}`}
+              ? `Manage ${agentName} Access`
+              : `Purchase Access to ${agentName}`}
           </h1>
           <p className="text-xl mb-8">
             {activeSubscription
               ? `You have active access to ${agentName}`
-              : `Choose your subscription plan to unlock full access to ${agentName}`}
+              : `Choose a one-time purchase plan for access to ${agentName}`}
           </p>
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 max-w-2xl mx-auto">
             <p className="text-amber-200 font-medium">
-              ⚠️ One agent per subscription. You can subscribe to multiple
-              agents, but each requires a separate subscription.
+              ⚠️ One agent per purchase. You can purchase access to multiple
+              agents, but each requires a separate purchase. No auto-renewal.
             </p>
           </div>
         </div>
@@ -262,7 +262,7 @@ function SubscriptionContent() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-2xl font-bold text-green-400 mb-2">
-                    ✅ Active Subscription
+                    ✅ Active Access
                   </h3>
                   <p className="text-green-200">
                     You have full access to {agentName}
@@ -306,7 +306,7 @@ function SubscriptionContent() {
                   disabled={cancelling}
                   className="btn-secondary flex-1 bg-red-500/10 border-red-500/20 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {cancelling ? '⏳ Cancelling...' : '❌ Cancel Subscription'}
+                  {cancelling ? '⏳ Cancelling...' : '❌ Cancel Access'}
                 </button>
               </div>
 
@@ -377,7 +377,7 @@ function SubscriptionContent() {
                     ? '⏳ Processing...'
                     : processingPlan
                     ? 'Processing...'
-                    : `Subscribe ${plan.type}`}
+                    : `Purchase ${plan.type} Access`}
                 </button>
               </div>
             ))}
@@ -392,11 +392,11 @@ function SubscriptionContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-bold text-brand-400 mb-3">
-                🔒 Individual Subscriptions
+                🔒 Individual Purchases
               </h3>
               <p className="text-sm text-neutral-300">
-                Each agent requires its own subscription. You can subscribe to
-                multiple agents individually, but each subscription is separate.
+                Each agent requires its own purchase. You can buy access to
+                multiple agents individually, but each purchase is separate. No auto-renewal.
               </p>
             </div>
             <div>
@@ -405,7 +405,7 @@ function SubscriptionContent() {
               </h3>
               <p className="text-sm text-neutral-300">
                 All agents use the same simple pricing: $1/day, $5/week, or
-                $19/month. Choose the billing cycle that works best for you.
+                $19/month. Each purchase is one-time with no recurring charges.
               </p>
             </div>
             <div>
@@ -413,8 +413,7 @@ function SubscriptionContent() {
                 🔄 Easy Cancellation
               </h3>
               <p className="text-sm text-neutral-300">
-                Cancel your subscription anytime from your dashboard. Your
-                access will continue until the end of your billing period.
+                Cancel your access anytime. Since there's no auto-renewal, you're never charged again. Access expires naturally at the end of your chosen period.
               </p>
             </div>
             <div>
@@ -422,8 +421,8 @@ function SubscriptionContent() {
                 ⚡ Instant Access
               </h3>
               <p className="text-sm text-neutral-300">
-                Once subscribed, you'll have immediate access to unlimited
-                conversations with {agentName}.
+                Once you purchase, you'll have immediate access to unlimited
+                conversations with {agentName} for your chosen period.
               </p>
             </div>
           </div>

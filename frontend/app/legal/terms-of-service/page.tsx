@@ -266,15 +266,15 @@ Many services allow users to opt out of arbitration within a specified period (t
             <div className="space-y-4">
               <div>
                 <h3 className="text-xl font-semibold mb-3 text-white">
-                  3.1 Billing Terms
+                  3.1 One-Time Purchase Terms
                 </h3>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2">
-                  <li>Trial begins immediately upon payment</li>
-                  <li>Automatic daily billing unless cancelled</li>
-                  <li>You may cancel at any time</li>
-                  <li>
-                    Access continues through the paid day after cancellation
-                  </li>
+                  <li>Access begins immediately upon payment</li>
+                  <li><strong className="text-white">NO auto-renewal</strong> - you're charged only once per purchase</li>
+                  <li>You may cancel access at any time (no refund)</li>
+                  <li>Choose from $1/day, $5/week, or $19/month per agent</li>
+                  <li>Access expires automatically at the end of your chosen period</li>
+                  <li>Re-purchase anytime to continue access</li>
                   <li>All prices in USD unless otherwise stated</li>
                 </ul>
               </div>
