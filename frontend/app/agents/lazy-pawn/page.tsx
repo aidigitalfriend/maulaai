@@ -214,16 +214,10 @@ export default function LazyPawnPage() {
         />
       ) : null}
       
-      {/* Subscription Status */}
-      {user && subscription && (
-        <SubscriptionStatus
-          subscription={subscription}
-          agentName="Lazy Pawn"
-          onManage={handleSubscriptionManage}
-        />
-      )}
-    </AgentPageLayout>
-
+        {/* Disclaimer */}
+        <div className="text-center text-xs text-gray-500 py-3 border-t border-gray-200">
+          AI Digital Friend can make mistakes. Check important info.
+        </div>
     {/* Subscription Modal */}
     <SubscriptionModal
       isOpen={showSubscriptionModal}

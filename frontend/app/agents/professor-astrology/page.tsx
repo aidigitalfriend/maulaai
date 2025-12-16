@@ -180,14 +180,10 @@ export default function ProfessorAstrologyPage() {
           />
         ) : null}
 
-        {/* Subscription Status */}
-        {user && subscription && (
-          <SubscriptionStatus
-            subscription={subscription}
-            agentName="Professor Astrology"
-            onManage={handleSubscriptionManage}
-          />
-        )}
+        {/* Disclaimer */}
+        <div className="text-center text-xs text-gray-500 py-3 border-t border-gray-200">
+          AI Digital Friend can make mistakes. Check important info.
+        </div>
       </AgentPageLayout>
 
       {/* Subscription Modal */}
