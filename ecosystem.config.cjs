@@ -36,9 +36,11 @@ module.exports = {
       cwd: '/home/ubuntu/shiny-friend-disco/backend',
       script: 'server-simple.js',
       interpreter: '/usr/bin/node',
+      node_args: '-r dotenv/config',
       env: {
         NODE_ENV: 'production',
         PORT: 3005,
+        DOTENV_CONFIG_PATH: '/home/ubuntu/shiny-friend-disco/backend/.env',
       },
       instances: 1,
       exec_mode: 'fork',
