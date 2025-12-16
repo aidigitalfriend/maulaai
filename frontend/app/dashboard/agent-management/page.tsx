@@ -9,16 +9,16 @@ import {
 } from '@/services/agentSubscriptionService';
 import { allAgents } from '@/app/agents/registry';
 import {
-  ArrowDown,
   ArrowRight,
-  ArrowUp,
   Loader2,
   Lock,
   ShieldCheck,
   Unlock,
   RefreshCw,
+  MessageSquare,
 } from 'lucide-react';
 import { useSubscribeRedirect } from '@/hooks/useSubscribeRedirect';
+import { useRouter } from 'next/navigation';
 
 interface AgentCardState {
   agentId: string;
@@ -35,28 +35,11 @@ const PLAN_LABELS: Record<PlanType, string> = {
   monthly: 'Monthly',
 };
 
-const PLAN_ACTIONS: Record<
-  PlanType,
-  { upgrades: PlanType[]; downgrades: PlanType[] }
-> = {
-  daily: {
-    upgrades: ['weekly', 'monthly'],
-    downgrades: [],
-  },
-  weekly: {
-    upgrades: ['monthly'],
-    downgrades: ['daily'],
-  },
-  monthly: {
-    upgrades: [],
-    downgrades: ['weekly', 'daily'],
-  },
-};
-
 export default function AgentManagementPage() {
   const { state } = useAuth();
   const user = state.user;
   const userId = user?.id;
+  const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<
     AgentSubscription[] | null
   >(null);
@@ -157,27 +140,11 @@ export default function AgentManagementPage() {
       };
     });
   }, [subscriptions]);
-
-  const goToSubscribe = (
-    agentId: string,
-    agentName: string,
-    options?: { plan?: string; intent?: 'upgrade' | 'downgrade' | 'cancel' }
-  ) => {
+agentId: string, agentName: string) => {
     redirectToSubscribe({
       agentName,
       agentSlug: agentId,
-      plan: options?.plan,
-      intent: options?.intent,
     });
-  };
-
-  const handlePlanChange = (
-    agentId: string,
-    agentName: string,
-    plan: PlanType,
-    intent: 'upgrade' | 'downgrade'
-  ) => {
-    goToSubscribe(agentId, agentName, { plan, intent });
   };
 
   const handleCardClick = (agentId: string, agentName: string) => {
@@ -185,6 +152,15 @@ export default function AgentManagementPage() {
   };
 
   const handleCancelSubscription = (agentId: string, agentName: string) => {
+    redirectToSubscribe({
+      agentName,
+      agentSlug: agentId,
+      intent: 'cancel',
+    });
+  };
+
+  const handleChatWithAgent = (agentId: string) => {
+    router.push(`/agents/${agentId}`Name: string) => {
     goToSubscribe(agentId, agentName, { intent: 'cancel' });
   };
 
@@ -232,9 +208,9 @@ export default function AgentManagementPage() {
               </div>
               <div className="bg-white shadow-sm border border-neural-100 rounded-xl p-5 max-w-sm w-full">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="w-6 h-6 text-brand-600" />
-                    <div>
+                  Purchase access to specialized agents on a one-time basis. 
+                  Choose daily, weekly, or monthly durations. Access remains active 
+                  until expiration—no auto-renewal, complete
                       <p className="text-sm text-neural-500">
                         Current Active Agents
                       </p>
@@ -284,6 +260,10 @@ export default function AgentManagementPage() {
                 return (
                   <div
                     key={agent.agentId}
+
+                return (
+                  <div
+                    key={agent.agentId}
                     className={`relative rounded-2xl border p-6 shadow-sm transition-all duration-300 group ${
                       agent.isUnlocked
                         ? 'bg-white border-green-200 hover:border-green-300'
@@ -294,10 +274,10 @@ export default function AgentManagementPage() {
                       <div className="absolute inset-0 rounded-2xl bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-6">
                         <Lock className="w-10 h-10 text-brand-500 mb-3" />
                         <p className="font-semibold text-neural-800 mb-2">
-                          Unlock {agent.agentName}
+                          Purchase Access
                         </p>
                         <p className="text-sm text-neural-600 mb-4">
-                          Get instant access by choosing a plan.
+                          Get instant access by choosing a duration.
                         </p>
                         <button
                           onClick={() =>
@@ -305,7 +285,7 @@ export default function AgentManagementPage() {
                           }
                           className="btn-primary inline-flex items-center gap-2"
                         >
-                          Unlock {agent.agentName}
+                          Purchase Access
                           <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
@@ -333,96 +313,52 @@ export default function AgentManagementPage() {
 
                     <p className="text-sm text-neural-600 mb-5">
                       {agent.isUnlocked
-                        ? `Currently on ${
+                        ? `Active ${
                             PLAN_LABELS[subscriptionPlan ?? 'daily']
-                          } plan. Upgrade, downgrade, or cancel anytime.`
-                        : `Unlock ${agent.agentName} to explore personalized capabilities.`}
+                          } access. Valid until expiration. Cancel anytime or repurchase after expiry.`
+                        : `Purchase ${agent.agentName} access for your preferred duration.`}
                     </p>
 
                     <div className="space-y-3">
                       {agent.isUnlocked && (
-                        <button
-                          onClick={() =>
-                            handleCancelSubscription(
-                              agent.agentId,
-                              agent.agentName
-                            )
-                          }
-                          className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
-                        >
-                          Cancel Subscription
-                          <span className="text-xs uppercase tracking-widest font-semibold">
-                            Stop
-                          </span>
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleChatWithAgent(agent.agentId)}
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition-colors font-semibold"
+                          >
+                            <MessageSquare className="w-5 h-5" />
+                            Chat with {agent.agentName}
+                          </button>
+                          
+                          <button
+                            onClick={() =>
+                              handleCancelSubscription(
+                                agent.agentId,
+                                agent.agentName
+                              )
+                            }
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            Cancel Access
+                            <span className="text-xs uppercase tracking-widest font-semibold">
+                              Stop
+                            </span>
+                          </button>
+                        </>
                       )}
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {actions.downgrades.map((plan) => (
-                          <button
-                            key={`downgrade-${agent.agentId}-${plan}`}
-                            onClick={() =>
-                              handlePlanChange(
-                                agent.agentId,
-                                agent.agentName,
-                                plan,
-                                'downgrade'
-                              )
-                            }
-                            className="inline-flex items-center justify-between px-4 py-3 rounded-xl border border-amber-200 text-amber-700 hover:bg-amber-50"
-                          >
-                            <div className="text-left">
-                              <p className="text-sm font-semibold">Downgrade</p>
-                              <p className="text-xs text-neural-500">
-                                to {PLAN_LABELS[plan]}
-                              </p>
-                            </div>
-                            <ArrowDown className="w-4 h-4" />
-                          </button>
-                        ))}
-                        {actions.upgrades.map((plan) => (
-                          <button
-                            key={`upgrade-${agent.agentId}-${plan}`}
-                            onClick={() =>
-                              handlePlanChange(
-                                agent.agentId,
-                                agent.agentName,
-                                plan,
-                                'upgrade'
-                              )
-                            }
-                            className="inline-flex items-center justify-between px-4 py-3 rounded-xl border border-brand-200 text-brand-700 hover:bg-brand-50"
-                          >
-                            <div className="text-left">
-                              <p className="text-sm font-semibold">Upgrade</p>
-                              <p className="text-xs text-neural-500">
-                                to {PLAN_LABELS[plan]}
-                              </p>
-                            </div>
-                            <ArrowUp className="w-4 h-4" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {!agent.isUnlocked && (
-                      <button
-                        onClick={() =>
-                          handleCardClick(agent.agentId, agent.agentName)
-                        }
-                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100"
-                      >
-                        Unlock {agent.agentName}
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="bg-white rounded-2xl border border-neural-100 p-8 shadow-sm">
+                      {!agent.isUnlocked && (
+                        <button
+                          onClick={() =>
+                            handleCardClick(agent.agentId, agent.agentName)
+                          }
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-200 text-brand-700 bg-brand-50 hover:bg-brand-100 transition-colors"
+                        >
+                          Purchase Access
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>me="bg-white rounded-2xl border border-neural-100 p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-neural-900 mb-4">
               How Agent Management Works
             </h2>
@@ -455,3 +391,24 @@ export default function AgentManagementPage() {
     </ProtectedRoute>
   );
 }
+Access Works
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {['Purchase', 'Access', 'Renew'].map((step, index) => (
+                <div
+                  key={step}
+                  className="p-5 rounded-xl border border-neural-100"
+                >
+                  <p className="text-sm font-semibold text-brand-500 mb-2">
+                    Step {index + 1}
+                  </p>
+                  <h3 className="text-xl font-semibold text-neural-900 mb-2">
+                    {step}
+                  </h3>
+                  <p className="text-neural-600 text-sm">
+                    {index === 0 &&
+                      'Select any locked agent and choose your preferred duration: daily, weekly, or monthly one-time purchase.'}
+                    {index === 1 &&
+                      'Use the "Chat with Agent" button to instantly access your active agents. Cancel anytime if needed.'}
+                    {index === 2 &&
+                      'After expiration, simply repurchase for your desired duration. No auto-renewal, complete control

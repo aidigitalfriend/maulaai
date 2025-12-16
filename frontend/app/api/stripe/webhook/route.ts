@@ -184,7 +184,10 @@ async function handleCheckoutSessionCompleted(
   });
 
   if (existingByStripeId) {
-    console.log('ℹ️ Subscription already processed (Stripe ID):', subscription.id);
+    console.log(
+      'ℹ️ Subscription already processed (Stripe ID):',
+      subscription.id
+    );
     return;
   }
 
@@ -256,7 +259,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   });
 
   if (existingByStripeId) {
-    console.log('ℹ️ Subscription already processed (Stripe ID):', subscription.id);
+    console.log(
+      'ℹ️ Subscription already processed (Stripe ID):',
+      subscription.id
+    );
     return;
   }
 
