@@ -216,7 +216,7 @@ export default function ComedyKingPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Comedy King"

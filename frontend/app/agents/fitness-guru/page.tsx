@@ -197,7 +197,7 @@ export default function FitnessGuruPage() {
       ) : null}
       
       {/* Subscription Status */}
-      {user && (
+      {user && subscription && (
         <SubscriptionStatus
           subscription={subscription}
           agentName="Fitness Guru"

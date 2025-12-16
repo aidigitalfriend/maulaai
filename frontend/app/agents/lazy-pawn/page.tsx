@@ -215,7 +215,7 @@ export default function LazyPawnPage() {
       ) : null}
       
       {/* Subscription Status */}
-      {user && (
+      {user && subscription && (
         <SubscriptionStatus
           subscription={subscription}
           agentName="Lazy Pawn"

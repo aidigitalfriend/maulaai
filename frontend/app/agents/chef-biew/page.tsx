@@ -195,7 +195,7 @@ export default function ChefBiewPage() {
       )}
       
       {/* Subscription Status */}
-      {user && (
+      {user && subscription && (
         <SubscriptionStatus
           subscription={subscription}
           agentName="Chef Biew"

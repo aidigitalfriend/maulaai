@@ -181,7 +181,7 @@ export default function JulieGirlfriendPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Julie Girlfriend"

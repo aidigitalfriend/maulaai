@@ -350,7 +350,7 @@ export default function BishopBurgerPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Bishop Burger"

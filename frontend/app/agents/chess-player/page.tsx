@@ -180,7 +180,7 @@ export default function ChessPlayerPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Grandmaster Chess"

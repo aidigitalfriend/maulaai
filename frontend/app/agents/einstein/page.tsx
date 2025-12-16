@@ -437,7 +437,7 @@ export default function EinsteinPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Einstein"

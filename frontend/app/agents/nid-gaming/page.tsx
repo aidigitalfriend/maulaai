@@ -182,7 +182,7 @@ export default function NidGamingPage() {
       ) : null}
       
       {/* Subscription Status */}
-      {user && (
+      {user && subscription && (
         <SubscriptionStatus
           subscription={subscription}
           agentName="Nid Gaming"

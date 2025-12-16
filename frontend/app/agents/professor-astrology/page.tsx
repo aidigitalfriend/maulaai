@@ -181,7 +181,7 @@ export default function ProfessorAstrologyPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Professor Astrology"

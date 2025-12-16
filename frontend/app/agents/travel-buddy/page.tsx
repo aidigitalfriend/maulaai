@@ -196,7 +196,7 @@ export default function TravelBuddyPage() {
       )}
       
       {/* Subscription Status */}
-      {user && (
+      {user && subscription && (
         <SubscriptionStatus
           subscription={subscription}
           agentName="Travel Buddy"

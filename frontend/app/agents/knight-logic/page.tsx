@@ -177,7 +177,7 @@ export default function KnightLogicPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Knight Logic"

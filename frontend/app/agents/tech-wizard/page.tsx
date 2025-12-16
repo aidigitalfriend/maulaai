@@ -198,7 +198,7 @@ export default function TechWizardPage() {
         )}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Tech Wizard"

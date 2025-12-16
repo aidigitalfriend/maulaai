@@ -215,7 +215,7 @@ export default function DramaQueenPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Drama Queen"

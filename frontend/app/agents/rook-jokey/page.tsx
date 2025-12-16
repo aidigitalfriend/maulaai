@@ -177,7 +177,7 @@ export default function RookJokeyPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Rook Jokey"

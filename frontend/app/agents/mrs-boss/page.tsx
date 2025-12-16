@@ -181,7 +181,7 @@ export default function MrsBossPage() {
         ) : null}
 
         {/* Subscription Status */}
-        {user && (
+        {user && subscription && (
           <SubscriptionStatus
             subscription={subscription}
             agentName="Mrs Boss"
