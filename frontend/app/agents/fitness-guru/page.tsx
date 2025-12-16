@@ -1,30 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentChatPanel from '../../../components/AgentChatPanel'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { sendSecureMessage } from '../../../lib/secure-api-client'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentChatPanel from '../../../components/AgentChatPanel';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { sendSecureMessage } from '../../../lib/secure-api-client';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
 
 export default function FitnessGuruPage() {
-  const agentId = 'fitness-guru'
+  const agentId = 'fitness-guru';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   // Check subscription status
   useEffect(() => {
@@ -36,7 +45,10 @@ export default function FitnessGuruPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -69,15 +81,16 @@ export default function FitnessGuruPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "💪 Hey champion! I'm your Fitness Guru! Whether you're crushing workouts, planning nutrition, building strength, or just starting your fitness journey - I'm here to guide you. Let's get moving! What's your fitness goal today?",
+      content:
+        "💪 Hey champion! I'm your Fitness Guru! Whether you're crushing workouts, planning nutrition, building strength, or just starting your fitness journey - I'm here to guide you. Let's get moving! What's your fitness goal today?",
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -87,10 +100,12 @@ export default function FitnessGuruPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -99,9 +114,9 @@ export default function FitnessGuruPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   // Subscription handlers
@@ -111,11 +126,15 @@ export default function FitnessGuruPage() {
     }
 
     try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
+      const newSubscription = await agentSubscriptionService.createSubscription(
+        user.id,
+        agentId,
+        plan
+      );
       setSubscription(newSubscription);
       setHasActiveSubscription(true);
       setShowSubscriptionModal(false);
-      
+
       // Create initial chat session after successful subscription
       if (sessions.length === 0) {
         handleNewChat();
@@ -137,15 +156,17 @@ export default function FitnessGuruPage() {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Fitness Guru!';
     }
-    
-    try {
-      return await sendSecureMessage(message, 'fitness-guru', 'gpt-3.5-turbo')
-    } catch (error: any) {
-      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
-    }
-  }
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+    try {
+      return await sendSecureMessage(message, 'fitness-guru', 'gpt-3.5-turbo');
+    } catch (error: any) {
+      return `Sorry, I encountered an error: ${
+        error.message || 'Please try again later.'
+      }`;
+    }
+  };
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   // Show loading state
   if (subscriptionLoading) {
@@ -169,47 +190,47 @@ export default function FitnessGuruPage() {
 
   return (
     <>
-    <AgentPageLayout
-      leftPanel={
-        <AgentChatPanel
-          chatSessions={sessions}
-          activeSessionId={activeSessionId}
-          agentId={agentId}
-          agentName="Fitness Guru"
-          onNewChat={handleNewChat}
-          onSelectChat={handleSelectChat}
-          onDeleteChat={handleDeleteChat}
-          onRenameChat={handleRenameChat}
-        />
-      }
-    >
-      {activeSessionId ? (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Fitness Guru"
-          agentColor="from-green-600 to-emerald-700"
-          placeholder="What's your fitness goal today? 💪🔥"
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      ) : null}
+      <AgentPageLayout
+        leftPanel={
+          <AgentChatPanel
+            chatSessions={sessions}
+            activeSessionId={activeSessionId}
+            agentId={agentId}
+            agentName="Fitness Guru"
+            onNewChat={handleNewChat}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDeleteChat}
+            onRenameChat={handleRenameChat}
+          />
+        }
+      >
+        {activeSessionId ? (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Fitness Guru"
+            agentColor="from-green-600 to-emerald-700"
+            placeholder="What's your fitness goal today? 💪🔥"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        ) : null}
       </AgentPageLayout>
 
       {/* Disclaimer */}
       <div className="fixed bottom-0 left-0 right-0 text-center text-[10px] text-gray-400 py-1 bg-gray-900 border-t border-gray-800 z-10">
         AI Digital Friend can make mistakes. Check important info.
       </div>
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Fitness Guru"
-      agentDescription="Crush your fitness goals with personalized workouts, nutrition guidance, and motivation"
-      onSubscribe={handleSubscribe}
-    />
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Fitness Guru"
+        agentDescription="Crush your fitness goals with personalized workouts, nutrition guidance, and motivation"
+        onSubscribe={handleSubscribe}
+      />
     </>
-  )
+  );
 }

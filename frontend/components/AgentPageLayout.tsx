@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { useState, ReactNode } from 'react'
-import AgentChatPanel from './AgentChatPanel'
-import * as chatStorage from '../utils/chatStorage'
+import { useState, ReactNode } from 'react';
+import AgentChatPanel from './AgentChatPanel';
+import * as chatStorage from '../utils/chatStorage';
 
 interface AgentPageLayoutProps {
-  agentId?: string
-  agentName?: string
-  sessions?: chatStorage.ChatSession[]
-  activeSessionId?: string | null
-  onNewChat?: () => void
-  onSelectChat?: (sessionId: string) => void
-  onDeleteChat?: (sessionId: string) => void
-  onRenameChat?: (sessionId: string, newName: string) => void
-  children: ReactNode
-  leftPanel?: ReactNode  // Optional: for custom left panel
+  agentId?: string;
+  agentName?: string;
+  sessions?: chatStorage.ChatSession[];
+  activeSessionId?: string | null;
+  onNewChat?: () => void;
+  onSelectChat?: (sessionId: string) => void;
+  onDeleteChat?: (sessionId: string) => void;
+  onRenameChat?: (sessionId: string, newName: string) => void;
+  children: ReactNode;
+  leftPanel?: ReactNode; // Optional: for custom left panel
 }
 
 export default function AgentPageLayout({
@@ -27,31 +27,31 @@ export default function AgentPageLayout({
   onDeleteChat,
   onRenameChat,
   children,
-  leftPanel
+  leftPanel,
 }: AgentPageLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Use custom leftPanel if provided, otherwise use default AgentChatPanel
-  const sidebarContent = leftPanel || (
-    agentId && agentName && sessions ? (
+  const sidebarContent =
+    leftPanel ||
+    (agentId && agentName && sessions ? (
       <AgentChatPanel
         chatSessions={sessions}
         activeSessionId={activeSessionId}
         agentId={agentId}
         agentName={agentName}
         onNewChat={() => {
-          onNewChat?.()
-          setIsSidebarOpen(false)
+          onNewChat?.();
+          setIsSidebarOpen(false);
         }}
         onSelectChat={(sessionId) => {
-          onSelectChat?.(sessionId)
-          setIsSidebarOpen(false)
+          onSelectChat?.(sessionId);
+          setIsSidebarOpen(false);
         }}
         onDeleteChat={onDeleteChat || (() => {})}
         onRenameChat={onRenameChat || (() => {})}
       />
-    ) : null
-  )
+    ) : null);
 
   return (
     <div className="h-full bg-gray-900 text-white flex flex-col">
@@ -71,23 +71,35 @@ export default function AgentPageLayout({
           >
             {isSidebarOpen ? (
               // X icon when sidebar is open
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             ) : (
               // Menu icon when sidebar is closed
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             )}
           </svg>
         </button>
 
         {/* Left Panel - Slide in/out */}
-        <div className={`
+        <div
+          className={`
           fixed lg:fixed top-0 left-0 bottom-0 z-40
           w-80 lg:w-1/4 
           transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           flex flex-col h-full overflow-hidden
           pt-24 lg:pt-16
-        `}>
+        `}
+        >
           {sidebarContent}
         </div>
 
@@ -100,14 +112,16 @@ export default function AgentPageLayout({
         )}
 
         {/* Right Panel (Chat) */}
-        <div className={`
+        <div
+          className={`
           w-full h-full flex flex-col
           transition-all duration-300
           ${isSidebarOpen ? 'lg:ml-[25%]' : 'lg:ml-0'}
-        `}>
+        `}
+        >
           {children}
         </div>
       </div>
     </div>
-  )
+  );
 }

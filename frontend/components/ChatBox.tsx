@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { useState, useRef, useEffect } from 'react'
-import { 
-  PaperAirplaneIcon, 
-  HandThumbUpIcon, 
-  HandThumbDownIcon, 
+import { useState, useRef, useEffect } from 'react';
+import {
+  PaperAirplaneIcon,
+  HandThumbUpIcon,
+  HandThumbDownIcon,
   TrashIcon,
   PaperClipIcon,
   DocumentIcon,
@@ -21,30 +21,39 @@ import {
   EllipsisHorizontalIcon,
   StopIcon,
   PlayIcon,
-  PauseIcon
-} from '@heroicons/react/24/outline'
-import { HandThumbUpIcon as HandThumbUpSolid, HandThumbDownIcon as HandThumbDownSolid } from '@heroicons/react/24/solid'
-import { 
+  PauseIcon,
+} from '@heroicons/react/24/outline';
+import {
+  HandThumbUpIcon as HandThumbUpSolid,
+  HandThumbDownIcon as HandThumbDownSolid,
+} from '@heroicons/react/24/solid';
+import {
   ChatMessage,
   FileAttachment,
-  loadChatHistory, 
-  saveChatHistory, 
-  addMessageToHistory, 
+  loadChatHistory,
+  saveChatHistory,
+  addMessageToHistory,
   updateMessageInHistory,
-  clearChatHistory 
-} from '../utils/chatStorage'
-import PDFPreviewModal from './PDFPreviewModal'
-import LanguageIndicator from './LanguageIndicator'
-import { 
-  DetectedLanguage, 
-  detectLanguageWithOpenAI, 
+  clearChatHistory,
+} from '../utils/chatStorage';
+import PDFPreviewModal from './PDFPreviewModal';
+import LanguageIndicator from './LanguageIndicator';
+import {
+  DetectedLanguage,
+  detectLanguageWithOpenAI,
   generateMultilingualPrompt,
-  getLanguageInfo 
-} from '../utils/languageDetection'
-import { getAppConfig, getVoiceConfig, validateConfig } from '../utils/config'
+  getLanguageInfo,
+} from '../utils/languageDetection';
+import { getAppConfig, getVoiceConfig, validateConfig } from '../utils/config';
 
 // Enhanced typing indicator with multiple states
-const TypingIndicator = ({ agentColor, stage = 'thinking' }: { agentColor: string, stage?: 'thinking' | 'typing' | 'processing' }) => {
+const TypingIndicator = ({
+  agentColor,
+  stage = 'thinking',
+}: {
+  agentColor: string;
+  stage?: 'thinking' | 'typing' | 'processing';
+}) => {
   const getIndicatorContent = () => {
     switch (stage) {
       case 'processing':
@@ -53,93 +62,117 @@ const TypingIndicator = ({ agentColor, stage = 'thinking' }: { agentColor: strin
             <div className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent"></div>
             <span className="text-xs opacity-75">Processing...</span>
           </div>
-        )
+        );
       case 'typing':
         return (
           <div className="flex items-center space-x-2">
             <div className="flex space-x-1">
-              <div 
-                className={`w-1.5 h-1.5 rounded-full animate-bounce ${agentColor.replace('from-', 'bg-').replace('to-', '').split(' ')[0].replace('-100', '-500')}`}
+              <div
+                className={`w-1.5 h-1.5 rounded-full animate-bounce ${agentColor
+                  .replace('from-', 'bg-')
+                  .replace('to-', '')
+                  .split(' ')[0]
+                  .replace('-100', '-500')}`}
                 style={{ animationDelay: '0ms', animationDuration: '1.0s' }}
               ></div>
-              <div 
-                className={`w-1.5 h-1.5 rounded-full animate-bounce ${agentColor.replace('from-', 'bg-').replace('to-', '').split(' ')[0].replace('-100', '-500')}`}
+              <div
+                className={`w-1.5 h-1.5 rounded-full animate-bounce ${agentColor
+                  .replace('from-', 'bg-')
+                  .replace('to-', '')
+                  .split(' ')[0]
+                  .replace('-100', '-500')}`}
                 style={{ animationDelay: '150ms', animationDuration: '1.0s' }}
               ></div>
-              <div 
-                className={`w-1.5 h-1.5 rounded-full animate-bounce ${agentColor.replace('from-', 'bg-').replace('to-', '').split(' ')[0].replace('-100', '-500')}`}
+              <div
+                className={`w-1.5 h-1.5 rounded-full animate-bounce ${agentColor
+                  .replace('from-', 'bg-')
+                  .replace('to-', '')
+                  .split(' ')[0]
+                  .replace('-100', '-500')}`}
                 style={{ animationDelay: '300ms', animationDuration: '1.0s' }}
               ></div>
             </div>
             <span className="text-xs opacity-75">Typing...</span>
           </div>
-        )
+        );
       default: // thinking
         return (
           <div className="flex items-center space-x-2">
             <div className="flex space-x-1">
-              <div 
-                className={`w-2 h-2 rounded-full animate-pulse ${agentColor.replace('from-', 'bg-').replace('to-', '').split(' ')[0].replace('-100', '-400')}`}
+              <div
+                className={`w-2 h-2 rounded-full animate-pulse ${agentColor
+                  .replace('from-', 'bg-')
+                  .replace('to-', '')
+                  .split(' ')[0]
+                  .replace('-100', '-400')}`}
                 style={{ animationDelay: '0ms', animationDuration: '2.0s' }}
               ></div>
-              <div 
-                className={`w-2 h-2 rounded-full animate-pulse ${agentColor.replace('from-', 'bg-').replace('to-', '').split(' ')[0].replace('-100', '-400')}`}
+              <div
+                className={`w-2 h-2 rounded-full animate-pulse ${agentColor
+                  .replace('from-', 'bg-')
+                  .replace('to-', '')
+                  .split(' ')[0]
+                  .replace('-100', '-400')}`}
                 style={{ animationDelay: '400ms', animationDuration: '2.0s' }}
               ></div>
-              <div 
-                className={`w-2 h-2 rounded-full animate-pulse ${agentColor.replace('from-', 'bg-').replace('to-', '').split(' ')[0].replace('-100', '-400')}`}
+              <div
+                className={`w-2 h-2 rounded-full animate-pulse ${agentColor
+                  .replace('from-', 'bg-')
+                  .replace('to-', '')
+                  .split(' ')[0]
+                  .replace('-100', '-400')}`}
                 style={{ animationDelay: '800ms', animationDuration: '2.0s' }}
               ></div>
             </div>
             <span className="text-xs opacity-75">Thinking...</span>
           </div>
-        )
+        );
     }
-  }
+  };
 
-  return <div className="flex items-center">{getIndicatorContent()}</div>
-}
+  return <div className="flex items-center">{getIndicatorContent()}</div>;
+};
 
 // Typewriter effect component for streaming messages
-const TypewriterText = ({ 
-  text, 
-  speed = 30, 
-  onComplete, 
-  isActive = true 
-}: { 
-  text: string
-  speed?: number
-  onComplete?: () => void
-  isActive?: boolean 
+const TypewriterText = ({
+  text,
+  speed = 30,
+  onComplete,
+  isActive = true,
+}: {
+  text: string;
+  speed?: number;
+  onComplete?: () => void;
+  isActive?: boolean;
 }) => {
-  const [displayText, setDisplayText] = useState('')
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (!isActive) {
-      setDisplayText(text)
-      return
+      setDisplayText(text);
+      return;
     }
 
     if (currentIndex < text.length) {
       const timer = setTimeout(() => {
-        setDisplayText(prev => prev + text[currentIndex])
-        setCurrentIndex(prev => prev + 1)
-      }, speed)
+        setDisplayText((prev) => prev + text[currentIndex]);
+        setCurrentIndex((prev) => prev + 1);
+      }, speed);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     } else if (currentIndex === text.length && onComplete) {
-      onComplete()
+      onComplete();
     }
-  }, [currentIndex, text, speed, isActive, onComplete])
+  }, [currentIndex, text, speed, isActive, onComplete]);
 
   // Reset when text changes
   useEffect(() => {
     if (isActive) {
-      setDisplayText('')
-      setCurrentIndex(0)
+      setDisplayText('');
+      setCurrentIndex(0);
     }
-  }, [text, isActive])
+  }, [text, isActive]);
 
   return (
     <span>
@@ -148,19 +181,28 @@ const TypewriterText = ({
         <span className="animate-pulse">|</span>
       )}
     </span>
-  )
-}
+  );
+};
 
 // Text highlighting utility for search results
-const HighlightedText = ({ text, searchQuery }: { text: string, searchQuery: string }) => {
-  if (!searchQuery.trim()) return <span>{text}</span>
-  
-  const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-  const parts = text.split(regex)
-  
+const HighlightedText = ({
+  text,
+  searchQuery,
+}: {
+  text: string;
+  searchQuery: string;
+}) => {
+  if (!searchQuery.trim()) return <span>{text}</span>;
+
+  const regex = new RegExp(
+    `(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
+    'gi'
+  );
+  const parts = text.split(regex);
+
   return (
     <span>
-      {parts.map((part, index) => 
+      {parts.map((part, index) =>
         regex.test(part) ? (
           <mark key={index} className="bg-yellow-300 text-black rounded px-1">
             {part}
@@ -170,8 +212,8 @@ const HighlightedText = ({ text, searchQuery }: { text: string, searchQuery: str
         )
       )}
     </span>
-  )
-}
+  );
+};
 
 // Agent Settings Interface
 interface AgentSettings {
@@ -189,7 +231,11 @@ interface ChatBoxProps {
   agentColor: string;
   placeholder?: string;
   initialMessages?: ChatMessage[];
-  onSendMessage?: (message: string, attachments?: FileAttachment[], detectedLanguage?: DetectedLanguage) => Promise<string>;
+  onSendMessage?: (
+    message: string,
+    attachments?: FileAttachment[],
+    detectedLanguage?: DetectedLanguage
+  ) => Promise<string>;
   className?: string;
   allowFileUpload?: boolean;
   maxFileSize?: number; // in MB
@@ -201,27 +247,31 @@ export default function ChatBox({
   sessionId,
   agentName,
   agentColor,
-  placeholder = "Type your message...",
+  placeholder = 'Type your message...',
   initialMessages,
   onSendMessage,
-  className = "",
+  className = '',
   allowFileUpload = true,
   maxFileSize = 10,
-  enableLanguageDetection = true
+  enableLanguageDetection = true,
 }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [typingStage, setTypingStage] = useState<'thinking' | 'processing' | 'typing'>('thinking');
+  const [typingStage, setTypingStage] = useState<
+    'thinking' | 'processing' | 'typing'
+  >('thinking');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<{messageId: string, messageIndex: number}[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    { messageId: string; messageIndex: number }[]
+  >([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  
+
   // Settings state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [agentSettings, setAgentSettings] = useState<AgentSettings>({
@@ -229,14 +279,18 @@ export default function ChatBox({
     maxTokens: 2000,
     mode: 'balanced',
     systemPrompt: '',
-    model: 'gpt-3.5-turbo'
+    model: 'gpt-3.5-turbo',
   });
-  
-  const [pdfPreview, setPdfPreview] = useState<{ url: string, name: string } | null>(null);
-  const [detectedLanguage, setDetectedLanguage] = useState<DetectedLanguage | null>(null);
+
+  const [pdfPreview, setPdfPreview] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
+  const [detectedLanguage, setDetectedLanguage] =
+    useState<DetectedLanguage | null>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
-  
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -245,23 +299,39 @@ export default function ChatBox({
 
   // Mode configurations
   const modeConfigs = {
-    professional: { temp: 0.3, tokens: 1500, desc: 'Precise, formal, and accurate responses' },
-    balanced: { temp: 0.7, tokens: 2000, desc: 'Mix of creativity and accuracy' },
-    creative: { temp: 0.9, tokens: 2500, desc: 'More creative and explorative responses' },
-    fast: { temp: 0.5, tokens: 1000, desc: 'Quick, concise responses' }
+    professional: {
+      temp: 0.3,
+      tokens: 1500,
+      desc: 'Precise, formal, and accurate responses',
+    },
+    balanced: {
+      temp: 0.7,
+      tokens: 2000,
+      desc: 'Mix of creativity and accuracy',
+    },
+    creative: {
+      temp: 0.9,
+      tokens: 2500,
+      desc: 'More creative and explorative responses',
+    },
+    fast: { temp: 0.5, tokens: 1000, desc: 'Quick, concise responses' },
   };
 
   // Close settings panel when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (settingsPanelRef.current && !settingsPanelRef.current.contains(event.target as Node)) {
+      if (
+        settingsPanelRef.current &&
+        !settingsPanelRef.current.contains(event.target as Node)
+      ) {
         setIsSettingsOpen(false);
       }
     }
-    
+
     if (isSettingsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      return () =>
+        document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isSettingsOpen]);
 
@@ -285,7 +355,7 @@ export default function ChatBox({
     updateSettings({
       mode,
       temperature: config.temp,
-      maxTokens: config.tokens
+      maxTokens: config.tokens,
     });
   };
 
@@ -310,7 +380,9 @@ export default function ChatBox({
     setCurrentSearchIndex(results.length > 0 ? 0 : -1);
 
     if (results.length > 0) {
-      const messageElement = document.getElementById(`message-${results[0].messageId}`);
+      const messageElement = document.getElementById(
+        `message-${results[0].messageId}`
+      );
       messageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
@@ -332,14 +404,22 @@ export default function ChatBox({
   }, [messages, agentId, sessionId]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    chatEndRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
   }, [messages, isLoading]);
 
-  const handleFeedback = (messageId: string, feedback: 'positive' | 'negative') => {
-    const updatedMessages = messages.map(msg => {
+  const handleFeedback = (
+    messageId: string,
+    feedback: 'positive' | 'negative'
+  ) => {
+    const updatedMessages = messages.map((msg) => {
       if (msg.id === messageId) {
         const newFeedback = msg.feedback === feedback ? null : feedback;
-        updateMessageInHistory(agentId, sessionId, messageId, { feedback: newFeedback });
+        updateMessageInHistory(agentId, sessionId, messageId, {
+          feedback: newFeedback,
+        });
         return { ...msg, feedback: newFeedback };
       }
       return msg;
@@ -361,10 +441,10 @@ export default function ChatBox({
       role: 'user',
       content: input,
       timestamp: new Date(),
-      attachments: attachments
+      attachments: attachments,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     addMessageToHistory(agentId, sessionId, userMessage);
     setInput('');
     setAttachments([]);
@@ -373,11 +453,17 @@ export default function ChatBox({
 
     try {
       if (onSendMessage) {
-        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+        await new Promise((resolve) =>
+          setTimeout(resolve, 500 + Math.random() * 500)
+        );
         setTypingStage('typing');
 
-        const responseText = await onSendMessage(userMessage.content, userMessage.attachments, detectedLanguage || undefined);
-        
+        const responseText = await onSendMessage(
+          userMessage.content,
+          userMessage.attachments,
+          detectedLanguage || undefined
+        );
+
         const assistantMessage: ChatMessage = {
           id: `asst-${Date.now()}`,
           role: 'assistant',
@@ -386,10 +472,9 @@ export default function ChatBox({
           isStreaming: false,
           streamingComplete: true,
         };
-        
-        setMessages(prev => [...prev, assistantMessage]);
+
+        setMessages((prev) => [...prev, assistantMessage]);
         addMessageToHistory(agentId, sessionId, assistantMessage);
-        
       } else {
         const assistantMessage: ChatMessage = {
           id: `asst-${Date.now()}`,
@@ -397,18 +482,18 @@ export default function ChatBox({
           content: "I'm just a demo! I don't have a brain yet.",
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, assistantMessage]);
         addMessageToHistory(agentId, sessionId, assistantMessage);
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error('Error sending message:', error);
       const errorMessage: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'assistant',
-        content: "Sorry, something went wrong. Please try again.",
+        content: 'Sorry, something went wrong. Please try again.',
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       addMessageToHistory(agentId, sessionId, errorMessage);
     } finally {
       setIsLoading(false);
@@ -418,9 +503,11 @@ export default function ChatBox({
   const handleFileSelect = (files: FileList | null) => {
     if (!files || !allowFileUpload) return;
 
-    Array.from(files).forEach(file => {
+    Array.from(files).forEach((file) => {
       if (file.size > maxFileSize * 1024 * 1024) {
-        alert(`File "${file.name}" is too large. Maximum size is ${maxFileSize}MB.`);
+        alert(
+          `File "${file.name}" is too large. Maximum size is ${maxFileSize}MB.`
+        );
         return;
       }
 
@@ -430,16 +517,16 @@ export default function ChatBox({
           name: file.name,
           size: file.size,
           type: file.type,
-          data: e.target?.result as string
+          data: e.target?.result as string,
         };
-        setAttachments(prev => [...prev, newAttachment]);
+        setAttachments((prev) => [...prev, newAttachment]);
       };
       reader.readAsDataURL(file);
     });
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const formatFileSize = (bytes: number) => {
@@ -481,7 +568,12 @@ export default function ChatBox({
         streamingComplete: true,
       };
       setMessages(updatedMessages);
-      updateMessageInHistory(agentId, sessionId, updatedMessages[lastMsgIndex].id, { isStreaming: false, streamingComplete: true });
+      updateMessageInHistory(
+        agentId,
+        sessionId,
+        updatedMessages[lastMsgIndex].id,
+        { isStreaming: false, streamingComplete: true }
+      );
     }
   };
 
@@ -489,12 +581,12 @@ export default function ChatBox({
     if ('speechSynthesis' in window) {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
-      
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
-      
+
       window.speechSynthesis.speak(utterance);
     } else {
       alert('Text-to-speech not supported in this browser');
@@ -502,8 +594,12 @@ export default function ChatBox({
   };
 
   const handleStartRecording = () => {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      alert('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
+    if (
+      !('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
+    ) {
+      alert(
+        'Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.'
+      );
       return;
     }
 
@@ -517,23 +613,25 @@ export default function ChatBox({
     }
 
     // Start recording
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
-    
+
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
-    
+
     recognition.onstart = () => {
       setIsRecording(true);
       console.log('Voice recognition started');
     };
-    
+
     recognition.onresult = (event: any) => {
       let interimTranscript = '';
       let finalTranscript = '';
-      
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -542,33 +640,35 @@ export default function ChatBox({
           interimTranscript += transcript;
         }
       }
-      
+
       // Update input with final transcript, show interim in real-time
       if (finalTranscript) {
-        setInput(prev => prev + finalTranscript);
+        setInput((prev) => prev + finalTranscript);
       }
       if (interimTranscript && !finalTranscript) {
         // Show interim results in the input
-        setInput(prev => {
+        setInput((prev) => {
           const lastFinalIndex = prev.lastIndexOf(' ');
           return prev.substring(0, lastFinalIndex + 1) + interimTranscript;
         });
       }
     };
-    
+
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
       if (event.error === 'not-allowed') {
-        alert('Microphone access denied. Please allow microphone access in your browser settings.');
+        alert(
+          'Microphone access denied. Please allow microphone access in your browser settings.'
+        );
       }
     };
-    
+
     recognition.onend = () => {
       setIsRecording(false);
       console.log('Voice recognition ended');
     };
-    
+
     try {
       recognition.start();
     } catch (error) {
@@ -578,40 +678,14 @@ export default function ChatBox({
   };
 
   return (
-    <div className={`flex flex-col h-full bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}>
-      {/* Chat Header */}
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => setIsSettingsOpen(p => !p)} 
-            className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${isSettingsOpen ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500'}`}
-            title="Agent Settings"
-          >
-            <Cog6ToothIcon className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setIsSearchVisible(p => !p)} 
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
-            title="Search History"
-          >
-            <MagnifyingGlassIcon className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={handleClearChat} 
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
-            title="Clear Chat"
-          >
-            <TrashIcon className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
+    <div
+      className={`flex flex-col h-full bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}
+    >
       {/* Settings Panel */}
       {isSettingsOpen && (
-        <div 
+        <div
           ref={settingsPanelRef}
-          className="absolute right-4 top-16 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+          className="absolute right-4 top-4 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
         >
           {/* Settings Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-3 flex items-center justify-between">
@@ -619,7 +693,7 @@ export default function ChatBox({
               <Cog6ToothIcon className="w-5 h-5 text-white" />
               <h3 className="text-white font-semibold">Agent Settings</h3>
             </div>
-            <button 
+            <button
               onClick={() => setIsSettingsOpen(false)}
               className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
             >
@@ -629,12 +703,15 @@ export default function ChatBox({
 
           {/* Settings Content - Scrollable */}
           <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
-            
             {/* Mode Selection */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Response Mode</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Response Mode
+              </label>
               <div className="grid grid-cols-2 gap-2">
-                {(Object.keys(modeConfigs) as Array<keyof typeof modeConfigs>).map((mode) => (
+                {(
+                  Object.keys(modeConfigs) as Array<keyof typeof modeConfigs>
+                ).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => handleModeChange(mode)}
@@ -645,7 +722,9 @@ export default function ChatBox({
                     }`}
                   >
                     <div className="font-medium text-sm capitalize">{mode}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{modeConfigs[mode].desc}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {modeConfigs[mode].desc}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -654,7 +733,9 @@ export default function ChatBox({
             {/* Temperature Slider */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-700">Temperature</label>
+                <label className="text-sm font-semibold text-gray-700">
+                  Temperature
+                </label>
                 <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded text-indigo-600">
                   {agentSettings.temperature.toFixed(2)}
                 </span>
@@ -665,7 +746,9 @@ export default function ChatBox({
                 max="2"
                 step="0.1"
                 value={agentSettings.temperature}
-                onChange={(e) => updateSettings({ temperature: parseFloat(e.target.value) })}
+                onChange={(e) =>
+                  updateSettings({ temperature: parseFloat(e.target.value) })
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
               <div className="flex justify-between text-xs text-gray-500">
@@ -674,14 +757,17 @@ export default function ChatBox({
                 <span>Creative (2.0)</span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Controls randomness: lower values are more focused, higher values are more creative.
+                Controls randomness: lower values are more focused, higher
+                values are more creative.
               </p>
             </div>
 
             {/* Max Tokens Slider */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-700">Max Tokens</label>
+                <label className="text-sm font-semibold text-gray-700">
+                  Max Tokens
+                </label>
                 <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded text-indigo-600">
                   {agentSettings.maxTokens}
                 </span>
@@ -692,7 +778,9 @@ export default function ChatBox({
                 max="4000"
                 step="100"
                 value={agentSettings.maxTokens}
-                onChange={(e) => updateSettings({ maxTokens: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  updateSettings({ maxTokens: parseInt(e.target.value) })
+                }
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
               />
               <div className="flex justify-between text-xs text-gray-500">
@@ -707,13 +795,17 @@ export default function ChatBox({
 
             {/* Model Selection */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">AI Model</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                AI Model
+              </label>
               <select
                 value={agentSettings.model}
                 onChange={(e) => updateSettings({ model: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
               >
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Fast & Efficient)</option>
+                <option value="gpt-3.5-turbo">
+                  GPT-3.5 Turbo (Fast & Efficient)
+                </option>
                 <option value="gpt-4">GPT-4 (Most Capable)</option>
                 <option value="gpt-4-turbo">GPT-4 Turbo (Balanced)</option>
                 <option value="claude-3-sonnet">Claude 3 Sonnet</option>
@@ -723,43 +815,70 @@ export default function ChatBox({
 
             {/* System Prompt */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Custom System Prompt</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Custom System Prompt
+              </label>
               <textarea
                 value={agentSettings.systemPrompt}
-                onChange={(e) => updateSettings({ systemPrompt: e.target.value })}
+                onChange={(e) =>
+                  updateSettings({ systemPrompt: e.target.value })
+                }
                 placeholder="Add custom instructions for the agent... (e.g., 'Always respond in a friendly tone' or 'Focus on beginner-level explanations')"
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none"
               />
               <p className="text-xs text-gray-500">
-                Custom instructions to guide the agent's behavior. This will be prepended to every conversation.
+                Custom instructions to guide the agent's behavior. This will be
+                prepended to every conversation.
               </p>
             </div>
 
             {/* Quick Prompts Library */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Quick Prompt Templates</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Quick Prompt Templates
+              </label>
               <div className="space-y-1">
                 <button
-                  onClick={() => updateSettings({ systemPrompt: 'You are a helpful assistant. Always provide clear, concise, and accurate information. Break down complex topics into simple explanations.' })}
+                  onClick={() =>
+                    updateSettings({
+                      systemPrompt:
+                        'You are a helpful assistant. Always provide clear, concise, and accurate information. Break down complex topics into simple explanations.',
+                    })
+                  }
                   className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
                 >
                   📚 Educational Mode - Clear explanations for learning
                 </button>
                 <button
-                  onClick={() => updateSettings({ systemPrompt: 'You are a professional consultant. Provide expert-level analysis with detailed reasoning. Include relevant examples and best practices.' })}
+                  onClick={() =>
+                    updateSettings({
+                      systemPrompt:
+                        'You are a professional consultant. Provide expert-level analysis with detailed reasoning. Include relevant examples and best practices.',
+                    })
+                  }
                   className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
                 >
                   💼 Professional Mode - Expert analysis and insights
                 </button>
                 <button
-                  onClick={() => updateSettings({ systemPrompt: 'You are a creative brainstorming partner. Think outside the box, suggest innovative ideas, and explore multiple perspectives.' })}
+                  onClick={() =>
+                    updateSettings({
+                      systemPrompt:
+                        'You are a creative brainstorming partner. Think outside the box, suggest innovative ideas, and explore multiple perspectives.',
+                    })
+                  }
                   className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
                 >
                   💡 Creative Mode - Innovative and imaginative
                 </button>
                 <button
-                  onClick={() => updateSettings({ systemPrompt: 'You are a coding assistant. Provide clean, well-documented code with explanations. Follow best practices and modern conventions.' })}
+                  onClick={() =>
+                    updateSettings({
+                      systemPrompt:
+                        'You are a coding assistant. Provide clean, well-documented code with explanations. Follow best practices and modern conventions.',
+                    })
+                  }
                   className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
                 >
                   💻 Coding Mode - Programming focused responses
@@ -770,14 +889,37 @@ export default function ChatBox({
             {/* Settings Summary */}
             <div className="pt-3 border-t border-gray-200">
               <div className="bg-indigo-50 rounded-lg p-3 space-y-1">
-                <div className="text-xs font-semibold text-indigo-900">Current Configuration:</div>
+                <div className="text-xs font-semibold text-indigo-900">
+                  Current Configuration:
+                </div>
                 <div className="text-xs text-indigo-700 space-y-0.5">
-                  <div>• Mode: <span className="font-medium capitalize">{agentSettings.mode}</span></div>
-                  <div>• Temperature: <span className="font-medium">{agentSettings.temperature}</span></div>
-                  <div>• Max Tokens: <span className="font-medium">{agentSettings.maxTokens}</span></div>
-                  <div>• Model: <span className="font-medium">{agentSettings.model}</span></div>
+                  <div>
+                    • Mode:{' '}
+                    <span className="font-medium capitalize">
+                      {agentSettings.mode}
+                    </span>
+                  </div>
+                  <div>
+                    • Temperature:{' '}
+                    <span className="font-medium">
+                      {agentSettings.temperature}
+                    </span>
+                  </div>
+                  <div>
+                    • Max Tokens:{' '}
+                    <span className="font-medium">
+                      {agentSettings.maxTokens}
+                    </span>
+                  </div>
+                  <div>
+                    • Model:{' '}
+                    <span className="font-medium">{agentSettings.model}</span>
+                  </div>
                   {agentSettings.systemPrompt && (
-                    <div>• Custom Prompt: <span className="font-medium">Enabled</span></div>
+                    <div>
+                      • Custom Prompt:{' '}
+                      <span className="font-medium">Enabled</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -791,7 +933,7 @@ export default function ChatBox({
                   maxTokens: 2000,
                   mode: 'balanced' as const,
                   systemPrompt: '',
-                  model: 'gpt-3.5-turbo'
+                  model: 'gpt-3.5-turbo',
                 };
                 updateSettings(defaultSettings);
               }}
@@ -814,36 +956,74 @@ export default function ChatBox({
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && performSearch(searchQuery)}
           />
-          <button onClick={() => performSearch(searchQuery)} className="p-2 rounded-full hover:bg-gray-100">
+          <button
+            onClick={() => performSearch(searchQuery)}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
           </button>
         </div>
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 p-6 overflow-y-auto" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+      <div
+        className="flex-1 p-6 overflow-y-auto"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {isDragOver && (
           <div className="absolute inset-0 bg-indigo-500 bg-opacity-20 z-10 flex items-center justify-center rounded-2xl">
-            <p className="text-lg font-bold text-indigo-800">Drop files to attach</p>
+            <p className="text-lg font-bold text-indigo-800">
+              Drop files to attach
+            </p>
           </div>
         )}
         <div className="space-y-6">
           {messages.map((msg, index) => (
-            <div key={msg.id} id={`message-${msg.id}`} className={`flex items-end gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div
+              key={msg.id}
+              id={`message-${msg.id}`}
+              className={`flex items-end gap-3 ${
+                msg.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
               {msg.role === 'assistant' && (
-                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${agentColor} flex-shrink-0`}></div>
+                <div
+                  className={`w-8 h-8 rounded-full bg-gradient-to-br ${agentColor} flex-shrink-0`}
+                ></div>
               )}
-              <div className={`max-w-xl ${msg.role === 'user' ? 'order-1' : ''}`}>
-                <div className={`px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-indigo-500 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'}`}>
-                  {msg.content && <p className="text-sm"><HighlightedText text={msg.content} searchQuery={searchQuery} /></p>}
+              <div
+                className={`max-w-xl ${msg.role === 'user' ? 'order-1' : ''}`}
+              >
+                <div
+                  className={`px-4 py-3 rounded-2xl ${
+                    msg.role === 'user'
+                      ? 'bg-indigo-500 text-white rounded-br-none'
+                      : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                  }`}
+                >
+                  {msg.content && (
+                    <p className="text-sm">
+                      <HighlightedText
+                        text={msg.content}
+                        searchQuery={searchQuery}
+                      />
+                    </p>
+                  )}
                   {msg.attachments && msg.attachments.length > 0 && (
                     <div className="mt-2 space-y-2">
                       {msg.attachments.map((file, fileIndex) => (
-                        <div key={fileIndex} className="flex items-center bg-gray-200/60 p-2 rounded-lg">
+                        <div
+                          key={fileIndex}
+                          className="flex items-center bg-gray-200/60 p-2 rounded-lg"
+                        >
                           <DocumentIcon className="w-6 h-6 text-gray-500 mr-2" />
                           <div className="flex-1 text-sm">
                             <p className="font-medium truncate">{file.name}</p>
-                            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(file.size)}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -853,18 +1033,39 @@ export default function ChatBox({
                 <div className="mt-1.5 flex items-center gap-2 px-1">
                   {msg.role === 'assistant' && (
                     <>
-                      <button onClick={() => handleFeedback(msg.id, 'positive')} className="p-1 rounded-full hover:bg-gray-200">
-                        {msg.feedback === 'positive' ? <HandThumbUpSolid className="w-4 h-4 text-indigo-500" /> : <HandThumbUpIcon className="w-4 h-4 text-gray-400" />}
+                      <button
+                        onClick={() => handleFeedback(msg.id, 'positive')}
+                        className="p-1 rounded-full hover:bg-gray-200"
+                      >
+                        {msg.feedback === 'positive' ? (
+                          <HandThumbUpSolid className="w-4 h-4 text-indigo-500" />
+                        ) : (
+                          <HandThumbUpIcon className="w-4 h-4 text-gray-400" />
+                        )}
                       </button>
-                      <button onClick={() => handleFeedback(msg.id, 'negative')} className="p-1 rounded-full hover:bg-gray-200">
-                        {msg.feedback === 'negative' ? <HandThumbDownSolid className="w-4 h-4 text-indigo-500" /> : <HandThumbDownIcon className="w-4 h-4 text-gray-400" />}
+                      <button
+                        onClick={() => handleFeedback(msg.id, 'negative')}
+                        className="p-1 rounded-full hover:bg-gray-200"
+                      >
+                        {msg.feedback === 'negative' ? (
+                          <HandThumbDownSolid className="w-4 h-4 text-indigo-500" />
+                        ) : (
+                          <HandThumbDownIcon className="w-4 h-4 text-gray-400" />
+                        )}
                       </button>
-                      <button onClick={() => handleSpeakMessage(msg.content)} className="p-1 rounded-full hover:bg-gray-200" title="Listen to message">
+                      <button
+                        onClick={() => handleSpeakMessage(msg.content)}
+                        className="p-1 rounded-full hover:bg-gray-200"
+                        title="Listen to message"
+                      >
                         <SpeakerWaveIcon className="w-4 h-4 text-gray-400" />
                       </button>
                     </>
                   )}
-                  <button onClick={() => handleCopyMessage(msg.content)} className="p-1 rounded-full hover:bg-gray-200">
+                  <button
+                    onClick={() => handleCopyMessage(msg.content)}
+                    className="p-1 rounded-full hover:bg-gray-200"
+                  >
                     <ClipboardDocumentIcon className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
@@ -873,7 +1074,9 @@ export default function ChatBox({
           ))}
           {isLoading && (
             <div className="flex items-end gap-3">
-              <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${agentColor} flex-shrink-0`}></div>
+              <div
+                className={`w-8 h-8 rounded-full bg-gradient-to-br ${agentColor} flex-shrink-0`}
+              ></div>
               <div className="px-4 py-3 rounded-2xl bg-gray-100">
                 <TypingIndicator agentColor={agentColor} stage={typingStage} />
               </div>
@@ -888,13 +1091,21 @@ export default function ChatBox({
         {attachments.length > 0 && (
           <div className="mb-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {attachments.map((file, index) => (
-              <div key={index} className="relative group bg-gray-100 p-2 rounded-lg text-sm flex items-center gap-2">
+              <div
+                key={index}
+                className="relative group bg-gray-100 p-2 rounded-lg text-sm flex items-center gap-2"
+              >
                 <DocumentIcon className="w-5 h-5 text-gray-500" />
                 <div className="flex-1 truncate">
                   <p className="font-medium truncate">{file.name}</p>
-                  <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatFileSize(file.size)}
+                  </p>
                 </div>
-                <button onClick={() => removeAttachment(index)} className="absolute top-1 right-1 p-0.5 bg-gray-300 rounded-full text-white opacity-0 group-hover:opacity-100">
+                <button
+                  onClick={() => removeAttachment(index)}
+                  className="absolute top-1 right-1 p-0.5 bg-gray-300 rounded-full text-white opacity-0 group-hover:opacity-100"
+                >
                   <XMarkIcon className="w-3 h-3" />
                 </button>
               </div>
@@ -923,22 +1134,43 @@ export default function ChatBox({
             }}
           />
           <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center">
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full hover:bg-gray-200">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded-full hover:bg-gray-200"
+            >
               <PaperClipIcon className="w-5 h-5 text-gray-500" />
             </button>
-            <input type="file" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files)} multiple className="hidden" accept="application/pdf" />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => handleFileSelect(e.target.files)}
+              multiple
+              className="hidden"
+              accept="application/pdf"
+            />
           </div>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <button 
-              type="button" 
-              onClick={handleStartRecording} 
-              disabled={isLoading} 
-              className={`p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : ''}`}
-              title={isRecording ? "Stop recording" : "Voice input"}
+            <button
+              type="button"
+              onClick={handleStartRecording}
+              disabled={isLoading}
+              className={`p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 transition-all ${
+                isRecording ? 'bg-red-500 text-white animate-pulse' : ''
+              }`}
+              title={isRecording ? 'Stop recording' : 'Voice input'}
             >
-              <MicrophoneIcon className={`w-5 h-5 ${isRecording ? 'text-white' : 'text-gray-500'}`} />
+              <MicrophoneIcon
+                className={`w-5 h-5 ${
+                  isRecording ? 'text-white' : 'text-gray-500'
+                }`}
+              />
             </button>
-            <button type="submit" disabled={isLoading} className="p-2 rounded-full bg-indigo-500 text-white disabled:bg-indigo-300 hover:bg-indigo-600 transition-colors">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="p-2 rounded-full bg-indigo-500 text-white disabled:bg-indigo-300 hover:bg-indigo-600 transition-colors"
+            >
               <PaperAirplaneIcon className="w-5 h-5" />
             </button>
           </div>

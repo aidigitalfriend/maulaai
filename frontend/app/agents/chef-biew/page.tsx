@@ -1,29 +1,38 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline'
-import ChatBox from '../../../components/ChatBox'
-import AgentPageLayout from '../../../components/AgentPageLayout'
-import SubscriptionModal from '../../../components/SubscriptionModal'
-import SubscriptionStatus from '../../../components/SubscriptionStatus'
-import * as chatStorage from '../../../utils/chatStorage'
-import { sendSecureMessage } from '../../../lib/secure-api-client'
-import { useAuth } from '../../../hooks/useAuth'
-import { agentSubscriptionService, type AgentSubscription } from '../../../services/agentSubscriptionService'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronLeftIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import ChatBox from '../../../components/ChatBox';
+import AgentPageLayout from '../../../components/AgentPageLayout';
+import SubscriptionModal from '../../../components/SubscriptionModal';
+import SubscriptionStatus from '../../../components/SubscriptionStatus';
+import * as chatStorage from '../../../utils/chatStorage';
+import { sendSecureMessage } from '../../../lib/secure-api-client';
+import { useAuth } from '../../../hooks/useAuth';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '../../../services/agentSubscriptionService';
 
 export default function ChefBiewPage() {
-  const agentId = 'chef-biew'
+  const agentId = 'chef-biew';
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([])
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  
+  const [sessions, setSessions] = useState<chatStorage.ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   // Subscription state
-  const [subscription, setSubscription] = useState<AgentSubscription | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState<boolean>(false);
+  const [subscription, setSubscription] = useState<AgentSubscription | null>(
+    null
+  );
+  const [hasActiveSubscription, setHasActiveSubscription] =
+    useState<boolean>(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] =
+    useState<boolean>(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState<boolean>(true);
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
+  );
 
   // Check subscription status
   useEffect(() => {
@@ -35,7 +44,10 @@ export default function ChefBiewPage() {
 
       try {
         setSubscriptionLoading(true);
-        const result = await agentSubscriptionService.checkSubscription(user.id, agentId);
+        const result = await agentSubscriptionService.checkSubscription(
+          user.id,
+          agentId
+        );
         setHasActiveSubscription(result.hasActiveSubscription);
         setSubscription(result.subscription);
         setSubscriptionError(null);
@@ -68,15 +80,16 @@ export default function ChefBiewPage() {
       setShowSubscriptionModal(true);
       return;
     }
-    
+
     const initialMessage: chatStorage.ChatMessage = {
       id: 'initial-0',
       role: 'assistant',
-      content: "👨‍🍳 Sawasdee krap! I'm Chef Biew, your Thai culinary master! From authentic pad thai to royal palace cuisine, traditional street food to modern fusion - I bring the flavors of Thailand to your kitchen. What Thai dish shall we cook today?",
+      content:
+        "👨‍🍳 Sawasdee krap! I'm Chef Biew, your Thai culinary master! From authentic pad thai to royal palace cuisine, traditional street food to modern fusion - I bring the flavors of Thailand to your kitchen. What Thai dish shall we cook today?",
       timestamp: new Date(),
     };
     const newSession = chatStorage.createNewSession(agentId, initialMessage);
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
   };
 
@@ -86,10 +99,12 @@ export default function ChefBiewPage() {
 
   const handleDeleteChat = (sessionId: string) => {
     chatStorage.deleteSession(agentId, sessionId);
-    const remainingSessions = sessions.filter(s => s.id !== sessionId);
+    const remainingSessions = sessions.filter((s) => s.id !== sessionId);
     setSessions(remainingSessions);
     if (activeSessionId === sessionId) {
-      setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+      setActiveSessionId(
+        remainingSessions.length > 0 ? remainingSessions[0].id : null
+      );
       if (remainingSessions.length === 0) {
         handleNewChat();
       }
@@ -98,9 +113,9 @@ export default function ChefBiewPage() {
 
   const handleRenameChat = (sessionId: string, newName: string) => {
     chatStorage.renameSession(agentId, sessionId, newName);
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, name: newName } : s
-    ));
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, name: newName } : s))
+    );
   };
 
   // Subscription handlers
@@ -110,11 +125,15 @@ export default function ChefBiewPage() {
     }
 
     try {
-      const newSubscription = await agentSubscriptionService.createSubscription(user.id, agentId, plan);
+      const newSubscription = await agentSubscriptionService.createSubscription(
+        user.id,
+        agentId,
+        plan
+      );
       setSubscription(newSubscription);
       setHasActiveSubscription(true);
       setShowSubscriptionModal(false);
-      
+
       // Create initial chat session after successful subscription
       if (sessions.length === 0) {
         handleNewChat();
@@ -136,15 +155,17 @@ export default function ChefBiewPage() {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Chef Biew!';
     }
-    
-    try {
-      return await sendSecureMessage(message, 'chef-biew', 'gpt-3.5-turbo')
-    } catch (error: any) {
-      return `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`
-    }
-  }
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
+    try {
+      return await sendSecureMessage(message, 'chef-biew', 'gpt-3.5-turbo');
+    } catch (error: any) {
+      return `Sorry, I encountered an error: ${
+        error.message || 'Please try again later.'
+      }`;
+    }
+  };
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   // Show loading state
   if (subscriptionLoading) {
@@ -171,44 +192,42 @@ export default function ChefBiewPage() {
 
   return (
     <>
-    <AgentPageLayout
-      agentId={agentId}
-      agentName="Chef Biew"
-      sessions={sessions}
-      activeSessionId={activeSessionId}
-      onNewChat={handleNewChat}
-      onSelectChat={handleSelectChat}
-      onDeleteChat={handleDeleteChat}
-      onRenameChat={handleRenameChat}
-    >
-      {activeSessionId && (
-        <ChatBox
-          key={activeSessionId}
-          agentId={agentId}
-          sessionId={activeSessionId}
-          agentName="Chef Biew"
-          agentColor="from-red-600 to-orange-600"
-          placeholder="What Asian dish shall we cook together? 🍜"
-          initialMessages={activeSession?.messages}
-          onSendMessage={handleSendMessage}
-        />
-      )}
-      
-    </AgentPageLayout>
+      <AgentPageLayout
+        agentId={agentId}
+        agentName="Chef Biew"
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
+        onRenameChat={handleRenameChat}
+      >
+        {activeSessionId && (
+          <ChatBox
+            key={activeSessionId}
+            agentId={agentId}
+            sessionId={activeSessionId}
+            agentName="Chef Biew"
+            agentColor="from-red-600 to-orange-600"
+            placeholder="What Asian dish shall we cook together? 🍜"
+            initialMessages={activeSession?.messages}
+            onSendMessage={handleSendMessage}
+          />
+        )}
+      </AgentPageLayout>
 
-    {/* Disclaimer */}
-      <div className="fixed bottom-0 left-0 right-0 text-center text-[10px] text-gray-400 py-1 bg-gray-900 border-t border-gray-800 z-10">
-    </div>
+      {/* Disclaimer */}
+      <div className="fixed bottom-0 left-0 right-0 text-center text-[10px] text-gray-400 py-1 bg-gray-900 border-t border-gray-800 z-10"></div>
 
-    {/* Subscription Modal */}
-    <SubscriptionModal
-      isOpen={showSubscriptionModal}
-      onClose={() => setShowSubscriptionModal(false)}
-      agentId={agentId}
-      agentName="Chef Biew"
-      agentDescription="Master authentic Thai cuisine with Chef Biew, from street food to royal palace dishes"
-      onSubscribe={handleSubscribe}
-    />
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        agentId={agentId}
+        agentName="Chef Biew"
+        agentDescription="Master authentic Thai cuisine with Chef Biew, from street food to royal palace dishes"
+        onSubscribe={handleSubscribe}
+      />
     </>
-  )
+  );
 }

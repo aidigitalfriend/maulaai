@@ -34,7 +34,10 @@ export async function GET(
   } catch (error) {
     console.error('Error checking subscription:', error);
     return NextResponse.json(
-      { error: 'Failed to check subscription', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Failed to check subscription',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
