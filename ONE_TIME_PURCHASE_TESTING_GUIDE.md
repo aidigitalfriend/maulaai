@@ -1,7 +1,9 @@
 # One-Time Purchase System - Testing Guide
 
 ## System Overview
+
 The system implements **one-time purchases** (not subscriptions) with these key features:
+
 - User can only buy one plan per agent at a time
 - No auto-renewal (autoRenew defaults to false)
 - User can cancel anytime (keeps subscription record)
@@ -13,7 +15,9 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 ## Test Cases
 
 ### Test 1: First Purchase (Happy Path)
+
 **Steps:**
+
 1. Login as a test user
 2. Navigate to `/subscribe`
 3. Select an agent (e.g., "Ade Alpha")
@@ -21,6 +25,7 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 5. Complete Stripe checkout
 
 **Expected:**
+
 - ✅ Checkout page opens
 - ✅ After payment, redirected to success page
 - ✅ Database has new subscription with `status: 'active'`, `autoRenew: false`
@@ -34,16 +39,20 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 ---
 
 ### Test 2: Duplicate Purchase Prevention
+
 **Steps:**
+
 1. With active subscription from Test 1
 2. Try to click "Subscribe" on any plan for the same agent
 
 **Expected:**
+
 - ✅ All "Subscribe" buttons are disabled (grayed out)
 - ✅ Active subscription card is visible at top
 - ✅ Cannot initiate checkout
 
 **Alternative Test:**
+
 1. Try to manually call `/api/stripe/checkout` with same agentId
 2. Should return error: `"You already have an active subscription for this agent"`
 3. Error includes details: plan, expiryDate, daysRemaining
@@ -51,13 +60,16 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 ---
 
 ### Test 3: Double-Click Prevention
+
 **Steps:**
+
 1. Logout and login as different user (no subscription)
 2. Navigate to `/subscribe`
 3. Click "Subscribe" for a plan
 4. Quickly click the same button again before redirect
 
 **Expected:**
+
 - ✅ Button shows "⏳ Processing..." after first click
 - ✅ All other "Subscribe" buttons disabled
 - ✅ Second click does nothing
@@ -67,11 +79,14 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 ---
 
 ### Test 4: Cancel Subscription
+
 **Steps:**
+
 1. With active subscription, click "Cancel Subscription"
 2. Confirm cancellation in browser dialog
 
 **Expected:**
+
 - ✅ Shows success message
 - ✅ Subscription card disappears
 - ✅ Pricing plans reappear
@@ -82,12 +97,15 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 ---
 
 ### Test 5: Re-Purchase After Cancellation
+
 **Steps:**
+
 1. After cancelling (Test 4)
 2. Click "Subscribe" for any plan (can be different from original)
 3. Complete Stripe checkout
 
 **Expected:**
+
 - ✅ Checkout works normally
 - ✅ New subscription created in database
 - ✅ Old cancelled subscription remains in history
@@ -96,24 +114,28 @@ The system implements **one-time purchases** (not subscriptions) with these key 
 ---
 
 ### Test 6: Automatic Expiration (Cron Job)
+
 **Setup:**
+
 1. Manually edit a subscription in database:
    ```javascript
    // In MongoDB
    db.subscriptions.updateOne(
-     { userId: "test-user-id", agentId: "ade-alpha" },
-     { $set: { expiryDate: new Date("2024-01-01") } } // Past date
-   )
+     { userId: 'test-user-id', agentId: 'ade-alpha' },
+     { $set: { expiryDate: new Date('2024-01-01') } } // Past date
+   );
    ```
 2. Wait for next hour mark OR manually trigger cron
 
 **To manually trigger cron:**
+
 ```bash
 cd /Users/onelastai/Downloads/shiny-friend-disco/backend
 node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscriptions())"
 ```
 
 **Expected:**
+
 - ✅ Cron logs: "Marked X subscription(s) as expired"
 - ✅ Database subscription status changed to `'expired'`
 - ✅ Refresh `/subscribe` page - subscription card disappears
@@ -123,12 +145,15 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ---
 
 ### Test 7: Multiple Agents
+
 **Steps:**
+
 1. Purchase subscription for Agent 1 (e.g., "Ade Alpha")
 2. Navigate to same `/subscribe` page
 3. Switch to Agent 2 (if UI supports it) or check that you can subscribe to different agent
 
 **Expected:**
+
 - ✅ Can have active subscriptions for multiple different agents simultaneously
 - ✅ Each agent tracks independently
 - ✅ Cannot have 2+ active subscriptions for the SAME agent
@@ -136,7 +161,9 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ---
 
 ### Test 8: Database Validation
+
 **Check these fields in MongoDB after purchase:**
+
 ```javascript
 {
   _id: ObjectId,
@@ -155,6 +182,7 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ```
 
 **Validate:**
+
 - ✅ `autoRenew` is `false` (not true)
 - ✅ `expiryDate` = `startDate` + plan duration
 - ✅ `status` is `'active'` for new subscriptions
@@ -165,13 +193,16 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ## Edge Cases to Test
 
 ### Edge Case 1: Expired Checkout Session
+
 **Steps:**
+
 1. Click "Subscribe"
 2. Stripe checkout opens
 3. Wait 30+ minutes without completing payment
 4. Try to complete payment
 
 **Expected:**
+
 - ❌ Stripe shows "Session expired" error
 - ✅ No subscription created in database
 - ✅ Can try again with new checkout session
@@ -179,11 +210,14 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ---
 
 ### Edge Case 2: Failed Payment
+
 **Steps:**
+
 1. Use Stripe test card: `4000 0000 0000 0002` (card declined)
 2. Try to complete checkout
 
 **Expected:**
+
 - ❌ Payment fails at Stripe
 - ✅ No subscription created in database
 - ✅ Can retry with valid card
@@ -191,12 +225,15 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ---
 
 ### Edge Case 3: Network Error During Checkout
+
 **Steps:**
+
 1. Click "Subscribe"
 2. Turn off internet before checkout loads
 3. Turn internet back on
 
 **Expected:**
+
 - ✅ Error message shows
 - ✅ "Subscribe" button re-enables
 - ✅ Can try again
@@ -206,32 +243,37 @@ node -e "import('./services/subscription-cron.js').then(m => m.expireOldSubscrip
 ## Manual Database Checks
 
 ### Check Active Subscriptions
+
 ```javascript
 // In MongoDB shell or Compass
-db.subscriptions.find({ status: 'active' })
+db.subscriptions.find({ status: 'active' });
 ```
 
 ### Check Cancelled Subscriptions
+
 ```javascript
-db.subscriptions.find({ status: 'cancelled' })
+db.subscriptions.find({ status: 'cancelled' });
 ```
 
 ### Check Expired Subscriptions
+
 ```javascript
-db.subscriptions.find({ status: 'expired' })
+db.subscriptions.find({ status: 'expired' });
 ```
 
 ### Check User's Subscription History
+
 ```javascript
-db.subscriptions.find({ userId: 'specific-user-id' }).sort({ createdAt: -1 })
+db.subscriptions.find({ userId: 'specific-user-id' }).sort({ createdAt: -1 });
 ```
 
 ### Manually Expire a Subscription (for testing)
+
 ```javascript
 db.subscriptions.updateOne(
   { _id: ObjectId('subscription-id') },
   { $set: { status: 'expired' } }
-)
+);
 ```
 
 ---
@@ -239,6 +281,7 @@ db.subscriptions.updateOne(
 ## API Endpoint Testing
 
 ### Test Check-Active Endpoint
+
 ```bash
 curl -X POST http://localhost:3005/api/agent-subscriptions/check-active \
   -H "Content-Type: application/json" \
@@ -246,6 +289,7 @@ curl -X POST http://localhost:3005/api/agent-subscriptions/check-active \
 ```
 
 **Expected Response:**
+
 ```json
 {
   "hasActive": true,
@@ -260,6 +304,7 @@ curl -X POST http://localhost:3005/api/agent-subscriptions/check-active \
 ```
 
 ### Test Cancel Endpoint
+
 ```bash
 curl -X POST http://localhost:5000/api/subscriptions/cancel \
   -H "Content-Type: application/json" \
@@ -267,6 +312,7 @@ curl -X POST http://localhost:5000/api/subscriptions/cancel \
 ```
 
 **Expected Response:**
+
 ```json
 {
   "success": true,
@@ -307,7 +353,9 @@ curl -X POST http://localhost:5000/api/subscriptions/cancel \
 ## Troubleshooting
 
 ### Issue: Cron job not running
+
 **Check:**
+
 ```bash
 # SSH to server
 pm2 logs shiny-backend | grep Cron
@@ -315,20 +363,26 @@ pm2 logs shiny-backend | grep Cron
 ```
 
 ### Issue: Checkout button always disabled
+
 **Check:**
+
 1. Browser console for errors
 2. Verify `processingPlan` state resets after error
 3. Clear browser cache and cookies
 
 ### Issue: Active subscription not showing
+
 **Check:**
+
 1. Database has subscription with `status: 'active'`
 2. `/api/subscriptions/check` endpoint returns data
 3. Browser console for API errors
 4. Verify `userId` and `agentId` match
 
 ### Issue: Can purchase duplicate
+
 **Check:**
+
 1. `/api/stripe/checkout` validation is running
 2. Database query is correct
 3. `userId` and `agentId` are being passed correctly

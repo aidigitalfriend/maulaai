@@ -18,19 +18,23 @@
 ### 1️⃣ OBSOLETE DOCUMENTATION (Superseded by New System)
 
 #### ❌ Configuration Issue Files (Fixed - No Longer Needed)
+
 These documented problems that have been resolved:
 
 1. **`/CONFIGURATION_ISSUES.md`** - 310 lines
+
    - **Why Delete:** Documented .env issues that were fixed
    - **Replaced By:** Changes already applied to .env files
    - **Status:** SAFE TO DELETE ✅
 
 2. **`/CRITICAL_ISSUES_FOUND.md`** - 283 lines
+
    - **Why Delete:** Listed critical issues (wrong API URLs, missing Stripe IDs)
    - **Replaced By:** All issues fixed, Stripe IDs created
    - **Status:** SAFE TO DELETE ✅
 
 3. **`/WHAT_TO_DO_IN_EACH_COMPONENT.md`** - 648 lines
+
    - **Why Delete:** Implementation guide (now complete)
    - **Replaced By:** `ONE_TIME_PURCHASE_TESTING_GUIDE.md` (comprehensive guide)
    - **Status:** SAFE TO DELETE ✅
@@ -54,16 +58,19 @@ These documented problems that have been resolved:
 These scripts were used for one-time debugging and are no longer needed:
 
 6. **`/check-collections.js`**
+
    - **Why Delete:** Temporary MongoDB collection checker
    - **Better Alternative:** `/backend/scripts/check-collections.js` (organized location)
    - **Status:** DUPLICATE - SAFE TO DELETE ✅
 
 7. **`/check-db-collections.js`**
+
    - **Why Delete:** Another MongoDB collection checker (duplicate)
    - **Better Alternative:** `/backend/scripts/check-database-status.js`
    - **Status:** DUPLICATE - SAFE TO DELETE ✅
 
 8. **`/check-missing-collections.js`**
+
    - **Why Delete:** One-time script to find missing collections (job done)
    - **Status:** SAFE TO DELETE ✅
 
@@ -76,14 +83,17 @@ These scripts were used for one-time debugging and are no longer needed:
 ### 3️⃣ TEMPORARY TEST FILES (Root Directory)
 
 10. **`/clear-auth-storage.html`**
+
     - **Why Delete:** HTML file to clear localStorage/cookies (debug tool)
     - **Status:** SAFE TO DELETE ✅
 
 11. **`/complete-urls-navigation.html`**
+
     - **Why Delete:** Test file for URL navigation (debug tool)
     - **Status:** SAFE TO DELETE ✅
 
 12. **`/example-editor-check.txt`**
+
     - **Why Delete:** Text file with editor notes (temporary)
     - **Status:** SAFE TO DELETE ✅
 
@@ -96,26 +106,31 @@ These scripts were used for one-time debugging and are no longer needed:
 ### 4️⃣ DUPLICATE DEPLOYMENT SCRIPTS
 
 14. **`/quick-deploy-auth-fix.sh`**
+
     - **Why Delete:** One-time deployment for auth fix (job done)
     - **Better Alternative:** `/deploy.sh` (unified deployment)
     - **Status:** SAFE TO DELETE ✅
 
 15. **`/quick-deploy.sh`**
+
     - **Why Delete:** Quick deploy script (replaced by unified script)
     - **Better Alternative:** `/deploy.sh`
     - **Status:** SAFE TO DELETE ✅
 
 16. **`/deploy-production.ps1`**
+
     - **Why Delete:** PowerShell deployment (Windows) - not used on Mac/Linux
     - **Better Alternative:** `/deploy.sh` (bash - universal)
     - **Status:** SAFE TO DELETE ✅
 
 17. **`/check-server.sh`**
+
     - **Why Delete:** Simple server health check (one-liner)
     - **Better Alternative:** `curl http://localhost:3005/health`
     - **Status:** SAFE TO DELETE ✅
 
 18. **`/check-setup.sh`**
+
     - **Why Delete:** Setup checker (one-time use)
     - **Status:** SAFE TO DELETE ✅
 
@@ -147,6 +162,7 @@ These scripts were used for one-time debugging and are no longer needed:
 These files are still useful and should NOT be deleted:
 
 ### Core System Documentation
+
 - ✅ `SYSTEM_STRUCTURE.md` - Complete system architecture reference
 - ✅ `ARCHITECTURE_ROADMAP.md` - Future development plans
 - ✅ `TWO_BACKENDS_ANALYSIS.md` - Backend architecture analysis (useful reference)
@@ -154,19 +170,23 @@ These files are still useful and should NOT be deleted:
 - ✅ `ONE_TIME_PURCHASE_TESTING_GUIDE.md` - Testing guide (NEW, comprehensive)
 
 ### Active Deployment Scripts
+
 - ✅ `deploy.sh` - Main unified deployment script
 - ✅ `deploy-nginx.sh` - NGINX configuration deployment
 - ✅ `ecosystem.config.cjs` - PM2 configuration
 
 ### Configuration Files
+
 - ✅ `.env` files - Active environment configuration
 - ✅ `.gitignore` - Git ignore rules
 - ✅ `package.json` files - Dependencies
 
 ### Scripts Directory
+
 - ✅ `/scripts/*` - All organized deployment and setup scripts
 
 ### Project Documents Directory
+
 - ✅ `/project-documents/*` - All completion and feature documentation
 
 ---
@@ -174,7 +194,9 @@ These files are still useful and should NOT be deleted:
 ## 🚨 KEEP FOR NOW (Need Review)
 
 ### Backend Scripts (Organized)
+
 These are in `/backend/scripts/` and organized properly - **KEEP ALL**:
+
 - `create-missing-stripe-products.js` - Script that created all 36 missing Stripe IDs
 - `populate-core-collections.js` - Database population
 - `test-subscription-api.js` - API testing
@@ -256,12 +278,14 @@ rm CONFIGURATION_ISSUES.md \
 ## 🔍 VERIFICATION AFTER CLEANUP
 
 ### Check Git Status
+
 ```bash
 git status
 # Should show all deleted files
 ```
 
 ### Ensure Core Files Intact
+
 ```bash
 # These should still exist:
 ls -la deploy.sh                    # ✅ Should exist
@@ -271,6 +295,7 @@ ls -la backend/services/subscription-cron.js  # ✅ Should exist
 ```
 
 ### Test System Still Works
+
 ```bash
 # Backend should start
 cd backend && npm run dev
@@ -284,6 +309,7 @@ cd frontend && npm run build
 ## 📊 BEFORE/AFTER COMPARISON
 
 ### Before Cleanup
+
 ```
 Root directory: 34 files + 10 directories
 - 13 obsolete documentation files
@@ -293,6 +319,7 @@ Root directory: 34 files + 10 directories
 ```
 
 ### After Cleanup
+
 ```
 Root directory: 13 files + 10 directories
 - 5 core documentation files (kept)
@@ -322,17 +349,20 @@ Before running cleanup commands:
 ## 🎯 RECOMMENDATION
 
 **Option 1: SAFE - Delete one by one** (Recommended)
+
 - Review each file before deletion
 - Can stop if you find something important
 - Time: ~5 minutes
 
 **Option 2: MODERATE - Bulk delete with backup**
+
 - Create backup first
 - Run bulk deletion command
 - Restore from backup if needed
 - Time: ~2 minutes
 
 **Option 3: CONSERVATIVE - Archive instead of delete**
+
 ```bash
 # Move to archive directory instead of deleting
 mkdir _archived
@@ -341,6 +371,7 @@ mv CONFIGURATION_ISSUES.md \
    [... all other files ...] \
    _archived/
 ```
+
 - Can restore easily if needed
 - Keeps git history
 - Time: ~2 minutes
@@ -350,6 +381,7 @@ mv CONFIGURATION_ISSUES.md \
 ## ✅ FINAL NOTES
 
 All files marked for deletion are:
+
 1. Obsolete (issues fixed or implementation complete)
 2. Duplicates (better versions exist elsewhere)
 3. Temporary (one-time debug/test scripts)
