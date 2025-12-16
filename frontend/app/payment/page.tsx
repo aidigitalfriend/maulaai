@@ -429,7 +429,13 @@ function PaymentContent() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Access Period:</span>
-                <span className="font-semibold capitalize">{billing.cycle === 'day' ? '1 Day' : billing.cycle === 'week' ? '1 Week' : '1 Month'}</span>
+                <span className="font-semibold capitalize">
+                  {billing.cycle === 'day'
+                    ? '1 Day'
+                    : billing.cycle === 'week'
+                    ? '1 Week'
+                    : '1 Month'}
+                </span>
               </div>
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
@@ -463,7 +469,8 @@ function PaymentContent() {
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-blue-800 text-sm">
-                <strong>Access expires:</strong> In {billing.nextBilling} from today (NO auto-renewal)
+                <strong>Access expires:</strong> In {billing.nextBilling} from
+                today (NO auto-renewal)
               </p>
             </div>
 
@@ -482,7 +489,13 @@ function PaymentContent() {
                   Processing...
                 </div>
               ) : (
-                `Purchase ${billing.cycle === 'day' ? 'Daily' : billing.cycle === 'week' ? 'Weekly' : 'Monthly'} Access for ${price}`
+                `Purchase ${
+                  billing.cycle === 'day'
+                    ? 'Daily'
+                    : billing.cycle === 'week'
+                    ? 'Weekly'
+                    : 'Monthly'
+                } Access for ${price}`
               )}
             </button>
 
@@ -493,7 +506,10 @@ function PaymentContent() {
                   <span className="mr-2">📋</span> Terms & Conditions
                 </h4>
                 <p className="text-xs text-gray-600 leading-relaxed mb-2">
-                  By purchasing, you agree to our Terms of Service. This is a one-time purchase with NO auto-renewal. You'll need to purchase again when your access expires if you want to continue using the agent.
+                  By purchasing, you agree to our Terms of Service. This is a
+                  one-time purchase with NO auto-renewal. You'll need to
+                  purchase again when your access expires if you want to
+                  continue using the agent.
                 </p>
                 <Link
                   href="/legal/terms-of-service"
@@ -508,7 +524,9 @@ function PaymentContent() {
                   <span className="mr-2">🔄</span> Refund Policy
                 </h4>
                 <p className="text-xs text-green-700 leading-relaxed mb-2">
-                  All sales are final. Since this is a one-time purchase with no commitment, we do not offer refunds. Please make sure you want to purchase before completing payment.
+                  All sales are final. Since this is a one-time purchase with no
+                  commitment, we do not offer refunds. Please make sure you want
+                  to purchase before completing payment.
                 </p>
                 <Link
                   href="/legal/payments-refunds"

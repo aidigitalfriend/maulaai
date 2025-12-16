@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Suspense } from 'react';
 
 function CancelContent() {
-  const searchParams = useSearchParams()
-  const agentName = searchParams.get('agent') || 'AI Agent'
+  const searchParams = useSearchParams();
+  const agentName = searchParams.get('agent') || 'AI Agent';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
@@ -15,8 +15,18 @@ function CancelContent() {
           {/* Cancel Icon */}
           <div className="mb-8">
             <div className="w-24 h-24 mx-auto bg-orange-500 rounded-full flex items-center justify-center">
-              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-12 h-12 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
           </div>
@@ -26,7 +36,9 @@ function CancelContent() {
             Payment Cancelled
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Your purchase of <span className="font-semibold text-brand-600">{agentName}</span> was not completed
+            Your purchase of{' '}
+            <span className="font-semibold text-brand-600">{agentName}</span>{' '}
+            was not completed
           </p>
 
           {/* Info Box */}
@@ -59,21 +71,51 @@ function CancelContent() {
           <div className="mt-12 bg-blue-50 rounded-xl p-6 text-left">
             <h3 className="font-bold text-gray-900 mb-2">💡 Need Help?</h3>
             <ul className="text-gray-700 space-y-2 text-sm">
-              <li>• Having payment issues? <Link href="/support" className="text-brand-600 hover:underline">Contact Support</Link></li>
-              <li>• Want to learn more about plans? <Link href="/pricing" className="text-brand-600 hover:underline">View Pricing</Link></li>
-              <li>• Questions about pricing? Check our <Link href="/support/faqs" className="text-brand-600 hover:underline">FAQ</Link></li>
+              <li>
+                • Having payment issues?{' '}
+                <Link
+                  href="/support"
+                  className="text-brand-600 hover:underline"
+                >
+                  Contact Support
+                </Link>
+              </li>
+              <li>
+                • Want to learn more about plans?{' '}
+                <Link
+                  href="/pricing"
+                  className="text-brand-600 hover:underline"
+                >
+                  View Pricing
+                </Link>
+              </li>
+              <li>
+                • Questions about pricing? Check our{' '}
+                <Link
+                  href="/support/faqs"
+                  className="text-brand-600 hover:underline"
+                >
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function PaymentCancelPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <CancelContent />
     </Suspense>
-  )
+  );
 }

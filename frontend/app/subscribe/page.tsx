@@ -396,7 +396,8 @@ function SubscriptionContent() {
               </h3>
               <p className="text-sm text-neutral-300">
                 Each agent requires its own purchase. You can buy access to
-                multiple agents individually, but each purchase is separate. No auto-renewal.
+                multiple agents individually, but each purchase is separate. No
+                auto-renewal.
               </p>
             </div>
             <div>
@@ -413,7 +414,9 @@ function SubscriptionContent() {
                 🔄 Easy Cancellation
               </h3>
               <p className="text-sm text-neutral-300">
-                Cancel your access anytime. Since there's no auto-renewal, you're never charged again. Access expires naturally at the end of your chosen period.
+                Cancel your access anytime. Since there's no auto-renewal,
+                you're never charged again. Access expires naturally at the end
+                of your chosen period.
               </p>
             </div>
             <div>

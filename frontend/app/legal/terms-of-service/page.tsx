@@ -270,10 +270,16 @@ Many services allow users to opt out of arbitration within a specified period (t
                 </h3>
                 <ul className="list-disc pl-6 text-neural-200 space-y-2">
                   <li>Access begins immediately upon payment</li>
-                  <li><strong className="text-white">NO auto-renewal</strong> - you're charged only once per purchase</li>
+                  <li>
+                    <strong className="text-white">NO auto-renewal</strong> -
+                    you're charged only once per purchase
+                  </li>
                   <li>You may cancel access at any time (no refund)</li>
                   <li>Choose from $1/day, $5/week, or $19/month per agent</li>
-                  <li>Access expires automatically at the end of your chosen period</li>
+                  <li>
+                    Access expires automatically at the end of your chosen
+                    period
+                  </li>
                   <li>Re-purchase anytime to continue access</li>
                   <li>All prices in USD unless otherwise stated</li>
                 </ul>
