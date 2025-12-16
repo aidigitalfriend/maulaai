@@ -216,7 +216,7 @@ export default function DramaQueenPage() {
       </AgentPageLayout>
 
       {/* Disclaimer */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-[25%] lg:right-0 text-center text-[10px] text-gray-400 py-2 bg-gray-900 border-t border-gray-800 z-10">
+      <div className="fixed bottom-0 left-0 right-0 text-center text-[10px] text-gray-400 py-1 bg-gray-900 border-t border-gray-800 z-10">
         AI Digital Friend can make mistakes. Check important info.
       </div>
 

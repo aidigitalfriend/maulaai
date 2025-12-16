@@ -56,15 +56,15 @@ export default function AgentPageLayout({
   return (
     <div className="h-full bg-gray-900 text-white flex flex-col">
       {/* Main Content */}
-      <div className="h-[85vh] flex gap-0 lg:gap-6 p-2 lg:p-6 overflow-hidden relative">
-        {/* Mobile Toggle Button */}
+      <div className="h-[calc(100vh-64px)] flex gap-0 lg:gap-6 p-0 lg:p-6 overflow-hidden relative">
+        {/* Desktop Hamburger Toggle Button */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="lg:hidden fixed top-20 left-4 z-50 bg-brand-600 hover:bg-brand-700 text-white p-3 rounded-lg shadow-lg transition-all"
+          className="fixed top-20 left-4 z-50 bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-lg shadow-lg transition-all"
           aria-label="Toggle chat history"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -79,30 +79,31 @@ export default function AgentPageLayout({
           </svg>
         </button>
 
-        {/* Left Panel - Hidden on mobile by default, shows when toggled */}
+        {/* Left Panel - Slide in/out */}
         <div className={`
-          fixed lg:relative top-0 left-0 bottom-0 z-40
+          fixed lg:fixed top-0 left-0 bottom-0 z-40
           w-80 lg:w-1/4 
           transform transition-transform duration-300 ease-in-out
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           flex flex-col h-full overflow-hidden
-          pt-24 lg:pt-0
+          pt-24 lg:pt-16
         `}>
           {sidebarContent}
         </div>
 
-        {/* Overlay for mobile when sidebar is open */}
+        {/* Overlay when sidebar is open */}
         {isSidebarOpen && (
           <div
-            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30 top-16"
+            className="fixed inset-0 bg-black bg-opacity-50 z-30"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Right Panel (Chat) - Full width on mobile when sidebar is closed */}
+        {/* Right Panel (Chat) */}
         <div className={`
-          w-full lg:w-3/4 h-full flex flex-col
+          w-full h-full flex flex-col
           transition-all duration-300
+          ${isSidebarOpen ? 'lg:ml-[25%]' : 'lg:ml-0'}
         `}>
           {children}
         </div>
