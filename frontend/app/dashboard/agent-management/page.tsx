@@ -203,8 +203,9 @@ export default function AgentManagementPage() {
                   Agent Management
                 </h1>
                 <p className="text-neural-600 max-w-2xl mt-3">
-                  Purchase access to specialized agents on a per-agent basis. Cards stay locked until
-                  you subscribe, keeping billing under your control.
+                  Purchase access to specialized agents on a per-agent basis.
+                  Cards stay locked until you subscribe, keeping billing under
+                  your control.
                 </p>
               </div>
               <div className="bg-white shadow-sm border border-neural-100 rounded-xl p-5 max-w-sm w-full">
