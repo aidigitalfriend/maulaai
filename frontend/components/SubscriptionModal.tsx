@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import {
   ArrowTopRightOnSquareIcon,
   XMarkIcon,
@@ -23,27 +22,6 @@ export default function SubscriptionModal({
   agentDescription,
 }: SubscriptionModalProps) {
   const redirectToSubscribe = useSubscribeRedirect(agentName, agentId);
-  const hasRedirectedRef = useRef(false);
-
-  useEffect(() => {
-    if (!isOpen) {
-      hasRedirectedRef.current = false;
-      return;
-    }
-
-    if (hasRedirectedRef.current) {
-      return;
-    }
-
-    hasRedirectedRef.current = true;
-
-    const timeout = setTimeout(() => {
-      redirectToSubscribe();
-      onClose();
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [isOpen, redirectToSubscribe, onClose]);
 
   if (!isOpen) return null;
 
