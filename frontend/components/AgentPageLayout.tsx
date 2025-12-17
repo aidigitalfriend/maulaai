@@ -54,7 +54,7 @@ export default function AgentPageLayout({
     ) : null);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="h-screen max-h-screen overflow-hidden bg-gray-900 text-white flex flex-col">
       {/* Main Content */}
       <div className="flex-1 min-h-0 flex gap-0 overflow-hidden relative">
         {/* Desktop Hamburger Toggle Button */}
@@ -114,7 +114,7 @@ export default function AgentPageLayout({
         {/* Right Panel (Chat) */}
         <div
           className={`
-          w-full flex-1 flex flex-col min-h-0
+          w-full flex-1 flex flex-col min-h-0 overflow-hidden
           transition-all duration-300
           ${isSidebarOpen ? 'lg:ml-[25%]' : 'lg:ml-0'}
         `}
