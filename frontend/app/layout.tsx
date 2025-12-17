@@ -134,6 +134,9 @@ export default function RootLayout({
               {/* Global Splash Screen - Temporarily disabled */}
               {/* <SplashScreenWrapper /> */}
 
+              {/* Global Navigation - Fix #2: Consistent Navigation */}
+              <Header />
+
               {/* Main Content Area - Fix #1: Proper Layout System */}
               <main className="flex-1">{children}</main>
 

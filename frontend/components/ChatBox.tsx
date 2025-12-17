@@ -681,44 +681,11 @@ export default function ChatBox({
     <div
       className={`flex flex-col h-full bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}
     >
-      {/* Chat Header */}
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
-        <div className="flex items-center space-x-2">
-          {/* Settings Button */}
-          <button
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Agent Settings"
-          >
-            <Cog6ToothIcon className="w-5 h-5 text-gray-600" />
-          </button>
-          
-          {/* Search Button */}
-          <button
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Search Messages"
-          >
-            <MagnifyingGlassIcon className="w-5 h-5 text-gray-600" />
-          </button>
-          
-          {/* Clear Chat Button */}
-          <button
-            onClick={handleClearChat}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Clear Chat"
-          >
-            <TrashIcon className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-      </div>
-
       {/* Settings Panel */}
       {isSettingsOpen && (
         <div
           ref={settingsPanelRef}
-          className="absolute right-4 top-16 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+          className="absolute right-4 top-4 z-50 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
         >
           {/* Settings Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-3 flex items-center justify-between">
