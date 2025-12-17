@@ -679,13 +679,27 @@ export default function ChatBox({
     }
   };
 
+  const settingsLinkUrl =
+    process.env.NEXT_PUBLIC_AGENT_SETTINGS_URL || '/dashboard/agent-management';
+
+  // Hide legacy hamburger toggle inside the chat body so only the header control remains
+  useEffect(() => {
+    const legacyToggle = document.querySelector(
+      '[aria-label="Toggle chat history"]'
+    ) as HTMLElement | null;
+
+    if (legacyToggle) {
+      legacyToggle.classList.add('hidden');
+    }
+  }, []);
+
   return (
     <div
-      className={`flex flex-col h-full bg-white rounded-t-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}
+      className={`flex flex-col h-full min-h-0 bg-white rounded-t-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}
     >
       {/* Chat Header */}
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-start">
+        <div className="flex items-start space-x-3">
           {/* Hamburger Menu Button */}
           <button
             onClick={() => {
@@ -694,35 +708,19 @@ export default function ChatBox({
               ) as HTMLButtonElement;
               hamburgerBtn?.click();
             }}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors self-start"
             title="Toggle Chat History"
           >
             <Bars3Icon className="w-5 h-5 text-gray-600" />
           </button>
-          <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
+          <h2 className="text-lg font-semibold text-gray-800 leading-tight">
+            {agentName}
+          </h2>
         </div>
-        <div className="flex items-center space-x-2">
-          {/* Settings Button */}
-          <button
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Agent Settings"
-          >
-            <Cog6ToothIcon className="w-5 h-5 text-gray-600" />
-          </button>
-
-          {/* Agent Management Navigation */}
-          <a
-            href="/dashboard/agent-management"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Agent Management"
-          >
-            <ArrowTopRightOnSquareIcon className="w-5 h-5 text-gray-600" />
-          </a>
-
+        <div className="flex items-center gap-2">
           {/* Search Button */}
           <button
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            onClick={() => setIsSearchVisible(!isSearchVisible)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             title="Search Messages"
           >
@@ -737,6 +735,26 @@ export default function ChatBox({
           >
             <TrashIcon className="w-5 h-5 text-gray-600" />
           </button>
+
+          {/* Settings Button */}
+          <button
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Agent Settings"
+          >
+            <Cog6ToothIcon className="w-5 h-5 text-gray-600" />
+          </button>
+
+          {/* External Settings/Management Link */}
+          <a
+            href={settingsLinkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Open settings in new tab"
+          >
+            <ArrowTopRightOnSquareIcon className="w-5 h-5 text-gray-600" />
+          </a>
         </div>
       </div>
 
@@ -1026,7 +1044,7 @@ export default function ChatBox({
 
       {/* Messages Area */}
       <div
-        className="flex-1 p-4 pb-2 overflow-y-auto"
+        className="flex-1 p-4 pb-0 overflow-y-auto min-h-0"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -1146,7 +1164,7 @@ export default function ChatBox({
       </div>
 
       {/* Input Area */}
-      <div className="px-4 pt-4 pb-0 border-t border-gray-200">
+      <div className="px-4 pt-3 pb-0 border-t border-b border-gray-200 bg-white">
         {attachments.length > 0 && (
           <div className="mb-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {attachments.map((file, index) => (
