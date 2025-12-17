@@ -1000,7 +1000,7 @@ export default function ChatBox({
 
       {/* Messages Area */}
       <div
-        className="flex-1 p-6 overflow-y-auto"
+        className="flex-1 p-4 pb-2 overflow-y-auto"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
