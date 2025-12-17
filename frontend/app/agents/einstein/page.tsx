@@ -232,7 +232,7 @@ export default function EinsteinPage() {
       setSessions(loadedSessions);
       const activeId = chatStorage.getActiveSessionId(agentId);
       setActiveSessionId(activeId ?? loadedSessions[0].id);
-    } else if (hasActiveSubscription) {
+    } else {
       handleNewChat();
     }
   }, [hasActiveSubscription]);

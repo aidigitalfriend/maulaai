@@ -80,7 +80,7 @@ export default function LazyPawnPage() {
       setSessions(loadedSessions);
       const activeId = chatStorage.getActiveSessionId(agentId);
       setActiveSessionId(activeId ?? loadedSessions[0].id);
-    } else if (hasActiveSubscription) {
+    } else {
       handleNewChat();
     }
   }, [hasActiveSubscription]);
@@ -88,7 +88,6 @@ export default function LazyPawnPage() {
   const handleNewChat = () => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
-      return;
     }
 
     const initialMessage: chatStorage.ChatMessage = {
