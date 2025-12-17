@@ -137,7 +137,6 @@ export async function POST(request: NextRequest) {
               (1000 * 60 * 60 * 24)
           ),
           price: existingByStripeId.price,
-          autoRenew: false,
         },
       });
     }
@@ -153,7 +152,6 @@ export async function POST(request: NextRequest) {
           price: price,
           startDate: startDate,
           expiryDate: expiryDate,
-          autoRenew: false, // No auto-renewal for one-time payments
           stripeSubscriptionId: subscriptionData.id, // Add Stripe ID
           updatedAt: new Date(),
         },
@@ -169,7 +167,6 @@ export async function POST(request: NextRequest) {
         status: 'active',
         startDate: startDate,
         expiryDate: expiryDate,
-        autoRenew: false, // No auto-renewal for one-time payments
         stripeSubscriptionId: subscriptionData.id, // Add Stripe ID to prevent duplicates
       });
 
@@ -191,7 +188,6 @@ export async function POST(request: NextRequest) {
             (1000 * 60 * 60 * 24)
         ),
         price: subscriptionRecord.price,
-        autoRenew: false, // One-time payment, no auto-renewal
       },
       session: {
         id: session.id,

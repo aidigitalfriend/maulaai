@@ -295,7 +295,7 @@ export interface Promotion {
   name: string;
   code?: string;
   description: string;
-  type: 'discount' | 'trial' | 'upgrade' | 'bonus';
+  type: 'discount' | 'trial' | 'bonus';
   value: number;
   conditions: PromotionConditions;
   validFrom: string;
@@ -321,11 +321,9 @@ export interface PricingSettings {
   taxIncluded: boolean;
   showPriceComparison: boolean;
   showUsageMetrics: boolean;
-  allowDowngrades: boolean;
   requiresApproval: boolean;
   trialPeriod: number; // days
   gracePeriod: number; // days
-  prorratedUpgrades: boolean;
   refundPolicy: string;
 }
 
@@ -422,11 +420,9 @@ export class PricingOverviewLogic {
         taxIncluded: false,
         showPriceComparison: true,
         showUsageMetrics: true,
-        allowDowngrades: true,
         requiresApproval: false,
         trialPeriod: 14,
         gracePeriod: 3,
-        prorratedUpgrades: true,
         refundPolicy: '30-day money-back guarantee',
       },
     };

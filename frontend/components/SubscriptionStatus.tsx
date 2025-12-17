@@ -77,13 +77,6 @@ export default function SubscriptionStatus({
           </div>
           
           <div className="flex items-center space-x-3">
-            <div>
-              <span className="opacity-75">Auto-renew: </span>
-              <span className="font-medium">
-                {subscription.autoRenew ? 'On' : 'Off'}
-              </span>
-            </div>
-            
             {onManage && (
               <button
                 onClick={onManage}
@@ -98,8 +91,7 @@ export default function SubscriptionStatus({
         {isExpiringSoon && subscription.status === 'active' && (
           <div className="mt-2 p-2 bg-white bg-opacity-50 rounded text-sm">
             <ExclamationTriangleIcon className="h-4 w-4 inline mr-1" />
-            Your subscription expires in less than 24 hours. 
-            {subscription.autoRenew ? ' It will renew automatically.' : ' Please renew to continue chatting.'}
+            Your plan expires in less than 24 hours. Purchase again to continue chatting.
           </div>
         )}
 
@@ -107,8 +99,8 @@ export default function SubscriptionStatus({
           <div className="mt-2 p-2 bg-white bg-opacity-50 rounded text-sm">
             <ExclamationTriangleIcon className="h-4 w-4 inline mr-1" />
             {subscription.status === 'expired' 
-              ? 'Your subscription has expired. Subscribe again to continue chatting.'
-              : 'Your subscription has been cancelled. Subscribe again to continue chatting.'
+              ? 'Your plan has expired. Purchase again to continue chatting.'
+              : 'Your plan was cancelled. Purchase again to continue chatting.'
             }
           </div>
         )}

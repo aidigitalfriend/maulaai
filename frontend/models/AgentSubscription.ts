@@ -1,6 +1,6 @@
 /**
  * AgentSubscription Model - Serverless Compatible
- * Simple subscription model for agent access
+ * Simple one-time purchase model for agent access
  */
 
 export interface IAgentSubscription {
@@ -12,7 +12,6 @@ export interface IAgentSubscription {
   status: 'active' | 'expired' | 'cancelled';
   startDate: Date;
   expiryDate: Date;
-  autoRenew: boolean;
   stripeSubscriptionId?: string; // Optional Stripe subscription ID to prevent duplicates
   createdAt?: Date;
   updatedAt?: Date;
@@ -69,10 +68,6 @@ export async function getAgentSubscriptionModel() {
       expiryDate: {
         type: Date,
         required: true,
-      },
-      autoRenew: {
-        type: Boolean,
-        default: false, // One-time purchase - no auto-renewal
       },
       stripeSubscriptionId: {
         type: String,

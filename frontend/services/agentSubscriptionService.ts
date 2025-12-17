@@ -14,7 +14,6 @@ export interface AgentSubscription {
   status: 'active' | 'expired' | 'cancelled';
   startDate: string;
   expiryDate: string;
-  autoRenew: boolean;
 }
 
 export interface SubscriptionPlan {
@@ -161,7 +160,6 @@ class AgentSubscriptionService {
     subscriptionId: string,
     updates: {
       status?: string;
-      autoRenew?: boolean;
       plan?: string;
     }
   ): Promise<AgentSubscription> {
