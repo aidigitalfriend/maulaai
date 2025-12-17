@@ -1120,7 +1120,7 @@ export default function ChatBox({
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="px-4 pt-4 pb-0 border-t border-gray-200">
         {attachments.length > 0 && (
           <div className="mb-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {attachments.map((file, index) => (
