@@ -56,7 +56,7 @@ export default function AgentPageLayout({
   return (
     <div className="h-full bg-gray-900 text-white flex flex-col">
       {/* Main Content */}
-      <div className="h-[calc(100vh-64px)] flex gap-0 lg:gap-6 p-0 lg:p-6 overflow-hidden relative">
+      <div className="h-[calc(100vh-64px)] flex gap-0 overflow-hidden relative">
         {/* Desktop Hamburger Toggle Button */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
