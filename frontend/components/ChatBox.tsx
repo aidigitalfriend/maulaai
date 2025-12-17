@@ -685,26 +685,11 @@ export default function ChatBox({
     >
       {/* Chat Header */}
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          {/* Hamburger Menu Button */}
-          <button
-            onClick={() => {
-              const hamburgerBtn = document.querySelector('[aria-label="Toggle chat history"]') as HTMLButtonElement;
-              hamburgerBtn?.click();
-            }}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Toggle Chat History"
-          >
-            <Bars3Icon className="w-5 h-5 text-gray-600" />
-          </button>
-          <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
-        </div>
+        <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
         <div className="flex items-center space-x-2">
           {/* Agent Management Navigation */}
           <a
-            href="https://onelastai.co/dashboard/agent-management"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/dashboard/agent-management"
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1"
             title="Agent Management"
           >
@@ -1138,7 +1123,7 @@ export default function ChatBox({
       </div>
 
       {/* Input Area */}
-      <div className="px-4 pt-4 pb-0 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200">
         {attachments.length > 0 && (
           <div className="mb-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {attachments.map((file, index) => (
