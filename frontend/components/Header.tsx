@@ -2,17 +2,24 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
-  // Always call hooks in the same order - useAuth must be before useState
+  // Always call hooks in the same order
   const { state, logout } = useAuth();
+  const pathname = usePathname();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  // Hide header on agent chat pages
+  if (pathname?.startsWith('/agents/') && pathname !== '/agents' && pathname !== '/agents/categories') {
+    return null;
+  }
 
   const handleLogout = async () => {
     try {
