@@ -679,7 +679,7 @@ export default function ChatBox({
 
   return (
     <div
-      className={`flex flex-col h-full bg-white rounded-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}
+      className={`flex flex-col h-full bg-white rounded-t-2xl shadow-lg border border-gray-200/80 overflow-hidden ${className}`}
     >
       {/* Chat Header */}
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">

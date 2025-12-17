@@ -17,7 +17,11 @@ export default function Header() {
   useEffect(() => setMounted(true), []);
 
   // Hide header on agent chat pages
-  if (pathname?.startsWith('/agents/') && pathname !== '/agents' && pathname !== '/agents/categories') {
+  if (
+    pathname?.startsWith('/agents/') &&
+    pathname !== '/agents' &&
+    pathname !== '/agents/categories'
+  ) {
     return null;
   }
 

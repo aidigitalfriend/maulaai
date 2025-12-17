@@ -92,12 +92,12 @@ export default function AgentPageLayout({
         {/* Left Panel - Slide in/out */}
         <div
           className={`
-          fixed lg:fixed top-0 left-0 bottom-0 z-40
+          fixed lg:fixed top-16 left-0 bottom-0 z-40
           w-80 lg:w-1/4 
           transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          flex flex-col h-full overflow-hidden
-          pt-24 lg:pt-16
+          flex flex-col overflow-hidden
+          h-[calc(100vh-64px)]
         `}
         >
           {sidebarContent}
