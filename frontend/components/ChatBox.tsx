@@ -22,6 +22,8 @@ import {
   StopIcon,
   PlayIcon,
   PauseIcon,
+  Bars3Icon,
+  ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 import {
   HandThumbUpIcon as HandThumbUpSolid,
@@ -683,16 +685,32 @@ export default function ChatBox({
     >
       {/* Chat Header */}
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
-        <div className="flex items-center space-x-2">
-          {/* Settings Button */}
+        <div className="flex items-center space-x-3">
+          {/* Hamburger Menu Button */}
           <button
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            onClick={() => {
+              const hamburgerBtn = document.querySelector('[aria-label="Toggle chat history"]') as HTMLButtonElement;
+              hamburgerBtn?.click();
+            }}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Agent Settings"
+            title="Toggle Chat History"
+          >
+            <Bars3Icon className="w-5 h-5 text-gray-600" />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-800">{agentName}</h2>
+        </div>
+        <div className="flex items-center space-x-2">
+          {/* Agent Management Navigation */}
+          <a
+            href="https://onelastai.co/dashboard/agent-management"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1"
+            title="Agent Management"
           >
             <Cog6ToothIcon className="w-5 h-5 text-gray-600" />
-          </button>
+            <ArrowTopRightOnSquareIcon className="w-4 h-4 text-gray-600" />
+          </a>
 
           {/* Search Button */}
           <button
