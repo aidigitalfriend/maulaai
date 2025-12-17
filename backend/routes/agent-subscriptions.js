@@ -126,7 +126,6 @@ router.get('/subscriptions/:userId', async (req, res) => {
       price: sub.price,
       startDate: sub.startDate,
       expiryDate: sub.expiryDate,
-      autoRenew: sub.autoRenew,
       subscribedAt: sub.createdAt,
     }));
 
@@ -337,7 +336,6 @@ router.post('/subscribe', async (req, res) => {
       status: 'active',
       startDate: startDate,
       expiryDate: expiryDate,
-      autoRenew: true,
     });
 
     await subscription.save();

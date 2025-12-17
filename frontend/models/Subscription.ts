@@ -4,46 +4,52 @@
  */
 
 export interface ISubscription {
-  _id?: any
-  userId: string
-  email: string
-  agentId: string
-  agentName: string
-  plan: 'daily' | 'weekly' | 'monthly'
-  stripeSubscriptionId: string
-  stripeCustomerId: string
-  stripePriceId: string
-  status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid'
-  price: number
-  currency: string
-  startDate: Date
-  currentPeriodStart: Date
-  currentPeriodEnd: Date
-  cancelAtPeriodEnd: boolean
-  canceledAt?: Date
-  createdAt?: Date
-  updatedAt?: Date
-  isActive?: () => boolean
-  getDaysUntilRenewal?: () => number
-  toJSON?: () => any
+  _id?: any;
+  userId: string;
+  email: string;
+  agentId: string;
+  agentName: string;
+  plan: 'daily' | 'weekly' | 'monthly';
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  stripePriceId: string;
+  status:
+    | 'active'
+    | 'canceled'
+    | 'past_due'
+    | 'incomplete'
+    | 'incomplete_expired'
+    | 'trialing'
+    | 'unpaid';
+  price: number;
+  currency: string;
+  startDate: Date;
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  isActive?: () => boolean;
+  toJSON?: () => any;
 }
 
-let SubscriptionModel: any = null
+let SubscriptionModel: any = null;
 
 /**
  * Get Subscription model (lazy loaded)
  */
 export async function getSubscriptionModel() {
   if (SubscriptionModel) {
-    return SubscriptionModel
+    return SubscriptionModel;
   }
 
-  const mongoose = await import('mongoose')
-  
+  const mongoose = await import('mongoose');
+
   // Check if model already exists
   if (mongoose.default.models.Subscription) {
-    SubscriptionModel = mongoose.default.models.Subscription
-    return SubscriptionModel
+    SubscriptionModel = mongoose.default.models.Subscription;
+    return SubscriptionModel;
   }
 
   const SubscriptionSchema = new mongoose.Schema(
@@ -91,7 +97,15 @@ export async function getSubscriptionModel() {
       },
       status: {
         type: String,
-        enum: ['active', 'canceled', 'past_due', 'incomplete', 'incomplete_expired', 'trialing', 'unpaid'],
+        enum: [
+          'active',
+          'canceled',
+          'past_due',
+          'incomplete',
+          'incomplete_expired',
+          'trialing',
+          'unpaid',
+        ],
         default: 'active',
         required: true,
         index: true,
@@ -128,37 +142,34 @@ export async function getSubscriptionModel() {
     {
       timestamps: true,
     }
-  )
+  );
 
   // Compound indexes
-  SubscriptionSchema.index({ userId: 1, agentId: 1 })
-  SubscriptionSchema.index({ userId: 1, status: 1 })
-  SubscriptionSchema.index({ email: 1, status: 1 })
+  SubscriptionSchema.index({ userId: 1, agentId: 1 });
+  SubscriptionSchema.index({ userId: 1, status: 1 });
+  SubscriptionSchema.index({ email: 1, status: 1 });
 
   // Methods
   SubscriptionSchema.methods.isActive = function (): boolean {
-    const now = new Date()
+    const now = new Date();
     return (
       (this.status === 'active' || this.status === 'trialing') &&
       this.currentPeriodEnd > now
-    )
-  }
-
-  SubscriptionSchema.methods.getDaysUntilRenewal = function (): number {
-    const now = new Date()
-    const diff = this.currentPeriodEnd.getTime() - now.getTime()
-    return Math.ceil(diff / (1000 * 60 * 60 * 24))
-  }
+    );
+  };
 
   SubscriptionSchema.methods.toJSON = function () {
-    const subscription = this.toObject()
-    delete subscription.__v
-    return subscription
-  }
+    const subscription = this.toObject();
+    delete subscription.__v;
+    return subscription;
+  };
 
-  SubscriptionModel = mongoose.default.model('Subscription', SubscriptionSchema)
-  return SubscriptionModel
+  SubscriptionModel = mongoose.default.model(
+    'Subscription',
+    SubscriptionSchema
+  );
+  return SubscriptionModel;
 }
 
 // Default export for compatibility
-export default { getSubscriptionModel }
+export default { getSubscriptionModel };

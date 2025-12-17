@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     const subscriptionsWithStatus = subscriptions.map((sub) => ({
       ...sub.toJSON(),
       isActive: sub.isValid(),
-      daysUntilRenewal: Math.ceil(
+      daysRemaining: Math.ceil(
         (sub.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
       ),
     }));
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/subscriptions/check-access
- * Check if user has active subscription for specific agent
+ * Check if user has active plan for specific agent
  */
 export async function POST(request: NextRequest) {
   try {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
             plan: subscription.plan,
             status: subscription.status,
             expiryDate: subscription.expiryDate,
-            daysUntilRenewal: Math.ceil(
+            daysRemaining: Math.ceil(
               (subscription.expiryDate.getTime() - Date.now()) /
                 (1000 * 60 * 60 * 24)
             ),

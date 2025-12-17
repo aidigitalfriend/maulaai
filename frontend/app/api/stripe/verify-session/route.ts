@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get subscription object (we use subscription mode with cancel_at_period_end)
+    // Get payment period object (we use Stripe subscription mode with cancel_at_period_end)
     const subscriptionData = session.subscription as Stripe.Subscription | null;
 
     if (!subscriptionData) {
