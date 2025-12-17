@@ -262,41 +262,6 @@ function SubscriptionSuccessContent() {
         )}
       </div>
 
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-neural-900 mb-4">
-          What's next?
-        </h2>
-        <ul className="text-left space-y-3 text-neural-600">
-          <li>• Enjoy unlimited conversations with your subscribed agent.</li>
-          <li>• Manage billing or cancel anytime from your dashboard.</li>
-          <li>• Need help? Visit the support center for quick assistance.</li>
-        </ul>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4 justify-center w-full max-w-xl">
-        <Link
-          href="/dashboard"
-          className="flex-1 py-3 px-6 rounded-lg font-semibold text-white bg-brand-600 hover:bg-brand-700 transition-colors"
-        >
-          Go to Dashboard
-        </Link>
-        <button
-          onClick={handleAgentRedirect}
-          disabled={!agentSlug}
-          className={`flex-1 py-3 px-6 rounded-lg font-semibold border border-brand-600 text-brand-600 hover:bg-brand-50 transition-colors ${
-            agentSlug ? '' : 'opacity-60 cursor-not-allowed'
-          }`}
-        >
-          Open Agent Chat
-        </button>
-      </div>
-
-      {!agentSlug && (
-        <p className="text-sm text-amber-600 mt-4">
-          We couldn't detect which agent you subscribed to. Please return to the
-          dashboard to continue.
-        </p>
-      )}
     </div>
   );
 }
