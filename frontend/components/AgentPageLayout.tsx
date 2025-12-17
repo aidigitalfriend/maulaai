@@ -54,9 +54,9 @@ export default function AgentPageLayout({
     ) : null);
 
   return (
-    <div className="h-full bg-gray-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* Main Content */}
-      <div className="h-[calc(100vh-64px)] flex gap-0 overflow-hidden relative">
+      <div className="flex-1 min-h-0 flex gap-0 overflow-hidden relative">
         {/* Desktop Hamburger Toggle Button */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -97,7 +97,7 @@ export default function AgentPageLayout({
           transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           flex flex-col overflow-hidden
-          h-[calc(100vh-64px)]
+          h-full
         `}
         >
           {sidebarContent}
@@ -114,7 +114,7 @@ export default function AgentPageLayout({
         {/* Right Panel (Chat) */}
         <div
           className={`
-          w-full h-full flex flex-col
+          w-full flex-1 flex flex-col min-h-0
           transition-all duration-300
           ${isSidebarOpen ? 'lg:ml-[25%]' : 'lg:ml-0'}
         `}
