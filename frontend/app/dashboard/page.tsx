@@ -79,27 +79,75 @@ function DashboardContent() {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch('/api/user/analytics', {
-        credentials: 'include',
-        cache: 'no-store',
-        signal: controller.signal,
-      });
+      const [analyticsResponse, billingResponse] = await Promise.all([
+        fetch('/api/user/analytics', {
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal,
+        }),
+        fetch(`/api/user/billing/${state.user.id}`, {
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal,
+        }),
+      ]);
 
-      const payload: unknown = await response.json();
+      const analyticsPayload: unknown = await analyticsResponse.json();
 
-      if (!response.ok) {
+      if (!analyticsResponse.ok) {
         const message =
-          (payload && typeof payload === 'object' && 'error' in payload
-            ? (payload as { error?: string }).error
+          (analyticsPayload &&
+          typeof analyticsPayload === 'object' &&
+          'error' in analyticsPayload
+            ? (analyticsPayload as { error?: string }).error
             : undefined) ||
-          (payload && typeof payload === 'object' && 'message' in payload
-            ? (payload as { message?: string }).message
+          (analyticsPayload &&
+          typeof analyticsPayload === 'object' &&
+          'message' in analyticsPayload
+            ? (analyticsPayload as { message?: string }).message
             : undefined) ||
           'Failed to load analytics';
         throw new Error(message);
       }
 
-      setAnalyticsData(payload as AnalyticsData);
+      let mergedAnalytics = analyticsPayload as AnalyticsData;
+
+      if (billingResponse.ok) {
+        const billingJson = await billingResponse.json();
+        const billingPlan = billingJson?.data?.currentPlan;
+
+        if (billingPlan) {
+          mergedAnalytics = {
+            ...mergedAnalytics,
+            subscription: {
+              ...mergedAnalytics.subscription,
+              plan:
+                billingPlan.name ||
+                mergedAnalytics.subscription.plan ||
+                'No Active Plan',
+              status: billingPlan.status || 'inactive',
+              price:
+                typeof billingPlan.price === 'number'
+                  ? billingPlan.price
+                  : mergedAnalytics.subscription.price,
+              period:
+                billingPlan.period ||
+                mergedAnalytics.subscription.period ||
+                'month',
+              renewalDate:
+                billingPlan.renewalDate ||
+                mergedAnalytics.subscription.renewalDate ||
+                'N/A',
+              daysUntilRenewal:
+                typeof billingPlan.daysUntilRenewal === 'number'
+                  ? billingPlan.daysUntilRenewal
+                  : mergedAnalytics.subscription.daysUntilRenewal || 0,
+            },
+          };
+        }
+      }
+
+      setAnalyticsData(mergedAnalytics);
       setLastUpdated(new Date());
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
