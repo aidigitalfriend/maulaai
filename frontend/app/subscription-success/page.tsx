@@ -261,7 +261,6 @@ function SubscriptionSuccessContent() {
           </p>
         )}
       </div>
-
     </div>
   );
 }

@@ -7,7 +7,11 @@ export const dynamic = 'force-dynamic';
 
 const PLAN_DEFAULTS = {
   daily: { price: 1, period: 'day', limits: { apiCalls: 500, storage: 1024 } },
-  weekly: { price: 5, period: 'week', limits: { apiCalls: 2500, storage: 2048 } },
+  weekly: {
+    price: 5,
+    period: 'week',
+    limits: { apiCalls: 2500, storage: 2048 },
+  },
   monthly: {
     price: 19,
     period: 'month',
@@ -28,7 +32,12 @@ function buildFallbackAnalytics(): AnalyticsData {
       daysUntilRenewal: 0,
     },
     usage: {
-      conversations: { current: 0, limit: 10000, percentage: 0, unit: 'conversations' },
+      conversations: {
+        current: 0,
+        limit: 10000,
+        percentage: 0,
+        unit: 'conversations',
+      },
       agents: { current: 0, limit: 50, percentage: 0, unit: 'agents' },
       apiCalls: { current: 0, limit: 15000, percentage: 0, unit: 'calls' },
       storage: { current: 0, limit: 10240, percentage: 0, unit: 'MB' },
@@ -58,7 +67,7 @@ function buildFallbackAnalytics(): AnalyticsData {
 
 function pct(numerator: number, denominator: number) {
   if (!denominator) return 0;
-  return Math.min(100, +(numerator / denominator * 100).toFixed(1));
+  return Math.min(100, +((numerator / denominator) * 100).toFixed(1));
 }
 
 function trendChange(latest: number, previous: number) {
@@ -70,7 +79,8 @@ function trendChange(latest: number, previous: number) {
 
 export async function GET(request: Request) {
   try {
-    const sessionId = request.headers.get('cookie')
+    const sessionId = request.headers
+      .get('cookie')
       ?.split(';')
       .map((c) => c.trim())
       .find((c) => c.startsWith('session_id='))
@@ -106,10 +116,14 @@ export async function GET(request: Request) {
     );
 
     const subscriptionPlan = activeSubscription?.plan?.toLowerCase() || 'none';
-    const planDefaults = PLAN_DEFAULTS[subscriptionPlan as keyof typeof PLAN_DEFAULTS];
+    const planDefaults =
+      PLAN_DEFAULTS[subscriptionPlan as keyof typeof PLAN_DEFAULTS];
 
     const subscription = {
-      plan: activeSubscription?.name || activeSubscription?.plan || 'No Active Plan',
+      plan:
+        activeSubscription?.name ||
+        activeSubscription?.plan ||
+        'No Active Plan',
       status: activeSubscription?.status || 'inactive',
       price: activeSubscription?.price ?? planDefaults?.price ?? 0,
       period: planDefaults?.period || 'month',
@@ -120,7 +134,8 @@ export async function GET(request: Request) {
         ? Math.max(
             0,
             Math.ceil(
-              (new Date(activeSubscription.billingCycleEnd).getTime() - Date.now()) /
+              (new Date(activeSubscription.billingCycleEnd).getTime() -
+                Date.now()) /
                 (1000 * 60 * 60 * 24)
             )
           )
@@ -133,7 +148,10 @@ export async function GET(request: Request) {
       { sort: { 'period.endDate': -1 } }
     );
 
-    const usageDefaults = planDefaults?.limits || { apiCalls: 15000, storage: 10240 };
+    const usageDefaults = planDefaults?.limits || {
+      apiCalls: 15000,
+      storage: 10240,
+    };
     const conversationsCurrent = usageDoc?.conversations?.total || 0;
     const messagesCurrent = usageDoc?.messages?.total || 0;
     const apiCallsCurrent = usageDoc?.api?.totalCalls || 0;
@@ -183,7 +201,9 @@ export async function GET(request: Request) {
       .toArray();
 
     const dailyUsage = dailyUsageDocs.map((doc) => ({
-      date: doc.date ? new Date(doc.date).toISOString() : new Date().toISOString(),
+      date: doc.date
+        ? new Date(doc.date).toISOString()
+        : new Date().toISOString(),
       conversations: doc.totalSessions || doc.totalMessages || 0,
       messages: doc.totalMessages || 0,
       apiCalls: doc.totalTokensUsed || 0,
@@ -222,7 +242,10 @@ export async function GET(request: Request) {
     }));
 
     const topAgents = agentsUsed
-      .map((agent: any) => ({ name: agent.agentName || agent.agentId, usage: agent.interactions || 0 }))
+      .map((agent: any) => ({
+        name: agent.agentName || agent.agentId,
+        usage: agent.interactions || 0,
+      }))
       .sort((a: any, b: any) => b.usage - a.usage)
       .slice(0, 5);
 
@@ -234,7 +257,8 @@ export async function GET(request: Request) {
       .toArray();
 
     const recentActivity = recentActivityDocs.map((item: any) => ({
-      timestamp: item.timing?.occurredAt?.toISOString?.() || new Date().toISOString(),
+      timestamp:
+        item.timing?.occurredAt?.toISOString?.() || new Date().toISOString(),
       agent: item.details?.target || item.details?.agentId || 'Agent',
       action: item.type || item.category || 'activity',
       status: item.analytics?.status || 'completed',
@@ -245,9 +269,7 @@ export async function GET(request: Request) {
     const costAnalysis = {
       currentMonth: monthlyPrice,
       projectedMonth: monthlyPrice,
-      breakdown: [
-        { category: 'Plan', cost: monthlyPrice, percentage: 100 },
-      ],
+      breakdown: [{ category: 'Plan', cost: monthlyPrice, percentage: 100 }],
     };
 
     const payload: AnalyticsData = {
