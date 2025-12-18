@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 
+const repoRoot = path.resolve(__dirname, '..');
+
 const nextConfig = {
   // Server-rendered deployment; disable static export during production builds to support route handlers
   output: undefined,
@@ -21,7 +23,10 @@ const nextConfig = {
   serverExternalPackages: ['mongoose', 'mongodb'],
 
   // Fix turbopack root directory warning and enable turbopack
-  turbopack: {},
+  turbopack: {
+    // Silence inferred root warning when multiple lockfiles exist
+    root: repoRoot,
+  },
 
   // ============================================
   // BUNDLE SIZE OPTIMIZATIONS
@@ -164,8 +169,8 @@ const nextConfig = {
   productionBrowserSourceMaps:
     process.env.NODE_ENV === 'production' ? false : true,
 
-  // Set output file tracing root to resolve lockfile warnings - commented out for production
-  // outputFileTracingRoot: path.join(__dirname, '../../'),
+  // Set output file tracing root to resolve lockfile warnings
+  outputFileTracingRoot: repoRoot,
 
   // ✅ SECURITY: Add security headers
   async headers() {

@@ -8,14 +8,6 @@ export const runtime = 'nodejs';
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB to allow higher quality avatars
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '6mb',
-    },
-  },
-};
-
 export async function POST(
   request: NextRequest,
   { params }: { params: { userId: string } }
