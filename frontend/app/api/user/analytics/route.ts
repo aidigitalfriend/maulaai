@@ -272,7 +272,10 @@ export async function GET(request: Request) {
       breakdown: [{ category: 'Plan', cost: monthlyPrice, percentage: 100 }],
     };
 
-    const payload: AnalyticsData = {
+    // Determine agent status for dashboard
+    const agentStatus = usage.agents.current > 0 ? 'Active' : 'No Active';
+
+    const payload: AnalyticsData & { agentStatus: string } = {
       subscription,
       usage,
       dailyUsage,
@@ -281,6 +284,7 @@ export async function GET(request: Request) {
       recentActivity,
       costAnalysis,
       topAgents,
+      agentStatus,
     };
 
     return NextResponse.json(payload, { status: 200 });

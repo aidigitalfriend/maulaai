@@ -70,4 +70,7 @@ export interface AnalyticsData {
     breakdown: Array<{ category: string; cost: number; percentage: number }>;
   };
   topAgents: Array<{ name: string; usage: number }>;
+
+  // Real-time agent status for dashboard
+  agentStatus?: string;
 }

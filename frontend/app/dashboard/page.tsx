@@ -425,7 +425,7 @@ function DashboardContent() {
               )}
             </div>
 
-            {/* Subscription Badge */}
+            {/* Subscription & Agent Status Badge */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-neural-200 min-w-[280px]">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -438,6 +438,18 @@ function DashboardContent() {
                       No billing is currently active.
                     </p>
                   )}
+                  {/* Real-time Agent Status */}
+                  <p className="text-xs mt-2">
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full font-semibold text-xs ${
+                        analyticsData.agentStatus === 'Active'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {analyticsData.agentStatus || 'No Active'}
+                    </span>
+                  </p>
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
