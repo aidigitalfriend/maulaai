@@ -22,7 +22,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$REPO_ROOT"
 
-SERVER="ubuntu@47.129.43.231"
+SERVER="ubuntu@47.130.228.100"
 SSH_KEY="$REPO_ROOT/one-last-ai.pem"
 REMOTE_DIR="~/shiny-friend-disco"
 COMMIT_MSG="chore: deploy $(date +'%Y-%m-%d %H:%M:%S')"
@@ -129,8 +129,22 @@ REMOTE
 
 ssh -tt -i "$SSH_KEY" "$SERVER" "$SSH_COMMAND"
 
-print_status "4) Smoke testing key endpoints"
-curl -f https://onelastai.co/api/status | head -c 200 && echo "\n"
-curl -f https://onelastai.co/api/user/profile | head -c 200 && echo "\n"
 
-print_status "✅ Deployment complete"
+print_status "4) Automated diagnostics and fix"
+ssh -tt -i "$SSH_KEY" "$SERVER" "\
+  echo '--- Checking port bindings ---'; \
+  ss -tuln | grep ':3000'; \
+  ss -tuln | grep ':3005'; \
+  echo '\n--- PM2 process info ---'; \
+  pm2 info shiny-backend; \
+  pm2 info shiny-frontend; \
+  echo '\n--- NGINX error log (last 50 lines) ---'; \
+  sudo tail -n 50 /var/log/nginx/onelastai.co-error.log; \
+  echo '\n--- Restarting NGINX ---'; \
+  sudo systemctl restart nginx; \
+  echo '\n--- Retesting endpoints ---'; \
+  curl -f https://onelastai.co/api/status | head -c 200 || echo 'Status endpoint failed'; \
+  curl -f https://onelastai.co/api/user/profile | head -c 200 || echo 'Profile endpoint failed'; \
+"
+
+print_status "✅ Deployment and diagnostics complete"

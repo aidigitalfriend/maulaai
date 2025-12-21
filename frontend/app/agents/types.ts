@@ -9,7 +9,7 @@ export type AgentCategory =
   | 'Creative' 
   | 'Technology'
 
-export type AIProvider = 'mistral' | 'anthropic' | 'openai' | 'gemini' | 'cohere'
+export type AIProvider = 'openai' | 'anthropic' | 'gemini' | 'cohere' | 'mistral' | 'grok' | 'huggingface' | 'groq'
 
 export interface DetailedSection {
   title: string

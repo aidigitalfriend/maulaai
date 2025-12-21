@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -11,6 +12,79 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline'
 import { AgentConfig } from '../app/agents/types'
+
+
+// AI Providers and Models (expand as needed)
+const PROVIDER_MODEL_OPTIONS = [
+  {
+    provider: 'openai',
+    label: 'OpenAI',
+    models: [
+      { value: 'gpt-4', label: 'GPT-4' },
+      { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+    ],
+  },
+  {
+    provider: 'anthropic',
+    label: 'Anthropic',
+    models: [
+      { value: 'claude-3-opus', label: 'Claude 3 Opus' },
+      { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
+      { value: 'claude-2.1', label: 'Claude 2.1' },
+    ],
+  },
+  {
+    provider: 'gemini',
+    label: 'Google Gemini',
+    models: [
+      { value: 'gemini-pro', label: 'Gemini Pro' },
+      { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
+    ],
+  },
+  {
+    provider: 'cohere',
+    label: 'Cohere',
+    models: [
+      { value: 'command-r', label: 'Command R' },
+      { value: 'command', label: 'Command' },
+    ],
+  },
+  {
+    provider: 'mistral',
+    label: 'Mistral',
+    models: [
+      { value: 'mistral-large', label: 'Mistral Large' },
+      { value: 'mistral-medium', label: 'Mistral Medium' },
+      { value: 'mistral-small', label: 'Mistral Small' },
+    ],
+  },
+  {
+    provider: 'grok',
+    label: 'xAI Grok',
+    models: [
+      { value: 'grok-1', label: 'Grok-1' },
+    ],
+  },
+  {
+    provider: 'huggingface',
+    label: 'HuggingFace',
+    models: [
+      { value: 'meta-llama-3-70b', label: 'Meta Llama 3 70B' },
+      { value: 'mistralai-mixtral-8x7b', label: 'Mixtral 8x7B' },
+    ],
+  },
+  {
+    provider: 'groq',
+    label: 'Groq',
+    models: [
+      { value: 'llama-3-70b-8192', label: 'Llama 3 70B (Groq)' },
+      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Groq)' },
+    ],
+  },
+];
+
+
 
 interface AgentSettingsModalProps {
   isOpen: boolean
@@ -491,36 +565,54 @@ export default function AgentSettingsModal({
                   <div className="space-y-6">
                     <div>
                       <h4 className="text-lg font-semibold text-gray-900 mb-4">AI Model Settings</h4>
-                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Max Tokens
-                          </label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
+                          <select
+                            value={editedAgent.aiProvider.primary}
+                            onChange={e => handleInputChange('primary', e.target.value, 'aiProvider')}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                          >
+                            {PROVIDER_MODEL_OPTIONS.map(opt => (
+                              <option key={opt.provider} value={opt.provider}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                          <select
+                            value={editedAgent.aiProvider.model}
+                            onChange={e => handleInputChange('model', e.target.value, 'aiProvider')}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                          >
+                            {(PROVIDER_MODEL_OPTIONS.find(opt => opt.provider === editedAgent.aiProvider.primary)?.models || []).map(model => (
+                              <option key={model.value} value={model.value}>{model.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Max Tokens</label>
                           <input
                             type="number"
                             min="100"
                             max="2000"
                             value={editedAgent.settings.maxTokens}
-                            onChange={(e) => handleInputChange('maxTokens', parseInt(e.target.value), 'settings')}
+                            onChange={e => handleInputChange('maxTokens', parseInt(e.target.value), 'settings')}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                           />
-                          <p className="mt-1 text-xs text-gray-500">
-                            Maximum length of responses (100-2000)
-                          </p>
+                          <p className="mt-1 text-xs text-gray-500">Maximum length of responses (100-2000)</p>
                         </div>
-
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Temperature ({editedAgent.settings.temperature})
-                          </label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Temperature ({editedAgent.settings.temperature})</label>
                           <input
                             type="range"
                             min="0"
                             max="1"
                             step="0.1"
                             value={editedAgent.settings.temperature}
-                            onChange={(e) => handleInputChange('temperature', parseFloat(e.target.value), 'settings')}
+                            onChange={e => handleInputChange('temperature', parseFloat(e.target.value), 'settings')}
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -529,23 +621,21 @@ export default function AgentSettingsModal({
                           </div>
                         </div>
                       </div>
-
                       <div className="flex items-center space-x-6 mt-6">
                         <label className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={editedAgent.settings.enabled}
-                            onChange={(e) => handleInputChange('enabled', e.target.checked, 'settings')}
+                            onChange={e => handleInputChange('enabled', e.target.checked, 'settings')}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <span className="text-sm font-medium text-gray-700">Agent Enabled</span>
                         </label>
-
                         <label className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={editedAgent.settings.premium}
-                            onChange={(e) => handleInputChange('premium', e.target.checked, 'settings')}
+                            onChange={e => handleInputChange('premium', e.target.checked, 'settings')}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
                           <span className="text-sm font-medium text-gray-700">Premium Only</span>

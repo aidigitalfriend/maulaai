@@ -11,18 +11,7 @@ import { MongoClient } from 'mongodb'
 import mongoose from 'mongoose'
 
 // Import all AI Lab models
-import LabExperiment from '../models/LabExperiment.ts'
-import DatasetAnalysis from '../models/DatasetAnalysis.ts'
-import ImageGeneration from '../models/ImageGeneration.ts'
-import EmotionAnalysis from '../models/EmotionAnalysis.ts'
-import FuturePrediction from '../models/FuturePrediction.ts'
-import MusicGeneration from '../models/MusicGeneration.ts'
-import PersonalityTest from '../models/PersonalityTest.ts'
-import CreativeWriting from '../models/CreativeWriting.ts'
-import SmartAssistant from '../models/SmartAssistant.ts'
-import VirtualReality from '../models/VirtualReality.ts'
-import LanguageLearning from '../models/LanguageLearning.ts'
-import NeuralArtGeneration from '../models/NeuralArtGeneration.ts'
+
 
 const router = express.Router()
 
