@@ -139,8 +139,7 @@ export async function GET(request: NextRequest) {
         ? Math.max(
             0,
             Math.ceil(
-              (renewalSource.getTime() - now.getTime()) /
-                (1000 * 60 * 60 * 24)
+              (renewalSource.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
             )
           )
         : 0;

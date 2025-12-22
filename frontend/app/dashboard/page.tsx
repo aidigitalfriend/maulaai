@@ -351,12 +351,9 @@ function DashboardContent() {
     },
   ];
 
-  const normalizedSubscriptionStatus = analyticsData.subscription.status
-    ? analyticsData.subscription.status.toLowerCase()
-    : 'inactive';
-  const hasActiveSubscription = ['active', 'trialing', 'past_due'].includes(
-    normalizedSubscriptionStatus
-  );
+  const hasActiveAgents = analyticsData.usage.agents.current > 0;
+  const isAgentActive = (analyticsData.agentStatus || '').toLowerCase() ===
+    'active' || hasActiveAgents;
 
   return (
     <ProtectedRoute>
@@ -425,75 +422,57 @@ function DashboardContent() {
               )}
             </div>
 
-            {/* Subscription & Agent Status Badge */}
+            {/* Agent Status Summary */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-neural-200 min-w-[280px]">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-sm text-neural-600">Current Plan</p>
+                  <p className="text-sm text-neural-600">Agent Status</p>
                   <p className="text-2xl font-bold text-neural-800">
-                    {analyticsData.subscription.plan}
+                    {isAgentActive ? 'Active' : 'Inactive'}
                   </p>
-                  {!hasActiveSubscription && (
-                    <p className="text-sm text-neural-500 mt-1">
-                      No billing is currently active.
-                    </p>
-                  )}
                   {/* Real-time Agent Status */}
                   <p className="text-xs mt-2">
                     <span
                       className={`inline-block px-2 py-1 rounded-full font-semibold text-xs ${
-                        analyticsData.agentStatus === 'Active'
+                        isAgentActive
                           ? 'bg-green-100 text-green-700'
                           : 'bg-red-100 text-red-700'
                       }`}
                     >
-                      {analyticsData.agentStatus || 'No Active'}
+                      {isAgentActive ? 'Active' : 'No Active'}
                     </span>
                   </p>
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    hasActiveSubscription
+                    isAgentActive
                       ? 'bg-green-100 text-green-700'
                       : 'bg-red-100 text-red-700'
                   }`}
                 >
-                  {analyticsData.subscription.status.toUpperCase()}
+                  {isAgentActive ? 'ACTIVE' : 'INACTIVE'}
                 </span>
               </div>
-
-              {hasActiveSubscription ? (
-                <>
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-3xl font-bold text-brand-600">
-                      ${analyticsData.subscription.price}
+              <div className="mt-2 mb-4 text-sm text-neural-600">
+                {hasActiveAgents ? (
+                  <>
+                    You currently have{' '}
+                    <span className="font-semibold text-neural-900">
+                      {analyticsData.usage.agents.current} active agent
+                      {analyticsData.usage.agents.current === 1 ? '' : 's'}
                     </span>
-                    <span className="text-neural-600">
-                      /{analyticsData.subscription.period}
-                    </span>
-                  </div>
-                  <p className="text-sm text-neural-600">
-                    Renews in{' '}
-                    <span className="font-semibold text-neural-800">
-                      {analyticsData.subscription.daysUntilRenewal} days
-                    </span>
-                  </p>
-                  <p className="text-xs text-neural-500 mt-1">
-                    Next charge on {analyticsData.subscription.renewalDate}
-                  </p>
-                </>
-              ) : (
-                <div className="mb-4 text-sm text-neural-600">
-                  You are on a free tier. Choose a plan to unlock unlimited
-                  agents and usage analytics.
-                </div>
-              )}
+                    .
+                  </>
+                ) : (
+                  'You have no active agent plans. Activate an agent to start tracking usage.'
+                )}
+              </div>
 
               <Link
-                href="/pricing/overview"
+                href="/dashboard/agent-management"
                 className="mt-4 w-full btn-secondary text-center block text-sm"
               >
-                {hasActiveSubscription ? 'Manage Plan' : 'Choose a Plan'}
+                Manage Agents
               </Link>
             </div>
           </div>
