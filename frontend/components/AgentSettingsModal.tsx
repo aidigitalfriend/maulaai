@@ -1,18 +1,16 @@
+'use client';
 
-'use client'
-
-import { useState, useEffect } from 'react'
-import { 
-  XMarkIcon, 
+import { useState, useEffect } from 'react';
+import {
+  XMarkIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
   AdjustmentsHorizontalIcon,
   SparklesIcon,
-  CheckIcon
-} from '@heroicons/react/24/outline'
-import { AgentConfig } from '../app/agents/types'
-
+  CheckIcon,
+} from '@heroicons/react/24/outline';
+import { AgentConfig } from '../app/agents/types';
 
 // AI Providers and Models (expand as needed)
 const PROVIDER_MODEL_OPTIONS = [
@@ -62,9 +60,7 @@ const PROVIDER_MODEL_OPTIONS = [
   {
     provider: 'grok',
     label: 'xAI Grok',
-    models: [
-      { value: 'grok-1', label: 'Grok-1' },
-    ],
+    models: [{ value: 'grok-1', label: 'Grok-1' }],
   },
   {
     provider: 'huggingface',
@@ -84,159 +80,170 @@ const PROVIDER_MODEL_OPTIONS = [
   },
 ];
 
-
-
 interface AgentSettingsModalProps {
-  isOpen: boolean
-  onClose: () => void
-  agent: AgentConfig
-  onSave: (updatedAgent: AgentConfig) => void
+  isOpen: boolean;
+  onClose: () => void;
+  agent: AgentConfig;
+  onSave: (updatedAgent: AgentConfig) => void;
 }
 
-export default function AgentSettingsModal({ 
-  isOpen, 
-  onClose, 
-  agent, 
-  onSave 
+export default function AgentSettingsModal({
+  isOpen,
+  onClose,
+  agent,
+  onSave,
 }: AgentSettingsModalProps) {
-  const [editedAgent, setEditedAgent] = useState<AgentConfig>(agent)
-  const [activeTab, setActiveTab] = useState<'general' | 'personality' | 'prompts' | 'settings'>('general')
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+  const [editedAgent, setEditedAgent] = useState<AgentConfig>(agent);
+  const [activeTab, setActiveTab] = useState<
+    'general' | 'personality' | 'prompts' | 'settings'
+  >('general');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    setEditedAgent(agent)
-    setHasUnsavedChanges(false)
-  }, [agent])
+    setEditedAgent(agent);
+    setHasUnsavedChanges(false);
+  }, [agent]);
 
   useEffect(() => {
-    const hasChanges = JSON.stringify(editedAgent) !== JSON.stringify(agent)
-    setHasUnsavedChanges(hasChanges)
-  }, [editedAgent, agent])
+    const hasChanges = JSON.stringify(editedAgent) !== JSON.stringify(agent);
+    setHasUnsavedChanges(hasChanges);
+  }, [editedAgent, agent]);
 
   const handleInputChange = (field: string, value: any, nested?: string) => {
-    setEditedAgent(prev => {
+    setEditedAgent((prev) => {
       if (nested) {
-        const nestedObj = prev[nested as keyof AgentConfig] as any
+        const nestedObj = prev[nested as keyof AgentConfig] as any;
         return {
           ...prev,
           [nested]: {
             ...nestedObj,
-            [field]: value
-          }
-        }
+            [field]: value,
+          },
+        };
       }
       return {
         ...prev,
-        [field]: value
-      }
-    })
-  }
+        [field]: value,
+      };
+    });
+  };
 
-  const handleArrayChange = (field: string, index: number, value: string, nested?: string) => {
-    setEditedAgent(prev => {
+  const handleArrayChange = (
+    field: string,
+    index: number,
+    value: string,
+    nested?: string
+  ) => {
+    setEditedAgent((prev) => {
       if (nested) {
-        const nestedObj = prev[nested as keyof AgentConfig] as any
-        const newArray = [...nestedObj[field]]
-        newArray[index] = value
+        const nestedObj = prev[nested as keyof AgentConfig] as any;
+        const newArray = [...nestedObj[field]];
+        newArray[index] = value;
         return {
           ...prev,
           [nested]: {
             ...nestedObj,
-            [field]: newArray
-          }
-        }
+            [field]: newArray,
+          },
+        };
       }
-      const newArray = [...(prev[field as keyof AgentConfig] as any)]
-      newArray[index] = value
+      const newArray = [...(prev[field as keyof AgentConfig] as any)];
+      newArray[index] = value;
       return {
         ...prev,
-        [field]: newArray
-      }
-    })
-  }
+        [field]: newArray,
+      };
+    });
+  };
 
   const addArrayItem = (field: string, nested?: string) => {
-    setEditedAgent(prev => {
+    setEditedAgent((prev) => {
       if (nested) {
-        const nestedObj = prev[nested as keyof AgentConfig] as any
+        const nestedObj = prev[nested as keyof AgentConfig] as any;
         return {
           ...prev,
           [nested]: {
             ...nestedObj,
-            [field]: [...nestedObj[field], '']
-          }
-        }
+            [field]: [...nestedObj[field], ''],
+          },
+        };
       }
       return {
         ...prev,
-        [field]: [...(prev[field as keyof AgentConfig] as any), '']
-      }
-    })
-  }
+        [field]: [...(prev[field as keyof AgentConfig] as any), ''],
+      };
+    });
+  };
 
   const removeArrayItem = (field: string, index: number, nested?: string) => {
-    setEditedAgent(prev => {
+    setEditedAgent((prev) => {
       if (nested) {
-        const nestedObj = prev[nested as keyof AgentConfig] as any
-        const newArray = nestedObj[field].filter((_: any, i: number) => i !== index)
+        const nestedObj = prev[nested as keyof AgentConfig] as any;
+        const newArray = nestedObj[field].filter(
+          (_: any, i: number) => i !== index
+        );
         return {
           ...prev,
           [nested]: {
             ...nestedObj,
-            [field]: newArray
-          }
-        }
+            [field]: newArray,
+          },
+        };
       }
-      const newArray = (prev[field as keyof AgentConfig] as any).filter((_: any, i: number) => i !== index)
+      const newArray = (prev[field as keyof AgentConfig] as any).filter(
+        (_: any, i: number) => i !== index
+      );
       return {
         ...prev,
-        [field]: newArray
-      }
-    })
-  }
+        [field]: newArray,
+      };
+    });
+  };
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate API call
-      onSave(editedAgent)
-      setHasUnsavedChanges(false)
-      onClose()
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
+      onSave(editedAgent);
+      setHasUnsavedChanges(false);
+      onClose();
     } catch (error) {
-      console.error('Failed to save agent settings:', error)
+      console.error('Failed to save agent settings:', error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleClose = () => {
     if (hasUnsavedChanges) {
-      if (confirm('You have unsaved changes. Are you sure you want to close?')) {
-        onClose()
+      if (
+        confirm('You have unsaved changes. Are you sure you want to close?')
+      ) {
+        onClose();
       }
     } else {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const tabs = [
     { id: 'general', label: 'General', icon: Cog6ToothIcon },
     { id: 'personality', label: 'Personality', icon: SparklesIcon },
     { id: 'prompts', label: 'Prompts', icon: ChatBubbleLeftRightIcon },
-    { id: 'settings', label: 'AI Settings', icon: AdjustmentsHorizontalIcon }
-  ]
+    { id: 'settings', label: 'AI Settings', icon: AdjustmentsHorizontalIcon },
+  ];
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         onClick={handleClose}
       />
-      
+
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="modal-content relative w-full max-w-5xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 scale-100">
@@ -247,11 +254,13 @@ export default function AgentSettingsModal({
                 <Cog6ToothIcon className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Agent Settings</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Agent Settings
+                </h3>
                 <p className="text-sm text-gray-600">{agent.name}</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               {hasUnsavedChanges && (
                 <div className="flex items-center space-x-1 text-sm text-amber-600">
@@ -273,7 +282,7 @@ export default function AgentSettingsModal({
             <div className="w-64 border-r border-gray-200 bg-gray-50/50">
               <nav className="p-4 space-y-1">
                 {tabs.map((tab) => {
-                  const Icon = tab.icon
+                  const Icon = tab.icon;
                   return (
                     <button
                       key={tab.id}
@@ -287,7 +296,7 @@ export default function AgentSettingsModal({
                       <Icon className="h-4 w-4" />
                       <span className="font-medium">{tab.label}</span>
                     </button>
-                  )
+                  );
                 })}
               </nav>
             </div>
@@ -298,8 +307,10 @@ export default function AgentSettingsModal({
                 {activeTab === 'general' && (
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">General Information</h4>
-                      
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        General Information
+                      </h4>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -308,11 +319,13 @@ export default function AgentSettingsModal({
                           <input
                             type="text"
                             value={editedAgent.name}
-                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange('name', e.target.value)
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                           />
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Specialty
@@ -320,7 +333,9 @@ export default function AgentSettingsModal({
                           <input
                             type="text"
                             value={editedAgent.specialty}
-                            onChange={(e) => handleInputChange('specialty', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange('specialty', e.target.value)
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                           />
                         </div>
@@ -332,15 +347,21 @@ export default function AgentSettingsModal({
                         </label>
                         <select
                           value={editedAgent.category}
-                          onChange={(e) => handleInputChange('category', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange('category', e.target.value)
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                         >
                           <option value="Companion">Companion</option>
                           <option value="Business">Business</option>
                           <option value="Entertainment">Entertainment</option>
-                          <option value="Home & Lifestyle">Home & Lifestyle</option>
+                          <option value="Home & Lifestyle">
+                            Home & Lifestyle
+                          </option>
                           <option value="Education">Education</option>
-                          <option value="Health & Wellness">Health & Wellness</option>
+                          <option value="Health & Wellness">
+                            Health & Wellness
+                          </option>
                           <option value="Creative">Creative</option>
                           <option value="Technology">Technology</option>
                         </select>
@@ -353,7 +374,9 @@ export default function AgentSettingsModal({
                         <textarea
                           rows={4}
                           value={editedAgent.description}
-                          onChange={(e) => handleInputChange('description', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange('description', e.target.value)
+                          }
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white resize-none"
                           placeholder="Describe what this agent does and its capabilities..."
                         />
@@ -367,12 +390,14 @@ export default function AgentSettingsModal({
                           <input
                             type="text"
                             value={editedAgent.avatarUrl}
-                            onChange={(e) => handleInputChange('avatarUrl', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange('avatarUrl', e.target.value)
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                             placeholder="https://example.com/avatar.jpg"
                           />
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Color Theme
@@ -380,7 +405,9 @@ export default function AgentSettingsModal({
                           <input
                             type="text"
                             value={editedAgent.color}
-                            onChange={(e) => handleInputChange('color', e.target.value)}
+                            onChange={(e) =>
+                              handleInputChange('color', e.target.value)
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                             placeholder="e.g., from-blue-500 to-purple-600"
                           />
@@ -393,11 +420,20 @@ export default function AgentSettingsModal({
                         </label>
                         <div className="space-y-2">
                           {editedAgent.tags.map((tag, index) => (
-                            <div key={index} className="flex items-center space-x-2">
+                            <div
+                              key={index}
+                              className="flex items-center space-x-2"
+                            >
                               <input
                                 type="text"
                                 value={tag}
-                                onChange={(e) => handleArrayChange('tags', index, e.target.value)}
+                                onChange={(e) =>
+                                  handleArrayChange(
+                                    'tags',
+                                    index,
+                                    e.target.value
+                                  )
+                                }
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                                 placeholder="Enter tag"
                               />
@@ -424,8 +460,10 @@ export default function AgentSettingsModal({
                 {activeTab === 'personality' && (
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Personality Configuration</h4>
-                      
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        Personality Configuration
+                      </h4>
+
                       <div className="space-y-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -434,7 +472,13 @@ export default function AgentSettingsModal({
                           <textarea
                             rows={3}
                             value={editedAgent.personality.responseStyle}
-                            onChange={(e) => handleInputChange('responseStyle', e.target.value, 'personality')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'responseStyle',
+                                e.target.value,
+                                'personality'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white resize-none"
                             placeholder="Describe how this agent should respond and communicate..."
                           />
@@ -447,7 +491,13 @@ export default function AgentSettingsModal({
                           <textarea
                             rows={4}
                             value={editedAgent.personality.greetingMessage}
-                            onChange={(e) => handleInputChange('greetingMessage', e.target.value, 'personality')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'greetingMessage',
+                                e.target.value,
+                                'personality'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white resize-none"
                             placeholder="The first message users see when they start chatting..."
                           />
@@ -458,25 +508,45 @@ export default function AgentSettingsModal({
                             Personality Traits
                           </label>
                           <div className="space-y-2">
-                            {editedAgent.personality.traits.map((trait, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <input
-                                  type="text"
-                                  value={trait}
-                                  onChange={(e) => handleArrayChange('traits', index, e.target.value, 'personality')}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
-                                  placeholder="Enter personality trait"
-                                />
-                                <button
-                                  onClick={() => removeArrayItem('traits', index, 'personality')}
-                                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            {editedAgent.personality.traits.map(
+                              (trait, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center space-x-2"
                                 >
-                                  Remove
-                                </button>
-                              </div>
-                            ))}
+                                  <input
+                                    type="text"
+                                    value={trait}
+                                    onChange={(e) =>
+                                      handleArrayChange(
+                                        'traits',
+                                        index,
+                                        e.target.value,
+                                        'personality'
+                                      )
+                                    }
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                                    placeholder="Enter personality trait"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      removeArrayItem(
+                                        'traits',
+                                        index,
+                                        'personality'
+                                      )
+                                    }
+                                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              )
+                            )}
                             <button
-                              onClick={() => addArrayItem('traits', 'personality')}
+                              onClick={() =>
+                                addArrayItem('traits', 'personality')
+                              }
                               className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors duration-200"
                             >
                               + Add Trait
@@ -489,25 +559,45 @@ export default function AgentSettingsModal({
                             Specialties
                           </label>
                           <div className="space-y-2">
-                            {editedAgent.personality.specialties.map((specialty, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <input
-                                  type="text"
-                                  value={specialty}
-                                  onChange={(e) => handleArrayChange('specialties', index, e.target.value, 'personality')}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
-                                  placeholder="Enter specialty area"
-                                />
-                                <button
-                                  onClick={() => removeArrayItem('specialties', index, 'personality')}
-                                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            {editedAgent.personality.specialties.map(
+                              (specialty, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center space-x-2"
                                 >
-                                  Remove
-                                </button>
-                              </div>
-                            ))}
+                                  <input
+                                    type="text"
+                                    value={specialty}
+                                    onChange={(e) =>
+                                      handleArrayChange(
+                                        'specialties',
+                                        index,
+                                        e.target.value,
+                                        'personality'
+                                      )
+                                    }
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                                    placeholder="Enter specialty area"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      removeArrayItem(
+                                        'specialties',
+                                        index,
+                                        'personality'
+                                      )
+                                    }
+                                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              )
+                            )}
                             <button
-                              onClick={() => addArrayItem('specialties', 'personality')}
+                              onClick={() =>
+                                addArrayItem('specialties', 'personality')
+                              }
                               className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors duration-200"
                             >
                               + Add Specialty
@@ -522,8 +612,10 @@ export default function AgentSettingsModal({
                 {activeTab === 'prompts' && (
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">AI Prompts Configuration</h4>
-                      
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        AI Prompts Configuration
+                      </h4>
+
                       <div className="space-y-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -532,12 +624,19 @@ export default function AgentSettingsModal({
                           <textarea
                             rows={6}
                             value={editedAgent.prompts.systemPrompt}
-                            onChange={(e) => handleInputChange('systemPrompt', e.target.value, 'prompts')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'systemPrompt',
+                                e.target.value,
+                                'prompts'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white resize-none font-mono text-sm"
                             placeholder="Define the agent's role and behavior instructions..."
                           />
                           <p className="mt-1 text-xs text-gray-500">
-                            This defines the core instructions for how the AI should behave and respond.
+                            This defines the core instructions for how the AI
+                            should behave and respond.
                           </p>
                         </div>
 
@@ -548,12 +647,19 @@ export default function AgentSettingsModal({
                           <textarea
                             rows={4}
                             value={editedAgent.prompts.contextPrompt}
-                            onChange={(e) => handleInputChange('contextPrompt', e.target.value, 'prompts')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'contextPrompt',
+                                e.target.value,
+                                'prompts'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white resize-none font-mono text-sm"
                             placeholder="Additional context and guidance for responses..."
                           />
                           <p className="mt-1 text-xs text-gray-500">
-                            Additional context that helps shape the agent's responses.
+                            Additional context that helps shape the agent's
+                            responses.
                           </p>
                         </div>
                       </div>
@@ -564,55 +670,101 @@ export default function AgentSettingsModal({
                 {activeTab === 'settings' && (
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">AI Model Settings</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                        AI Model Settings
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Provider</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Provider
+                          </label>
                           <select
                             value={editedAgent.aiProvider.primary}
-                            onChange={e => handleInputChange('primary', e.target.value, 'aiProvider')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'primary',
+                                e.target.value,
+                                'aiProvider'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                           >
-                            {PROVIDER_MODEL_OPTIONS.map(opt => (
-                              <option key={opt.provider} value={opt.provider}>{opt.label}</option>
+                            {PROVIDER_MODEL_OPTIONS.map((opt) => (
+                              <option key={opt.provider} value={opt.provider}>
+                                {opt.label}
+                              </option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Model
+                          </label>
                           <select
                             value={editedAgent.aiProvider.model}
-                            onChange={e => handleInputChange('model', e.target.value, 'aiProvider')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'model',
+                                e.target.value,
+                                'aiProvider'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                           >
-                            {(PROVIDER_MODEL_OPTIONS.find(opt => opt.provider === editedAgent.aiProvider.primary)?.models || []).map(model => (
-                              <option key={model.value} value={model.value}>{model.label}</option>
+                            {(
+                              PROVIDER_MODEL_OPTIONS.find(
+                                (opt) =>
+                                  opt.provider ===
+                                  editedAgent.aiProvider.primary
+                              )?.models || []
+                            ).map((model) => (
+                              <option key={model.value} value={model.value}>
+                                {model.label}
+                              </option>
                             ))}
                           </select>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Max Tokens</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Max Tokens
+                          </label>
                           <input
                             type="number"
                             min="100"
                             max="2000"
                             value={editedAgent.settings.maxTokens}
-                            onChange={e => handleInputChange('maxTokens', parseInt(e.target.value), 'settings')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'maxTokens',
+                                parseInt(e.target.value),
+                                'settings'
+                              )
+                            }
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
                           />
-                          <p className="mt-1 text-xs text-gray-500">Maximum length of responses (100-2000)</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            Maximum length of responses (100-2000)
+                          </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Temperature ({editedAgent.settings.temperature})</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Temperature ({editedAgent.settings.temperature})
+                          </label>
                           <input
                             type="range"
                             min="0"
                             max="1"
                             step="0.1"
                             value={editedAgent.settings.temperature}
-                            onChange={e => handleInputChange('temperature', parseFloat(e.target.value), 'settings')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'temperature',
+                                parseFloat(e.target.value),
+                                'settings'
+                              )
+                            }
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                           />
                           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -626,19 +778,35 @@ export default function AgentSettingsModal({
                           <input
                             type="checkbox"
                             checked={editedAgent.settings.enabled}
-                            onChange={e => handleInputChange('enabled', e.target.checked, 'settings')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'enabled',
+                                e.target.checked,
+                                'settings'
+                              )
+                            }
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
-                          <span className="text-sm font-medium text-gray-700">Agent Enabled</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Agent Enabled
+                          </span>
                         </label>
                         <label className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={editedAgent.settings.premium}
-                            onChange={e => handleInputChange('premium', e.target.checked, 'settings')}
+                            onChange={(e) =>
+                              handleInputChange(
+                                'premium',
+                                e.target.checked,
+                                'settings'
+                              )
+                            }
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
-                          <span className="text-sm font-medium text-gray-700">Premium Only</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Premium Only
+                          </span>
                         </label>
                       </div>
                     </div>
@@ -686,5 +854,5 @@ export default function AgentSettingsModal({
         </div>
       </div>
     </div>
-  )
+  );
 }
