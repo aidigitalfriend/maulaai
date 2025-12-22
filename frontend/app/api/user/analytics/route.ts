@@ -103,38 +103,63 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = sessionUser._id;
+    const userIdString = sessionUser._id.toString();
 
-    // Subscription: pick latest active/trialing/past_due, fallback to newest
-    const activeSubscription = await subscriptions.findOne(
-      { user: userId, status: { $in: ACTIVE_STATUSES } },
-      { sort: { updatedAt: -1, createdAt: -1 } }
-    );
+    // Subscription & active agent count:
+    // prefer per-agent subscriptions (userId) but also support legacy docs (user)
+    const activeSubscriptions = await subscriptions
+      .find({
+        $or: [{ userId: userIdString }, { user: userId }],
+        status: { $in: ACTIVE_STATUSES },
+      })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .toArray();
 
-    const subscriptionPlan = activeSubscription?.plan?.toLowerCase() || 'none';
+    const primarySubscription = activeSubscriptions[0];
+
+    const subscriptionPlan =
+      (primarySubscription?.plan as string | undefined)?.toLowerCase() ||
+      'none';
     const planDefaults =
       PLAN_DEFAULTS[subscriptionPlan as keyof typeof PLAN_DEFAULTS];
 
-    const subscription = {
-      plan:
-        activeSubscription?.name ||
-        activeSubscription?.plan ||
-        'No Active Plan',
-      status: activeSubscription?.status || 'inactive',
-      price: activeSubscription?.price ?? planDefaults?.price ?? 0,
-      period: planDefaults?.period || 'month',
-      renewalDate: activeSubscription?.billingCycleEnd
-        ? new Date(activeSubscription.billingCycleEnd).toISOString()
-        : activeSubscription?.renewalDate || 'N/A',
-      daysUntilRenewal: activeSubscription?.billingCycleEnd
+    const renewalSource =
+      (primarySubscription as any)?.expiryDate ||
+      (primarySubscription as any)?.billingCycleEnd ||
+      (primarySubscription as any)?.renewalDate;
+
+    const now = new Date();
+    const renewalDateIso =
+      renewalSource instanceof Date
+        ? renewalSource.toISOString()
+        : (renewalSource as string | undefined) || 'N/A';
+
+    const daysUntilRenewal =
+      renewalSource instanceof Date
         ? Math.max(
             0,
             Math.ceil(
-              (new Date(activeSubscription.billingCycleEnd).getTime() -
-                Date.now()) /
+              (renewalSource.getTime() - now.getTime()) /
                 (1000 * 60 * 60 * 24)
             )
           )
-        : 0,
+        : 0;
+
+    const subscription = {
+      plan:
+        (primarySubscription as any)?.name ||
+        (primarySubscription as any)?.plan ||
+        (activeSubscriptions.length > 0
+          ? `${activeSubscriptions.length} Active Agents`
+          : 'No Active Plan'),
+      status: (primarySubscription as any)?.status || 'inactive',
+      price:
+        ((primarySubscription as any)?.price as number | undefined) ??
+        planDefaults?.price ??
+        0,
+      period: planDefaults?.period || 'month',
+      renewalDate: renewalDateIso,
+      daysUntilRenewal,
     };
 
     // Usage metrics (best effort)
@@ -153,7 +178,9 @@ export async function GET(request: NextRequest) {
     const storageCurrentMb = usageDoc?.storage?.totalUsed
       ? Math.round((usageDoc.storage.totalUsed / 1024 / 1024) * 10) / 10
       : 0;
-    const agentsCurrent = usageDoc?.features?.agentsUsed?.length || 0;
+    const agentsFromUsage = usageDoc?.features?.agentsUsed?.length || 0;
+    const agentsFromSubscriptions = activeSubscriptions.length;
+    const agentsCurrent = Math.max(agentsFromUsage, agentsFromSubscriptions);
 
     const usage = {
       conversations: {
@@ -259,7 +286,7 @@ export async function GET(request: NextRequest) {
       status: item.analytics?.status || 'completed',
     }));
 
-    // Cost analysis derived from plan price
+    // Cost analysis derived from aggregated subscription price
     const monthlyPrice = subscription.price || 0;
     const costAnalysis = {
       currentMonth: monthlyPrice,
@@ -268,7 +295,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Determine agent status for dashboard
-    const agentStatus = usage.agents.current > 0 ? 'Active' : 'No Active';
+    const agentStatus = agentsCurrent > 0 ? 'Active' : 'No Active';
 
     const payload: AnalyticsData & { agentStatus: string } = {
       subscription,
