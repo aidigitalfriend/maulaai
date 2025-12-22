@@ -676,7 +676,7 @@ export default function AgentSettingsModal({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Provider
+                            AI Model Provider
                           </label>
                           <select
                             value={editedAgent.aiProvider.primary}
@@ -698,7 +698,7 @@ export default function AgentSettingsModal({
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Model
+                            AI Model
                           </label>
                           <select
                             value={editedAgent.aiProvider.model}

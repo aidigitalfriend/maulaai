@@ -352,8 +352,9 @@ function DashboardContent() {
   ];
 
   const hasActiveAgents = analyticsData.usage.agents.current > 0;
-  const isAgentActive = (analyticsData.agentStatus || '').toLowerCase() ===
-    'active' || hasActiveAgents;
+  const isAgentActive =
+    (analyticsData.agentStatus || '').toLowerCase() === 'active' ||
+    hasActiveAgents;
 
   return (
     <ProtectedRoute>

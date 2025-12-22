@@ -1,46 +1,184 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart
-} from 'recharts'
-import {
-  generateApiMetrics,
-  generateModelUsage,
-  generateSuccessFailureData,
-  generatePeakTraffic,
-  generateErrorTypes,
-  generateGeographicData,
-  generateCostData,
-  generateTokenUsageTrend,
-  generateDashboardStats
-} from '@/lib/dashboardMetrics'
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ComposedChart,
+} from 'recharts';
+
+interface ApiMetrics {
+  date: string;
+  requests: number;
+  latency: number;
+  successRate: number;
+  failureRate: number;
+  tokenUsage: number;
+  responseSize: number;
+}
+
+interface ModelUsage {
+  model: string;
+  usage: number;
+  percentage: number;
+  color: string;
+}
+
+interface ErrorType {
+  type: string;
+  count: number;
+  percentage: number;
+}
+
+interface GeographicData {
+  region: string;
+  requests: number;
+  percentage: number;
+}
+
+interface PeakTraffic {
+  hour: number;
+  requests: number;
+}
+
+interface CostData {
+  model: string;
+  cost: number;
+  percentage: number;
+}
+
+interface TokenTrendPoint {
+  date: string;
+  tokens: number;
+}
+
+interface DashboardStats {
+  totalRequests: number;
+  requestChange: number;
+  avgLatency: number;
+  latencyChange: number;
+  avgSuccessRate: number;
+  successChange: number;
+  totalCost: number;
+}
+
+interface AdvancedAnalyticsPayload {
+  stats: DashboardStats;
+  apiMetrics: ApiMetrics[];
+  modelUsage: ModelUsage[];
+  successFailure: { day: string; successful: number; failed: number }[];
+  peakTraffic: PeakTraffic[];
+  errors: ErrorType[];
+  geographic: GeographicData[];
+  costData: CostData[];
+  tokenTrend: TokenTrendPoint[];
+}
 
 export default function AdvancedDashboard() {
-  const [stats, setStats] = useState<any>(null)
-  const [apiMetrics, setApiMetrics] = useState<any[]>([])
-  const [modelUsage, setModelUsage] = useState<any[]>([])
-  const [successFailure, setSuccessFailure] = useState<any[]>([])
-  const [peakTraffic, setPeakTraffic] = useState<any[]>([])
-  const [errors, setErrors] = useState<any[]>([])
-  const [geographic, setGeographic] = useState<any[]>([])
-  const [costData, setCostData] = useState<any[]>([])
-  const [tokenTrend, setTokenTrend] = useState<any[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [apiMetrics, setApiMetrics] = useState<ApiMetrics[]>([]);
+  const [modelUsage, setModelUsage] = useState<ModelUsage[]>([]);
+  const [successFailure, setSuccessFailure] = useState<
+    AdvancedAnalyticsPayload['successFailure']
+  >([]);
+  const [peakTraffic, setPeakTraffic] = useState<PeakTraffic[]>([]);
+  const [errors, setErrors] = useState<ErrorType[]>([]);
+  const [geographic, setGeographic] = useState<GeographicData[]>([]);
+  const [costData, setCostData] = useState<CostData[]>([]);
+  const [tokenTrend, setTokenTrend] = useState<TokenTrendPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setStats(generateDashboardStats())
-    setApiMetrics(generateApiMetrics())
-    setModelUsage(generateModelUsage())
-    setSuccessFailure(generateSuccessFailureData())
-    setPeakTraffic(generatePeakTraffic())
-    setErrors(generateErrorTypes())
-    setGeographic(generateGeographicData())
-    setCostData(generateCostData())
-    setTokenTrend(generateTokenUsageTrend())
-  }, [])
+    let isMounted = true;
 
-  if (!stats) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch('/api/user/analytics/advanced', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store',
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to load analytics: ${res.status}`);
+        }
+
+        const data: AdvancedAnalyticsPayload = await res.json();
+
+        if (!isMounted) return;
+
+        setStats(data.stats);
+        setApiMetrics(data.apiMetrics || []);
+        setModelUsage(data.modelUsage || []);
+        setSuccessFailure(data.successFailure || []);
+        setPeakTraffic(data.peakTraffic || []);
+        setErrors(data.errors || []);
+        setGeographic(data.geographic || []);
+        setCostData(data.costData || []);
+        setTokenTrend(data.tokenTrend || []);
+      } catch (err: any) {
+        if (!isMounted) return;
+        console.error('Failed to load advanced analytics', err);
+        setError('Failed to load analytics data');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAnalytics();
+
+    const interval = setInterval(fetchAnalytics, 5 * 60 * 1000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  if (loading && !stats) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  if (error && !stats) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-400">
+        {error}
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        No analytics data available
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
@@ -48,7 +186,9 @@ export default function AdvancedDashboard() {
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl font-bold mb-2">Analytics Dashboard</h1>
-          <p className="text-slate-400">Monitor your AI API usage and performance metrics</p>
+          <p className="text-slate-400">
+            Monitor your AI API usage and performance metrics
+          </p>
         </div>
 
         {/* Key Stats Cards */}
@@ -58,37 +198,50 @@ export default function AdvancedDashboard() {
               icon: '📊',
               label: 'Total Requests (7d)',
               value: stats.totalRequests.toLocaleString(),
-              change: `${stats.requestChange > 0 ? '+' : ''}${stats.requestChange}%`,
-              positive: stats.requestChange >= 0
+              change: `${stats.requestChange > 0 ? '+' : ''}${
+                stats.requestChange
+              }%`,
+              positive: stats.requestChange >= 0,
             },
             {
               icon: '⚡',
               label: 'Avg Latency',
               value: `${stats.avgLatency}ms`,
-              change: `${stats.latencyChange > 0 ? '+' : ''}${stats.latencyChange}%`,
-              positive: stats.latencyChange <= 0
+              change: `${stats.latencyChange > 0 ? '+' : ''}${
+                stats.latencyChange
+              }%`,
+              positive: stats.latencyChange <= 0,
             },
             {
               icon: '✅',
               label: 'Success Rate',
               value: `${stats.avgSuccessRate}%`,
-              change: `${stats.successChange > 0 ? '+' : ''}${stats.successChange}%`,
-              positive: stats.successChange >= 0
+              change: `${stats.successChange > 0 ? '+' : ''}${
+                stats.successChange
+              }%`,
+              positive: stats.successChange >= 0,
             },
             {
               icon: '💰',
               label: 'Est. Weekly Cost',
               value: `$${stats.totalCost.toFixed(2)}`,
               change: 'Last 7 days',
-              positive: true
-            }
+              positive: true,
+            },
           ].map((stat, idx) => (
-            <div key={idx} className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-indigo-500 transition-all">
+            <div
+              key={idx}
+              className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-indigo-500 transition-all"
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-slate-400 text-sm mb-2">{stat.label}</p>
                   <h3 className="text-3xl font-bold">{stat.value}</h3>
-                  <p className={`text-sm mt-2 ${stat.positive ? 'text-green-400' : 'text-red-400'}`}>
+                  <p
+                    className={`text-sm mt-2 ${
+                      stat.positive ? 'text-green-400' : 'text-red-400'
+                    }`}
+                  >
                     {stat.change}
                   </p>
                 </div>
@@ -113,7 +266,10 @@ export default function AdvancedDashboard() {
                   <XAxis dataKey="date" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                   />
                   <Legend />
@@ -140,7 +296,10 @@ export default function AdvancedDashboard() {
                   <XAxis dataKey="date" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                   />
                   <Bar dataKey="latency" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
@@ -163,7 +322,9 @@ export default function AdvancedDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ model, percentage }) => `${model} (${percentage}%)`}
+                    label={({ model, percentage }) =>
+                      `${model} (${percentage}%)`
+                    }
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="usage"
@@ -173,7 +334,10 @@ export default function AdvancedDashboard() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                   />
                 </PieChart>
@@ -183,7 +347,8 @@ export default function AdvancedDashboard() {
             {/* Success vs Failure Rate */}
             <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <span className="text-2xl">📈</span> Request Success vs Failure Rate
+                <span className="text-2xl">📈</span> Request Success vs Failure
+                Rate
               </h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={successFailure}>
@@ -191,11 +356,18 @@ export default function AdvancedDashboard() {
                   <XAxis dataKey="day" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                   />
                   <Legend />
-                  <Bar dataKey="successful" fill="#10b981" radius={[8, 8, 0, 0]} />
+                  <Bar
+                    dataKey="successful"
+                    fill="#10b981"
+                    radius={[8, 8, 0, 0]}
+                  />
                   <Bar dataKey="failed" fill="#ef4444" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -212,7 +384,13 @@ export default function AdvancedDashboard() {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={tokenTrend}>
                   <defs>
-                    <linearGradient id="colorTokens" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient
+                      id="colorTokens"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
                       <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                     </linearGradient>
@@ -221,7 +399,10 @@ export default function AdvancedDashboard() {
                   <XAxis dataKey="date" stroke="#94a3b8" />
                   <YAxis stroke="#94a3b8" />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                   />
                   <Area
@@ -243,7 +424,13 @@ export default function AdvancedDashboard() {
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={peakTraffic}>
                   <defs>
-                    <linearGradient id="colorTraffic" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient
+                      id="colorTraffic"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
                       <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                     </linearGradient>
@@ -252,11 +439,18 @@ export default function AdvancedDashboard() {
                   <XAxis
                     dataKey="hour"
                     stroke="#94a3b8"
-                    label={{ value: 'Hour of Day', position: 'insideBottomRight', offset: -5 }}
+                    label={{
+                      value: 'Hour of Day',
+                      position: 'insideBottomRight',
+                      offset: -5,
+                    }}
                   />
                   <YAxis stroke="#94a3b8" />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                     formatter={(value) => [`${value} requests`, 'Requests']}
                     labelFormatter={(label) => `${label}:00`}
@@ -282,10 +476,15 @@ export default function AdvancedDashboard() {
               </h2>
               <div className="space-y-4">
                 {errors.map((error, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-700 rounded">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-slate-700 rounded"
+                  >
                     <div>
                       <p className="font-semibold">{error.type}</p>
-                      <p className="text-sm text-slate-400">{error.count} errors</p>
+                      <p className="text-sm text-slate-400">
+                        {error.count} errors
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-lg">{error.percentage}%</p>
@@ -305,7 +504,9 @@ export default function AdvancedDashboard() {
                   <div key={idx} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <p className="font-semibold">{region.region}</p>
-                      <span className="text-sm text-slate-400">{region.percentage}%</span>
+                      <span className="text-sm text-slate-400">
+                        {region.percentage}%
+                      </span>
                     </div>
                     <div className="w-full bg-slate-700 rounded-full h-2">
                       <div
@@ -325,10 +526,15 @@ export default function AdvancedDashboard() {
               </h2>
               <div className="space-y-4">
                 {costData.map((cost, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-700 rounded">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-slate-700 rounded"
+                  >
                     <div>
                       <p className="font-semibold">{cost.model}</p>
-                      <p className="text-sm text-slate-400">{cost.percentage}% of total</p>
+                      <p className="text-sm text-slate-400">
+                        {cost.percentage}% of total
+                      </p>
                     </div>
                     <div className="text-right font-bold text-green-400">
                       ${cost.cost.toFixed(2)}
@@ -358,9 +564,15 @@ export default function AdvancedDashboard() {
                 <LineChart data={apiMetrics}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis dataKey="date" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" label={{ value: 'KB', angle: -90, position: 'insideLeft' }} />
+                  <YAxis
+                    stroke="#94a3b8"
+                    label={{ value: 'KB', angle: -90, position: 'insideLeft' }}
+                  />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }}
+                    contentStyle={{
+                      backgroundColor: '#1e293b',
+                      border: '1px solid #475569',
+                    }}
                     labelStyle={{ color: '#e2e8f0' }}
                     formatter={(value) => [`${value} KB`, 'Size']}
                   />
@@ -381,7 +593,9 @@ export default function AdvancedDashboard() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 bg-slate-700 rounded">
                   <span className="text-slate-300">Total API Calls</span>
-                  <span className="font-bold">{stats.totalRequests.toLocaleString()}</span>
+                  <span className="font-bold">
+                    {stats.totalRequests.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-700 rounded">
                   <span className="text-slate-300">Average Latency</span>
@@ -389,11 +603,15 @@ export default function AdvancedDashboard() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-700 rounded">
                   <span className="text-slate-300">Success Rate</span>
-                  <span className="font-bold text-green-400">{stats.avgSuccessRate}%</span>
+                  <span className="font-bold text-green-400">
+                    {stats.avgSuccessRate}%
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-700 rounded">
                   <span className="text-slate-300">Weekly Cost</span>
-                  <span className="font-bold text-green-400">${stats.totalCost.toFixed(2)}</span>
+                  <span className="font-bold text-green-400">
+                    ${stats.totalCost.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-700 rounded">
                   <span className="text-slate-300">Models Used</span>
@@ -401,7 +619,9 @@ export default function AdvancedDashboard() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-slate-700 rounded">
                   <span className="text-slate-300">Error Count</span>
-                  <span className="font-bold text-red-400">{errors.reduce((sum, e) => sum + e.count, 0)}</span>
+                  <span className="font-bold text-red-400">
+                    {errors.reduce((sum, e) => sum + e.count, 0)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -409,11 +629,15 @@ export default function AdvancedDashboard() {
 
           {/* Footer Info */}
           <div className="bg-slate-800 rounded-lg p-6 border border-slate-700 text-center">
-            <p className="text-slate-400 mb-2">Data is updated every 5 minutes</p>
-            <p className="text-sm text-slate-500">Last updated: {new Date().toLocaleString()}</p>
+            <p className="text-slate-400 mb-2">
+              Data is updated every 5 minutes
+            </p>
+            <p className="text-sm text-slate-500">
+              Last updated: {new Date().toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
