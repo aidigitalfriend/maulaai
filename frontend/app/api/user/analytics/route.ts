@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb';
 import type { AnalyticsData } from '@/models/analytics';
 
@@ -77,14 +77,9 @@ function trendChange(latest: number, previous: number) {
   return `${change >= 0 ? '+' : ''}${rounded}%`;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const sessionId = request.headers
-      .get('cookie')
-      ?.split(';')
-      .map((c) => c.trim())
-      .find((c) => c.startsWith('session_id='))
-      ?.split('=')[1];
+    const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
       return NextResponse.json(buildFallbackAnalytics(), { status: 401 });
