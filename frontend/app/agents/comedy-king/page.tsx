@@ -133,15 +133,34 @@ export default function ComedyKingPage() {
   };
 
   // ✅ SECURED: Now uses backend API with IntelligentResponseSystem as fallback
-  const handleSendMessage = async (message: string): Promise<string> => {
+  const handleSendMessage = async (
+    message: string,
+    _attachments?: any,
+    _detectedLanguage?: any,
+    settings?: any
+  ): Promise<string> => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Comedy King!';
     }
 
+    const model = settings?.model || 'mistral-large-latest';
+    const provider = settings?.provider || 'mistral';
+    const temperature = settings?.temperature;
+    const maxTokens = settings?.maxTokens;
+    const systemPrompt = settings?.systemPrompt;
+
     try {
       // Try secure backend API first for real AI responses
-      return await sendSecureMessage(message, 'comedy-king', 'gpt-3.5-turbo');
+      return await sendSecureMessage(
+        message,
+        'comedy-king',
+        model,
+        provider,
+        temperature,
+        maxTokens,
+        systemPrompt
+      );
     } catch (error: any) {
       console.error('Comedy King chat error:', error);
       // Fallback to IntelligentResponseSystem if backend unavailable

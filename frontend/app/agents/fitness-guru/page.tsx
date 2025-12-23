@@ -150,14 +150,33 @@ export default function FitnessGuruPage() {
   };
 
   // ✅ SECURED: Now uses backend API with no exposed keys
-  const handleSendMessage = async (message: string): Promise<string> => {
+  const handleSendMessage = async (
+    message: string,
+    _attachments?: any,
+    _detectedLanguage?: any,
+    settings?: any
+  ): Promise<string> => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Fitness Guru!';
     }
 
+    const model = settings?.model || 'claude-3-5-sonnet-20241022';
+    const provider = settings?.provider || 'anthropic';
+    const temperature = settings?.temperature;
+    const maxTokens = settings?.maxTokens;
+    const systemPrompt = settings?.systemPrompt;
+
     try {
-      return await sendSecureMessage(message, 'fitness-guru', 'gpt-3.5-turbo');
+      return await sendSecureMessage(
+        message,
+        'fitness-guru',
+        model,
+        provider,
+        temperature,
+        maxTokens,
+        systemPrompt
+      );
     } catch (error: any) {
       return `Sorry, I encountered an error: ${
         error.message || 'Please try again later.'

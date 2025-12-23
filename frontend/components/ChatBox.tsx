@@ -47,6 +47,8 @@ import {
   getLanguageInfo,
 } from '../utils/languageDetection';
 import { getAppConfig, getVoiceConfig, validateConfig } from '../utils/config';
+import type { AIProvider } from '../app/agents/types';
+import { PROVIDER_MODEL_OPTIONS } from '../lib/aiProviders';
 
 // Enhanced typing indicator with multiple states
 const TypingIndicator = ({
@@ -223,7 +225,8 @@ interface AgentSettings {
   maxTokens: number;
   mode: 'professional' | 'balanced' | 'creative' | 'fast';
   systemPrompt: string;
-  model?: string;
+  provider: AIProvider;
+  model: string;
 }
 
 interface ChatBoxProps {
@@ -236,7 +239,8 @@ interface ChatBoxProps {
   onSendMessage?: (
     message: string,
     attachments?: FileAttachment[],
-    detectedLanguage?: DetectedLanguage
+    detectedLanguage?: DetectedLanguage,
+    settings?: AgentSettings
   ) => Promise<string>;
   className?: string;
   allowFileUpload?: boolean;
@@ -276,13 +280,65 @@ export default function ChatBox({
 
   // Settings state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [agentSettings, setAgentSettings] = useState<AgentSettings>({
+
+  const baseDefaultSettings: AgentSettings = {
     temperature: 0.7,
     maxTokens: 2000,
     mode: 'balanced',
     systemPrompt: '',
+    provider: 'openai',
     model: 'gpt-3.5-turbo',
-  });
+  };
+
+  const getDefaultSettingsForAgent = (id: string): AgentSettings => {
+    switch (id) {
+      // Companion-style agents → OpenAI
+      case 'julie-girlfriend':
+      case 'emma-emotional':
+        return {
+          ...baseDefaultSettings,
+          provider: 'openai',
+          model: 'gpt-4o',
+        };
+
+      // Anthropic-first agents
+      case 'einstein':
+      case 'ben-sega':
+      case 'tech-wizard':
+      case 'knight-logic':
+      case 'mrs-boss':
+      case 'chess-player':
+      case 'fitness-guru':
+      case 'professor-astrology':
+        return {
+          ...baseDefaultSettings,
+          provider: 'anthropic',
+          model: 'claude-3-5-sonnet-20241022',
+        };
+
+      // Mistral-focused creative / fun / lifestyle agents
+      case 'comedy-king':
+      case 'drama-queen':
+      case 'nid-gaming':
+      case 'lazy-pawn':
+      case 'rook-jokey':
+      case 'chef-biew':
+      case 'travel-buddy':
+      case 'bishop-burger':
+        return {
+          ...baseDefaultSettings,
+          provider: 'mistral',
+          model: 'mistral-large-latest',
+        };
+
+      default:
+        return baseDefaultSettings;
+    }
+  };
+
+  const [agentSettings, setAgentSettings] = useState<AgentSettings>(() =>
+    getDefaultSettingsForAgent(agentId)
+  );
 
   const [pdfPreview, setPdfPreview] = useState<{
     url: string;
@@ -341,7 +397,24 @@ export default function ChatBox({
   useEffect(() => {
     const savedSettings = localStorage.getItem(`agent-settings-${agentId}`);
     if (savedSettings) {
-      setAgentSettings(JSON.parse(savedSettings));
+      try {
+        const parsed = JSON.parse(savedSettings);
+        const merged: AgentSettings = {
+          ...getDefaultSettingsForAgent(agentId),
+          ...parsed,
+        };
+
+        if (!merged.provider) {
+          const fallbackProvider =
+            (parsed.aiProvider?.primary as AIProvider) || 'openai';
+          merged.provider = fallbackProvider;
+        }
+
+        setAgentSettings(merged);
+      } catch (error) {
+        console.error('Failed to parse saved agent settings:', error);
+        setAgentSettings(getDefaultSettingsForAgent(agentId));
+      }
     }
   }, [agentId]);
 
@@ -463,7 +536,8 @@ export default function ChatBox({
         const responseText = await onSendMessage(
           userMessage.content,
           userMessage.attachments,
-          detectedLanguage || undefined
+          detectedLanguage || undefined,
+          agentSettings
         );
 
         const assistantMessage: ChatMessage = {
@@ -870,24 +944,59 @@ export default function ChatBox({
               </p>
             </div>
 
-            {/* Model Selection */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                AI Model
-              </label>
-              <select
-                value={agentSettings.model}
-                onChange={(e) => updateSettings({ model: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              >
-                <option value="gpt-3.5-turbo">
-                  GPT-3.5 Turbo (Fast & Efficient)
-                </option>
-                <option value="gpt-4">GPT-4 (Most Capable)</option>
-                <option value="gpt-4-turbo">GPT-4 Turbo (Balanced)</option>
-                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                <option value="claude-3-opus">Claude 3 Opus</option>
-              </select>
+            {/* Model Provider & Selection */}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  AI Model Provider
+                </label>
+                <select
+                  value={agentSettings.provider}
+                  onChange={(e) => {
+                    const newProvider = e.target.value as AIProvider;
+                    const providerOption = PROVIDER_MODEL_OPTIONS.find(
+                      (opt) => opt.provider === newProvider
+                    );
+                    const firstModel =
+                      providerOption?.models[0]?.value ||
+                      agentSettings.model ||
+                      'gpt-3.5-turbo';
+
+                    updateSettings({
+                      provider: newProvider,
+                      model: firstModel,
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                >
+                  {PROVIDER_MODEL_OPTIONS.map((opt) => (
+                    <option key={opt.provider} value={opt.provider}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  AI Model
+                </label>
+                <select
+                  value={agentSettings.model}
+                  onChange={(e) => updateSettings({ model: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                >
+                  {(
+                    PROVIDER_MODEL_OPTIONS.find(
+                      (opt) => opt.provider === agentSettings.provider
+                    )?.models || []
+                  ).map((model) => (
+                    <option key={model.value} value={model.value}>
+                      {model.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* System Prompt */}
@@ -989,6 +1098,14 @@ export default function ChatBox({
                     </span>
                   </div>
                   <div>
+                    • Provider:{' '}
+                    <span className="font-medium">
+                      {PROVIDER_MODEL_OPTIONS.find(
+                        (opt) => opt.provider === agentSettings.provider
+                      )?.label || agentSettings.provider}
+                    </span>
+                  </div>
+                  <div>
                     • Model:{' '}
                     <span className="font-medium">{agentSettings.model}</span>
                   </div>
@@ -1005,13 +1122,6 @@ export default function ChatBox({
             {/* Reset Button */}
             <button
               onClick={() => {
-                const defaultSettings = {
-                  temperature: 0.7,
-                  maxTokens: 2000,
-                  mode: 'balanced' as const,
-                  systemPrompt: '',
-                  model: 'gpt-3.5-turbo',
-                };
                 updateSettings(defaultSettings);
               }}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"

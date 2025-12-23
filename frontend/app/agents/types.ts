@@ -15,7 +15,7 @@ export type AIProvider =
   | 'gemini'
   | 'cohere'
   | 'mistral'
-  | 'grok'
+  | 'xai'
   | 'huggingface'
   | 'groq';
 

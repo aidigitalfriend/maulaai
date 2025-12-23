@@ -1,40 +1,43 @@
 /**
  * Secure API Client - Frontend
- * 
+ *
  * This client NEVER exposes API keys or secrets.
  * All sensitive operations happen on the backend.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
 interface ChatRequest {
-  message: string
-  agentId?: string
-  model?: string
-  conversationId?: string
-  systemPrompt?: string
+  message: string;
+  agentId?: string;
+  model?: string;
+  provider?: string;
+  temperature?: number;
+  maxTokens?: number;
+  conversationId?: string;
+  systemPrompt?: string;
 }
 
 interface ChatResponse {
-  message?: string
-  response?: string
-  timestamp: string
-  error?: string
-  code?: string
+  message?: string;
+  response?: string;
+  timestamp: string;
+  error?: string;
+  code?: string;
 }
 
 interface RateLimitInfo {
-  limit: number
-  remaining: number
-  reset: string
+  limit: number;
+  remaining: number;
+  reset: string;
 }
 
 export class SecureAPIClient {
-  private baseUrl: string
-  private rateLimitInfo: RateLimitInfo | null = null
+  private baseUrl: string;
+  private rateLimitInfo: RateLimitInfo | null = null;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || API_BASE_URL
+    this.baseUrl = baseUrl || API_BASE_URL;
   }
 
   /**
@@ -43,13 +46,13 @@ export class SecureAPIClient {
    */
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     try {
-      // Try the agents/optimized endpoint first, fallback to agents/chat, then chat
+      // Try unified agent endpoint first, then simple/optimized/agents-chat/chat
       let response;
       let endpoint = '';
-      
-      // First attempt: simple agent endpoint (most reliable)
+
+      // First attempt: unified agent endpoint (respects provider/model overrides)
       try {
-        endpoint = `${this.baseUrl}/api/agents/simple`
+        endpoint = `${this.baseUrl}/api/agents/unified`;
         response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -57,25 +60,58 @@ export class SecureAPIClient {
           },
           body: JSON.stringify({
             agentId: request.agentId || 'tech-wizard',
-            message: request.message
+            message: request.message,
+            provider: request.provider,
+            model: request.model,
+            temperature: request.temperature,
+            maxTokens: request.maxTokens,
+            systemPrompt: request.systemPrompt,
           }),
-        })
-        
+        });
+
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json();
           return {
             success: true,
             message: data.response || data.message || 'No response received',
-            timestamp: data.timestamp || new Date().toISOString()
-          }
+            timestamp: data.timestamp || new Date().toISOString(),
+          };
         }
       } catch (error) {
-        console.log('[SecureAPIClient] Simple endpoint failed, trying optimized')
+        console.log('[SecureAPIClient] Unified endpoint failed, trying simple');
       }
 
-      // Second attempt: optimized agent endpoint
+      // Second attempt: simple agent endpoint (most reliable legacy)
       try {
-        endpoint = `${this.baseUrl}/api/agents/optimized`
+        endpoint = `${this.baseUrl}/api/agents/simple`;
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agentId: request.agentId || 'tech-wizard',
+            message: request.message,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            success: true,
+            message: data.response || data.message || 'No response received',
+            timestamp: data.timestamp || new Date().toISOString(),
+          };
+        }
+      } catch (error) {
+        console.log(
+          '[SecureAPIClient] Simple endpoint failed, trying optimized'
+        );
+      }
+
+      // Third attempt: optimized agent endpoint
+      try {
+        endpoint = `${this.baseUrl}/api/agents/optimized`;
         response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -86,26 +122,28 @@ export class SecureAPIClient {
             message: request.message,
             options: {
               model: request.model,
-              conversationId: request.conversationId
-            }
+              conversationId: request.conversationId,
+            },
           }),
-        })
-        
+        });
+
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json();
           return {
             success: true,
             message: data.response || data.message || 'No response received',
-            timestamp: data.timestamp || new Date().toISOString()
-          }
+            timestamp: data.timestamp || new Date().toISOString(),
+          };
         }
       } catch (error) {
-        console.log('[SecureAPIClient] Optimized endpoint failed, trying agents chat')
+        console.log(
+          '[SecureAPIClient] Optimized endpoint failed, trying agents chat'
+        );
       }
-      
-      // Third attempt: agents chat endpoint  
+
+      // Fourth attempt: agents chat endpoint
       try {
-        endpoint = `${this.baseUrl}/api/agents/chat`
+        endpoint = `${this.baseUrl}/api/agents/chat`;
         response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -115,24 +153,26 @@ export class SecureAPIClient {
             agentId: request.agentId || 'tech-wizard',
             message: request.message,
             model: request.model || 'gpt-3.5-turbo',
-            conversationHistory: []
+            conversationHistory: [],
           }),
-        })
-        
+        });
+
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json();
           return {
             success: true,
             message: data.message || data.response || 'No response received',
-            timestamp: data.timestamp || new Date().toISOString()
-          }
+            timestamp: data.timestamp || new Date().toISOString(),
+          };
         }
       } catch (error) {
-        console.log('[SecureAPIClient] Agents chat endpoint failed, trying basic chat')
+        console.log(
+          '[SecureAPIClient] Agents chat endpoint failed, trying basic chat'
+        );
       }
-      
-      // Fourth attempt: basic chat endpoint
-      endpoint = `${this.baseUrl}/api/chat`
+
+      // Fifth attempt: basic chat endpoint
+      endpoint = `${this.baseUrl}/api/chat`;
       response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -142,24 +182,25 @@ export class SecureAPIClient {
           message: request.message,
           agentId: request.agentId,
           model: request.model || 'gpt-3.5-turbo',
+          provider: request.provider,
           conversationId: request.conversationId,
-          systemPrompt: request.systemPrompt
+          systemPrompt: request.systemPrompt,
         }),
-      })
+      });
 
       // Extract rate limit info from headers
-      this.extractRateLimitInfo(response)
+      this.extractRateLimitInfo(response);
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to send message')
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send message');
       }
 
-      const data: ChatResponse = await response.json()
-      return data
+      const data: ChatResponse = await response.json();
+      return data;
     } catch (error: any) {
-      console.error('[SecureAPIClient] Error:', error)
-      throw new Error(error.message || 'Network error occurred')
+      console.error('[SecureAPIClient] Error:', error);
+      throw new Error(error.message || 'Network error occurred');
     }
   }
 
@@ -167,15 +208,15 @@ export class SecureAPIClient {
    * Get current rate limit status
    */
   getRateLimitInfo(): RateLimitInfo | null {
-    return this.rateLimitInfo
+    return this.rateLimitInfo;
   }
 
   /**
    * Check if rate limit is about to be exceeded
    */
   isNearRateLimit(): boolean {
-    if (!this.rateLimitInfo) return false
-    return this.rateLimitInfo.remaining < 10
+    if (!this.rateLimitInfo) return false;
+    return this.rateLimitInfo.remaining < 10;
   }
 
   /**
@@ -185,36 +226,36 @@ export class SecureAPIClient {
     try {
       const response = await fetch(`${this.baseUrl}/api/chat`, {
         method: 'GET',
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Health check failed')
+        throw new Error('Health check failed');
       }
 
-      return await response.json()
+      return await response.json();
     } catch (error) {
-      console.error('[SecureAPIClient] Health check error:', error)
-      throw error
+      console.error('[SecureAPIClient] Health check error:', error);
+      throw error;
     }
   }
 
   private extractRateLimitInfo(response: Response) {
-    const limit = response.headers.get('X-RateLimit-Limit')
-    const remaining = response.headers.get('X-RateLimit-Remaining')
-    const reset = response.headers.get('X-RateLimit-Reset')
+    const limit = response.headers.get('X-RateLimit-Limit');
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    const reset = response.headers.get('X-RateLimit-Reset');
 
     if (limit && remaining && reset) {
       this.rateLimitInfo = {
         limit: parseInt(limit),
         remaining: parseInt(remaining),
-        reset: reset
-      }
+        reset: reset,
+      };
     }
   }
 }
 
 // Export singleton instance
-export const secureAPI = new SecureAPIClient()
+export const secureAPI = new SecureAPIClient();
 
 /**
  * Helper function for backward compatibility with existing code
@@ -222,13 +263,21 @@ export const secureAPI = new SecureAPIClient()
 export async function sendSecureMessage(
   message: string,
   agentId?: string,
-  model?: string
+  model?: string,
+  provider?: string,
+  temperature?: number,
+  maxTokens?: number,
+  systemPrompt?: string
 ): Promise<string> {
   const response = await secureAPI.sendMessage({
     message,
     agentId,
-    model
-  })
+    model,
+    provider,
+    temperature,
+    maxTokens,
+    systemPrompt,
+  });
 
-  return response.message || response.response || 'No response received'
+  return response.message || response.response || 'No response received';
 }

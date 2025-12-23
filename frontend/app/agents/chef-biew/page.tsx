@@ -149,14 +149,33 @@ export default function ChefBiewPage() {
   };
 
   // ✅ SECURED: Now uses backend API with no exposed keys
-  const handleSendMessage = async (message: string): Promise<string> => {
+  const handleSendMessage = async (
+    message: string,
+    _attachments?: any,
+    _detectedLanguage?: any,
+    settings?: any
+  ): Promise<string> => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Chef Biew!';
     }
 
+    const model = settings?.model || 'mistral-large-latest';
+    const provider = settings?.provider || 'mistral';
+    const temperature = settings?.temperature;
+    const maxTokens = settings?.maxTokens;
+    const systemPrompt = settings?.systemPrompt;
+
     try {
-      return await sendSecureMessage(message, 'chef-biew', 'gpt-3.5-turbo');
+      return await sendSecureMessage(
+        message,
+        'chef-biew',
+        model,
+        provider,
+        temperature,
+        maxTokens,
+        systemPrompt
+      );
     } catch (error: any) {
       return `Sorry, I encountered an error: ${
         error.message || 'Please try again later.'

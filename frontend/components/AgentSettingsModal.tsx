@@ -11,74 +11,7 @@ import {
   CheckIcon,
 } from '@heroicons/react/24/outline';
 import { AgentConfig } from '../app/agents/types';
-
-// AI Providers and Models (expand as needed)
-const PROVIDER_MODEL_OPTIONS = [
-  {
-    provider: 'openai',
-    label: 'OpenAI',
-    models: [
-      { value: 'gpt-4', label: 'GPT-4' },
-      { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-    ],
-  },
-  {
-    provider: 'anthropic',
-    label: 'Anthropic',
-    models: [
-      { value: 'claude-3-opus', label: 'Claude 3 Opus' },
-      { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
-      { value: 'claude-2.1', label: 'Claude 2.1' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Google Gemini',
-    models: [
-      { value: 'gemini-pro', label: 'Gemini Pro' },
-      { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-    ],
-  },
-  {
-    provider: 'cohere',
-    label: 'Cohere',
-    models: [
-      { value: 'command-r', label: 'Command R' },
-      { value: 'command', label: 'Command' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Mistral',
-    models: [
-      { value: 'mistral-large', label: 'Mistral Large' },
-      { value: 'mistral-medium', label: 'Mistral Medium' },
-      { value: 'mistral-small', label: 'Mistral Small' },
-    ],
-  },
-  {
-    provider: 'grok',
-    label: 'xAI Grok',
-    models: [{ value: 'grok-1', label: 'Grok-1' }],
-  },
-  {
-    provider: 'huggingface',
-    label: 'HuggingFace',
-    models: [
-      { value: 'meta-llama-3-70b', label: 'Meta Llama 3 70B' },
-      { value: 'mistralai-mixtral-8x7b', label: 'Mixtral 8x7B' },
-    ],
-  },
-  {
-    provider: 'groq',
-    label: 'Groq',
-    models: [
-      { value: 'llama-3-70b-8192', label: 'Llama 3 70B (Groq)' },
-      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Groq)' },
-    ],
-  },
-];
+import { PROVIDER_MODEL_OPTIONS } from '../lib/aiProviders';
 
 interface AgentSettingsModalProps {
   isOpen: boolean;

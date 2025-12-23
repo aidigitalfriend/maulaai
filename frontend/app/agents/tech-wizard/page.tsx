@@ -124,15 +124,34 @@ export default function TechWizardPage() {
   };
 
   // ✅ SECURED: Now uses backend API with no exposed keys
-  const handleSendMessage = async (message: string): Promise<string> => {
+  const handleSendMessage = async (
+    message: string,
+    _attachments?: any,
+    _detectedLanguage?: any,
+    settings?: any
+  ): Promise<string> => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Tech Wizard!';
     }
 
+    const model = settings?.model || 'claude-3-5-sonnet-20241022';
+    const provider = settings?.provider || 'anthropic';
+    const temperature = settings?.temperature;
+    const maxTokens = settings?.maxTokens;
+    const systemPrompt = settings?.systemPrompt;
+
     try {
       // Use multiple fallback strategies for better reliability
-      return await sendSecureMessage(message, 'tech-wizard', 'gpt-4');
+      return await sendSecureMessage(
+        message,
+        'tech-wizard',
+        model,
+        provider,
+        temperature,
+        maxTokens,
+        systemPrompt
+      );
     } catch (error: any) {
       console.error('Tech Wizard chat error:', error);
       // Fallback response if API fails

@@ -24,6 +24,7 @@ import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
 import apiRouter from './routes/api-router.js';
 import { rateLimiters, cache } from './lib/cache.js';
 import { connectionConfig, indexManager, poolMonitor } from './lib/database.js';
+import agentAIService from './lib/agent-ai-provider-service.ts';
 // Import models to ensure they are registered with Mongoose
 import AgentSubscription from './models/AgentSubscription.js';
 // Import subscription cron job
@@ -3134,6 +3135,59 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Chat processing failed',
+    });
+  }
+});
+
+// Unified agent chat endpoint using AgentAIProviderService
+app.post('/api/agents/unified', async (req, res) => {
+  try {
+    const {
+      agentId,
+      message,
+      provider,
+      model,
+      temperature,
+      maxTokens,
+      systemPrompt,
+    } = req.body;
+
+    if (!agentId || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Agent ID and message are required',
+      });
+    }
+
+    const result = await agentAIService.sendAgentMessage(
+      agentId,
+      message,
+      systemPrompt,
+      {
+        temperature,
+        maxTokens,
+        forceProvider: provider,
+        model,
+      }
+    );
+
+    return res.json({
+      success: true,
+      response: result.response,
+      provider: result.provider,
+      model: result.model,
+      tokensUsed: result.tokensUsed,
+      latency: result.latency,
+      agentId,
+      agentConfig: result.agentConfig,
+      usedFallback: result.usedFallback || false,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Unified agent chat error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to process unified agent chat request',
     });
   }
 });

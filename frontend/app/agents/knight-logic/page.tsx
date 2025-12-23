@@ -125,14 +125,33 @@ export default function KnightLogicPage() {
   };
 
   // ✅ SECURED: Now uses backend API with no exposed keys
-  const handleSendMessage = async (message: string): Promise<string> => {
+  const handleSendMessage = async (
+    message: string,
+    _attachments?: any,
+    _detectedLanguage?: any,
+    settings?: any
+  ): Promise<string> => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
       return 'Please subscribe to continue chatting with Knight Logic!';
     }
 
+    const model = settings?.model || 'claude-3-5-sonnet-20241022';
+    const provider = settings?.provider || 'anthropic';
+    const temperature = settings?.temperature;
+    const maxTokens = settings?.maxTokens;
+    const systemPrompt = settings?.systemPrompt;
+
     try {
-      return await sendSecureMessage(message, 'knight-logic', 'gpt-3.5-turbo');
+      return await sendSecureMessage(
+        message,
+        'knight-logic',
+        model,
+        provider,
+        temperature,
+        maxTokens,
+        systemPrompt
+      );
     } catch (error: any) {
       return `Sorry, I encountered an error: ${
         error.message || 'Please try again later.'

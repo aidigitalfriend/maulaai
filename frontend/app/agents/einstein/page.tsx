@@ -288,7 +288,14 @@ export default function EinsteinPage() {
   const handleSendMessage = async (
     message: string,
     attachments?: FileAttachment[],
-    detectedLanguage?: DetectedLanguage
+    detectedLanguage?: DetectedLanguage,
+    settings?: {
+      provider?: string;
+      model?: string;
+      temperature?: number;
+      maxTokens?: number;
+      systemPrompt?: string;
+    }
   ): Promise<string> => {
     if (!hasActiveSubscription) {
       setShowSubscriptionModal(true);
@@ -306,9 +313,23 @@ export default function EinsteinPage() {
       };
     }
 
-    // Try to call actual AI service first
+    // Try to call actual AI service first (using unified provider/model settings)
     try {
-      const response = await sendSecureMessage(message, 'einstein', 'gpt-4');
+      const model = settings?.model || 'claude-3-5-sonnet-20241022';
+      const provider = settings?.provider || 'anthropic';
+      const temperature = settings?.temperature;
+      const maxTokens = settings?.maxTokens;
+      const systemPrompt = settings?.systemPrompt;
+
+      const response = await sendSecureMessage(
+        message,
+        'einstein',
+        model,
+        provider,
+        temperature,
+        maxTokens,
+        systemPrompt
+      );
       if (response) return response;
     } catch (error) {
       console.warn(
