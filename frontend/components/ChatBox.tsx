@@ -425,6 +425,12 @@ export default function ChatBox({
     localStorage.setItem(`agent-settings-${agentId}`, JSON.stringify(updated));
   };
 
+  const resetToDefaultSettings = () => {
+    const defaults = getDefaultSettingsForAgent(agentId);
+    setAgentSettings(defaults);
+    localStorage.setItem(`agent-settings-${agentId}`, JSON.stringify(defaults));
+  };
+
   const handleModeChange = (mode: AgentSettings['mode']) => {
     const config = modeConfigs[mode];
     updateSettings({
@@ -1032,7 +1038,7 @@ export default function ChatBox({
                         'You are a helpful assistant. Always provide clear, concise, and accurate information. Break down complex topics into simple explanations.',
                     })
                   }
-                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors text-gray-800"
                 >
                   📚 Educational Mode - Clear explanations for learning
                 </button>
@@ -1043,7 +1049,7 @@ export default function ChatBox({
                         'You are a professional consultant. Provide expert-level analysis with detailed reasoning. Include relevant examples and best practices.',
                     })
                   }
-                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors text-gray-800"
                 >
                   💼 Professional Mode - Expert analysis and insights
                 </button>
@@ -1054,7 +1060,7 @@ export default function ChatBox({
                         'You are a creative brainstorming partner. Think outside the box, suggest innovative ideas, and explore multiple perspectives.',
                     })
                   }
-                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors text-gray-800"
                 >
                   💡 Creative Mode - Innovative and imaginative
                 </button>
@@ -1065,7 +1071,7 @@ export default function ChatBox({
                         'You are a coding assistant. Provide clean, well-documented code with explanations. Follow best practices and modern conventions.',
                     })
                   }
-                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg transition-colors text-gray-800"
                 >
                   💻 Coding Mode - Programming focused responses
                 </button>
@@ -1121,9 +1127,7 @@ export default function ChatBox({
 
             {/* Reset Button */}
             <button
-              onClick={() => {
-                updateSettings(defaultSettings);
-              }}
+              onClick={resetToDefaultSettings}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
             >
               Reset to Defaults
