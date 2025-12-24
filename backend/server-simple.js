@@ -24,7 +24,7 @@ import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
 import apiRouter from './routes/api-router.js';
 import { rateLimiters, cache } from './lib/cache.js';
 import { connectionConfig, indexManager, poolMonitor } from './lib/database.js';
-import agentAIService from './lib/agent-ai-provider-service.ts';
+import agentAIService from './lib/agent-ai-provider-service.js';
 // Import models to ensure they are registered with Mongoose
 import AgentSubscription from './models/AgentSubscription.js';
 // Import subscription cron job
