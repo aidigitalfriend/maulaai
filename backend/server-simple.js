@@ -841,8 +841,9 @@ async function fetchLikeStatus() {
 }
 
 // Auth endpoints
-// POST /api/auth/login
-app.post('/api/auth/login', async (req, res) => {
+// Shared handler for password-based login so it can be reused
+// by multiple routes (frontend proxy and direct backend calls).
+async function handlePasswordLogin(req, res) {
   try {
     console.log('🔐 Login attempt:', req.body?.email);
 
@@ -964,10 +965,172 @@ app.post('/api/auth/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-});
+}
+
+// Shared handler for password-based signup so it can be reused
+// by both the primary /api/auth/signup and backend-only alias.
+async function handlePasswordSignup(req, res) {
+  try {
+    console.log('🆕 Signup attempt:', req.body?.email);
+
+    const { name, email, password, authMethod } = req.body || {};
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: 'Email and password are required' });
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json({ message: 'Password must be at least 8 characters' });
+    }
+
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('MongoDB connection is not initialized');
+    }
+
+    const users = db.collection('users');
+
+    const existingUser = await users.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ message: 'Email already registered' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const now = new Date();
+    const sessionId = crypto.randomBytes(32).toString('hex');
+    const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    const newUserDoc = {
+      email: email.toLowerCase(),
+      name: name || email.split('@')[0],
+      password: hashedPassword,
+      authMethod: authMethod || 'password',
+      emailVerified: now,
+      image: null,
+      avatar: null,
+      bio: null,
+      phoneNumber: null,
+      location: null,
+      timezone: null,
+      profession: null,
+      company: null,
+      website: null,
+      socialLinks: {
+        linkedin: null,
+        twitter: null,
+        github: null,
+      },
+      preferences: {
+        emailNotifications: true,
+        smsNotifications: false,
+        marketingEmails: true,
+        productUpdates: true,
+      },
+      lastLoginAt: null,
+      isActive: true,
+      role: 'user',
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+      sessionId,
+      sessionExpiry,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      tempTwoFactorSecret: null,
+      backupCodes: [],
+      tempBackupCodes: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const result = await users.insertOne(newUserDoc);
+    const userId = result.insertedId.toString();
+
+    // Initialize security profile and login history
+    const userSecurities = db.collection('usersecurities');
+    const userIP = req.ip || req.connection.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+
+    await userSecurities.updateOne(
+      { userId },
+      {
+        $set: {
+          userId,
+          email: newUserDoc.email,
+          lastLoginAt: now,
+          failedLoginAttempts: 0,
+          accountLocked: false,
+          lockReason: null,
+          lockExpires: null,
+        },
+        $push: {
+          loginHistory: {
+            timestamp: now,
+            ipAddress: userIP,
+            userAgent,
+            success: true,
+          },
+        },
+        $setOnInsert: {
+          passwordLastChanged: now,
+          twoFactorEnabled: false,
+          twoFactorSecret: null,
+          backupCodes: [],
+          trustedDevices: [],
+          securityQuestions: [],
+          createdAt: now,
+        },
+      },
+      { upsert: true }
+    );
+
+    console.log('✅ Signup successful for user:', newUserDoc.email);
+
+    res.cookie('session_id', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+
+    return res.status(201).json({
+      message: 'User created successfully',
+      success: true,
+      user: {
+        id: userId,
+        email: newUserDoc.email,
+        name: newUserDoc.name,
+        authMethod: newUserDoc.authMethod,
+        createdAt: newUserDoc.createdAt,
+        lastLoginAt: newUserDoc.lastLoginAt,
+      },
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+// Primary auth endpoint used by Nginx/backend routing
+app.post('/api/auth/login', handlePasswordLogin);
+// Backend-only alias used by the frontend AuthContext to bypass
+// the Next.js route handler when calling from the browser.
+app.post('/api/auth-backend/login', handlePasswordLogin);
+// Signup endpoints (primary and backend-only alias)
+app.post('/api/auth/signup', handlePasswordSignup);
+app.post('/api/auth-backend/signup', handlePasswordSignup);
 
 // GET /api/auth/verify
-app.get('/api/auth/verify', async (req, res) => {
+async function handleAuthVerify(req, res) {
   try {
     console.log('🔍 Auth verify endpoint called');
 
@@ -1014,7 +1177,12 @@ app.get('/api/auth/verify', async (req, res) => {
     console.error('Verify error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-});
+}
+
+app.get('/api/auth/verify', handleAuthVerify);
+// Backend alias so the frontend can explicitly call the Node auth
+// verification endpoint if needed.
+app.post('/api/auth-backend/verify', handleAuthVerify);
 
 // User endpoints
 // GET /api/user/profile - Get current user profile

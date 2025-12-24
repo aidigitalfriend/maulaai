@@ -6,7 +6,7 @@
 
 set -e
 
-SERVER="ubuntu@47.129.43.231"
+SERVER="ubuntu@47.130.228.100"
 SSH_KEY_FILE="/Users/onelastai/Downloads/shiny-friend-disco/one-last-ai.pem"
 NGINX_CONFIG="/Users/onelastai/Downloads/shiny-friend-disco/nginx/onelastai.co.conf"
 

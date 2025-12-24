@@ -127,7 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      const response = await fetch('/api/auth/login', {
+      // Use backend-auth endpoint to avoid any Next.js API routing
+      // issues and talk directly to the Express auth server.
+      const response = await fetch('/api/auth-backend/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // Important: enables HttpOnly cookies
@@ -169,7 +171,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       dispatch({ type: 'AUTH_START' });
 
-      const response = await fetch(`/api/auth/signup`, {
+      // Use backend-auth endpoint for signup to share the same
+      // centralized auth implementation.
+      const response = await fetch(`/api/auth-backend/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
