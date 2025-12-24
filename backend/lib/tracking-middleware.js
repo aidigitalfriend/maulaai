@@ -1,201 +1,190 @@
-/**
- * UNIVERSAL TRACKING MIDDLEWARE
- * Automatically tracks visitors, sessions, page views, and API calls
- */
-
-import { v4 as uuidv4 } from 'uuid'
-import { trackVisitor, createSession, trackPageView, trackApiUsage, updateSessionActivity } from './analytics-tracker.js'
-
-// ============================================
-// HELPER: Generate Visitor ID
-// ============================================
-export function generateVisitorId() {
-  return `visitor_${uuidv4()}`
-}
-
-// ============================================
-// HELPER: Generate Session ID
-// ============================================
-export function generateSessionId() {
-  return `session_${uuidv4()}`
-}
-
-// ============================================
-// MIDDLEWARE: Initialize Tracking
-// ============================================
-export function initializeTracking(req, res, next) {
-  // Get or create visitor ID from cookie
-  let visitorId = req.cookies?.onelastai_visitor
-  if (!visitorId) {
-    visitorId = generateVisitorId()
-    res.cookie('onelastai_visitor', visitorId, {
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      httpOnly: true,
-      sameSite: 'lax'
-    })
-  }
-
-  // Get or create session ID from cookie
-  let sessionId = req.cookies?.onelastai_session
-  if (!sessionId) {
-    sessionId = generateSessionId()
-    res.cookie('onelastai_session', sessionId, {
-      maxAge: 30 * 60 * 1000, // 30 minutes
-      httpOnly: true,
-      sameSite: 'lax'
-    })
-  }
-
-  // Store tracking data in request object
-  req.trackingData = {
-    visitorId,
-    sessionId,
-    userId: req.user?.id || req.userId || null,
-    ipAddress: req.ip || req.connection?.remoteAddress,
-    userAgent: req.get('user-agent')
-  }
-
-  next()
-}
-
-// ============================================
-// MIDDLEWARE: Track Visitor
-// ============================================
-export async function trackVisitorMiddleware(req, res, next) {
-  if (!req.trackingData) {
-    return next()
-  }
-
-  const { visitorId, userId, ipAddress, userAgent } = req.trackingData
-
-  // Track visitor asynchronously (non-blocking)
-  trackVisitor({
-    visitorId,
-    userId,
-    ipAddress,
-    userAgent,
-    country: req.get('cf-ipcountry') || 'Unknown',
-    city: req.get('cf-ipcity') || 'Unknown'
-  }).catch(err => console.error('Visitor tracking error:', err))
-
-  // Create or update session
-  createSession({
-    sessionId: req.trackingData.sessionId,
-    visitorId,
-    userId
-  }).catch(err => console.error('Session creation error:', err))
-
-  next()
-}
-
-// ============================================
-// MIDDLEWARE: Track Page View
-// ============================================
-export async function trackPageViewMiddleware(req, res, next) {
-  if (!req.trackingData) {
-    return next()
-  }
-
-  // Only track GET requests that are likely page views
-  if (req.method === 'GET' && !req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf)$/i)) {
-    const { visitorId, sessionId, userId } = req.trackingData
-
-    trackPageView({
+import {
+  generateVisitorId,
+  generateSessionId,
+  trackVisitor,
+  createSession,
+  trackPageView,
+  trackApiUsage,
+  updateSession,
+  detectDevice,
+  detectBrowser,
+  detectOS
+} from "./analytics-tracker";
+function initializeTracking(req, res, next) {
+  try {
+    let visitorId = req.cookies?.visitorId;
+    if (!visitorId) {
+      visitorId = generateVisitorId();
+      res.cookie("visitorId", visitorId, {
+        maxAge: 365 * 24 * 60 * 60 * 1e3,
+        // 1 year
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+      });
+    }
+    let sessionId = req.cookies?.sessionId;
+    if (!sessionId) {
+      sessionId = generateSessionId();
+      res.cookie("sessionId", sessionId, {
+        maxAge: 30 * 60 * 1e3,
+        // 30 minutes
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax"
+      });
+    }
+    const userId = req.user?.id || req.session?.userId;
+    const ipAddress = req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+    const userAgent = req.headers["user-agent"] || "unknown";
+    const device = detectDevice(userAgent);
+    const browser = detectBrowser(userAgent);
+    const os = detectOS(userAgent);
+    req.visitorId = visitorId;
+    req.sessionId = sessionId;
+    req.trackingData = {
       visitorId,
       sessionId,
       userId,
-      url: req.protocol + '://' + req.get('host') + req.originalUrl,
-      title: req.get('referer') || 'Unknown',
-      referrer: req.get('referer') || null
-    }).catch(err => console.error('Page view tracking error:', err))
+      ipAddress,
+      userAgent,
+      device,
+      browser,
+      os
+    };
+    next();
+  } catch (error) {
+    console.error("Error in initializeTracking:", error);
+    next();
   }
-
-  next()
 }
-
-// ============================================
-// MIDDLEWARE: Track API Usage
-// ============================================
-export async function trackApiMiddleware(req, res, next) {
-  if (!req.trackingData) {
-    return next()
-  }
-
-  const startTime = Date.now()
-
-  // Capture response
-  const originalSend = res.send
-  res.send = function (data) {
-    const responseTime = Date.now() - startTime
-    const { visitorId, sessionId, ipAddress, userAgent } = req.trackingData
-
-    // Track API usage asynchronously
-    trackApiUsage({
+function trackVisitorMiddleware(req, res, next) {
+  next();
+  if (req.trackingData) {
+    const { visitorId, sessionId, userId, ipAddress, userAgent, device, browser, os } = req.trackingData;
+    const referrer = req.headers.referer || req.headers.referrer;
+    const landingPage = req.path;
+    trackVisitor({
       visitorId,
       sessionId,
-      endpoint: req.path,
-      method: req.method,
-      statusCode: res.statusCode,
-      responseTime,
+      userId,
+      ipAddress,
       userAgent,
+      referrer,
+      landingPage,
+      device,
+      browser,
+      os
+    }).catch((err) => console.error("Error tracking visitor:", err));
+    createSession({
+      sessionId,
+      visitorId,
+      userId,
+      device,
+      browser,
       ipAddress
-    }).catch(err => console.error('API tracking error:', err))
-
-    return originalSend.call(this, data)
+    }).catch((err) => console.error("Error creating session:", err));
   }
-
-  next()
 }
-
-// ============================================
-// MIDDLEWARE: Update Session Activity
-// ============================================
-export async function updateSessionMiddleware(req, res, next) {
-  if (!req.trackingData) {
-    return next()
+function trackPageViewMiddleware(req, res, next) {
+  next();
+  if (req.method === "GET" && !req.path.startsWith("/api/") && !req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+    if (req.trackingData) {
+      const { visitorId, sessionId, userId } = req.trackingData;
+      const referrer = req.headers.referer || req.headers.referrer;
+      trackPageView({
+        visitorId,
+        sessionId,
+        userId,
+        path: req.path,
+        title: req.query.title,
+        referrer
+      }).catch((err) => console.error("Error tracking page view:", err));
+    }
   }
-
-  const { sessionId } = req.trackingData
-
-  // Update session activity asynchronously
-  updateSessionActivity(sessionId).catch(err => console.error('Session update error:', err))
-
-  // Refresh session cookie
-  res.cookie('onelastai_session', sessionId, {
-    maxAge: 30 * 60 * 1000, // 30 minutes
-    httpOnly: true,
-    sameSite: 'lax'
-  })
-
-  next()
 }
-
-// ============================================
-// COMBINED MIDDLEWARE: Universal Tracking
-// ============================================
-export function universalTrackingMiddleware(req, res, next) {
-  initializeTracking(req, res, (err) => {
-    if (err) return next(err)
-    
-    trackVisitorMiddleware(req, res, (err) => {
-      if (err) return next(err)
-      
-      trackPageViewMiddleware(req, res, (err) => {
-        if (err) return next(err)
-        
-        trackApiMiddleware(req, res, (err) => {
-          if (err) return next(err)
-          
-          updateSessionMiddleware(req, res, next)
-        })
-      })
-    })
-  })
+function trackApiMiddleware(req, res, next) {
+  const startTime = Date.now();
+  const originalEnd = res.end;
+  res.end = function(chunk, encoding, callback) {
+    const responseTime = Date.now() - startTime;
+    if (req.trackingData) {
+      const { visitorId, sessionId, userId, ipAddress, userAgent } = req.trackingData;
+      trackApiUsage({
+        visitorId,
+        sessionId,
+        userId,
+        endpoint: req.path,
+        method: req.method,
+        statusCode: res.statusCode,
+        responseTime,
+        requestBody: req.body,
+        error: res.statusCode >= 400 ? "Error" : void 0,
+        userAgent,
+        ipAddress
+      }).catch((err) => console.error("Error tracking API usage:", err));
+    }
+    return originalEnd.call(this, chunk, encoding, callback);
+  };
+  next();
 }
-
-// ============================================
-// UTILITY: Get Tracking Data from Request
-// ============================================
-export function getTrackingData(req) {
-  return req.trackingData || null
+function updateSessionActivity(req, res, next) {
+  next();
+  if (req.sessionId) {
+    updateSession(req.sessionId, {
+      lastActivity: /* @__PURE__ */ new Date()
+    }).catch((err) => console.error("Error updating session:", err));
+  }
 }
+function universalTrackingMiddleware(req, res, next) {
+  initializeTracking(req, res, () => {
+    trackVisitorMiddleware(req, res, () => {
+      trackPageViewMiddleware(req, res, () => {
+        trackApiMiddleware(req, res, () => {
+          updateSessionActivity(req, res, next);
+        });
+      });
+    });
+  });
+}
+function getWebSocketTrackingData(socket) {
+  const cookies = parseCookies(socket.handshake.headers.cookie || "");
+  const visitorId = cookies.visitorId || generateVisitorId();
+  const sessionId = cookies.sessionId || generateSessionId();
+  const userAgent = socket.handshake.headers["user-agent"] || "unknown";
+  const ipAddress = socket.handshake.address || "unknown";
+  return {
+    visitorId,
+    sessionId,
+    userAgent,
+    ipAddress,
+    device: detectDevice(userAgent),
+    browser: detectBrowser(userAgent),
+    os: detectOS(userAgent)
+  };
+}
+function parseCookies(cookieHeader) {
+  const cookies = {};
+  if (cookieHeader) {
+    cookieHeader.split(";").forEach((cookie) => {
+      const [name, value] = cookie.trim().split("=");
+      if (name && value) {
+        cookies[name] = decodeURIComponent(value);
+      }
+    });
+  }
+  return cookies;
+}
+function getTrackingData(req) {
+  return req.trackingData || null;
+}
+export {
+  getTrackingData,
+  getWebSocketTrackingData,
+  initializeTracking,
+  trackApiMiddleware,
+  trackPageViewMiddleware,
+  trackVisitorMiddleware,
+  universalTrackingMiddleware,
+  updateSessionActivity
+};
