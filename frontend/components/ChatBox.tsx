@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   PaperAirplaneIcon,
   HandThumbUpIcon,
@@ -261,6 +262,7 @@ export default function ChatBox({
   maxFileSize = 10,
   enableLanguageDetection = true,
 }: ChatBoxProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
@@ -759,9 +761,6 @@ export default function ChatBox({
     }
   };
 
-  const settingsLinkUrl =
-    process.env.NEXT_PUBLIC_AGENT_SETTINGS_URL || '/dashboard/agent-management';
-
   // Hide legacy hamburger toggle inside the chat body so only the header control remains
   useEffect(() => {
     const legacyToggle = document.querySelector(
@@ -826,15 +825,14 @@ export default function ChatBox({
           </button>
 
           {/* External Settings/Management Link */}
-          <a
-            href={settingsLinkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/agent-management')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Open settings in new tab"
+            title="Go to Agent Management"
           >
             <ArrowTopRightOnSquareIcon className="w-5 h-5 text-gray-600" />
-          </a>
+          </button>
         </div>
       </div>
 
