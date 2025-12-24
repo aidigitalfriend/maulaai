@@ -854,8 +854,11 @@ app.post('/api/auth/login', async (req, res) => {
         .json({ message: 'Email and password are required' });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    // Use existing Mongoose connection instead of creating a new MongoClient
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('MongoDB connection is not initialized');
+    }
     const users = db.collection('users');
 
     // Find user by email
