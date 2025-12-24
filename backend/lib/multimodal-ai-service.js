@@ -6,7 +6,7 @@ import { CohereClient } from "cohere-ai";
 import {
   getAgentPersonalityConfig,
   buildAgentSystemMessage
-} from "./personality-integration";
+} from "./personality-integration.js";
 const AGENT_VOICE_MAP = {
   // Female Voices
   "julie-girlfriend": "nova",

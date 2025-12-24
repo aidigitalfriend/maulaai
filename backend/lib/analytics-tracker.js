@@ -7,7 +7,7 @@ import {
   UserEvent,
   Session,
   ApiUsage
-} from "../models/Analytics";
+} from "../models/Analytics.js";
 import { v4 as uuidv4 } from "uuid";
 async function trackVisitor(data) {
   try {

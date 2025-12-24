@@ -1,4 +1,4 @@
-import { MultiModalAIService } from "./multimodal-ai-service";
+import { MultiModalAIService } from "./multimodal-ai-service.js";
 const AGENT_AI_ASSIGNMENTS = {
   // Companion Category - OpenAI (Conversational & Empathetic)
   "julie-girlfriend": {

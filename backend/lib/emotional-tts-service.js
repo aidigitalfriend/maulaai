@@ -522,29 +522,29 @@ class EmotionalTTSService {
   // ============================================
   async speakElevenLabs(text, personality, config) {
     if (!this.elevenLabsKey) throw new Error("ElevenLabs API key not configured");
-    const { speakElevenLabs } = await import("./emotional-tts-providers");
+    const { speakElevenLabs } = await import("./emotional-tts-providers.js");
     return await speakElevenLabs(text, personality, config, this.elevenLabsKey);
   }
   async speakAzure(text, personality, config) {
     if (!this.azureKey) throw new Error("Azure Speech API key not configured");
-    const { speakAzure } = await import("./emotional-tts-providers");
+    const { speakAzure } = await import("./emotional-tts-providers.js");
     return await speakAzure(text, personality, config, this.azureKey, this.azureRegion);
   }
   async speakGoogle(text, personality, config) {
     if (!this.googleKey) throw new Error("Google Cloud TTS API key not configured");
-    const { speakGoogle } = await import("./emotional-tts-providers");
+    const { speakGoogle } = await import("./emotional-tts-providers.js");
     return await speakGoogle(text, personality, config, this.googleKey);
   }
   async speakPolly(text, personality, config) {
     if (!this.awsAccessKey || !this.awsSecretKey) {
       throw new Error("AWS credentials not configured");
     }
-    const { speakPolly } = await import("./emotional-tts-providers");
+    const { speakPolly } = await import("./emotional-tts-providers.js");
     return await speakPolly(text, personality, config, this.awsAccessKey, this.awsSecretKey);
   }
   async speakOpenAI(text, personality, config) {
     if (!this.openaiKey) throw new Error("OpenAI API key not configured");
-    const { speakOpenAI } = await import("./emotional-tts-providers");
+    const { speakOpenAI } = await import("./emotional-tts-providers.js");
     return await speakOpenAI(text, personality, config, this.openaiKey);
   }
   // ============================================

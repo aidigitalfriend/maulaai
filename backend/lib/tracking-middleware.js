@@ -9,7 +9,7 @@ import {
   detectDevice,
   detectBrowser,
   detectOS
-} from "./analytics-tracker";
+} from "./analytics-tracker.js";
 function initializeTracking(req, res, next) {
   try {
     let visitorId = req.cookies?.visitorId;

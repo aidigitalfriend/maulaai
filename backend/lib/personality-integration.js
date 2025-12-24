@@ -1,4 +1,4 @@
-import { STRICT_AGENT_PROMPTS, AGENT_TEMPERATURES } from "./agent-strict-prompts";
+import { STRICT_AGENT_PROMPTS, AGENT_TEMPERATURES } from "./agent-strict-prompts.js";
 function getAgentPersonalityConfig(agentId) {
   const systemPrompt = STRICT_AGENT_PROMPTS[agentId] || STRICT_AGENT_PROMPTS["comedy-king"];
   const temperature = AGENT_TEMPERATURES[agentId] || 0.7;
