@@ -25,7 +25,7 @@ const nextConfig = {
   // Fix turbopack root directory warning and enable turbopack
   turbopack: {
     // Silence inferred root warning when multiple lockfiles exist
-    root: repoRoot,
+    root: __dirname,
   },
 
   // ============================================
