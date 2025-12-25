@@ -121,6 +121,9 @@ mkdir -p "$STAGING_DIR"
 echo "📦 Installing frontend dependencies"
 npm ci
 
+echo "🛟 Ensuring mongodb and mongoose are installed (safety net)"
+npm install mongodb@^6.21.0 mongoose@^8.0.0 --no-save || echo "⚠️ Optional mongodb/mongoose safety install failed; continuing if already present"
+
 echo "🏗️ Building Next.js frontend in staging"
 # Build into the staging directory to avoid touching the live build
 NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT_DIR="$STAGING_DIR" npm run build
