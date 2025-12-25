@@ -93,6 +93,7 @@ fi
 print_status "2) Pushing to origin/main"
 git push origin main
 
+git reset --hard origin/main
 print_status "3) Deploying to production server"
 SSH_COMMAND=$(cat <<'REMOTE'
 set -euo pipefail
@@ -109,15 +110,33 @@ pm2 restart shiny-backend || true
 
 cd ..
 
-echo "🧹 Cleaning frontend cache"
+echo "📦 Preparing isolated frontend build (staging)"
 cd frontend
-rm -rf node_modules node_modules/.cache .next || true
+
+# Ensure staging directory exists and is clean
+STAGING_DIR=".next-build-staging"
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR"
 
 echo "📦 Installing frontend dependencies"
 npm ci
 
-echo "🏗️ Building Next.js frontend"
-npm run build
+echo "🏗️ Building Next.js frontend in staging"
+# Build into the staging directory to avoid touching the live build
+NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT_DIR="$STAGING_DIR" npm run build
+
+echo "✅ Frontend build succeeded in staging. Promoting to live build."
+
+# At this point, the build in staging has succeeded. Only now is it safe
+# to replace the live build and restart the frontend.
+
+LIVE_DIR=".next"
+
+echo "🧹 Cleaning previous live build directory"
+rm -rf "$LIVE_DIR"
+
+echo "🚚 Promoting staging build to live"
+mv "$STAGING_DIR" "$LIVE_DIR"
 
 echo "🔄 Restarting frontend"
 pm2 restart shiny-frontend || true
