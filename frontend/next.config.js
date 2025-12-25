@@ -121,16 +121,6 @@ const nextConfig = {
         );
       }
 
-      // Add compression plugin for better performance
-      const CompressionPlugin = require('compression-webpack-plugin');
-      config.plugins.push(
-        new CompressionPlugin({
-          algorithm: 'gzip',
-          test: /\.(js|css|html|svg)$/,
-          threshold: 10240, // Only compress files larger than 10kb
-          minRatio: 0.8,
-        })
-      );
     }
 
     return config;
