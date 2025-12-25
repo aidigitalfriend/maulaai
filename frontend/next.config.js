@@ -22,12 +22,6 @@ const nextConfig = {
   // Move server external packages to correct location
   serverExternalPackages: ['mongoose', 'mongodb'],
 
-  // Fix turbopack root directory warning and enable turbopack
-  turbopack: {
-    // Silence inferred root warning when multiple lockfiles exist
-    root: __dirname,
-  },
-
   // ============================================
   // BUNDLE SIZE OPTIMIZATIONS
   // ============================================
