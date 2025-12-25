@@ -2,7 +2,19 @@
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation'
-import { BlogPost } from '@/app/constants';
+// import { BlogPost } from '@/app/constants';
+
+interface BlogPost {
+  id: number;
+  year: number;
+  title: string;
+  excerpt: string;
+  author: string;
+  date: string;
+  tags: string[];
+  references: string[];
+  content: string;
+}
 
 // Define blogPosts with available years
 const years = [1936,1937,1938,1939,1940,1941,1942,1943,1944,1945,1946,1947,1948,1949,1950,1951,1953,1955,1957,1959,1961,1963,1965,1967,1969,1971,1973,1975,1977,1979,1981,1983,1985,1986,1987,1989,1991,1993,1995,1997,2012,2023,2024,2025];
