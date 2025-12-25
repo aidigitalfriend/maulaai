@@ -17,7 +17,8 @@ years.forEach((year, index) => {
     author: 'AI History Research Team',
     date: 'December 15, 2025',
     tags: ['AI History'],
-    references: []
+    references: [],
+    content: ''
   };
 });
 
