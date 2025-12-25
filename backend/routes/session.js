@@ -1,10 +1,11 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import User from '../models/User.ts';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'fallback-secret-key-for-development';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 // POST /api/session/login - Secure login with session creation
@@ -15,16 +16,18 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Email and password are required'
+        error: 'Email and password are required',
       });
     }
 
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      '+password'
+    );
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       });
     }
 
@@ -33,16 +36,16 @@ router.post('/login', async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
+      {
         userId: user._id,
         email: user.email,
-        name: user.name
+        name: user.name,
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -53,7 +56,7 @@ router.post('/login', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
     // Update user's last login
@@ -68,16 +71,16 @@ router.post('/login', async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-          joinedAt: user.createdAt
+          joinedAt: user.createdAt,
         },
-        token // Still provide token for backward compatibility
-      }
+        token, // Still provide token for backward compatibility
+      },
     });
   } catch (error) {
     console.error('Session login error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create session'
+      error: 'Failed to create session',
     });
   }
 });
@@ -90,14 +93,14 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Name, email, and password are required'
+        error: 'Name, email, and password are required',
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        error: 'Password must be at least 6 characters'
+        error: 'Password must be at least 6 characters',
       });
     }
 
@@ -106,7 +109,7 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        error: 'User already exists'
+        error: 'User already exists',
       });
     }
 
@@ -120,17 +123,17 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       avatar: '👤',
       createdAt: new Date(),
-      lastLoginAt: new Date()
+      lastLoginAt: new Date(),
     });
 
     await user.save();
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
+      {
         userId: user._id,
         email: user.email,
-        name: user.name
+        name: user.name,
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -141,7 +144,7 @@ router.post('/register', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
     res.status(201).json({
@@ -152,16 +155,16 @@ router.post('/register', async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-          joinedAt: user.createdAt
+          joinedAt: user.createdAt,
         },
-        token // Still provide token for backward compatibility
-      }
+        token, // Still provide token for backward compatibility
+      },
     });
   } catch (error) {
     console.error('Session registration error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create account'
+      error: 'Failed to create account',
     });
   }
 });
@@ -170,24 +173,26 @@ router.post('/register', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     // Get token from cookie or Authorization header
-    const token = req.cookies.session_token || req.headers.authorization?.replace('Bearer ', '');
+    const token =
+      req.cookies.session_token ||
+      req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: 'No session found'
+        error: 'No session found',
       });
     }
 
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Get fresh user data
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid session'
+        error: 'Invalid session',
       });
     }
 
@@ -200,23 +205,26 @@ router.get('/profile', async (req, res) => {
           email: user.email,
           avatar: user.avatar,
           joinedAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt
+          lastLoginAt: user.lastLoginAt,
         },
-        token // Provide token for backward compatibility
-      }
+        token, // Provide token for backward compatibility
+      },
     });
   } catch (error) {
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+    if (
+      error.name === 'JsonWebTokenError' ||
+      error.name === 'TokenExpiredError'
+    ) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired session'
+        error: 'Invalid or expired session',
       });
     }
 
     console.error('Session profile error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get session'
+      error: 'Failed to get session',
     });
   }
 });
@@ -228,18 +236,18 @@ router.post('/logout', async (req, res) => {
     res.clearCookie('session_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: 'strict',
     });
 
     res.json({
       success: true,
-      message: 'Logged out successfully'
+      message: 'Logged out successfully',
     });
   } catch (error) {
     console.error('Session logout error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to logout'
+      error: 'Failed to logout',
     });
   }
 });
@@ -247,33 +255,35 @@ router.post('/logout', async (req, res) => {
 // POST /api/session/refresh - Refresh session token
 router.post('/refresh', async (req, res) => {
   try {
-    const token = req.cookies.session_token || req.headers.authorization?.replace('Bearer ', '');
+    const token =
+      req.cookies.session_token ||
+      req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: 'No session to refresh'
+        error: 'No session to refresh',
       });
     }
 
     // Verify current token
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Get user
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid session'
+        error: 'Invalid session',
       });
     }
 
     // Generate new token
     const newToken = jwt.sign(
-      { 
+      {
         userId: user._id,
         email: user.email,
-        name: user.name
+        name: user.name,
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -284,7 +294,7 @@ router.post('/refresh', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
     res.json({
@@ -295,23 +305,26 @@ router.post('/refresh', async (req, res) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
-          joinedAt: user.createdAt
+          joinedAt: user.createdAt,
         },
-        token: newToken
-      }
+        token: newToken,
+      },
     });
   } catch (error) {
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+    if (
+      error.name === 'JsonWebTokenError' ||
+      error.name === 'TokenExpiredError'
+    ) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid or expired session'
+        error: 'Invalid or expired session',
       });
     }
 
     console.error('Session refresh error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to refresh session'
+      error: 'Failed to refresh session',
     });
   }
 });

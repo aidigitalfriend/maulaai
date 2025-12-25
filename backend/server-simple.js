@@ -2423,8 +2423,8 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       storage: 10240,
     }; // 10GB default
     const currentUsage = {
-      apiCalls: usageData?.apiCalls || Math.floor(Math.random() * 500), // Mock data if none exists
-      storage: usageData?.storage || Math.floor(Math.random() * 2048), // Mock storage usage
+      apiCalls: usageData?.apiCalls || 0, // Real data only
+      storage: usageData?.storage || 0, // Real storage usage
     };
 
     const apiCallsPercentage = Math.min(

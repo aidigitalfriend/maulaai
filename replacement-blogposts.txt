@@ -1,0 +1,18 @@
+  const blogPosts: { [key: number]: Omit<BlogPost, 'content'> } = {
+    1936: {
+      id: 0,
+      year: 1936,
+      title: "Alan Turing's Revolutionary Paper: The Birth of Computational Theory",
+      excerpt: "Alan Turing's groundbreaking 1936 paper 'On Computable Numbers' laid the mathematical foundation for all modern computation and artificial intelligence, defining what machines can and cannot compute.",
+      author: 'AI History Research Team',
+      date: 'December 15, 2025',
+      tags: ['Alan Turing', 'Turing Machine', 'Computational Theory', 'Entscheidungsproblem'],
+      references: [
+        'Turing, A. M. (1936). On computable numbers, with an application to the Entscheidungsproblem. Proceedings of the London Mathematical Society, 42(2), 230-265.',
+        'Copeland, B. J. (2004). The Essential Turing: Seminal Writings in Computing, Logic, Philosophy, Artificial Intelligence, and Artificial Life. Oxford University Press.',
+        'Hodges, A. (2012). Alan Turing: The Enigma. Princeton University Press.',
+        'Davis, M. (2000). The Universal Computer: The Road from Leibniz to Turing. W. W. Norton & Company.',
+        'Petzold, C. (2008). The Annotated Turing: A Guided Tour Through Alan Turing\'s Historic Paper on Computability and the Turing Machine. Wiley.'
+      ]
+    }
+  };

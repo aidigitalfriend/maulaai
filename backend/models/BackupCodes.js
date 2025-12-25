@@ -206,7 +206,7 @@ backupCodesSchema.virtual('isValid').get(function () {
 
 // Static method to verify backup code
 backupCodesSchema.statics.verifyCode = async function (userId, plainCode) {
-  const bcrypt = require('bcrypt');
+  const bcrypt = require('bcryptjs');
 
   // Find all active codes for user
   const codes = await this.find({
