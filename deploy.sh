@@ -117,7 +117,7 @@ echo "📦 Installing frontend dependencies"
 npm ci
 
 echo "🏗️ Building Next.js frontend"
-npx next build --webpack
+npm run build
 
 echo "🔄 Restarting frontend"
 pm2 restart shiny-frontend || true
