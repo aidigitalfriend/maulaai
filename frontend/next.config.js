@@ -22,6 +22,9 @@ const nextConfig = {
   // Move server external packages to correct location
   serverExternalPackages: ['mongoose', 'mongodb'],
 
+  // Enable turbopack for builds
+  turbopack: {},
+
   // ============================================
   // BUNDLE SIZE OPTIMIZATIONS
   // ============================================
