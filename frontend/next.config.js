@@ -120,7 +120,6 @@ const nextConfig = {
           })
         );
       }
-
     }
 
     return config;

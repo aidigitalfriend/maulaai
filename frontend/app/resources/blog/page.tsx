@@ -100,8 +100,11 @@ const BlogPage: React.FC = () => {
         content: blogContent
       };
     }
-    return null;
-  };
+    
+    // Check misplaced entries (string years like '1999-2000')
+    const misplacedEntries = Object.values(blogPosts).filter(post => 
+      typeof post.year === 'string' && post.year.includes('-')
+    );
     
     for (const entry of misplacedEntries) {
       const yearRange = entry.year as string;
@@ -118,6 +121,9 @@ const BlogPage: React.FC = () => {
         return entry;
       }
     }
+    
+    return null;
+  };
     
     return null;
   };
