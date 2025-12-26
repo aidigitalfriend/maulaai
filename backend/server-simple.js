@@ -345,17 +345,8 @@ app.get('/api/status', async (req, res) => {
       apiStatus === 'operational' && db.ok ? 'operational' : 'degraded';
     const now = new Date();
 
-    // Build fake-but-consistent historical last 7 days using metrics
-    const hist = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(now);
-      d.setDate(now.getDate() - (6 - i));
-      return {
-        date: d.toISOString(),
-        uptime: platformStatus === 'operational' ? 99.99 : 98.5,
-        requests: 5000 + i * 421 + Math.floor(Math.random() * 500),
-        avgResponseTime: metrics.avgResponseMs + Math.floor(Math.random() * 50),
-      };
-    });
+    // Return empty historical array - frontend should query dedicated historical metrics endpoint
+    const hist = [];
 
     const data = {
       platform: {
@@ -621,20 +612,16 @@ app.get('/api/status/api-status', async (req, res) => {
 app.get('/api/status/analytics', (req, res) => {
   const metrics = calcMetricsSnapshot();
   const timeRange = String(req.query.timeRange || '24h');
-  const hours = 24;
-  const hourlyData = Array.from({ length: hours }, (_, i) => ({
-    hour: `${i}:00`,
-    requests: 200 + Math.floor(Math.random() * 200),
-    users: 10 + Math.floor(Math.random() * 20),
-  }));
+  // Return only real metrics - no fake hourly data
+  const hourlyData = [];
   res.json({
     overview: {
-      totalRequests: hourlyData.reduce((a, v) => a + v.requests, 0),
-      activeUsers: 120,
+      totalRequests: metrics.totalLastMinute * 60 * 24, // Estimate daily from current rate
+      activeUsers: 0, // Should query from real user sessions
       avgResponseTime: metrics.avgResponseMs,
       successRate: 100 - metrics.errorRate,
-      requestsGrowth: Math.random() * 10 - 5,
-      usersGrowth: Math.random() * 10 - 5,
+      requestsGrowth: 0,
+      usersGrowth: 0,
     },
     agents: [
       {
@@ -2808,11 +2795,9 @@ app.get('/api/agent/performance/:agentId', async (req, res) => {
       };
     });
 
-    // Calculate satisfaction score (mock based on agent popularity)
-    const satisfactionScore = Math.min(
-      5.0,
-      4.0 + (stats.totalConversations / 100) * 0.5
-    );
+    // Query real satisfaction score from feedback/ratings in database
+    // For now return 0 until real feedback system is implemented
+    const satisfactionScore = 0;
 
     // Build performance response
     const performanceData = {
@@ -2829,7 +2814,7 @@ app.get('/api/agent/performance/:agentId', async (req, res) => {
           Math.round((stats.avgResponseTime || 1.2) * 10) / 10, // Round to 1 decimal
         satisfactionScore: Math.round(satisfactionScore * 10) / 10,
         activeUsers: stats.uniqueUsers.length,
-        uptime: 99.9, // Mock uptime
+        uptime: 0, // Should be calculated from process.uptime() or external monitoring
       },
       trends: {
         conversations: {
@@ -3495,8 +3480,8 @@ async function getEnhancedSimulatedResponse(
 
   const agentResponses = responses[agent] || responses.einstein;
   const languageResponses = agentResponses[language] || agentResponses.en;
-  const response =
-    languageResponses[Math.floor(Math.random() * languageResponses.length)];
+  // Use first response as default - real implementation should use AI providers
+  const response = languageResponses[0];
 
   return response;
 }
@@ -3529,13 +3514,18 @@ app.post('/api/voice/synthesize', async (req, res) => {
       });
     }
 
-    // For demo, return a placeholder response
-    res.json({
-      success: true,
-      audioData: null, // Would contain base64 audio data in real implementation
-      provider: 'demo',
-      language,
-      message: 'Voice synthesis is not implemented in demo mode',
+    // Check if ElevenLabs is configured
+    if (!process.env.ELEVENLABS_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        error: 'Voice synthesis service not configured. Please add ELEVENLABS_API_KEY to environment.',
+      });
+    }
+
+    // Real implementation would call ElevenLabs API here
+    return res.status(501).json({
+      success: false,
+      error: 'Voice synthesis integration pending - API key configured but implementation needed',
     });
   } catch (error) {
     console.error('Voice synthesis error:', error);
@@ -3563,13 +3553,18 @@ app.post('/api/translate', async (req, res) => {
       });
     }
 
-    // For demo, return placeholder translation
-    res.json({
-      success: true,
-      translatedText: `[Translated to ${targetLanguage}] ${text}`,
-      sourceLanguage,
-      targetLanguage,
-      provider: 'demo',
+    // Check if translation service is configured
+    if (!process.env.GOOGLE_TRANSLATE_API_KEY && !process.env.DEEPL_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        error: 'Translation service not configured. Please add GOOGLE_TRANSLATE_API_KEY or DEEPL_API_KEY to environment.',
+      });
+    }
+
+    // Real implementation would call translation API here
+    return res.status(501).json({
+      success: false,
+      error: 'Translation integration pending - API key configured but implementation needed',
     });
   } catch (error) {
     console.error('Translation error:', error);

@@ -99,118 +99,7 @@ export default function StatusPage() {
   const [errRateHistory, setErrRateHistory] = useState<number[]>([])
   const [usedMock, setUsedMock] = useState(false)
 
-  // Demo/mock data for better visual understanding during development
-  const MOCK_TOP_AGENTS: { name: string; users: number }[] = [
-    { name: 'travel buddy', users: 58 },
-    { name: 'mrs boss', users: 55 },
-    { name: 'fitness guru', users: 54 },
-    { name: 'emma emotional', users: 51 },
-    { name: 'professor astrology', users: 47 },
-    { name: 'knight logic', users: 43 },
-  ]
-
-  const MOCK_STATUS: StatusData = {
-    system: {
-      cpuPercent: 42,
-      memoryPercent: 61,
-      totalMem: 16 * 1024 ** 3,
-      freeMem: 6.2 * 1024 ** 3,
-      usedMem: 9.8 * 1024 ** 3,
-      load1: 1.2,
-      load5: 0.9,
-      load15: 0.7,
-      cores: 8,
-    },
-    platform: {
-      status: 'operational',
-      uptime: 99.92,
-      lastUpdated: new Date().toISOString(),
-      version: '2.0.0',
-    },
-    api: {
-      status: 'operational',
-      responseTime: 118,
-      uptime: 99.85,
-      requestsToday: 51667,
-      requestsPerMinute: 274,
-      errorRate: 2.2,
-      errorsToday: 1137,
-    },
-    database: {
-      status: 'operational',
-      connectionPool: 86,
-      responseTime: 92,
-      uptime: 99.9,
-    },
-    aiServices: [
-      { name: 'Gemini Pro', status: 'operational', responseTime: 210, uptime: 99.7 },
-      { name: 'OpenAI GPT', status: 'operational', responseTime: 180, uptime: 99.9 },
-      { name: 'Claude', status: 'operational', responseTime: 230, uptime: 99.8 },
-    ],
-    agents: [
-      { name: 'emma-emotional', status: 'operational', responseTime: 145, activeUsers: 38 },
-      { name: 'tech-wizard', status: 'operational', responseTime: 132, activeUsers: 44 },
-      { name: 'chef-biew', status: 'operational', responseTime: 168, activeUsers: 27 },
-      { name: 'drama-queen', status: 'degraded', responseTime: 210, activeUsers: 19 },
-      { name: 'rook-jokey', status: 'operational', responseTime: 120, activeUsers: 33 },
-      { name: 'professor-astrology', status: 'operational', responseTime: 190, activeUsers: 22 },
-    ],
-    tools: [
-      { name: 'IP Info', status: 'operational', responseTime: 90 },
-      { name: 'Network Tools', status: 'operational', responseTime: 110 },
-      { name: 'Developer Utils', status: 'operational', responseTime: 95 },
-      { name: 'API Tester', status: 'operational', responseTime: 140 },
-      { name: 'AI Studio', status: 'operational', responseTime: 170, activeChats: 120 },
-    ],
-    historical: Array.from({ length: 7 }, (_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
-      return {
-        date: d.toISOString().split('T')[0],
-        uptime: 99.5 + Math.random() * 0.5,
-        requests: 100000 + Math.floor(Math.random() * 50000),
-        avgResponseTime: 100 + Math.floor(Math.random() * 100),
-      }
-    }),
-    incidents: [],
-  }
-
-  const ensureMock = (incoming: StatusData): StatusData => {
-    let touched = false
-    const clone: StatusData = { ...incoming }
-    if (!clone.historical || clone.historical.length < 7) {
-      clone.historical = MOCK_STATUS.historical
-      touched = true
-    }
-    if (!clone.agents || clone.agents.length < 4) {
-      clone.agents = MOCK_STATUS.agents
-      touched = true
-    }
-    if (!clone.tools || clone.tools.length < 3) {
-      clone.tools = MOCK_STATUS.tools
-      touched = true
-    }
-    if (!clone.aiServices || clone.aiServices.length < 3) {
-      clone.aiServices = MOCK_STATUS.aiServices
-      touched = true
-    }
-    if (clone.api) {
-      if (typeof clone.api.errorRate !== 'number') {
-        clone.api.errorRate = MOCK_STATUS.api.errorRate
-        touched = true
-      }
-      if (typeof clone.api.errorsToday !== 'number') {
-        clone.api.errorsToday = MOCK_STATUS.api.errorsToday
-        touched = true
-      }
-    }
-    if (!clone.system) {
-      clone.system = MOCK_STATUS.system
-      touched = true
-    }
-    if (touched) setUsedMock(true)
-    return clone
-  }
+  // No mock data - use real API responses only
 
   const fetchStatus = async () => {
     try {
@@ -221,8 +110,8 @@ export default function StatusPage() {
       }
       const result = await response.json()
       if (result.success) {
-        const merged = ensureMock(result.data)
-        setData(merged)
+        // Use real data directly without any mock fallbacks
+        setData(result.data)
         setLastUpdate(new Date())
         setIsLoading(false)
       } else {
@@ -249,8 +138,8 @@ export default function StatusPage() {
           try {
             const payload = JSON.parse(e.data)
             if (payload?.success && payload?.data) {
-              const merged = ensureMock(payload.data)
-              setData(merged)
+              // Use real data directly without mock fallbacks
+              setData(payload.data)
               if (payload.data.system) {
                 setCpuHistory((h) => {
                   const next = [...h, payload.data.system.cpuPercent]

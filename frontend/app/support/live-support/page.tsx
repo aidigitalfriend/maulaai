@@ -162,17 +162,30 @@ export default function LiveSupportPage() {
 
   const fetchUserProfile = async () => {
     try {
-      // In real app, fetch from backend
-      const mockProfile = {
-        name: auth.state.user?.name || 'User',
-        email: auth.state.user?.email,
-        subscription: 'Pro',
-        joinedDate: auth.state.user?.createdAt,
-        supportTickets: 2,
-      };
-      setUserProfile(mockProfile);
+      // Fetch real user profile from backend
+      const response = await fetch(`/api/user/profile`, {
+        headers: {
+          'Authorization': `Bearer ${auth.state.token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      
+      const data = await response.json();
+      if (data.success && data.profile) {
+        setUserProfile({
+          name: data.profile.name || auth.state.user?.name || 'User',
+          email: data.profile.email || auth.state.user?.email,
+          subscription: 'Pro', // Should come from subscription API
+          joinedDate: data.profile.createdAt || auth.state.user?.createdAt,
+          supportTickets: 0, // Should query from support tickets collection
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
+      // Don't set mock data - leave userProfile as null to show error state
     }
   };
 
