@@ -1571,7 +1571,7 @@ app.get('/api/user/analytics', async (req, res) => {
                 },
               },
               conversations: { $sum: 1 },
-              messages: { $sum: 1 },
+              messages: { $sum: 2 },
             },
           },
           { $sort: { '_id.date': 1 } },
@@ -1582,6 +1582,69 @@ app.get('/api/user/analytics', async (req, res) => {
     // Calculate metrics
     const messagesCount = totalMessages * 2; // Estimate 2 messages per conversation
     const apiCallsCount = Math.max(totalApiCalls, totalConversations); // At least 1 API call per conversation
+
+    const hasUsageData =
+      totalConversations > 0 ||
+      apiCallsCount > 0 ||
+      messagesCount > 0 ||
+      (Array.isArray(recentInteractions) && recentInteractions.length > 0) ||
+      (Array.isArray(dailyUsageData) && dailyUsageData.length > 0);
+
+    // If there is no real usage yet, return a clean zeroed analytics payload
+    if (!hasUsageData) {
+      const emptyAnalyticsData = {
+        subscription: subscriptionSummary,
+        usage: {
+          conversations: {
+            current: 0,
+            limit: 10000,
+            percentage: 0,
+            unit: 'conversations',
+          },
+          agents: {
+            current: 0,
+            limit: 18,
+            percentage: 0,
+            unit: 'agents',
+          },
+          apiCalls: {
+            current: 0,
+            limit: 50000,
+            percentage: 0,
+            unit: 'calls',
+          },
+          storage: {
+            current: 0,
+            limit: 10000,
+            percentage: 0,
+            unit: 'KB',
+          },
+          messages: {
+            current: 0,
+            limit: 100000,
+            percentage: 0,
+            unit: 'messages',
+          },
+        },
+        dailyUsage: [],
+        weeklyTrend: {
+          conversationsChange: '+0%',
+          messagesChange: '+0%',
+          apiCallsChange: '+0%',
+          responseTimeChange: '+0%',
+        },
+        agentPerformance: [],
+        recentActivity: [],
+        costAnalysis: {
+          currentMonth: 0,
+          projectedMonth: 0,
+          breakdown: [],
+        },
+        topAgents: [],
+      };
+
+      return res.json(emptyAnalyticsData);
+    }
 
     // Build analytics data matching frontend interface
     const analyticsData = {
@@ -1631,39 +1694,18 @@ app.get('/api/user/analytics', async (req, res) => {
         apiCalls: day.conversations, // Approximate API calls as conversations
       })),
       weeklyTrend: {
-        conversationsChange:
-          totalConversations > 0
-            ? `+${Math.floor(Math.random() * 20 + 5)}%`
-            : '+0%',
-        messagesChange:
-          messagesCount > 0
-            ? `+${Math.floor(Math.random() * 25 + 10)}%`
-            : '+0%',
-        apiCallsChange:
-          apiCallsCount > 0 ? `+${Math.floor(Math.random() * 15 + 8)}%` : '+0%',
-        responseTimeChange: `-${Math.floor(Math.random() * 10 + 2)}%`,
+        conversationsChange: '+0%',
+        messagesChange: '+0%',
+        apiCallsChange: '+0%',
+        responseTimeChange: '+0%',
       },
       agentPerformance: [
         {
-          name: 'Einstein',
-          conversations: Math.floor(totalConversations * 0.2),
-          messages: Math.floor(messagesCount * 0.2),
-          avgResponseTime: 1200 + Math.floor(Math.random() * 800),
-          successRate: 94 + Math.floor(Math.random() * 5),
-        },
-        {
-          name: 'Tech Wizard',
-          conversations: Math.floor(totalConversations * 0.15),
-          messages: Math.floor(messagesCount * 0.15),
-          avgResponseTime: 1100 + Math.floor(Math.random() * 600),
-          successRate: 92 + Math.floor(Math.random() * 6),
-        },
-        {
-          name: 'Comedy King',
-          conversations: Math.floor(totalConversations * 0.12),
-          messages: Math.floor(messagesCount * 0.12),
-          avgResponseTime: 900 + Math.floor(Math.random() * 400),
-          successRate: 89 + Math.floor(Math.random() * 8),
+          name: 'All Agents',
+          conversations: totalConversations,
+          messages: messagesCount,
+          avgResponseTime: 0,
+          successRate: 100,
         },
       ],
       recentActivity: recentInteractions.slice(0, 5).map((interaction) => ({
@@ -1694,11 +1736,7 @@ app.get('/api/user/analytics', async (req, res) => {
           },
         ],
       },
-      topAgents: [
-        { name: 'Einstein', usage: Math.floor(totalConversations * 0.2) },
-        { name: 'Tech Wizard', usage: Math.floor(totalConversations * 0.15) },
-        { name: 'Comedy King', usage: Math.floor(totalConversations * 0.12) },
-      ],
+      topAgents: [{ name: 'All Agents', usage: totalConversations }],
     };
 
     res.json(analyticsData);
