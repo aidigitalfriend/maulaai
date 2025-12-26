@@ -15,7 +15,7 @@
     "@anthropic-ai/sdk": "^0.71.2",
     "@google-cloud/translate": "^9.3.0",
     "@google/generative-ai": "^0.24.1",
-    "@mistralai/mistralai": "^1.10.0",
+    "@mistralai/mistralai": "^1.11.0",
     "@sendgrid/mail": "^8.1.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
