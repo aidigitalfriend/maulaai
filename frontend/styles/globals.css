@@ -6,7 +6,6 @@
 @layer base {
   /* Reset and Base Styles */
   * {
-    @apply border-gray-200;
   }
   
   html {
