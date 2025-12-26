@@ -1,67 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
 
 export const dynamic = 'force-dynamic';
 
+async function proxyToBackend(request: NextRequest) {
+  const backendBase = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
+
+  const incomingUrl = new URL(request.url);
+  const targetUrl = new URL('/api/auth/verify', backendBase);
+
+  // Forward query parameters if any
+  incomingUrl.searchParams.forEach((value, key) => {
+    targetUrl.searchParams.append(key, value);
+  });
+
+  const response = await fetch(targetUrl.toString(), {
+    method: 'GET',
+    headers: {
+      cookie: request.headers.get('cookie') || '',
+    },
+    cache: 'no-store',
+  });
+
+  const body = await response.text();
+
+  return new NextResponse(body, {
+    status: response.status,
+    headers: {
+      'content-type':
+        response.headers.get('content-type') || 'application/json',
+    },
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 Auth verify endpoint called');
-
-    // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies.get('session_id')?.value;
-
-    if (!sessionId) {
-      console.log('❌ No session ID in cookie');
-      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
-    }
-
-    console.log('🎫 Session ID received from cookie, verifying...');
-
-    // Connect to database
-    await dbConnect();
-
-    // Find user with valid session
-    const user = await User.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
-
-    if (!user) {
-      console.log('❌ Invalid or expired session');
-      return NextResponse.json(
-        { message: 'Invalid or expired session' },
-        { status: 401 }
-      );
-    }
-
-    console.log('✅ Session verified for user:', user.email);
-
-    // Return user data
-    return NextResponse.json(
-      {
-        valid: true,
-        user: {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          authMethod: user.authMethod,
-          createdAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt,
-        },
-      },
-      { status: 200 }
-    );
+    return await proxyToBackend(request);
   } catch (error) {
-    console.error('❌ Session verification error:', error);
+    console.error('Error proxying /api/auth/verify:', error);
     return NextResponse.json(
       { valid: false, message: 'Session verification failed' },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }
 
-// Add POST method for AuthContext compatibility
+// Keep POST for AuthContext compatibility; proxy as well.
 export async function POST(request: NextRequest) {
-  return GET(request); // Use same logic as GET
+  return GET(request);
 }
