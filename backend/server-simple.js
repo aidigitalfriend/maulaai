@@ -1570,6 +1570,47 @@ app.get('/api/user/analytics', async (req, res) => {
     const messagesCount = totalMessages * 2; // Estimate 2 messages per conversation
     const apiCallsCount = Math.max(totalApiCalls, totalConversations); // At least 1 API call per conversation
 
+    // Calculate real weekly trends by comparing this week vs last week
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const [lastWeekConversations, lastWeekApiCalls] = await Promise.all([
+      chatInteractions.countDocuments
+        ? chatInteractions.countDocuments({
+            userId: userObjectId,
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+          })
+        : chatInteractions.count({
+            userId: userObjectId,
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+          }),
+      performanceMetrics.countDocuments
+        ? performanceMetrics.countDocuments({
+            userId: userObjectId,
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+          })
+        : performanceMetrics.count({
+            userId: userObjectId,
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+          }),
+    ]);
+
+    const lastWeekMessages = lastWeekConversations * 2;
+    const lastWeekApiCallsCount = Math.max(lastWeekApiCalls, lastWeekConversations);
+
+    // Helper function to calculate percentage change
+    const calculateChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? '+100%' : '0%';
+      const change = ((current - previous) / previous * 100).toFixed(1);
+      return parseFloat(change) >= 0 ? `+${change}%` : `${change}%`;
+    };
+
+    const weeklyTrendData = {
+      conversationsChange: calculateChange(totalConversations, lastWeekConversations),
+      messagesChange: calculateChange(messagesCount, lastWeekMessages),
+      apiCallsChange: calculateChange(apiCallsCount, lastWeekApiCallsCount),
+      responseTimeChange: '+0%', // Would need to calculate from performanceMetrics response times
+    };
+
     const hasUsageData =
       totalConversations > 0 ||
       apiCallsCount > 0 ||
@@ -1680,12 +1721,7 @@ app.get('/api/user/analytics', async (req, res) => {
         messages: day.messages,
         apiCalls: day.conversations, // Approximate API calls as conversations
       })),
-      weeklyTrend: {
-        conversationsChange: '+0%',
-        messagesChange: '+0%',
-        apiCallsChange: '+0%',
-        responseTimeChange: '+0%',
-      },
+      weeklyTrend: weeklyTrendData,
       agentPerformance: [
         {
           name: 'All Agents',
@@ -3518,14 +3554,16 @@ app.post('/api/voice/synthesize', async (req, res) => {
     if (!process.env.ELEVENLABS_API_KEY) {
       return res.status(503).json({
         success: false,
-        error: 'Voice synthesis service not configured. Please add ELEVENLABS_API_KEY to environment.',
+        error:
+          'Voice synthesis service not configured. Please add ELEVENLABS_API_KEY to environment.',
       });
     }
 
     // Real implementation would call ElevenLabs API here
     return res.status(501).json({
       success: false,
-      error: 'Voice synthesis integration pending - API key configured but implementation needed',
+      error:
+        'Voice synthesis integration pending - API key configured but implementation needed',
     });
   } catch (error) {
     console.error('Voice synthesis error:', error);
@@ -3557,14 +3595,16 @@ app.post('/api/translate', async (req, res) => {
     if (!process.env.GOOGLE_TRANSLATE_API_KEY && !process.env.DEEPL_API_KEY) {
       return res.status(503).json({
         success: false,
-        error: 'Translation service not configured. Please add GOOGLE_TRANSLATE_API_KEY or DEEPL_API_KEY to environment.',
+        error:
+          'Translation service not configured. Please add GOOGLE_TRANSLATE_API_KEY or DEEPL_API_KEY to environment.',
       });
     }
 
     // Real implementation would call translation API here
     return res.status(501).json({
       success: false,
-      error: 'Translation integration pending - API key configured but implementation needed',
+      error:
+        'Translation integration pending - API key configured but implementation needed',
     });
   } catch (error) {
     console.error('Translation error:', error);

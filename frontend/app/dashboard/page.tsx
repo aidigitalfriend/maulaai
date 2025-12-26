@@ -219,7 +219,7 @@ function DashboardContent() {
             0
           ) / analyticsData.agentPerformance.length
         ).toFixed(1)
-      : '0.0';
+      : 'N/A';
 
   const getStatusColor = (percentage: number) => {
     if (percentage >= 90) return 'text-red-600';
@@ -260,8 +260,8 @@ function DashboardContent() {
     },
     {
       label: 'Success Rate',
-      value: `${successRate}%`,
-      change: '+1.3% this week',
+      value: successRate === 'N/A' ? 'N/A' : `${successRate}%`,
+      change: successRate === 'N/A' ? 'No data yet' : '+1.3% this week',
       trend: 'up',
       icon: CheckCircle,
       color: 'emerald',
