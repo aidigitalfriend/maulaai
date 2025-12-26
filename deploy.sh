@@ -110,13 +110,8 @@ pm2 restart shiny-backend || true
 
 cd ..
 
-echo "📦 Preparing isolated frontend build (staging)"
+echo "📦 Preparing frontend build"
 cd frontend
-
-# Ensure staging directory exists and is clean
-STAGING_DIR=".next-build-staging"
-rm -rf "$STAGING_DIR"
-mkdir -p "$STAGING_DIR"
 
 echo "📦 Installing frontend dependencies"
 npm ci
@@ -124,22 +119,8 @@ npm ci
 echo "🛟 Ensuring mongodb and mongoose are installed (safety net)"
 npm install mongodb@^6.21.0 mongoose@^8.0.0 --no-save || echo "⚠️ Optional mongodb/mongoose safety install failed; continuing if already present"
 
-echo "🏗️ Building Next.js frontend in staging"
-# Build into the staging directory to avoid touching the live build
-NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT_DIR="$STAGING_DIR" npm run build
-
-echo "✅ Frontend build succeeded in staging. Promoting to live build."
-
-# At this point, the build in staging has succeeded. Only now is it safe
-# to replace the live build and restart the frontend.
-
-LIVE_DIR=".next"
-
-echo "🧹 Cleaning previous live build directory"
-rm -rf "$LIVE_DIR"
-
-echo "🚚 Promoting staging build to live"
-mv "$STAGING_DIR" "$LIVE_DIR"
+echo "🏗️ Building Next.js frontend"
+NEXT_TELEMETRY_DISABLED=1 npm run build
 
 echo "🔄 Restarting frontend"
 pm2 restart shiny-frontend || true
