@@ -165,14 +165,14 @@ export default function LiveSupportPage() {
       // Fetch real user profile from backend
       const response = await fetch(`/api/user/profile`, {
         headers: {
-          'Authorization': `Bearer ${auth.state.token}`,
+          Authorization: `Bearer ${auth.state.token}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch user profile');
       }
-      
+
       const data = await response.json();
       if (data.success && data.profile) {
         setUserProfile({

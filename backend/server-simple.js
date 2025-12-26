@@ -1572,40 +1572,46 @@ app.get('/api/user/analytics', async (req, res) => {
 
     // Calculate real weekly trends by comparing this week vs last week
     const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    
+
     const [lastWeekConversations, lastWeekApiCalls] = await Promise.all([
       chatInteractions.countDocuments
         ? chatInteractions.countDocuments({
             userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
           })
         : chatInteractions.count({
             userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
           }),
       performanceMetrics.countDocuments
         ? performanceMetrics.countDocuments({
             userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
           })
         : performanceMetrics.count({
             userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo }
+            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
           }),
     ]);
 
     const lastWeekMessages = lastWeekConversations * 2;
-    const lastWeekApiCallsCount = Math.max(lastWeekApiCalls, lastWeekConversations);
+    const lastWeekApiCallsCount = Math.max(
+      lastWeekApiCalls,
+      lastWeekConversations
+    );
 
     // Helper function to calculate percentage change
     const calculateChange = (current, previous) => {
       if (previous === 0) return current > 0 ? '+100%' : '0%';
-      const change = ((current - previous) / previous * 100).toFixed(1);
+      const change = (((current - previous) / previous) * 100).toFixed(1);
       return parseFloat(change) >= 0 ? `+${change}%` : `${change}%`;
     };
 
     const weeklyTrendData = {
-      conversationsChange: calculateChange(totalConversations, lastWeekConversations),
+      conversationsChange: calculateChange(
+        totalConversations,
+        lastWeekConversations
+      ),
       messagesChange: calculateChange(messagesCount, lastWeekMessages),
       apiCallsChange: calculateChange(apiCallsCount, lastWeekApiCallsCount),
       responseTimeChange: '+0%', // Would need to calculate from performanceMetrics response times
