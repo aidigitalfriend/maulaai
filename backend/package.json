@@ -18,7 +18,7 @@
     "@mistralai/mistralai": "^1.10.0",
     "@sendgrid/mail": "^8.1.6",
     "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.5",
+    "@types/express": "^5.0.6",
     "@types/formidable": "^3.4.6",
     "@types/ioredis": "^5.0.0",
     "@types/multer": "^2.0.0",
