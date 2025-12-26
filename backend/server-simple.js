@@ -1180,6 +1180,9 @@ async function handleAuthVerify(req, res) {
 }
 
 app.get('/api/auth/verify', handleAuthVerify);
+// Allow POST as well so browser-side callers using fetch('/api/auth/verify')
+// with method POST are routed correctly through the centralized handler.
+app.post('/api/auth/verify', handleAuthVerify);
 // Backend alias so the frontend can explicitly call the Node auth
 // verification endpoint if needed.
 app.post('/api/auth-backend/verify', handleAuthVerify);
