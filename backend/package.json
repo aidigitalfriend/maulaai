@@ -12,7 +12,7 @@
     "seed:core": "node scripts/populate-core-collections.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.1",
+    "@anthropic-ai/sdk": "^0.71.2",
     "@google-cloud/translate": "^9.3.0",
     "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^1.10.0",
@@ -44,7 +44,7 @@
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
-    "openai": "^6.10.0",
+    "openai": "^6.15.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "speakeasy": "^2.0.0",
