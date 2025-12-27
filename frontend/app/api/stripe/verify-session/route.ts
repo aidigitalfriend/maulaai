@@ -112,7 +112,9 @@ export async function POST(request: NextRequest) {
     const price = session.amount_total ? session.amount_total / 100 : 0;
 
     // Convert userId to ObjectId for proper backend filtering
-    const userId = session.metadata?.userId ? new ObjectId(session.metadata.userId) : null;
+    const userId = session.metadata?.userId
+      ? new ObjectId(session.metadata.userId)
+      : null;
 
     if (!userId) {
       console.error('❌ Missing userId in session metadata');
@@ -146,12 +148,20 @@ export async function POST(request: NextRequest) {
           agentId: existingByStripeId.agentId,
           plan: existingByStripeId.plan || existingByStripeId.billing?.interval,
           status: existingByStripeId.status,
-          expiryDate: existingByStripeId.expiryDate || existingByStripeId.billing?.currentPeriodEnd,
+          expiryDate:
+            existingByStripeId.expiryDate ||
+            existingByStripeId.billing?.currentPeriodEnd,
           daysRemaining: Math.ceil(
-            ((existingByStripeId.expiryDate?.getTime?.() || new Date(existingByStripeId.billing?.currentPeriodEnd).getTime()) - Date.now()) /
+            ((existingByStripeId.expiryDate?.getTime?.() ||
+              new Date(
+                existingByStripeId.billing?.currentPeriodEnd
+              ).getTime()) -
+              Date.now()) /
               (1000 * 60 * 60 * 24)
           ),
-          price: existingByStripeId.price || (existingByStripeId.billing?.amount / 100),
+          price:
+            existingByStripeId.price ||
+            existingByStripeId.billing?.amount / 100,
         },
       });
     }
@@ -178,7 +188,8 @@ export async function POST(request: NextRequest) {
             updatedAt: new Date(),
             // Ensure billing structure exists
             billing: {
-              interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
+              interval:
+                plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
               amount: Math.round(price * 100), // Convert to cents
               currentPeriodEnd: expiryDate,
             },
@@ -202,7 +213,8 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
         updatedAt: new Date(),
         billing: {
-          interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
+          interval:
+            plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
           amount: Math.round(price * 100), // Convert to cents
           currentPeriodEnd: expiryDate,
         },

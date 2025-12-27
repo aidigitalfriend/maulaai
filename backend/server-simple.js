@@ -2392,7 +2392,7 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     const now = new Date();
     const activeAgentSubscriptions = await subscriptions
       .find({
-        user: sessionUser._id,  // Filter by current user
+        user: sessionUser._id, // Filter by current user
         agentId: { $exists: true, $ne: null },
         status: 'active',
       })
