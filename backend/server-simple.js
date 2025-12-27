@@ -1511,13 +1511,14 @@ app.get('/api/user/analytics', async (req, res) => {
           daysUntilRenewal: 0,
         };
 
-    // Aggregate real data from collections
+    // Aggregate real data from collections including agent subscriptions
     const [
       totalConversations,
       totalMessages,
       totalApiCalls,
       recentInteractions,
       dailyUsageData,
+      activeAgentCount,
     ] = await Promise.all([
       // Count total conversations
       chatInteractions.countDocuments
@@ -1564,6 +1565,13 @@ app.get('/api/user/analytics', async (req, res) => {
           { $sort: { '_id.date': 1 } },
         ])
         .toArray(),
+
+      // Count active agent subscriptions using Mongoose model
+      AgentSubscription.countDocuments({
+        userId: userObjectId.toString(),
+        status: 'active',
+        expiryDate: { $gt: now },
+      }),
     ]);
 
     // Calculate metrics
@@ -1621,6 +1629,7 @@ app.get('/api/user/analytics', async (req, res) => {
       totalConversations > 0 ||
       apiCallsCount > 0 ||
       messagesCount > 0 ||
+      activeAgentCount > 0 ||
       (Array.isArray(recentInteractions) && recentInteractions.length > 0) ||
       (Array.isArray(dailyUsageData) && dailyUsageData.length > 0);
 
@@ -1636,9 +1645,9 @@ app.get('/api/user/analytics', async (req, res) => {
             unit: 'conversations',
           },
           agents: {
-            current: 0,
+            current: activeAgentCount,
             limit: 18,
-            percentage: 0,
+            percentage: Math.min((activeAgentCount / 18) * 100, 100),
             unit: 'agents',
           },
           apiCalls: {
@@ -1691,12 +1700,9 @@ app.get('/api/user/analytics', async (req, res) => {
           unit: 'conversations',
         },
         agents: {
-          current: Math.min(8, Math.ceil(totalConversations / 10)), // Estimate agents used
+          current: activeAgentCount, // Real count from AgentSubscription collection
           limit: 18,
-          percentage: Math.min(
-            (Math.min(8, Math.ceil(totalConversations / 10)) / 18) * 100,
-            100
-          ),
+          percentage: Math.min((activeAgentCount / 18) * 100, 100),
           unit: 'agents',
         },
         apiCalls: {
