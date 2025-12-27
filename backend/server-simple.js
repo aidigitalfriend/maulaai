@@ -2415,13 +2415,13 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       // Calculate total monthly cost from agent subscriptions
       let totalMonthly = 0;
       const agentDetails = [];
-      
+
       for (const sub of activeAgentSubscriptions) {
         let monthlyCost = 0;
         if (sub.plan === 'daily') monthlyCost = 1 * 30;
         else if (sub.plan === 'weekly') monthlyCost = 5 * 4;
         else if (sub.plan === 'monthly') monthlyCost = 19;
-        
+
         totalMonthly += monthlyCost;
         agentDetails.push({
           agentId: sub.agentId,
@@ -2429,18 +2429,28 @@ app.get('/api/user/billing/:userId', async (req, res) => {
           plan: sub.plan,
           price: sub.price || monthlyCost,
           expiryDate: sub.expiryDate,
-          daysRemaining: Math.ceil((sub.expiryDate - now) / (1000 * 60 * 60 * 24)),
+          daysRemaining: Math.ceil(
+            (sub.expiryDate - now) / (1000 * 60 * 60 * 24)
+          ),
         });
       }
 
       // Find earliest and latest expiry dates
-      const earliestExpiry = new Date(Math.min(...activeAgentSubscriptions.map(s => s.expiryDate)));
-      const latestExpiry = new Date(Math.max(...activeAgentSubscriptions.map(s => s.expiryDate)));
-      const avgDaysRemaining = Math.ceil((latestExpiry - now) / (1000 * 60 * 60 * 24));
+      const earliestExpiry = new Date(
+        Math.min(...activeAgentSubscriptions.map((s) => s.expiryDate))
+      );
+      const latestExpiry = new Date(
+        Math.max(...activeAgentSubscriptions.map((s) => s.expiryDate))
+      );
+      const avgDaysRemaining = Math.ceil(
+        (latestExpiry - now) / (1000 * 60 * 60 * 24)
+      );
 
       const billingData = {
         currentPlan: {
-          name: `${activeAgentSubscriptions.length} Active Agent${activeAgentSubscriptions.length > 1 ? 's' : ''}`,
+          name: `${activeAgentSubscriptions.length} Active Agent${
+            activeAgentSubscriptions.length > 1 ? 's' : ''
+          }`,
           type: 'agent-subscription',
           price: totalMonthly,
           currency: 'USD',
@@ -2456,24 +2466,33 @@ app.get('/api/user/billing/:userId', async (req, res) => {
             name: '$1.00 / daily',
             billingPeriod: 'daily',
             price: 1,
-            description: '$1 per day per agent - Perfect for short-term projects',
-            status: activeAgentSubscriptions.some(s => s.plan === 'daily') ? 'active' : 'inactive',
+            description:
+              '$1 per day per agent - Perfect for short-term projects',
+            status: activeAgentSubscriptions.some((s) => s.plan === 'daily')
+              ? 'active'
+              : 'inactive',
           },
           {
             key: 'weekly',
             name: '$5.00 / weekly',
             billingPeriod: 'weekly',
             price: 5,
-            description: '$5 per week per agent - Great for weekly projects and testing',
-            status: activeAgentSubscriptions.some(s => s.plan === 'weekly') ? 'active' : 'inactive',
+            description:
+              '$5 per week per agent - Great for weekly projects and testing',
+            status: activeAgentSubscriptions.some((s) => s.plan === 'weekly')
+              ? 'active'
+              : 'inactive',
           },
           {
             key: 'monthly',
             name: '$1.00 / monthly',
             billingPeriod: 'monthly',
             price: 1,
-            description: '$1 per day per agent - Perfect for short-term projects',
-            status: activeAgentSubscriptions.some(s => s.plan === 'monthly') ? 'active' : 'inactive',
+            description:
+              '$1 per day per agent - Perfect for short-term projects',
+            status: activeAgentSubscriptions.some((s) => s.plan === 'monthly')
+              ? 'active'
+              : 'inactive',
           },
         ],
         usage: {
@@ -2498,7 +2517,7 @@ app.get('/api/user/billing/:userId', async (req, res) => {
         invoices: [],
         paymentMethods: [],
         billingHistory: [],
-        upcomingCharges: agentDetails.map(agent => ({
+        upcomingCharges: agentDetails.map((agent) => ({
           description: `${agent.agentName} (${agent.plan}) - Renewal`,
           amount: `$${agent.price.toFixed(2)}`,
           date: agent.expiryDate.toISOString().split('T')[0],

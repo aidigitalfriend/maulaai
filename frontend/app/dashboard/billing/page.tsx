@@ -261,7 +261,8 @@ export default function BillingPage() {
                   Active Agent Subscriptions
                 </h2>
                 <span className="text-sm font-medium px-3 py-1 rounded-full bg-brand-100 text-brand-700">
-                  {billingData.currentPlan.agents.length} Agent{billingData.currentPlan.agents.length > 1 ? 's' : ''}
+                  {billingData.currentPlan.agents.length} Agent
+                  {billingData.currentPlan.agents.length > 1 ? 's' : ''}
                 </span>
               </div>
               <div className="space-y-3">
@@ -278,7 +279,9 @@ export default function BillingPage() {
                         <div className="flex items-center space-x-4 text-sm text-neural-600">
                           <span className="capitalize">{agent.plan} Plan</span>
                           <span>•</span>
-                          <span>${agent.price.toFixed(2)}/{agent.plan}</span>
+                          <span>
+                            ${agent.price.toFixed(2)}/{agent.plan}
+                          </span>
                           <span>•</span>
                           <span>{agent.daysRemaining} days remaining</span>
                         </div>
