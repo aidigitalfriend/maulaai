@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { connectToDatabase } from '@/lib/mongodb-client';
 import { getAgentSubscriptionModel } from '@/models/AgentSubscription';
+import { ObjectId } from 'mongodb';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
@@ -100,8 +101,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Connect to database and create/update access record
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
+    const { db } = await connectToDatabase();
+    const subscriptions = db.collection('subscriptions');
 
     // Use subscription period dates (cancel_at_period_end is true, so it won't auto-renew)
     const startDate = new Date(subscriptionData.current_period_start * 1000);
@@ -110,18 +111,32 @@ export async function POST(request: NextRequest) {
     // Get price from session
     const price = session.amount_total ? session.amount_total / 100 : 0;
 
-    // Check if access already exists
-    const existingSubscription = await AgentSubscription.findOne({
-      userId: session.metadata?.userId,
-      agentId,
-    });
+    // Convert userId to ObjectId for proper backend filtering
+    const userId = session.metadata?.userId ? new ObjectId(session.metadata.userId) : null;
+
+    if (!userId) {
+      console.error('❌ Missing userId in session metadata');
+      return NextResponse.json(
+        { success: false, error: 'User information missing' },
+        { status: 400 }
+      );
+    }
 
     // Check if subscription already exists (avoid duplicates)
-    const existingByStripeId = await AgentSubscription.findOne({
+    const existingByStripeId = await subscriptions.findOne({
       stripeSubscriptionId: subscriptionData.id,
     });
 
     if (existingByStripeId) {
+      // Update user field if missing
+      if (!existingByStripeId.user) {
+        await subscriptions.updateOne(
+          { _id: existingByStripeId._id },
+          { $set: { user: userId, updatedAt: new Date() } }
+        );
+        console.log('✅ Updated user field for existing subscription');
+      }
+
       console.log('✅ Subscription already verified:', subscriptionData.id);
       return NextResponse.json({
         success: true,
@@ -129,48 +144,72 @@ export async function POST(request: NextRequest) {
         subscription: {
           id: existingByStripeId._id?.toString() || existingByStripeId._id,
           agentId: existingByStripeId.agentId,
-          plan: existingByStripeId.plan,
+          plan: existingByStripeId.plan || existingByStripeId.billing?.interval,
           status: existingByStripeId.status,
-          expiryDate: existingByStripeId.expiryDate,
+          expiryDate: existingByStripeId.expiryDate || existingByStripeId.billing?.currentPeriodEnd,
           daysRemaining: Math.ceil(
-            (existingByStripeId.expiryDate.getTime() - Date.now()) /
+            ((existingByStripeId.expiryDate?.getTime?.() || new Date(existingByStripeId.billing?.currentPeriodEnd).getTime()) - Date.now()) /
               (1000 * 60 * 60 * 24)
           ),
-          price: existingByStripeId.price,
+          price: existingByStripeId.price || (existingByStripeId.billing?.amount / 100),
         },
       });
     }
 
+    // Check if user already has subscription for this agent
+    const existingSubscription = await subscriptions.findOne({
+      user: userId,
+      agentId: agentId,
+    });
+
     let subscriptionRecord;
     if (existingSubscription) {
       // Update existing record - extend access
-      subscriptionRecord = await AgentSubscription.findByIdAndUpdate(
-        existingSubscription._id,
+      const result = await subscriptions.findOneAndUpdate(
+        { _id: existingSubscription._id },
         {
-          status: 'active',
-          plan: plan,
-          price: price,
-          startDate: startDate,
-          expiryDate: expiryDate,
-          stripeSubscriptionId: subscriptionData.id, // Add Stripe ID
-          updatedAt: new Date(),
+          $set: {
+            status: 'active',
+            plan: plan,
+            price: price,
+            startDate: startDate,
+            expiryDate: expiryDate,
+            stripeSubscriptionId: subscriptionData.id,
+            updatedAt: new Date(),
+            // Ensure billing structure exists
+            billing: {
+              interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
+              amount: Math.round(price * 100), // Convert to cents
+              currentPeriodEnd: expiryDate,
+            },
+          },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
+      subscriptionRecord = result;
     } else {
-      // Create new access record
-      subscriptionRecord = new AgentSubscription({
-        userId: session.metadata?.userId,
-        agentId,
+      // Create new subscription record with proper schema
+      const newSubscription = {
+        user: userId,
+        agentId: agentId,
+        agentName: agentName,
         plan: plan,
         price: price,
         status: 'active',
         startDate: startDate,
         expiryDate: expiryDate,
-        stripeSubscriptionId: subscriptionData.id, // Add Stripe ID to prevent duplicates
-      });
+        stripeSubscriptionId: subscriptionData.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        billing: {
+          interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
+          amount: Math.round(price * 100), // Convert to cents
+          currentPeriodEnd: expiryDate,
+        },
+      };
 
-      await subscriptionRecord.save();
+      const insertResult = await subscriptions.insertOne(newSubscription);
+      subscriptionRecord = { ...newSubscription, _id: insertResult.insertedId };
     }
 
     // Return access details
@@ -178,8 +217,9 @@ export async function POST(request: NextRequest) {
       success: true,
       hasAccess: true,
       subscription: {
-        id: subscriptionRecord._id?.toString() || subscriptionRecord._id,
+        id: subscriptionRecord._id?.toString(),
         agentId: subscriptionRecord.agentId,
+        agentName: subscriptionRecord.agentName,
         plan: subscriptionRecord.plan,
         status: subscriptionRecord.status,
         expiryDate: subscriptionRecord.expiryDate,

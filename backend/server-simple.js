@@ -2386,16 +2386,18 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     const planDocs = await plans.find({}).toArray();
     const basePlanOptions = buildPlanOptions(planDocs);
 
-    // Check for agent subscriptions FIRST using Mongoose model
+    // Check for agent subscriptions in subscriptions collection (NOT agentsubscriptions!)
+    // Agent purchases are stored in subscriptions collection with agentId field
+    // Filter by current user's subscriptions only
     const now = new Date();
-    const activeAgentSubscriptions = await AgentSubscription.find({
-      userId: sessionUser._id.toString(),
-      status: 'active',
-      expiryDate: { $gt: now },
-    })
-      .sort({ expiryDate: -1 })
-      .lean()
-      .exec();
+    const activeAgentSubscriptions = await subscriptions
+      .find({
+        user: sessionUser._id,  // Filter by current user
+        agentId: { $exists: true, $ne: null },
+        status: 'active',
+      })
+      .sort({ updatedAt: -1 })
+      .toArray();
 
     // Get user's active platform subscription (fallback)
     const activeSubscription = await subscriptions.findOne({
@@ -2416,33 +2418,61 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       const agentDetails = [];
 
       for (const sub of activeAgentSubscriptions) {
-        let monthlyCost = 0;
-        if (sub.plan === 'daily') monthlyCost = 1 * 30;
-        else if (sub.plan === 'weekly') monthlyCost = 5 * 4;
-        else if (sub.plan === 'monthly') monthlyCost = 19;
+        // Get plan type from billing.interval or plan field
+        const planType =
+          sub.billing?.interval === 'day'
+            ? 'daily'
+            : sub.billing?.interval === 'week'
+            ? 'weekly'
+            : sub.billing?.interval === 'month'
+            ? 'monthly'
+            : sub.plan;
 
+        // Calculate monthly cost
+        let monthlyCost = 0;
+        if (planType === 'daily') monthlyCost = 1 * 30;
+        else if (planType === 'weekly') monthlyCost = 5 * 4;
+        else if (planType === 'monthly') monthlyCost = 19;
+
+        // Get actual price from billing or calculated
+        const actualPrice = sub.billing?.amount
+          ? sub.billing.amount / 100
+          : monthlyCost;
         totalMonthly += monthlyCost;
+
+        // Get expiry date from billing.currentPeriodEnd
+        const expiryDate = sub.billing?.currentPeriodEnd
+          ? new Date(sub.billing.currentPeriodEnd)
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        const daysRemaining = Math.ceil(
+          (expiryDate - now) / (1000 * 60 * 60 * 24)
+        );
+
         agentDetails.push({
           agentId: sub.agentId,
           agentName: sub.agentName || sub.agentId,
-          plan: sub.plan,
-          price: sub.price || monthlyCost,
-          expiryDate: sub.expiryDate,
-          daysRemaining: Math.ceil(
-            (sub.expiryDate - now) / (1000 * 60 * 60 * 24)
-          ),
+          plan: planType,
+          price: actualPrice,
+          expiryDate: expiryDate,
+          daysRemaining: Math.max(0, daysRemaining),
         });
       }
 
       // Find earliest and latest expiry dates
-      const earliestExpiry = new Date(
-        Math.min(...activeAgentSubscriptions.map((s) => s.expiryDate))
-      );
-      const latestExpiry = new Date(
-        Math.max(...activeAgentSubscriptions.map((s) => s.expiryDate))
-      );
-      const avgDaysRemaining = Math.ceil(
-        (latestExpiry - now) / (1000 * 60 * 60 * 24)
+      const expiryDates = activeAgentSubscriptions
+        .map((s) => new Date(s.billing?.currentPeriodEnd || Date.now()))
+        .filter((d) => !isNaN(d.getTime()));
+
+      const earliestExpiry = expiryDates.length
+        ? new Date(Math.min(...expiryDates))
+        : new Date();
+      const latestExpiry = expiryDates.length
+        ? new Date(Math.max(...expiryDates))
+        : new Date();
+      const avgDaysRemaining = Math.max(
+        0,
+        Math.ceil((latestExpiry - now) / (1000 * 60 * 60 * 24))
       );
 
       const billingData = {
@@ -2467,7 +2497,12 @@ app.get('/api/user/billing/:userId', async (req, res) => {
             price: 1,
             description:
               '$1 per day per agent - Perfect for short-term projects',
-            status: activeAgentSubscriptions.some((s) => s.plan === 'daily')
+            status: activeAgentSubscriptions.some(
+              (s) =>
+                s.billing?.interval === 'day' ||
+                s.plan === 'daily' ||
+                (typeof s.plan === 'string' && s.plan.includes('daily'))
+            )
               ? 'active'
               : 'inactive',
           },
@@ -2478,7 +2513,12 @@ app.get('/api/user/billing/:userId', async (req, res) => {
             price: 5,
             description:
               '$5 per week per agent - Great for weekly projects and testing',
-            status: activeAgentSubscriptions.some((s) => s.plan === 'weekly')
+            status: activeAgentSubscriptions.some(
+              (s) =>
+                s.billing?.interval === 'week' ||
+                s.plan === 'weekly' ||
+                (typeof s.plan === 'string' && s.plan.includes('weekly'))
+            )
               ? 'active'
               : 'inactive',
           },
@@ -2488,8 +2528,13 @@ app.get('/api/user/billing/:userId', async (req, res) => {
             billingPeriod: 'monthly',
             price: 1,
             description:
-              '$1 per day per agent - Perfect for short-term projects',
-            status: activeAgentSubscriptions.some((s) => s.plan === 'monthly')
+              '$19 per month per agent - Best value for continuous access',
+            status: activeAgentSubscriptions.some(
+              (s) =>
+                s.billing?.interval === 'month' ||
+                s.plan === 'monthly' ||
+                (typeof s.plan === 'string' && s.plan.includes('monthly'))
+            )
               ? 'active'
               : 'inactive',
           },
