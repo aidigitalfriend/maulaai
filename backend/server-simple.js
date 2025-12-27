@@ -2382,21 +2382,20 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     const billings = db.collection('billings');
     const usageMetrics = db.collection('usagemetrics');
     const plans = db.collection('plans');
-    const agentSubscriptions = db.collection('agentsubscriptions');
 
     const planDocs = await plans.find({}).toArray();
     const basePlanOptions = buildPlanOptions(planDocs);
 
-    // Check for agent subscriptions FIRST
+    // Check for agent subscriptions FIRST using Mongoose model
     const now = new Date();
-    const activeAgentSubscriptions = await agentSubscriptions
-      .find({
-        userId: sessionUser._id.toString(),
-        status: 'active',
-        expiryDate: { $gt: now },
-      })
+    const activeAgentSubscriptions = await AgentSubscription.find({
+      userId: sessionUser._id.toString(),
+      status: 'active',
+      expiryDate: { $gt: now },
+    })
       .sort({ expiryDate: -1 })
-      .toArray();
+      .lean()
+      .exec();
 
     // Get user's active platform subscription (fallback)
     const activeSubscription = await subscriptions.findOne({
