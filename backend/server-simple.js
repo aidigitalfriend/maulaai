@@ -2382,11 +2382,23 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     const billings = db.collection('billings');
     const usageMetrics = db.collection('usagemetrics');
     const plans = db.collection('plans');
+    const agentSubscriptions = db.collection('agentsubscriptions');
 
     const planDocs = await plans.find({}).toArray();
     const basePlanOptions = buildPlanOptions(planDocs);
 
-    // Get user's active subscription
+    // Check for agent subscriptions FIRST
+    const now = new Date();
+    const activeAgentSubscriptions = await agentSubscriptions
+      .find({
+        userId: sessionUser._id.toString(),
+        status: 'active',
+        expiryDate: { $gt: now },
+      })
+      .sort({ expiryDate: -1 })
+      .toArray();
+
+    // Get user's active platform subscription (fallback)
     const activeSubscription = await subscriptions.findOne({
       user: sessionUser._id,
       status: { $in: ['active', 'trialing', 'past_due'] },
@@ -2398,7 +2410,111 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       currentPlan = await plans.findOne({ _id: activeSubscription.plan });
     }
 
-    // If no subscription, create default billing data
+    // If has agent subscriptions, show agent-based billing
+    if (activeAgentSubscriptions.length > 0) {
+      // Calculate total monthly cost from agent subscriptions
+      let totalMonthly = 0;
+      const agentDetails = [];
+      
+      for (const sub of activeAgentSubscriptions) {
+        let monthlyCost = 0;
+        if (sub.plan === 'daily') monthlyCost = 1 * 30;
+        else if (sub.plan === 'weekly') monthlyCost = 5 * 4;
+        else if (sub.plan === 'monthly') monthlyCost = 19;
+        
+        totalMonthly += monthlyCost;
+        agentDetails.push({
+          agentId: sub.agentId,
+          agentName: sub.agentName || sub.agentId,
+          plan: sub.plan,
+          price: sub.price || monthlyCost,
+          expiryDate: sub.expiryDate,
+          daysRemaining: Math.ceil((sub.expiryDate - now) / (1000 * 60 * 60 * 24)),
+        });
+      }
+
+      // Find earliest and latest expiry dates
+      const earliestExpiry = new Date(Math.min(...activeAgentSubscriptions.map(s => s.expiryDate)));
+      const latestExpiry = new Date(Math.max(...activeAgentSubscriptions.map(s => s.expiryDate)));
+      const avgDaysRemaining = Math.ceil((latestExpiry - now) / (1000 * 60 * 60 * 24));
+
+      const billingData = {
+        currentPlan: {
+          name: `${activeAgentSubscriptions.length} Active Agent${activeAgentSubscriptions.length > 1 ? 's' : ''}`,
+          type: 'agent-subscription',
+          price: totalMonthly,
+          currency: 'USD',
+          period: 'monthly',
+          status: 'active',
+          renewalDate: latestExpiry.toISOString().split('T')[0],
+          daysUntilRenewal: avgDaysRemaining,
+          agents: agentDetails,
+        },
+        planOptions: [
+          {
+            key: 'daily',
+            name: '$1.00 / daily',
+            billingPeriod: 'daily',
+            price: 1,
+            description: '$1 per day per agent - Perfect for short-term projects',
+            status: activeAgentSubscriptions.some(s => s.plan === 'daily') ? 'active' : 'inactive',
+          },
+          {
+            key: 'weekly',
+            name: '$5.00 / weekly',
+            billingPeriod: 'weekly',
+            price: 5,
+            description: '$5 per week per agent - Great for weekly projects and testing',
+            status: activeAgentSubscriptions.some(s => s.plan === 'weekly') ? 'active' : 'inactive',
+          },
+          {
+            key: 'monthly',
+            name: '$1.00 / monthly',
+            billingPeriod: 'monthly',
+            price: 1,
+            description: '$1 per day per agent - Perfect for short-term projects',
+            status: activeAgentSubscriptions.some(s => s.plan === 'monthly') ? 'active' : 'inactive',
+          },
+        ],
+        usage: {
+          currentPeriod: {
+            apiCalls: {
+              used: 0,
+              limit: 15000 * activeAgentSubscriptions.length,
+              percentage: 0,
+            },
+            storage: {
+              used: 0,
+              limit: 10240 * activeAgentSubscriptions.length,
+              percentage: 0,
+              unit: 'MB',
+            },
+          },
+          billingCycle: {
+            start: earliestExpiry.toISOString().split('T')[0],
+            end: latestExpiry.toISOString().split('T')[0],
+          },
+        },
+        invoices: [],
+        paymentMethods: [],
+        billingHistory: [],
+        upcomingCharges: agentDetails.map(agent => ({
+          description: `${agent.agentName} (${agent.plan}) - Renewal`,
+          amount: `$${agent.price.toFixed(2)}`,
+          date: agent.expiryDate.toISOString().split('T')[0],
+        })),
+        costBreakdown: {
+          subscription: totalMonthly,
+          usage: 0,
+          taxes: 0,
+          total: totalMonthly,
+        },
+      };
+
+      return res.json({ success: true, data: billingData });
+    }
+
+    // If no agent subscriptions and no platform subscription, create default billing data
     if (!activeSubscription) {
       const planOptions = applyPlanStatuses(basePlanOptions, null);
       const fallbackPlanKey =

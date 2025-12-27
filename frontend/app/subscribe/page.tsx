@@ -206,7 +206,9 @@ function SubscriptionContent() {
           ).toLocaleDateString();
           throw new Error(
             `You already have an active ${data.existingSubscription.plan} subscription. ` +
-              `It expires on ${expiryDate} (${data.existingSubscription.daysUntilRenewal || 0} days remaining).`
+              `It expires on ${expiryDate} (${
+                data.existingSubscription.daysUntilRenewal || 0
+              } days remaining).`
           );
         }
         throw new Error(data.error || 'Failed to start checkout session');
