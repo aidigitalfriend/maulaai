@@ -85,97 +85,102 @@ const pageViewSchema = new Schema(
 );
 
 // ============================================
-// CHAT INTERACTION MODEL
+// CHAT INTERACTION MODEL (matches actual DB schema)
 // ============================================
 const chatInteractionSchema = new Schema(
   {
-    visitorId: { type: String, required: true, index: true },
-    sessionId: { type: String, required: true, index: true },
-    // Link to users collection (normalized as ObjectId)
+    conversationId: { type: String, required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
-    agentId: { type: String, required: true },
-    agentName: { type: String, required: true },
-    userMessage: { type: String, required: true },
-    aiResponse: { type: String, required: true },
-    responseTime: { type: Number, required: true }, // in milliseconds
-    model: { type: String },
-    language: { type: String },
-    feedback: {
-      rating: { type: Number, min: 1, max: 5 },
-      comment: { type: String },
+    agentId: { type: Schema.Types.ObjectId, ref: 'Agent', index: true },
+    channel: { type: String, enum: ['web', 'mobile', 'api'], default: 'web' },
+    language: { type: String, default: 'en' },
+    messages: [{
+      role: { type: String, enum: ['user', 'assistant', 'system'], required: true },
+      content: { type: String, required: true },
+      attachments: [{ type: Schema.Types.Mixed }],
+      createdAt: { type: Date, default: Date.now },
+    }],
+    summary: {
+      keywords: [{ type: String }],
+      actionItems: [{ type: String }],
     },
-    timestamp: { type: Date, required: true, default: Date.now },
+    metrics: {
+      totalTokens: { type: Number, default: 0 },
+      durationMs: { type: Number, default: 0 },
+      turnCount: { type: Number, default: 0 },
+    },
+    status: { type: String, enum: ['active', 'closed', 'archived'], default: 'active' },
+    metadata: {
+      tags: [{ type: String }],
+      priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
+    },
+    startedAt: { type: Date, default: Date.now },
+    closedAt: { type: Date },
   },
   {
     timestamps: true,
-    collection: 'chat_interactions',
+    collection: 'chatinteractions',
   }
 );
 
 // ============================================
-// TOOL USAGE MODEL
+// TOOL USAGE MODEL (matches actual DB schema)
 // ============================================
 const toolUsageSchema = new Schema(
   {
-    visitorId: { type: String, required: true, index: true },
-    sessionId: { type: String, required: true, index: true },
-    // Link to users collection (normalized as ObjectId)
+    toolName: { type: String, required: true, index: true },
+    version: { type: String },
     userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
-    toolId: { type: String, required: true },
-    toolName: { type: String, required: true },
-    action: { type: String, required: true },
-    parameters: { type: Schema.Types.Mixed },
-    result: { type: String },
-    duration: { type: Number }, // in milliseconds
-    success: { type: Boolean, default: true },
-    timestamp: { type: Date, required: true, default: Date.now },
+    agentId: { type: Schema.Types.ObjectId, ref: 'Agent', index: true },
+    command: { type: String, required: true },
+    arguments: { type: Schema.Types.Mixed },
+    inputPreview: { type: String },
+    outputPreview: { type: String },
+    tokens: {
+      input: { type: Number, default: 0 },
+      output: { type: Number, default: 0 },
+    },
+    latencyMs: { type: Number, default: 0 },
+    status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
+    metadata: {
+      integration: { type: String },
+      environment: { type: String },
+      tags: [{ type: String }],
+    },
+    occurredAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,
-    collection: 'tool_usage',
+    collection: 'toolusages',
   }
 );
 
 // ============================================
-// LAB EXPERIMENT MODEL
-// ============================================
-const labExperimentSchema = new Schema(
-  {
-    visitorId: { type: String, required: true, index: true },
-    sessionId: { type: String, required: true, index: true },
-    // Link to users collection (normalized as ObjectId)
-    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
-    experimentId: { type: String, required: true },
-    experimentName: { type: String, required: true },
-    parameters: { type: Schema.Types.Mixed },
-    result: { type: Schema.Types.Mixed },
-    duration: { type: Number }, // in milliseconds
-    success: { type: Boolean, default: true },
-    timestamp: { type: Date, required: true, default: Date.now },
-  },
-  {
-    timestamps: true,
-    collection: 'lab_experiments',
-  }
-);
-
-// ============================================
-// USER EVENT MODEL
+// USER EVENT MODEL (matches actual DB schema)
 // ============================================
 const userEventSchema = new Schema(
   {
-    visitorId: { type: String, required: true, index: true },
-    sessionId: { type: String, required: true, index: true },
-    // Link to users collection (normalized as ObjectId)
     userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
-    eventType: { type: String, required: true },
-    eventName: { type: String, required: true },
+    eventType: { type: String, required: true, index: true },
+    category: { type: String, required: true },
+    action: { type: String, required: true },
+    label: { type: String },
+    value: { type: Number },
     properties: { type: Schema.Types.Mixed },
-    timestamp: { type: Date, required: true, default: Date.now },
+    metrics: {
+      durationMs: { type: Number },
+      success: { type: Boolean },
+    },
+    source: { type: String, enum: ['web', 'mobile', 'api'], default: 'web' },
+    occurredAt: { type: Date, default: Date.now },
+    metadata: {
+      tags: [{ type: String }],
+      featureFlag: { type: String },
+    },
   },
   {
     timestamps: true,
-    collection: 'user_events',
+    collection: 'userevents',
   }
 );
 
@@ -198,7 +203,7 @@ const apiUsageSchema = new Schema(
   },
   {
     timestamps: true,
-    collection: 'api_usage',
+    collection: 'apiusages',
   }
 );
 
@@ -214,9 +219,6 @@ export const ChatInteraction =
   mongoose.model('ChatInteraction', chatInteractionSchema);
 export const ToolUsage =
   mongoose.models.ToolUsage || mongoose.model('ToolUsage', toolUsageSchema);
-export const LabExperiment =
-  mongoose.models.LabExperiment ||
-  mongoose.model('LabExperiment', labExperimentSchema);
 export const UserEvent =
   mongoose.models.UserEvent || mongoose.model('UserEvent', userEventSchema);
 export const ApiUsage =
