@@ -1400,6 +1400,14 @@ app.get('/api/user/analytics', async (req, res) => {
         breakdown: [],
       },
       topAgents: [],
+      subscription: {
+        plan: 'No Active Plan',
+        status: 'inactive',
+        price: 0,
+        period: 'month',
+        renewalDate: 'N/A',
+        daysUntilRenewal: 0,
+      },
     };
 
     console.log(

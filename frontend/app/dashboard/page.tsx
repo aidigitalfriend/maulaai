@@ -112,36 +112,55 @@ function DashboardContent() {
 
       let mergedAnalytics = analyticsPayload as AnalyticsData;
 
+      // Default subscription for users with no active plan
+      const defaultSubscription = {
+        plan: 'No Active Plan',
+        status: 'inactive',
+        price: 0,
+        period: 'month',
+        renewalDate: 'N/A',
+        daysUntilRenewal: 0,
+      };
+
+      // Ensure subscription exists on merged analytics
+      if (!mergedAnalytics.subscription) {
+        mergedAnalytics = {
+          ...mergedAnalytics,
+          subscription: defaultSubscription,
+        };
+      }
+
       if (billingResponse.ok) {
         const billingJson = await billingResponse.json();
         const billingPlan = billingJson?.data?.currentPlan;
 
         if (billingPlan) {
+          const existingSub = mergedAnalytics.subscription || defaultSubscription;
           mergedAnalytics = {
             ...mergedAnalytics,
             subscription: {
-              ...mergedAnalytics.subscription,
+              ...existingSub,
               plan:
                 billingPlan.name ||
-                mergedAnalytics.subscription.plan ||
+                existingSub.plan ||
                 'No Active Plan',
               status: billingPlan.status || 'inactive',
               price:
                 typeof billingPlan.price === 'number'
                   ? billingPlan.price
-                  : mergedAnalytics.subscription.price,
+                  : existingSub.price,
               period:
                 billingPlan.period ||
-                mergedAnalytics.subscription.period ||
+                existingSub.period ||
                 'month',
               renewalDate:
                 billingPlan.renewalDate ||
-                mergedAnalytics.subscription.renewalDate ||
+                existingSub.renewalDate ||
                 'N/A',
               daysUntilRenewal:
                 typeof billingPlan.daysUntilRenewal === 'number'
                   ? billingPlan.daysUntilRenewal
-                  : mergedAnalytics.subscription.daysUntilRenewal || 0,
+                  : existingSub.daysUntilRenewal || 0,
             },
           };
         }
