@@ -62,44 +62,49 @@ export const indexManager = {
   // Ensure indexes exist
   ensureIndexes: async () => {
     try {
+      // Collections that actually exist in onelastai database
       const collections = [
         'users',
         'userprofiles',
-        'user_sessions',
-        'user_preferences',
-        'global-userprofiles',
-        'global-users',
-        'global-user_sessions',
-        'global-user_preferences',
-        'global-subscriptions',
-        'global-transactions',
-        'global-usage_analytics',
-        'global-notification_settings',
+        'sessions',
+        'userpreferences',
+        'usersecurities',
+        'subscriptions',
+        'visitors',
+        'pageviews',
+        'agents',
+        'apiusages',
+        'notifications',
       ];
 
       for (const collectionName of collections) {
-        const collection = mongoose.connection.db.collection(collectionName);
+        try {
+          const collection = mongoose.connection.db.collection(collectionName);
 
-        // Check if collection exists
-        const exists = await collection.countDocuments({}).limit(1).hasNext();
-        if (!exists) continue;
+          // Check if collection exists - fixed API call
+          const docCount = await collection.countDocuments({}, { limit: 1 });
+          if (docCount === 0) continue;
 
-        // Create optimized indexes
-        const indexes = await indexManager.getRecommendedIndexes(
-          collectionName
-        );
-        for (const index of indexes) {
-          try {
-            await collection.createIndex(index.fields, index.options || {});
-            console.log(`✅ Created index on ${collectionName}:`, index.fields);
-          } catch (error) {
-            if (!error.message.includes('already exists')) {
-              console.warn(
-                `⚠️ Failed to create index on ${collectionName}:`,
-                error.message
-              );
+          // Create optimized indexes
+          const indexes = await indexManager.getRecommendedIndexes(
+            collectionName
+          );
+          for (const index of indexes) {
+            try {
+              await collection.createIndex(index.fields, index.options || {});
+              console.log(`✅ Created index on ${collectionName}:`, index.fields);
+            } catch (error) {
+              if (!error.message.includes('already exists')) {
+                console.warn(
+                  `⚠️ Failed to create index on ${collectionName}:`,
+                  error.message
+                );
+              }
             }
           }
+        } catch (err) {
+          // Collection might not exist, skip it
+          console.log(`⏭️ Skipping ${collectionName}: ${err.message}`);
         }
       }
     } catch (error) {
@@ -113,62 +118,57 @@ export const indexManager = {
       users: [
         { fields: { email: 1 }, options: { unique: true } },
         { fields: { createdAt: -1 } },
-        { fields: { lastLogin: -1 } },
+        { fields: { lastLoginAt: -1 } },
         { fields: { isActive: 1, createdAt: -1 } },
+        { fields: { sessionId: 1 } },
       ],
       userprofiles: [
         { fields: { userId: 1 }, options: { unique: true } },
-        { fields: { username: 1 }, options: { unique: true, sparse: true } },
         { fields: { createdAt: -1 } },
         { fields: { updatedAt: -1 } },
       ],
-      user_sessions: [
-        { fields: { userId: 1, createdAt: -1 } },
-        { fields: { sessionToken: 1 }, options: { unique: true } },
-        { fields: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
+      sessions: [
+        { fields: { sessionId: 1 }, options: { unique: true } },
+        { fields: { visitorId: 1 } },
+        { fields: { userId: 1 } },
+        { fields: { isActive: 1, startTime: -1 } },
       ],
-      user_preferences: [
+      userpreferences: [
         { fields: { userId: 1 }, options: { unique: true } },
         { fields: { updatedAt: -1 } },
       ],
-      'global-users': [
-        { fields: { email: 1 }, options: { unique: true } },
-        { fields: { createdAt: -1 } },
-        { fields: { subscriptionStatus: 1, createdAt: -1 } },
-      ],
-      'global-userprofiles': [
+      usersecurities: [
         { fields: { userId: 1 }, options: { unique: true } },
-        { fields: { username: 1 }, options: { unique: true, sparse: true } },
-        { fields: { reputation: -1 } },
-        { fields: { createdAt: -1 } },
+        { fields: { email: 1 } },
       ],
-      'global-user_sessions': [
-        { fields: { userId: 1, createdAt: -1 } },
-        { fields: { sessionToken: 1 }, options: { unique: true } },
-        { fields: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
-      ],
-      'global-user_preferences': [
-        { fields: { userId: 1 }, options: { unique: true } },
-      ],
-      'global-subscriptions': [
+      subscriptions: [
         { fields: { userId: 1, status: 1 } },
-        { fields: { planId: 1, status: 1 } },
-        { fields: { currentPeriodEnd: 1 } },
+        { fields: { userId: 1, agentId: 1 } },
+        { fields: { status: 1, expiryDate: 1 } },
         { fields: { createdAt: -1 } },
       ],
-      'global-transactions': [
-        { fields: { userId: 1, createdAt: -1 } },
-        { fields: { transactionId: 1 }, options: { unique: true } },
-        { fields: { status: 1, createdAt: -1 } },
+      visitors: [
+        { fields: { visitorId: 1 }, options: { unique: true } },
+        { fields: { sessionId: 1 } },
+        { fields: { userId: 1 } },
+        { fields: { lastVisit: -1 } },
       ],
-      'global-usage_analytics': [
-        { fields: { userId: 1, date: -1 } },
-        { fields: { eventType: 1, date: -1 } },
-        { fields: { date: -1 } },
-        { fields: { createdAt: -1 } },
+      pageviews: [
+        { fields: { sessionId: 1, timestamp: -1 } },
+        { fields: { visitorId: 1 } },
+        { fields: { timestamp: -1 } },
       ],
-      'global-notification_settings': [
-        { fields: { userId: 1 }, options: { unique: true } },
+      agents: [
+        { fields: { id: 1 }, options: { unique: true, sparse: true } },
+        { fields: { slug: 1 }, options: { unique: true, sparse: true } },
+        { fields: { isActive: 1 } },
+      ],
+      apiusages: [
+        { fields: { sessionId: 1, timestamp: -1 } },
+        { fields: { endpoint: 1, timestamp: -1 } },
+      ],
+      notifications: [
+        { fields: { userId: 1, read: 1, createdAt: -1 } },
       ],
     };
 

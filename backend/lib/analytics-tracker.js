@@ -43,19 +43,36 @@ async function trackVisitor(data) {
 }
 async function createSession(data) {
   try {
+    // Check if session already exists to avoid duplicate key errors
+    const existingSession = await Session.findOne({ sessionId: data.sessionId });
+    if (existingSession) {
+      // Update existing session's lastActivity instead of creating new
+      existingSession.lastActivity = new Date();
+      if (data.userId && !existingSession.userId) {
+        existingSession.userId = data.userId;
+      }
+      await existingSession.save();
+      return existingSession;
+    }
+    
     const session = new Session({
       ...data,
       startTime: /* @__PURE__ */ new Date(),
+      lastActivity: /* @__PURE__ */ new Date(),
       isActive: true,
       pageViews: 0,
-      interactions: 0,
-      chatMessages: 0,
-      toolsUsed: 0,
-      labExperiments: 0,
+      events: 0,
+      duration: 0,
     });
     await session.save();
     return session;
   } catch (error) {
+    // Handle duplicate key error gracefully
+    if (error.code === 11000) {
+      // Session already exists, try to fetch and return it
+      const existingSession = await Session.findOne({ sessionId: data.sessionId });
+      return existingSession;
+    }
     console.error('Error creating session:', error);
     return null;
   }
@@ -96,11 +113,17 @@ async function endSession(sessionId, exitPage) {
 }
 async function trackPageView(data) {
   try {
-    const pageView = new PageView({
+    // Ensure we have a url field (the schema requires 'url' not 'path')
+    const pageViewData = {
       ...data,
+      url: data.url || data.path || '/',  // Map path to url if url not provided
       timestamp: /* @__PURE__ */ new Date(),
       interactions: 0,
-    });
+    };
+    // Remove path if we mapped it to url
+    delete pageViewData.path;
+    
+    const pageView = new PageView(pageViewData);
     await pageView.save();
     await updateSession(data.sessionId, { $inc: { pageViews: 1 } });
     return pageView;
