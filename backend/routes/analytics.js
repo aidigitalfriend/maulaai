@@ -7,7 +7,6 @@ import express from 'express'
 import {
   trackChatInteraction,
   trackToolUsage,
-  trackLabExperiment,
   trackUserEvent,
   updateChatFeedback,
   getVisitorStats,
@@ -110,41 +109,15 @@ router.post('/track/tool', async (req, res) => {
 })
 
 // ============================================
-// TRACK LAB EXPERIMENT
+// TRACK LAB EXPERIMENT (deprecated - collection removed)
 // ============================================
 router.post('/track/lab', async (req, res) => {
-  try {
-    const trackingData = getTrackingData(req)
-    if (!trackingData) {
-      return res.status(400).json({ error: 'Tracking data not available' })
-    }
-
-    const { experimentName, experimentType, input, output, model, success, error, processingTime, rating } = req.body
-
-    const experiment = await trackLabExperiment({
-      visitorId: trackingData.visitorId,
-      sessionId: trackingData.sessionId,
-      userId: trackingData.userId,
-      experimentName,
-      experimentType,
-      input,
-      output,
-      model,
-      success,
-      error,
-      processingTime,
-      rating
-    })
-
-    res.json({ 
-      success: true, 
-      experimentId: experiment?._id,
-      message: 'Lab experiment tracked' 
-    })
-  } catch (error) {
-    console.error('Error tracking lab:', error)
-    res.status(500).json({ error: 'Failed to track lab experiment' })
-  }
+  // Lab experiment tracking has been deprecated
+  res.json({ 
+    success: true, 
+    experimentId: null,
+    message: 'Lab experiment tracking deprecated' 
+  })
 })
 
 // ============================================

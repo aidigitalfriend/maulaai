@@ -94,12 +94,18 @@ const chatInteractionSchema = new Schema(
     agentId: { type: Schema.Types.ObjectId, ref: 'Agent', index: true },
     channel: { type: String, enum: ['web', 'mobile', 'api'], default: 'web' },
     language: { type: String, default: 'en' },
-    messages: [{
-      role: { type: String, enum: ['user', 'assistant', 'system'], required: true },
-      content: { type: String, required: true },
-      attachments: [{ type: Schema.Types.Mixed }],
-      createdAt: { type: Date, default: Date.now },
-    }],
+    messages: [
+      {
+        role: {
+          type: String,
+          enum: ['user', 'assistant', 'system'],
+          required: true,
+        },
+        content: { type: String, required: true },
+        attachments: [{ type: Schema.Types.Mixed }],
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     summary: {
       keywords: [{ type: String }],
       actionItems: [{ type: String }],
@@ -109,10 +115,18 @@ const chatInteractionSchema = new Schema(
       durationMs: { type: Number, default: 0 },
       turnCount: { type: Number, default: 0 },
     },
-    status: { type: String, enum: ['active', 'closed', 'archived'], default: 'active' },
+    status: {
+      type: String,
+      enum: ['active', 'closed', 'archived'],
+      default: 'active',
+    },
     metadata: {
       tags: [{ type: String }],
-      priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
+      priority: {
+        type: String,
+        enum: ['low', 'medium', 'high'],
+        default: 'medium',
+      },
     },
     startedAt: { type: Date, default: Date.now },
     closedAt: { type: Date },
@@ -141,7 +155,11 @@ const toolUsageSchema = new Schema(
       output: { type: Number, default: 0 },
     },
     latencyMs: { type: Number, default: 0 },
-    status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed'],
+      default: 'completed',
+    },
     metadata: {
       integration: { type: String },
       environment: { type: String },

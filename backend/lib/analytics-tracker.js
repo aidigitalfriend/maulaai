@@ -3,7 +3,6 @@ import {
   PageView,
   ChatInteraction,
   ToolUsage,
-  LabExperiment,
   UserEvent,
   Session,
   ApiUsage,
@@ -195,22 +194,7 @@ async function trackToolUsage(data) {
     return null;
   }
 }
-async function trackLabExperiment(data) {
-  try {
-    const experiment = new LabExperiment({
-      ...data,
-      timestamp: /* @__PURE__ */ new Date(),
-    });
-    await experiment.save();
-    await updateSession(data.sessionId, {
-      $inc: { labExperiments: 1, interactions: 1 },
-    });
-    return experiment;
-  } catch (error) {
-    console.error('Error tracking lab experiment:', error);
-    return null;
-  }
-}
+// LabExperiment tracking removed - collection dropped
 async function trackUserEvent(data) {
   try {
     const event = new UserEvent({
@@ -245,7 +229,6 @@ async function getVisitorStats(visitorId) {
     const pageViews = await PageView.countDocuments({ visitorId });
     const chats = await ChatInteraction.countDocuments({ visitorId });
     const tools = await ToolUsage.countDocuments({ visitorId });
-    const labs = await LabExperiment.countDocuments({ visitorId });
     const events = await UserEvent.countDocuments({ visitorId });
     return {
       visitor,
@@ -253,7 +236,6 @@ async function getVisitorStats(visitorId) {
       pageViews,
       chats,
       tools,
-      labs,
       events,
       recentSessions: sessions.slice(0, 5),
     };
@@ -270,14 +252,12 @@ async function getSessionStats(sessionId) {
       timestamp: 1,
     });
     const tools = await ToolUsage.find({ sessionId }).sort({ timestamp: 1 });
-    const labs = await LabExperiment.find({ sessionId }).sort({ timestamp: 1 });
     const events = await UserEvent.find({ sessionId }).sort({ timestamp: 1 });
     return {
       session,
       pageViews,
       chats,
       tools,
-      labs,
       events,
     };
   } catch (error) {
@@ -302,15 +282,11 @@ async function getRealtimeStats() {
     const recentTools = await ToolUsage.countDocuments({
       timestamp: { $gte: fiveMinutesAgo },
     });
-    const recentLabs = await LabExperiment.countDocuments({
-      timestamp: { $gte: fiveMinutesAgo },
-    });
     return {
       activeSessions,
       recentPageViews,
       recentChats,
       recentTools,
-      recentLabs,
       timestamp: now,
     };
   } catch (error) {
@@ -367,7 +343,6 @@ export {
   getVisitorStats,
   trackApiUsage,
   trackChatInteraction,
-  trackLabExperiment,
   trackPageView,
   trackToolUsage,
   trackUserEvent,
