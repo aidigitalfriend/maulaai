@@ -62,7 +62,7 @@ export const indexManager = {
   // Ensure indexes exist
   ensureIndexes: async () => {
     try {
-      // Collections that actually exist in onelastai database
+      // Collections that actually exist in onelastai database (20 total after cleanup)
       const collections = [
         'users',
         'userprofiles',
@@ -75,6 +75,15 @@ export const indexManager = {
         'agents',
         'apiusages',
         'notifications',
+        'rewardscenters',
+        'securityLogs',
+        'plans',
+        'coupons',
+        'communityposts',
+        'contactmessages',
+        'chatinteractions',
+        'toolusages',
+        'userevents',
       ];
 
       for (const collectionName of collections) {
@@ -92,7 +101,10 @@ export const indexManager = {
           for (const index of indexes) {
             try {
               await collection.createIndex(index.fields, index.options || {});
-              console.log(`✅ Created index on ${collectionName}:`, index.fields);
+              console.log(
+                `✅ Created index on ${collectionName}:`,
+                index.fields
+              );
             } catch (error) {
               if (!error.message.includes('already exists')) {
                 console.warn(
@@ -167,9 +179,22 @@ export const indexManager = {
         { fields: { sessionId: 1, timestamp: -1 } },
         { fields: { endpoint: 1, timestamp: -1 } },
       ],
-      notifications: [
-        { fields: { userId: 1, read: 1, createdAt: -1 } },
+      notifications: [{ fields: { userId: 1, read: 1, createdAt: -1 } }],
+      rewardscenters: [{ fields: { userId: 1 }, options: { unique: true } }],
+      securityLogs: [
+        { fields: { userId: 1, timestamp: -1 } },
+        { fields: { eventType: 1, timestamp: -1 } },
       ],
+      plans: [
+        { fields: { name: 1 }, options: { unique: true, sparse: true } },
+        { fields: { isActive: 1 } },
+      ],
+      coupons: [{ fields: { code: 1 }, options: { unique: true } }],
+      communityposts: [{ fields: { authorId: 1, createdAt: -1 } }],
+      contactmessages: [{ fields: { email: 1, createdAt: -1 } }],
+      chatinteractions: [{ fields: { userId: 1, timestamp: -1 } }],
+      toolusages: [{ fields: { userId: 1, timestamp: -1 } }],
+      userevents: [{ fields: { userId: 1, eventType: 1, timestamp: -1 } }],
     };
 
     return indexes[collectionName] || [];

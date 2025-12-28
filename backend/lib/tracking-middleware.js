@@ -113,7 +113,7 @@ function trackPageViewMiddleware(req, res, next) {
         visitorId,
         sessionId,
         userId,
-        url: req.path,  // Changed from 'path' to 'url' to match PageView schema
+        url: req.path, // Changed from 'path' to 'url' to match PageView schema
         title: req.query.title,
         referrer,
       }).catch((err) => console.error('Error tracking page view:', err));
