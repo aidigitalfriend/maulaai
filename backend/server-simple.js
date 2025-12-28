@@ -1324,6 +1324,7 @@ app.put('/api/user/profile', async (req, res) => {
 });
 
 // GET /api/user/analytics - Get user analytics dashboard data
+// NOTE: Analytics collections not implemented - returning stub data
 app.get('/api/user/analytics', async (req, res) => {
   try {
     const { userId, email } = req.query;
@@ -1331,16 +1332,7 @@ app.get('/api/user/analytics', async (req, res) => {
 
     // Use Mongoose connection instead of native client
     const db = mongoose.connection.db;
-
-    // Get collections
     const users = db.collection('users');
-    const conversationAnalytics = db.collection('conversationanalytics');
-    const usageMetrics = db.collection('usagemetrics');
-    const agentMetrics = db.collection('agentmetrics');
-    const performanceMetrics = db.collection('performancemetrics');
-    const chatInteractions = db.collection('chat_interactions');
-    const subscriptionsCollection = db.collection('subscriptions');
-    const plansCollection = db.collection('plans');
 
     // Find user via identifier or session
     let user;
@@ -1360,17 +1352,6 @@ app.get('/api/user/analytics', async (req, res) => {
         sessionId,
         sessionExpiry: { $gt: new Date() },
       });
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid or expired session',
-        });
-      }
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: 'User identifier or active session required',
-      });
     }
 
     if (!user) {
@@ -1380,404 +1361,53 @@ app.get('/api/user/analytics', async (req, res) => {
       });
     }
 
-    let userObjectId;
-    try {
-      userObjectId =
-        user._id instanceof ObjectId ? user._id : new ObjectId(user._id);
-    } catch (error) {
-      console.error('Invalid user _id format:', error);
-      return res.status(500).json({
-        success: false,
-        error: 'User document is malformed',
-      });
-    }
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    const coerceDate = (value) => {
-      if (!value) return null;
-      const dateInstance = value instanceof Date ? value : new Date(value);
-      return Number.isNaN(dateInstance?.getTime()) ? null : dateInstance;
-    };
-
-    const activeSubscription = await subscriptionsCollection.findOne(
-      {
-        user: userObjectId,
-        status: { $in: ['active', 'trialing', 'past_due'] },
-      },
-      { sort: { createdAt: -1 } }
-    );
-
-    const rawBillingAmount = activeSubscription?.billing?.amount;
-    const parsedBillingAmount =
-      typeof rawBillingAmount === 'number'
-        ? rawBillingAmount
-        : rawBillingAmount !== undefined && rawBillingAmount !== null
-        ? Number(rawBillingAmount)
-        : null;
-    const hasBillableSubscription =
-      Number.isFinite(parsedBillingAmount) && parsedBillingAmount > 0;
-    const realSubscription = hasBillableSubscription
-      ? activeSubscription
-      : null;
-
-    let subscribedPlanDoc = null;
-    if (realSubscription?.plan) {
-      try {
-        subscribedPlanDoc = await plansCollection.findOne({
-          _id: realSubscription.plan,
-        });
-      } catch (planError) {
-        console.warn('Unable to load subscribed plan document:', planError);
-      }
-    }
-
-    const inferredPlanKey = realSubscription
-      ? normalizePlanKey(realSubscription.billing?.interval) ||
-        derivePlanKeyFromName(realSubscription.planName) ||
-        normalizePlanKey(subscribedPlanDoc?.billingPeriod) ||
-        derivePlanKeyFromName(subscribedPlanDoc?.name) ||
-        null
-      : null;
-
-    const templateFallback =
-      PLAN_TEMPLATES.find((tpl) => tpl.key === inferredPlanKey) ||
-      PLAN_TEMPLATES.find((tpl) => tpl.key === 'monthly') ||
-      PLAN_TEMPLATES[0];
-
-    const renewalDateCandidate =
-      coerceDate(realSubscription?.billing?.currentPeriodEnd) ||
-      coerceDate(realSubscription?.billing?.periodEnd) ||
-      coerceDate(realSubscription?.billing?.cycleEnd);
-
-    const resolvedRenewalDate =
-      renewalDateCandidate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    const fallbackPriceCents = templateFallback
-      ? Math.round(templateFallback.defaultPrice * 100)
-      : 0;
-
-    const resolvedAmountCents =
-      realSubscription?.billing?.amount ??
-      subscribedPlanDoc?.pricing?.amount ??
-      subscribedPlanDoc?.price?.amount ??
-      fallbackPriceCents;
-
-    const normalizedAmountCents =
-      typeof resolvedAmountCents === 'number' &&
-      Number.isFinite(resolvedAmountCents)
-        ? resolvedAmountCents
-        : Number(resolvedAmountCents) || 0;
-
-    const resolvedBillingInterval =
-      realSubscription?.billing?.interval ||
-      subscribedPlanDoc?.billingPeriod ||
-      templateFallback?.billingPeriod ||
-      'monthly';
-
-    const resolvedPlanName = realSubscription
-      ? subscribedPlanDoc?.displayName ||
-        subscribedPlanDoc?.name ||
-        realSubscription.planName ||
-        (inferredPlanKey
-          ? `${
-              inferredPlanKey.charAt(0).toUpperCase() + inferredPlanKey.slice(1)
-            } Access`
-          : templateFallback?.name || 'Paid Access')
-      : 'No Active Plan';
-
-    const subscriptionSummary = realSubscription
-      ? {
-          plan: resolvedPlanName,
-          status: realSubscription.status || 'active',
-          price: Math.max(0, normalizedAmountCents) / 100,
-          period: resolvedBillingInterval,
-          renewalDate: resolvedRenewalDate.toISOString().split('T')[0],
-          daysUntilRenewal: Math.max(
-            0,
-            Math.ceil(
-              (resolvedRenewalDate.getTime() - now.getTime()) /
-                (24 * 60 * 60 * 1000)
-            )
-          ),
-        }
-      : {
-          plan: 'No Active Plan',
-          status: 'inactive',
-          price: 0,
-          period: 'none',
-          renewalDate: 'N/A',
-          daysUntilRenewal: 0,
-        };
-
-    // Aggregate real data from collections including agent subscriptions
-    const [
-      totalConversations,
-      totalMessages,
-      totalApiCalls,
-      recentInteractions,
-      dailyUsageData,
-      activeAgentCount,
-    ] = await Promise.all([
-      // Count total conversations
-      chatInteractions.countDocuments
-        ? chatInteractions.countDocuments({ userId: userObjectId })
-        : chatInteractions.count({ userId: userObjectId }),
-
-      // Count total messages (estimate: 2x conversations)
-      chatInteractions.countDocuments
-        ? chatInteractions.countDocuments({ userId: userObjectId })
-        : chatInteractions.count({ userId: userObjectId }),
-
-      // Count API calls (use performance metrics if available)
-      performanceMetrics.countDocuments
-        ? performanceMetrics.countDocuments({ userId: userObjectId })
-        : performanceMetrics.count({ userId: userObjectId }),
-
-      // Get recent chat interactions
-      chatInteractions
-        .find({ userId: userObjectId })
-        .sort({ timestamp: -1 })
-        .limit(10)
-        .toArray(),
-
-      // Get daily usage for last 7 days
-      chatInteractions
-        .aggregate([
-          {
-            $match: {
-              userId: userObjectId,
-              timestamp: { $gte: sevenDaysAgo },
-            },
-          },
-          {
-            $group: {
-              _id: {
-                date: {
-                  $dateToString: { format: '%Y-%m-%d', date: '$timestamp' },
-                },
-              },
-              conversations: { $sum: 1 },
-              messages: { $sum: 2 },
-            },
-          },
-          { $sort: { '_id.date': 1 } },
-        ])
-        .toArray(),
-
-      // Count active agent subscriptions using Mongoose model
-      AgentSubscription.countDocuments({
-        userId: userObjectId.toString(),
-        status: 'active',
-        expiryDate: { $gt: now },
-      }),
-    ]);
-
-    // Calculate metrics
-    const messagesCount = totalMessages * 2; // Estimate 2 messages per conversation
-    const apiCallsCount = Math.max(totalApiCalls, totalConversations); // At least 1 API call per conversation
-
-    // Calculate real weekly trends by comparing this week vs last week
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-
-    const [lastWeekConversations, lastWeekApiCalls] = await Promise.all([
-      chatInteractions.countDocuments
-        ? chatInteractions.countDocuments({
-            userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
-          })
-        : chatInteractions.count({
-            userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
-          }),
-      performanceMetrics.countDocuments
-        ? performanceMetrics.countDocuments({
-            userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
-          })
-        : performanceMetrics.count({
-            userId: userObjectId,
-            timestamp: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
-          }),
-    ]);
-
-    const lastWeekMessages = lastWeekConversations * 2;
-    const lastWeekApiCallsCount = Math.max(
-      lastWeekApiCalls,
-      lastWeekConversations
-    );
-
-    // Helper function to calculate percentage change
-    const calculateChange = (current, previous) => {
-      if (previous === 0) return current > 0 ? '+100%' : '0%';
-      const change = (((current - previous) / previous) * 100).toFixed(1);
-      return parseFloat(change) >= 0 ? `+${change}%` : `${change}%`;
-    };
-
-    const weeklyTrendData = {
-      conversationsChange: calculateChange(
-        totalConversations,
-        lastWeekConversations
-      ),
-      messagesChange: calculateChange(messagesCount, lastWeekMessages),
-      apiCallsChange: calculateChange(apiCallsCount, lastWeekApiCallsCount),
-      responseTimeChange: '+0%', // Would need to calculate from performanceMetrics response times
-    };
-
-    const hasUsageData =
-      totalConversations > 0 ||
-      apiCallsCount > 0 ||
-      messagesCount > 0 ||
-      activeAgentCount > 0 ||
-      (Array.isArray(recentInteractions) && recentInteractions.length > 0) ||
-      (Array.isArray(dailyUsageData) && dailyUsageData.length > 0);
-
-    // If there is no real usage yet, return a clean zeroed analytics payload
-    if (!hasUsageData) {
-      const emptyAnalyticsData = {
-        subscription: subscriptionSummary,
-        usage: {
-          conversations: {
-            current: 0,
-            limit: 10000,
-            percentage: 0,
-            unit: 'conversations',
-          },
-          agents: {
-            current: activeAgentCount,
-            limit: 18,
-            percentage: Math.min((activeAgentCount / 18) * 100, 100),
-            unit: 'agents',
-          },
-          apiCalls: {
-            current: 0,
-            limit: 50000,
-            percentage: 0,
-            unit: 'calls',
-          },
-          storage: {
-            current: 0,
-            limit: 10000,
-            percentage: 0,
-            unit: 'KB',
-          },
-          messages: {
-            current: 0,
-            limit: 100000,
-            percentage: 0,
-            unit: 'messages',
-          },
-        },
-        dailyUsage: [],
-        weeklyTrend: {
-          conversationsChange: '+0%',
-          messagesChange: '+0%',
-          apiCallsChange: '+0%',
-          responseTimeChange: '+0%',
-        },
-        agentPerformance: [],
-        recentActivity: [],
-        costAnalysis: {
-          currentMonth: 0,
-          projectedMonth: 0,
-          breakdown: [],
-        },
-        topAgents: [],
-      };
-
-      return res.json(emptyAnalyticsData);
-    }
-
-    // Build analytics data matching frontend interface
+    // Return stub analytics data since analytics collections don't exist
+    // TODO: Implement analytics tracking or remove this endpoint
     const analyticsData = {
-      subscription: subscriptionSummary,
+      success: true,
+      period: 'last30days',
+      summary: {
+        totalConversations: 0,
+        totalMessages: 0,
+        totalApiCalls: 0,
+        activeAgents: 0,
+        averageResponseTime: 0,
+      },
       usage: {
         conversations: {
-          current: totalConversations,
-          limit: 10000,
-          percentage: Math.min((totalConversations / 10000) * 100, 100),
+          current: 0,
+          limit: 1000,
+          percentage: 0,
           unit: 'conversations',
         },
-        agents: {
-          current: activeAgentCount, // Real count from AgentSubscription collection
-          limit: 18,
-          percentage: Math.min((activeAgentCount / 18) * 100, 100),
-          unit: 'agents',
-        },
-        apiCalls: {
-          current: apiCallsCount,
-          limit: 50000,
-          percentage: Math.min((apiCallsCount / 50000) * 100, 100),
-          unit: 'calls',
-        },
-        storage: {
-          current: Math.ceil(messagesCount * 0.5), // Estimate 0.5KB per message
-          limit: 10000,
-          percentage: Math.min(
-            (Math.ceil(messagesCount * 0.5) / 10000) * 100,
-            100
-          ),
-          unit: 'KB',
-        },
+        agents: { current: 0, limit: 18, percentage: 0, unit: 'agents' },
+        apiCalls: { current: 0, limit: 50000, percentage: 0, unit: 'calls' },
+        storage: { current: 0, limit: 10000, percentage: 0, unit: 'KB' },
         messages: {
-          current: messagesCount,
+          current: 0,
           limit: 100000,
-          percentage: Math.min((messagesCount / 100000) * 100, 100),
+          percentage: 0,
           unit: 'messages',
         },
       },
-      dailyUsage: dailyUsageData.map((day) => ({
-        date: day._id.date,
-        conversations: day.conversations,
-        messages: day.messages,
-        apiCalls: day.conversations, // Approximate API calls as conversations
-      })),
-      weeklyTrend: weeklyTrendData,
-      agentPerformance: [
-        {
-          name: 'All Agents',
-          conversations: totalConversations,
-          messages: messagesCount,
-          avgResponseTime: 0,
-          successRate: 100,
-        },
-      ],
-      recentActivity: recentInteractions.slice(0, 5).map((interaction) => ({
-        timestamp:
-          interaction.timestamp?.toISOString() || new Date().toISOString(),
-        agent: interaction.agentName || 'Unknown Agent',
-        action: 'chat_message',
-        status: 'completed',
-      })),
+      dailyUsage: [],
+      weeklyTrend: [],
+      agentPerformance: [],
+      recentActivity: [],
       costAnalysis: {
-        currentMonth: Math.ceil(apiCallsCount * 0.002), // $0.002 per API call
-        projectedMonth: Math.ceil(apiCallsCount * 0.002 * 1.2),
-        breakdown: [
-          {
-            category: 'API Calls',
-            cost: Math.ceil(apiCallsCount * 0.002 * 0.7),
-            percentage: 70,
-          },
-          {
-            category: 'Storage',
-            cost: Math.ceil(apiCallsCount * 0.002 * 0.2),
-            percentage: 20,
-          },
-          {
-            category: 'Bandwidth',
-            cost: Math.ceil(apiCallsCount * 0.002 * 0.1),
-            percentage: 10,
-          },
-        ],
+        currentMonth: 0,
+        projectedMonth: 0,
+        breakdown: [],
       },
-      topAgents: [{ name: 'All Agents', usage: totalConversations }],
+      topAgents: [],
     };
 
+    console.log(
+      '⚠️ Analytics stub data returned - collections not implemented'
+    );
     res.json(analyticsData);
   } catch (error) {
     console.error('Analytics error:', error);
-    // Return a generic error for clients, but include details for debugging
     res.status(500).json({
       success: false,
       error: 'Failed to fetch analytics data',
@@ -2375,13 +2005,10 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Get collections
+    // Get collections (only those that exist and have data)
     const subscriptions = db.collection('subscriptions');
-    const invoices = db.collection('invoices');
-    const payments = db.collection('payments');
-    const billings = db.collection('billings');
-    const usageMetrics = db.collection('usagemetrics');
     const plans = db.collection('plans');
+    // Note: usagemetrics, invoices, payments, billings collections don't exist - using defaults
 
     const planDocs = await plans.find({}).toArray();
     const basePlanOptions = buildPlanOptions(planDocs);
@@ -2633,44 +2260,18 @@ app.get('/api/user/billing/:userId', async (req, res) => {
       return res.json({ success: true, data: billingData });
     }
 
-    // Get current billing period usage
+    // Get current billing period usage (stubbed - usageMetrics collection doesn't exist)
     const currentPeriodStart =
       activeSubscription.billing?.currentPeriodStart || new Date();
     const currentPeriodEnd =
       activeSubscription.billing?.currentPeriodEnd ||
       new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    // Get usage metrics for current period
-    const usageData = await usageMetrics.findOne({
-      user: sessionUser._id,
-      period: {
-        $gte: currentPeriodStart,
-        $lt: currentPeriodEnd,
-      },
-    });
+    const usageData = null; // usageMetrics collection doesn't exist
 
-    // Get recent invoices (last 6 months)
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    const userInvoices = await invoices
-      .find({
-        user: sessionUser._id,
-        createdAt: { $gte: sixMonthsAgo },
-      })
-      .sort({ createdAt: -1 })
-      .limit(12)
-      .toArray();
-
-    // Get payment history
-    const paymentHistory = await payments
-      .find({
-        user: sessionUser._id,
-        createdAt: { $gte: sixMonthsAgo },
-      })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .toArray();
+    // Note: invoices and payments collections don't exist - returning empty arrays
+    const userInvoices = [];
+    const paymentHistory = [];
 
     // Calculate usage statistics
     const planLimits = currentPlan?.features || {
@@ -2833,131 +2434,49 @@ app.get('/api/user/subscriptions/:userId', async (req, res) => {
 });
 
 // GET /api/agent/performance/:agentId - Get agent performance metrics
+// NOTE: Agent metrics collections not implemented - returning stub data
 app.get('/api/agent/performance/:agentId', async (req, res) => {
   try {
     const { agentId } = req.params;
-    const { timeRange = '7d' } = req.query; // 1d, 7d, 30d
 
-    // Get session ID from HttpOnly cookie
-    const sessionId = req.cookies?.session_id;
-
-    if (!sessionId) {
-      return res.status(401).json({ message: 'No session ID' });
-    }
-
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
-    const users = db.collection('users');
-
-    // Find user with valid session
-    const sessionUser = await users.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
-    });
-
-    if (!sessionUser) {
-      return res.status(401).json({ message: 'Invalid or expired session' });
-    }
-
-    // Calculate date range
-    const now = new Date();
-    let startDate;
-    switch (timeRange) {
-      case '1d':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default: // 7d
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    }
-
-    // Get collections
-    const chatInteractions = db.collection('chat_interactions');
-    const agentMetrics = db.collection('agentmetrics');
-    const performanceMetrics = db.collection('performancemetrics');
-    const conversationAnalytics = db.collection('conversationanalytics');
-
-    // Get agent info (map common agent names)
-    const agentMap = {
-      einstein: { name: 'Einstein', type: 'Physics & Science', avatar: '🧠' },
-      'tech-wizard': {
-        name: 'Tech Wizard',
-        type: 'Technology & Programming',
-        avatar: '🧙‍♂️',
+    // Return stub data since agentmetrics and performancemetrics collections don't exist
+    // TODO: Implement agent metrics tracking or remove this endpoint
+    const performanceData = {
+      success: true,
+      data: {
+        agentId: agentId,
+        agentName: agentId,
+        timeRange: req.query.timeRange || '7d',
+        metrics: {
+          totalConversations: 0,
+          totalMessages: 0,
+          avgResponseTime: 0,
+          uniqueUsers: 0,
+          successRate: 100,
+        },
+        dailyStats: [],
+        topTopics: [],
+        sentiment: {
+          positive: 0,
+          neutral: 0,
+          negative: 0,
+        },
       },
-      'comedy-king': {
-        name: 'Comedy King',
-        type: 'Entertainment & Humor',
-        avatar: '😄',
-      },
-      'chef-biew': {
-        name: 'Chef Biew',
-        type: 'Cooking & Recipes',
-        avatar: '👨‍🍳',
-      },
-      'ben-sega': {
-        name: 'Ben Sega',
-        type: 'Gaming & Entertainment',
-        avatar: '🎮',
-      },
-      default: { name: 'AI Assistant', type: 'General Purpose', avatar: '🤖' },
     };
 
-    const agentInfo = agentMap[agentId] || agentMap['default'];
-
-    // Get conversation metrics for the agent
-    const conversationStats = await chatInteractions
-      .aggregate([
-        {
-          $match: {
-            agentName: { $regex: agentInfo.name, $options: 'i' },
-            timestamp: { $gte: startDate },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalConversations: { $sum: 1 },
-            totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: { $avg: '$responseTime' },
-            uniqueUsers: { $addToSet: '$userId' },
-          },
-        },
-      ])
-      .toArray();
-
-    const stats = conversationStats[0] || {
-      totalConversations: 0,
-      totalMessages: 0,
-      avgResponseTime: 0,
-      uniqueUsers: [],
-    };
-
-    // Get performance trends (compare with previous period)
-    const previousPeriodStart = new Date(
-      startDate.getTime() - (now.getTime() - startDate.getTime())
+    console.log(
+      '⚠️ Agent performance stub data returned - collections not implemented'
     );
-    const previousStats = await chatInteractions
-      .aggregate([
-        {
-          $match: {
-            agentName: { $regex: agentInfo.name, $options: 'i' },
-            timestamp: { $gte: previousPeriodStart, $lt: startDate },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalConversations: { $sum: 1 },
-            totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: { $avg: '$responseTime' },
-          },
-        },
-      ])
-      .toArray();
+    return res.json(performanceData);
+  } catch (error) {
+    console.error('Agent performance error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
+// GET /api/user/security/:userId
+app.get('/api/user/security/:userId', async (req, res) => {
+  try {
     const prevStats = previousStats[0] || {
       totalConversations: 0,
       totalMessages: 0,
@@ -3454,6 +2973,93 @@ app.post('/api/user/security/2fa/verify', async (req, res) => {
   } catch (error) {
     console.error('Verify 2FA error:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// ============================================================================
+// AGENTS ENDPOINTS
+// ============================================================================
+
+// GET /api/agents - List all available agents
+app.get('/api/agents', async (req, res) => {
+  try {
+    console.log('📋 Fetching all agents...');
+
+    // Use Mongoose connection
+    const db = mongoose.connection.db;
+    const agentsCollection = db.collection('agents');
+
+    const agents = await agentsCollection.find({}).toArray();
+
+    console.log(`✅ Found ${agents.length} agents`);
+
+    res.json({
+      success: true,
+      count: agents.length,
+      agents: agents,
+    });
+  } catch (error) {
+    console.error('❌ Error fetching agents:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve agents',
+      error: error.message,
+    });
+  }
+});
+
+// GET /api/agents/:agentId - Get specific agent details
+app.get('/api/agents/:agentId', async (req, res) => {
+  try {
+    const { agentId } = req.params;
+    console.log(`🔍 Fetching agent: ${agentId}`);
+
+    // Use Mongoose connection
+    const db = mongoose.connection.db;
+    const agentsCollection = db.collection('agents');
+
+    // Try to find by _id or by slug/name
+    let agent = null;
+
+    // Try ObjectId first
+    try {
+      agent = await agentsCollection.findOne({ _id: new ObjectId(agentId) });
+    } catch (e) {
+      // Not a valid ObjectId, try slug/name
+    }
+
+    if (!agent) {
+      agent = await agentsCollection.findOne({
+        $or: [
+          { agentId: agentId },
+          { slug: agentId },
+          { name: agentId },
+          { id: agentId },
+        ],
+      });
+    }
+
+    if (!agent) {
+      console.log(`❌ Agent not found: ${agentId}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Agent not found',
+      });
+    }
+
+    console.log(`✅ Found agent: ${agent.name || agent.slug}`);
+
+    res.json({
+      success: true,
+      agent: agent,
+    });
+  } catch (error) {
+    console.error('❌ Error fetching agent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve agent',
+      error: error.message,
+    });
   }
 });
 
