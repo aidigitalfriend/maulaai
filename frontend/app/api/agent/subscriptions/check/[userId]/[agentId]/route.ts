@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../../../../../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../../../../../../../models/AgentSubscription';
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 export async function GET(
   request: NextRequest,
@@ -16,21 +17,19 @@ export async function GET(
       );
     }
 
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
+    const backendResponse = await fetch(
+      `${BACKEND_URL}/api/agent/subscriptions/check/${userId}/${agentId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    // Find active subscription for this user and agent
-    const subscription = await AgentSubscription.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
-    }).sort({ createdAt: -1 });
+    const data = await backendResponse.json();
 
-    return NextResponse.json({
-      hasActiveSubscription: !!subscription,
-      subscription: subscription,
-    });
+    return NextResponse.json(data, { status: backendResponse.status });
   } catch (error) {
     console.error('Error checking subscription:', error);
     return NextResponse.json(

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb-client';
-import { getAgentSubscriptionModel } from '@/models/AgentSubscription';
+import {
+  verifyRequest,
+  unauthorizedResponse,
+} from '../../../../lib/validateAuth';
+
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
 
 /**
  * Cancel Subscription API Route
- * Allows users to cancel their active subscription for a specific agent
- *
- * This marks the subscription as 'cancelled' but keeps the record in the database
- * for history tracking. User will lose access immediately.
+ * Proxies to backend to cancel user subscription
  */
 export async function POST(request: NextRequest) {
   try {
@@ -22,52 +24,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
+    // Require authentication
+    const authResult = verifyRequest(request);
+    if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
-    // Find active subscription
-    const subscription = await AgentSubscription.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
-    });
+    // For now, proxy to a generic cancel endpoint
+    // Backend doesn't have a specific cancel endpoint, so this needs backend implementation
+    const backendUrl = `${BACKEND_BASE}/api/agent/subscriptions/cancel`;
 
-    if (!subscription) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No active subscription found for this agent',
-        },
-        { status: 404 }
-      );
-    }
-
-    // Mark as cancelled (keep in database for history)
-    subscription.status = 'cancelled';
-    await subscription.save();
-
-    return NextResponse.json({
-      success: true,
-      message: 'Subscription cancelled successfully',
-      subscription: {
-        id: subscription._id?.toString() || subscription._id,
-        agentId: subscription.agentId,
-        plan: subscription.plan,
-        status: 'cancelled',
-        wasExpiringOn: subscription.expiryDate,
-        cancelledAt: new Date(),
+    const res = await fetch(backendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...Object.fromEntries(request.headers),
       },
+      body: JSON.stringify({ userId, agentId }),
     });
-  } catch (error) {
-    console.error('❌ Cancel subscription error:', error);
+
+    const text = await res.text();
+    return new NextResponse(text, {
+      status: res.status,
+      headers: res.headers as any,
+    });
+  } catch (err: any) {
+    console.error('[/api/subscriptions/cancel] Proxy error:', err);
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to cancel subscription',
-      },
+      { success: false, error: err.message || 'Proxy error' },
       { status: 500 }
     );
   }

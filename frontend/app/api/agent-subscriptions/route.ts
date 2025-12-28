@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyRequest, unauthorizedResponse } from '../../../lib/validateAuth';
 
-const BACKEND_BASE = process.env.BACKEND_URL || 'http://localhost:3005';
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
 
 async function proxy(request: NextRequest) {
   try {
     const url = new URL(request.url);
-    const backendPath = url.pathname + url.search;
+    const backendPath =
+      url.pathname.replace(
+        '/api/agent-subscriptions',
+        '/api/agent/subscriptions'
+      ) + url.search;
     const backendUrl = `${BACKEND_BASE}${backendPath}`;
 
     const init: RequestInit = {

@@ -1,72 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb-client';
-import { getAgentSubscriptionModel } from '@/models/AgentSubscription';
+import {
+  verifyRequest,
+  unauthorizedResponse,
+} from '../../../../lib/validateAuth';
 
-export const dynamic = 'force-dynamic';
-
-function daysUntil(date: Date) {
-  const now = Date.now();
-  const target = new Date(date).getTime();
-  return target > now ? Math.ceil((target - now) / (1000 * 60 * 60 * 24)) : 0;
-}
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, email, agentId } = body || {};
+    const { userId, agentId } = body;
 
-    if (!agentId || (!userId && !email)) {
+    if (!userId || !agentId) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'agentId and either userId or email are required',
-        },
+        { success: false, error: 'userId and agentId are required' },
         { status: 400 }
       );
     }
 
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
+    // Require authentication
+    const authResult = verifyRequest(request);
+    if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
-    const match = await AgentSubscription.findOne({
-      agentId,
-      userId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
-    }).sort({ expiryDate: -1 });
+    // Proxy to backend
+    const backendUrl = `${BACKEND_BASE}/api/agent/subscriptions/check/${userId}/${agentId}`;
 
-    if (!match) {
-      return NextResponse.json({
-        success: true,
-        hasAccess: false,
-        subscription: null,
-        message: 'No active subscription found',
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      hasAccess: true,
-      subscription: {
-        id: match._id?.toString?.() ?? match._id,
-        agentId: match.agentId,
-        plan: match.plan,
-        status: match.status,
-        expiryDate: match.expiryDate,
-        daysUntilRenewal: daysUntil(match.expiryDate),
-        price: match.price,
-      },
+    const res = await fetch(backendUrl, {
+      method: 'GET',
+      headers: Object.fromEntries(request.headers),
     });
-  } catch (error) {
-    console.error('Subscription check error:', error);
+
+    const text = await res.text();
+    return new NextResponse(text, {
+      status: res.status,
+      headers: res.headers as any,
+    });
+  } catch (err: any) {
+    console.error('[/api/subscriptions/check] Proxy error:', err);
     return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to verify subscription',
-      },
+      { success: false, error: err.message || 'Proxy error' },
       { status: 500 }
     );
   }

@@ -1,18 +1,19 @@
-/**
- * Stripe Checkout API Route
- * Creates a Stripe checkout session for agent subscriptions
- *
- * CRITICAL: Validates that user doesn't already have active subscription
- * before creating checkout session (prevents duplicate purchases)
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createCheckoutSession } from '../../../../lib/stripe-client';
-import { connectToDatabase } from '../../../../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
+import {
+  verifyRequest,
+  unauthorizedResponse,
+} from '../../../../lib/validateAuth';
+
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const authResult = verifyRequest(request);
+    if (!authResult.ok) return unauthorizedResponse(authResult.error);
+
     const body = await request.json();
     const { agentId, agentName, plan, userId, userEmail } = body;
 
@@ -40,31 +41,29 @@ export async function POST(request: NextRequest) {
     }
 
     // ✅ CRITICAL: Check if user already has active subscription for this agent
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
-
-    const existingSubscription = await AgentSubscription.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() }, // Not expired
+    // Proxy this check to backend
+    const checkUrl = `${BACKEND_BASE}/api/agent/subscriptions/check/${userId}/${agentId}`;
+    const checkRes = await fetch(checkUrl, {
+      method: 'GET',
+      headers: Object.fromEntries(request.headers),
     });
 
-    if (existingSubscription) {
-      const daysRemaining = Math.ceil(
-        (existingSubscription.expiryDate.getTime() - Date.now()) /
-          (1000 * 60 * 60 * 24)
-      );
+    if (!checkRes.ok) {
+      const checkData = await checkRes.json();
+      return NextResponse.json(checkData, { status: checkRes.status });
+    }
 
+    const checkData = await checkRes.json();
+    if (checkData.hasAccess) {
       return NextResponse.json(
         {
           success: false,
-          error: `You already have an active ${existingSubscription.plan} subscription for ${agentName}`,
+          error: `You already have an active ${checkData.subscription.plan} subscription for ${agentName}`,
           alreadySubscribed: true,
           existingSubscription: {
-            plan: existingSubscription.plan,
-            expiryDate: existingSubscription.expiryDate,
-            daysRemaining: daysRemaining,
+            plan: checkData.subscription.plan,
+            expiryDate: checkData.subscription.expiryDate,
+            daysRemaining: checkData.subscription.daysRemaining,
           },
         },
         { status: 400 }
@@ -98,7 +97,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Checkout session creation error:', error);
-
     return NextResponse.json(
       {
         success: false,

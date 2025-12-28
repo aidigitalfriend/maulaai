@@ -1,133 +1,48 @@
-/**
- * Subscriptions API Route
- * Query user subscriptions from MongoDB
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../../../models/AgentSubscription';
+import { verifyRequest, unauthorizedResponse } from '../../../lib/validateAuth';
 
-/**
- * GET /api/subscriptions
- * Get all subscriptions for a user
- * Query params: userId, agentId (optional), status (optional)
- */
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
+
+async function proxy(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const backendPath =
+      url.pathname.replace(
+        '/api/subscriptions',
+        '/api/agent/subscriptions/user'
+      ) + url.search;
+    const backendUrl = `${BACKEND_BASE}${backendPath}`;
+
+    const init: RequestInit = {
+      method: request.method,
+      headers: Object.fromEntries(request.headers),
+      body: undefined,
+    };
+
+    // Require authentication for subscription endpoints
+    const authResult = verifyRequest(request);
+    if (!authResult.ok) return unauthorizedResponse(authResult.error);
+
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      init.body = await request.text();
+    }
+
+    const res = await fetch(backendUrl, init);
+    const text = await res.text();
+    return new NextResponse(text, {
+      status: res.status,
+      headers: res.headers as any,
+    });
+  } catch (err: any) {
+    console.error('[/api/subscriptions] Proxy error:', err);
+    return NextResponse.json(
+      { success: false, error: err.message || 'Proxy error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const agentId = searchParams.get('agentId');
-    const status = searchParams.get('status');
-
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'userId is required' },
-        { status: 400 }
-      );
-    }
-
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
-
-    // Build query
-    const query: any = { userId };
-    if (agentId) query.agentId = agentId;
-    if (status) query.status = status;
-
-    // Get subscriptions
-    const subscriptions = await AgentSubscription.find(query).sort({
-      createdAt: -1,
-    });
-
-    // Check which subscriptions are currently active
-    const subscriptionsWithStatus = subscriptions.map((sub) => ({
-      ...sub.toJSON(),
-      isActive: sub.isValid(),
-      daysRemaining: Math.ceil(
-        (sub.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-      ),
-    }));
-
-    return NextResponse.json({
-      success: true,
-      subscriptions: subscriptionsWithStatus,
-      count: subscriptions.length,
-    });
-  } catch (error) {
-    console.error('Get subscriptions error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to get subscriptions',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * POST /api/subscriptions/check-access
- * Check if user has active plan for specific agent
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { userId, agentId } = body;
-
-    if (!userId || !agentId) {
-      return NextResponse.json(
-        { success: false, error: 'userId and agentId are required' },
-        { status: 400 }
-      );
-    }
-
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
-
-    // Find active subscription for this user and agent
-    const subscription = await AgentSubscription.findOne({
-      userId,
-      agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
-    });
-
-    const hasAccess = !!subscription;
-
-    return NextResponse.json({
-      success: true,
-      hasAccess,
-      subscription: hasAccess
-        ? {
-            id: subscription._id,
-            plan: subscription.plan,
-            status: subscription.status,
-            expiryDate: subscription.expiryDate,
-            daysRemaining: Math.ceil(
-              (subscription.expiryDate.getTime() - Date.now()) /
-                (1000 * 60 * 60 * 24)
-            ),
-            isActive: subscription.isValid(),
-          }
-        : null,
-    });
-  } catch (error) {
-    console.error('Check access error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error ? error.message : 'Failed to check access',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// Handle OPTIONS for CORS
-export async function OPTIONS() {
-  return NextResponse.json({}, { status: 200 });
+  return proxy(request);
 }

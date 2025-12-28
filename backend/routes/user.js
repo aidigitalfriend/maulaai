@@ -271,4 +271,58 @@ router.patch('/profile/:userId/preferences', async (req, res) => {
   }
 });
 
+// GET /api/user/profile/:userId - Get specific user profile by ID
+router.get('/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'User ID is required' });
+    }
+
+    const user = await User.findById(userId).select('-password -__v');
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Build complete profile data with defaults
+    const profile = {
+      name: user.name || 'User',
+      email: user.email,
+      avatar: user.avatar || '',
+      bio:
+        user.bio ||
+        'AI enthusiast and developer passionate about creating intelligent solutions.',
+      phoneNumber: user.phoneNumber || '',
+      location: user.location || '',
+      timezone: user.timezone || 'Pacific Time (PT)',
+      profession: user.profession || 'AI Developer',
+      company: user.company || 'Tech Innovation Inc.',
+      website: user.website || '',
+      socialLinks: {
+        linkedin: user.socialLinks?.linkedin || '',
+        twitter: user.socialLinks?.twitter || '',
+        github: user.socialLinks?.github || '',
+      },
+      preferences: {
+        emailNotifications: user.preferences?.emailNotifications ?? true,
+        smsNotifications: user.preferences?.smsNotifications ?? false,
+        marketingEmails: user.preferences?.marketingEmails ?? true,
+        productUpdates: user.preferences?.productUpdates ?? true,
+      },
+    };
+
+    res.json({
+      success: true,
+      profile: profile,
+    });
+  } catch (error) {
+    console.error('Get user profile by ID error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch profile' });
+  }
+});
+
 export default router;

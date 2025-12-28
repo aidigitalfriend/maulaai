@@ -4,8 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../../../../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../../../../../../models/AgentSubscription';
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 export async function GET(
   request: NextRequest,
@@ -24,19 +25,19 @@ export async function GET(
       );
     }
 
-    // Connect to database
-    await connectToDatabase();
-    const AgentSubscription = await getAgentSubscriptionModel();
+    const backendResponse = await fetch(
+      `${BACKEND_URL}/api/agent/subscriptions/user/${userId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    // Find all subscriptions for this user
-    const subscriptions = await AgentSubscription.find({
-      userId: userId,
-    }).sort({ createdAt: -1 }); // Most recent first
+    const data = await backendResponse.json();
 
-    return NextResponse.json({
-      success: true,
-      subscriptions: subscriptions,
-    });
+    return NextResponse.json(data, { status: backendResponse.status });
   } catch (error) {
     console.error('Error fetching user subscriptions:', error);
 

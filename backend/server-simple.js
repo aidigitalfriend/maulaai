@@ -1587,7 +1587,9 @@ app.get('/api/user/preferences/:userId', async (req, res) => {
 
     // Get user preferences from userpreferences collection
     const userPreferences = db.collection('userpreferences');
-    let preferences = await userPreferences.findOne({ userId: new ObjectId(userId) });
+    let preferences = await userPreferences.findOne({
+      userId: new ObjectId(userId),
+    });
 
     // If no preferences exist, create default
     if (!preferences) {
@@ -2216,12 +2218,17 @@ app.get('/api/user/billing/:userId', async (req, res) => {
           status: inv.status,
           paidAt: inv.paidAt?.toISOString().split('T')[0] || 'N/A',
         })),
-        paymentMethods: userPayments.length > 0 ? [{
-          type: userPayments[0].paymentMethod || 'card',
-          last4: userPayments[0].last4 || '****',
-          brand: userPayments[0].brand || 'Unknown',
-          isDefault: true,
-        }] : [],
+        paymentMethods:
+          userPayments.length > 0
+            ? [
+                {
+                  type: userPayments[0].paymentMethod || 'card',
+                  last4: userPayments[0].last4 || '****',
+                  brand: userPayments[0].brand || 'Unknown',
+                  isDefault: true,
+                },
+              ]
+            : [],
         billingHistory: userBillingHistory.map((hist) => ({
           id: hist._id.toString(),
           date: hist.createdAt?.toISOString().split('T')[0] || 'N/A',

@@ -9,11 +9,11 @@ import Stripe from 'stripe';
 import { verifyWebhookSignature } from '../../../../lib/stripe-client';
 import { connectToDatabase } from '../../../../lib/mongodb-client';
 import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
-import { 
-  createInvoiceRecord, 
-  createPaymentRecord, 
+import {
+  createInvoiceRecord,
+  createPaymentRecord,
   createBillingRecord,
-  getPaymentDetailsFromSubscription 
+  getPaymentDetailsFromSubscription,
 } from '../../../../lib/billing-helpers';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -133,6 +133,8 @@ async function handleCheckoutSessionCompleted(
     client_reference_id: userId,
     customer_email: email,
     subscription: subscriptionId,
+    payment_status: paymentStatus,
+    mode,
   } = session;
   const metadata = session.metadata;
 
@@ -140,44 +142,71 @@ async function handleCheckoutSessionCompleted(
     userId,
     email,
     subscriptionId,
+    paymentStatus,
+    mode,
     metadata,
   });
 
-  if (!metadata || !userId || !email || !subscriptionId) {
+  if (!metadata || !userId || !email) {
     console.error('❌ Missing required session data:', {
       userId,
       email,
       subscriptionId,
+      paymentStatus,
+      mode,
       metadata,
     });
     return;
   }
 
-  // Get full subscription details from Stripe
-  console.log('🔍 Fetching subscription details from Stripe:', subscriptionId);
-  const subscription = await stripe.subscriptions.retrieve(
-    subscriptionId as string
-  );
-  console.log('✅ Subscription details retrieved:', {
-    id: subscription.id,
-    status: subscription.status,
-    items: subscription.items.data.length,
-    cancel_at_period_end: subscription.cancel_at_period_end,
-  });
+  // For payment mode, check if payment was successful
+  if (mode === 'payment' && paymentStatus !== 'paid') {
+    console.log('ℹ️ Payment not completed yet, status:', paymentStatus);
+    return;
+  }
 
-  // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
-  if (!subscription.cancel_at_period_end) {
-    console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
-    try {
-      await stripe.subscriptions.update(subscription.id, {
-        cancel_at_period_end: true,
-      });
-      console.log(
-        '✅ Subscription set to cancel at period end (no auto-renewal)'
-      );
-    } catch (error) {
-      console.error('❌ Failed to set cancel_at_period_end:', error);
+  // For subscription mode, ensure subscription exists
+  if (mode === 'subscription' && !subscriptionId) {
+    console.error('❌ Missing subscription ID for subscription mode');
+    return;
+  }
+
+  let stripeSubscriptionId: string | undefined;
+
+  if (mode === 'subscription' && subscriptionId) {
+    // Get full subscription details from Stripe
+    console.log(
+      '🔍 Fetching subscription details from Stripe:',
+      subscriptionId
+    );
+    const subscription = await stripe.subscriptions.retrieve(
+      subscriptionId as string
+    );
+    console.log('✅ Subscription details retrieved:', {
+      id: subscription.id,
+      status: subscription.status,
+      items: subscription.items.data.length,
+      cancel_at_period_end: subscription.cancel_at_period_end,
+    });
+
+    // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
+    if (!subscription.cancel_at_period_end) {
+      console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
+      try {
+        await stripe.subscriptions.update(subscription.id, {
+          cancel_at_period_end: true,
+        });
+        console.log(
+          '✅ Subscription set to cancel at period end (no auto-renewal)'
+        );
+      } catch (error) {
+        console.error('❌ Failed to set cancel_at_period_end:', error);
+      }
     }
+    stripeSubscriptionId = subscription.id;
+  } else if (mode === 'payment') {
+    // For payment mode, use session id as reference
+    stripeSubscriptionId = session.id;
   }
 
   // Save subscription to MongoDB
@@ -186,13 +215,13 @@ async function handleCheckoutSessionCompleted(
 
   // Check if subscription already exists by Stripe ID (avoid duplicates)
   const existingByStripeId = await AgentSubscriptionModel.findOne({
-    stripeSubscriptionId: subscription.id,
+    stripeSubscriptionId: stripeSubscriptionId,
   });
 
   if (existingByStripeId) {
     console.log(
       'ℹ️ Subscription already processed (Stripe ID):',
-      subscription.id
+      stripeSubscriptionId
     );
     return;
   }
@@ -224,8 +253,14 @@ async function handleCheckoutSessionCompleted(
       expiryDate: new Date(subscription.current_period_end * 1000),
       autoRenew: false, // Always false for one-time purchase model
       stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
-      billing: { // Add billing sub-document
-        interval: planType === 'daily' ? 'day' : planType === 'weekly' ? 'week' : 'month',
+      billing: {
+        // Add billing sub-document
+        interval:
+          planType === 'daily'
+            ? 'day'
+            : planType === 'weekly'
+            ? 'week'
+            : 'month',
         amount: subscription.items.data[0]?.price?.unit_amount || 0,
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       },
@@ -233,7 +268,7 @@ async function handleCheckoutSessionCompleted(
 
     await agentSub.save();
     console.log('✅ Agent subscription created:', agentSub._id);
-    
+
     // 💰 CREATE INVOICE RECORD
     await createInvoiceRecord({
       userId: metadata?.userId as string,
@@ -247,9 +282,12 @@ async function handleCheckoutSessionCompleted(
       status: 'paid',
       paidAt: new Date(subscription.current_period_start * 1000),
     });
-    
+
     // 💳 CREATE PAYMENT RECORD
-    const paymentDetails = await getPaymentDetailsFromSubscription(stripe, subscription.id);
+    const paymentDetails = await getPaymentDetailsFromSubscription(
+      stripe,
+      subscription.id
+    );
     await createPaymentRecord({
       userId: metadata?.userId as string,
       email: email as string,
@@ -267,7 +305,7 @@ async function handleCheckoutSessionCompleted(
       last4: paymentDetails?.last4,
       brand: paymentDetails?.brand,
     });
-    
+
     // 📋 CREATE BILLING HISTORY RECORD
     await createBillingRecord({
       userId: metadata?.userId as string,

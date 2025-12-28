@@ -1,6 +1,6 @@
 /**
  * Billing Helpers - Invoice and Payment Record Creation
- * 
+ *
  * Creates invoice and payment records when subscriptions are purchased
  */
 
@@ -83,7 +83,7 @@ export async function createInvoiceRecord(params: {
 
   await invoices.insertOne(invoiceRecord);
   console.log('✅ Invoice record created:', invoiceRecord._id);
-  
+
   return invoiceRecord;
 }
 
@@ -132,7 +132,7 @@ export async function createPaymentRecord(params: {
 
   await payments.insertOne(paymentRecord);
   console.log('✅ Payment record created:', paymentRecord._id);
-  
+
   return paymentRecord;
 }
 
@@ -193,14 +193,15 @@ export async function getPaymentDetailsFromSubscription(
     });
 
     const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
-    
+
     if (!latestInvoice) {
       console.warn('No latest invoice found for subscription:', subscriptionId);
       return null;
     }
 
     const charge = latestInvoice.charge as Stripe.Charge | null;
-    const paymentIntent = latestInvoice.payment_intent as Stripe.PaymentIntent | null;
+    const paymentIntent =
+      latestInvoice.payment_intent as Stripe.PaymentIntent | null;
 
     // Extract payment method details
     let paymentMethod = 'card';
@@ -218,7 +219,8 @@ export async function getPaymentDetailsFromSubscription(
     return {
       invoiceId: latestInvoice.id,
       chargeId: typeof charge === 'string' ? charge : charge?.id,
-      paymentIntentId: typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id,
+      paymentIntentId:
+        typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id,
       paymentMethod,
       last4,
       brand,
