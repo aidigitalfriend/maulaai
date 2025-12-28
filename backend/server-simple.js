@@ -894,10 +894,10 @@ async function handlePasswordLogin(req, res) {
 
     // Update or create security record with login history
     await userSecurities.updateOne(
-      { userId: user._id.toString() },
+      { userId: user._id },
       {
         $set: {
-          userId: user._id.toString(),
+          userId: user._id,
           email: user.email,
           lastLoginAt: new Date(),
           failedLoginAttempts: 0, // Reset on successful login
@@ -1039,7 +1039,7 @@ async function handlePasswordSignup(req, res) {
     };
 
     const result = await users.insertOne(newUserDoc);
-    const userId = result.insertedId.toString();
+    const userId = result.insertedId;
 
     // Initialize security profile and login history
     const userSecurities = db.collection('usersecurities');
@@ -1047,10 +1047,10 @@ async function handlePasswordSignup(req, res) {
     const userAgent = req.get('User-Agent') || 'unknown';
 
     await userSecurities.updateOne(
-      { userId },
+      { userId: userId },
       {
         $set: {
-          userId,
+          userId: userId,
           email: newUserDoc.email,
           lastLoginAt: now,
           failedLoginAttempts: 0,
@@ -1587,12 +1587,12 @@ app.get('/api/user/preferences/:userId', async (req, res) => {
 
     // Get user preferences from userpreferences collection
     const userPreferences = db.collection('userpreferences');
-    let preferences = await userPreferences.findOne({ userId: userId });
+    let preferences = await userPreferences.findOne({ userId: new ObjectId(userId) });
 
     // If no preferences exist, create default
     if (!preferences) {
       const defaultPreferences = {
-        userId: userId,
+        userId: new ObjectId(userId),
         theme: 'system',
         language: 'en',
         timezone: 'UTC',
@@ -1708,7 +1708,7 @@ app.put('/api/user/preferences/:userId', async (req, res) => {
     // Update preferences
     const userPreferences = db.collection('userpreferences');
     const result = await userPreferences.updateOne(
-      { userId: userId },
+      { userId: new ObjectId(userId) },
       { $set: sanitizedUpdate },
       { upsert: true }
     );
@@ -1719,7 +1719,7 @@ app.put('/api/user/preferences/:userId', async (req, res) => {
 
     // Get updated preferences
     const updatedPreferences = await userPreferences.findOne({
-      userId: userId,
+      userId: new ObjectId(userId),
     });
     const { _id, ...preferencesData } = updatedPreferences;
 
@@ -2008,7 +2008,9 @@ app.get('/api/user/billing/:userId', async (req, res) => {
     // Get collections (only those that exist and have data)
     const subscriptions = db.collection('subscriptions');
     const plans = db.collection('plans');
-    // Note: usagemetrics, invoices, payments, billings collections don't exist - using defaults
+    const invoices = db.collection('invoices');
+    const payments = db.collection('payments');
+    const billings = db.collection('billings');
 
     const planDocs = await plans.find({}).toArray();
     const basePlanOptions = buildPlanOptions(planDocs);
@@ -2102,6 +2104,27 @@ app.get('/api/user/billing/:userId', async (req, res) => {
         Math.ceil((latestExpiry - now) / (1000 * 60 * 60 * 24))
       );
 
+      // Fetch user's invoices
+      const userInvoices = await invoices
+        .find({ userId: sessionUser._id })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .toArray();
+
+      // Fetch user's payments
+      const userPayments = await payments
+        .find({ userId: sessionUser._id })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .toArray();
+
+      // Fetch user's billing history
+      const userBillingHistory = await billings
+        .find({ userId: sessionUser._id })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .toArray();
+
       const billingData = {
         currentPlan: {
           name: `${activeAgentSubscriptions.length} Active Agent${
@@ -2185,9 +2208,27 @@ app.get('/api/user/billing/:userId', async (req, res) => {
             end: latestExpiry.toISOString().split('T')[0],
           },
         },
-        invoices: [],
-        paymentMethods: [],
-        billingHistory: [],
+        invoices: userInvoices.map((inv) => ({
+          id: inv._id.toString(),
+          date: inv.createdAt?.toISOString().split('T')[0] || 'N/A',
+          description: `${inv.agentName || inv.agentId} (${inv.plan})`,
+          amount: `$${inv.amount.toFixed(2)}`,
+          status: inv.status,
+          paidAt: inv.paidAt?.toISOString().split('T')[0] || 'N/A',
+        })),
+        paymentMethods: userPayments.length > 0 ? [{
+          type: userPayments[0].paymentMethod || 'card',
+          last4: userPayments[0].last4 || '****',
+          brand: userPayments[0].brand || 'Unknown',
+          isDefault: true,
+        }] : [],
+        billingHistory: userBillingHistory.map((hist) => ({
+          id: hist._id.toString(),
+          date: hist.createdAt?.toISOString().split('T')[0] || 'N/A',
+          description: hist.description,
+          amount: hist.amount ? `$${hist.amount.toFixed(2)}` : '$0.00',
+          type: hist.type,
+        })),
         upcomingCharges: agentDetails.map((agent) => ({
           description: `${agent.agentName} (${agent.plan}) - Renewal`,
           amount: `$${agent.price.toFixed(2)}`,

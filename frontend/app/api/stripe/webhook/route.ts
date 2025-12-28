@@ -9,6 +9,12 @@ import Stripe from 'stripe';
 import { verifyWebhookSignature } from '../../../../lib/stripe-client';
 import { connectToDatabase } from '../../../../lib/mongodb-client';
 import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
+import { 
+  createInvoiceRecord, 
+  createPaymentRecord, 
+  createBillingRecord,
+  getPaymentDetailsFromSubscription 
+} from '../../../../lib/billing-helpers';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
@@ -208,6 +214,7 @@ async function handleCheckoutSessionCompleted(
     const agentSub = new AgentSubscriptionModel({
       userId: metadata?.userId,
       agentId: metadata?.agentId,
+      agentName: metadata?.agentName, // Add agent name
       plan: planType,
       price: subscription.items.data[0]?.price?.unit_amount
         ? subscription.items.data[0].price.unit_amount / 100
@@ -217,10 +224,63 @@ async function handleCheckoutSessionCompleted(
       expiryDate: new Date(subscription.current_period_end * 1000),
       autoRenew: false, // Always false for one-time purchase model
       stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
+      billing: { // Add billing sub-document
+        interval: planType === 'daily' ? 'day' : planType === 'weekly' ? 'week' : 'month',
+        amount: subscription.items.data[0]?.price?.unit_amount || 0,
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      },
     });
 
     await agentSub.save();
     console.log('✅ Agent subscription created:', agentSub._id);
+    
+    // 💰 CREATE INVOICE RECORD
+    await createInvoiceRecord({
+      userId: metadata?.userId as string,
+      email: email as string,
+      stripeSubscriptionId: subscription.id,
+      agentId: metadata?.agentId as string,
+      agentName: metadata?.agentName as string,
+      plan: planType,
+      amount: agentSub.price,
+      currency: 'usd',
+      status: 'paid',
+      paidAt: new Date(subscription.current_period_start * 1000),
+    });
+    
+    // 💳 CREATE PAYMENT RECORD
+    const paymentDetails = await getPaymentDetailsFromSubscription(stripe, subscription.id);
+    await createPaymentRecord({
+      userId: metadata?.userId as string,
+      email: email as string,
+      stripePaymentIntentId: paymentDetails?.paymentIntentId,
+      stripeChargeId: paymentDetails?.chargeId,
+      stripeInvoiceId: paymentDetails?.invoiceId,
+      stripeSubscriptionId: subscription.id,
+      agentId: metadata?.agentId as string,
+      agentName: metadata?.agentName as string,
+      plan: planType,
+      amount: agentSub.price,
+      currency: 'usd',
+      status: 'succeeded',
+      paymentMethod: paymentDetails?.paymentMethod || 'card',
+      last4: paymentDetails?.last4,
+      brand: paymentDetails?.brand,
+    });
+    
+    // 📋 CREATE BILLING HISTORY RECORD
+    await createBillingRecord({
+      userId: metadata?.userId as string,
+      email: email as string,
+      type: 'subscription',
+      stripeSubscriptionId: subscription.id,
+      agentId: metadata?.agentId as string,
+      agentName: metadata?.agentName as string,
+      plan: planType,
+      amount: agentSub.price,
+      currency: 'usd',
+      description: `Purchased ${metadata?.agentName} - ${planType} plan`,
+    });
   } else {
     console.log('ℹ️ Agent subscription already exists, skipping creation');
   }
