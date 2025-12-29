@@ -410,7 +410,9 @@ export default function NeuralChatDemo() {
           }}
           theme="default"
           isCollapsed={isQuickActionsCollapsed}
-          onToggleCollapse={() => setIsQuickActionsCollapsed(!isQuickActionsCollapsed)}
+          onToggleCollapse={() =>
+            setIsQuickActionsCollapsed(!isQuickActionsCollapsed)
+          }
         />
 
         {/* Input Area */}

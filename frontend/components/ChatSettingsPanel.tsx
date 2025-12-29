@@ -196,7 +196,9 @@ export default function ChatSettingsPanel({
         className={`w-72 flex-shrink-0 flex flex-col h-full border-r ${panelStyles} transition-all duration-300`}
       >
         {/* Header */}
-        <div className={`${headerStyles} px-4 py-3 flex items-center justify-between flex-shrink-0`}>
+        <div
+          className={`${headerStyles} px-4 py-3 flex items-center justify-between flex-shrink-0`}
+        >
           <div className="flex items-center space-x-2">
             {isNeural ? (
               <CpuChipIcon className="w-5 h-5 text-white animate-pulse" />
@@ -223,7 +225,11 @@ export default function ChatSettingsPanel({
         <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
           {/* Presets */}
           <div className={`rounded-xl border p-3 ${sectionStyles}`}>
-            <h4 className={`text-xs font-semibold mb-2 ${isNeural ? 'text-cyan-400' : 'text-indigo-600'}`}>
+            <h4
+              className={`text-xs font-semibold mb-2 ${
+                isNeural ? 'text-cyan-400' : 'text-indigo-600'
+              }`}
+            >
               AI Presets
             </h4>
             <div className="grid grid-cols-2 gap-2">
@@ -251,10 +257,18 @@ export default function ChatSettingsPanel({
           {/* Temperature */}
           <div className={`rounded-xl border p-3 ${sectionStyles}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className={`text-xs font-medium ${isNeural ? 'text-gray-300' : 'text-gray-700'}`}>
+              <span
+                className={`text-xs font-medium ${
+                  isNeural ? 'text-gray-300' : 'text-gray-700'
+                }`}
+              >
                 Temperature
               </span>
-              <span className={`text-xs font-mono ${isNeural ? 'text-cyan-400' : 'text-indigo-600'}`}>
+              <span
+                className={`text-xs font-mono ${
+                  isNeural ? 'text-cyan-400' : 'text-indigo-600'
+                }`}
+              >
                 {settings.temperature.toFixed(2)}
               </span>
             </div>
@@ -264,7 +278,9 @@ export default function ChatSettingsPanel({
               max="2"
               step="0.1"
               value={settings.temperature}
-              onChange={(e) => onUpdateSettings({ temperature: parseFloat(e.target.value) })}
+              onChange={(e) =>
+                onUpdateSettings({ temperature: parseFloat(e.target.value) })
+              }
               className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${sliderAccent}`}
             />
           </div>
@@ -272,10 +288,18 @@ export default function ChatSettingsPanel({
           {/* Max Tokens */}
           <div className={`rounded-xl border p-3 ${sectionStyles}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className={`text-xs font-medium ${isNeural ? 'text-gray-300' : 'text-gray-700'}`}>
+              <span
+                className={`text-xs font-medium ${
+                  isNeural ? 'text-gray-300' : 'text-gray-700'
+                }`}
+              >
                 Max Tokens
               </span>
-              <span className={`text-xs font-mono ${isNeural ? 'text-cyan-400' : 'text-indigo-600'}`}>
+              <span
+                className={`text-xs font-mono ${
+                  isNeural ? 'text-cyan-400' : 'text-indigo-600'
+                }`}
+              >
                 {settings.maxTokens}
               </span>
             </div>
@@ -285,14 +309,20 @@ export default function ChatSettingsPanel({
               max="8000"
               step="500"
               value={settings.maxTokens}
-              onChange={(e) => onUpdateSettings({ maxTokens: parseInt(e.target.value) })}
+              onChange={(e) =>
+                onUpdateSettings({ maxTokens: parseInt(e.target.value) })
+              }
               className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${sliderAccent}`}
             />
           </div>
 
           {/* Provider & Model */}
           <div className={`rounded-xl border p-3 ${sectionStyles}`}>
-            <h4 className={`text-xs font-semibold mb-2 ${isNeural ? 'text-cyan-400' : 'text-indigo-600'}`}>
+            <h4
+              className={`text-xs font-semibold mb-2 ${
+                isNeural ? 'text-cyan-400' : 'text-indigo-600'
+              }`}
+            >
               AI Provider
             </h4>
             <select
@@ -319,7 +349,9 @@ export default function ChatSettingsPanel({
               className={`w-full px-2 py-1.5 rounded-lg text-xs border mt-2 ${inputStyles}`}
             >
               {PROVIDER_MODEL_OPTIONS[settings.provider]?.map((model) => (
-                <option key={model} value={model}>{model}</option>
+                <option key={model} value={model}>
+                  {model}
+                </option>
               ))}
             </select>
           </div>

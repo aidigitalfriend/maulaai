@@ -9,9 +9,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 import ChatSessionSidebar from './ChatSessionSidebar';
-import ChatSettingsPanel, {
-  AgentSettings,
-} from './ChatSettingsPanel';
+import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
 
 interface ChatSession {
   id: string;
@@ -66,7 +64,9 @@ export default function EnhancedChatLayout({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [activeLeftPanel, setActiveLeftPanel] = useState<'sessions' | 'settings'>('sessions');
+  const [activeLeftPanel, setActiveLeftPanel] = useState<
+    'sessions' | 'settings'
+  >('sessions');
 
   // Load theme from localStorage
   useEffect(() => {

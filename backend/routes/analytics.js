@@ -1,10 +1,14 @@
 /**
  * ANALYTICS API ENDPOINTS
  * Provides endpoints for tracking and retrieving analytics data
+ * COMPLETE TRACKING: visitors, sessions, pageviews, events, tools, chat, lab
  */
 
 import express from 'express';
 import {
+  trackVisitor,
+  createSession,
+  trackPageView,
   trackChatInteraction,
   trackToolUsage,
   trackUserEvent,
@@ -12,10 +16,144 @@ import {
   getVisitorStats,
   getSessionStats,
   getRealtimeStats,
+  detectDevice,
+  detectBrowser,
+  detectOS,
 } from '../lib/analytics-tracker.js';
 import { getTrackingData } from '../lib/tracking-middleware.js';
+import { LabExperiment } from '../models/LabExperiment.js';
 
 const router = express.Router();
+
+// ============================================
+// TRACK VISITOR (First visit)
+// ============================================
+router.post('/track/visitor', async (req, res) => {
+  try {
+    const { visitorId, sessionId, userId, referrer, landingPage, utmParams } =
+      req.body;
+
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const ipAddress =
+      req.ip ||
+      req.headers['x-forwarded-for'] ||
+      req.socket?.remoteAddress ||
+      'unknown';
+
+    const visitor = await trackVisitor({
+      visitorId,
+      sessionId,
+      userId,
+      ipAddress,
+      userAgent,
+      referrer,
+      landingPage,
+      device: detectDevice(userAgent),
+      browser: detectBrowser(userAgent),
+      os: detectOS(userAgent),
+      utmParams,
+    });
+
+    // Also create/update session
+    await createSession({
+      sessionId,
+      visitorId,
+      userId,
+      device: detectDevice(userAgent),
+      browser: detectBrowser(userAgent),
+      ipAddress,
+    });
+
+    res.json({
+      success: true,
+      visitorId: visitor?.visitorId,
+      message: 'Visitor tracked',
+    });
+  } catch (error) {
+    console.error('Error tracking visitor:', error);
+    res.status(500).json({ error: 'Failed to track visitor' });
+  }
+});
+
+// ============================================
+// TRACK PAGE VIEW
+// ============================================
+router.post('/track/pageview', async (req, res) => {
+  try {
+    const { visitorId, sessionId, userId, url, title, referrer, timeSpent } =
+      req.body;
+
+    if (!visitorId || !sessionId) {
+      return res
+        .status(400)
+        .json({ error: 'visitorId and sessionId required' });
+    }
+
+    const pageView = await trackPageView({
+      visitorId,
+      sessionId,
+      userId,
+      url: url || '/',
+      title,
+      referrer,
+      timeSpent: timeSpent || 0,
+    });
+
+    res.json({
+      success: true,
+      pageViewId: pageView?._id,
+      message: 'Page view tracked',
+    });
+  } catch (error) {
+    console.error('Error tracking page view:', error);
+    res.status(500).json({ error: 'Failed to track page view' });
+  }
+});
+
+// ============================================
+// TRACK LAB EXPERIMENT
+// ============================================
+router.post('/track/lab', async (req, res) => {
+  try {
+    const {
+      experimentType,
+      userId,
+      sessionId,
+      input,
+      output,
+      status,
+      processingTime,
+      tokensUsed,
+    } = req.body;
+
+    const experiment = new LabExperiment({
+      experimentId: `exp_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`,
+      experimentType,
+      userId,
+      sessionId,
+      input,
+      output,
+      status: status || 'completed',
+      processingTime,
+      tokensUsed,
+      createdAt: new Date(),
+      completedAt: status === 'completed' ? new Date() : null,
+    });
+
+    await experiment.save();
+
+    res.json({
+      success: true,
+      experimentId: experiment.experimentId,
+      message: 'Lab experiment tracked',
+    });
+  } catch (error) {
+    console.error('Error tracking lab experiment:', error);
+    res.status(500).json({ error: 'Failed to track lab experiment' });
+  }
+});
 
 // ============================================
 // TRACK CHAT INTERACTION
@@ -122,18 +260,6 @@ router.post('/track/tool', async (req, res) => {
     console.error('Error tracking tool:', error);
     res.status(500).json({ error: 'Failed to track tool usage' });
   }
-});
-
-// ============================================
-// TRACK LAB EXPERIMENT (deprecated - collection removed)
-// ============================================
-router.post('/track/lab', async (req, res) => {
-  // Lab experiment tracking has been deprecated
-  res.json({
-    success: true,
-    experimentId: null,
-    message: 'Lab experiment tracking deprecated',
-  });
 });
 
 // ============================================

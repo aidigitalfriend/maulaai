@@ -7,6 +7,8 @@ import {
   Session,
   ApiUsage,
 } from '../models/Analytics.js';
+import { LabExperiment } from '../models/LabExperiment.js';
+import { Transaction } from '../models/Transaction.js';
 import { v4 as uuidv4 } from 'uuid';
 async function trackVisitor(data) {
   try {
@@ -194,6 +196,97 @@ async function trackToolUsage(data) {
     return null;
   }
 }
+
+/**
+ * Track Lab Experiment
+ * Records AI Lab experiment usage (neural-art, music-gen, etc.)
+ */
+async function trackLabExperiment(data) {
+  try {
+    const experiment = new LabExperiment({
+      experimentId: data.experimentId || uuidv4(),
+      experimentType: data.experimentType,
+      userId: data.userId,
+      sessionId: data.sessionId,
+      visitorId: data.visitorId,
+      input: data.input,
+      output: data.output,
+      status: data.status || 'completed',
+      processingTime: data.processingTime,
+      tokensUsed: data.tokensUsed,
+      costIncurred: data.costIncurred,
+      modelUsed: data.modelUsed,
+      parameters: data.parameters,
+      metadata: data.metadata,
+      timestamp: new Date(),
+    });
+    await experiment.save();
+    await updateSession(data.sessionId, {
+      $inc: { labExperiments: 1, interactions: 1 },
+    });
+    return experiment;
+  } catch (error) {
+    console.error('Error tracking lab experiment:', error);
+    return null;
+  }
+}
+
+/**
+ * Track Transaction
+ * Records billing/payment transactions
+ */
+async function trackTransaction(data) {
+  try {
+    const transaction = new Transaction({
+      transactionId: data.transactionId || uuidv4(),
+      userId: data.userId,
+      stripePaymentIntentId: data.stripePaymentIntentId,
+      stripeInvoiceId: data.stripeInvoiceId,
+      stripeChargeId: data.stripeChargeId,
+      type: data.type,
+      amount: data.amount,
+      currency: data.currency || 'usd',
+      status: data.status || 'pending',
+      description: data.description,
+      items: data.items,
+      subscription: data.subscription,
+      payment: data.payment,
+      billing: data.billing,
+      invoiceUrl: data.invoiceUrl,
+      receiptUrl: data.receiptUrl,
+      metadata: data.metadata,
+      timestamp: new Date(),
+    });
+    await transaction.save();
+    return transaction;
+  } catch (error) {
+    console.error('Error tracking transaction:', error);
+    return null;
+  }
+}
+
+/**
+ * Update Transaction Status
+ */
+async function updateTransactionStatus(
+  transactionId,
+  status,
+  additionalData = {}
+) {
+  try {
+    const transaction = await Transaction.findOne({ transactionId });
+    if (transaction) {
+      transaction.status = status;
+      Object.assign(transaction, additionalData);
+      await transaction.save();
+      return transaction;
+    }
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+  }
+  return null;
+}
+
 // LabExperiment tracking removed - collection dropped
 async function trackUserEvent(data) {
   try {
@@ -343,11 +436,14 @@ export {
   getVisitorStats,
   trackApiUsage,
   trackChatInteraction,
+  trackLabExperiment,
   trackPageView,
   trackToolUsage,
+  trackTransaction,
   trackUserEvent,
   trackVisitor,
   updateChatFeedback,
   updatePageViewMetrics,
   updateSession,
+  updateTransactionStatus,
 };

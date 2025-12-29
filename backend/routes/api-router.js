@@ -16,6 +16,14 @@ import userRouter from './user.js';
 import gamificationRouter from './gamification.js';
 import communityRouter from './community.js';
 
+// Import NEW route handlers for complete tracking
+import supportRouter from './support.js';
+import billingRouter from './billing.js';
+import careersRouter from './careers.js';
+import webinarsRouter from './webinars.js';
+import favoritesRouter from './favorites.js';
+import suggestionsRouter from './suggestions.js';
+
 const router = express.Router();
 
 // ============================================
@@ -180,6 +188,48 @@ router.use('/community', apiLimiter);
 router.use('/community', communityRouter);
 
 // ============================================
+// SUPPORT ROUTES
+// ============================================
+
+router.use('/support', apiLimiter);
+router.use('/support', supportRouter);
+
+// ============================================
+// BILLING ROUTES
+// ============================================
+
+router.use('/billing', apiLimiter);
+router.use('/billing', billingRouter);
+
+// ============================================
+// CAREERS ROUTES
+// ============================================
+
+router.use('/careers', apiLimiter);
+router.use('/careers', careersRouter);
+
+// ============================================
+// WEBINARS ROUTES
+// ============================================
+
+router.use('/webinars', apiLimiter);
+router.use('/webinars', webinarsRouter);
+
+// ============================================
+// FAVORITES ROUTES
+// ============================================
+
+router.use('/favorites', apiLimiter);
+router.use('/favorites', favoritesRouter);
+
+// ============================================
+// SUGGESTIONS ROUTES
+// ============================================
+
+router.use('/suggestions', apiLimiter);
+router.use('/suggestions', suggestionsRouter);
+
+// ============================================
 // SUBSCRIPTIONS ROUTES
 // ============================================
 
@@ -217,7 +267,52 @@ router.get('/docs', (req, res) => {
         update: 'PUT /api/agents/:id',
         delete: 'DELETE /api/agents/:id',
       },
-      analytics: 'GET /api/analytics/*',
+      analytics: {
+        trackVisitor: 'POST /api/analytics/track/visitor',
+        trackPageview: 'POST /api/analytics/track/pageview',
+        trackChat: 'POST /api/analytics/track/chat',
+        trackTool: 'POST /api/analytics/track/tool',
+        trackEvent: 'POST /api/analytics/track/event',
+        trackLab: 'POST /api/analytics/track/lab',
+        visitorStats: 'GET /api/analytics/visitor/:visitorId',
+        sessionStats: 'GET /api/analytics/session/:sessionId',
+        realtime: 'GET /api/analytics/realtime',
+      },
+      support: {
+        createTicket: 'POST /api/support/tickets',
+        getUserTickets: 'GET /api/support/tickets/user/:userId',
+        getTicket: 'GET /api/support/tickets/:ticketId',
+        addMessage: 'POST /api/support/tickets/:ticketId/messages',
+        consultations: 'POST /api/support/consultations',
+      },
+      billing: {
+        createTransaction: 'POST /api/billing/transactions',
+        getTransactions: 'GET /api/billing/transactions/user/:userId',
+        getBillingSummary: 'GET /api/billing/summary/:userId',
+      },
+      careers: {
+        apply: 'POST /api/careers/applications',
+        getApplications: 'GET /api/careers/applications/user/:userId',
+        withdrawApplication:
+          'POST /api/careers/applications/:applicationId/withdraw',
+      },
+      webinars: {
+        register: 'POST /api/webinars/register',
+        getRegistrations: 'GET /api/webinars/registrations/user/:userId',
+        cancel: 'POST /api/webinars/registrations/:registrationId/cancel',
+      },
+      favorites: {
+        add: 'POST /api/favorites',
+        list: 'GET /api/favorites/user/:userId',
+        check: 'GET /api/favorites/check/:userId/:type/:itemId',
+        remove: 'DELETE /api/favorites/:userId/:type/:itemId',
+      },
+      suggestions: {
+        create: 'POST /api/suggestions',
+        list: 'GET /api/suggestions',
+        vote: 'POST /api/suggestions/:suggestionId/vote',
+        comment: 'POST /api/suggestions/:suggestionId/comments',
+      },
       gamification: 'GET /api/gamification/*',
       community: 'GET /api/community/*',
       subscriptions: 'GET /api/subscriptions/*',
