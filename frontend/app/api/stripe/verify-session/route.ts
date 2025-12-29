@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+// Use internal backend URL for server-to-server communication
+const BACKEND_URL = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
 /**
  * Proxy to backend for Stripe session verification
@@ -16,8 +16,10 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          cookie: request.headers.get('cookie') || '',
         },
         body: JSON.stringify(body),
+        cache: 'no-store',
       }
     );
 
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Proxy failed',
+        error: error instanceof Error ? error.message : 'fetch failed',
       },
       { status: 500 }
     );
