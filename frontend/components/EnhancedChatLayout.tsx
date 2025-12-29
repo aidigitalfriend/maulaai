@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import ChatSessionSidebar from './ChatSessionSidebar';
 import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
+import ChatRightPanel from './ChatRightPanel';
 
 interface ChatSession {
   id: string;
@@ -62,6 +63,7 @@ export default function EnhancedChatLayout({
 }: EnhancedChatLayoutProps) {
   const [theme, setTheme] = useState<ChatTheme>('default');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [activeLeftPanel, setActiveLeftPanel] = useState<
@@ -287,38 +289,13 @@ export default function EnhancedChatLayout({
           <div className="flex-1 overflow-hidden">{children}</div>
         </div>
 
-        {/* Right Sidebar Panel - matches left panel slim width */}
-        <div
-          className={`hidden md:flex flex-col w-12 flex-shrink-0 border-l transition-colors ${
-            isNeural
-              ? 'bg-gray-900/60 border-cyan-500/20'
-              : 'bg-white/60 border-gray-200'
-          }`}
-        >
-          {/* Placeholder dots at bottom for future features */}
-          <div className="flex-1" />
-          <div className="flex flex-col items-center pb-4 space-y-3">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-cyan-500' : 'bg-indigo-500'
-              }`}
-            />
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-purple-500/60' : 'bg-gray-300'
-              }`}
-            />
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-purple-500/40' : 'bg-gray-200'
-              }`}
-            />
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-purple-500/20' : 'bg-gray-200'
-              }`}
-            />
-          </div>
+        {/* Right Sidebar Panel - mirrors left panel */}
+        <div className="hidden md:block">
+          <ChatRightPanel
+            isCollapsed={isRightPanelCollapsed}
+            onToggleCollapse={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
+            theme={theme}
+          />
         </div>
       </div>
 
