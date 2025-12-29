@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import { getClientPromise } from '@/lib/mongodb';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
+
+const DB_NAME = process.env.MONGODB_DB || 'onelastai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,21 +11,24 @@ export async function POST(request: NextRequest) {
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'No session ID' }, { status: 401 });
     }
 
     // Connect to database
-    await dbConnect();
+    const client = await getClientPromise();
+    const db = client.db(DB_NAME);
+    const users = db.collection('users');
+    const userSecurities = db.collection('usersecurities');
 
     // Find user with valid session
-    const sessionUser = await User.findOne({
+    const sessionUser = await users.findOne({
       sessionId: sessionId,
       sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
-        { message: 'Invalid or expired session' },
+        { success: false, message: 'Invalid or expired session' },
         { status: 401 }
       );
     }
@@ -38,18 +42,28 @@ export async function POST(request: NextRequest) {
     const qrCodeDataURL = await QRCode.toDataURL(otpauth);
 
     // Generate backup codes
-    const backupCodes = [];
+    const backupCodes: string[] = [];
     for (let i = 0; i < 10; i++) {
-      backupCodes.push(Math.random().toString(36).substr(2, 8));
+      backupCodes.push(Math.random().toString(36).substr(2, 8).toUpperCase());
     }
 
+    const now = new Date();
+
     // Store the secret temporarily (not enabled yet until verified)
-    await User.findByIdAndUpdate(sessionUser._id, {
-      tempTwoFactorSecret: secret,
-      tempBackupCodes: backupCodes,
-    });
+    await userSecurities.updateOne(
+      { userId: sessionUser._id.toString() },
+      {
+        $set: {
+          tempTwoFactorSecret: secret,
+          tempBackupCodes: backupCodes,
+          updatedAt: now,
+        },
+      },
+      { upsert: true }
+    );
 
     return NextResponse.json({
+      success: true,
       qrCode: qrCodeDataURL,
       secret: secret,
       backupCodes: backupCodes,
@@ -58,7 +72,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('2FA setup error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -30,16 +30,19 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': cookieHeader,
+        Cookie: cookieHeader,
       },
       body: JSON.stringify({ userId, agentId, immediate: immediate ?? true }),
     });
 
     const data = await res.json();
-    
+
     if (!res.ok) {
       return NextResponse.json(
-        { success: false, error: data.error || 'Failed to cancel subscription' },
+        {
+          success: false,
+          error: data.error || 'Failed to cancel subscription',
+        },
         { status: res.status }
       );
     }

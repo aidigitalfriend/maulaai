@@ -35,6 +35,18 @@ type TrustedDevice = {
   ipAddress?: string;
 };
 
+type ActiveSession = {
+  id: string;
+  createdAt: string;
+  lastActivity: string;
+  ipAddress: string;
+  userAgent: string;
+  isCurrent: boolean;
+  browser?: string;
+  device?: string;
+  location?: string;
+};
+
 type LoginHistoryEntry = {
   id: string;
   date: string;
@@ -71,12 +83,14 @@ export default function SecuritySettingsPage() {
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [verificationCode, setVerificationCode] = useState('');
   const [verifying2FA, setVerifying2FA] = useState(false);
+  const [setting2FA, setSetting2FA] = useState(false);
 
-  // Device and history data
+  // Device, session, and history data
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([]);
+  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
-  const [securityOverview, setSecurityOverview] =
-    useState<SecurityOverview | null>(null);
+  const [securityOverview, setSecurityOverview] = useState<SecurityOverview | null>(null);
+  const [showLoginHistory, setShowLoginHistory] = useState(false);
 
   const defaultRecommendations: Recommendation[] = [
     {
@@ -91,54 +105,55 @@ export default function SecuritySettingsPage() {
   const normalizeDevices = (devices: any[] = []): TrustedDevice[] =>
     devices.map((device, index) => ({
       id: String(device.id ?? device._id ?? index),
-      name:
-        device.name ||
-        device.deviceName ||
-        device.model ||
-        device.agent ||
-        'Unknown Device',
+      name: device.name || device.deviceName || device.model || 'Unknown Device',
       type: device.type || device.deviceType || 'desktop',
-      lastSeen:
-        device.lastSeen ||
-        device.updatedAt ||
-        device.timestamp ||
-        device.addedDate ||
-        new Date().toISOString(),
+      lastSeen: device.lastSeen || device.updatedAt || new Date().toISOString(),
       location: device.location || device.geoLocation || 'Unknown location',
       browser: device.browser || device.userAgent || 'Unknown browser',
       current: Boolean(device.current ?? device.isCurrent ?? false),
-      ipAddress: device.ipAddress || device.ip || device.lastKnownIp || '',
+      ipAddress: device.ipAddress || device.ip || '',
+    }));
+
+  const normalizeSessions = (sessions: any[] = []): ActiveSession[] =>
+    sessions.map((session, index) => ({
+      id: String(session.id ?? session._id ?? index),
+      createdAt: session.createdAt || new Date().toISOString(),
+      lastActivity: session.lastActivity || session.updatedAt || new Date().toISOString(),
+      ipAddress: session.ipAddress || session.ip || 'Unknown',
+      userAgent: session.userAgent || 'Unknown',
+      isCurrent: Boolean(session.isCurrent ?? false),
+      browser: detectBrowser(session.userAgent || ''),
+      device: detectDevice(session.userAgent || ''),
+      location: session.location || 'Current Session',
     }));
 
   const normalizeLoginHistory = (history: any[] = []): LoginHistoryEntry[] =>
-    history.map((entry, index) => {
-      const timestamp =
-        entry.date ||
-        entry.timestamp ||
-        entry.time ||
-        entry.createdAt ||
-        new Date().toISOString();
-      const status =
-        entry.status ||
-        (entry.success === false
-          ? 'blocked'
-          : entry.success === true
-          ? 'success'
-          : 'warning');
+    history.map((entry, index) => ({
+      id: String(entry.id ?? entry._id ?? index),
+      date: entry.date || entry.timestamp || new Date().toISOString(),
+      device: entry.device || entry.deviceName || 'Unknown Device',
+      location: entry.location || 'Unknown location',
+      status: entry.status || (entry.success === false ? 'blocked' : 'success'),
+      ip: entry.ip || entry.ipAddress || '—',
+    }));
 
-      return {
-        id: String(entry.id ?? entry._id ?? index),
-        date: timestamp,
-        device:
-          entry.device ||
-          entry.deviceName ||
-          entry.userAgent ||
-          'Unknown Device',
-        location: entry.location || entry.geoLocation || 'Unknown location',
-        status,
-        ip: entry.ip || entry.ipAddress || entry.ip_address || '—',
-      };
-    });
+  function detectBrowser(userAgent: string): string {
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Edge')) return 'Edge';
+    return 'Unknown Browser';
+  }
+
+  function detectDevice(userAgent: string): string {
+    if (userAgent.includes('iPhone')) return 'iPhone';
+    if (userAgent.includes('iPad')) return 'iPad';
+    if (userAgent.includes('Android')) return 'Android Device';
+    if (userAgent.includes('Macintosh')) return 'Mac';
+    if (userAgent.includes('Windows')) return 'Windows PC';
+    if (userAgent.includes('Linux')) return 'Linux Computer';
+    return 'Computer';
+  }
 
   const fetchSecurityData = useCallback(
     async (options?: { signal?: AbortSignal; silent?: boolean }) => {
@@ -164,43 +179,32 @@ export default function SecuritySettingsPage() {
         setSecurityOverview({
           securityScore: data?.securityScore ?? 0,
           recommendations: data?.recommendations ?? [],
-          lastPasswordChange:
-            data?.lastPasswordChange ||
-            data?.passwordLastChanged ||
-            new Date().toISOString(),
+          lastPasswordChange: data?.passwordLastChanged || data?.lastPasswordChange || new Date().toISOString(),
           twoFactorSecret: data?.twoFactorSecret || '',
         });
 
         setTwoFactorEnabled(Boolean(data?.twoFactorEnabled));
         setBackupCodes(data?.backupCodes ?? []);
         setTrustedDevices(normalizeDevices(data?.trustedDevices));
+        setActiveSessions(normalizeSessions(data?.activeSessions));
         setLoginHistory(normalizeLoginHistory(data?.loginHistory));
         setFetchState({ loading: false, error: '' });
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return;
-        }
-
+        if (error instanceof DOMException && error.name === 'AbortError') return;
         console.error('Error fetching security data:', error);
         setFetchState({
           loading: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Unable to load security settings',
+          error: error instanceof Error ? error.message : 'Unable to load security settings',
         });
       }
     },
     [state.user?.id]
   );
 
-  // Fetch security data on mount
   useEffect(() => {
     if (!state.user?.id) return;
-
     const controller = new AbortController();
     fetchSecurityData({ signal: controller.signal });
-
     return () => controller.abort();
   }, [state.user?.id, fetchSecurityData]);
 
@@ -209,17 +213,12 @@ export default function SecuritySettingsPage() {
       setMessage({ type: 'error', text: 'Please fill in all password fields' });
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setMessage({ type: 'error', text: 'New passwords do not match' });
       return;
     }
-
     if (newPassword.length < 8) {
-      setMessage({
-        type: 'error',
-        text: 'Password must be at least 8 characters',
-      });
+      setMessage({ type: 'error', text: 'Password must be at least 8 characters' });
       return;
     }
 
@@ -229,10 +228,7 @@ export default function SecuritySettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
 
       const data = await res.json();
@@ -244,10 +240,7 @@ export default function SecuritySettingsPage() {
         setConfirmPassword('');
         fetchSecurityData({ silent: true });
       } else {
-        setMessage({
-          type: 'error',
-          text: data.message || 'Failed to change password',
-        });
+        setMessage({ type: 'error', text: data.message || 'Failed to change password' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Error changing password' });
@@ -255,19 +248,43 @@ export default function SecuritySettingsPage() {
     setLoading(false);
   };
 
+  const handleSetup2FA = async () => {
+    setSetting2FA(true);
+    setMessage({ type: '', text: '' });
+    
+    try {
+      const res = await fetch('/api/user/security/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+
+      if (data.success || data.qrCode) {
+        setQrCodeUrl(data.qrCode);
+        setBackupCodes(data.backupCodes || []);
+        setShowQRCode(true);
+        setVerifying2FA(true);
+        setMessage({
+          type: 'info',
+          text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
+        });
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to setup 2FA' });
+        setSetting2FA(false);
+      }
+    } catch (error) {
+      console.error('Error setting up 2FA:', error);
+      setMessage({ type: 'error', text: 'Error setting up 2FA' });
+      setSetting2FA(false);
+    }
+  };
+
   const handleToggle2FA = async (enabled: boolean) => {
     if (enabled) {
-      const otpUrl = buildOtpAuthUrl();
-      setQrCodeUrl(otpUrl);
-      setShowQRCode(true);
-      setVerifying2FA(true);
-      setTwoFactorEnabled(true);
-      setMessage({
-        type: 'info',
-        text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
-      });
-    } else if (!enabled) {
-      // Disable 2FA - require password confirmation
+      handleSetup2FA();
+    } else {
       const password = prompt('Please enter your password to disable 2FA:');
       if (!password) {
         setMessage({ type: 'error', text: 'Password required to disable 2FA' });
@@ -279,6 +296,7 @@ export default function SecuritySettingsPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
+          body: JSON.stringify({ password }),
         });
 
         const data = await res.json();
@@ -290,14 +308,12 @@ export default function SecuritySettingsPage() {
           setQrCodeUrl('');
           setBackupCodes([]);
           setVerifying2FA(false);
+          setSetting2FA(false);
           setVerificationCode('');
           setMessage({ type: 'success', text: '2FA has been disabled' });
           fetchSecurityData({ silent: true });
         } else {
-          setMessage({
-            type: 'error',
-            text: data.message || 'Failed to disable 2FA',
-          });
+          setMessage({ type: 'error', text: data.message || 'Failed to disable 2FA' });
         }
       } catch (error) {
         console.error('Error disabling 2FA:', error);
@@ -318,9 +334,7 @@ export default function SecuritySettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          code: verificationCode,
-        }),
+        body: JSON.stringify({ code: verificationCode }),
       });
 
       const data = await res.json();
@@ -328,21 +342,16 @@ export default function SecuritySettingsPage() {
       if (data.success) {
         setTwoFactorEnabled(true);
         setVerifying2FA(false);
+        setSetting2FA(false);
         setShowBackupCodes(true);
         if (data.backupCodes) {
           setBackupCodes(data.backupCodes);
         }
-        setMessage({
-          type: 'success',
-          text: '2FA has been enabled successfully!',
-        });
+        setMessage({ type: 'success', text: '2FA has been enabled successfully!' });
         setVerificationCode('');
         fetchSecurityData({ silent: true });
       } else {
-        setMessage({
-          type: 'error',
-          text: data.message || 'Invalid verification code',
-        });
+        setMessage({ type: 'error', text: data.message || 'Invalid verification code' });
       }
     } catch (error) {
       console.error('Error verifying 2FA code:', error);
@@ -352,16 +361,75 @@ export default function SecuritySettingsPage() {
     }
   };
 
+  const handleCancel2FASetup = () => {
+    setVerifying2FA(false);
+    setSetting2FA(false);
+    setShowQRCode(false);
+    setQrCodeUrl('');
+    setVerificationCode('');
+    setMessage({ type: '', text: '' });
+  };
+
+  const handleRevokeSession = async (sessionId: string) => {
+    if (sessionId === 'current' || activeSessions.find(s => s.id === sessionId)?.isCurrent) {
+      setMessage({ type: 'error', text: 'Cannot revoke current session' });
+      return;
+    }
+
+    if (!confirm('Are you sure you want to end this session?')) return;
+
+    try {
+      const res = await fetch(`/api/user/security/${state.user?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          activeSessions: activeSessions.filter(s => s.id !== sessionId),
+        }),
+      });
+
+      if (res.ok) {
+        setActiveSessions(prev => prev.filter(s => s.id !== sessionId));
+        setMessage({ type: 'success', text: 'Session ended successfully' });
+      } else {
+        setMessage({ type: 'error', text: 'Failed to end session' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error ending session' });
+    }
+  };
+
+  const handleRevokeAllSessions = async () => {
+    if (!confirm('This will log you out from all other devices. Continue?')) return;
+
+    try {
+      const currentSession = activeSessions.find(s => s.isCurrent);
+      const res = await fetch(`/api/user/security/${state.user?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          activeSessions: currentSession ? [currentSession] : [],
+        }),
+      });
+
+      if (res.ok) {
+        setActiveSessions(currentSession ? [currentSession] : []);
+        setMessage({ type: 'success', text: 'All other sessions have been ended' });
+      } else {
+        setMessage({ type: 'error', text: 'Failed to end sessions' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error ending sessions' });
+    }
+  };
+
   const handleRemoveDevice = async (deviceId: string) => {
     if (!state.user?.id) return;
-
     if (!confirm('Are you sure you want to remove this device?')) return;
 
     try {
-      const updatedDevices = trustedDevices.filter(
-        (device) => device.id !== deviceId
-      );
-
+      const updatedDevices = trustedDevices.filter(d => d.id !== deviceId);
       const res = await fetch(`/api/user/security/${state.user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -369,13 +437,12 @@ export default function SecuritySettingsPage() {
         body: JSON.stringify({ trustedDevices: updatedDevices }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to remove device');
+      if (res.ok) {
+        setTrustedDevices(updatedDevices);
+        setMessage({ type: 'success', text: 'Device removed successfully' });
+      } else {
+        setMessage({ type: 'error', text: 'Failed to remove device' });
       }
-
-      setTrustedDevices(updatedDevices);
-      setMessage({ type: 'success', text: 'Device removed successfully' });
-      fetchSecurityData({ silent: true });
     } catch (error) {
       setMessage({ type: 'error', text: 'Error removing device' });
     }
@@ -383,14 +450,7 @@ export default function SecuritySettingsPage() {
 
   const handleRemoveAllDevices = async () => {
     if (!state.user?.id) return;
-
-    if (
-      !confirm(
-        'Remove all trusted devices? This will require re-trusting each device.'
-      )
-    ) {
-      return;
-    }
+    if (!confirm('Remove all trusted devices? This will require re-trusting each device.')) return;
 
     try {
       const res = await fetch(`/api/user/security/${state.user.id}`, {
@@ -400,16 +460,14 @@ export default function SecuritySettingsPage() {
         body: JSON.stringify({ trustedDevices: [] }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to clear trusted devices');
+      if (res.ok) {
+        setTrustedDevices([]);
+        setMessage({ type: 'success', text: 'All trusted devices removed' });
+      } else {
+        setMessage({ type: 'error', text: 'Unable to remove devices' });
       }
-
-      setTrustedDevices([]);
-      setMessage({ type: 'success', text: 'All trusted devices removed' });
-      fetchSecurityData({ silent: true });
     } catch (error) {
-      console.error('Error clearing devices', error);
-      setMessage({ type: 'error', text: 'Unable to remove devices' });
+      setMessage({ type: 'error', text: 'Error removing devices' });
     }
   };
 
@@ -417,7 +475,6 @@ export default function SecuritySettingsPage() {
     if (!dateString) return '—';
     const parsed = new Date(dateString);
     if (Number.isNaN(parsed.getTime())) return '—';
-
     return parsed.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -431,7 +488,6 @@ export default function SecuritySettingsPage() {
     if (!dateString) return '—';
     const parsed = new Date(dateString);
     if (Number.isNaN(parsed.getTime())) return '—';
-
     return parsed.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -439,7 +495,7 @@ export default function SecuritySettingsPage() {
     });
   };
 
-  const getDeviceIcon = (type) => {
+  const getDeviceIcon = (type: string) => {
     switch (type) {
       case 'mobile':
       case 'tablet':
@@ -449,25 +505,15 @@ export default function SecuritySettingsPage() {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
         return 'text-green-600 bg-green-50';
       case 'blocked':
         return 'text-red-600 bg-red-50';
-      case 'warning':
-        return 'text-yellow-600 bg-yellow-50';
       default:
-        return 'text-neural-600 bg-neural-50';
+        return 'text-yellow-600 bg-yellow-50';
     }
-  };
-
-  const buildOtpAuthUrl = () => {
-    const label = encodeURIComponent(state.user?.email || 'user@onelastai.co');
-    const secret =
-      securityOverview?.twoFactorSecret ||
-      Math.random().toString(36).substring(2, 18).toUpperCase();
-    return `otpauth://totp/OneLastAI:${label}?secret=${secret}&issuer=OneLastAI`;
   };
 
   const securityScore = securityOverview?.securityScore ?? 0;
@@ -504,10 +550,7 @@ export default function SecuritySettingsPage() {
             <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
               <div className="flex items-center justify-between">
                 <p>{fetchState.error}</p>
-                <button
-                  className="text-sm font-medium underline"
-                  onClick={() => fetchSecurityData()}
-                >
+                <button className="text-sm font-medium underline" onClick={() => fetchSecurityData()}>
                   Retry
                 </button>
               </div>
@@ -526,64 +569,29 @@ export default function SecuritySettingsPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100 text-center">
                 <div className="relative w-24 h-24 mx-auto mb-4">
                   <svg className="w-24 h-24 transform -rotate-90">
-                    <circle
-                      cx="48"
-                      cy="48"
-                      r="40"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="transparent"
-                      className="text-neural-200"
-                    />
-                    <circle
-                      cx="48"
-                      cy="48"
-                      r="40"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="transparent"
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-neural-200" />
+                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
                       strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${
-                        2 * Math.PI * 40 * (1 - securityScore / 100)
-                      }`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - securityScore / 100)}`}
                       className="text-brand-500"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-neural-900">
-                      {securityScore}%
-                    </span>
+                    <span className="text-2xl font-bold text-neural-900">{securityScore}%</span>
                   </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">
-                  Security Score
-                </h3>
-                <p className="text-sm text-neural-600 mb-4">
-                  Your account security rating
-                </p>
+                <h3 className="text-lg font-semibold text-neural-900 mb-2">Security Score</h3>
+                <p className="text-sm text-neural-600 mb-4">Your account security rating</p>
 
                 <div className="space-y-2 text-left">
                   {recommendations.map((rec) => (
-                    <div
-                      key={rec.id}
-                      className={`p-3 rounded-lg ${
-                        rec.priority === 'high' ? 'bg-red-50' : 'bg-yellow-50'
-                      }`}
-                    >
+                    <div key={rec.id} className={`p-3 rounded-lg ${rec.priority === 'high' ? 'bg-red-50' : 'bg-yellow-50'}`}>
                       <div className="flex items-center">
-                        {rec.priority === 'high' ? (
-                          <ExclamationTriangleIcon className="w-4 h-4 text-red-500 mr-2 flex-shrink-0" />
-                        ) : (
-                          <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500 mr-2 flex-shrink-0" />
-                        )}
+                        <ExclamationTriangleIcon className={`w-4 h-4 mr-2 flex-shrink-0 ${rec.priority === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />
                         <div>
-                          <p className="text-xs font-medium text-neural-900">
-                            {rec.title}
-                          </p>
-                          <p className="text-xs text-neural-600">
-                            {rec.description}
-                          </p>
+                          <p className="text-xs font-medium text-neural-900">{rec.title}</p>
+                          <p className="text-xs text-neural-600">{rec.description}</p>
                         </div>
                       </div>
                     </div>
@@ -599,96 +607,62 @@ export default function SecuritySettingsPage() {
                 <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
                   <div className="flex items-center mb-6">
                     <KeyIcon className="w-6 h-6 text-brand-500 mr-3" />
-                    <h3 className="text-xl font-semibold text-neural-900">
-                      Password & Authentication
-                    </h3>
+                    <h3 className="text-xl font-semibold text-neural-900">Password & Authentication</h3>
                   </div>
 
                   <div className="space-y-6">
                     {/* Change Password */}
                     <div className="border border-neural-100 rounded-lg p-6">
                       {message.text && (
-                        <div
-                          className={`mb-4 p-3 rounded-lg ${
-                            message.type === 'success'
-                              ? 'bg-green-50 text-green-800'
-                              : 'bg-red-50 text-red-800'
-                          }`}
-                        >
+                        <div className={`mb-4 p-3 rounded-lg ${
+                          message.type === 'success' ? 'bg-green-50 text-green-800' :
+                          message.type === 'info' ? 'bg-blue-50 text-blue-800' :
+                          'bg-red-50 text-red-800'
+                        }`}>
                           {message.text}
                         </div>
                       )}
 
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-neural-900">
-                            Password
-                          </h4>
-                          <p className="text-sm text-neural-600">
-                            Last changed on {formatDate(lastPasswordChange)}
-                          </p>
+                          <h4 className="font-medium text-neural-900">Password</h4>
+                          <p className="text-sm text-neural-600">Last changed on {formatDate(lastPasswordChange)}</p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
-                            Current Password
-                          </label>
+                          <label className="block text-sm font-medium text-neural-700 mb-2">Current Password</label>
                           <div className="relative">
                             <input
                               type={showPassword ? 'text' : 'password'}
                               placeholder="Enter current password"
                               value={currentPassword}
-                              onChange={(e) =>
-                                setCurrentPassword(e.target.value)
-                              }
+                              onChange={(e) => setCurrentPassword(e.target.value)}
                               className="w-full p-3 pr-12 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                            >
-                              {showPassword ? (
-                                <EyeSlashIcon className="w-5 h-5 text-neural-400" />
-                              ) : (
-                                <EyeIcon className="w-5 h-5 text-neural-400" />
-                              )}
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                              {showPassword ? <EyeSlashIcon className="w-5 h-5 text-neural-400" /> : <EyeIcon className="w-5 h-5 text-neural-400" />}
                             </button>
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
-                            New Password
-                          </label>
-                          <input
-                            type="password"
-                            placeholder="Enter new password"
-                            value={newPassword}
+                          <label className="block text-sm font-medium text-neural-700 mb-2">New Password</label>
+                          <input type="password" placeholder="Enter new password" value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">
-                            Confirm Password
-                          </label>
-                          <input
-                            type="password"
-                            placeholder="Confirm new password"
-                            value={confirmPassword}
+                          <label className="block text-sm font-medium text-neural-700 mb-2">Confirm Password</label>
+                          <input type="password" placeholder="Confirm new password" value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                           />
                         </div>
                       </div>
 
-                      <button
-                        onClick={handleChangePassword}
-                        disabled={loading}
-                        className="btn-primary"
-                      >
+                      <button onClick={handleChangePassword} disabled={loading} className="btn-primary">
                         {loading ? 'Changing...' : 'Change Password'}
                       </button>
                     </div>
@@ -697,90 +671,51 @@ export default function SecuritySettingsPage() {
                     <div className="border border-neural-100 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-neural-900">
-                            Two-Factor Authentication
-                          </h4>
-                          <p className="text-sm text-neural-600">
-                            Add an extra layer of security to your account
-                          </p>
+                          <h4 className="font-medium text-neural-900">Two-Factor Authentication</h4>
+                          <p className="text-sm text-neural-600">Add an extra layer of security to your account</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
                             checked={twoFactorEnabled}
                             onChange={(e) => handleToggle2FA(e.target.checked)}
+                            disabled={verifying2FA || setting2FA}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+                          <div className="w-11 h-6 bg-neural-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neural-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600 peer-disabled:opacity-50"></div>
                         </label>
                       </div>
 
-                      {/* Show QR code when setting up (verifying) */}
+                      {/* Show QR code when setting up */}
                       {verifying2FA && showQRCode && qrCodeUrl && (
                         <div className="space-y-4 mt-4">
                           <div className="p-6 bg-white border-2 border-brand-200 rounded-lg">
                             <div className="text-center">
                               <div className="bg-white p-4 rounded-lg inline-block mb-4 border border-neural-200">
-                                <img
-                                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
-                                    qrCodeUrl
-                                  )}`}
-                                  alt="2FA QR Code"
-                                  className="w-64 h-64"
-                                />
+                                <img src={qrCodeUrl} alt="2FA QR Code" className="w-64 h-64" />
                               </div>
-                              <p className="text-sm text-neural-600 mb-2">
-                                Scan this QR code with your authenticator app
-                              </p>
-                              <p className="text-xs text-neural-500">
-                                (Google Authenticator, Authy, Microsoft
-                                Authenticator, etc.)
-                              </p>
+                              <p className="text-sm text-neural-600 mb-2">Scan this QR code with your authenticator app</p>
+                              <p className="text-xs text-neural-500">(Google Authenticator, Authy, Microsoft Authenticator, etc.)</p>
                             </div>
                           </div>
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-neural-700 mb-2">
-                                Enter 6-Digit Verification Code
-                              </label>
+                              <label className="block text-sm font-medium text-neural-700 mb-2">Enter 6-Digit Verification Code</label>
                               <input
                                 type="text"
                                 value={verificationCode}
-                                onChange={(e) =>
-                                  setVerificationCode(
-                                    e.target.value
-                                      .replace(/\D/g, '')
-                                      .slice(0, 6)
-                                  )
-                                }
+                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                 placeholder="000000"
                                 maxLength={6}
                                 className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white border-2 border-neural-200 rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
                               />
                             </div>
-                            <button
-                              onClick={handleVerify2FACode}
-                              disabled={
-                                loading || verificationCode.length !== 6
-                              }
-                              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
+                            <button onClick={handleVerify2FACode} disabled={loading || verificationCode.length !== 6}
+                              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
                               {loading ? 'Verifying...' : 'Verify & Enable 2FA'}
                             </button>
-                            <button
-                              onClick={() => {
-                                setVerifying2FA(false);
-                                setShowQRCode(false);
-                                setQrCodeUrl('');
-                                setVerificationCode('');
-                                setMessage({ type: '', text: '' });
-                                setTwoFactorEnabled(false);
-                              }}
-                              className="btn-ghost w-full"
-                            >
-                              Cancel
-                            </button>
+                            <button onClick={handleCancel2FASetup} className="btn-ghost w-full">Cancel</button>
                           </div>
                         </div>
                       )}
@@ -792,57 +727,34 @@ export default function SecuritySettingsPage() {
                             <div className="flex items-center">
                               <CheckCircleIcon className="w-5 h-5 text-green-500 mr-3" />
                               <div>
-                                <p className="font-medium text-green-900">
-                                  Authenticator App Active
-                                </p>
-                                <p className="text-sm text-green-700">
-                                  {backupCodes.length} backup codes available
-                                </p>
+                                <p className="font-medium text-green-900">Authenticator App Active</p>
+                                <p className="text-sm text-green-700">{backupCodes.length} backup codes available</p>
                               </div>
                             </div>
                           </div>
 
-                          {twoFactorEnabled &&
-                            !verifying2FA &&
-                            backupCodes.length > 0 && (
-                              <button
-                                onClick={() =>
-                                  setShowBackupCodes(!showBackupCodes)
-                                }
-                                className="btn-secondary w-full"
-                              >
-                                {showBackupCodes ? 'Hide' : 'View'} Backup Codes
-                              </button>
-                            )}
+                          {backupCodes.length > 0 && (
+                            <button onClick={() => setShowBackupCodes(!showBackupCodes)} className="btn-secondary w-full">
+                              {showBackupCodes ? 'Hide' : 'View'} Backup Codes
+                            </button>
+                          )}
 
-                          {showBackupCodes &&
-                            backupCodes.length > 0 &&
-                            twoFactorEnabled && (
-                              <div className="p-6 bg-yellow-50 rounded-lg">
-                                <div className="flex items-start mb-4">
-                                  <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
-                                  <div>
-                                    <p className="font-medium text-yellow-900">
-                                      Save these backup codes
-                                    </p>
-                                    <p className="text-sm text-yellow-700">
-                                      Store them in a safe place. Each code can
-                                      only be used once.
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 bg-white p-4 rounded-lg">
-                                  {backupCodes.map((code, index) => (
-                                    <code
-                                      key={index}
-                                      className="text-sm font-mono text-neural-900 p-2 bg-neural-50 rounded"
-                                    >
-                                      {code}
-                                    </code>
-                                  ))}
+                          {showBackupCodes && backupCodes.length > 0 && (
+                            <div className="p-6 bg-yellow-50 rounded-lg">
+                              <div className="flex items-start mb-4">
+                                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="font-medium text-yellow-900">Save these backup codes</p>
+                                  <p className="text-sm text-yellow-700">Store them in a safe place. Each code can only be used once.</p>
                                 </div>
                               </div>
-                            )}
+                              <div className="grid grid-cols-2 gap-2 bg-white p-4 rounded-lg">
+                                {backupCodes.map((code, index) => (
+                                  <code key={index} className="text-sm font-mono text-neural-900 p-2 bg-neural-50 rounded">{code}</code>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -854,70 +766,86 @@ export default function SecuritySettingsPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <ShieldCheckIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">
-                        Trusted Devices
-                      </h3>
+                      <h3 className="text-xl font-semibold text-neural-900">Trusted Devices</h3>
                     </div>
-                    <button
-                      className="btn-ghost text-red-600"
-                      onClick={handleRemoveAllDevices}
-                    >
-                      Remove All
-                    </button>
+                    {trustedDevices.length > 0 && (
+                      <button className="btn-ghost text-red-600" onClick={handleRemoveAllDevices}>Remove All</button>
+                    )}
                   </div>
 
                   <div className="space-y-4">
                     {trustedDevices.length === 0 ? (
                       <div className="text-center py-12">
                         <ShieldCheckIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                        <p className="text-neutral-500">
-                          No trusted devices found
-                        </p>
-                        <p className="text-sm text-neutral-400 mt-1">
-                          Devices will appear here after you log in
-                        </p>
+                        <p className="text-neutral-500">No trusted devices found</p>
+                        <p className="text-sm text-neutral-400 mt-1">Devices will appear here after you log in</p>
                       </div>
                     ) : (
                       trustedDevices.map((device) => (
-                        <div
-                          key={device.id}
-                          className={`p-4 border rounded-lg ${
-                            device.current
-                              ? 'border-brand-200 bg-brand-50'
-                              : 'border-neural-100'
-                          }`}
-                        >
+                        <div key={device.id} className={`p-4 border rounded-lg ${device.current ? 'border-brand-200 bg-brand-50' : 'border-neural-100'}`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="p-2 bg-neural-100 rounded-lg mr-4">
-                                {getDeviceIcon(device.type)}
-                              </div>
+                              <div className="p-2 bg-neural-100 rounded-lg mr-4">{getDeviceIcon(device.type)}</div>
                               <div>
                                 <div className="flex items-center">
-                                  <h4 className="font-medium text-neural-900">
-                                    {device.name}
-                                  </h4>
+                                  <h4 className="font-medium text-neural-900">{device.name}</h4>
                                   {device.current && (
-                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
-                                      Current
-                                    </span>
+                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">Current</span>
                                   )}
                                 </div>
-                                <p className="text-sm text-neural-600">
-                                  {device.browser} • {device.location}
-                                </p>
-                                <p className="text-xs text-neural-500">
-                                  Last seen {formatDateTime(device.lastSeen)}
-                                </p>
+                                <p className="text-sm text-neural-600">{device.browser} • {device.location}</p>
+                                <p className="text-xs text-neural-500">Last seen {formatDateTime(device.lastSeen)}</p>
                               </div>
                             </div>
                             {!device.current && (
-                              <button
-                                onClick={() => handleRemoveDevice(device.id)}
-                                className="btn-ghost text-red-600 text-sm"
-                              >
-                                Remove
-                              </button>
+                              <button onClick={() => handleRemoveDevice(device.id)} className="btn-ghost text-red-600 text-sm">Remove</button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Active Sessions */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center">
+                      <ComputerDesktopIcon className="w-6 h-6 text-brand-500 mr-3" />
+                      <h3 className="text-xl font-semibold text-neural-900">Active Sessions</h3>
+                    </div>
+                    {activeSessions.filter(s => !s.isCurrent).length > 0 && (
+                      <button className="btn-ghost text-red-600" onClick={handleRevokeAllSessions}>End All Others</button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {activeSessions.length === 0 ? (
+                      <div className="text-center py-12">
+                        <ComputerDesktopIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                        <p className="text-neutral-500">No active sessions</p>
+                      </div>
+                    ) : (
+                      activeSessions.map((session) => (
+                        <div key={session.id} className={`p-4 border rounded-lg ${session.isCurrent ? 'border-brand-200 bg-brand-50' : 'border-neural-100'}`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="p-2 bg-neural-100 rounded-lg mr-4">
+                                <ComputerDesktopIcon className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <div className="flex items-center">
+                                  <h4 className="font-medium text-neural-900">{session.browser} • {session.device}</h4>
+                                  {session.isCurrent && (
+                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">Current</span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-neural-600">IP: {session.ipAddress}</p>
+                                <p className="text-xs text-neural-500">Last active: {formatDateTime(session.lastActivity)}</p>
+                              </div>
+                            </div>
+                            {!session.isCurrent && (
+                              <button onClick={() => handleRevokeSession(session.id)} className="btn-ghost text-red-600 text-sm">End Session</button>
                             )}
                           </div>
                         </div>
@@ -931,87 +859,58 @@ export default function SecuritySettingsPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <ClockIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">
-                        Login History
-                      </h3>
+                      <h3 className="text-xl font-semibold text-neural-900">Login History</h3>
                     </div>
-                    <button className="btn-ghost">View All</button>
+                    <button onClick={() => setShowLoginHistory(!showLoginHistory)} className="btn-ghost">
+                      {showLoginHistory ? 'Hide' : 'View All'}
+                    </button>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-neural-100">
-                          <th className="text-left py-3 text-sm font-medium text-neural-700">
-                            Date & Time
-                          </th>
-                          <th className="text-left py-3 text-sm font-medium text-neural-700">
-                            Device
-                          </th>
-                          <th className="text-left py-3 text-sm font-medium text-neural-700">
-                            Location
-                          </th>
-                          <th className="text-left py-3 text-sm font-medium text-neural-700">
-                            Status
-                          </th>
-                          <th className="text-left py-3 text-sm font-medium text-neural-700">
-                            IP Address
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {loginHistory.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="py-12 text-center">
-                              <ClockIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                              <p className="text-neutral-500">
-                                No login history found
-                              </p>
-                              <p className="text-sm text-neutral-400 mt-1">
-                                Your login activity will appear here
-                              </p>
-                            </td>
+                  {showLoginHistory && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-neural-100">
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">Date & Time</th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">Device</th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">Location</th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">Status</th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">IP Address</th>
                           </tr>
-                        ) : (
-                          loginHistory.map((login) => (
-                            <tr
-                              key={login.id}
-                              className="border-b border-neural-50"
-                            >
-                              <td className="py-4 text-sm text-neural-900">
-                                {formatDateTime(login.date)}
-                              </td>
-                              <td className="py-4 text-sm text-neural-600">
-                                {login.device}
-                              </td>
-                              <td className="py-4 text-sm text-neural-600">
-                                {login.location}
-                              </td>
-                              <td className="py-4">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                                    login.status
-                                  )}`}
-                                >
-                                  {login.status === 'success' && (
-                                    <CheckCircleIcon className="w-3 h-3 mr-1" />
-                                  )}
-                                  {login.status === 'blocked' && (
-                                    <XCircleIcon className="w-3 h-3 mr-1" />
-                                  )}
-                                  {login.status.charAt(0).toUpperCase() +
-                                    login.status.slice(1)}
-                                </span>
-                              </td>
-                              <td className="py-4 text-sm text-neural-600 font-mono">
-                                {login.ip}
+                        </thead>
+                        <tbody>
+                          {loginHistory.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="py-12 text-center">
+                                <ClockIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                                <p className="text-neutral-500">No login history found</p>
                               </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                          ) : (
+                            loginHistory.map((login) => (
+                              <tr key={login.id} className="border-b border-neural-50">
+                                <td className="py-4 text-sm text-neural-900">{formatDateTime(login.date)}</td>
+                                <td className="py-4 text-sm text-neural-600">{login.device}</td>
+                                <td className="py-4 text-sm text-neural-600">{login.location}</td>
+                                <td className="py-4">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(login.status)}`}>
+                                    {login.status === 'success' && <CheckCircleIcon className="w-3 h-3 mr-1" />}
+                                    {login.status === 'blocked' && <XCircleIcon className="w-3 h-3 mr-1" />}
+                                    {login.status.charAt(0).toUpperCase() + login.status.slice(1)}
+                                  </span>
+                                </td>
+                                <td className="py-4 text-sm text-neural-600 font-mono">{login.ip}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {!showLoginHistory && loginHistory.length > 0 && (
+                    <p className="text-sm text-neural-500">{loginHistory.length} login records • Click &quot;View All&quot; to see history</p>
+                  )}
                 </div>
               </div>
             </div>

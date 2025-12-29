@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb';
-import bcrypt from 'bcryptjs';
+import { authenticator } from 'otplib';
 
 const DB_NAME = process.env.MONGODB_DB || 'onelastai';
 
@@ -32,72 +32,75 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { currentPassword, newPassword } = await request.json();
+    const { code } = await request.json();
 
-    // Validate input
-    if (!currentPassword || !newPassword) {
+    if (!code || code.length !== 6) {
       return NextResponse.json(
-        { success: false, message: 'Current password and new password are required' },
+        { success: false, message: 'Valid 6-digit verification code is required' },
         { status: 400 }
       );
     }
 
-    if (newPassword.length < 8) {
+    // Get temp secret from usersecurities
+    const userSecurity = await userSecurities.findOne({ userId: sessionUser._id.toString() });
+    
+    if (!userSecurity?.tempTwoFactorSecret) {
       return NextResponse.json(
-        { success: false, message: 'New password must be at least 8 characters long' },
+        { success: false, message: 'No pending 2FA setup found. Please start setup again.' },
         { status: 400 }
       );
     }
 
-    // Verify current password
-    const isValidPassword = await bcrypt.compare(
-      currentPassword,
-      sessionUser.password
-    );
-    if (!isValidPassword) {
+    // Verify the code using the temporary secret
+    const isValid = authenticator.verify({
+      token: code,
+      secret: userSecurity.tempTwoFactorSecret,
+    });
+
+    if (!isValid) {
       return NextResponse.json(
-        { success: false, message: 'Current password is incorrect' },
+        { success: false, message: 'Invalid verification code. Please try again.' },
         { status: 400 }
       );
     }
 
-    // Hash new password
-    const saltRounds = 12;
-    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
     const now = new Date();
 
-    // Update password in users collection
+    // Enable 2FA permanently - update usersecurities
+    await userSecurities.updateOne(
+      { userId: sessionUser._id.toString() },
+      {
+        $set: {
+          twoFactorEnabled: true,
+          twoFactorSecret: userSecurity.tempTwoFactorSecret,
+          backupCodes: userSecurity.tempBackupCodes || [],
+          updatedAt: now,
+        },
+        $unset: {
+          tempTwoFactorSecret: '',
+          tempBackupCodes: '',
+        },
+      }
+    );
+
+    // Also update the users collection
     await users.updateOne(
       { _id: sessionUser._id },
       {
         $set: {
-          password: hashedNewPassword,
+          twoFactorEnabled: true,
           updatedAt: now,
         },
       }
     );
 
-    // Update passwordLastChanged in usersecurities collection
-    await userSecurities.updateOne(
-      { userId: sessionUser._id.toString() },
-      {
-        $set: {
-          passwordLastChanged: now,
-          updatedAt: now,
-        },
-      },
-      { upsert: true }
-    );
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Password changed successfully',
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      message: '2FA enabled successfully',
+      backupCodes: userSecurity.tempBackupCodes || [],
+    });
   } catch (error) {
-    console.error('Password change error:', error);
+    console.error('2FA verification error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }

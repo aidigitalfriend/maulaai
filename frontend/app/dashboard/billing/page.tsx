@@ -25,7 +25,9 @@ export default function BillingPage() {
   const [error, setError] = useState('');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [selectedSub, setSelectedSub] = useState<AgentSubscription | null>(null);
+  const [selectedSub, setSelectedSub] = useState<AgentSubscription | null>(
+    null
+  );
 
   const fetchSubscriptions = useCallback(async () => {
     if (!state.user?.id) return;
@@ -189,10 +191,12 @@ export default function BillingPage() {
                 ?
               </p>
             </div>
-            
+
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
               <p className="text-red-400 text-sm">
-                ⚠️ This will <strong>immediately</strong> revoke your access. You won't be able to chat with this agent until you purchase again.
+                ⚠️ This will <strong>immediately</strong> revoke your access.
+                You won't be able to chat with this agent until you purchase
+                again.
               </p>
             </div>
 
@@ -268,8 +272,8 @@ export default function BillingPage() {
               <p className="text-sm text-slate-400">
                 <span className="text-blue-400">$1/day</span> •
                 <span className="text-purple-400 mx-2">$5/week</span> •
-                <span className="text-green-400">$19/month</span> — 
-                No auto-renewal. Cancel anytime or let it expire.
+                <span className="text-green-400">$19/month</span> — No
+                auto-renewal. Cancel anytime or let it expire.
               </p>
             </div>
           </div>
@@ -381,11 +385,13 @@ export default function BillingPage() {
                         <span className="text-xs font-medium px-2 py-1 rounded-full bg-slate-700 text-slate-400">
                           {getPlanLabel(sub.plan)}
                         </span>
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          sub.status === 'cancelled' 
-                            ? 'bg-red-500/20 text-red-400' 
-                            : 'bg-slate-600 text-slate-300'
-                        }`}>
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            sub.status === 'cancelled'
+                              ? 'bg-red-500/20 text-red-400'
+                              : 'bg-slate-600 text-slate-300'
+                          }`}
+                        >
                           {sub.status === 'cancelled' ? 'Cancelled' : 'Expired'}
                         </span>
                       </div>
