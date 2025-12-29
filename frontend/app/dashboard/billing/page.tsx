@@ -7,16 +7,62 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   CreditCardIcon,
   DocumentTextIcon,
-  ClockIcon,
-  BanknotesIcon,
-  ChartBarIcon,
+  SparklesIcon,
+  CalendarDaysIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 export const dynamic = 'force-dynamic';
 
+interface AgentSubscription {
+  agentId: string;
+  agentName: string;
+  plan: string;
+  price: number;
+  expiryDate: string;
+  daysRemaining: number;
+}
+
+interface BillingData {
+  currentPlan: {
+    name: string;
+    type: string;
+    price: number;
+    currency: string;
+    period: string;
+    status: string;
+    renewalDate: string | null;
+    daysUntilRenewal: number;
+    agents?: AgentSubscription[];
+  };
+  planOptions?: {
+    key: string;
+    name: string;
+    billingPeriod: string;
+    price: number;
+    description: string;
+    status: string;
+  }[];
+  invoices?: {
+    id: string;
+    date: string;
+    description: string;
+    amount: string;
+    status: string;
+  }[];
+  billingHistory?: {
+    id: string;
+    date: string;
+    description: string;
+    amount: string;
+    status: string;
+  }[];
+}
+
 export default function BillingPage() {
   const { state } = useAuth();
-  const [billingData, setBillingData] = useState(null);
+  const [billingData, setBillingData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -26,7 +72,7 @@ export default function BillingPage() {
     try {
       setError('');
       setLoading(true);
-      const response = await fetch(`/api/user/billing/${state.user.id}`, {
+      const response = await fetch(\`/api/user/billing/\${state.user.id}\`, {
         credentials: 'include',
       });
 
@@ -34,7 +80,8 @@ export default function BillingPage() {
         const result = await response.json();
         setBillingData(result.data);
       } else {
-        setError('Failed to load billing data');
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.message || 'Failed to load billing data');
       }
     } catch (err) {
       console.error('Error fetching billing data:', err);
@@ -44,28 +91,36 @@ export default function BillingPage() {
     }
   }, [state.user?.id]);
 
-  // Fetch billing data on mount
   useEffect(() => {
-    fetchBillingData();
-  }, [fetchBillingData]);
+    if (state.isAuthenticated && state.user?.id) {
+      fetchBillingData();
+    } else if (!state.isLoading && !state.isAuthenticated) {
+      setLoading(false);
+    }
+  }, [state.isAuthenticated, state.user?.id, state.isLoading, fetchBillingData]);
 
-  if (!state.isAuthenticated) {
+  // Not authenticated
+  if (!state.isLoading && !state.isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-neural-900 mb-4">
-            Please log in to view billing
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <CreditCardIcon className="w-16 h-16 text-neural-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-neural-900 mb-2">
+            Sign in to view billing
           </h1>
+          <p className="text-neural-600 mb-6">
+            Access your subscription details and payment history
+          </p>
           <Link href="/auth/login" className="btn-primary inline-block">
-            Log In
+            Sign In
           </Link>
         </div>
       </div>
     );
   }
 
-  // Show loading state
-  if (loading) {
+  // Loading
+  if (loading || state.isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
         <div className="text-center">
@@ -76,13 +131,18 @@ export default function BillingPage() {
     );
   }
 
-  // Show error state
+  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <ExclamationTriangleIcon className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-neural-900 mb-2">
+            Unable to load billing
+          </h1>
+          <p className="text-neural-600 mb-6">{error}</p>
           <button onClick={fetchBillingData} className="btn-primary">
+            <ArrowPathIcon className="w-5 h-5 mr-2 inline" />
             Try Again
           </button>
         </div>
@@ -90,213 +150,190 @@ export default function BillingPage() {
     );
   }
 
+  const hasActiveSubscription = billingData?.currentPlan?.status === 'active';
+  const hasAgents = (billingData?.currentPlan?.agents?.length ?? 0) > 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
       {/* Header */}
-      <section className="py-12 px-4 border-b border-neural-200">
-        <div className="container-custom">
-          <div className="flex items-center justify-between mb-6">
+      <section className="py-8 md:py-12 px-4 border-b border-neural-200">
+        <div className="container-custom max-w-4xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
-                Billing & Usage
+              <h1 className="text-2xl md:text-3xl font-bold text-neural-900 mb-1">
+                Billing & Subscriptions
               </h1>
               <p className="text-neural-600">
-                Manage your subscription and payment methods
+                Manage your agent subscriptions and view payment history
               </p>
             </div>
-            <div className="text-right">
-              <div
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  billingData?.currentPlan?.status === 'active'
+            <div className="flex items-center gap-3">
+              <span
+                className={\`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium \${
+                  hasActiveSubscription
                     ? 'bg-green-100 text-green-700'
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}
+                    : 'bg-neural-100 text-neural-600'
+                }\`}
               >
-                <div
-                  className={`w-2 h-2 rounded-full mr-2 ${
-                    billingData?.currentPlan?.status === 'active'
-                      ? 'bg-green-500'
-                      : 'bg-yellow-500'
-                  }`}
-                ></div>
-                {billingData?.currentPlan?.status?.charAt(0).toUpperCase() +
-                  billingData?.currentPlan?.status?.slice(1)}
-              </div>
+                <span
+                  className={\`w-2 h-2 rounded-full mr-2 \${
+                    hasActiveSubscription ? 'bg-green-500' : 'bg-neural-400'
+                  }\`}
+                />
+                {hasActiveSubscription ? 'Active' : 'No Active Plan'}
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Billing Overview */}
-      <section className="py-16 px-4">
-        <div className="container-custom max-w-3xl">
-          {/* Current Plan */}
+      {/* Main Content */}
+      <section className="py-8 px-4">
+        <div className="container-custom max-w-4xl space-y-6">
+          {/* Current Plan Summary */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
+            className="bg-white rounded-xl border border-neural-200 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-neural-900">
-                Current Plan
-              </h2>
-              <CreditCardIcon className="w-6 h-6 text-brand-500" />
-            </div>
-            <div className="grid md:grid-cols-4 gap-4 mb-6">
-              <div>
-                <p className="text-neural-600 text-sm mb-1">Plan Type</p>
-                <p className="text-lg font-semibold text-neural-900">
-                  {billingData?.currentPlan?.name}
-                </p>
-              </div>
-              <div>
-                <p className="text-neural-600 text-sm mb-1">
-                  {billingData?.currentPlan?.period?.charAt(0).toUpperCase() +
-                    billingData?.currentPlan?.period?.slice(1)}{' '}
-                  Cost
-                </p>
-                <p className="text-lg font-semibold text-neural-900">
-                  ${billingData?.currentPlan?.price?.toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <p className="text-neural-600 text-sm mb-1">Renewal Date</p>
-                <p className="text-lg font-semibold text-neural-900">
-                  {billingData?.currentPlan?.renewalDate}
-                </p>
-              </div>
-              <div>
-                <p className="text-neural-600 text-sm mb-1">
-                  Days Until Renewal
-                </p>
-                <p className="text-lg font-semibold text-neural-900">
-                  {billingData?.currentPlan?.daysUntilRenewal} days
-                </p>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <Link href="/pricing" className="btn-secondary">
-                {billingData?.currentPlan?.status !== 'active'
-                  ? 'Choose Plan'
-                  : 'Change Plan'}
-              </Link>
-              {billingData?.currentPlan?.status === 'active' && (
-                <button className="btn-outline text-red-600 border-red-200 hover:bg-red-50">
-                  Cancel Subscription
-                </button>
-              )}
-            </div>
-          </motion.div>
-
-          {billingData?.planOptions?.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-neural-900">
-                  Plan Status
+            <div className="p-6 border-b border-neural-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-neural-900 flex items-center gap-2">
+                  <CreditCardIcon className="w-5 h-5 text-brand-500" />
+                  Current Plan
                 </h2>
-                <ClockIcon className="w-6 h-6 text-brand-500" />
+                {hasActiveSubscription && billingData?.currentPlan?.renewalDate && (
+                  <span className="text-sm text-neural-500">
+                    Renews: {billingData.currentPlan.renewalDate}
+                  </span>
+                )}
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                {billingData.planOptions.map((plan) => (
-                  <div
-                    key={plan.id || plan.key}
-                    className="p-5 rounded-lg border border-neural-200 bg-neural-50"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-lg font-semibold text-neural-900">
-                          {plan.name}
-                        </p>
-                        <p className="text-sm text-neural-500">
-                          ${Number(plan.price ?? 0).toFixed(2)} /{' '}
-                          {plan.billingPeriod}
-                        </p>
-                      </div>
-                      <span
-                        className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                          plan.status === 'active'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-neural-200 text-neural-600'
-                        }`}
-                      >
-                        {plan.status === 'active' ? 'Active' : 'Not Active'}
+            </div>
+            <div className="p-6">
+              {hasActiveSubscription ? (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-2xl font-bold text-neural-900">
+                        {billingData?.currentPlan?.name || 'Agent Subscription'}
+                      </h3>
+                      <p className="text-neural-600 mt-1">
+                        {hasAgents
+                          ? \`\${billingData?.currentPlan?.agents?.length} active agent\${
+                              (billingData?.currentPlan?.agents?.length ?? 0) > 1 ? 's' : ''
+                            }\`
+                          : billingData?.currentPlan?.period
+                          ? \`\${billingData.currentPlan.period} billing\`
+                          : 'Active subscription'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-3xl font-bold text-neural-900">
+                        \$\{(billingData?.currentPlan?.price ?? 0).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-neural-500">
+                        per {billingData?.currentPlan?.period || 'month'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Next renewal info */}
+                  {billingData?.currentPlan?.daysUntilRenewal !== undefined && (
+                    <div className="flex items-center gap-2 text-sm text-neural-600 bg-neural-50 rounded-lg p-3">
+                      <CalendarDaysIcon className="w-4 h-4" />
+                      <span>
+                        {billingData.currentPlan.daysUntilRenewal > 0
+                          ? \`\${billingData.currentPlan.daysUntilRenewal} days until renewal\`
+                          : 'Renews today'}
                       </span>
                     </div>
-                    <p className="text-sm text-neural-600 mb-4">
-                      {plan.description || 'Per-agent subscription'}
-                    </p>
-                    <Link
-                      href="/pricing/per-agent"
-                      className={`block text-center text-sm font-medium px-4 py-2 rounded-md transition-colors ${
-                        plan.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-brand-500 text-white hover:bg-brand-600'
-                      }`}
-                    >
-                      {plan.status === 'active'
-                        ? 'Current Plan'
-                        : 'Activate Plan'}
-                    </Link>
-                  </div>
-                ))}
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <SparklesIcon className="w-12 h-12 text-neural-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-neural-900 mb-2">
+                    No Active Subscription
+                  </h3>
+                  <p className="text-neural-600 mb-6 max-w-md mx-auto">
+                    Subscribe to an AI agent to unlock powerful features and personalized assistance.
+                  </p>
+                  <Link
+                    href="/agents"
+                    className="btn-primary inline-flex items-center gap-2"
+                  >
+                    <SparklesIcon className="w-4 h-4" />
+                    Browse AI Agents
+                  </Link>
+                </div>
+              )}
+            </div>
+            {hasActiveSubscription && (
+              <div className="px-6 py-4 bg-neural-50 border-t border-neural-100 flex flex-wrap gap-3">
+                <Link href="/agents" className="btn-secondary text-sm">
+                  Add More Agents
+                </Link>
+                <Link href="/pricing/per-agent" className="btn-outline text-sm">
+                  View Pricing
+                </Link>
               </div>
-            </motion.div>
-          )}
+            )}
+          </motion.div>
 
           {/* Active Agent Subscriptions */}
-          {billingData?.currentPlan?.agents?.length > 0 && (
+          {hasAgents && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
-              className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-xl border border-neural-200 overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-neural-900">
-                  Active Agent Subscriptions
+              <div className="p-6 border-b border-neural-100">
+                <h2 className="text-lg font-semibold text-neural-900 flex items-center gap-2">
+                  <SparklesIcon className="w-5 h-5 text-brand-500" />
+                  Your AI Agents
                 </h2>
-                <span className="text-sm font-medium px-3 py-1 rounded-full bg-brand-100 text-brand-700">
-                  {billingData.currentPlan.agents.length} Agent
-                  {billingData.currentPlan.agents.length > 1 ? 's' : ''}
-                </span>
               </div>
-              <div className="space-y-3">
-                {billingData.currentPlan.agents.map((agent, index) => (
+              <div className="divide-y divide-neural-100">
+                {billingData?.currentPlan?.agents?.map((agent, index) => (
                   <div
-                    key={index}
-                    className="p-4 rounded-lg border border-neural-200 bg-neural-50 hover:bg-neural-100 transition-colors"
+                    key={agent.agentId || index}
+                    className="p-4 hover:bg-neural-50 transition-colors"
                   >
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-neural-900 mb-1">
-                          {agent.agentName}
+                        <h3 className="font-semibold text-neural-900">
+                          {agent.agentName || agent.agentId}
                         </h3>
-                        <div className="flex items-center space-x-4 text-sm text-neural-600">
-                          <span className="capitalize">{agent.plan} Plan</span>
-                          <span>•</span>
-                          <span>
-                            ${agent.price.toFixed(2)}/{agent.plan}
-                          </span>
-                          <span>•</span>
-                          <span>{agent.daysRemaining} days remaining</span>
+                        <div className="flex items-center gap-3 mt-1 text-sm text-neural-600">
+                          <span className="capitalize">{agent.plan} plan</span>
+                          <span className="text-neural-300">•</span>
+                          <span>\$\{(agent.price ?? 0).toFixed(2)}</span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-neural-500 mb-1">Expires</p>
-                        <p className="text-sm font-medium text-neural-900">
-                          {new Date(agent.expiryDate).toLocaleDateString()}
+                        <span
+                          className={\`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium \${
+                            agent.daysRemaining > 7
+                              ? 'bg-green-100 text-green-700'
+                              : agent.daysRemaining > 0
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                          }\`}
+                        >
+                          {agent.daysRemaining > 0
+                            ? \`\${agent.daysRemaining} days left\`
+                            : 'Expired'}
+                        </span>
+                        <p className="text-xs text-neural-500 mt-1">
+                          Expires: {new Date(agent.expiryDate).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-neural-200">
+              <div className="px-6 py-4 bg-neural-50 border-t border-neural-100">
                 <Link
                   href="/dashboard/agent-management"
                   className="text-sm text-brand-600 hover:text-brand-700 font-medium"
@@ -307,220 +344,119 @@ export default function BillingPage() {
             </motion.div>
           )}
 
-          {/* Usage Statistics */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-neural-900">
-                Usage This Period
-              </h2>
-              <ChartBarIcon className="w-6 h-6 text-brand-500" />
-            </div>
-            <div className="text-sm text-neural-600 mb-4">
-              Billing period: {billingData?.usage?.billingCycle?.start} to{' '}
-              {billingData?.usage?.billingCycle?.end}
-            </div>
-            <div className="space-y-6">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-neural-600">API Calls</p>
-                  <span className="text-sm font-medium text-neural-900">
-                    {billingData?.usage?.currentPeriod?.apiCalls?.percentage}%
-                  </span>
-                </div>
-                <div className="w-full bg-neural-200 rounded-full h-3">
-                  <div
-                    className={`h-3 rounded-full transition-all duration-500 ${
-                      billingData?.usage?.currentPeriod?.apiCalls?.percentage >
-                      80
-                        ? 'bg-red-500'
-                        : billingData?.usage?.currentPeriod?.apiCalls
-                            ?.percentage > 60
-                        ? 'bg-yellow-500'
-                        : 'bg-brand-500'
-                    }`}
-                    style={{
-                      width: `${billingData?.usage?.currentPeriod?.apiCalls?.percentage}%`,
-                    }}
-                  ></div>
-                </div>
-                <p className="text-xs text-neural-500 mt-1">
-                  {billingData?.usage?.currentPeriod?.apiCalls?.used?.toLocaleString()}{' '}
-                  /{' '}
-                  {billingData?.usage?.currentPeriod?.apiCalls?.limit?.toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-neural-600">Storage</p>
-                  <span className="text-sm font-medium text-neural-900">
-                    {billingData?.usage?.currentPeriod?.storage?.percentage}%
-                  </span>
-                </div>
-                <div className="w-full bg-neural-200 rounded-full h-3">
-                  <div
-                    className={`h-3 rounded-full transition-all duration-500 ${
-                      billingData?.usage?.currentPeriod?.storage?.percentage >
-                      80
-                        ? 'bg-red-500'
-                        : billingData?.usage?.currentPeriod?.storage
-                            ?.percentage > 60
-                        ? 'bg-yellow-500'
-                        : 'bg-brand-500'
-                    }`}
-                    style={{
-                      width: `${billingData?.usage?.currentPeriod?.storage?.percentage}%`,
-                    }}
-                  ></div>
-                </div>
-                <p className="text-xs text-neural-500 mt-1">
-                  {(
-                    billingData?.usage?.currentPeriod?.storage?.used / 1024
-                  )?.toFixed(1)}{' '}
-                  GB /{' '}
-                  {(
-                    billingData?.usage?.currentPeriod?.storage?.limit / 1024
-                  )?.toFixed(1)}{' '}
-                  GB
-                </p>
-              </div>
-            </div>
-
-            {/* Upcoming Charges */}
-            {billingData?.upcomingCharges?.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-neural-100">
-                <h3 className="text-sm font-medium text-neural-900 mb-3">
-                  Upcoming Charges
-                </h3>
-                {billingData.upcomingCharges.map((charge, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center text-sm"
-                  >
-                    <span className="text-neural-600">
-                      {charge.description}
-                    </span>
-                    <span className="font-medium text-neural-900">
-                      {charge.amount} on {charge.date}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-
-          {/* Invoices */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-neural-900">
-                Recent Invoices
-              </h2>
-              <DocumentTextIcon className="w-6 h-6 text-brand-500" />
-            </div>
-            {billingData?.invoices?.length > 0 ? (
-              <div className="space-y-3">
-                {billingData.invoices.map((inv) => (
-                  <div
-                    key={inv.id}
-                    className="flex justify-between items-center p-4 bg-neural-50 rounded-lg hover:bg-neural-100 transition-colors cursor-pointer"
-                  >
-                    <div>
-                      <p className="font-medium text-neural-900">
-                        {inv.number}
-                      </p>
-                      <p className="text-sm text-neural-600">{inv.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-neural-900">
-                        {inv.amount}
-                      </p>
-                      <div
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          inv.status === 'paid'
-                            ? 'bg-green-100 text-green-700'
-                            : inv.status === 'due'
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {inv.status?.charAt(0).toUpperCase() +
-                          inv.status?.slice(1)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <DocumentTextIcon className="w-12 h-12 text-neural-300 mx-auto mb-3" />
-                <p className="text-neural-500">No invoices found</p>
-                <p className="text-sm text-neural-400 mt-1">
-                  Invoices will appear here when generated
-                </p>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Cost Breakdown */}
-          {billingData?.costBreakdown && (
+          {/* Pricing Plans */}
+          {billingData?.planOptions && billingData.planOptions.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="p-8 bg-white rounded-lg border border-neural-200 mb-8"
+              transition={{ delay: 0.15 }}
+              className="bg-white rounded-xl border border-neural-200 overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-neural-900">
-                  Cost Breakdown
+              <div className="p-6 border-b border-neural-100">
+                <h2 className="text-lg font-semibold text-neural-900">
+                  Available Plans
                 </h2>
-                <BanknotesIcon className="w-6 h-6 text-brand-500" />
+                <p className="text-sm text-neural-600 mt-1">
+                  Choose the billing period that works best for you
+                </p>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-neural-600">Subscription</span>
-                  <span className="font-medium">
-                    ${billingData.costBreakdown.subscription?.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neural-600">Usage Overages</span>
-                  <span className="font-medium">
-                    ${billingData.costBreakdown.usage?.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neural-600">Taxes & Fees</span>
-                  <span className="font-medium">
-                    ${billingData.costBreakdown.taxes?.toFixed(2)}
-                  </span>
-                </div>
-                <div className="border-t border-neural-200 pt-3">
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-neural-900">Total</span>
-                    <span className="font-bold text-lg text-neural-900">
-                      ${billingData.costBreakdown.total?.toFixed(2)}
-                    </span>
+              <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neural-100">
+                {billingData.planOptions.map((plan) => (
+                  <div key={plan.key} className="p-6 text-center">
+                    <h3 className="font-semibold text-neural-900 mb-1">
+                      {plan.billingPeriod.charAt(0).toUpperCase() +
+                        plan.billingPeriod.slice(1)}
+                    </h3>
+                    <p className="text-2xl font-bold text-brand-600 mb-2">
+                      \$\{(plan.price ?? 0).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-neural-500 mb-3">
+                      per agent / {plan.billingPeriod}
+                    </p>
+                    {plan.status === 'active' ? (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        Currently Active
+                      </span>
+                    ) : (
+                      <Link
+                        href="/agents"
+                        className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                      >
+                        Subscribe →
+                      </Link>
+                    )}
                   </div>
-                </div>
+                ))}
               </div>
             </motion.div>
           )}
 
-          <div className="mt-8 text-center">
-            <Link
-              href="/dashboard/overview"
-              className="btn-secondary inline-block"
-            >
-              Back to Dashboard
+          {/* Billing History */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl border border-neural-200 overflow-hidden"
+          >
+            <div className="p-6 border-b border-neural-100">
+              <h2 className="text-lg font-semibold text-neural-900 flex items-center gap-2">
+                <DocumentTextIcon className="w-5 h-5 text-brand-500" />
+                Payment History
+              </h2>
+            </div>
+            <div className="p-6">
+              {(billingData?.invoices?.length ?? 0) > 0 ||
+              (billingData?.billingHistory?.length ?? 0) > 0 ? (
+                <div className="space-y-3">
+                  {(billingData?.invoices || billingData?.billingHistory || []).map(
+                    (item, index) => (
+                      <div
+                        key={item.id || index}
+                        className="flex items-center justify-between p-3 bg-neural-50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium text-neural-900">
+                            {item.description || 'Agent Subscription'}
+                          </p>
+                          <p className="text-sm text-neural-500">{item.date}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-neural-900">
+                            {item.amount}
+                          </p>
+                          <span
+                            className={\`text-xs font-medium \${
+                              item.status === 'paid' || item.status === 'completed'
+                                ? 'text-green-600'
+                                : item.status === 'pending'
+                                ? 'text-yellow-600'
+                                : 'text-neural-500'
+                            }\`}
+                          >
+                            {item.status?.charAt(0).toUpperCase() +
+                              item.status?.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <DocumentTextIcon className="w-10 h-10 text-neural-300 mx-auto mb-3" />
+                  <p className="text-neural-500">No payment history yet</p>
+                  <p className="text-sm text-neural-400 mt-1">
+                    Your payments will appear here once you subscribe
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Back to Dashboard */}
+          <div className="text-center pt-4">
+            <Link href="/dashboard" className="btn-secondary">
+              ← Back to Dashboard
             </Link>
           </div>
         </div>
