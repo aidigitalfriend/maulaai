@@ -4,8 +4,8 @@ import {
   unauthorizedResponse,
 } from '../../../../lib/validateAuth';
 
-const BACKEND_BASE =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
+// Use internal backend URL for server-to-server communication
+const BACKEND_BASE = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,19 +23,20 @@ export async function POST(request: NextRequest) {
     const authResult = verifyRequest(request);
     if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
-    // Proxy to backend
+    // Proxy to backend - only forward safe headers
     const backendUrl = `${BACKEND_BASE}/api/agent/subscriptions/check/${userId}/${agentId}`;
 
     const res = await fetch(backendUrl, {
       method: 'GET',
-      headers: Object.fromEntries(request.headers),
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: request.headers.get('cookie') || '',
+      },
+      cache: 'no-store',
     });
 
-    const text = await res.text();
-    return new NextResponse(text, {
-      status: res.status,
-      headers: res.headers as any,
-    });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
   } catch (err: any) {
     console.error('[/api/subscriptions/check] Proxy error:', err);
     return NextResponse.json(

@@ -5,8 +5,8 @@ import {
   unauthorizedResponse,
 } from '../../../../lib/validateAuth';
 
-const BACKEND_BASE =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
+// Use internal backend URL for server-to-server communication
+const BACKEND_BASE = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,11 +41,15 @@ export async function POST(request: NextRequest) {
     }
 
     // ✅ CRITICAL: Check if user already has active subscription for this agent
-    // Proxy this check to backend
+    // Proxy this check to backend - only forward safe headers
     const checkUrl = `${BACKEND_BASE}/api/agent/subscriptions/check/${userId}/${agentId}`;
     const checkRes = await fetch(checkUrl, {
       method: 'GET',
-      headers: Object.fromEntries(request.headers),
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: request.headers.get('cookie') || '',
+      },
+      cache: 'no-store',
     });
 
     if (!checkRes.ok) {

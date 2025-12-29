@@ -1404,10 +1404,18 @@ app.get('/api/user/analytics', async (req, res) => {
     const recentActivity = recentLogs.map((log) => {
       const actionName = log.action || 'unknown';
       return {
-        action: actionDisplayNames[actionName] || actionName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        agent: log.device ? `${log.device} - ${log.browser || 'Unknown'}` : (log.location || 'System'),
+        action:
+          actionDisplayNames[actionName] ||
+          actionName
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase()),
+        agent: log.device
+          ? `${log.device} - ${log.browser || 'Unknown'}`
+          : log.location || 'System',
         status: actionStatusMap[actionName] || 'completed',
-        timestamp: log.timestamp ? new Date(log.timestamp).toISOString() : new Date().toISOString(),
+        timestamp: log.timestamp
+          ? new Date(log.timestamp).toISOString()
+          : new Date().toISOString(),
         ip: log.ip || null,
         location: log.location || null,
       };
@@ -1416,48 +1424,55 @@ app.get('/api/user/analytics', async (req, res) => {
     // Get daily usage data (last 7 days)
     const now = new Date();
     const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-    
+
     // Generate daily usage from security logs
     const dailyUsage = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      
+
       // Count activities for this day
       const dayStart = new Date(dateStr);
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
-      
-      const dayLogs = recentLogs.filter(log => {
+
+      const dayLogs = recentLogs.filter((log) => {
         const logDate = new Date(log.timestamp);
         return logDate >= dayStart && logDate < dayEnd;
       });
-      
+
       dailyUsage.push({
         date: dateStr,
-        conversations: dayLogs.filter(l => l.action === 'ai_chat').length,
+        conversations: dayLogs.filter((l) => l.action === 'ai_chat').length,
         messages: dayLogs.length,
-        apiCalls: dayLogs.filter(l => ['login_success', 'login_failed'].includes(l.action)).length,
+        apiCalls: dayLogs.filter((l) =>
+          ['login_success', 'login_failed'].includes(l.action)
+        ).length,
       });
     }
 
     // Get user's subscriptions count
     const subscriptions = db.collection('subscriptions');
-    const userSubscriptions = await subscriptions.countDocuments({ 
+    const userSubscriptions = await subscriptions.countDocuments({
       userId: user._id.toString(),
-      status: 'active'
+      status: 'active',
     });
 
     // Calculate weekly trend
-    const thisWeekLogs = recentLogs.filter(log => new Date(log.timestamp) >= sevenDaysAgo);
-    const loginCount = thisWeekLogs.filter(l => l.action === 'login_success').length;
+    const thisWeekLogs = recentLogs.filter(
+      (log) => new Date(log.timestamp) >= sevenDaysAgo
+    );
+    const loginCount = thisWeekLogs.filter(
+      (l) => l.action === 'login_success'
+    ).length;
 
     const analyticsData = {
       success: true,
       period: 'last30days',
       summary: {
-        totalConversations: thisWeekLogs.filter(l => l.action === 'ai_chat').length,
+        totalConversations: thisWeekLogs.filter((l) => l.action === 'ai_chat')
+          .length,
         totalMessages: thisWeekLogs.length,
         totalApiCalls: loginCount,
         activeAgents: userSubscriptions,
@@ -1465,13 +1480,23 @@ app.get('/api/user/analytics', async (req, res) => {
       },
       usage: {
         conversations: {
-          current: thisWeekLogs.filter(l => l.action === 'ai_chat').length,
+          current: thisWeekLogs.filter((l) => l.action === 'ai_chat').length,
           limit: 1000,
           percentage: 0,
           unit: 'conversations',
         },
-        agents: { current: userSubscriptions, limit: 18, percentage: Math.round((userSubscriptions / 18) * 100), unit: 'agents' },
-        apiCalls: { current: loginCount, limit: 50000, percentage: 0, unit: 'calls' },
+        agents: {
+          current: userSubscriptions,
+          limit: 18,
+          percentage: Math.round((userSubscriptions / 18) * 100),
+          unit: 'agents',
+        },
+        apiCalls: {
+          current: loginCount,
+          limit: 50000,
+          percentage: 0,
+          unit: 'calls',
+        },
         storage: { current: 0, limit: 10000, percentage: 0, unit: 'KB' },
         messages: {
           current: thisWeekLogs.length,
@@ -1482,7 +1507,8 @@ app.get('/api/user/analytics', async (req, res) => {
       },
       dailyUsage: dailyUsage,
       weeklyTrend: {
-        conversationsChange: '+' + thisWeekLogs.filter(l => l.action === 'ai_chat').length,
+        conversationsChange:
+          '+' + thisWeekLogs.filter((l) => l.action === 'ai_chat').length,
         apiCallsChange: '+' + loginCount,
         messagesChange: '+' + thisWeekLogs.length,
         responseTimeChange: '-0.1s',
@@ -1505,7 +1531,9 @@ app.get('/api/user/analytics', async (req, res) => {
       },
     };
 
-    console.log(`✅ Analytics returned for user ${user._id} with ${recentActivity.length} activities`);
+    console.log(
+      `✅ Analytics returned for user ${user._id} with ${recentActivity.length} activities`
+    );
     res.json(analyticsData);
   } catch (error) {
     console.error('Analytics error:', error);
