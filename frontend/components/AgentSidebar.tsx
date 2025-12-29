@@ -1,55 +1,148 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react';
+import Link from 'next/link';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface Agent {
-  name: string
-  slug: string
-  specialty: string
-  emoji: string
+  name: string;
+  slug: string;
+  specialty: string;
+  emoji: string;
 }
 
 interface AgentSidebarProps {
-  currentAgentSlug: string
+  currentAgentSlug: string;
 }
 
 export default function AgentSidebar({ currentAgentSlug }: AgentSidebarProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // All available agents
   const allAgents: Agent[] = [
-    { name: 'Ben Sega', slug: 'ben-sega', specialty: 'Gaming & Entertainment', emoji: '🎮' },
-    { name: 'Einstein', slug: 'einstein', specialty: 'Scientific Research', emoji: '🧠' },
-    { name: 'Chef Biew', slug: 'chef-biew', specialty: 'Culinary Arts', emoji: '👨‍🍳' },
-    { name: 'Tech Wizard', slug: 'tech-wizard', specialty: 'Technology Support', emoji: '🧙‍♂️' },
-    { name: 'Travel Buddy', slug: 'travel-buddy', specialty: 'Travel Planning', emoji: '✈️' },
-    { name: 'Fitness Guru', slug: 'fitness-guru', specialty: 'Health & Fitness', emoji: '💪' },
-    { name: 'Comedy King', slug: 'comedy-king', specialty: 'Entertainment & Humor', emoji: '😂' },
-    { name: 'Drama Queen', slug: 'drama-queen', specialty: 'Creative Writing', emoji: '🎭' },
-    { name: 'Chess Player', slug: 'chess-player', specialty: 'Strategy & Games', emoji: '♟️' },
-    { name: 'Emma Emotional', slug: 'emma-emotional', specialty: 'Emotional Support', emoji: '💝' },
-    { name: 'Julie Girlfriend', slug: 'julie-girlfriend', specialty: 'Relationship Advice', emoji: '💕' },
-    { name: 'Mrs Boss', slug: 'mrs-boss', specialty: 'Business & Leadership', emoji: '👩‍💼' },
-    { name: 'Knight Logic', slug: 'knight-logic', specialty: 'Logic & Reasoning', emoji: '⚔️' },
-    { name: 'Lazy Pawn', slug: 'lazy-pawn', specialty: 'Casual Conversation', emoji: '😴' },
-    { name: 'Nid Gaming', slug: 'nid-gaming', specialty: 'Gaming Strategy', emoji: '🎯' },
-    { name: 'Professor Astrology', slug: 'professor-astrology', specialty: 'Astrology & Mysticism', emoji: '🔮' },
-    { name: 'Rook Jokey', slug: 'rook-jokey', specialty: 'Jokes & Entertainment', emoji: '🃏' },
-    { name: 'Bishop Burger', slug: 'bishop-burger', specialty: 'Food & Restaurants', emoji: '🍔' }
-  ]
+    {
+      name: 'Ben Sega',
+      slug: 'ben-sega',
+      specialty: 'Gaming & Entertainment',
+      emoji: '🎮',
+    },
+    {
+      name: 'Einstein',
+      slug: 'einstein',
+      specialty: 'Scientific Research',
+      emoji: '🧠',
+    },
+    {
+      name: 'Chef Biew',
+      slug: 'chef-biew',
+      specialty: 'Culinary Arts',
+      emoji: '👨‍🍳',
+    },
+    {
+      name: 'Tech Wizard',
+      slug: 'tech-wizard',
+      specialty: 'Technology Support',
+      emoji: '🧙‍♂️',
+    },
+    {
+      name: 'Travel Buddy',
+      slug: 'travel-buddy',
+      specialty: 'Travel Planning',
+      emoji: '✈️',
+    },
+    {
+      name: 'Fitness Guru',
+      slug: 'fitness-guru',
+      specialty: 'Health & Fitness',
+      emoji: '💪',
+    },
+    {
+      name: 'Comedy King',
+      slug: 'comedy-king',
+      specialty: 'Entertainment & Humor',
+      emoji: '😂',
+    },
+    {
+      name: 'Drama Queen',
+      slug: 'drama-queen',
+      specialty: 'Creative Writing',
+      emoji: '🎭',
+    },
+    {
+      name: 'Chess Player',
+      slug: 'chess-player',
+      specialty: 'Strategy & Games',
+      emoji: '♟️',
+    },
+    {
+      name: 'Emma Emotional',
+      slug: 'emma-emotional',
+      specialty: 'Emotional Support',
+      emoji: '💝',
+    },
+    {
+      name: 'Julie Girlfriend',
+      slug: 'julie-girlfriend',
+      specialty: 'Relationship Advice',
+      emoji: '💕',
+    },
+    {
+      name: 'Mrs Boss',
+      slug: 'mrs-boss',
+      specialty: 'Business & Leadership',
+      emoji: '👩‍💼',
+    },
+    {
+      name: 'Knight Logic',
+      slug: 'knight-logic',
+      specialty: 'Logic & Reasoning',
+      emoji: '⚔️',
+    },
+    {
+      name: 'Lazy Pawn',
+      slug: 'lazy-pawn',
+      specialty: 'Casual Conversation',
+      emoji: '😴',
+    },
+    {
+      name: 'Nid Gaming',
+      slug: 'nid-gaming',
+      specialty: 'Gaming Strategy',
+      emoji: '🎯',
+    },
+    {
+      name: 'Professor Astrology',
+      slug: 'professor-astrology',
+      specialty: 'Astrology & Mysticism',
+      emoji: '🔮',
+    },
+    {
+      name: 'Rook Jokey',
+      slug: 'rook-jokey',
+      specialty: 'Jokes & Entertainment',
+      emoji: '🃏',
+    },
+    {
+      name: 'Bishop Burger',
+      slug: 'bishop-burger',
+      specialty: 'Food & Restaurants',
+      emoji: '🍔',
+    },
+  ];
 
   // Filter out the current agent to show only unsubscribed ones
-  const otherAgents = allAgents.filter(agent => agent.slug !== currentAgentSlug)
-  
+  const otherAgents = allAgents.filter(
+    (agent) => agent.slug !== currentAgentSlug
+  );
+
   // Filter agents based on search query
-  const filteredAgents = otherAgents.filter(agent => 
-    searchQuery === '' || 
-    agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    agent.specialty.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredAgents = otherAgents.filter(
+    (agent) =>
+      searchQuery === '' ||
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <>
@@ -62,14 +155,18 @@ export default function AgentSidebar({ currentAgentSlug }: AgentSidebarProps) {
           <span className="text-xs font-medium">Other</span>
           <span className="text-xs font-medium">Agents</span>
           <span className="text-lg">{isOpen ? '→' : '←'}</span>
-          <span className="text-xs bg-white/20 rounded px-1">{filteredAgents.length}</span>
+          <span className="text-xs bg-white/20 rounded px-1">
+            {filteredAgents.length}
+          </span>
         </div>
       </button>
 
       {/* Sidebar */}
-      <div className={`fixed right-0 top-0 h-full w-80 bg-neutral-900/95 backdrop-blur-sm shadow-2xl transform transition-transform duration-300 z-30 ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
+      <div
+        className={`fixed right-0 top-0 h-full w-80 bg-neutral-900/95 backdrop-blur-sm shadow-2xl transform transition-transform duration-300 z-30 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
         <div className="p-6 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold">Available Agents</h3>
@@ -104,14 +201,16 @@ export default function AgentSidebar({ currentAgentSlug }: AgentSidebarProps) {
           {/* Search Results Count */}
           {searchQuery && (
             <div className="mb-4 text-sm text-neutral-400">
-              Found {filteredAgents.length} agent{filteredAgents.length !== 1 ? 's' : ''}
+              Found {filteredAgents.length} agent
+              {filteredAgents.length !== 1 ? 's' : ''}
               {searchQuery && ` matching "${searchQuery}"`}
             </div>
           )}
 
           <div className="mb-6 bg-brand-500/10 border border-brand-500/20 rounded-lg p-4">
             <p className="text-brand-200 text-sm">
-              💡 Click "Unlock" to purchase access to any agent. Each agent is a separate one-time purchase ($1/day, $5/week, $19/month).
+              💡 Click "Unlock" to purchase access to any agent. Each agent is a
+              separate one-time purchase ($1/day, $5/week, $19/month).
             </p>
           </div>
 
@@ -125,26 +224,35 @@ export default function AgentSidebar({ currentAgentSlug }: AgentSidebarProps) {
               </div>
             ) : (
               filteredAgents.map((agent) => (
-              <div key={agent.slug} className="card-dark p-4 hover:card-dark-hover transition-all duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{agent.emoji}</span>
-                    <div>
-                      <h4 className="font-bold text-white">{agent.name}</h4>
-                      <p className="text-xs text-neutral-400">{agent.specialty}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs bg-neutral-700 px-2 py-1 rounded">🔒</span>
-                </div>
-                
-                <Link
-                  href={`/subscribe?agent=${encodeURIComponent(agent.name)}&slug=${agent.slug}`}
-                  className="block w-full py-2 px-4 bg-brand-500 hover:bg-brand-600 text-center text-sm font-semibold rounded-lg transition-colors"
-                  onClick={() => setIsOpen(false)}
+                <div
+                  key={agent.slug}
+                  className="card-dark p-4 hover:card-dark-hover transition-all duration-300"
                 >
-                  Unlock Agent
-                </Link>
-              </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{agent.emoji}</span>
+                      <div>
+                        <h4 className="font-bold text-white">{agent.name}</h4>
+                        <p className="text-xs text-neutral-400">
+                          {agent.specialty}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs bg-neutral-700 px-2 py-1 rounded">
+                      🔒
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/subscribe?agent=${encodeURIComponent(
+                      agent.name
+                    )}&slug=${agent.slug}`}
+                    className="block w-full py-2 px-4 bg-brand-500 hover:bg-brand-600 text-center text-sm font-semibold rounded-lg transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Unlock Agent
+                  </Link>
+                </div>
               ))
             )}
           </div>
@@ -169,5 +277,5 @@ export default function AgentSidebar({ currentAgentSlug }: AgentSidebarProps) {
         />
       )}
     </>
-  )
+  );
 }

@@ -1,17 +1,22 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState } from 'react';
+import Link from 'next/link';
 
 interface SubscriptionPromptProps {
-  agentName: string
-  agentSlug: string
-  isOpen: boolean
-  onClose: () => void
+  agentName: string;
+  agentSlug: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClose }: SubscriptionPromptProps) {
-  if (!isOpen) return null
+export default function SubscriptionPrompt({
+  agentName,
+  agentSlug,
+  isOpen,
+  onClose,
+}: SubscriptionPromptProps) {
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -22,12 +27,15 @@ export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClo
         >
           ✕
         </button>
-        
+
         <div className="text-center mb-6">
           <div className="text-4xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold mb-3">Subscribe to Access {agentName}</h2>
+          <h2 className="text-2xl font-bold mb-3">
+            Subscribe to Access {agentName}
+          </h2>
           <p className="text-neutral-300">
-            To chat with {agentName}, you need an active subscription. Choose from our simple pricing options.
+            To chat with {agentName}, you need an active subscription. Choose
+            from our simple pricing options.
           </p>
         </div>
 
@@ -47,7 +55,9 @@ export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClo
                 <span className="font-bold text-lg text-brand-400">$5</span>
                 <span className="text-neutral-400 ml-2">per week</span>
               </div>
-              <span className="text-sm bg-brand-500 text-white px-2 py-1 rounded">Popular</span>
+              <span className="text-sm bg-brand-500 text-white px-2 py-1 rounded">
+                Popular
+              </span>
             </div>
           </div>
           <div className="bg-neutral-800 rounded-lg p-4">
@@ -63,7 +73,8 @@ export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClo
 
         <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-4 mb-6">
           <p className="text-brand-200 text-sm">
-            ✨ Each agent is a separate one-time purchase. Buy as many agents as you need!
+            ✨ Each agent is a separate one-time purchase. Buy as many agents as
+            you need!
           </p>
         </div>
 
@@ -75,7 +86,9 @@ export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClo
             Cancel
           </button>
           <Link
-            href={`/subscribe?agent=${encodeURIComponent(agentName)}&slug=${agentSlug}`}
+            href={`/subscribe?agent=${encodeURIComponent(
+              agentName
+            )}&slug=${agentSlug}`}
             className="flex-1 py-3 px-6 bg-brand-500 hover:bg-brand-600 text-center rounded-lg font-semibold transition-colors"
           >
             Choose Plan
@@ -83,5 +96,5 @@ export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClo
         </div>
       </div>
     </div>
-  )
+  );
 }
