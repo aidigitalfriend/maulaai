@@ -7,6 +7,13 @@ import {
   PaperClipIcon,
   PhoneIcon,
 } from '@heroicons/react/24/solid';
+import {
+  HandThumbUpIcon,
+  HandThumbDownIcon,
+  ClipboardDocumentIcon,
+  ShareIcon,
+  SpeakerWaveIcon,
+} from '@heroicons/react/24/outline';
 import EnhancedChatLayout from '../../../components/EnhancedChatLayout';
 import { AgentSettings } from '../../../components/ChatSettingsPanel';
 import QuickActionsPanel from '../../../components/QuickActionsPanel';
@@ -62,6 +69,8 @@ export default function NeuralChatDemo() {
   const [isLoading, setIsLoading] = useState(false);
   const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [messageFeedback, setMessageFeedback] = useState<Record<string, 'up' | 'down' | null>>({});
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -173,6 +182,49 @@ export default function NeuralChatDemo() {
       provider: 'openai',
       model: 'gpt-4o',
     });
+  }, []);
+
+  // Message action handlers
+  const handleFeedback = useCallback((messageId: string, type: 'up' | 'down') => {
+    setMessageFeedback((prev) => ({
+      ...prev,
+      [messageId]: prev[messageId] === type ? null : type,
+    }));
+  }, []);
+
+  const handleCopyMessage = useCallback((messageId: string, content: string) => {
+    navigator.clipboard.writeText(content);
+    setCopiedMessageId(messageId);
+    setTimeout(() => setCopiedMessageId(null), 2000);
+  }, []);
+
+  const handleShareMessage = useCallback((content: string) => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'AI Response',
+        text: content,
+      });
+    } else {
+      navigator.clipboard.writeText(content);
+      alert('Message copied to clipboard!');
+    }
+  }, []);
+
+  const handleListenMessage = useCallback((content: string) => {
+    // Strip markdown formatting for cleaner speech
+    const cleanText = content
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`(.*?)`/g, '$1')
+      .replace(/^#+\s/gm, '')
+      .replace(/^[•\-]\s/gm, '')
+      .replace(/>\s/g, '');
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    speechSynthesis.speak(utterance);
   }, []);
 
   const handleSendMessage = useCallback(async () => {
@@ -371,6 +423,60 @@ export default function NeuralChatDemo() {
                     minute: '2-digit',
                   })}
                 </div>
+                
+                {/* Message Action Icons - Only for assistant messages */}
+                {message.role === 'assistant' && (
+                  <div className="flex items-center space-x-1 mt-2 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => handleFeedback(message.id, 'up')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        messageFeedback[message.id] === 'up'
+                          ? 'bg-green-100 text-green-600'
+                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                      }`}
+                      title="Good response"
+                    >
+                      <HandThumbUpIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(message.id, 'down')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        messageFeedback[message.id] === 'down'
+                          ? 'bg-red-100 text-red-600'
+                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                      }`}
+                      title="Poor response"
+                    >
+                      <HandThumbDownIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-200 mx-1" />
+                    <button
+                      onClick={() => handleCopyMessage(message.id, message.content)}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        copiedMessageId === message.id
+                          ? 'bg-indigo-100 text-indigo-600'
+                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                      }`}
+                      title={copiedMessageId === message.id ? 'Copied!' : 'Copy message'}
+                    >
+                      <ClipboardDocumentIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleShareMessage(message.content)}
+                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      title="Share message"
+                    >
+                      <ShareIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleListenMessage(message.content)}
+                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      title="Listen to message"
+                    >
+                      <SpeakerWaveIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
