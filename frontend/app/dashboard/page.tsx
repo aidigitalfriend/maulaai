@@ -135,28 +135,21 @@ function DashboardContent() {
         const billingPlan = billingJson?.data?.currentPlan;
 
         if (billingPlan) {
-          const existingSub = mergedAnalytics.subscription || defaultSubscription;
+          const existingSub =
+            mergedAnalytics.subscription || defaultSubscription;
           mergedAnalytics = {
             ...mergedAnalytics,
             subscription: {
               ...existingSub,
-              plan:
-                billingPlan.name ||
-                existingSub.plan ||
-                'No Active Plan',
+              plan: billingPlan.name || existingSub.plan || 'No Active Plan',
               status: billingPlan.status || 'inactive',
               price:
                 typeof billingPlan.price === 'number'
                   ? billingPlan.price
                   : existingSub.price,
-              period:
-                billingPlan.period ||
-                existingSub.period ||
-                'month',
+              period: billingPlan.period || existingSub.period || 'month',
               renewalDate:
-                billingPlan.renewalDate ||
-                existingSub.renewalDate ||
-                'N/A',
+                billingPlan.renewalDate || existingSub.renewalDate || 'N/A',
               daysUntilRenewal:
                 typeof billingPlan.daysUntilRenewal === 'number'
                   ? billingPlan.daysUntilRenewal

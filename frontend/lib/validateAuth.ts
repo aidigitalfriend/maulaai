@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export function verifyRequest(request: NextRequest) {
   // Check for session_id cookie (HttpOnly session-based auth)
   const sessionId = request.cookies.get('session_id')?.value;
-  
+
   if (!sessionId) {
     return { ok: false, error: 'No session found' };
   }
@@ -22,7 +22,7 @@ export function verifyRequest(request: NextRequest) {
  */
 export async function verifyRequestAsync(request: NextRequest) {
   const sessionId = request.cookies.get('session_id')?.value;
-  
+
   if (!sessionId) {
     return { ok: false, error: 'No session found' };
   }
