@@ -416,7 +416,7 @@ export default function NeuralChatDemo() {
         />
 
         {/* Input Area */}
-        <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
@@ -512,7 +512,7 @@ export default function NeuralChatDemo() {
           </form>
 
           {/* AI Disclaimer */}
-          <div className="mt-2 text-center">
+          <div className="mt-1 text-center">
             <p className="text-[10px] text-gray-400">
               AI digital friend can make mistakes. Check important info.
             </p>
