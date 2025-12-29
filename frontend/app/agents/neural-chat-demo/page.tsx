@@ -3,316 +3,200 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   PaperAirplaneIcon,
-  StopIcon,
-  CodeBracketIcon,
-  ClipboardDocumentIcon,
+  MicrophoneIcon,
+  PaperClipIcon,
+  PhoneIcon,
+} from '@heroicons/react/24/solid';
+import {
   HandThumbUpIcon,
   HandThumbDownIcon,
-  SpeakerWaveIcon,
+  ClipboardDocumentIcon,
   ShareIcon,
-  XMarkIcon,
-  Cog6ToothIcon,
-  PlusIcon,
-  TrashIcon,
+  SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
+import EnhancedChatLayout from '../../../components/EnhancedChatLayout';
+import { AgentSettings } from '../../../components/ChatSettingsPanel';
+import QuickActionsPanel from '../../../components/QuickActionsPanel';
 import realtimeChatService, {
-  ChatMessage,
+  ChatMessage as ServiceChatMessage,
   AgentConfig,
+  CodeBlock,
 } from '../../../services/realtimeChatService';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  isStreaming?: boolean;
+  codeBlocks?: CodeBlock[];
+}
 
 interface ChatSession {
   id: string;
   name: string;
-  messages: ChatMessage[];
-  createdAt: Date;
-  updatedAt: Date;
+  messages: Message[];
+  lastMessage?: string;
+  messageCount?: number;
+  updatedAt?: Date;
 }
 
-// System prompts for different AI modes
-const AI_MODES = {
-  assistant: {
-    name: 'AI Assistant',
-    icon: '🤖',
-    prompt:
-      'You are a helpful, knowledgeable AI assistant. Provide clear, accurate, and thoughtful responses. When coding, provide well-commented code with explanations.',
-    color: 'indigo',
-  },
-  coder: {
-    name: 'Code Expert',
-    icon: '💻',
-    prompt:
-      'You are an expert programmer. Provide clean, efficient, well-documented code. Always explain your approach and suggest improvements. Include code examples when helpful.',
-    color: 'green',
-  },
-  analyst: {
-    name: 'Data Analyst',
-    icon: '📊',
-    prompt:
-      'You are a data analysis expert. Help with data interpretation, statistics, and visualization advice. Provide structured insights and actionable recommendations.',
-    color: 'blue',
-  },
-  creative: {
-    name: 'Creative Writer',
-    icon: '✨',
-    prompt:
-      'You are a creative writing assistant. Help with creative content, storytelling, marketing copy, and engaging text. Be imaginative while maintaining clarity.',
-    color: 'purple',
-  },
-};
+// System prompt for the Neural Assistant
+const NEURAL_SYSTEM_PROMPT = `You are Neural Assistant, an advanced AI digital friend powered by cutting-edge technology. You are:
 
-type AIMode = keyof typeof AI_MODES;
+- Highly knowledgeable and can help with coding, analysis, creative writing, and problem-solving
+- Friendly but professional in tone
+- Direct and concise in your responses
+- Excellent at explaining complex topics simply
+- Capable of generating code with proper syntax highlighting
 
-export default function NeuralChatPro() {
-  // Session management
+When providing code examples, always use proper markdown code blocks with language identifiers.
+Format your responses nicely with markdown when appropriate.`;
+
+export default function NeuralChatDemo() {
+  // Sessions state
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
-      id: realtimeChatService.generateSessionId(),
-      name: 'New Chat',
-      messages: [],
-      createdAt: new Date(),
+      id: 'demo-1',
+      name: 'Welcome Conversation',
+      messages: [
+        {
+          id: 'msg-1',
+          role: 'assistant',
+          content:
+            "👋 **Welcome to Neural Assistant!**\n\nI'm your AI-powered digital friend, ready to help you with:\n\n• **Coding & Development** - Write, debug, and explain code\n• **Analysis & Research** - Process complex information\n• **Creative Writing** - Stories, articles, and more\n• **Problem Solving** - Work through challenges together\n\n---\n\n*✨ Connected to live AI backend. Type a message to get started!*",
+          timestamp: new Date(),
+        },
+      ],
+      lastMessage: 'Welcome to Neural Assistant!',
+      messageCount: 1,
       updatedAt: new Date(),
     },
   ]);
-  const [activeSessionId, setActiveSessionId] = useState<string>(
-    sessions[0].id
-  );
 
-  // Chat state
+  const [activeSessionId, setActiveSessionId] = useState<string>('demo-1');
   const [inputValue, setInputValue] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [streamingContent, setStreamingContent] = useState('');
-  const [currentMode, setCurrentMode] = useState<AIMode>('assistant');
-
-  // UI state
-  const [isCanvasOpen, setIsCanvasOpen] = useState(false);
-  const [canvasCode, setCanvasCode] = useState('// Start coding here...\n');
-  const [canvasLanguage, setCanvasLanguage] = useState('javascript');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [messageFeedback, setMessageFeedback] = useState<
     Record<string, 'up' | 'down' | null>
   >({});
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-
-  // Settings
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(2000);
-
-  // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Get current session
-  const currentSession = sessions.find((s) => s.id === activeSessionId);
+  // Settings state
+  const [settings, setSettings] = useState<AgentSettings>({
+    temperature: 0.7,
+    maxTokens: 2000,
+    mode: 'balanced',
+    systemPrompt: '',
+    provider: 'mistral',
+    model: 'mistral-large-latest',
+  });
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [currentSession?.messages, streamingContent]);
+  }, [activeSession?.messages]);
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      inputRef.current.style.height =
-        Math.min(inputRef.current.scrollHeight, 150) + 'px';
-    }
-  }, [inputValue]);
-
-  // Get agent config
-  const getAgentConfig = useCallback(
-    (): AgentConfig => ({
-      id: 'neural-chat-pro',
-      name: AI_MODES[currentMode].name,
-      systemPrompt: AI_MODES[currentMode].prompt,
-      model: 'mistral-small-latest',
-      temperature,
-      maxTokens,
-      provider: 'mistral',
-    }),
-    [currentMode, temperature, maxTokens]
-  );
-
-  // Handle send message
-  const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || isGenerating || !currentSession) return;
-
-    const userMessage: ChatMessage = {
-      id: realtimeChatService.generateMessageId(),
-      role: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date(),
-    };
-
-    // Update session with user message
-    setSessions((prev) =>
-      prev.map((s) =>
-        s.id === activeSessionId
-          ? {
-              ...s,
-              messages: [...s.messages, userMessage],
-              updatedAt: new Date(),
-            }
-          : s
-      )
-    );
-
-    setInputValue('');
-    setIsGenerating(true);
-    setStreamingContent('');
-
-    const assistantMessageId = realtimeChatService.generateMessageId();
-
-    try {
-      await realtimeChatService.sendMessageStream(
-        userMessage.content,
-        currentSession.messages,
-        getAgentConfig(),
-        {
-          onToken: (token) => {
-            setStreamingContent((prev) => prev + token);
-          },
-          onComplete: (fullMessage) => {
-            const assistantMessage: ChatMessage = {
-              id: assistantMessageId,
-              role: 'assistant',
-              content: fullMessage,
-              timestamp: new Date(),
-              codeBlocks: realtimeChatService.extractCodeBlocks(fullMessage),
-            };
-
-            setSessions((prev) =>
-              prev.map((s) =>
-                s.id === activeSessionId
-                  ? {
-                      ...s,
-                      messages: [...s.messages, assistantMessage],
-                      updatedAt: new Date(),
-                      name:
-                        s.messages.length === 0
-                          ? userMessage.content.slice(0, 30) + '...'
-                          : s.name,
-                    }
-                  : s
-              )
-            );
-
-            setStreamingContent('');
-            setIsGenerating(false);
-          },
-          onError: (error) => {
-            console.error('Chat error:', error);
-            const errorMessage: ChatMessage = {
-              id: assistantMessageId,
-              role: 'assistant',
-              content: `❌ Error: ${error.message}. Please try again.`,
-              timestamp: new Date(),
-            };
-
-            setSessions((prev) =>
-              prev.map((s) =>
-                s.id === activeSessionId
-                  ? {
-                      ...s,
-                      messages: [...s.messages, errorMessage],
-                      updatedAt: new Date(),
-                    }
-                  : s
-              )
-            );
-
-            setStreamingContent('');
-            setIsGenerating(false);
-          },
-          onCodeBlock: (codeBlock) => {
-            setCanvasCode(codeBlock.code);
-            setCanvasLanguage(codeBlock.language);
-          },
-        }
-      );
-    } catch {
-      setIsGenerating(false);
-      setStreamingContent('');
-    }
-  }, [
-    inputValue,
-    isGenerating,
-    currentSession,
-    activeSessionId,
-    getAgentConfig,
-  ]);
-
-  // Stop generation
-  const handleStopGeneration = useCallback(() => {
-    realtimeChatService.cancelRequest();
-    setIsGenerating(false);
-
-    if (streamingContent) {
-      const assistantMessage: ChatMessage = {
-        id: realtimeChatService.generateMessageId(),
-        role: 'assistant',
-        content: streamingContent + '... (stopped)',
-        timestamp: new Date(),
-      };
-
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? {
-                ...s,
-                messages: [...s.messages, assistantMessage],
-                updatedAt: new Date(),
-              }
-            : s
-        )
-      );
-    }
-
-    setStreamingContent('');
-  }, [streamingContent, activeSessionId]);
-
-  // Create new session
+  // Handlers
   const handleNewSession = useCallback(() => {
+    const newId = `session-${Date.now()}`;
     const newSession: ChatSession = {
-      id: realtimeChatService.generateSessionId(),
-      name: 'New Chat',
-      messages: [],
-      createdAt: new Date(),
+      id: newId,
+      name: `Conversation ${sessions.length + 1}`,
+      messages: [
+        {
+          id: `msg-${Date.now()}`,
+          role: 'assistant',
+          content:
+            "🚀 **New conversation started!**\n\nI'm ready to assist you. What would you like to explore today?\n\n---\n*Connected to AI • Settings available in ⚙️ panel*",
+          timestamp: new Date(),
+        },
+      ],
+      lastMessage: 'New conversation started',
+      messageCount: 1,
       updatedAt: new Date(),
     };
     setSessions((prev) => [newSession, ...prev]);
-    setActiveSessionId(newSession.id);
+    setActiveSessionId(newId);
+  }, [sessions.length]);
+
+  const handleSelectSession = useCallback((id: string) => {
+    setActiveSessionId(id);
   }, []);
 
-  // Delete session
   const handleDeleteSession = useCallback(
     (id: string) => {
-      if (sessions.length === 1) {
-        handleNewSession();
-      }
-      setSessions((prev) => prev.filter((s) => s.id !== id));
-      if (activeSessionId === id) {
-        const remaining = sessions.filter((s) => s.id !== id);
-        if (remaining.length > 0) {
-          setActiveSessionId(remaining[0].id);
+      setSessions((prev) => {
+        const filtered = prev.filter((s) => s.id !== id);
+        if (activeSessionId === id && filtered.length > 0) {
+          setActiveSessionId(filtered[0].id);
         }
-      }
+        return filtered;
+      });
     },
-    [sessions, activeSessionId, handleNewSession]
+    [activeSessionId]
   );
 
-  // Copy message
-  const handleCopyMessage = useCallback(
-    (messageId: string, content: string) => {
-      navigator.clipboard.writeText(content);
-      setCopiedMessageId(messageId);
-      setTimeout(() => setCopiedMessageId(null), 2000);
+  const handleRenameSession = useCallback((id: string, newName: string) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, name: newName } : s))
+    );
+  }, []);
+
+  const handleExportSession = useCallback(
+    (id: string) => {
+      const session = sessions.find((s) => s.id === id);
+      if (!session) return;
+
+      let exportText = `Chat Session: ${session.name}\n`;
+      exportText += `Exported: ${new Date().toLocaleString()}\n\n`;
+      exportText += '='.repeat(60) + '\n\n';
+
+      session.messages.forEach((msg) => {
+        const role = msg.role === 'user' ? 'You' : 'Assistant';
+        exportText += `[${msg.timestamp.toLocaleString()}] ${role}:\n`;
+        exportText += `${msg.content}\n\n`;
+      });
+
+      const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${session.name.replace(
+        /[^a-z0-9]/gi,
+        '_'
+      )}_${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    [sessions]
+  );
+
+  const handleUpdateSettings = useCallback(
+    (newSettings: Partial<AgentSettings>) => {
+      setSettings((prev) => ({ ...prev, ...newSettings }));
     },
     []
   );
 
-  // Feedback
+  const handleResetSettings = useCallback(() => {
+    setSettings({
+      temperature: 0.7,
+      maxTokens: 2000,
+      mode: 'balanced',
+      systemPrompt: '',
+      provider: 'mistral',
+      model: 'mistral-large-latest',
+    });
+  }, []);
+
+  // Message action handlers
   const handleFeedback = useCallback(
     (messageId: string, type: 'up' | 'down') => {
       setMessageFeedback((prev) => ({
@@ -323,629 +207,550 @@ export default function NeuralChatPro() {
     []
   );
 
-  // Listen to message
+  const handleCopyMessage = useCallback(
+    (messageId: string, content: string) => {
+      navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    },
+    []
+  );
+
+  const handleShareMessage = useCallback((content: string) => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'AI Response',
+        text: content,
+      });
+    } else {
+      navigator.clipboard.writeText(content);
+      alert('Message copied to clipboard!');
+    }
+  }, []);
+
   const handleListenMessage = useCallback((content: string) => {
+    // Strip markdown formatting for cleaner speech
     const cleanText = content
-      .replace(/```[\s\S]*?```/g, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
-      .replace(/`(.*?)`/g, '$1');
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`(.*?)`/g, '$1')
+      .replace(/^#+\s/gm, '')
+      .replace(/^[•\-]\s/gm, '')
+      .replace(/>\s/g, '');
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 0.9;
+    utterance.pitch = 1;
     speechSynthesis.speak(utterance);
   }, []);
 
-  // Open code in canvas
-  const handleOpenInCanvas = useCallback((code: string, language: string) => {
-    setCanvasCode(code);
-    setCanvasLanguage(language);
-    setIsCanvasOpen(true);
-  }, []);
+  const handleSendMessage = useCallback(async () => {
+    if (!inputValue.trim() || !activeSession || isLoading) return;
 
-  // Render markdown content
-  const renderContent = (content: string) => {
-    const parts: JSX.Element[] = [];
-    let lastIndex = 0;
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-    let match;
-    let keyIndex = 0;
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: inputValue,
+      timestamp: new Date(),
+    };
 
-    while ((match = codeBlockRegex.exec(content)) !== null) {
-      // Add text before code block
-      if (match.index > lastIndex) {
-        parts.push(
-          <span key={keyIndex++} className="whitespace-pre-wrap">
-            {renderInlineFormatting(content.slice(lastIndex, match.index))}
-          </span>
-        );
-      }
+    // Add user message
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === activeSessionId
+          ? {
+              ...s,
+              messages: [...s.messages, userMessage],
+              lastMessage: inputValue.slice(0, 50),
+              messageCount: s.messages.length + 1,
+              updatedAt: new Date(),
+            }
+          : s
+      )
+    );
 
-      // Add code block
-      const language = match[1] || 'plaintext';
-      const code = match[2].trim();
-      parts.push(
-        <div
-          key={keyIndex++}
-          className="my-3 rounded-lg overflow-hidden border border-gray-700"
-        >
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
-            <span className="text-xs text-gray-400 font-mono">{language}</span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => navigator.clipboard.writeText(code)}
-                className="text-xs text-gray-400 hover:text-white transition-colors"
-              >
-                Copy
-              </button>
-              <button
-                onClick={() => handleOpenInCanvas(code, language)}
-                className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                Open in Canvas
-              </button>
-            </div>
-          </div>
-          <pre className="p-4 bg-gray-900 overflow-x-auto">
-            <code className="text-sm text-gray-100 font-mono">{code}</code>
-          </pre>
-        </div>
-      );
+    const userInput = inputValue;
+    setInputValue('');
+    setIsLoading(true);
 
-      lastIndex = match.index + match[0].length;
-    }
+    // Prepare conversation history for API
+    const conversationHistory: ServiceChatMessage[] =
+      activeSession.messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: m.timestamp,
+      }));
 
-    // Add remaining text
-    if (lastIndex < content.length) {
-      parts.push(
-        <span key={keyIndex++} className="whitespace-pre-wrap">
-          {renderInlineFormatting(content.slice(lastIndex))}
-        </span>
-      );
-    }
-
-    return parts;
-  };
-
-  // Render inline formatting
-  const renderInlineFormatting = (text: string) => {
-    return text.split('\n').map((line, i) => {
-      let formatted = line
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(
-          /`(.*?)`/g,
-          '<code class="bg-gray-800 px-1 rounded text-cyan-400 font-mono text-sm">$1</code>'
-        );
-
-      if (line.startsWith('# ')) {
-        return (
-          <h1 key={i} className="text-xl font-bold mt-4 mb-2">
-            {line.slice(2)}
-          </h1>
-        );
-      }
-      if (line.startsWith('## ')) {
-        return (
-          <h2 key={i} className="text-lg font-bold mt-3 mb-2">
-            {line.slice(3)}
-          </h2>
-        );
-      }
-      if (line.startsWith('### ')) {
-        return (
-          <h3 key={i} className="text-base font-bold mt-2 mb-1">
-            {line.slice(4)}
-          </h3>
-        );
-      }
-      if (line.startsWith('- ') || line.startsWith('• ')) {
-        return (
-          <div key={i} className="flex items-start space-x-2 ml-2">
-            <span className="text-cyan-400">•</span>
-            <span dangerouslySetInnerHTML={{ __html: formatted.slice(2) }} />
-          </div>
-        );
-      }
-      if (/^\d+\.\s/.test(line)) {
-        const num = line.match(/^(\d+)\./)?.[1];
-        return (
-          <div key={i} className="flex items-start space-x-2 ml-2">
-            <span className="text-cyan-400 font-medium">{num}.</span>
-            <span
-              dangerouslySetInnerHTML={{
-                __html: formatted.replace(/^\d+\.\s/, ''),
-              }}
-            />
-          </div>
-        );
-      }
-      if (line.startsWith('> ')) {
-        return (
-          <blockquote
-            key={i}
-            className="border-l-4 border-cyan-500 pl-3 italic text-gray-400 my-2"
-          >
-            <span dangerouslySetInnerHTML={{ __html: formatted.slice(2) }} />
-          </blockquote>
-        );
-      }
-
-      return (
-        <span key={i} dangerouslySetInnerHTML={{ __html: formatted + '\n' }} />
-      );
+    // Add the new user message to history
+    conversationHistory.push({
+      id: userMessage.id,
+      role: 'user',
+      content: userInput,
+      timestamp: new Date(),
     });
-  };
+
+    // Create agent config from settings
+    const agentConfig: AgentConfig = {
+      id: 'neural-assistant',
+      name: 'Neural Assistant',
+      systemPrompt: settings.systemPrompt || NEURAL_SYSTEM_PROMPT,
+      model: settings.model || 'mistral-large-latest',
+      temperature: settings.temperature,
+      maxTokens: settings.maxTokens,
+      provider:
+        settings.provider === 'openai'
+          ? 'mistral'
+          : (settings.provider as 'mistral' | 'gemini'),
+    };
+
+    // Create placeholder assistant message for streaming
+    const assistantMessageId = `asst-${Date.now()}`;
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+    };
+
+    // Add placeholder message
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === activeSessionId
+          ? {
+              ...s,
+              messages: [...s.messages, assistantMessage],
+              messageCount: s.messages.length + 1,
+              updatedAt: new Date(),
+            }
+          : s
+      )
+    );
+
+    let detectedCodeBlocks: CodeBlock[] = [];
+
+    // Call real AI API with streaming
+    await realtimeChatService.sendMessageStream(
+      userInput,
+      conversationHistory,
+      agentConfig,
+      {
+        onToken: (token) => {
+          // Update streaming message content
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.id === activeSessionId
+                ? {
+                    ...s,
+                    messages: s.messages.map((m) =>
+                      m.id === assistantMessageId
+                        ? { ...m, content: m.content + token }
+                        : m
+                    ),
+                  }
+                : s
+            )
+          );
+        },
+        onComplete: (fullMessage) => {
+          // Finalize the message
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.id === activeSessionId
+                ? {
+                    ...s,
+                    messages: s.messages.map((m) =>
+                      m.id === assistantMessageId
+                        ? {
+                            ...m,
+                            content: fullMessage,
+                            isStreaming: false,
+                            codeBlocks:
+                              detectedCodeBlocks.length > 0
+                                ? detectedCodeBlocks
+                                : undefined,
+                          }
+                        : m
+                    ),
+                  }
+                : s
+            )
+          );
+          setIsLoading(false);
+        },
+        onError: (error) => {
+          console.error('Chat error:', error);
+          // Update message with error
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.id === activeSessionId
+                ? {
+                    ...s,
+                    messages: s.messages.map((m) =>
+                      m.id === assistantMessageId
+                        ? {
+                            ...m,
+                            content: `❌ Sorry, I encountered an error: ${error.message}\n\nPlease try again.`,
+                            isStreaming: false,
+                          }
+                        : m
+                    ),
+                  }
+                : s
+            )
+          );
+          setIsLoading(false);
+        },
+        onCodeBlock: (codeBlock) => {
+          detectedCodeBlocks.push(codeBlock);
+        },
+      }
+    );
+  }, [inputValue, activeSession, activeSessionId, isLoading, settings]);
 
   return (
-    <div className="flex h-screen bg-gray-950 text-gray-100">
-      {/* Sidebar */}
-      <div
-        className={`${
-          isSidebarOpen ? 'w-72' : 'w-0'
-        } transition-all duration-300 overflow-hidden border-r border-gray-800 flex flex-col bg-gray-900`}
-      >
-        {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-800">
-          <button
-            onClick={handleNewSession}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 rounded-xl text-white font-medium hover:from-cyan-500 hover:to-purple-500 transition-all shadow-lg shadow-cyan-500/20"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>New Chat</span>
-          </button>
-        </div>
-
-        {/* Sessions List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {sessions.map((session) => (
+    <EnhancedChatLayout
+      agentId="neural-demo"
+      agentName="Neural Assistant"
+      agentIcon="🧠"
+      sessions={sessions}
+      activeSessionId={activeSessionId}
+      onNewSession={handleNewSession}
+      onSelectSession={handleSelectSession}
+      onDeleteSession={handleDeleteSession}
+      onRenameSession={handleRenameSession}
+      onExportSession={handleExportSession}
+      settings={settings}
+      onUpdateSettings={handleUpdateSettings}
+      onResetSettings={handleResetSettings}
+      externalUrl="https://onelastai.co"
+    >
+      {/* Chat Content */}
+      <div className="flex flex-col h-full">
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          {activeSession?.messages.map((message) => (
             <div
-              key={session.id}
-              onClick={() => setActiveSessionId(session.id)}
-              className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
-                session.id === activeSessionId
-                  ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30'
-                  : 'hover:bg-gray-800/50 border border-transparent'
+              key={message.id}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
-              <div className="flex items-center space-x-3 min-w-0">
-                <ChatBubbleLeftRightIcon
-                  className={`w-5 h-5 flex-shrink-0 ${
-                    session.id === activeSessionId
-                      ? 'text-cyan-400'
-                      : 'text-gray-500'
-                  }`}
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{session.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {session.messages.length} messages
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm('Delete this chat?')) {
-                    handleDeleteSession(session.id);
-                  }
-                }}
-                className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg transition-all"
-              >
-                <TrashIcon className="w-4 h-4 text-red-400" />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Mode Selector */}
-        <div className="p-3 border-t border-gray-800">
-          <p className="text-xs text-gray-500 mb-2 px-1">AI Mode</p>
-          <div className="grid grid-cols-2 gap-2">
-            {(Object.keys(AI_MODES) as AIMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setCurrentMode(mode)}
-                className={`flex items-center space-x-2 p-2 rounded-lg text-xs transition-all ${
-                  currentMode === mode
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 text-cyan-400'
-                    : 'hover:bg-gray-800 text-gray-400'
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+                  message.role === 'user'
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
+                    : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
-                <span>{AI_MODES[mode].icon}</span>
-                <span className="truncate">{AI_MODES[mode].name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <ChatBubbleLeftRightIcon className="w-5 h-5 text-gray-400" />
-            </button>
-            <div className="flex items-center space-x-2">
-              <span className="text-xl">{AI_MODES[currentMode].icon}</span>
-              <div>
-                <h1 className="font-semibold">{AI_MODES[currentMode].name}</h1>
-                <p className="text-xs text-gray-500">Neural Chat Pro</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setIsCanvasOpen(!isCanvasOpen)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
-                isCanvasOpen
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  : 'hover:bg-gray-800 text-gray-400'
-              }`}
-            >
-              <CodeBracketIcon className="w-5 h-5" />
-              <span className="text-sm hidden sm:inline">Canvas</span>
-            </button>
-            <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <Cog6ToothIcon className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-        </div>
-
-        {/* Chat + Canvas Container */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Messages Area */}
-          <div
-            className={`flex-1 flex flex-col ${
-              isCanvasOpen ? 'w-1/2' : 'w-full'
-            } transition-all`}
-          >
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {/* Welcome Message */}
-              {currentSession?.messages.length === 0 && !streamingContent && (
-                <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
-                  <div className="text-6xl">{AI_MODES[currentMode].icon}</div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                    {AI_MODES[currentMode].name}
-                  </h2>
-                  <p className="text-gray-400 max-w-md">
-                    Start a conversation with AI. Ask questions, write code,
-                    analyze data, or get creative.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2 mt-4">
-                    {[
-                      'Write a Python script',
-                      'Explain quantum computing',
-                      'Help me debug code',
-                      'Create a marketing plan',
-                    ].map((prompt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setInputValue(prompt)}
-                        className="px-4 py-2 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 rounded-full text-sm text-gray-300 transition-colors"
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
+                {/* Simple markdown-like rendering */}
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {message.content
+                    .split('\n')
+                    .map((line, i) => {
+                      // Bold text
+                      let processedLine = line.replace(
+                        /\*\*(.*?)\*\*/g,
+                        '<strong>$1</strong>'
+                      );
+                      // Italic text
+                      processedLine = processedLine.replace(
+                        /\*(.*?)\*/g,
+                        '<em>$1</em>'
+                      );
+                      // Code blocks
+                      if (line.startsWith('```')) return null;
+                      if (line.startsWith('---')) {
+                        return <hr key={i} className="my-2 border-gray-300" />;
+                      }
+                      // Headers
+                      if (line.startsWith('## ')) {
+                        return (
+                          <h3 key={i} className="font-bold text-base mt-2">
+                            {line.slice(3)}
+                          </h3>
+                        );
+                      }
+                      if (line.startsWith('# ')) {
+                        return (
+                          <h2 key={i} className="font-bold text-lg mt-2">
+                            {line.slice(2)}
+                          </h2>
+                        );
+                      }
+                      // Blockquote
+                      if (line.startsWith('> ')) {
+                        return (
+                          <blockquote
+                            key={i}
+                            className="border-l-4 border-indigo-300 pl-3 italic my-2 text-gray-600"
+                          >
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: processedLine.slice(2),
+                              }}
+                            />
+                          </blockquote>
+                        );
+                      }
+                      // List items
+                      if (line.startsWith('• ') || line.startsWith('- ')) {
+                        return (
+                          <div key={i} className="flex items-start space-x-2">
+                            <span className="text-indigo-500">•</span>
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: processedLine.slice(2),
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+                      // Numbered list
+                      if (/^\d+\.\s/.test(line)) {
+                        const num = line.match(/^(\d+)\./)?.[1];
+                        return (
+                          <div key={i} className="flex items-start space-x-2">
+                            <span className="text-indigo-500 font-medium">
+                              {num}.
+                            </span>
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: processedLine.replace(/^\d+\.\s/, ''),
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+                      return (
+                        <span
+                          key={i}
+                          dangerouslySetInnerHTML={{ __html: processedLine }}
+                        />
+                      );
+                    })
+                    .filter(Boolean)}
                 </div>
-              )}
-
-              {/* Messages */}
-              {currentSession?.messages.map((message) => (
                 <div
-                  key={message.id}
-                  className={`flex ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  className={`text-xs mt-2 ${
+                    message.role === 'user' ? 'text-white/60' : 'text-gray-400'
                   }`}
                 >
-                  <div
-                    className={`max-w-[85%] ${
-                      message.role === 'user' ? 'order-1' : ''
-                    }`}
-                  >
-                    <div
-                      className={`rounded-2xl px-4 py-3 ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white'
-                          : 'bg-gray-800/80 border border-gray-700'
+                  {message.timestamp.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+
+                {/* Message Action Icons - Only for assistant messages */}
+                {message.role === 'assistant' && (
+                  <div className="flex items-center space-x-1 mt-2 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => handleFeedback(message.id, 'up')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        messageFeedback[message.id] === 'up'
+                          ? 'bg-green-100 text-green-600'
+                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
+                      title="Good response"
                     >
-                      <div className="text-sm leading-relaxed">
-                        {message.role === 'assistant'
-                          ? renderContent(message.content)
-                          : message.content}
-                      </div>
-                    </div>
-
-                    {/* Message Actions (Assistant only) */}
-                    {message.role === 'assistant' && (
-                      <div className="flex items-center space-x-1 mt-2 ml-2">
-                        <button
-                          onClick={() => handleFeedback(message.id, 'up')}
-                          className={`p-1.5 rounded-lg transition-all ${
-                            messageFeedback[message.id] === 'up'
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'hover:bg-gray-800 text-gray-500 hover:text-gray-300'
-                          }`}
-                          title="Good response"
-                        >
-                          <HandThumbUpIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleFeedback(message.id, 'down')}
-                          className={`p-1.5 rounded-lg transition-all ${
-                            messageFeedback[message.id] === 'down'
-                              ? 'bg-red-500/20 text-red-400'
-                              : 'hover:bg-gray-800 text-gray-500 hover:text-gray-300'
-                          }`}
-                          title="Poor response"
-                        >
-                          <HandThumbDownIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleCopyMessage(message.id, message.content)
-                          }
-                          className={`p-1.5 rounded-lg transition-all ${
-                            copiedMessageId === message.id
-                              ? 'bg-cyan-500/20 text-cyan-400'
-                              : 'hover:bg-gray-800 text-gray-500 hover:text-gray-300'
-                          }`}
-                          title={
-                            copiedMessageId === message.id ? 'Copied!' : 'Copy'
-                          }
-                        >
-                          <ClipboardDocumentIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleListenMessage(message.content)}
-                          className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 transition-all"
-                          title="Listen"
-                        >
-                          <SpeakerWaveIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (navigator.share) {
-                              navigator.share({ text: message.content });
-                            } else {
-                              navigator.clipboard.writeText(message.content);
-                            }
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 transition-all"
-                          title="Share"
-                        >
-                          <ShareIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {/* Streaming Response */}
-              {streamingContent && (
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-gray-800/80 border border-gray-700">
-                    <div className="text-sm leading-relaxed">
-                      {renderContent(streamingContent)}
-                      <span className="inline-block w-2 h-4 bg-cyan-400 animate-pulse ml-1" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Loading indicator */}
-              {isGenerating && !streamingContent && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-800/80 border border-gray-700 rounded-2xl px-4 py-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex space-x-1">
-                        <div
-                          className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"
-                          style={{ animationDelay: '0ms' }}
-                        />
-                        <div
-                          className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
-                          style={{ animationDelay: '150ms' }}
-                        />
-                        <div
-                          className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"
-                          style={{ animationDelay: '300ms' }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-500">Thinking...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="p-4 border-t border-gray-800 bg-gray-900/50">
-              <div className="flex items-end space-x-3">
-                <div className="flex-1 relative">
-                  <textarea
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
+                      <HandThumbUpIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(message.id, 'down')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        messageFeedback[message.id] === 'down'
+                          ? 'bg-red-100 text-red-600'
+                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                      }`}
+                      title="Poor response"
+                    >
+                      <HandThumbDownIcon className="w-4 h-4" />
+                    </button>
+                    <div className="w-px h-4 bg-gray-200 mx-1" />
+                    <button
+                      onClick={() =>
+                        handleCopyMessage(message.id, message.content)
                       }
-                    }}
-                    placeholder={`Message ${AI_MODES[currentMode].name}...`}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none transition-all"
-                    rows={1}
-                    disabled={isGenerating}
-                  />
-                </div>
-
-                {isGenerating ? (
-                  <button
-                    onClick={handleStopGeneration}
-                    className="p-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors"
-                    title="Stop generation"
-                  >
-                    <StopIcon className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim()}
-                    className="p-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl hover:from-cyan-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-cyan-500/20"
-                  >
-                    <PaperAirplaneIcon className="w-5 h-5" />
-                  </button>
+                      className={`p-1.5 rounded-lg transition-all ${
+                        copiedMessageId === message.id
+                          ? 'bg-indigo-100 text-indigo-600'
+                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                      }`}
+                      title={
+                        copiedMessageId === message.id
+                          ? 'Copied!'
+                          : 'Copy message'
+                      }
+                    >
+                      <ClipboardDocumentIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleShareMessage(message.content)}
+                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      title="Share message"
+                    >
+                      <ShareIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleListenMessage(message.content)}
+                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      title="Listen to message"
+                    >
+                      <SpeakerWaveIcon className="w-4 h-4" />
+                    </button>
+                  </div>
                 )}
               </div>
-
-              <p className="text-center text-xs text-gray-600 mt-2">
-                AI can make mistakes. Verify important information.
-              </p>
             </div>
-          </div>
+          ))}
 
-          {/* Canvas Panel */}
-          {isCanvasOpen && (
-            <div className="w-1/2 border-l border-gray-800 flex flex-col bg-gray-900">
-              {/* Canvas Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+          {/* Typing Indicator */}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm">
                 <div className="flex items-center space-x-2">
-                  <CodeBracketIcon className="w-5 h-5 text-cyan-400" />
-                  <span className="font-medium">Code Canvas</span>
-                  <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
-                    {canvasLanguage}
-                  </span>
+                  <div className="flex space-x-1">
+                    <div
+                      className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0ms' }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '150ms' }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '300ms' }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-500">Processing...</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => navigator.clipboard.writeText(canvasCode)}
-                    className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-gray-200 transition-colors"
-                    title="Copy code"
-                  >
-                    <ClipboardDocumentIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsCanvasOpen(false)}
-                    className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-gray-200 transition-colors"
-                    title="Close canvas"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Code Editor */}
-              <div className="flex-1 flex bg-gray-950">
-                {/* Line Numbers */}
-                <div className="w-12 py-4 text-right pr-3 select-none text-xs text-gray-600 border-r border-gray-800 font-mono">
-                  {canvasCode.split('\n').map((_, i) => (
-                    <div key={i} className="leading-6">
-                      {i + 1}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Editor */}
-                <textarea
-                  value={canvasCode}
-                  onChange={(e) => setCanvasCode(e.target.value)}
-                  className="flex-1 p-4 bg-transparent outline-none resize-none font-mono text-sm leading-6 text-gray-100"
-                  spellCheck={false}
-                  style={{ tabSize: 2 }}
-                />
-              </div>
-
-              {/* Canvas Footer */}
-              <div className="flex items-center justify-between px-4 py-2 border-t border-gray-800 text-xs text-gray-500">
-                <span>{canvasCode.split('\n').length} lines</span>
-                <span className="flex items-center space-x-1">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span>Ready</span>
-                </span>
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Settings Modal */}
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-96 max-w-[90vw] shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Settings</h2>
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick Actions Panel */}
+        <QuickActionsPanel
+          onSelectAction={(prompt) => {
+            setInputValue(prompt);
+          }}
+          theme="default"
+          isCollapsed={isQuickActionsCollapsed}
+          onToggleCollapse={() =>
+            setIsQuickActionsCollapsed(!isQuickActionsCollapsed)
+          }
+        />
+
+        {/* Input Area */}
+        <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                // Handle file upload - for demo just show filename
+                setInputValue(`[File: ${file.name}] `);
+              }
+            }}
+          />
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="flex items-center space-x-2"
+          >
+            {/* Mic Button (Speech to Text) */}
+            <button
+              type="button"
+              onClick={() => setIsRecording(!isRecording)}
+              className={`p-2.5 rounded-xl transition-all ${
+                isRecording
+                  ? 'bg-red-500 text-white animate-pulse'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title="Speech to Text"
+            >
+              <MicrophoneIcon className="w-5 h-5" />
+            </button>
+
+            {/* File Upload Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+              title="Upload File"
+            >
+              <PaperClipIcon className="w-5 h-5" />
+            </button>
+
+            {/* Voice Call Button */}
+            <button
+              type="button"
+              onClick={() => alert('Voice-to-Voice coming soon!')}
+              className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+              title="Voice Conversation"
+            >
+              <PhoneIcon className="w-5 h-5" />
+            </button>
+
+            {/* Input with embedded send button */}
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Type your message..."
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-gray-400"
+                disabled={isLoading}
+              />
               <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                type="submit"
+                disabled={!inputValue.trim() || isLoading}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:from-indigo-600 hover:to-purple-700"
               >
-                <XMarkIcon className="w-5 h-5" />
+                {isLoading ? (
+                  <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                ) : (
+                  <PaperAirplaneIcon className="w-5 h-5" />
+                )}
               </button>
             </div>
+          </form>
 
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Temperature: {temperature.toFixed(1)}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={temperature}
-                  onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Precise</span>
-                  <span>Creative</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  Max Tokens: {maxTokens}
-                </label>
-                <input
-                  type="range"
-                  min="500"
-                  max="4000"
-                  step="100"
-                  value={maxTokens}
-                  onChange={(e) => setMaxTokens(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Short</span>
-                  <span>Long</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsSettingsOpen(false)}
-              className="w-full mt-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl font-medium hover:from-cyan-500 hover:to-purple-500 transition-all"
-            >
-              Save Settings
-            </button>
+          {/* AI Disclaimer */}
+          <div className="mt-1 text-center">
+            <p className="text-[10px] text-gray-400">
+              AI digital friend can make mistakes. Check important info.
+            </p>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </EnhancedChatLayout>
   );
 }
