@@ -5,8 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+// Use internal backend URL for server-to-server communication
+const BACKEND_URL = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
 export async function GET(
   request: NextRequest,
@@ -31,7 +31,9 @@ export async function GET(
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          cookie: request.headers.get('cookie') || '',
         },
+        cache: 'no-store',
       }
     );
 
