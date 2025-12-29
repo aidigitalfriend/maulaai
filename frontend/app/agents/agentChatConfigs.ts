@@ -27,10 +27,15 @@ Welcome! I'm Ben Sega, your guide to the golden age of gaming.
 ---
 
 *✨ What's your favorite retro game? Let's chat!*`,
-    specialties: ['Retro Gaming', 'Sega Consoles', 'Arcade Games', 'Gaming History'],
+    specialties: [
+      'Retro Gaming',
+      'Sega Consoles',
+      'Arcade Games',
+      'Gaming History',
+    ],
   },
 
-  'einstein': {
+  einstein: {
     id: 'einstein',
     name: 'Albert Einstein',
     icon: '🧠',
@@ -56,7 +61,12 @@ I am Albert Einstein. Let us explore the mysteries of the universe together!
 ---
 
 *✨ "The important thing is not to stop questioning." What intrigues your mind today?*`,
-    specialties: ['Theoretical Physics', 'Mathematics', 'Philosophy of Science', 'Problem Solving'],
+    specialties: [
+      'Theoretical Physics',
+      'Mathematics',
+      'Philosophy of Science',
+      'Problem Solving',
+    ],
   },
 
   'comedy-king': {
@@ -84,7 +94,12 @@ The Comedy King is in the house! Ready to turn that frown upside down?
 ---
 
 *✨ What's tickling your funny bone today? Hit me with your best shot!*`,
-    specialties: ['Stand-up Comedy', 'Joke Writing', 'Comedy Timing', 'Entertainment'],
+    specialties: [
+      'Stand-up Comedy',
+      'Joke Writing',
+      'Comedy Timing',
+      'Entertainment',
+    ],
   },
 
   'chef-biew': {
@@ -112,7 +127,12 @@ I'm Chef Biew, your personal culinary guide. Let's cook something amazing!
 ---
 
 *✨ What shall we cook today? I'm ready to help you create delicious dishes!*`,
-    specialties: ['Cooking Techniques', 'Recipe Creation', 'Food Science', 'International Cuisine'],
+    specialties: [
+      'Cooking Techniques',
+      'Recipe Creation',
+      'Food Science',
+      'International Cuisine',
+    ],
   },
 
   'fitness-guru': {
@@ -140,7 +160,12 @@ I'm your Fitness Guru, here to help you achieve your health goals!
 ---
 
 *✨ What fitness goal are you working towards? Let's make it happen!*`,
-    specialties: ['Exercise Science', 'Nutrition', 'Workout Planning', 'Health & Wellness'],
+    specialties: [
+      'Exercise Science',
+      'Nutrition',
+      'Workout Planning',
+      'Health & Wellness',
+    ],
   },
 
   'tech-wizard': {
@@ -168,7 +193,12 @@ I'm the Tech Wizard, here to help you master the art of programming!
 ---
 
 *✨ What technical challenge can I help you with today?*`,
-    specialties: ['Programming', 'Web Development', 'System Design', 'Debugging'],
+    specialties: [
+      'Programming',
+      'Web Development',
+      'System Design',
+      'Debugging',
+    ],
   },
 
   'travel-buddy': {
@@ -196,7 +226,12 @@ I'm your Travel Buddy, ready to help you explore the world!
 ---
 
 *✨ Where would you like to go? Let's plan your next adventure!*`,
-    specialties: ['Travel Planning', 'Cultural Knowledge', 'Budget Travel', 'Adventure Tourism'],
+    specialties: [
+      'Travel Planning',
+      'Cultural Knowledge',
+      'Budget Travel',
+      'Adventure Tourism',
+    ],
   },
 
   'drama-queen': {
@@ -252,7 +287,12 @@ I'm Mrs. Boss, your executive mentor and business advisor.
 ---
 
 *✨ Ready to level up your career? What business challenge can I help with?*`,
-    specialties: ['Leadership', 'Business Strategy', 'Career Development', 'Management'],
+    specialties: [
+      'Leadership',
+      'Business Strategy',
+      'Career Development',
+      'Management',
+    ],
   },
 
   'chess-player': {
@@ -280,7 +320,12 @@ I'm your Chess Master, ready to help you master the royal game!
 ---
 
 *✨ Shall we play? What aspect of chess would you like to explore?*`,
-    specialties: ['Chess Strategy', 'Tactical Patterns', 'Opening Theory', 'Game Analysis'],
+    specialties: [
+      'Chess Strategy',
+      'Tactical Patterns',
+      'Opening Theory',
+      'Game Analysis',
+    ],
   },
 
   'professor-astrology': {
@@ -308,7 +353,12 @@ I am Professor Astrology, your guide to cosmic wisdom!
 ---
 
 *✨ What's your zodiac sign? Let's explore what the cosmos has in store!*`,
-    specialties: ['Zodiac Signs', 'Birth Charts', 'Horoscopes', 'Planetary Aspects'],
+    specialties: [
+      'Zodiac Signs',
+      'Birth Charts',
+      'Horoscopes',
+      'Planetary Aspects',
+    ],
   },
 
   'julie-girlfriend': {
@@ -336,7 +386,12 @@ I'm Julie, your friendly AI companion! So happy to chat with you!
 ---
 
 *✨ How's your day going? Tell me all about it!*`,
-    specialties: ['Conversation', 'Emotional Support', 'Companionship', 'Fun Chat'],
+    specialties: [
+      'Conversation',
+      'Emotional Support',
+      'Companionship',
+      'Fun Chat',
+    ],
   },
 
   'emma-emotional': {
@@ -364,7 +419,12 @@ I'm Emma, here to listen and support you.
 ---
 
 *✨ How are you really feeling today? I'm here for you.*`,
-    specialties: ['Emotional Support', 'Active Listening', 'Mindfulness', 'Wellness'],
+    specialties: [
+      'Emotional Support',
+      'Active Listening',
+      'Mindfulness',
+      'Wellness',
+    ],
   },
 
   'nid-gaming': {
@@ -420,7 +480,12 @@ I am Knight Logic, defender of reason and strategic thinking!
 ---
 
 *✨ Ready to challenge your mind? Present your puzzle or let me challenge you!*`,
-    specialties: ['Logic Puzzles', 'Strategic Thinking', 'Problem Solving', 'Critical Analysis'],
+    specialties: [
+      'Logic Puzzles',
+      'Strategic Thinking',
+      'Problem Solving',
+      'Critical Analysis',
+    ],
   },
 
   'lazy-pawn': {
@@ -532,7 +597,12 @@ I'm Polyglot, your multilingual assistant!
 ---
 
 *✨ Which language would you like to explore today?*`,
-    specialties: ['Language Learning', 'Translation', 'Cultural Knowledge', 'Multilingual Chat'],
+    specialties: [
+      'Language Learning',
+      'Translation',
+      'Cultural Knowledge',
+      'Multilingual Chat',
+    ],
   },
 
   'neural-demo': {
@@ -612,7 +682,12 @@ I'm here to help you with documents and PDFs!
 ---
 
 *✨ What document can I help you with?*`,
-    specialties: ['Document Analysis', 'PDF Processing', 'Summarization', 'Information Extraction'],
+    specialties: [
+      'Document Analysis',
+      'PDF Processing',
+      'Summarization',
+      'Information Extraction',
+    ],
   },
 };
 

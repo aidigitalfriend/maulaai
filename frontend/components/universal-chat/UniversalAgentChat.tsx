@@ -21,7 +21,7 @@ import realtimeChatService, {
   ChatMessage as ServiceChatMessage,
   AgentConfig,
   CodeBlock,
-} from '../services/realtimeChatService';
+} from './realtimeChatService';
 
 interface Message {
   id: string;
