@@ -403,7 +403,7 @@ export default function SecuritySettingsPage() {
 
   const handleDownloadBackupCodes = () => {
     if (backupCodes.length === 0) return;
-    
+
     const content = `OneLastAI - Two-Factor Authentication Backup Codes
 ================================================
 Generated: ${new Date().toLocaleString()}
@@ -420,12 +420,14 @@ ${backupCodes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
 If you lose access to your authenticator app,
 use one of these codes to sign in.
 `;
-    
+
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `onelastai-backup-codes-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `onelastai-backup-codes-${
+      new Date().toISOString().split('T')[0]
+    }.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -435,11 +437,14 @@ use one of these codes to sign in.
 
   const handleCopyBackupCodes = async () => {
     if (backupCodes.length === 0) return;
-    
+
     const codesText = backupCodes.join('\n');
     try {
       await navigator.clipboard.writeText(codesText);
-      setMessage({ type: 'success', text: 'Backup codes copied to clipboard!' });
+      setMessage({
+        type: 'success',
+        text: 'Backup codes copied to clipboard!',
+      });
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to copy codes' });
     }
@@ -956,7 +961,7 @@ use one of these codes to sign in.
                                   </p>
                                 </div>
                               </div>
-                              
+
                               {/* Backup codes grid with clear visibility */}
                               <div className="grid grid-cols-2 gap-3 bg-white p-4 rounded-lg border border-neural-200 mb-4">
                                 {backupCodes.map((code, index) => (
@@ -964,14 +969,16 @@ use one of these codes to sign in.
                                     key={index}
                                     className="flex items-center justify-between p-3 bg-neural-50 rounded-lg border border-neural-100"
                                   >
-                                    <span className="text-xs text-neural-500 mr-2">{index + 1}.</span>
+                                    <span className="text-xs text-neural-500 mr-2">
+                                      {index + 1}.
+                                    </span>
                                     <code className="text-sm font-mono font-bold text-neural-900 tracking-wider select-all">
                                       {code}
                                     </code>
                                   </div>
                                 ))}
                               </div>
-                              
+
                               {/* Download and Copy buttons */}
                               <div className="flex gap-3">
                                 <button

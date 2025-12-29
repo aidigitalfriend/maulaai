@@ -92,15 +92,28 @@ export async function GET(
       startDate.getTime() - (now.getTime() - startDate.getTime())
     );
 
-    const chatInteractions = db.collection('chat_interactions');
+    // Use 'chatinteractions' collection (no underscore)
+    const chatInteractions = db.collection('chatinteractions');
     const agentInfo = resolveAgent(params.agentId);
 
+    // Match by agentId field (not agentName)
     const conversationStats = await chatInteractions
       .aggregate([
         {
           $match: {
-            agentName: { $regex: agentInfo.name, $options: 'i' },
-            timestamp: { $gte: startDate },
+            $or: [
+              { agentId: { $regex: params.agentId, $options: 'i' } },
+              { agentName: { $regex: agentInfo.name, $options: 'i' } },
+            ],
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { timestamp: { $gte: startDate } },
+              { startedAt: { $gte: startDate } },
+              { createdAt: { $gte: startDate } },
+            ],
           },
         },
         {
@@ -108,7 +121,7 @@ export async function GET(
             _id: null,
             totalConversations: { $sum: 1 },
             totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: { $avg: '$responseTime' },
+            avgResponseTime: { $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] } },
             uniqueUsers: { $addToSet: '$userId' },
           },
         },
@@ -126,8 +139,19 @@ export async function GET(
       .aggregate([
         {
           $match: {
-            agentName: { $regex: agentInfo.name, $options: 'i' },
-            timestamp: { $gte: previousPeriodStart, $lt: startDate },
+            $or: [
+              { agentId: { $regex: params.agentId, $options: 'i' } },
+              { agentName: { $regex: agentInfo.name, $options: 'i' } },
+            ],
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { timestamp: { $gte: previousPeriodStart, $lt: startDate } },
+              { startedAt: { $gte: previousPeriodStart, $lt: startDate } },
+              { createdAt: { $gte: previousPeriodStart, $lt: startDate } },
+            ],
           },
         },
         {
@@ -135,7 +159,7 @@ export async function GET(
             _id: null,
             totalConversations: { $sum: 1 },
             totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: { $avg: '$responseTime' },
+            avgResponseTime: { $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] } },
           },
         },
       ])

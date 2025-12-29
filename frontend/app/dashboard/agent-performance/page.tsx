@@ -165,7 +165,7 @@ function AgentPerformanceDashboard() {
   }, [state.user, fetchPerformance]);
 
   const statusBadge =
-    statusBadgeMap[data?.agent.status ?? ''] ||
+    statusBadgeMap[data?.agent?.status ?? ''] ||
     'bg-neural-100 text-neural-600 border border-neural-200';
 
   if (loading) {
@@ -294,8 +294,8 @@ function AgentPerformanceDashboard() {
                 <span
                   className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusBadge}`}
                 >
-                  {data.agent.status.charAt(0).toUpperCase() +
-                    data.agent.status.slice(1)}
+                  {(data?.agent?.status ?? 'idle').charAt(0).toUpperCase() +
+                    (data?.agent?.status ?? 'idle').slice(1)}
                 </span>
               </div>
             </div>
