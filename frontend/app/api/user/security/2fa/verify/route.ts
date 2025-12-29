@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json({ success: false, message: 'No session ID' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: 'No session ID' },
+        { status: 401 }
+      );
     }
 
     // Connect to database
@@ -36,17 +39,25 @@ export async function POST(request: NextRequest) {
 
     if (!code || code.length !== 6) {
       return NextResponse.json(
-        { success: false, message: 'Valid 6-digit verification code is required' },
+        {
+          success: false,
+          message: 'Valid 6-digit verification code is required',
+        },
         { status: 400 }
       );
     }
 
     // Get temp secret from usersecurities
-    const userSecurity = await userSecurities.findOne({ userId: sessionUser._id.toString() });
-    
+    const userSecurity = await userSecurities.findOne({
+      userId: sessionUser._id.toString(),
+    });
+
     if (!userSecurity?.tempTwoFactorSecret) {
       return NextResponse.json(
-        { success: false, message: 'No pending 2FA setup found. Please start setup again.' },
+        {
+          success: false,
+          message: 'No pending 2FA setup found. Please start setup again.',
+        },
         { status: 400 }
       );
     }
@@ -59,7 +70,10 @@ export async function POST(request: NextRequest) {
 
     if (!isValid) {
       return NextResponse.json(
-        { success: false, message: 'Invalid verification code. Please try again.' },
+        {
+          success: false,
+          message: 'Invalid verification code. Please try again.',
+        },
         { status: 400 }
       );
     }

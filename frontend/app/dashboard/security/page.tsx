@@ -14,6 +14,8 @@ import {
   XCircleIcon,
   EyeIcon,
   EyeSlashIcon,
+  ArrowDownTrayIcon,
+  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 
 type Recommendation = {
@@ -89,7 +91,8 @@ export default function SecuritySettingsPage() {
   const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([]);
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
-  const [securityOverview, setSecurityOverview] = useState<SecurityOverview | null>(null);
+  const [securityOverview, setSecurityOverview] =
+    useState<SecurityOverview | null>(null);
   const [showLoginHistory, setShowLoginHistory] = useState(false);
 
   const defaultRecommendations: Recommendation[] = [
@@ -105,7 +108,8 @@ export default function SecuritySettingsPage() {
   const normalizeDevices = (devices: any[] = []): TrustedDevice[] =>
     devices.map((device, index) => ({
       id: String(device.id ?? device._id ?? index),
-      name: device.name || device.deviceName || device.model || 'Unknown Device',
+      name:
+        device.name || device.deviceName || device.model || 'Unknown Device',
       type: device.type || device.deviceType || 'desktop',
       lastSeen: device.lastSeen || device.updatedAt || new Date().toISOString(),
       location: device.location || device.geoLocation || 'Unknown location',
@@ -118,7 +122,8 @@ export default function SecuritySettingsPage() {
     sessions.map((session, index) => ({
       id: String(session.id ?? session._id ?? index),
       createdAt: session.createdAt || new Date().toISOString(),
-      lastActivity: session.lastActivity || session.updatedAt || new Date().toISOString(),
+      lastActivity:
+        session.lastActivity || session.updatedAt || new Date().toISOString(),
       ipAddress: session.ipAddress || session.ip || 'Unknown',
       userAgent: session.userAgent || 'Unknown',
       isCurrent: Boolean(session.isCurrent ?? false),
@@ -139,7 +144,8 @@ export default function SecuritySettingsPage() {
 
   function detectBrowser(userAgent: string): string {
     if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome'))
+      return 'Safari';
     if (userAgent.includes('Firefox')) return 'Firefox';
     if (userAgent.includes('Edge')) return 'Edge';
     return 'Unknown Browser';
@@ -179,7 +185,10 @@ export default function SecuritySettingsPage() {
         setSecurityOverview({
           securityScore: data?.securityScore ?? 0,
           recommendations: data?.recommendations ?? [],
-          lastPasswordChange: data?.passwordLastChanged || data?.lastPasswordChange || new Date().toISOString(),
+          lastPasswordChange:
+            data?.passwordLastChanged ||
+            data?.lastPasswordChange ||
+            new Date().toISOString(),
           twoFactorSecret: data?.twoFactorSecret || '',
         });
 
@@ -190,11 +199,15 @@ export default function SecuritySettingsPage() {
         setLoginHistory(normalizeLoginHistory(data?.loginHistory));
         setFetchState({ loading: false, error: '' });
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (error instanceof DOMException && error.name === 'AbortError')
+          return;
         console.error('Error fetching security data:', error);
         setFetchState({
           loading: false,
-          error: error instanceof Error ? error.message : 'Unable to load security settings',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Unable to load security settings',
         });
       }
     },
@@ -218,7 +231,10 @@ export default function SecuritySettingsPage() {
       return;
     }
     if (newPassword.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters' });
+      setMessage({
+        type: 'error',
+        text: 'Password must be at least 8 characters',
+      });
       return;
     }
 
@@ -240,7 +256,10 @@ export default function SecuritySettingsPage() {
         setConfirmPassword('');
         fetchSecurityData({ silent: true });
       } else {
-        setMessage({ type: 'error', text: data.message || 'Failed to change password' });
+        setMessage({
+          type: 'error',
+          text: data.message || 'Failed to change password',
+        });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Error changing password' });
@@ -251,7 +270,7 @@ export default function SecuritySettingsPage() {
   const handleSetup2FA = async () => {
     setSetting2FA(true);
     setMessage({ type: '', text: '' });
-    
+
     try {
       const res = await fetch('/api/user/security/2fa', {
         method: 'POST',
@@ -271,7 +290,10 @@ export default function SecuritySettingsPage() {
           text: 'Scan the QR code with your authenticator app, then enter the 6-digit code below',
         });
       } else {
-        setMessage({ type: 'error', text: data.message || 'Failed to setup 2FA' });
+        setMessage({
+          type: 'error',
+          text: data.message || 'Failed to setup 2FA',
+        });
         setSetting2FA(false);
       }
     } catch (error) {
@@ -313,7 +335,10 @@ export default function SecuritySettingsPage() {
           setMessage({ type: 'success', text: '2FA has been disabled' });
           fetchSecurityData({ silent: true });
         } else {
-          setMessage({ type: 'error', text: data.message || 'Failed to disable 2FA' });
+          setMessage({
+            type: 'error',
+            text: data.message || 'Failed to disable 2FA',
+          });
         }
       } catch (error) {
         console.error('Error disabling 2FA:', error);
@@ -347,11 +372,17 @@ export default function SecuritySettingsPage() {
         if (data.backupCodes) {
           setBackupCodes(data.backupCodes);
         }
-        setMessage({ type: 'success', text: '2FA has been enabled successfully!' });
+        setMessage({
+          type: 'success',
+          text: '2FA has been enabled successfully!',
+        });
         setVerificationCode('');
         fetchSecurityData({ silent: true });
       } else {
-        setMessage({ type: 'error', text: data.message || 'Invalid verification code' });
+        setMessage({
+          type: 'error',
+          text: data.message || 'Invalid verification code',
+        });
       }
     } catch (error) {
       console.error('Error verifying 2FA code:', error);
@@ -370,8 +401,55 @@ export default function SecuritySettingsPage() {
     setMessage({ type: '', text: '' });
   };
 
+  const handleDownloadBackupCodes = () => {
+    if (backupCodes.length === 0) return;
+    
+    const content = `OneLastAI - Two-Factor Authentication Backup Codes
+================================================
+Generated: ${new Date().toLocaleString()}
+Account: ${state.user?.email || 'Unknown'}
+
+IMPORTANT: Store these codes in a safe place.
+Each code can only be used once.
+
+Your Backup Codes:
+------------------
+${backupCodes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
+
+------------------
+If you lose access to your authenticator app,
+use one of these codes to sign in.
+`;
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `onelastai-backup-codes-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setMessage({ type: 'success', text: 'Backup codes downloaded!' });
+  };
+
+  const handleCopyBackupCodes = async () => {
+    if (backupCodes.length === 0) return;
+    
+    const codesText = backupCodes.join('\n');
+    try {
+      await navigator.clipboard.writeText(codesText);
+      setMessage({ type: 'success', text: 'Backup codes copied to clipboard!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to copy codes' });
+    }
+  };
+
   const handleRevokeSession = async (sessionId: string) => {
-    if (sessionId === 'current' || activeSessions.find(s => s.id === sessionId)?.isCurrent) {
+    if (
+      sessionId === 'current' ||
+      activeSessions.find((s) => s.id === sessionId)?.isCurrent
+    ) {
       setMessage({ type: 'error', text: 'Cannot revoke current session' });
       return;
     }
@@ -384,12 +462,12 @@ export default function SecuritySettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          activeSessions: activeSessions.filter(s => s.id !== sessionId),
+          activeSessions: activeSessions.filter((s) => s.id !== sessionId),
         }),
       });
 
       if (res.ok) {
-        setActiveSessions(prev => prev.filter(s => s.id !== sessionId));
+        setActiveSessions((prev) => prev.filter((s) => s.id !== sessionId));
         setMessage({ type: 'success', text: 'Session ended successfully' });
       } else {
         setMessage({ type: 'error', text: 'Failed to end session' });
@@ -400,10 +478,11 @@ export default function SecuritySettingsPage() {
   };
 
   const handleRevokeAllSessions = async () => {
-    if (!confirm('This will log you out from all other devices. Continue?')) return;
+    if (!confirm('This will log you out from all other devices. Continue?'))
+      return;
 
     try {
-      const currentSession = activeSessions.find(s => s.isCurrent);
+      const currentSession = activeSessions.find((s) => s.isCurrent);
       const res = await fetch(`/api/user/security/${state.user?.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -415,7 +494,10 @@ export default function SecuritySettingsPage() {
 
       if (res.ok) {
         setActiveSessions(currentSession ? [currentSession] : []);
-        setMessage({ type: 'success', text: 'All other sessions have been ended' });
+        setMessage({
+          type: 'success',
+          text: 'All other sessions have been ended',
+        });
       } else {
         setMessage({ type: 'error', text: 'Failed to end sessions' });
       }
@@ -429,7 +511,7 @@ export default function SecuritySettingsPage() {
     if (!confirm('Are you sure you want to remove this device?')) return;
 
     try {
-      const updatedDevices = trustedDevices.filter(d => d.id !== deviceId);
+      const updatedDevices = trustedDevices.filter((d) => d.id !== deviceId);
       const res = await fetch(`/api/user/security/${state.user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -450,7 +532,12 @@ export default function SecuritySettingsPage() {
 
   const handleRemoveAllDevices = async () => {
     if (!state.user?.id) return;
-    if (!confirm('Remove all trusted devices? This will require re-trusting each device.')) return;
+    if (
+      !confirm(
+        'Remove all trusted devices? This will require re-trusting each device.'
+      )
+    )
+      return;
 
     try {
       const res = await fetch(`/api/user/security/${state.user.id}`, {
@@ -550,7 +637,10 @@ export default function SecuritySettingsPage() {
             <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
               <div className="flex items-center justify-between">
                 <p>{fetchState.error}</p>
-                <button className="text-sm font-medium underline" onClick={() => fetchSecurityData()}>
+                <button
+                  className="text-sm font-medium underline"
+                  onClick={() => fetchSecurityData()}
+                >
                   Retry
                 </button>
               </div>
@@ -569,29 +659,66 @@ export default function SecuritySettingsPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100 text-center">
                 <div className="relative w-24 h-24 mx-auto mb-4">
                   <svg className="w-24 h-24 transform -rotate-90">
-                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-neural-200" />
-                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent"
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="transparent"
+                      className="text-neural-200"
+                    />
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="transparent"
                       strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - securityScore / 100)}`}
+                      strokeDashoffset={`${
+                        2 * Math.PI * 40 * (1 - securityScore / 100)
+                      }`}
                       className="text-brand-500"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-neural-900">{securityScore}%</span>
+                    <span className="text-2xl font-bold text-neural-900">
+                      {securityScore}%
+                    </span>
                   </div>
                 </div>
 
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Security Score</h3>
-                <p className="text-sm text-neural-600 mb-4">Your account security rating</p>
+                <h3 className="text-lg font-semibold text-neural-900 mb-2">
+                  Security Score
+                </h3>
+                <p className="text-sm text-neural-600 mb-4">
+                  Your account security rating
+                </p>
 
                 <div className="space-y-2 text-left">
                   {recommendations.map((rec) => (
-                    <div key={rec.id} className={`p-3 rounded-lg ${rec.priority === 'high' ? 'bg-red-50' : 'bg-yellow-50'}`}>
+                    <div
+                      key={rec.id}
+                      className={`p-3 rounded-lg ${
+                        rec.priority === 'high' ? 'bg-red-50' : 'bg-yellow-50'
+                      }`}
+                    >
                       <div className="flex items-center">
-                        <ExclamationTriangleIcon className={`w-4 h-4 mr-2 flex-shrink-0 ${rec.priority === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />
+                        <ExclamationTriangleIcon
+                          className={`w-4 h-4 mr-2 flex-shrink-0 ${
+                            rec.priority === 'high'
+                              ? 'text-red-500'
+                              : 'text-yellow-500'
+                          }`}
+                        />
                         <div>
-                          <p className="text-xs font-medium text-neural-900">{rec.title}</p>
-                          <p className="text-xs text-neural-600">{rec.description}</p>
+                          <p className="text-xs font-medium text-neural-900">
+                            {rec.title}
+                          </p>
+                          <p className="text-xs text-neural-600">
+                            {rec.description}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -607,62 +734,98 @@ export default function SecuritySettingsPage() {
                 <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
                   <div className="flex items-center mb-6">
                     <KeyIcon className="w-6 h-6 text-brand-500 mr-3" />
-                    <h3 className="text-xl font-semibold text-neural-900">Password & Authentication</h3>
+                    <h3 className="text-xl font-semibold text-neural-900">
+                      Password & Authentication
+                    </h3>
                   </div>
 
                   <div className="space-y-6">
                     {/* Change Password */}
                     <div className="border border-neural-100 rounded-lg p-6">
                       {message.text && (
-                        <div className={`mb-4 p-3 rounded-lg ${
-                          message.type === 'success' ? 'bg-green-50 text-green-800' :
-                          message.type === 'info' ? 'bg-blue-50 text-blue-800' :
-                          'bg-red-50 text-red-800'
-                        }`}>
+                        <div
+                          className={`mb-4 p-3 rounded-lg ${
+                            message.type === 'success'
+                              ? 'bg-green-50 text-green-800'
+                              : message.type === 'info'
+                              ? 'bg-blue-50 text-blue-800'
+                              : 'bg-red-50 text-red-800'
+                          }`}
+                        >
                           {message.text}
                         </div>
                       )}
 
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-neural-900">Password</h4>
-                          <p className="text-sm text-neural-600">Last changed on {formatDate(lastPasswordChange)}</p>
+                          <h4 className="font-medium text-neural-900">
+                            Password
+                          </h4>
+                          <p className="text-sm text-neural-600">
+                            Last changed on {formatDate(lastPasswordChange)}
+                          </p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">Current Password</label>
+                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                            Current Password
+                          </label>
                           <div className="relative">
                             <input
                               type={showPassword ? 'text' : 'password'}
                               placeholder="Enter current password"
                               value={currentPassword}
-                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              onChange={(e) =>
+                                setCurrentPassword(e.target.value)
+                              }
                               className="w-full p-3 pr-12 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                             />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                              {showPassword ? <EyeSlashIcon className="w-5 h-5 text-neural-400" /> : <EyeIcon className="w-5 h-5 text-neural-400" />}
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            >
+                              {showPassword ? (
+                                <EyeSlashIcon className="w-5 h-5 text-neural-400" />
+                              ) : (
+                                <EyeIcon className="w-5 h-5 text-neural-400" />
+                              )}
                             </button>
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">New Password</label>
-                          <input type="password" placeholder="Enter new password" value={newPassword}
+                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                            New Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="Enter new password"
+                            value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neural-700 mb-2">Confirm Password</label>
-                          <input type="password" placeholder="Confirm new password" value={confirmPassword}
+                          <label className="block text-sm font-medium text-neural-700 mb-2">
+                            Confirm Password
+                          </label>
+                          <input
+                            type="password"
+                            placeholder="Confirm new password"
+                            value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full p-3 border border-neural-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                           />
                         </div>
                       </div>
 
-                      <button onClick={handleChangePassword} disabled={loading} className="btn-primary">
+                      <button
+                        onClick={handleChangePassword}
+                        disabled={loading}
+                        className="btn-primary"
+                      >
                         {loading ? 'Changing...' : 'Change Password'}
                       </button>
                     </div>
@@ -671,8 +834,12 @@ export default function SecuritySettingsPage() {
                     <div className="border border-neural-100 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-neural-900">Two-Factor Authentication</h4>
-                          <p className="text-sm text-neural-600">Add an extra layer of security to your account</p>
+                          <h4 className="font-medium text-neural-900">
+                            Two-Factor Authentication
+                          </h4>
+                          <p className="text-sm text-neural-600">
+                            Add an extra layer of security to your account
+                          </p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -692,30 +859,57 @@ export default function SecuritySettingsPage() {
                           <div className="p-6 bg-white border-2 border-brand-200 rounded-lg">
                             <div className="text-center">
                               <div className="bg-white p-4 rounded-lg inline-block mb-4 border border-neural-200">
-                                <img src={qrCodeUrl} alt="2FA QR Code" className="w-64 h-64" />
+                                <img
+                                  src={qrCodeUrl}
+                                  alt="2FA QR Code"
+                                  className="w-64 h-64"
+                                />
                               </div>
-                              <p className="text-sm text-neural-600 mb-2">Scan this QR code with your authenticator app</p>
-                              <p className="text-xs text-neural-500">(Google Authenticator, Authy, Microsoft Authenticator, etc.)</p>
+                              <p className="text-sm text-neural-600 mb-2">
+                                Scan this QR code with your authenticator app
+                              </p>
+                              <p className="text-xs text-neural-500">
+                                (Google Authenticator, Authy, Microsoft
+                                Authenticator, etc.)
+                              </p>
                             </div>
                           </div>
 
                           <div className="space-y-3">
                             <div>
-                              <label className="block text-sm font-medium text-neural-700 mb-2">Enter 6-Digit Verification Code</label>
+                              <label className="block text-sm font-medium text-neural-700 mb-2">
+                                Enter 6-Digit Verification Code
+                              </label>
                               <input
                                 type="text"
                                 value={verificationCode}
-                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                onChange={(e) =>
+                                  setVerificationCode(
+                                    e.target.value
+                                      .replace(/\D/g, '')
+                                      .slice(0, 6)
+                                  )
+                                }
                                 placeholder="000000"
                                 maxLength={6}
                                 className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest bg-white border-2 border-neural-200 rounded-lg focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20"
                               />
                             </div>
-                            <button onClick={handleVerify2FACode} disabled={loading || verificationCode.length !== 6}
-                              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button
+                              onClick={handleVerify2FACode}
+                              disabled={
+                                loading || verificationCode.length !== 6
+                              }
+                              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                               {loading ? 'Verifying...' : 'Verify & Enable 2FA'}
                             </button>
-                            <button onClick={handleCancel2FASetup} className="btn-ghost w-full">Cancel</button>
+                            <button
+                              onClick={handleCancel2FASetup}
+                              className="btn-ghost w-full"
+                            >
+                              Cancel
+                            </button>
                           </div>
                         </div>
                       )}
@@ -727,14 +921,23 @@ export default function SecuritySettingsPage() {
                             <div className="flex items-center">
                               <CheckCircleIcon className="w-5 h-5 text-green-500 mr-3" />
                               <div>
-                                <p className="font-medium text-green-900">Authenticator App Active</p>
-                                <p className="text-sm text-green-700">{backupCodes.length} backup codes available</p>
+                                <p className="font-medium text-green-900">
+                                  Authenticator App Active
+                                </p>
+                                <p className="text-sm text-green-700">
+                                  {backupCodes.length} backup codes available
+                                </p>
                               </div>
                             </div>
                           </div>
 
                           {backupCodes.length > 0 && (
-                            <button onClick={() => setShowBackupCodes(!showBackupCodes)} className="btn-secondary w-full">
+                            <button
+                              onClick={() =>
+                                setShowBackupCodes(!showBackupCodes)
+                              }
+                              className="btn-secondary w-full"
+                            >
                               {showBackupCodes ? 'Hide' : 'View'} Backup Codes
                             </button>
                           )}
@@ -744,14 +947,47 @@ export default function SecuritySettingsPage() {
                               <div className="flex items-start mb-4">
                                 <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
                                 <div>
-                                  <p className="font-medium text-yellow-900">Save these backup codes</p>
-                                  <p className="text-sm text-yellow-700">Store them in a safe place. Each code can only be used once.</p>
+                                  <p className="font-medium text-yellow-900">
+                                    Save these backup codes
+                                  </p>
+                                  <p className="text-sm text-yellow-700">
+                                    Store them in a safe place. Each code can
+                                    only be used once.
+                                  </p>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 gap-2 bg-white p-4 rounded-lg">
+                              
+                              {/* Backup codes grid with clear visibility */}
+                              <div className="grid grid-cols-2 gap-3 bg-white p-4 rounded-lg border border-neural-200 mb-4">
                                 {backupCodes.map((code, index) => (
-                                  <code key={index} className="text-sm font-mono text-neural-900 p-2 bg-neural-50 rounded">{code}</code>
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-between p-3 bg-neural-50 rounded-lg border border-neural-100"
+                                  >
+                                    <span className="text-xs text-neural-500 mr-2">{index + 1}.</span>
+                                    <code className="text-sm font-mono font-bold text-neural-900 tracking-wider select-all">
+                                      {code}
+                                    </code>
+                                  </div>
                                 ))}
+                              </div>
+                              
+                              {/* Download and Copy buttons */}
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={handleDownloadBackupCodes}
+                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-medium"
+                                >
+                                  <ArrowDownTrayIcon className="w-5 h-5" />
+                                  Download Codes
+                                </button>
+                                <button
+                                  onClick={handleCopyBackupCodes}
+                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 transition-colors font-medium"
+                                >
+                                  <DocumentDuplicateIcon className="w-5 h-5" />
+                                  Copy All
+                                </button>
                               </div>
                             </div>
                           )}
@@ -766,10 +1002,17 @@ export default function SecuritySettingsPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <ShieldCheckIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">Trusted Devices</h3>
+                      <h3 className="text-xl font-semibold text-neural-900">
+                        Trusted Devices
+                      </h3>
                     </div>
                     {trustedDevices.length > 0 && (
-                      <button className="btn-ghost text-red-600" onClick={handleRemoveAllDevices}>Remove All</button>
+                      <button
+                        className="btn-ghost text-red-600"
+                        onClick={handleRemoveAllDevices}
+                      >
+                        Remove All
+                      </button>
                     )}
                   </div>
 
@@ -777,28 +1020,54 @@ export default function SecuritySettingsPage() {
                     {trustedDevices.length === 0 ? (
                       <div className="text-center py-12">
                         <ShieldCheckIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                        <p className="text-neutral-500">No trusted devices found</p>
-                        <p className="text-sm text-neutral-400 mt-1">Devices will appear here after you log in</p>
+                        <p className="text-neutral-500">
+                          No trusted devices found
+                        </p>
+                        <p className="text-sm text-neutral-400 mt-1">
+                          Devices will appear here after you log in
+                        </p>
                       </div>
                     ) : (
                       trustedDevices.map((device) => (
-                        <div key={device.id} className={`p-4 border rounded-lg ${device.current ? 'border-brand-200 bg-brand-50' : 'border-neural-100'}`}>
+                        <div
+                          key={device.id}
+                          className={`p-4 border rounded-lg ${
+                            device.current
+                              ? 'border-brand-200 bg-brand-50'
+                              : 'border-neural-100'
+                          }`}
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="p-2 bg-neural-100 rounded-lg mr-4">{getDeviceIcon(device.type)}</div>
+                              <div className="p-2 bg-neural-100 rounded-lg mr-4">
+                                {getDeviceIcon(device.type)}
+                              </div>
                               <div>
                                 <div className="flex items-center">
-                                  <h4 className="font-medium text-neural-900">{device.name}</h4>
+                                  <h4 className="font-medium text-neural-900">
+                                    {device.name}
+                                  </h4>
                                   {device.current && (
-                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">Current</span>
+                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
+                                      Current
+                                    </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-neural-600">{device.browser} • {device.location}</p>
-                                <p className="text-xs text-neural-500">Last seen {formatDateTime(device.lastSeen)}</p>
+                                <p className="text-sm text-neural-600">
+                                  {device.browser} • {device.location}
+                                </p>
+                                <p className="text-xs text-neural-500">
+                                  Last seen {formatDateTime(device.lastSeen)}
+                                </p>
                               </div>
                             </div>
                             {!device.current && (
-                              <button onClick={() => handleRemoveDevice(device.id)} className="btn-ghost text-red-600 text-sm">Remove</button>
+                              <button
+                                onClick={() => handleRemoveDevice(device.id)}
+                                className="btn-ghost text-red-600 text-sm"
+                              >
+                                Remove
+                              </button>
                             )}
                           </div>
                         </div>
@@ -812,10 +1081,17 @@ export default function SecuritySettingsPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <ComputerDesktopIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">Active Sessions</h3>
+                      <h3 className="text-xl font-semibold text-neural-900">
+                        Active Sessions
+                      </h3>
                     </div>
-                    {activeSessions.filter(s => !s.isCurrent).length > 0 && (
-                      <button className="btn-ghost text-red-600" onClick={handleRevokeAllSessions}>End All Others</button>
+                    {activeSessions.filter((s) => !s.isCurrent).length > 0 && (
+                      <button
+                        className="btn-ghost text-red-600"
+                        onClick={handleRevokeAllSessions}
+                      >
+                        End All Others
+                      </button>
                     )}
                   </div>
 
@@ -827,7 +1103,14 @@ export default function SecuritySettingsPage() {
                       </div>
                     ) : (
                       activeSessions.map((session) => (
-                        <div key={session.id} className={`p-4 border rounded-lg ${session.isCurrent ? 'border-brand-200 bg-brand-50' : 'border-neural-100'}`}>
+                        <div
+                          key={session.id}
+                          className={`p-4 border rounded-lg ${
+                            session.isCurrent
+                              ? 'border-brand-200 bg-brand-50'
+                              : 'border-neural-100'
+                          }`}
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
                               <div className="p-2 bg-neural-100 rounded-lg mr-4">
@@ -835,17 +1118,31 @@ export default function SecuritySettingsPage() {
                               </div>
                               <div>
                                 <div className="flex items-center">
-                                  <h4 className="font-medium text-neural-900">{session.browser} • {session.device}</h4>
+                                  <h4 className="font-medium text-neural-900">
+                                    {session.browser} • {session.device}
+                                  </h4>
                                   {session.isCurrent && (
-                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">Current</span>
+                                    <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
+                                      Current
+                                    </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-neural-600">IP: {session.ipAddress}</p>
-                                <p className="text-xs text-neural-500">Last active: {formatDateTime(session.lastActivity)}</p>
+                                <p className="text-sm text-neural-600">
+                                  IP: {session.ipAddress}
+                                </p>
+                                <p className="text-xs text-neural-500">
+                                  Last active:{' '}
+                                  {formatDateTime(session.lastActivity)}
+                                </p>
                               </div>
                             </div>
                             {!session.isCurrent && (
-                              <button onClick={() => handleRevokeSession(session.id)} className="btn-ghost text-red-600 text-sm">End Session</button>
+                              <button
+                                onClick={() => handleRevokeSession(session.id)}
+                                className="btn-ghost text-red-600 text-sm"
+                              >
+                                End Session
+                              </button>
                             )}
                           </div>
                         </div>
@@ -859,9 +1156,14 @@ export default function SecuritySettingsPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center">
                       <ClockIcon className="w-6 h-6 text-brand-500 mr-3" />
-                      <h3 className="text-xl font-semibold text-neural-900">Login History</h3>
+                      <h3 className="text-xl font-semibold text-neural-900">
+                        Login History
+                      </h3>
                     </div>
-                    <button onClick={() => setShowLoginHistory(!showLoginHistory)} className="btn-ghost">
+                    <button
+                      onClick={() => setShowLoginHistory(!showLoginHistory)}
+                      className="btn-ghost"
+                    >
                       {showLoginHistory ? 'Hide' : 'View All'}
                     </button>
                   </div>
@@ -871,11 +1173,21 @@ export default function SecuritySettingsPage() {
                       <table className="w-full">
                         <thead>
                           <tr className="border-b border-neural-100">
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">Date & Time</th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">Device</th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">Location</th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">Status</th>
-                            <th className="text-left py-3 text-sm font-medium text-neural-700">IP Address</th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                              Date & Time
+                            </th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                              Device
+                            </th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                              Location
+                            </th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                              Status
+                            </th>
+                            <th className="text-left py-3 text-sm font-medium text-neural-700">
+                              IP Address
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -883,23 +1195,45 @@ export default function SecuritySettingsPage() {
                             <tr>
                               <td colSpan={5} className="py-12 text-center">
                                 <ClockIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-                                <p className="text-neutral-500">No login history found</p>
+                                <p className="text-neutral-500">
+                                  No login history found
+                                </p>
                               </td>
                             </tr>
                           ) : (
                             loginHistory.map((login) => (
-                              <tr key={login.id} className="border-b border-neural-50">
-                                <td className="py-4 text-sm text-neural-900">{formatDateTime(login.date)}</td>
-                                <td className="py-4 text-sm text-neural-600">{login.device}</td>
-                                <td className="py-4 text-sm text-neural-600">{login.location}</td>
+                              <tr
+                                key={login.id}
+                                className="border-b border-neural-50"
+                              >
+                                <td className="py-4 text-sm text-neural-900">
+                                  {formatDateTime(login.date)}
+                                </td>
+                                <td className="py-4 text-sm text-neural-600">
+                                  {login.device}
+                                </td>
+                                <td className="py-4 text-sm text-neural-600">
+                                  {login.location}
+                                </td>
                                 <td className="py-4">
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(login.status)}`}>
-                                    {login.status === 'success' && <CheckCircleIcon className="w-3 h-3 mr-1" />}
-                                    {login.status === 'blocked' && <XCircleIcon className="w-3 h-3 mr-1" />}
-                                    {login.status.charAt(0).toUpperCase() + login.status.slice(1)}
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                                      login.status
+                                    )}`}
+                                  >
+                                    {login.status === 'success' && (
+                                      <CheckCircleIcon className="w-3 h-3 mr-1" />
+                                    )}
+                                    {login.status === 'blocked' && (
+                                      <XCircleIcon className="w-3 h-3 mr-1" />
+                                    )}
+                                    {login.status.charAt(0).toUpperCase() +
+                                      login.status.slice(1)}
                                   </span>
                                 </td>
-                                <td className="py-4 text-sm text-neural-600 font-mono">{login.ip}</td>
+                                <td className="py-4 text-sm text-neural-600 font-mono">
+                                  {login.ip}
+                                </td>
                               </tr>
                             ))
                           )}
@@ -909,7 +1243,10 @@ export default function SecuritySettingsPage() {
                   )}
 
                   {!showLoginHistory && loginHistory.length > 0 && (
-                    <p className="text-sm text-neural-500">{loginHistory.length} login records • Click &quot;View All&quot; to see history</p>
+                    <p className="text-sm text-neural-500">
+                      {loginHistory.length} login records • Click &quot;View
+                      All&quot; to see history
+                    </p>
                   )}
                 </div>
               </div>

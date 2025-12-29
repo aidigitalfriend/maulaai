@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json({ success: false, message: 'No session ID' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: 'No session ID' },
+        { status: 401 }
+      );
     }
 
     // Connect to database
@@ -37,14 +40,20 @@ export async function POST(request: NextRequest) {
     // Validate input
     if (!currentPassword || !newPassword) {
       return NextResponse.json(
-        { success: false, message: 'Current password and new password are required' },
+        {
+          success: false,
+          message: 'Current password and new password are required',
+        },
         { status: 400 }
       );
     }
 
     if (newPassword.length < 8) {
       return NextResponse.json(
-        { success: false, message: 'New password must be at least 8 characters long' },
+        {
+          success: false,
+          message: 'New password must be at least 8 characters long',
+        },
         { status: 400 }
       );
     }

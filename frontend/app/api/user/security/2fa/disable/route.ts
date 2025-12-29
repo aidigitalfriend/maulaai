@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
     const sessionId = request.cookies.get('session_id')?.value;
 
     if (!sessionId) {
-      return NextResponse.json({ success: false, message: 'No session ID' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: 'No session ID' },
+        { status: 401 }
+      );
     }
 
     // Connect to database
