@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Neural/Cyberpunk Theme */
-@import './neural-theme.css';
-
 /* Global Design System - Addressing All UI/UX Issues */
 @layer base {
   /* Reset and Base Styles */
@@ -526,4 +523,87 @@ textarea::placeholder {
   animation: searchHighlight 2s ease-out;
   border-radius: 8px;
   transition: all 0.3s ease;
+}
+
+/* ============================================
+   Neural/Cyberpunk Theme Styles
+   ============================================ */
+
+/* Matrix-style background */
+.neural-theme {
+  --neural-primary: #00ffff;
+  --neural-secondary: #ff00ff;
+  --neural-accent: #00ff00;
+  --neural-bg-dark: #0a0a0f;
+  --neural-bg-medium: #121218;
+  --neural-bg-light: #1a1a24;
+  --neural-border: rgba(0, 255, 255, 0.2);
+  --neural-glow: rgba(0, 255, 255, 0.4);
+}
+
+.neural-bg {
+  background: linear-gradient(135deg, #0a0a0f 0%, #121218 50%, #0f0f1a 100%);
+  position: relative;
+}
+
+.neural-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 80%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Grid overlay effect */
+.neural-grid {
+  background-image: 
+    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Neural button styles */
+.neural-btn {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  color: #00ffff;
+  transition: all 0.3s ease;
+}
+
+.neural-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
+  border-color: rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+/* Custom scrollbar for all elements */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 120, 0.4);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 100, 120, 0.6);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
