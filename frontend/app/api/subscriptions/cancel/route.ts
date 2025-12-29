@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  verifyRequest,
-  unauthorizedResponse,
-} from '../../../../lib/validateAuth';
 
-const BACKEND_BASE =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
+// Use internal backend URL for server-to-server calls
+const INTERNAL_BACKEND_URL = 'http://127.0.0.1:3005';
 
 /**
  * Cancel Subscription API Route
- * Proxies to backend to cancel user subscription
+ * Immediately cancels user's agent subscription
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, agentId } = body;
+    const { userId, agentId, subscriptionId, immediate } = body;
 
     // Validate required fields
     if (!userId || !agentId) {
@@ -24,32 +20,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Require authentication
-    const authResult = verifyRequest(request);
-    if (!authResult.ok) return unauthorizedResponse(authResult.error);
+    // Forward cookies for authentication
+    const cookieHeader = request.headers.get('cookie') || '';
 
-    // For now, proxy to a generic cancel endpoint
-    // Backend doesn't have a specific cancel endpoint, so this needs backend implementation
-    const backendUrl = `${BACKEND_BASE}/api/agent/subscriptions/cancel`;
+    // Call backend cancel endpoint
+    const backendUrl = `${INTERNAL_BACKEND_URL}/api/agent/subscriptions/cancel`;
 
     const res = await fetch(backendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...Object.fromEntries(request.headers),
+        'Cookie': cookieHeader,
       },
-      body: JSON.stringify({ userId, agentId }),
+      body: JSON.stringify({ userId, agentId, immediate: immediate ?? true }),
     });
 
-    const text = await res.text();
-    return new NextResponse(text, {
-      status: res.status,
-      headers: res.headers as any,
+    const data = await res.json();
+    
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || 'Failed to cancel subscription' },
+        { status: res.status }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: data.message || 'Subscription cancelled successfully',
+      subscription: data.subscription,
     });
   } catch (err: any) {
-    console.error('[/api/subscriptions/cancel] Proxy error:', err);
+    console.error('[/api/subscriptions/cancel] Error:', err);
     return NextResponse.json(
-      { success: false, error: err.message || 'Proxy error' },
+      { success: false, error: err.message || 'Failed to cancel subscription' },
       { status: 500 }
     );
   }
