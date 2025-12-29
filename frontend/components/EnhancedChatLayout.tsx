@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Bars3Icon,
   SunIcon,
-  MoonIcon,
   SparklesIcon,
   Cog6ToothIcon,
+  ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 import ChatSessionSidebar from './ChatSessionSidebar';
-import ChatSettingsPanel, { AgentSettings, NEURAL_PRESETS } from './ChatSettingsPanel';
-import type { AIProvider } from '../app/agents/types';
+import ChatSettingsPanel, {
+  AgentSettings,
+} from './ChatSettingsPanel';
 
 interface ChatSession {
   id: string;
@@ -37,6 +38,7 @@ interface EnhancedChatLayoutProps {
   onResetSettings: () => void;
   showSidebar?: boolean;
   showThemeToggle?: boolean;
+  externalUrl?: string;
 }
 
 export type ChatTheme = 'default' | 'neural';
@@ -58,16 +60,19 @@ export default function EnhancedChatLayout({
   onResetSettings,
   showSidebar = true,
   showThemeToggle = true,
+  externalUrl,
 }: EnhancedChatLayoutProps) {
   const [theme, setTheme] = useState<ChatTheme>('default');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [activeLeftPanel, setActiveLeftPanel] = useState<'sessions' | 'settings'>('sessions');
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem(`chat-theme-${agentId}`) as ChatTheme;
+    const savedTheme = localStorage.getItem(
+      `chat-theme-${agentId}`
+    ) as ChatTheme;
     if (savedTheme) {
       setTheme(savedTheme);
     }
@@ -93,6 +98,18 @@ export default function EnhancedChatLayout({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle settings toggle - show in left panel
+  const handleSettingsToggle = () => {
+    if (activeLeftPanel === 'settings') {
+      setActiveLeftPanel('sessions');
+    } else {
+      setActiveLeftPanel('settings');
+      if (!isSidebarOpen) {
+        setIsSidebarOpen(true);
+      }
+    }
+  };
+
   const isNeural = theme === 'neural';
 
   // Theme-based styles
@@ -108,7 +125,9 @@ export default function EnhancedChatLayout({
   const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-600';
 
   return (
-    <div className={`h-screen flex flex-col ${containerBg} relative overflow-hidden`}>
+    <div
+      className={`h-screen flex flex-col ${containerBg} relative overflow-hidden`}
+    >
       {/* Top Header Bar */}
       <div className={`flex-shrink-0 border-b ${headerBg} z-40`}>
         <div className="flex items-center justify-between px-4 py-3">
@@ -126,23 +145,42 @@ export default function EnhancedChatLayout({
                 <Bars3Icon className="w-5 h-5" />
               </button>
             )}
-            
+
             <div className="flex items-center space-x-2">
               <span className="text-2xl">{agentIcon}</span>
               <div>
                 <h1 className={`font-bold ${textPrimary}`}>{agentName}</h1>
                 <p className={`text-xs ${textSecondary}`}>
-                  {sessions.length > 0 
-                    ? `${sessions.find(s => s.id === activeSessionId)?.name || 'Select a conversation'}`
-                    : 'Start a new conversation'
-                  }
+                  {sessions.length > 0
+                    ? `${
+                        sessions.find((s) => s.id === activeSessionId)?.name ||
+                        'Select a conversation'
+                      }`
+                    : 'Start a new conversation'}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Right: Theme toggle + Settings */}
+          {/* Right: External link + Theme toggle + Settings */}
           <div className="flex items-center space-x-2">
+            {/* External Link */}
+            {externalUrl && (
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-lg transition-all ${
+                  isNeural
+                    ? 'hover:bg-gray-800 text-gray-400 hover:text-cyan-400'
+                    : 'hover:bg-gray-100 text-gray-500 hover:text-indigo-600'
+                }`}
+                title="Open in new tab"
+              >
+                <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+              </a>
+            )}
+
             {/* Theme Toggle */}
             {showThemeToggle && (
               <button
@@ -152,7 +190,9 @@ export default function EnhancedChatLayout({
                     ? 'hover:bg-cyan-500/20 text-cyan-400'
                     : 'hover:bg-gray-100 text-gray-600'
                 }`}
-                title={isNeural ? 'Switch to Light Mode' : 'Switch to Neural Mode'}
+                title={
+                  isNeural ? 'Switch to Light Mode' : 'Switch to Neural Mode'
+                }
               >
                 {isNeural ? (
                   <SunIcon className="w-5 h-5" />
@@ -164,9 +204,13 @@ export default function EnhancedChatLayout({
 
             {/* Settings Button */}
             <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              onClick={handleSettingsToggle}
               className={`p-2 rounded-lg transition-all ${
-                isNeural
+                activeLeftPanel === 'settings'
+                  ? isNeural
+                    ? 'bg-purple-500/20 text-purple-400'
+                    : 'bg-indigo-100 text-indigo-600'
+                  : isNeural
                   ? 'hover:bg-purple-500/20 text-purple-400'
                   : 'hover:bg-gray-100 text-gray-600'
               }`}
@@ -188,7 +232,7 @@ export default function EnhancedChatLayout({
           />
         )}
 
-        {/* Sidebar */}
+        {/* Left Sidebar - Sessions or Settings */}
         {showSidebar && (
           <div
             className={`${
@@ -199,44 +243,46 @@ export default function EnhancedChatLayout({
                 : 'relative'
             }`}
           >
-            <ChatSessionSidebar
-              sessions={sessions}
-              activeSessionId={activeSessionId}
-              agentId={agentId}
-              agentName={agentName}
-              agentIcon={agentIcon}
-              onNewChat={onNewSession}
-              onSelectSession={(id) => {
-                onSelectSession(id);
-                if (isMobile) setIsSidebarOpen(false);
-              }}
-              onDeleteSession={onDeleteSession}
-              onRenameSession={onRenameSession}
-              onExportSession={onExportSession}
-              isCollapsed={!isMobile && isSidebarCollapsed}
-              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              theme={theme}
-            />
+            {activeLeftPanel === 'sessions' ? (
+              <ChatSessionSidebar
+                sessions={sessions}
+                activeSessionId={activeSessionId}
+                agentId={agentId}
+                agentName={agentName}
+                agentIcon={agentIcon}
+                onNewChat={onNewSession}
+                onSelectSession={(id) => {
+                  onSelectSession(id);
+                  if (isMobile) setIsSidebarOpen(false);
+                }}
+                onDeleteSession={onDeleteSession}
+                onRenameSession={onRenameSession}
+                onExportSession={onExportSession}
+                isCollapsed={!isMobile && isSidebarCollapsed}
+                onToggleCollapse={() =>
+                  setIsSidebarCollapsed(!isSidebarCollapsed)
+                }
+                theme={theme}
+              />
+            ) : (
+              <ChatSettingsPanel
+                isOpen={true}
+                onClose={() => setActiveLeftPanel('sessions')}
+                settings={settings}
+                onUpdateSettings={onUpdateSettings}
+                onResetSettings={onResetSettings}
+                agentName={agentName}
+                theme={theme}
+                isLeftPanel={true}
+              />
+            )}
           </div>
         )}
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0 relative">
-          {/* Settings Panel */}
-          <ChatSettingsPanel
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
-            settings={settings}
-            onUpdateSettings={onUpdateSettings}
-            onResetSettings={onResetSettings}
-            agentName={agentName}
-            theme={theme}
-          />
-
           {/* Children (ChatBox) */}
-          <div className="flex-1 overflow-hidden">
-            {children}
-          </div>
+          <div className="flex-1 overflow-hidden">{children}</div>
         </div>
       </div>
 
@@ -246,7 +292,7 @@ export default function EnhancedChatLayout({
           {/* Corner glow effects */}
           <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-          
+
           {/* Status indicator */}
           <div className="absolute bottom-4 left-4 flex items-center space-x-2 text-xs text-cyan-400/60 pointer-events-none">
             <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -263,7 +309,9 @@ export function useChatTheme(agentId: string) {
   const [theme, setTheme] = useState<ChatTheme>('default');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem(`chat-theme-${agentId}`) as ChatTheme;
+    const savedTheme = localStorage.getItem(
+      `chat-theme-${agentId}`
+    ) as ChatTheme;
     if (savedTheme) {
       setTheme(savedTheme);
     }

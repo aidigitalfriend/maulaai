@@ -135,7 +135,9 @@ export default function ChatSessionSidebar({
         {/* Toggle button */}
         <button
           onClick={onToggleCollapse}
-          className={`p-3 hover:bg-opacity-20 ${isNeural ? 'hover:bg-cyan-500' : 'hover:bg-gray-200'} transition-colors`}
+          className={`p-3 hover:bg-opacity-20 ${
+            isNeural ? 'hover:bg-cyan-500' : 'hover:bg-gray-200'
+          } transition-colors`}
           title="Expand sidebar"
         >
           <ChevronRightIcon className={`w-5 h-5 ${textSecondary}`} />
@@ -144,10 +146,16 @@ export default function ChatSessionSidebar({
         {/* New chat button */}
         <button
           onClick={onNewChat}
-          className={`p-3 hover:bg-opacity-20 ${isNeural ? 'hover:bg-cyan-500' : 'hover:bg-gray-200'} transition-colors`}
+          className={`p-3 hover:bg-opacity-20 ${
+            isNeural ? 'hover:bg-cyan-500' : 'hover:bg-gray-200'
+          } transition-colors`}
           title="New chat"
         >
-          <PlusIcon className={`w-5 h-5 ${isNeural ? 'text-cyan-400' : 'text-indigo-500'}`} />
+          <PlusIcon
+            className={`w-5 h-5 ${
+              isNeural ? 'text-cyan-400' : 'text-indigo-500'
+            }`}
+          />
         </button>
 
         {/* Session indicators */}
@@ -185,10 +193,10 @@ export default function ChatSessionSidebar({
 
   return (
     <div
-      className={`w-72 flex-shrink-0 flex flex-col border-r ${sidebarBg} transition-all duration-300`}
+      className={`w-72 flex-shrink-0 flex flex-col h-full border-r ${sidebarBg} transition-all duration-300`}
     >
-      {/* Header */}
-      <div className={`${headerBg} p-4`}>
+      {/* Header - Fixed */}
+      <div className={`${headerBg} p-4 flex-shrink-0`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <span className="text-2xl">{agentIcon}</span>
@@ -266,7 +274,9 @@ export default function ChatSessionSidebar({
                       />
                     ) : (
                       <>
-                        <h4 className={`font-medium text-sm truncate ${textPrimary}`}>
+                        <h4
+                          className={`font-medium text-sm truncate ${textPrimary}`}
+                        >
                           {session.name}
                         </h4>
                         {session.lastMessage && (
@@ -274,7 +284,9 @@ export default function ChatSessionSidebar({
                             {session.lastMessage}
                           </p>
                         )}
-                        <div className={`flex items-center space-x-2 mt-1.5 text-xs ${textMuted}`}>
+                        <div
+                          className={`flex items-center space-x-2 mt-1.5 text-xs ${textMuted}`}
+                        >
                           {session.messageCount !== undefined && (
                             <span>{session.messageCount} messages</span>
                           )}
@@ -282,10 +294,13 @@ export default function ChatSessionSidebar({
                             <span className="flex items-center space-x-1">
                               <ClockIcon className="w-3 h-3" />
                               <span>
-                                {new Date(session.updatedAt).toLocaleDateString(undefined, {
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
+                                {new Date(session.updatedAt).toLocaleDateString(
+                                  undefined,
+                                  {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
                               </span>
                             </span>
                           )}
@@ -296,17 +311,24 @@ export default function ChatSessionSidebar({
 
                   {/* Action Menu */}
                   {!isRenaming && (
-                    <div className="relative ml-2" ref={openMenuId === session.id ? menuRef : null}>
+                    <div
+                      className="relative ml-2"
+                      ref={openMenuId === session.id ? menuRef : null}
+                    >
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setOpenMenuId(openMenuId === session.id ? null : session.id);
+                          setOpenMenuId(
+                            openMenuId === session.id ? null : session.id
+                          );
                         }}
                         className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${
                           isNeural ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
                         }`}
                       >
-                        <EllipsisVerticalIcon className={`w-4 h-4 ${textSecondary}`} />
+                        <EllipsisVerticalIcon
+                          className={`w-4 h-4 ${textSecondary}`}
+                        />
                       </button>
 
                       {openMenuId === session.id && (
@@ -377,7 +399,11 @@ export default function ChatSessionSidebar({
       </div>
 
       {/* Footer */}
-      <div className={`p-3 border-t ${isNeural ? 'border-gray-800' : 'border-gray-200'}`}>
+      <div
+        className={`p-3 border-t ${
+          isNeural ? 'border-gray-800' : 'border-gray-200'
+        }`}
+      >
         <div className={`text-xs ${textMuted} text-center`}>
           {isNeural ? (
             <span className="flex items-center justify-center space-x-1">

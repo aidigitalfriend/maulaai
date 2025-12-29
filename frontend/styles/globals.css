@@ -553,30 +553,47 @@ textarea::placeholder {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(ellipse at 20% 80%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+  background: radial-gradient(
+      ellipse at 20% 80%,
+      rgba(0, 255, 255, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(255, 0, 255, 0.05) 0%,
+      transparent 50%
+    );
   pointer-events: none;
 }
 
 /* Grid overlay effect */
 .neural-grid {
-  background-image: 
-    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+  background-image: linear-gradient(
+      rgba(0, 255, 255, 0.03) 1px,
+      transparent 1px
+    ),
     linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
 }
 
 /* Neural button styles */
 .neural-btn {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 255, 0.1) 0%,
+    rgba(255, 0, 255, 0.1) 100%
+  );
   border: 1px solid rgba(0, 255, 255, 0.3);
   color: #00ffff;
   transition: all 0.3s ease;
 }
 
 .neural-btn:hover {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 255, 0.2) 0%,
+    rgba(255, 0, 255, 0.2) 100%
+  );
   border-color: rgba(0, 255, 255, 0.6);
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }

@@ -24,16 +24,25 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(ellipse at 20% 80%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+  background: radial-gradient(
+      ellipse at 20% 80%,
+      rgba(0, 255, 255, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(255, 0, 255, 0.05) 0%,
+      transparent 50%
+    );
   pointer-events: none;
 }
 
 /* Grid overlay effect */
 .neural-grid {
-  background-image: 
-    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+  background-image: linear-gradient(
+      rgba(0, 255, 255, 0.03) 1px,
+      transparent 1px
+    ),
     linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
 }
@@ -59,9 +68,7 @@
 
 /* Glowing text */
 .neural-glow-text {
-  text-shadow: 
-    0 0 5px var(--neural-primary),
-    0 0 10px var(--neural-primary),
+  text-shadow: 0 0 5px var(--neural-primary), 0 0 10px var(--neural-primary),
     0 0 20px var(--neural-primary);
 }
 
@@ -71,15 +78,14 @@
 
 /* Glowing borders */
 .neural-glow-border {
-  box-shadow: 
-    0 0 5px var(--neural-border),
-    0 0 10px var(--neural-border),
+  box-shadow: 0 0 5px var(--neural-border), 0 0 10px var(--neural-border),
     inset 0 0 5px var(--neural-border);
 }
 
 /* Animated border */
 @keyframes neural-border-pulse {
-  0%, 100% {
+  0%,
+  100% {
     border-color: rgba(0, 255, 255, 0.3);
     box-shadow: 0 0 5px rgba(0, 255, 255, 0.2);
   }
@@ -95,14 +101,22 @@
 
 /* Neural button styles */
 .neural-btn {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 255, 0.1) 0%,
+    rgba(255, 0, 255, 0.1) 100%
+  );
   border: 1px solid rgba(0, 255, 255, 0.3);
   color: #00ffff;
   transition: all 0.3s ease;
 }
 
 .neural-btn:hover {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 255, 0.2) 0%,
+    rgba(255, 0, 255, 0.2) 100%
+  );
   border-color: rgba(0, 255, 255, 0.6);
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
@@ -157,17 +171,26 @@
 }
 
 .neural-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(0, 255, 255, 0.4) 0%, rgba(255, 0, 255, 0.4) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.4) 0%,
+    rgba(255, 0, 255, 0.4) 100%
+  );
   border-radius: 3px;
 }
 
 .neural-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(0, 255, 255, 0.6) 0%, rgba(255, 0, 255, 0.6) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.6) 0%,
+    rgba(255, 0, 255, 0.6) 100%
+  );
 }
 
 /* Typing indicator animation */
 @keyframes neural-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(0.8);
   }
@@ -191,7 +214,11 @@
 
 /* Message bubble styles */
 .neural-message-user {
-  background: linear-gradient(135deg, rgba(0, 184, 184, 0.3) 0%, rgba(139, 0, 255, 0.3) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 184, 184, 0.3) 0%,
+    rgba(139, 0, 255, 0.3) 100%
+  );
   border: 1px solid rgba(0, 255, 255, 0.3);
 }
 
@@ -222,9 +249,7 @@
 }
 
 .neural-hover-glow:hover {
-  box-shadow: 
-    0 0 10px rgba(0, 255, 255, 0.3),
-    0 0 20px rgba(0, 255, 255, 0.2),
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3), 0 0 20px rgba(0, 255, 255, 0.2),
     0 0 30px rgba(0, 255, 255, 0.1);
 }
 
