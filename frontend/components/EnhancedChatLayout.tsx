@@ -130,7 +130,7 @@ export default function EnhancedChatLayout({
     >
       {/* Top Header Bar */}
       <div className={`flex-shrink-0 border-b ${headerBg} z-40`}>
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-2">
           {/* Left: Mobile menu + Agent info */}
           <div className="flex items-center space-x-3">
             {showSidebar && (
@@ -147,10 +147,10 @@ export default function EnhancedChatLayout({
             )}
 
             <div className="flex items-center space-x-2">
-              <span className="text-2xl">{agentIcon}</span>
+              <span className="text-xl">{agentIcon}</span>
               <div>
-                <h1 className={`font-bold ${textPrimary}`}>{agentName}</h1>
-                <p className={`text-xs ${textSecondary}`}>
+                <h1 className={`text-sm font-semibold ${textPrimary}`}>{agentName}</h1>
+                <p className={`text-[10px] ${textSecondary}`}>
                   {sessions.length > 0
                     ? `${
                         sessions.find((s) => s.id === activeSessionId)?.name ||
@@ -283,6 +283,23 @@ export default function EnhancedChatLayout({
         <div className="flex-1 flex flex-col min-w-0 relative">
           {/* Children (ChatBox) */}
           <div className="flex-1 overflow-hidden">{children}</div>
+        </div>
+
+        {/* Right Sidebar Panel */}
+        <div
+          className={`hidden md:flex flex-col w-12 flex-shrink-0 border-l transition-colors ${
+            isNeural
+              ? 'bg-gray-900/60 border-cyan-500/20'
+              : 'bg-white/60 border-gray-200'
+          }`}
+        >
+          {/* Placeholder dots for future features */}
+          <div className="flex flex-col items-center py-4 space-y-4">
+            <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-500' : 'bg-indigo-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-purple-500/60' : 'bg-gray-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-purple-500/40' : 'bg-gray-200'}`} />
+            <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-purple-500/20' : 'bg-gray-200'}`} />
+          </div>
         </div>
       </div>
 

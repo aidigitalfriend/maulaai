@@ -511,26 +511,11 @@ export default function NeuralChatDemo() {
             </div>
           </form>
 
-          {/* Current settings preview */}
-          <div className="mt-3 flex items-center justify-center flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-            <span className="flex items-center space-x-1">
-              <span className="w-2 h-2 rounded-full bg-green-400"></span>
-              <span>
-                Mode: <strong className="text-gray-700">{settings.mode}</strong>
-              </span>
-            </span>
-            <span>
-              Temp:{' '}
-              <strong className="text-gray-700">{settings.temperature}</strong>
-            </span>
-            <span>
-              Tokens:{' '}
-              <strong className="text-gray-700">{settings.maxTokens}</strong>
-            </span>
-            <span>
-              Provider:{' '}
-              <strong className="text-gray-700">{settings.provider}</strong>
-            </span>
+          {/* AI Disclaimer */}
+          <div className="mt-2 text-center">
+            <p className="text-[10px] text-gray-400">
+              AI digital friend can make mistakes. Check important info.
+            </p>
           </div>
         </div>
       </div>
