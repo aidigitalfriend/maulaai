@@ -61,9 +61,9 @@ export default function SubscriptionPrompt({ agentName, agentSlug, isOpen, onClo
           </div>
         </div>
 
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-6">
-          <p className="text-amber-200 text-sm">
-            ⚠️ You can only subscribe to one agent at a time
+        <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-4 mb-6">
+          <p className="text-brand-200 text-sm">
+            ✨ Each agent is a separate one-time purchase. Buy as many agents as you need!
           </p>
         </div>
 
