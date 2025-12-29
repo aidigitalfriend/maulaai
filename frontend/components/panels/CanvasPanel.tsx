@@ -74,13 +74,14 @@ export default function CanvasPanel({
 }: CanvasPanelProps) {
   const isNeural = theme === 'neural';
   const editorRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const [tabs, setTabs] = useState<FileTab[]>([
     {
       id: '1',
       name: 'untitled.js',
       language: 'javascript',
-      content: '// Start typing or ask AI to generate code\n\nfunction hello() {\n  console.log("Hello, AI Canvas!");\n}\n',
+      content:
+        '// Start typing or ask AI to generate code\n\nfunction hello() {\n  console.log("Hello, AI Canvas!");\n}\n',
       isModified: false,
     },
   ]);
@@ -95,8 +96,18 @@ export default function CanvasPanel({
       type: 'folder',
       isOpen: true,
       children: [
-        { id: 'index.js', name: 'index.js', type: 'file', language: 'javascript' },
-        { id: 'app.tsx', name: 'App.tsx', type: 'file', language: 'typescript' },
+        {
+          id: 'index.js',
+          name: 'index.js',
+          type: 'file',
+          language: 'javascript',
+        },
+        {
+          id: 'app.tsx',
+          name: 'App.tsx',
+          type: 'file',
+          language: 'typescript',
+        },
         { id: 'styles.css', name: 'styles.css', type: 'file', language: 'css' },
       ],
     },
@@ -118,8 +129,10 @@ export default function CanvasPanel({
   useEffect(() => {
     if (agentContent?.content) {
       const lang = agentContent.language || 'javascript';
-      const filename = agentContent.filename || `untitled.${lang === 'javascript' ? 'js' : lang}`;
-      
+      const filename =
+        agentContent.filename ||
+        `untitled.${lang === 'javascript' ? 'js' : lang}`;
+
       setTabs((prev) =>
         prev.map((t) =>
           t.id === activeTabId
@@ -139,7 +152,9 @@ export default function CanvasPanel({
 
   const updateLineNumbers = useCallback((content: string) => {
     const lines = content.split('\n').length;
-    setLineNumbers(Array.from({ length: Math.max(lines, 20) }, (_, i) => i + 1));
+    setLineNumbers(
+      Array.from({ length: Math.max(lines, 20) }, (_, i) => i + 1)
+    );
   }, []);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -208,20 +223,33 @@ export default function CanvasPanel({
           )}
           <span className="text-xs truncate">{item.name}</span>
         </div>
-        {item.type === 'folder' && item.isOpen && item.children && (
-          renderFileTree(item.children, depth + 1)
-        )}
+        {item.type === 'folder' &&
+          item.isOpen &&
+          item.children &&
+          renderFileTree(item.children, depth + 1)}
       </div>
     ));
   };
 
   return (
-    <div className={`flex flex-col h-full ${bgPrimary} rounded-lg overflow-hidden`}>
+    <div
+      className={`flex flex-col h-full ${bgPrimary} rounded-lg overflow-hidden`}
+    >
       {/* Top Bar */}
-      <div className={`flex items-center justify-between px-3 py-1.5 ${bgSecondary} border-b ${borderColor}`}>
+      <div
+        className={`flex items-center justify-between px-3 py-1.5 ${bgSecondary} border-b ${borderColor}`}
+      >
         <div className="flex items-center space-x-2">
-          <CodeBracketIcon className={`w-4 h-4 ${isNeural ? 'text-cyan-400' : 'text-indigo-500'}`} />
-          <span className={`text-sm font-medium ${isNeural ? 'text-gray-200' : 'text-gray-700'}`}>
+          <CodeBracketIcon
+            className={`w-4 h-4 ${
+              isNeural ? 'text-cyan-400' : 'text-indigo-500'
+            }`}
+          />
+          <span
+            className={`text-sm font-medium ${
+              isNeural ? 'text-gray-200' : 'text-gray-700'
+            }`}
+          >
             AI Canvas
           </span>
         </div>
@@ -233,7 +261,10 @@ export default function CanvasPanel({
           >
             <ClipboardDocumentIcon className={`w-4 h-4 ${textSecondary}`} />
           </button>
-          <button className={`p-1 rounded hover:bg-gray-700/50`} title="Download">
+          <button
+            className={`p-1 rounded hover:bg-gray-700/50`}
+            title="Download"
+          >
             <ArrowDownTrayIcon className={`w-4 h-4 ${textSecondary}`} />
           </button>
           <button className={`p-1 rounded hover:bg-gray-700/50`} title="Run">
@@ -245,8 +276,12 @@ export default function CanvasPanel({
       <div className="flex flex-1 overflow-hidden">
         {/* File Explorer */}
         {showFileTree && (
-          <div className={`w-48 flex-shrink-0 ${bgSecondary} border-r ${borderColor} overflow-y-auto`}>
-            <div className={`px-3 py-2 text-xs font-semibold ${textSecondary} uppercase tracking-wider`}>
+          <div
+            className={`w-48 flex-shrink-0 ${bgSecondary} border-r ${borderColor} overflow-y-auto`}
+          >
+            <div
+              className={`px-3 py-2 text-xs font-semibold ${textSecondary} uppercase tracking-wider`}
+            >
               Explorer
             </div>
             {renderFileTree(fileTree)}
@@ -256,7 +291,9 @@ export default function CanvasPanel({
         {/* Editor Area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Tabs */}
-          <div className={`flex items-center ${bgSecondary} border-b ${borderColor} px-1`}>
+          <div
+            className={`flex items-center ${bgSecondary} border-b ${borderColor} px-1`}
+          >
             {tabs.map((tab) => (
               <div
                 key={tab.id}
@@ -272,7 +309,11 @@ export default function CanvasPanel({
                 </span>
                 <span className="text-xs">{tab.name}</span>
                 {tab.isModified && (
-                  <span className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-400' : 'bg-indigo-400'}`} />
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isNeural ? 'bg-cyan-400' : 'bg-indigo-400'
+                    }`}
+                  />
                 )}
                 <button
                   onClick={(e) => {
@@ -296,7 +337,9 @@ export default function CanvasPanel({
           {/* Editor */}
           <div className={`flex-1 flex ${bgEditor} overflow-hidden`}>
             {/* Line Numbers */}
-            <div className={`w-12 flex-shrink-0 py-2 text-right pr-3 select-none border-r border-gray-800 ${textSecondary}`}>
+            <div
+              className={`w-12 flex-shrink-0 py-2 text-right pr-3 select-none border-r border-gray-800 ${textSecondary}`}
+            >
               {lineNumbers.map((num) => (
                 <div key={num} className="text-xs leading-6 font-mono">
                   {num}
@@ -320,18 +363,22 @@ export default function CanvasPanel({
       </div>
 
       {/* Status Bar */}
-      <div className={`flex items-center justify-between px-3 py-1 border-t ${borderColor} text-xs`}>
+      <div
+        className={`flex items-center justify-between px-3 py-1 border-t ${borderColor} text-xs`}
+      >
         <div className="flex items-center space-x-3">
           <span className={`flex items-center space-x-1 ${textSecondary}`}>
             <CodeBracketIcon className="w-3 h-3" />
             <span>{activeTab?.language || 'plaintext'}</span>
           </span>
-          <span className={textSecondary}>
-            Ln {lineNumbers.length}, Col 1
-          </span>
+          <span className={textSecondary}>Ln {lineNumbers.length}, Col 1</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className={`text-xs ${isNeural ? 'text-cyan-400' : 'text-indigo-400'}`}>
+          <span
+            className={`text-xs ${
+              isNeural ? 'text-cyan-400' : 'text-indigo-400'
+            }`}
+          >
             AI-Powered
           </span>
         </div>

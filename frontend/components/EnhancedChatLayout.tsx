@@ -7,10 +7,12 @@ import {
   SparklesIcon,
   Cog6ToothIcon,
   ArrowTopRightOnSquareIcon,
+  CodeBracketIcon,
 } from '@heroicons/react/24/outline';
 import ChatSessionSidebar from './ChatSessionSidebar';
 import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
 import ChatRightPanel from './ChatRightPanel';
+import CanvasMode from './CanvasMode';
 
 interface ChatSession {
   id: string;
@@ -69,6 +71,7 @@ export default function EnhancedChatLayout({
   const [activeLeftPanel, setActiveLeftPanel] = useState<
     'sessions' | 'settings'
   >('sessions');
+  const [isMobileCanvasOpen, setIsMobileCanvasOpen] = useState(false);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -166,7 +169,7 @@ export default function EnhancedChatLayout({
             </div>
           </div>
 
-          {/* Right: External link + Theme toggle + Settings */}
+          {/* Right: External link + Canvas (mobile) + Theme toggle + Settings */}
           <div className="flex items-center space-x-2">
             {/* External Link */}
             {externalUrl && (
@@ -184,6 +187,19 @@ export default function EnhancedChatLayout({
                 <ArrowTopRightOnSquareIcon className="w-5 h-5" />
               </a>
             )}
+
+            {/* Canvas Button - Mobile Only */}
+            <button
+              onClick={() => setIsMobileCanvasOpen(true)}
+              className={`p-2 rounded-lg transition-all md:hidden ${
+                isNeural
+                  ? 'hover:bg-purple-500/20 text-cyan-400 hover:text-cyan-300'
+                  : 'hover:bg-indigo-100 text-indigo-500 hover:text-indigo-600'
+              }`}
+              title="Open Canvas"
+            >
+              <CodeBracketIcon className="w-5 h-5" />
+            </button>
 
             {/* Theme Toggle */}
             {showThemeToggle && (
@@ -315,6 +331,13 @@ export default function EnhancedChatLayout({
           </div>
         </>
       )}
+
+      {/* Mobile Canvas Mode */}
+      <CanvasMode
+        isOpen={isMobileCanvasOpen}
+        onClose={() => setIsMobileCanvasOpen(false)}
+        theme={theme}
+      />
     </div>
   );
 }

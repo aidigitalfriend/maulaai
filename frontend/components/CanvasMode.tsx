@@ -70,7 +70,9 @@ export default function CanvasMode({
   const previewRef = useRef<HTMLIFrameElement>(null);
 
   // State
-  const [activeView, setActiveView] = useState<'code' | 'preview' | 'split'>('code');
+  const [activeView, setActiveView] = useState<'code' | 'preview' | 'split'>(
+    'code'
+  );
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -78,7 +80,8 @@ export default function CanvasMode({
     {
       id: '1',
       role: 'assistant',
-      content: 'Welcome to Canvas! I can help you write, edit, and improve code. What would you like to create?',
+      content:
+        'Welcome to Canvas! I can help you write, edit, and improve code. What would you like to create?',
       timestamp: new Date(),
     },
   ]);
@@ -101,7 +104,9 @@ export default function CanvasMode({
   useEffect(() => {
     if (activeTab) {
       const lines = activeTab.content.split('\n').length;
-      setLineNumbers(Array.from({ length: Math.max(lines, 25) }, (_, i) => i + 1));
+      setLineNumbers(
+        Array.from({ length: Math.max(lines, 25) }, (_, i) => i + 1)
+      );
     }
   }, [activeTab?.content]);
 
@@ -118,7 +123,9 @@ export default function CanvasMode({
     const newContent = e.target.value;
     setTabs((prev) =>
       prev.map((t) =>
-        t.id === activeTabId ? { ...t, content: newContent, isModified: true } : t
+        t.id === activeTabId
+          ? { ...t, content: newContent, isModified: true }
+          : t
       )
     );
   };
@@ -142,7 +149,8 @@ export default function CanvasMode({
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I understand! Let me help you with that. Here\'s what I suggest...',
+        content:
+          "I understand! Let me help you with that. Here's what I suggest...",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
@@ -199,7 +207,10 @@ export default function CanvasMode({
           doc.open();
           doc.write(content);
           doc.close();
-        } else if (activeTab.language === 'javascript' || activeTab.language === 'jsx') {
+        } else if (
+          activeTab.language === 'javascript' ||
+          activeTab.language === 'jsx'
+        ) {
           doc.open();
           doc.write(`
             <!DOCTYPE html>
@@ -238,7 +249,11 @@ export default function CanvasMode({
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 flex ${isNeural ? 'bg-gray-950' : 'bg-gray-100'}`}>
+    <div
+      className={`fixed inset-0 z-50 flex ${
+        isNeural ? 'bg-gray-950' : 'bg-gray-100'
+      }`}
+    >
       {/* Left Chat Panel */}
       <div
         className={`flex flex-col border-r ${borderColor} transition-all duration-300 ${
@@ -246,10 +261,16 @@ export default function CanvasMode({
         } ${bgPrimary}`}
       >
         {/* Chat Header */}
-        <div className={`flex items-center justify-between px-3 py-2 border-b ${borderColor}`}>
+        <div
+          className={`flex items-center justify-between px-3 py-2 border-b ${borderColor}`}
+        >
           {!isChatCollapsed && (
             <div className="flex items-center space-x-2">
-              <SparklesIcon className={`w-5 h-5 ${isNeural ? 'text-cyan-400' : 'text-indigo-500'}`} />
+              <SparklesIcon
+                className={`w-5 h-5 ${
+                  isNeural ? 'text-cyan-400' : 'text-indigo-500'
+                }`}
+              />
               <span className={`font-medium ${textPrimary}`}>AI Assistant</span>
             </div>
           )}
@@ -272,7 +293,9 @@ export default function CanvasMode({
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
                 >
                   <div
                     className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
@@ -291,11 +314,30 @@ export default function CanvasMode({
               ))}
               {isGenerating && (
                 <div className="flex justify-start">
-                  <div className={`rounded-2xl px-4 py-2.5 ${isNeural ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                  <div
+                    className={`rounded-2xl px-4 py-2.5 ${
+                      isNeural ? 'bg-gray-800' : 'bg-gray-200'
+                    }`}
+                  >
                     <div className="flex space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-400' : 'bg-indigo-400'} animate-bounce`} style={{ animationDelay: '0ms' }} />
-                      <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-400' : 'bg-indigo-400'} animate-bounce`} style={{ animationDelay: '150ms' }} />
-                      <div className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-400' : 'bg-indigo-400'} animate-bounce`} style={{ animationDelay: '300ms' }} />
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          isNeural ? 'bg-cyan-400' : 'bg-indigo-400'
+                        } animate-bounce`}
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          isNeural ? 'bg-cyan-400' : 'bg-indigo-400'
+                        } animate-bounce`}
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          isNeural ? 'bg-cyan-400' : 'bg-indigo-400'
+                        } animate-bounce`}
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -304,7 +346,11 @@ export default function CanvasMode({
 
             {/* Chat Input */}
             <div className={`p-3 border-t ${borderColor}`}>
-              <div className={`flex items-end space-x-2 rounded-xl ${isNeural ? 'bg-gray-800' : 'bg-gray-100'} p-2`}>
+              <div
+                className={`flex items-end space-x-2 rounded-xl ${
+                  isNeural ? 'bg-gray-800' : 'bg-gray-100'
+                } p-2`}
+              >
                 <textarea
                   ref={chatInputRef}
                   value={chatInput}
@@ -354,7 +400,9 @@ export default function CanvasMode({
       {/* Main Canvas Area */}
       <div className="flex-1 flex flex-col">
         {/* Top Toolbar */}
-        <div className={`flex items-center justify-between px-4 py-2 border-b ${borderColor} ${bgSecondary}`}>
+        <div
+          className={`flex items-center justify-between px-4 py-2 border-b ${borderColor} ${bgSecondary}`}
+        >
           {/* File Tabs */}
           <div className="flex items-center space-x-1 flex-1 overflow-x-auto">
             {tabs.map((tab) => (
@@ -367,10 +415,16 @@ export default function CanvasMode({
                     : `${textSecondary} hover:bg-gray-700/30`
                 }`}
               >
-                <span className="text-sm">{LANGUAGE_ICONS[tab.language] || LANGUAGE_ICONS.default}</span>
+                <span className="text-sm">
+                  {LANGUAGE_ICONS[tab.language] || LANGUAGE_ICONS.default}
+                </span>
                 <span className="text-sm">{tab.name}</span>
                 {tab.isModified && (
-                  <span className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-400' : 'bg-indigo-400'}`} />
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isNeural ? 'bg-cyan-400' : 'bg-indigo-400'
+                    }`}
+                  />
                 )}
                 <button
                   onClick={(e) => {
@@ -383,14 +437,21 @@ export default function CanvasMode({
                 </button>
               </div>
             ))}
-            <button onClick={addNewTab} className={`p-1.5 hover:bg-gray-700/50 rounded ${textSecondary}`}>
+            <button
+              onClick={addNewTab}
+              className={`p-1.5 hover:bg-gray-700/50 rounded ${textSecondary}`}
+            >
               <PlusIcon className="w-4 h-4" />
             </button>
           </div>
 
           {/* View Controls */}
           <div className="flex items-center space-x-2 ml-4">
-            <div className={`flex items-center rounded-lg ${isNeural ? 'bg-gray-800' : 'bg-gray-200'} p-0.5`}>
+            <div
+              className={`flex items-center rounded-lg ${
+                isNeural ? 'bg-gray-800' : 'bg-gray-200'
+              } p-0.5`}
+            >
               <button
                 onClick={() => setActiveView('code')}
                 className={`px-3 py-1 rounded-md text-sm transition-colors ${
@@ -430,13 +491,25 @@ export default function CanvasMode({
             </div>
 
             {/* Action Buttons */}
-            <button onClick={runCode} className={`p-2 rounded-lg hover:bg-green-500/20 text-green-400`} title="Run">
+            <button
+              onClick={runCode}
+              className={`p-2 rounded-lg hover:bg-green-500/20 text-green-400`}
+              title="Run"
+            >
               <PlayIcon className="w-4 h-4" />
             </button>
-            <button onClick={copyCode} className={`p-2 rounded-lg hover:bg-gray-700/50 ${textSecondary}`} title="Copy">
+            <button
+              onClick={copyCode}
+              className={`p-2 rounded-lg hover:bg-gray-700/50 ${textSecondary}`}
+              title="Copy"
+            >
               <DocumentDuplicateIcon className="w-4 h-4" />
             </button>
-            <button onClick={downloadCode} className={`p-2 rounded-lg hover:bg-gray-700/50 ${textSecondary}`} title="Download">
+            <button
+              onClick={downloadCode}
+              className={`p-2 rounded-lg hover:bg-gray-700/50 ${textSecondary}`}
+              title="Download"
+            >
               <ArrowDownTrayIcon className="w-4 h-4" />
             </button>
             <button
@@ -453,11 +526,19 @@ export default function CanvasMode({
         <div className="flex-1 flex overflow-hidden">
           {/* Code Editor */}
           {(activeView === 'code' || activeView === 'split') && (
-            <div className={`${activeView === 'split' ? 'w-1/2' : 'flex-1'} flex ${bgEditor}`}>
+            <div
+              className={`${
+                activeView === 'split' ? 'w-1/2' : 'flex-1'
+              } flex ${bgEditor}`}
+            >
               {/* Line Numbers */}
-              <div className={`w-12 py-3 text-right pr-3 select-none text-xs ${textSecondary} border-r border-gray-800`}>
+              <div
+                className={`w-12 py-3 text-right pr-3 select-none text-xs ${textSecondary} border-r border-gray-800`}
+              >
                 {lineNumbers.map((num) => (
-                  <div key={num} className="leading-6">{num}</div>
+                  <div key={num} className="leading-6">
+                    {num}
+                  </div>
                 ))}
               </div>
 
@@ -475,15 +556,33 @@ export default function CanvasMode({
 
           {/* Resize Handle */}
           {activeView === 'split' && (
-            <div className={`w-1 cursor-col-resize ${isNeural ? 'bg-gray-700 hover:bg-cyan-500/50' : 'bg-gray-300 hover:bg-indigo-400'} transition-colors`} />
+            <div
+              className={`w-1 cursor-col-resize ${
+                isNeural
+                  ? 'bg-gray-700 hover:bg-cyan-500/50'
+                  : 'bg-gray-300 hover:bg-indigo-400'
+              } transition-colors`}
+            />
           )}
 
           {/* Preview Panel */}
           {(activeView === 'preview' || activeView === 'split') && (
-            <div className={`${activeView === 'split' ? 'w-1/2' : 'flex-1'} flex flex-col ${bgPrimary}`}>
-              <div className={`px-3 py-2 border-b ${borderColor} flex items-center space-x-2`}>
-                <EyeIcon className={`w-4 h-4 ${isNeural ? 'text-purple-400' : 'text-indigo-500'}`} />
-                <span className={`text-sm font-medium ${textPrimary}`}>Live Preview</span>
+            <div
+              className={`${
+                activeView === 'split' ? 'w-1/2' : 'flex-1'
+              } flex flex-col ${bgPrimary}`}
+            >
+              <div
+                className={`px-3 py-2 border-b ${borderColor} flex items-center space-x-2`}
+              >
+                <EyeIcon
+                  className={`w-4 h-4 ${
+                    isNeural ? 'text-purple-400' : 'text-indigo-500'
+                  }`}
+                />
+                <span className={`text-sm font-medium ${textPrimary}`}>
+                  Live Preview
+                </span>
               </div>
               <iframe
                 ref={previewRef}
@@ -496,7 +595,9 @@ export default function CanvasMode({
         </div>
 
         {/* Status Bar */}
-        <div className={`flex items-center justify-between px-4 py-1 border-t ${borderColor} ${bgSecondary}`}>
+        <div
+          className={`flex items-center justify-between px-4 py-1 border-t ${borderColor} ${bgSecondary}`}
+        >
           <div className="flex items-center space-x-4">
             <span className={`text-xs ${textSecondary}`}>
               {activeTab?.language.toUpperCase()}
@@ -506,7 +607,11 @@ export default function CanvasMode({
             </span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className={`w-2 h-2 rounded-full ${isNeural ? 'bg-cyan-400 animate-pulse' : 'bg-green-400'}`} />
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isNeural ? 'bg-cyan-400 animate-pulse' : 'bg-green-400'
+              }`}
+            />
             <span className={`text-xs ${textSecondary}`}>Canvas Ready</span>
           </div>
         </div>

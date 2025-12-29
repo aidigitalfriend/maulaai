@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  CodeBracketIcon,
-} from '@heroicons/react/24/outline';
+import { CodeBracketIcon } from '@heroicons/react/24/outline';
 import CanvasMode from './CanvasMode';
 
 interface ChatRightPanelProps {

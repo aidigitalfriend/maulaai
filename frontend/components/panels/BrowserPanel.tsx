@@ -75,9 +75,7 @@ export default function BrowserPanel({
       };
       setTabs((prev) => {
         const updated = prev.map((t) =>
-          t.id === activeTabId
-            ? { ...t, ...newTab, id: t.id }
-            : t
+          t.id === activeTabId ? { ...t, ...newTab, id: t.id } : t
         );
         return updated;
       });
@@ -88,18 +86,14 @@ export default function BrowserPanel({
   const handleNavigate = (url: string) => {
     setTabs((prev) =>
       prev.map((t) =>
-        t.id === activeTabId
-          ? { ...t, url, title: url, isLoading: true }
-          : t
+        t.id === activeTabId ? { ...t, url, title: url, isLoading: true } : t
       )
     );
     setUrlInput(url);
     // Simulate loading
     setTimeout(() => {
       setTabs((prev) =>
-        prev.map((t) =>
-          t.id === activeTabId ? { ...t, isLoading: false } : t
-        )
+        prev.map((t) => (t.id === activeTabId ? { ...t, isLoading: false } : t))
       );
     }, 500);
   };
@@ -125,9 +119,13 @@ export default function BrowserPanel({
   };
 
   return (
-    <div className={`flex flex-col h-full ${bgPrimary} rounded-lg overflow-hidden`}>
+    <div
+      className={`flex flex-col h-full ${bgPrimary} rounded-lg overflow-hidden`}
+    >
       {/* Tab Bar */}
-      <div className={`flex items-center ${bgSecondary} border-b ${borderColor} px-2 py-1`}>
+      <div
+        className={`flex items-center ${bgSecondary} border-b ${borderColor} px-2 py-1`}
+      >
         <div className="flex-1 flex items-center space-x-1 overflow-x-auto">
           {tabs.map((tab) => (
             <div
@@ -162,33 +160,57 @@ export default function BrowserPanel({
         </div>
         <button
           onClick={addNewTab}
-          className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-700' : 'bg-gray-200'}`}
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-700' : 'bg-gray-200'
+          }`}
         >
           <PlusIcon className={`w-4 h-4 ${textSecondary}`} />
         </button>
       </div>
 
       {/* Navigation Bar */}
-      <div className={`flex items-center space-x-2 px-3 py-2 border-b ${borderColor}`}>
-        <button className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <div
+        className={`flex items-center space-x-2 px-3 py-2 border-b ${borderColor}`}
+      >
+        <button
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
+        >
           <ArrowLeftIcon className={`w-4 h-4 ${textSecondary}`} />
         </button>
-        <button className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <button
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
+        >
           <ArrowRightIcon className={`w-4 h-4 ${textSecondary}`} />
         </button>
-        <button 
+        <button
           onClick={() => handleNavigate(urlInput)}
-          className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-800' : 'bg-gray-100'}`}
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
         >
           <ArrowPathIcon className={`w-4 h-4 ${textSecondary}`} />
         </button>
-        <button className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <button
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
+        >
           <HomeIcon className={`w-4 h-4 ${textSecondary}`} />
         </button>
 
         {/* URL Bar */}
-        <div className={`flex-1 flex items-center ${bgSecondary} rounded-full px-3 py-1.5`}>
-          <LockClosedIcon className={`w-4 h-4 ${isNeural ? 'text-green-400' : 'text-green-600'} mr-2`} />
+        <div
+          className={`flex-1 flex items-center ${bgSecondary} rounded-full px-3 py-1.5`}
+        >
+          <LockClosedIcon
+            className={`w-4 h-4 ${
+              isNeural ? 'text-green-400' : 'text-green-600'
+            } mr-2`}
+          />
           <input
             type="text"
             value={urlInput}
@@ -202,15 +224,25 @@ export default function BrowserPanel({
 
         <button
           onClick={() => setIsBookmarked(!isBookmarked)}
-          className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-800' : 'bg-gray-100'}`}
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
         >
           {isBookmarked ? (
-            <StarSolidIcon className={`w-4 h-4 ${isNeural ? 'text-yellow-400' : 'text-yellow-500'}`} />
+            <StarSolidIcon
+              className={`w-4 h-4 ${
+                isNeural ? 'text-yellow-400' : 'text-yellow-500'
+              }`}
+            />
           ) : (
             <StarIcon className={`w-4 h-4 ${textSecondary}`} />
           )}
         </button>
-        <button className={`p-1.5 rounded hover:${isNeural ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <button
+          className={`p-1.5 rounded hover:${
+            isNeural ? 'bg-gray-800' : 'bg-gray-100'
+          }`}
+        >
           <EllipsisHorizontalIcon className={`w-4 h-4 ${textSecondary}`} />
         </button>
       </div>
@@ -227,28 +259,43 @@ export default function BrowserPanel({
           </div>
         ) : activeTab?.url === 'about:blank' ? (
           <div className="flex flex-col items-center justify-center h-full space-y-4">
-            <div className={`text-6xl mb-4 ${isNeural ? 'text-cyan-400' : 'text-indigo-500'}`}>
+            <div
+              className={`text-6xl mb-4 ${
+                isNeural ? 'text-cyan-400' : 'text-indigo-500'
+              }`}
+            >
               🌐
             </div>
-            <h2 className={`text-xl font-semibold ${textPrimary}`}>AI Browser</h2>
+            <h2 className={`text-xl font-semibold ${textPrimary}`}>
+              AI Browser
+            </h2>
             <p className={`text-sm ${textSecondary} text-center max-w-md`}>
-              Ask the AI to search for anything. Results will appear here without leaving the chat.
+              Ask the AI to search for anything. Results will appear here
+              without leaving the chat.
             </p>
-            <div className={`flex items-center space-x-2 ${bgSecondary} rounded-full px-4 py-2 mt-4`}>
+            <div
+              className={`flex items-center space-x-2 ${bgSecondary} rounded-full px-4 py-2 mt-4`}
+            >
               <MagnifyingGlassIcon className={`w-5 h-5 ${textSecondary}`} />
-              <span className={`text-sm ${textMuted}`}>Try: "Search for React hooks tutorial"</span>
+              <span className={`text-sm ${textMuted}`}>
+                Try: "Search for React hooks tutorial"
+              </span>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full">
-            <ArrowPathIcon className={`w-8 h-8 ${textSecondary} animate-spin`} />
+            <ArrowPathIcon
+              className={`w-8 h-8 ${textSecondary} animate-spin`}
+            />
             <p className={`text-sm ${textSecondary} mt-2`}>Loading...</p>
           </div>
         )}
       </div>
 
       {/* Status Bar */}
-      <div className={`flex items-center justify-between px-3 py-1 border-t ${borderColor} text-xs ${textMuted}`}>
+      <div
+        className={`flex items-center justify-between px-3 py-1 border-t ${borderColor} text-xs ${textMuted}`}
+      >
         <span>AI-Powered Browser</span>
         <span>{activeTab?.url || 'Ready'}</span>
       </div>
