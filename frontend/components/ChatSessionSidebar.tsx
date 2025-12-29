@@ -242,9 +242,13 @@ export default function ChatSessionSidebar({
         <div className="mt-3">
           {isSearchOpen ? (
             <div className="flex items-center space-x-2">
-              <div className={`flex-1 flex items-center rounded-lg px-3 py-2 ${
-                isNeural ? 'bg-gray-800 border border-cyan-500/50' : 'bg-white border border-gray-300'
-              }`}>
+              <div
+                className={`flex-1 flex items-center rounded-lg px-3 py-2 ${
+                  isNeural
+                    ? 'bg-gray-800 border border-cyan-500/50'
+                    : 'bg-white border border-gray-300'
+                }`}
+              >
                 <MagnifyingGlassIcon className={`w-4 h-4 mr-2 ${textMuted}`} />
                 <input
                   ref={searchInputRef}
@@ -258,7 +262,9 @@ export default function ChatSessionSidebar({
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className={`p-0.5 rounded ${isNeural ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                    className={`p-0.5 rounded ${
+                      isNeural ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
                   >
                     <XMarkIcon className={`w-4 h-4 ${textMuted}`} />
                   </button>
@@ -269,7 +275,11 @@ export default function ChatSessionSidebar({
                   setIsSearchOpen(false);
                   setSearchQuery('');
                 }}
-                className={`p-2 rounded-lg ${isNeural ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                className={`p-2 rounded-lg ${
+                  isNeural
+                    ? 'hover:bg-gray-800 text-gray-400'
+                    : 'hover:bg-gray-100 text-gray-500'
+                }`}
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
@@ -301,7 +311,9 @@ export default function ChatSessionSidebar({
             ? sessions.filter(
                 (s) =>
                   s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  s.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
+                  s.lastMessage
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase())
               )
             : sessions;
 
