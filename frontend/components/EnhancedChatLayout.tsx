@@ -293,7 +293,9 @@ export default function EnhancedChatLayout({
         <div className="hidden md:block">
           <ChatRightPanel
             isCollapsed={isRightPanelCollapsed}
-            onToggleCollapse={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
+            onToggleCollapse={() =>
+              setIsRightPanelCollapsed(!isRightPanelCollapsed)
+            }
             theme={theme}
           />
         </div>

@@ -4,44 +4,86 @@ import { useState } from 'react';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  SparklesIcon,
-  BookmarkIcon,
-  LightBulbIcon,
-  DocumentTextIcon,
-  Cog6ToothIcon,
+  GlobeAltIcon,
+  CodeBracketIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
+import { BrowserPanel, CanvasPanel } from './panels';
+
+type PanelView = 'browser' | 'canvas' | 'chat';
+
+interface BrowserContent {
+  url: string;
+  title: string;
+  content: string;
+  isLoading?: boolean;
+}
+
+interface CanvasContent {
+  filename: string;
+  language: string;
+  code: string;
+}
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
 
 interface ChatRightPanelProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   theme?: 'default' | 'neural';
+  browserContent?: BrowserContent;
+  canvasContent?: CanvasContent;
+  parallelMessages?: ChatMessage[];
 }
 
 export default function ChatRightPanel({
   isCollapsed = false,
   onToggleCollapse,
   theme = 'default',
+  browserContent,
+  canvasContent,
+  parallelMessages = [],
 }: ChatRightPanelProps) {
+  const [activeView, setActiveView] = useState<PanelView>('browser');
   const isNeural = theme === 'neural';
 
-  // Theme styles - mirroring left panel
+  // Theme styles
   const sidebarBg = isNeural
     ? 'bg-gray-900/95 border-cyan-500/20'
     : 'bg-white border-gray-200';
 
-  const headerBg = isNeural
-    ? 'bg-gradient-to-r from-purple-600/20 to-cyan-600/20 border-b border-cyan-500/20'
-    : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-gray-200';
-
-  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
   const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
+  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
   const textMuted = isNeural ? 'text-gray-500' : 'text-gray-400';
 
-  const itemBg = isNeural
-    ? 'bg-gray-800/50 hover:bg-gray-800 border-gray-700/50'
-    : 'bg-gray-50 hover:bg-gray-100 border-gray-200';
+  // Panel icons configuration
+  const panelIcons = [
+    { id: 'browser' as PanelView, icon: GlobeAltIcon, label: 'Browser', color: 'cyan' },
+    { id: 'canvas' as PanelView, icon: CodeBracketIcon, label: 'Canvas', color: 'purple' },
+    { id: 'chat' as PanelView, icon: ChatBubbleLeftRightIcon, label: 'Chat', color: 'green' },
+  ];
 
-  // Collapsed state - mirrors left panel collapsed state
+  // Get active icon color
+  const getIconColor = (panelId: PanelView, isActive: boolean) => {
+    if (!isActive) return textMuted;
+    switch (panelId) {
+      case 'browser':
+        return isNeural ? 'text-cyan-400' : 'text-cyan-600';
+      case 'canvas':
+        return isNeural ? 'text-purple-400' : 'text-purple-600';
+      case 'chat':
+        return isNeural ? 'text-green-400' : 'text-green-600';
+      default:
+        return textSecondary;
+    }
+  };
+
+  // Collapsed state - shows 3 icons vertically
   if (isCollapsed) {
     return (
       <div
@@ -58,50 +100,42 @@ export default function ChatRightPanel({
           <ChevronLeftIcon className={`w-5 h-5 ${textSecondary}`} />
         </button>
 
-        {/* Quick action buttons in collapsed state */}
-        <div className="flex-1 py-2 space-y-1">
-          <button
-            className={`w-full p-2 flex justify-center ${textMuted} hover:${
-              isNeural ? 'text-cyan-400' : 'text-indigo-500'
+        {/* Panel selector icons */}
+        <div className="flex-1 flex flex-col items-center py-4 space-y-2">
+          {panelIcons.map((panel) => {
+            const Icon = panel.icon;
+            const isActive = activeView === panel.id;
+            return (
+              <button
+                key={panel.id}
+                onClick={() => {
+                  setActiveView(panel.id);
+                  onToggleCollapse?.();
+                }}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                  isActive
+                    ? isNeural
+                      ? `bg-${panel.color}-500/20 ring-1 ring-${panel.color}-500/50`
+                      : `bg-${panel.color}-100 ring-1 ring-${panel.color}-300`
+                    : isNeural
+                    ? 'hover:bg-gray-800'
+                    : 'hover:bg-gray-100'
+                }`}
+                title={panel.label}
+              >
+                <Icon className={`w-5 h-5 ${getIconColor(panel.id, isActive)}`} />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Bottom indicator */}
+        <div className="p-3 flex justify-center">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isNeural ? 'bg-purple-400 animate-pulse' : 'bg-indigo-400'
             }`}
-            title="Saved Items"
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-cyan-400' : 'bg-indigo-500'
-              }`}
-            />
-          </button>
-          <button
-            className={`w-full p-2 flex justify-center ${textMuted}`}
-            title="Suggestions"
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-purple-500/60' : 'bg-gray-300'
-              }`}
-            />
-          </button>
-          <button
-            className={`w-full p-2 flex justify-center ${textMuted}`}
-            title="Documents"
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-purple-500/40' : 'bg-gray-200'
-              }`}
-            />
-          </button>
-          <button
-            className={`w-full p-2 flex justify-center ${textMuted}`}
-            title="Settings"
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isNeural ? 'bg-purple-500/20' : 'bg-gray-200'
-              }`}
-            />
-          </button>
+          />
         </div>
       </div>
     );
@@ -110,166 +144,172 @@ export default function ChatRightPanel({
   // Expanded state
   return (
     <div
-      className={`w-72 flex-shrink-0 flex flex-col h-full border-l ${sidebarBg} transition-all duration-300`}
+      className={`w-[450px] flex-shrink-0 flex flex-col h-full border-l ${sidebarBg} transition-all duration-300`}
     >
-      {/* Header - Fixed */}
-      <div className={`${headerBg} p-4 flex-shrink-0`}>
-        <div className="flex items-center justify-between mb-3">
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              className={`p-1.5 rounded-lg transition-colors ${
-                isNeural ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-              }`}
-              title="Collapse panel"
-            >
-              <ChevronRightIcon className={`w-4 h-4 ${textSecondary}`} />
-            </button>
-          )}
-          <div className="flex items-center space-x-2">
-            <div className="text-right">
-              <h3 className={`font-bold ${textPrimary}`}>Tools & Resources</h3>
-              <p className={`text-xs ${textSecondary}`}>Quick access panel</p>
-            </div>
-            <span className="text-2xl">🛠️</span>
-          </div>
-        </div>
-
-        {/* Quick Actions Button */}
-        <button
-          className={`w-full py-2.5 px-4 rounded-xl font-medium transition-all flex items-center justify-center space-x-2 ${
-            isNeural
-              ? 'bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white shadow-lg shadow-purple-500/25'
-              : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-md'
-          }`}
-        >
-          <SparklesIcon className="w-4 h-4" />
-          <span>Quick Actions</span>
-        </button>
-      </div>
-
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
-        {/* Saved Items Section */}
-        <div
-          className={`rounded-xl border p-3 transition-all ${itemBg} cursor-pointer`}
-        >
-          <div className="flex items-center space-x-3">
-            <div
-              className={`p-2 rounded-lg ${
-                isNeural ? 'bg-cyan-500/20' : 'bg-indigo-100'
-              }`}
-            >
-              <BookmarkIcon
-                className={`w-5 h-5 ${
-                  isNeural ? 'text-cyan-400' : 'text-indigo-600'
-                }`}
-              />
-            </div>
-            <div className="flex-1">
-              <h4 className={`font-medium text-sm ${textPrimary}`}>
-                Saved Items
-              </h4>
-              <p className={`text-xs ${textMuted}`}>Bookmarked responses</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Suggestions Section */}
-        <div
-          className={`rounded-xl border p-3 transition-all ${itemBg} cursor-pointer`}
-        >
-          <div className="flex items-center space-x-3">
-            <div
-              className={`p-2 rounded-lg ${
-                isNeural ? 'bg-purple-500/20' : 'bg-purple-100'
-              }`}
-            >
-              <LightBulbIcon
-                className={`w-5 h-5 ${
-                  isNeural ? 'text-purple-400' : 'text-purple-600'
-                }`}
-              />
-            </div>
-            <div className="flex-1">
-              <h4 className={`font-medium text-sm ${textPrimary}`}>
-                Suggestions
-              </h4>
-              <p className={`text-xs ${textMuted}`}>AI recommendations</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Documents Section */}
-        <div
-          className={`rounded-xl border p-3 transition-all ${itemBg} cursor-pointer`}
-        >
-          <div className="flex items-center space-x-3">
-            <div
-              className={`p-2 rounded-lg ${
-                isNeural ? 'bg-blue-500/20' : 'bg-blue-100'
-              }`}
-            >
-              <DocumentTextIcon
-                className={`w-5 h-5 ${
-                  isNeural ? 'text-blue-400' : 'text-blue-600'
-                }`}
-              />
-            </div>
-            <div className="flex-1">
-              <h4 className={`font-medium text-sm ${textPrimary}`}>Documents</h4>
-              <p className={`text-xs ${textMuted}`}>Uploaded files</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Settings Section */}
-        <div
-          className={`rounded-xl border p-3 transition-all ${itemBg} cursor-pointer`}
-        >
-          <div className="flex items-center space-x-3">
-            <div
-              className={`p-2 rounded-lg ${
-                isNeural ? 'bg-gray-500/20' : 'bg-gray-100'
-              }`}
-            >
-              <Cog6ToothIcon
-                className={`w-5 h-5 ${
-                  isNeural ? 'text-gray-400' : 'text-gray-600'
-                }`}
-              />
-            </div>
-            <div className="flex-1">
-              <h4 className={`font-medium text-sm ${textPrimary}`}>
-                Preferences
-              </h4>
-              <p className={`text-xs ${textMuted}`}>Chat settings</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Coming Soon placeholder */}
-        <div className={`text-center py-4 ${textMuted}`}>
-          <p className="text-xs">More features coming soon...</p>
-        </div>
-      </div>
-
-      {/* Footer */}
+      {/* Header with tabs */}
       <div
-        className={`p-3 border-t ${
-          isNeural ? 'border-gray-800' : 'border-gray-200'
+        className={`flex-shrink-0 border-b ${
+          isNeural ? 'border-gray-700/50 bg-gray-900' : 'border-gray-200 bg-gray-50'
         }`}
       >
-        <div className={`text-xs ${textMuted} text-center`}>
-          {isNeural ? (
-            <span className="flex items-center justify-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-              <span>Tools Ready</span>
-            </span>
-          ) : (
-            <span>AI Tools Panel</span>
-          )}
+        <div className="flex items-center justify-between px-2 py-1">
+          {/* Collapse button */}
+          <button
+            onClick={onToggleCollapse}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isNeural ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
+            }`}
+            title="Collapse panel"
+          >
+            <ChevronRightIcon className={`w-4 h-4 ${textSecondary}`} />
+          </button>
+
+          {/* Tab buttons */}
+          <div className="flex items-center space-x-1">
+            {panelIcons.map((panel) => {
+              const Icon = panel.icon;
+              const isActive = activeView === panel.id;
+              return (
+                <button
+                  key={panel.id}
+                  onClick={() => setActiveView(panel.id)}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? isNeural
+                        ? `bg-gray-800 ${getIconColor(panel.id, true)}`
+                        : `bg-white shadow-sm ${getIconColor(panel.id, true)}`
+                      : `${textMuted} ${isNeural ? 'hover:bg-gray-800' : 'hover:bg-gray-200'}`
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{panel.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </div>
+
+      {/* Panel Content */}
+      <div className="flex-1 overflow-hidden">
+        {activeView === 'browser' && (
+          <BrowserPanel
+            theme={theme}
+            content={browserContent}
+          />
+        )}
+        {activeView === 'canvas' && (
+          <CanvasPanel
+            theme={theme}
+            content={canvasContent}
+          />
+        )}
+        {activeView === 'chat' && (
+          <ParallelChatPanel
+            theme={theme}
+            messages={parallelMessages}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Parallel Chat Panel Component
+function ParallelChatPanel({
+  theme,
+  messages,
+}: {
+  theme: 'default' | 'neural';
+  messages: ChatMessage[];
+}) {
+  const isNeural = theme === 'neural';
+  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
+  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
+  const textMuted = isNeural ? 'text-gray-500' : 'text-gray-400';
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Chat header */}
+      <div
+        className={`px-4 py-3 border-b ${
+          isNeural ? 'border-gray-700/50' : 'border-gray-200'
+        }`}
+      >
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isNeural ? 'bg-green-400 animate-pulse' : 'bg-green-500'
+            }`}
+          />
+          <span className={`text-sm font-medium ${textPrimary}`}>
+            Parallel Conversation
+          </span>
+        </div>
+        <p className={`text-xs ${textMuted} mt-1`}>
+          Side thread for focused discussions
+        </p>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 ? (
+          <div className={`text-center py-12 ${textMuted}`}>
+            <ChatBubbleLeftRightIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">No parallel conversations yet</p>
+            <p className="text-xs mt-1">
+              Start a side thread to discuss specific topics
+            </p>
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${
+                msg.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-2 ${
+                  msg.role === 'user'
+                    ? isNeural
+                      ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white'
+                      : 'bg-indigo-600 text-white'
+                    : isNeural
+                    ? 'bg-gray-800 text-gray-100'
+                    : 'bg-gray-100 text-gray-900'
+                }`}
+              >
+                <p className="text-sm">{msg.content}</p>
+                <p
+                  className={`text-xs mt-1 ${
+                    msg.role === 'user'
+                      ? 'text-white/60'
+                      : isNeural
+                      ? 'text-gray-500'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {msg.timestamp.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Quick input hint */}
+      <div
+        className={`px-4 py-3 border-t ${
+          isNeural ? 'border-gray-700/50' : 'border-gray-200'
+        }`}
+      >
+        <p className={`text-xs ${textMuted} text-center`}>
+          Use the main chat input to continue this thread
+        </p>
       </div>
     </div>
   );
