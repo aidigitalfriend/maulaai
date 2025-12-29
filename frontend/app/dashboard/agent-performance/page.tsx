@@ -213,10 +213,10 @@ function AgentPerformanceDashboard() {
             <div>
               <p className="text-sm text-neural-500">Agent performance</p>
               <h1 className="text-3xl font-bold text-neural-900">
-                {data.agent.name}
+                {data?.agent?.name ?? 'AI Agent'}
               </h1>
               <p className="text-neural-600">
-                Monitoring {data.agent.type} ·{' '}
+                Monitoring {data?.agent?.type ?? 'Assistant'} ·{' '}
                 {timeRangeOptions.find((t) => t.id === timeRange)?.name}
               </p>
               {lastUpdated && (
@@ -303,16 +303,22 @@ function AgentPerformanceDashboard() {
 
           <div className="bg-white rounded-3xl border border-neural-200 p-6 mb-8">
             <div className="flex items-center gap-4">
-              <div className="text-5xl" role="img" aria-label={data.agent.name}>
-                {data.agent.avatar}
+              <div
+                className="text-5xl"
+                role="img"
+                aria-label={data?.agent?.name ?? 'AI Agent'}
+              >
+                {data?.agent?.avatar ?? '🤖'}
               </div>
               <div>
                 <h2 className="text-2xl font-semibold text-neural-900">
-                  {data.agent.name}
+                  {data?.agent?.name ?? 'AI Agent'}
                 </h2>
-                <p className="text-neural-600">{data.agent.type}</p>
+                <p className="text-neural-600">
+                  {data?.agent?.type ?? 'Assistant'}
+                </p>
                 <p className="text-sm text-neural-500 mt-2">
-                  {(data.metrics.totalConversations || 0).toLocaleString()}{' '}
+                  {(data?.metrics?.totalConversations ?? 0).toLocaleString()}{' '}
                   conversations in this window
                 </p>
               </div>
@@ -323,31 +329,31 @@ function AgentPerformanceDashboard() {
             {[
               {
                 label: 'Total conversations',
-                value: data.metrics.totalConversations.toLocaleString(),
-                change: data.trends.conversations.change,
+                value: (data?.metrics?.totalConversations ?? 0).toLocaleString(),
+                change: data?.trends?.conversations?.change ?? '+0%',
                 icon: MessageSquare,
-                trend: data.trends.conversations.trend,
+                trend: data?.trends?.conversations?.trend ?? 'up',
               },
               {
                 label: 'Total messages',
-                value: data.metrics.totalMessages.toLocaleString(),
-                change: data.trends.messages.change,
+                value: (data?.metrics?.totalMessages ?? 0).toLocaleString(),
+                change: data?.trends?.messages?.change ?? '+0%',
                 icon: Zap,
-                trend: data.trends.messages.trend,
+                trend: data?.trends?.messages?.trend ?? 'up',
               },
               {
                 label: 'Avg response time',
-                value: `${data.metrics.averageResponseTime.toFixed(1)} s`,
-                change: data.trends.responseTime.change,
+                value: `${(data?.metrics?.averageResponseTime ?? 0).toFixed(1)} s`,
+                change: data?.trends?.responseTime?.change ?? '+0%',
                 icon: Clock,
-                trend: data.trends.responseTime.trend,
+                trend: data?.trends?.responseTime?.trend ?? 'up',
               },
               {
                 label: 'Satisfaction score',
-                value: `${data.metrics.satisfactionScore.toFixed(1)}/5`,
-                change: data.trends.satisfaction.change,
+                value: `${(data?.metrics?.satisfactionScore ?? 0).toFixed(1)}/5`,
+                change: data?.trends?.satisfaction?.change ?? '+0%',
                 icon: Target,
-                trend: data.trends.satisfaction.trend,
+                trend: data?.trends?.satisfaction?.trend ?? 'up',
               },
             ].map((metric) => (
               <div
@@ -379,7 +385,7 @@ function AgentPerformanceDashboard() {
                 <div>
                   <p className="text-sm text-neural-500">Active users</p>
                   <p className="text-3xl font-bold text-neural-900">
-                    {data.metrics.activeUsers.toLocaleString()}
+                    {(data?.metrics?.activeUsers ?? 0).toLocaleString()}
                   </p>
                 </div>
                 <Users className="w-6 h-6 text-brand-500" />
@@ -395,7 +401,7 @@ function AgentPerformanceDashboard() {
                 <div>
                   <p className="text-sm text-neural-500">Uptime</p>
                   <p className="text-3xl font-bold text-neural-900">
-                    {data.metrics.uptime}%
+                    {data?.metrics?.uptime ?? 99.9}%
                   </p>
                 </div>
                 <Activity className="w-6 h-6 text-brand-500" />
@@ -410,7 +416,7 @@ function AgentPerformanceDashboard() {
                 <div>
                   <p className="text-sm text-neural-500">Response insights</p>
                   <p className="text-3xl font-bold text-neural-900">
-                    {(data.metrics.averageResponseTime || 0).toFixed(1)}s
+                    {(data?.metrics?.averageResponseTime ?? 0).toFixed(1)}s
                   </p>
                 </div>
                 <Clock className="w-6 h-6 text-brand-500" />
@@ -430,13 +436,13 @@ function AgentPerformanceDashboard() {
                 </h3>
               </div>
             </div>
-            {data.recentActivity.length === 0 ? (
+            {(data?.recentActivity?.length ?? 0) === 0 ? (
               <p className="text-neural-500">
                 No conversations during this window.
               </p>
             ) : (
               <ul className="space-y-4">
-                {data.recentActivity.map((activity) => (
+                {(data?.recentActivity ?? []).map((activity) => (
                   <li
                     key={`${activity.timestamp}-${activity.user}`}
                     className="flex items-start gap-4 border-b border-neural-100 pb-4 last:border-b-0 last:pb-0"

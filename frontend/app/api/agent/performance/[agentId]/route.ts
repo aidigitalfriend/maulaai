@@ -121,7 +121,9 @@ export async function GET(
             _id: null,
             totalConversations: { $sum: 1 },
             totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: { $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] } },
+            avgResponseTime: {
+              $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] },
+            },
             uniqueUsers: { $addToSet: '$userId' },
           },
         },
@@ -159,7 +161,9 @@ export async function GET(
             _id: null,
             totalConversations: { $sum: 1 },
             totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: { $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] } },
+            avgResponseTime: {
+              $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] },
+            },
           },
         },
       ])
