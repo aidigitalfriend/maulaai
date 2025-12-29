@@ -329,7 +329,9 @@ function AgentPerformanceDashboard() {
             {[
               {
                 label: 'Total conversations',
-                value: (data?.metrics?.totalConversations ?? 0).toLocaleString(),
+                value: (
+                  data?.metrics?.totalConversations ?? 0
+                ).toLocaleString(),
                 change: data?.trends?.conversations?.change ?? '+0%',
                 icon: MessageSquare,
                 trend: data?.trends?.conversations?.trend ?? 'up',
@@ -343,14 +345,18 @@ function AgentPerformanceDashboard() {
               },
               {
                 label: 'Avg response time',
-                value: `${(data?.metrics?.averageResponseTime ?? 0).toFixed(1)} s`,
+                value: `${(data?.metrics?.averageResponseTime ?? 0).toFixed(
+                  1
+                )} s`,
                 change: data?.trends?.responseTime?.change ?? '+0%',
                 icon: Clock,
                 trend: data?.trends?.responseTime?.trend ?? 'up',
               },
               {
                 label: 'Satisfaction score',
-                value: `${(data?.metrics?.satisfactionScore ?? 0).toFixed(1)}/5`,
+                value: `${(data?.metrics?.satisfactionScore ?? 0).toFixed(
+                  1
+                )}/5`,
                 change: data?.trends?.satisfaction?.change ?? '+0%',
                 icon: Target,
                 trend: data?.trends?.satisfaction?.trend ?? 'up',

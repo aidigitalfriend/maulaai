@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Neural/Cyberpunk Theme */
+@import './neural-theme.css';
+
 /* Global Design System - Addressing All UI/UX Issues */
 @layer base {
   /* Reset and Base Styles */
