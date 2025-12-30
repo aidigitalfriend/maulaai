@@ -1,22 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
+import dbConnect from '@/lib/mongodb';
+import { LabExperiment } from '@/lib/models/LabExperiment';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 interface PersonalityRequest {
-  writingSample: string
+  writingSample: string;
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  let experimentId = `exp_${Date.now()}_${Math.random()
+    .toString(36)
+    .substr(2, 9)}`;
+
   try {
-    const { writingSample }: PersonalityRequest = await req.json()
+    await dbConnect();
+
+    const { writingSample }: PersonalityRequest = await req.json();
 
     if (!writingSample) {
       return NextResponse.json(
         { error: 'Writing sample is required' },
         { status: 400 }
-      )
+      );
     }
+
+    // Create experiment record with initial status
+    const experiment = new LabExperiment({
+      experimentId,
+      experimentType: 'personality-mirror',
+      input: {
+        prompt: writingSample,
+      },
+      status: 'processing',
+      startedAt: new Date(),
+    });
+    await experiment.save();
 
     const message = await anthropic.messages.create({
       model: 'claude-3-opus-20240229',
@@ -40,35 +61,69 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: `Analyze this writing sample for personality traits:\n\n"${writingSample}"`
-        }
-      ]
-    })
+          content: `Analyze this writing sample for personality traits:\n\n"${writingSample}"`,
+        },
+      ],
+    });
 
-    const content = message.content[0]
-    const analysisText = content.type === 'text' ? content.text : ''
-    
+    const content = message.content[0];
+    const analysisText = content.type === 'text' ? content.text : '';
+
     // Parse JSON from the response
-    let analysis
+    let analysis;
     try {
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/)
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0])
+        analysis = JSON.parse(jsonMatch[0]);
       }
     } catch (e) {
-      throw new Error('Failed to parse personality analysis')
+      throw new Error('Failed to parse personality analysis');
     }
+
+    const processingTime = Date.now() - startTime;
+    const tokensUsed = message.usage.input_tokens + message.usage.output_tokens;
+
+    // Update experiment with results
+    await LabExperiment.findOneAndUpdate(
+      { experimentId },
+      {
+        output: {
+          result: analysis,
+          metadata: { tokensUsed, processingTime },
+        },
+        status: 'completed',
+        processingTime,
+        tokensUsed,
+        completedAt: new Date(),
+      }
+    );
 
     return NextResponse.json({
       success: true,
       analysis,
-      tokens: message.usage.input_tokens + message.usage.output_tokens
-    })
+      tokens: tokensUsed,
+      experimentId,
+    });
   } catch (error: any) {
-    console.error('Personality Analysis Error:', error)
+    console.error('Personality Analysis Error:', error);
+
+    // Update experiment with error status
+    try {
+      await LabExperiment.findOneAndUpdate(
+        { experimentId },
+        {
+          status: 'failed',
+          errorMessage: error.message,
+          completedAt: new Date(),
+        }
+      );
+    } catch (updateError) {
+      console.error('Failed to update experiment error status:', updateError);
+    }
+
     return NextResponse.json(
       { error: error.message || 'Failed to analyze personality' },
       { status: 500 }
-    )
+    );
   }
 }
