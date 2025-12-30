@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 
 // Types
@@ -11,7 +11,7 @@ interface ChatMessage {
   hasAudio?: boolean;
 }
 
-type ModelProvider = 'Gemini' | 'OpenAI' | 'Anthropic' | 'xAI' | 'Mistral';
+type ModelProvider = 'Gemini' | 'OpenAI' | 'Anthropic';
 
 interface ModelOption {
   id: string;
@@ -19,6 +19,7 @@ interface ModelOption {
   provider: ModelProvider;
   description: string;
   isThinking?: boolean;
+  icon?: string;
 }
 
 interface GeneratedApp {
@@ -40,71 +41,120 @@ interface GenerationState {
   error: string | null;
   progressMessage: string;
   isThinking?: boolean;
+  streamingCode?: string;
 }
 
+type ActivePanel = 'workspace' | 'assistant' | 'history' | 'tools' | null;
+
 const MODELS: ModelOption[] = [
+  // Gemini Models
   {
-    id: 'gemini-3-flash-preview',
-    name: 'Gemini 3 Flash',
+    id: 'gemini-1.5-flash',
+    name: 'Gemini 1.5 Flash',
     provider: 'Gemini',
     description: 'Fast and efficient for basic layouts.',
+    icon: '⚡',
   },
   {
-    id: 'gemini-3-pro-preview',
-    name: 'Gemini 3 Pro',
+    id: 'gemini-1.5-pro',
+    name: 'Gemini 1.5 Pro',
     provider: 'Gemini',
     description: 'High reasoning for complex apps.',
+    icon: '🧠',
   },
   {
-    id: 'gemini-3-pro-preview-thinking',
-    name: 'Gemini 3 Pro (Thinking)',
+    id: 'gemini-1.5-pro-thinking',
+    name: 'Gemini 1.5 Pro (Thinking)',
     provider: 'Gemini',
-    description: 'Maximum reasoning power for hard logic.',
+    description: 'Maximum reasoning power.',
     isThinking: true,
+    icon: '💭',
   },
+  // OpenAI Models
   {
     id: 'gpt-4o',
-    name: 'GPT-4o (Placeholder)',
+    name: 'GPT-4o',
     provider: 'OpenAI',
-    description: 'Industry standard reasoning.',
+    description: 'Most capable OpenAI model.',
+    icon: '🌟',
   },
   {
+    id: 'gpt-4o-mini',
+    name: 'GPT-4o Mini',
+    provider: 'OpenAI',
+    description: 'Fast and cost-effective.',
+    icon: '⚙️',
+  },
+  // Anthropic Models
+  {
     id: 'claude-3-5-sonnet',
-    name: 'Claude 3.5 Sonnet (Placeholder)',
+    name: 'Claude 3.5 Sonnet',
     provider: 'Anthropic',
     description: 'Expert coding assistant.',
+    icon: '🎭',
+  },
+  {
+    id: 'claude-3-opus',
+    name: 'Claude 3 Opus',
+    provider: 'Anthropic',
+    description: 'Most powerful Claude model.',
+    icon: '🎯',
   },
 ];
 
 const PRESET_TEMPLATES = [
   {
-    name: 'SaaS Page',
-    prompt:
-      'Build a modern SaaS landing page for a CRM tool with features, pricing, and hero.',
+    name: 'SaaS Landing Page',
+    prompt: 'Build a modern SaaS landing page for a CRM tool with hero section, features grid, pricing table, testimonials, and footer.',
+    icon: '🚀',
   },
   {
     name: 'Analytics Dashboard',
-    prompt:
-      'Create a dark-themed analytics dashboard with 3 chart placeholders and a sidebar.',
+    prompt: 'Create a dark-themed analytics dashboard with sidebar navigation, 4 stat cards, 2 chart areas, and a data table.',
+    icon: '📊',
   },
   {
-    name: 'E-commerce Storefront',
-    prompt:
-      'Generate an elegant minimal furniture store with a grid of items and cart icon.',
+    name: 'E-commerce Store',
+    prompt: 'Generate an elegant e-commerce storefront with product grid, filters, shopping cart, and checkout flow.',
+    icon: '🛒',
   },
   {
     name: 'Portfolio Website',
-    prompt:
-      'Build a creative portfolio website for a designer with project gallery and contact form.',
+    prompt: 'Build a creative portfolio website with hero, project gallery with filters, about section, and contact form.',
+    icon: '🎨',
   },
   {
-    name: 'Blog Layout',
-    prompt:
-      'Create a clean blog homepage with featured posts, categories sidebar, and newsletter signup.',
+    name: 'Blog Platform',
+    prompt: 'Create a clean blog homepage with featured posts, categories sidebar, search, and newsletter signup.',
+    icon: '📝',
+  },
+  {
+    name: 'Mobile App UI',
+    prompt: 'Design a mobile app interface with bottom navigation, cards, profile section, and settings page.',
+    icon: '📱',
+  },
+  {
+    name: 'Admin Panel',
+    prompt: 'Build an admin dashboard with user management table, CRUD operations, stats overview, and activity log.',
+    icon: '⚙️',
+  },
+  {
+    name: 'Restaurant Menu',
+    prompt: 'Create a restaurant website with hero image, menu sections, reservation form, and location map.',
+    icon: '🍽️',
   },
 ];
 
-type ActivePanel = 'workspace' | 'assistant' | 'history' | null;
+const QUICK_ACTIONS = [
+  { label: 'Add dark mode toggle', icon: '🌙' },
+  { label: 'Make it responsive', icon: '📱' },
+  { label: 'Add smooth animations', icon: '✨' },
+  { label: 'Improve accessibility', icon: '♿' },
+  { label: 'Add loading states', icon: '⏳' },
+  { label: 'Add form validation', icon: '✅' },
+];
+
+type ActivePanel = 'workspace' | 'assistant' | 'history' | 'tools' | null;
 
 // Preview Component
 const Preview: React.FC<{ code: string }> = ({ code }) => {
@@ -380,10 +430,13 @@ export default function CanvasAppPage() {
   const [history, setHistory] = useState<GeneratedApp[]>([]);
   const [activePanel, setActivePanel] = useState<ActivePanel>('workspace');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [useStreaming, setUseStreaming] = useState(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [genState, setGenState] = useState<GenerationState>({
     isGenerating: false,
     error: null,
     progressMessage: '',
+    streamingCode: '',
   });
 
   // Close dropdown when clicking outside
@@ -413,41 +466,153 @@ export default function CanvasAppPage() {
     localStorage.setItem('gencraft_v4_history', JSON.stringify(newHistory));
   };
 
-  const handleGenerate = async (
+  // Streaming generation with real-time updates
+  const handleGenerateStream = useCallback(async (
     instruction: string,
     isInitial: boolean = false
   ) => {
     if (!instruction.trim() || genState.isGenerating) return;
 
-    if (selectedModel.provider !== 'Gemini') {
-      setGenState({
-        isGenerating: false,
-        error:
-          'Multi-provider support requires separate API keys. Currently only Gemini is active.',
-        progressMessage: '',
-      });
-      return;
-    }
+    // Create abort controller for cancellation
+    abortControllerRef.current = new AbortController();
 
     setGenState({
       isGenerating: true,
       error: null,
       progressMessage: selectedModel.isThinking
         ? 'Deep thinking in progress...'
-        : 'Building application...',
+        : `Generating with ${selectedModel.provider}...`,
+      isThinking: selectedModel.isThinking,
+      streamingCode: '',
+    });
+
+    let accumulatedCode = '';
+
+    try {
+      const response = await fetch('/api/canvas/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: instruction,
+          provider: selectedModel.provider,
+          modelId: selectedModel.id,
+          isThinking: selectedModel.isThinking,
+          currentCode: isInitial ? undefined : currentApp?.code,
+          history: isInitial ? [] : currentApp?.history,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate application');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        const lines = text.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.chunk) {
+                accumulatedCode += data.chunk;
+                setGenState(prev => ({
+                  ...prev,
+                  streamingCode: accumulatedCode,
+                  progressMessage: 'Building your application...',
+                }));
+              }
+              if (data.error) {
+                throw new Error(data.error);
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+
+      // Finalize the generation
+      const finalCode = accumulatedCode;
+      const userMsg: ChatMessage = {
+        role: 'user',
+        text: instruction,
+        timestamp: Date.now(),
+      };
+      const modelMsg: ChatMessage = {
+        role: 'model',
+        text: isInitial ? `✅ Application built with ${selectedModel.name}!` : '✅ Changes applied successfully.',
+        timestamp: Date.now(),
+      };
+
+      if (isInitial) {
+        const newApp: GeneratedApp = {
+          id: Date.now().toString(),
+          name: instruction.substring(0, 40) + '...',
+          code: finalCode,
+          prompt: instruction,
+          timestamp: Date.now(),
+          history: [modelMsg],
+        };
+        setCurrentApp(newApp);
+        saveHistory([newApp, ...history].slice(0, 20));
+      } else if (currentApp) {
+        const updatedApp = {
+          ...currentApp,
+          code: finalCode,
+          history: [...currentApp.history, userMsg, modelMsg],
+        };
+        setCurrentApp(updatedApp);
+        saveHistory(
+          history.map((a) => (a.id === updatedApp.id ? updatedApp : a))
+        );
+      }
+
+      setGenState({ isGenerating: false, error: null, progressMessage: '', streamingCode: '' });
+      setViewMode(ViewMode.PREVIEW);
+    } catch (err: unknown) {
+      if ((err as Error).name === 'AbortError') {
+        setGenState({ isGenerating: false, error: 'Generation cancelled', progressMessage: '', streamingCode: '' });
+      } else {
+        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+        setGenState({ isGenerating: false, error: errorMessage, progressMessage: '', streamingCode: '' });
+      }
+    }
+  }, [selectedModel, currentApp, history, genState.isGenerating]);
+
+  // Non-streaming fallback
+  const handleGenerateNonStream = async (
+    instruction: string,
+    isInitial: boolean = false
+  ) => {
+    if (!instruction.trim() || genState.isGenerating) return;
+
+    setGenState({
+      isGenerating: true,
+      error: null,
+      progressMessage: selectedModel.isThinking
+        ? 'Deep thinking in progress...'
+        : `Building with ${selectedModel.name}...`,
       isThinking: selectedModel.isThinking,
     });
 
     try {
-      // Call the API endpoint
       const response = await fetch('/api/canvas/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: instruction,
-          modelId: selectedModel.isThinking
-            ? 'gemini-3-pro-preview'
-            : selectedModel.id,
+          provider: selectedModel.provider,
+          modelId: selectedModel.id,
           isThinking: selectedModel.isThinking,
           currentCode: isInitial ? undefined : currentApp?.code,
           history: isInitial ? [] : currentApp?.history,
@@ -455,7 +620,8 @@ export default function CanvasAppPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate application');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate application');
       }
 
       const data = await response.json();
@@ -468,21 +634,21 @@ export default function CanvasAppPage() {
       };
       const modelMsg: ChatMessage = {
         role: 'model',
-        text: isInitial ? 'Application built!' : 'Changes applied.',
+        text: isInitial ? `✅ Built with ${selectedModel.name}!` : '✅ Changes applied.',
         timestamp: Date.now(),
       };
 
       if (isInitial) {
         const newApp: GeneratedApp = {
           id: Date.now().toString(),
-          name: instruction.substring(0, 30) + '...',
+          name: instruction.substring(0, 40) + '...',
           code,
           prompt: instruction,
           timestamp: Date.now(),
           history: [modelMsg],
         };
         setCurrentApp(newApp);
-        saveHistory([newApp, ...history].slice(0, 10));
+        saveHistory([newApp, ...history].slice(0, 20));
       } else if (currentApp) {
         const updatedApp = {
           ...currentApp,
@@ -498,14 +664,52 @@ export default function CanvasAppPage() {
       setGenState({ isGenerating: false, error: null, progressMessage: '' });
       setViewMode(ViewMode.PREVIEW);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'An error occurred';
-      setGenState({
-        isGenerating: false,
-        error: errorMessage,
-        progressMessage: '',
-      });
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setGenState({ isGenerating: false, error: errorMessage, progressMessage: '' });
     }
+  };
+
+  // Main generate handler
+  const handleGenerate = (instruction: string, isInitial: boolean = false) => {
+    if (useStreaming) {
+      handleGenerateStream(instruction, isInitial);
+    } else {
+      handleGenerateNonStream(instruction, isInitial);
+    }
+  };
+
+  // Cancel generation
+  const cancelGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+
+  // Quick action handler
+  const handleQuickAction = (action: string) => {
+    if (currentApp) {
+      handleGenerate(action, false);
+    }
+  };
+
+  // Download code
+  const downloadCode = () => {
+    if (!currentApp?.code) return;
+    const blob = new Blob([currentApp.code], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentApp.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Open in new tab
+  const openInNewTab = () => {
+    if (!currentApp?.code) return;
+    const blob = new Blob([currentApp.code], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   };
 
   const togglePanel = (panel: ActivePanel) => {
@@ -567,18 +771,64 @@ export default function CanvasAppPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Streaming Toggle */}
+            <button
+              onClick={() => setUseStreaming(!useStreaming)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                useStreaming
+                  ? 'bg-green-50 border-green-200 text-green-700'
+                  : 'bg-gray-50 border-gray-200 text-gray-600'
+              }`}
+              title={useStreaming ? 'Real-time streaming enabled' : 'Standard mode'}
+            >
+              <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+              {useStreaming ? 'Stream' : 'Standard'}
+            </button>
+
+            {/* Export Buttons */}
+            {currentApp && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={downloadCode}
+                  className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                  title="Download HTML"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </button>
+                <button
+                  onClick={openInNewTab}
+                  className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                  title="Open in new tab"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
             {/* Model Selector */}
             <div className="relative model-dropdown">
-              <button 
+              <button
                 onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold hover:border-indigo-300 transition-colors"
               >
-                <span className={`w-2 h-2 rounded-full ${selectedModel.provider === 'Gemini' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    selectedModel.provider === 'Gemini'
+                      ? 'bg-green-500'
+                      : 'bg-yellow-500'
+                  }`}
+                ></span>
                 {selectedModel.name}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`h-3 w-3 text-gray-400 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`h-3 w-3 text-gray-400 transition-transform ${
+                    isModelDropdownOpen ? 'rotate-180' : ''
+                  }`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -592,51 +842,48 @@ export default function CanvasAppPage() {
                 </svg>
               </button>
               {isModelDropdownOpen && (
-                <div className="absolute top-full right-0 mt-1 w-72 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-2">
-                  <p className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Select Model
+                <div className="absolute top-full right-0 mt-1 w-80 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-2 max-h-[70vh] overflow-y-auto">
+                  <p className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Select AI Model
                   </p>
-                  {MODELS.map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        setSelectedModel(m);
-                        setIsModelDropdownOpen(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
-                        selectedModel.id === m.id
-                          ? 'bg-indigo-50 ring-1 ring-indigo-200'
-                          : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-gray-800">
-                          {m.name}{' '}
-                          {m.isThinking && (
-                            <span className="ml-1 text-[10px] bg-indigo-100 text-indigo-700 px-1 rounded">
-                              THINKING
-                            </span>
-                          )}
-                        </p>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          m.provider === 'Gemini' 
-                            ? 'bg-green-100 text-green-700' 
-                            : m.provider === 'OpenAI'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {m.provider}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-gray-500 mt-0.5">
-                        {m.description}
+                  {['Gemini', 'OpenAI', 'Anthropic'].map((provider) => (
+                    <div key={provider} className="mb-2">
+                      <p className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                        provider === 'Gemini' ? 'text-green-600' :
+                        provider === 'OpenAI' ? 'text-blue-600' : 'text-purple-600'
+                      }`}>
+                        {provider}
                       </p>
-                      {m.provider !== 'Gemini' && (
-                        <p className="text-[10px] text-orange-500 mt-1">
-                          ⚠️ Coming soon - API key required
-                        </p>
-                      )}
-                    </button>
+                      {MODELS.filter(m => m.provider === provider).map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            setSelectedModel(m);
+                            setIsModelDropdownOpen(false);
+                          }}
+                          className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
+                            selectedModel.id === m.id
+                              ? 'bg-indigo-50 ring-1 ring-indigo-200'
+                              : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-bold text-gray-800 flex items-center gap-2">
+                              <span>{m.icon}</span>
+                              {m.name}
+                              {m.isThinking && (
+                                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                                  THINKING
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-1 ml-6">
+                            {m.description}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
@@ -747,6 +994,45 @@ export default function CanvasAppPage() {
             </svg>
           </button>
 
+          <button
+            onClick={() => togglePanel('tools')}
+            className={`p-3 rounded-xl transition-all ${
+              activePanel === 'tools'
+                ? 'bg-indigo-600/20 text-indigo-400'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Tools & Quick Actions"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+
           <div className="mt-auto">
             <div className="w-2 h-2 rounded-full bg-green-500 mx-auto animate-pulse shadow-sm shadow-green-500/50"></div>
           </div>
@@ -754,25 +1040,50 @@ export default function CanvasAppPage() {
 
         {/* Main Content Area */}
         <main className="flex-1 relative flex overflow-hidden">
-          <div className={`relative overflow-hidden bg-gray-50/30 transition-all duration-300 ease-in-out ${activePanel ? 'flex-1' : 'w-full'}`}>
+          <div
+            className={`relative overflow-hidden bg-gray-50/30 transition-all duration-300 ease-in-out ${
+              activePanel ? 'flex-1' : 'w-full'
+            }`}
+          >
             {genState.isGenerating && (
-              <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in">
-                <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-6 shadow-xl"></div>
-                <div className="text-center">
+              <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in">
+                <div className="relative mb-6">
+                  <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl">{selectedModel.icon}</span>
+                  </div>
+                </div>
+                <div className="text-center max-w-md px-6">
                   <p className="text-lg font-bold text-gray-800 tracking-tight">
                     {genState.progressMessage}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    Refining UI components and logic...
+                    Using {selectedModel.name} • {selectedModel.provider}
                   </p>
+                  {genState.streamingCode && (
+                    <div className="mt-4 text-left">
+                      <p className="text-[10px] text-indigo-600 font-bold uppercase mb-2">
+                        Generating {genState.streamingCode.length.toLocaleString()} characters...
+                      </p>
+                      <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-600 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={cancelGeneration}
+                    className="mt-4 px-4 py-2 text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             )}
             <div className="h-full w-full">
               {viewMode === ViewMode.PREVIEW ? (
-                <Preview code={currentApp?.code || ''} />
+                <Preview code={genState.streamingCode || currentApp?.code || ''} />
               ) : (
-                <CodeView code={currentApp?.code || ''} />
+                <CodeView code={genState.streamingCode || currentApp?.code || ''} />
               )}
             </div>
           </div>
@@ -780,12 +1091,14 @@ export default function CanvasAppPage() {
           {/* Right Toggleable Panels */}
           <div
             className={`h-full bg-white transition-all duration-300 ease-in-out overflow-hidden ${
-              activePanel 
-                ? 'w-80 border-l border-gray-100 shadow-2xl' 
-                : 'w-0'
+              activePanel ? 'w-80 border-l border-gray-100 shadow-2xl' : 'w-0'
             }`}
           >
-            <div className={`w-80 flex flex-col h-full ${activePanel ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
+            <div
+              className={`w-80 flex flex-col h-full ${
+                activePanel ? 'opacity-100' : 'opacity-0'
+              } transition-opacity duration-200`}
+            >
               {activePanel === 'workspace' && (
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
                   <div className="flex items-center justify-between mb-6">
@@ -839,9 +1152,10 @@ export default function CanvasAppPage() {
                         <button
                           key={tpl.name}
                           onClick={() => setPrompt(tpl.prompt)}
-                          className="w-full text-left px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-white hover:text-indigo-600 rounded-xl border border-transparent hover:border-gray-200 transition-all flex justify-between items-center group"
+                          className="w-full text-left px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-white hover:text-indigo-600 rounded-xl border border-transparent hover:border-gray-200 transition-all flex items-center gap-3 group"
                         >
-                          {tpl.name}
+                          <span className="text-lg">{tpl.icon}</span>
+                          <span className="flex-1">{tpl.name}</span>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -949,6 +1263,143 @@ export default function CanvasAppPage() {
                       No project history yet.
                     </div>
                   )}
+                </div>
+              )}
+
+              {activePanel === 'tools' && (
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      Tools & Actions
+                    </h3>
+                    <button
+                      onClick={() => setActivePanel(null)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="mb-6">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">
+                      Quick Enhancements
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {QUICK_ACTIONS.map((action) => (
+                        <button
+                          key={action.label}
+                          onClick={() => handleQuickAction(action.label)}
+                          disabled={!currentApp || genState.isGenerating}
+                          className="flex items-center gap-2 px-3 py-2 text-[10px] font-medium text-gray-600 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span>{action.icon}</span>
+                          <span className="truncate">{action.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Export Options */}
+                  <div className="mb-6">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">
+                      Export Options
+                    </h4>
+                    <div className="space-y-2">
+                      <button
+                        onClick={downloadCode}
+                        disabled={!currentApp}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download HTML File
+                      </button>
+                      <button
+                        onClick={openInNewTab}
+                        disabled={!currentApp}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Open in New Tab
+                      </button>
+                      <button
+                        onClick={() => currentApp && navigator.clipboard.writeText(currentApp.code)}
+                        disabled={!currentApp}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        Copy to Clipboard
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Model Info */}
+                  <div className="mb-6">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">
+                      Current Model
+                    </h4>
+                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{selectedModel.icon}</span>
+                        <span className="text-sm font-bold text-gray-800">{selectedModel.name}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-600">{selectedModel.description}</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                          selectedModel.provider === 'Gemini' ? 'bg-green-100 text-green-700' :
+                          selectedModel.provider === 'OpenAI' ? 'bg-blue-100 text-blue-700' :
+                          'bg-purple-100 text-purple-700'
+                        }`}>
+                          {selectedModel.provider}
+                        </span>
+                        {selectedModel.isThinking && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                            Thinking Mode
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Generation Settings */}
+                  <div>
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">
+                      Settings
+                    </h4>
+                    <div className="space-y-3">
+                      <label className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
+                        <div className="flex items-center gap-3">
+                          <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                          <span className="text-xs font-medium text-gray-700">Real-time Streaming</span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={useStreaming}
+                          onChange={() => setUseStreaming(!useStreaming)}
+                          className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

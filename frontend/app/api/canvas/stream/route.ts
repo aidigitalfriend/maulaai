@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
@@ -14,18 +14,62 @@ Rules for generated code:
 5. The output MUST be a single, valid HTML file containing <html>, <head>, and <body> tags.
 6. Return ONLY the code. No explanations, no markdown blocks.
 7. Always return the FULL updated file.
-8. Use smooth animations and transitions for a polished feel.
-9. Ensure accessibility with proper ARIA labels and semantic HTML.`;
+8. Use smooth animations and transitions for a polished feel.`;
 
-function cleanCode(text: string): string {
-  return text
-    .replaceAll(/```html/g, '')
-    .replaceAll(/```/g, '')
-    .trim();
+export async function POST(request: NextRequest) {
+  const encoder = new TextEncoder();
+  
+  try {
+    const { prompt, provider, modelId, isThinking, currentCode, history } = await request.json();
+
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const selectedProvider = provider || 'Gemini';
+
+    // Create a readable stream
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          if (selectedProvider === 'Gemini') {
+            await streamWithGemini(controller, encoder, prompt, modelId, isThinking, currentCode, history);
+          } else if (selectedProvider === 'OpenAI') {
+            await streamWithOpenAI(controller, encoder, prompt, modelId, currentCode, history);
+          } else if (selectedProvider === 'Anthropic') {
+            await streamWithAnthropic(controller, encoder, prompt, modelId, currentCode, history);
+          }
+          controller.close();
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Stream error';
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMsg })}\n\n`));
+          controller.close();
+        }
+      }
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
+  } catch (error) {
+    console.error('Stream error:', error);
+    return new Response(JSON.stringify({ error: 'Stream initialization failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }
 
-// Generate with Gemini
-async function generateWithGemini(
+async function streamWithGemini(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
   prompt: string,
   modelId: string,
   isThinking: boolean,
@@ -53,11 +97,8 @@ async function generateWithGemini(
 
   contents.push({ role: 'user', parts: [{ text: prompt }] });
 
-  // Map model IDs to actual Gemini model names
   let actualModel = 'gemini-1.5-flash';
-  if (modelId.includes('pro')) {
-    actualModel = 'gemini-1.5-pro';
-  }
+  if (modelId.includes('pro')) actualModel = 'gemini-1.5-pro';
 
   const model = genAI.getGenerativeModel({
     model: actualModel,
@@ -68,12 +109,21 @@ async function generateWithGemini(
     },
   });
 
-  const result = await model.generateContent({ contents });
-  return cleanCode(result.response.text());
+  const result = await model.generateContentStream({ contents });
+
+  for await (const chunk of result.stream) {
+    const text = chunk.text();
+    if (text) {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`));
+    }
+  }
+  
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
 }
 
-// Generate with OpenAI
-async function generateWithOpenAI(
+async function streamWithOpenAI(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
   prompt: string,
   modelId: string,
   currentCode?: string,
@@ -81,7 +131,7 @@ async function generateWithOpenAI(
 ) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.includes('placeholder')) {
-    throw new Error('OpenAI API key not configured. Please add a valid OPENAI_API_KEY to your environment.');
+    throw new Error('OpenAI API key not configured');
   }
 
   const openai = new OpenAI({ apiKey });
@@ -104,24 +154,30 @@ async function generateWithOpenAI(
 
   messages.push({ role: 'user', content: prompt });
 
-  // Map model IDs
   let actualModel = 'gpt-4o';
   if (modelId === 'gpt-4o-mini') actualModel = 'gpt-4o-mini';
-  if (modelId === 'gpt-4-turbo') actualModel = 'gpt-4-turbo';
-  if (modelId === 'o1-preview') actualModel = 'o1-preview';
 
-  const response = await openai.chat.completions.create({
+  const stream = await openai.chat.completions.create({
     model: actualModel,
     messages,
     temperature: 0.7,
     max_tokens: 8192,
+    stream: true,
   });
 
-  return cleanCode(response.choices[0]?.message?.content || '');
+  for await (const chunk of stream) {
+    const text = chunk.choices[0]?.delta?.content;
+    if (text) {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`));
+    }
+  }
+  
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
 }
 
-// Generate with Anthropic Claude
-async function generateWithAnthropic(
+async function streamWithAnthropic(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
   prompt: string,
   modelId: string,
   currentCode?: string,
@@ -129,7 +185,7 @@ async function generateWithAnthropic(
 ) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    throw new Error('Anthropic API key not configured. Please add ANTHROPIC_API_KEY to your environment.');
+    throw new Error('Anthropic API key not configured');
   }
 
   const anthropic = new Anthropic({ apiKey });
@@ -151,53 +207,21 @@ async function generateWithAnthropic(
 
   messages.push({ role: 'user', content: prompt });
 
-  // Map model IDs
   let actualModel = 'claude-3-5-sonnet-20241022';
   if (modelId === 'claude-3-opus') actualModel = 'claude-3-opus-20240229';
-  if (modelId === 'claude-3-haiku') actualModel = 'claude-3-haiku-20240307';
 
-  const response = await anthropic.messages.create({
+  const stream = await anthropic.messages.stream({
     model: actualModel,
     max_tokens: 8192,
     system: SYSTEM_INSTRUCTION,
     messages,
   });
 
-  const textContent = response.content.find(c => c.type === 'text');
-  return cleanCode(textContent?.text || '');
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const { prompt, provider, modelId, isThinking, currentCode, history } = await request.json();
-
-    if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+  for await (const event of stream) {
+    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: event.delta.text })}\n\n`));
     }
-
-    let code: string;
-    const selectedProvider = provider || 'Gemini';
-
-    switch (selectedProvider) {
-      case 'OpenAI':
-        code = await generateWithOpenAI(prompt, modelId, currentCode, history);
-        break;
-      case 'Anthropic':
-        code = await generateWithAnthropic(prompt, modelId, currentCode, history);
-        break;
-      case 'Gemini':
-      default:
-        code = await generateWithGemini(prompt, modelId, isThinking, currentCode, history);
-        break;
-    }
-
-    return NextResponse.json({ code, success: true, provider: selectedProvider });
-  } catch (error) {
-    console.error('Canvas generation error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to generate application';
-    return NextResponse.json(
-      { error: errorMessage, success: false },
-      { status: 500 }
-    );
   }
+  
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
 }
