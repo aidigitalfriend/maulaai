@@ -105,42 +105,50 @@ const MODELS: ModelOption[] = [
 const PRESET_TEMPLATES = [
   {
     name: 'SaaS Landing Page',
-    prompt: 'Build a modern SaaS landing page for a CRM tool with hero section, features grid, pricing table, testimonials, and footer.',
+    prompt:
+      'Build a modern SaaS landing page for a CRM tool with hero section, features grid, pricing table, testimonials, and footer.',
     icon: '🚀',
   },
   {
     name: 'Analytics Dashboard',
-    prompt: 'Create a dark-themed analytics dashboard with sidebar navigation, 4 stat cards, 2 chart areas, and a data table.',
+    prompt:
+      'Create a dark-themed analytics dashboard with sidebar navigation, 4 stat cards, 2 chart areas, and a data table.',
     icon: '📊',
   },
   {
     name: 'E-commerce Store',
-    prompt: 'Generate an elegant e-commerce storefront with product grid, filters, shopping cart, and checkout flow.',
+    prompt:
+      'Generate an elegant e-commerce storefront with product grid, filters, shopping cart, and checkout flow.',
     icon: '🛒',
   },
   {
     name: 'Portfolio Website',
-    prompt: 'Build a creative portfolio website with hero, project gallery with filters, about section, and contact form.',
+    prompt:
+      'Build a creative portfolio website with hero, project gallery with filters, about section, and contact form.',
     icon: '🎨',
   },
   {
     name: 'Blog Platform',
-    prompt: 'Create a clean blog homepage with featured posts, categories sidebar, search, and newsletter signup.',
+    prompt:
+      'Create a clean blog homepage with featured posts, categories sidebar, search, and newsletter signup.',
     icon: '📝',
   },
   {
     name: 'Mobile App UI',
-    prompt: 'Design a mobile app interface with bottom navigation, cards, profile section, and settings page.',
+    prompt:
+      'Design a mobile app interface with bottom navigation, cards, profile section, and settings page.',
     icon: '📱',
   },
   {
     name: 'Admin Panel',
-    prompt: 'Build an admin dashboard with user management table, CRUD operations, stats overview, and activity log.',
+    prompt:
+      'Build an admin dashboard with user management table, CRUD operations, stats overview, and activity log.',
     icon: '⚙️',
   },
   {
     name: 'Restaurant Menu',
-    prompt: 'Create a restaurant website with hero image, menu sections, reservation form, and location map.',
+    prompt:
+      'Create a restaurant website with hero image, menu sections, reservation form, and location map.',
     icon: '🍽️',
   },
 ];
@@ -467,127 +475,145 @@ export default function CanvasAppPage() {
   };
 
   // Streaming generation with real-time updates
-  const handleGenerateStream = useCallback(async (
-    instruction: string,
-    isInitial: boolean = false
-  ) => {
-    if (!instruction.trim() || genState.isGenerating) return;
+  const handleGenerateStream = useCallback(
+    async (instruction: string, isInitial: boolean = false) => {
+      if (!instruction.trim() || genState.isGenerating) return;
 
-    // Create abort controller for cancellation
-    abortControllerRef.current = new AbortController();
+      // Create abort controller for cancellation
+      abortControllerRef.current = new AbortController();
 
-    setGenState({
-      isGenerating: true,
-      error: null,
-      progressMessage: selectedModel.isThinking
-        ? 'Deep thinking in progress...'
-        : `Generating with ${selectedModel.provider}...`,
-      isThinking: selectedModel.isThinking,
-      streamingCode: '',
-    });
-
-    let accumulatedCode = '';
-
-    try {
-      const response = await fetch('/api/canvas/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: instruction,
-          provider: selectedModel.provider,
-          modelId: selectedModel.id,
-          isThinking: selectedModel.isThinking,
-          currentCode: isInitial ? undefined : currentApp?.code,
-          history: isInitial ? [] : currentApp?.history,
-        }),
-        signal: abortControllerRef.current.signal,
+      setGenState({
+        isGenerating: true,
+        error: null,
+        progressMessage: selectedModel.isThinking
+          ? 'Deep thinking in progress...'
+          : `Generating with ${selectedModel.provider}...`,
+        isThinking: selectedModel.isThinking,
+        streamingCode: '',
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate application');
-      }
+      let accumulatedCode = '';
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
+      try {
+        const response = await fetch('/api/canvas/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: instruction,
+            provider: selectedModel.provider,
+            modelId: selectedModel.id,
+            isThinking: selectedModel.isThinking,
+            currentCode: isInitial ? undefined : currentApp?.code,
+            history: isInitial ? [] : currentApp?.history,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
 
-      const decoder = new TextDecoder();
+        if (!response.ok) {
+          throw new Error('Failed to generate application');
+        }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('No response body');
 
-        const text = decoder.decode(value);
-        const lines = text.split('\n');
+        const decoder = new TextDecoder();
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.chunk) {
-                accumulatedCode += data.chunk;
-                setGenState(prev => ({
-                  ...prev,
-                  streamingCode: accumulatedCode,
-                  progressMessage: 'Building your application...',
-                }));
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value);
+          const lines = text.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.chunk) {
+                  accumulatedCode += data.chunk;
+                  setGenState((prev) => ({
+                    ...prev,
+                    streamingCode: accumulatedCode,
+                    progressMessage: 'Building your application...',
+                  }));
+                }
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+              } catch (e) {
+                // Skip invalid JSON
               }
-              if (data.error) {
-                throw new Error(data.error);
-              }
-            } catch (e) {
-              // Skip invalid JSON
             }
           }
         }
-      }
 
-      // Finalize the generation
-      const finalCode = accumulatedCode;
-      const userMsg: ChatMessage = {
-        role: 'user',
-        text: instruction,
-        timestamp: Date.now(),
-      };
-      const modelMsg: ChatMessage = {
-        role: 'model',
-        text: isInitial ? `✅ Application built with ${selectedModel.name}!` : '✅ Changes applied successfully.',
-        timestamp: Date.now(),
-      };
-
-      if (isInitial) {
-        const newApp: GeneratedApp = {
-          id: Date.now().toString(),
-          name: instruction.substring(0, 40) + '...',
-          code: finalCode,
-          prompt: instruction,
+        // Finalize the generation
+        const finalCode = accumulatedCode;
+        const userMsg: ChatMessage = {
+          role: 'user',
+          text: instruction,
           timestamp: Date.now(),
-          history: [modelMsg],
         };
-        setCurrentApp(newApp);
-        saveHistory([newApp, ...history].slice(0, 20));
-      } else if (currentApp) {
-        const updatedApp = {
-          ...currentApp,
-          code: finalCode,
-          history: [...currentApp.history, userMsg, modelMsg],
+        const modelMsg: ChatMessage = {
+          role: 'model',
+          text: isInitial
+            ? `✅ Application built with ${selectedModel.name}!`
+            : '✅ Changes applied successfully.',
+          timestamp: Date.now(),
         };
-        setCurrentApp(updatedApp);
-        saveHistory(
-          history.map((a) => (a.id === updatedApp.id ? updatedApp : a))
-        );
-      }
 
-      setGenState({ isGenerating: false, error: null, progressMessage: '', streamingCode: '' });
-      setViewMode(ViewMode.PREVIEW);
-    } catch (err: unknown) {
-      if ((err as Error).name === 'AbortError') {
-        setGenState({ isGenerating: false, error: 'Generation cancelled', progressMessage: '', streamingCode: '' });
-      } else {
-        const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-        setGenState({ isGenerating: false, error: errorMessage, progressMessage: '', streamingCode: '' });
+        if (isInitial) {
+          const newApp: GeneratedApp = {
+            id: Date.now().toString(),
+            name: instruction.substring(0, 40) + '...',
+            code: finalCode,
+            prompt: instruction,
+            timestamp: Date.now(),
+            history: [modelMsg],
+          };
+          setCurrentApp(newApp);
+          saveHistory([newApp, ...history].slice(0, 20));
+        } else if (currentApp) {
+          const updatedApp = {
+            ...currentApp,
+            code: finalCode,
+            history: [...currentApp.history, userMsg, modelMsg],
+          };
+          setCurrentApp(updatedApp);
+          saveHistory(
+            history.map((a) => (a.id === updatedApp.id ? updatedApp : a))
+          );
+        }
+
+        setGenState({
+          isGenerating: false,
+          error: null,
+          progressMessage: '',
+          streamingCode: '',
+        });
+        setViewMode(ViewMode.PREVIEW);
+      } catch (err: unknown) {
+        if ((err as Error).name === 'AbortError') {
+          setGenState({
+            isGenerating: false,
+            error: 'Generation cancelled',
+            progressMessage: '',
+            streamingCode: '',
+          });
+        } else {
+          const errorMessage =
+            err instanceof Error ? err.message : 'An error occurred';
+          setGenState({
+            isGenerating: false,
+            error: errorMessage,
+            progressMessage: '',
+            streamingCode: '',
+          });
+        }
       }
-    }
-  }, [selectedModel, currentApp, history, genState.isGenerating]);
+    },
+    [selectedModel, currentApp, history, genState.isGenerating]
+  );
 
   // Non-streaming fallback
   const handleGenerateNonStream = async (
@@ -634,7 +660,9 @@ export default function CanvasAppPage() {
       };
       const modelMsg: ChatMessage = {
         role: 'model',
-        text: isInitial ? `✅ Built with ${selectedModel.name}!` : '✅ Changes applied.',
+        text: isInitial
+          ? `✅ Built with ${selectedModel.name}!`
+          : '✅ Changes applied.',
         timestamp: Date.now(),
       };
 
@@ -664,8 +692,13 @@ export default function CanvasAppPage() {
       setGenState({ isGenerating: false, error: null, progressMessage: '' });
       setViewMode(ViewMode.PREVIEW);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setGenState({ isGenerating: false, error: errorMessage, progressMessage: '' });
+      const errorMessage =
+        err instanceof Error ? err.message : 'An error occurred';
+      setGenState({
+        isGenerating: false,
+        error: errorMessage,
+        progressMessage: '',
+      });
     }
   };
 
@@ -699,7 +732,9 @@ export default function CanvasAppPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${currentApp.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.html`;
+    a.download = `${currentApp.name
+      .replace(/[^a-z0-9]/gi, '-')
+      .toLowerCase()}.html`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -780,9 +815,15 @@ export default function CanvasAppPage() {
                   ? 'bg-green-50 border-green-200 text-green-700'
                   : 'bg-gray-50 border-gray-200 text-gray-600'
               }`}
-              title={useStreaming ? 'Real-time streaming enabled' : 'Standard mode'}
+              title={
+                useStreaming ? 'Real-time streaming enabled' : 'Standard mode'
+              }
             >
-              <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  useStreaming ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                }`}
+              ></span>
               {useStreaming ? 'Stream' : 'Standard'}
             </button>
 
@@ -794,8 +835,19 @@ export default function CanvasAppPage() {
                   className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                   title="Download HTML"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                 </button>
                 <button
@@ -803,8 +855,19 @@ export default function CanvasAppPage() {
                   className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                   title="Open in new tab"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
                   </svg>
                 </button>
               </div>
@@ -848,41 +911,48 @@ export default function CanvasAppPage() {
                   </p>
                   {['Gemini', 'OpenAI', 'Anthropic'].map((provider) => (
                     <div key={provider} className="mb-2">
-                      <p className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                        provider === 'Gemini' ? 'text-green-600' :
-                        provider === 'OpenAI' ? 'text-blue-600' : 'text-purple-600'
-                      }`}>
+                      <p
+                        className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                          provider === 'Gemini'
+                            ? 'text-green-600'
+                            : provider === 'OpenAI'
+                            ? 'text-blue-600'
+                            : 'text-purple-600'
+                        }`}
+                      >
                         {provider}
                       </p>
-                      {MODELS.filter(m => m.provider === provider).map((m) => (
-                        <button
-                          key={m.id}
-                          onClick={() => {
-                            setSelectedModel(m);
-                            setIsModelDropdownOpen(false);
-                          }}
-                          className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
-                            selectedModel.id === m.id
-                              ? 'bg-indigo-50 ring-1 ring-indigo-200'
-                              : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-bold text-gray-800 flex items-center gap-2">
-                              <span>{m.icon}</span>
-                              {m.name}
-                              {m.isThinking && (
-                                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
-                                  THINKING
-                                </span>
-                              )}
+                      {MODELS.filter((m) => m.provider === provider).map(
+                        (m) => (
+                          <button
+                            key={m.id}
+                            onClick={() => {
+                              setSelectedModel(m);
+                              setIsModelDropdownOpen(false);
+                            }}
+                            className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
+                              selectedModel.id === m.id
+                                ? 'bg-indigo-50 ring-1 ring-indigo-200'
+                                : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-bold text-gray-800 flex items-center gap-2">
+                                <span>{m.icon}</span>
+                                {m.name}
+                                {m.isThinking && (
+                                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                                    THINKING
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-1 ml-6">
+                              {m.description}
                             </p>
-                          </div>
-                          <p className="text-[10px] text-gray-500 mt-1 ml-6">
-                            {m.description}
-                          </p>
-                        </button>
-                      ))}
+                          </button>
+                        )
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1055,10 +1125,15 @@ export default function CanvasAppPage() {
                   {genState.streamingCode && (
                     <div className="mt-4 text-left">
                       <p className="text-[10px] text-indigo-600 font-bold uppercase mb-2">
-                        Generating {genState.streamingCode.length.toLocaleString()} characters...
+                        Generating{' '}
+                        {genState.streamingCode.length.toLocaleString()}{' '}
+                        characters...
                       </p>
                       <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-600 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                        <div
+                          className="h-full bg-indigo-600 rounded-full animate-pulse"
+                          style={{ width: '60%' }}
+                        ></div>
                       </div>
                     </div>
                   )}
@@ -1073,9 +1148,13 @@ export default function CanvasAppPage() {
             )}
             <div className="h-full w-full">
               {viewMode === ViewMode.PREVIEW ? (
-                <Preview code={genState.streamingCode || currentApp?.code || ''} />
+                <Preview
+                  code={genState.streamingCode || currentApp?.code || ''}
+                />
               ) : (
-                <CodeView code={genState.streamingCode || currentApp?.code || ''} />
+                <CodeView
+                  code={genState.streamingCode || currentApp?.code || ''}
+                />
               )}
             </div>
           </div>
@@ -1316,8 +1395,19 @@ export default function CanvasAppPage() {
                         disabled={!currentApp}
                         className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
                         </svg>
                         Download HTML File
                       </button>
@@ -1326,18 +1416,43 @@ export default function CanvasAppPage() {
                         disabled={!currentApp}
                         className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
                         </svg>
                         Open in New Tab
                       </button>
                       <button
-                        onClick={() => currentApp && navigator.clipboard.writeText(currentApp.code)}
+                        onClick={() =>
+                          currentApp &&
+                          navigator.clipboard.writeText(currentApp.code)
+                        }
                         disabled={!currentApp}
                         className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                          />
                         </svg>
                         Copy to Clipboard
                       </button>
@@ -1352,15 +1467,23 @@ export default function CanvasAppPage() {
                     <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">{selectedModel.icon}</span>
-                        <span className="text-sm font-bold text-gray-800">{selectedModel.name}</span>
+                        <span className="text-sm font-bold text-gray-800">
+                          {selectedModel.name}
+                        </span>
                       </div>
-                      <p className="text-[10px] text-gray-600">{selectedModel.description}</p>
+                      <p className="text-[10px] text-gray-600">
+                        {selectedModel.description}
+                      </p>
                       <div className="mt-2 flex items-center gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          selectedModel.provider === 'Gemini' ? 'bg-green-100 text-green-700' :
-                          selectedModel.provider === 'OpenAI' ? 'bg-blue-100 text-blue-700' :
-                          'bg-purple-100 text-purple-700'
-                        }`}>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full ${
+                            selectedModel.provider === 'Gemini'
+                              ? 'bg-green-100 text-green-700'
+                              : selectedModel.provider === 'OpenAI'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-purple-100 text-purple-700'
+                          }`}
+                        >
                           {selectedModel.provider}
                         </span>
                         {selectedModel.isThinking && (
@@ -1380,8 +1503,14 @@ export default function CanvasAppPage() {
                     <div className="space-y-3">
                       <label className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
                         <div className="flex items-center gap-3">
-                          <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                          <span className="text-xs font-medium text-gray-700">Real-time Streaming</span>
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              useStreaming ? 'bg-green-500' : 'bg-gray-400'
+                            }`}
+                          ></span>
+                          <span className="text-xs font-medium text-gray-700">
+                            Real-time Streaming
+                          </span>
                         </div>
                         <input
                           type="checkbox"

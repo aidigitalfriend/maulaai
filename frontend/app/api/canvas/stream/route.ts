@@ -18,14 +18,15 @@ Rules for generated code:
 
 export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
-  
+
   try {
-    const { prompt, provider, modelId, isThinking, currentCode, history } = await request.json();
+    const { prompt, provider, modelId, isThinking, currentCode, history } =
+      await request.json();
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -36,34 +37,62 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         try {
           if (selectedProvider === 'Gemini') {
-            await streamWithGemini(controller, encoder, prompt, modelId, isThinking, currentCode, history);
+            await streamWithGemini(
+              controller,
+              encoder,
+              prompt,
+              modelId,
+              isThinking,
+              currentCode,
+              history
+            );
           } else if (selectedProvider === 'OpenAI') {
-            await streamWithOpenAI(controller, encoder, prompt, modelId, currentCode, history);
+            await streamWithOpenAI(
+              controller,
+              encoder,
+              prompt,
+              modelId,
+              currentCode,
+              history
+            );
           } else if (selectedProvider === 'Anthropic') {
-            await streamWithAnthropic(controller, encoder, prompt, modelId, currentCode, history);
+            await streamWithAnthropic(
+              controller,
+              encoder,
+              prompt,
+              modelId,
+              currentCode,
+              history
+            );
           }
           controller.close();
         } catch (error) {
-          const errorMsg = error instanceof Error ? error.message : 'Stream error';
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMsg })}\n\n`));
+          const errorMsg =
+            error instanceof Error ? error.message : 'Stream error';
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ error: errorMsg })}\n\n`)
+          );
           controller.close();
         }
-      }
+      },
     });
 
     return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     });
   } catch (error) {
     console.error('Stream error:', error);
-    return new Response(JSON.stringify({ error: 'Stream initialization failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ error: 'Stream initialization failed' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }
 
@@ -83,7 +112,10 @@ async function streamWithGemini(
   const contents: { role: string; parts: { text: string }[] }[] = [];
 
   if (currentCode) {
-    contents.push({ role: 'user', parts: [{ text: `Current code:\n${currentCode}` }] });
+    contents.push({
+      role: 'user',
+      parts: [{ text: `Current code:\n${currentCode}` }],
+    });
   }
 
   if (history && history.length > 0) {
@@ -114,11 +146,15 @@ async function streamWithGemini(
   for await (const chunk of result.stream) {
     const text = chunk.text();
     if (text) {
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`));
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+      );
     }
   }
-  
-  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+
+  controller.enqueue(
+    encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+  );
 }
 
 async function streamWithOpenAI(
@@ -136,7 +172,7 @@ async function streamWithOpenAI(
 
   const openai = new OpenAI({ apiKey });
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: 'system', content: SYSTEM_INSTRUCTION }
+    { role: 'system', content: SYSTEM_INSTRUCTION },
   ];
 
   if (currentCode) {
@@ -168,11 +204,15 @@ async function streamWithOpenAI(
   for await (const chunk of stream) {
     const text = chunk.choices[0]?.delta?.content;
     if (text) {
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`));
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+      );
     }
   }
-  
-  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+
+  controller.enqueue(
+    encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+  );
 }
 
 async function streamWithAnthropic(
@@ -193,7 +233,10 @@ async function streamWithAnthropic(
 
   if (currentCode) {
     messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
-    messages.push({ role: 'assistant', content: 'I understand. I\'ll work with this code.' });
+    messages.push({
+      role: 'assistant',
+      content: "I understand. I'll work with this code.",
+    });
   }
 
   if (history && history.length > 0) {
@@ -218,10 +261,19 @@ async function streamWithAnthropic(
   });
 
   for await (const event of stream) {
-    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk: event.delta.text })}\n\n`));
+    if (
+      event.type === 'content_block_delta' &&
+      event.delta.type === 'text_delta'
+    ) {
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({ chunk: event.delta.text })}\n\n`
+        )
+      );
     }
   }
-  
-  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+
+  controller.enqueue(
+    encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+  );
 }

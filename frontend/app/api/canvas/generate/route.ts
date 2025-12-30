@@ -39,7 +39,10 @@ async function generateWithGemini(
   const contents: { role: string; parts: { text: string }[] }[] = [];
 
   if (currentCode) {
-    contents.push({ role: 'user', parts: [{ text: `Current code:\n${currentCode}` }] });
+    contents.push({
+      role: 'user',
+      parts: [{ text: `Current code:\n${currentCode}` }],
+    });
   }
 
   if (history && history.length > 0) {
@@ -81,12 +84,14 @@ async function generateWithOpenAI(
 ) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.includes('placeholder')) {
-    throw new Error('OpenAI API key not configured. Please add a valid OPENAI_API_KEY to your environment.');
+    throw new Error(
+      'OpenAI API key not configured. Please add a valid OPENAI_API_KEY to your environment.'
+    );
   }
 
   const openai = new OpenAI({ apiKey });
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: 'system', content: SYSTEM_INSTRUCTION }
+    { role: 'system', content: SYSTEM_INSTRUCTION },
   ];
 
   if (currentCode) {
@@ -129,7 +134,9 @@ async function generateWithAnthropic(
 ) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    throw new Error('Anthropic API key not configured. Please add ANTHROPIC_API_KEY to your environment.');
+    throw new Error(
+      'Anthropic API key not configured. Please add ANTHROPIC_API_KEY to your environment.'
+    );
   }
 
   const anthropic = new Anthropic({ apiKey });
@@ -137,7 +144,10 @@ async function generateWithAnthropic(
 
   if (currentCode) {
     messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
-    messages.push({ role: 'assistant', content: 'I understand. I\'ll work with this code.' });
+    messages.push({
+      role: 'assistant',
+      content: "I understand. I'll work with this code.",
+    });
   }
 
   if (history && history.length > 0) {
@@ -163,16 +173,20 @@ async function generateWithAnthropic(
     messages,
   });
 
-  const textContent = response.content.find(c => c.type === 'text');
+  const textContent = response.content.find((c) => c.type === 'text');
   return cleanCode(textContent?.text || '');
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, provider, modelId, isThinking, currentCode, history } = await request.json();
+    const { prompt, provider, modelId, isThinking, currentCode, history } =
+      await request.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Prompt is required' },
+        { status: 400 }
+      );
     }
 
     let code: string;
@@ -183,18 +197,34 @@ export async function POST(request: NextRequest) {
         code = await generateWithOpenAI(prompt, modelId, currentCode, history);
         break;
       case 'Anthropic':
-        code = await generateWithAnthropic(prompt, modelId, currentCode, history);
+        code = await generateWithAnthropic(
+          prompt,
+          modelId,
+          currentCode,
+          history
+        );
         break;
       case 'Gemini':
       default:
-        code = await generateWithGemini(prompt, modelId, isThinking, currentCode, history);
+        code = await generateWithGemini(
+          prompt,
+          modelId,
+          isThinking,
+          currentCode,
+          history
+        );
         break;
     }
 
-    return NextResponse.json({ code, success: true, provider: selectedProvider });
+    return NextResponse.json({
+      code,
+      success: true,
+      provider: selectedProvider,
+    });
   } catch (error) {
     console.error('Canvas generation error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to generate application';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to generate application';
     return NextResponse.json(
       { error: errorMessage, success: false },
       { status: 500 }
