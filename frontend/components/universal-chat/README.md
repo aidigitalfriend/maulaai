@@ -4,24 +4,27 @@ A complete, professional chat interface with real AI integration, session manage
 
 ## 📁 Files Overview
 
-| File | Description |
-|------|-------------|
-| `UniversalAgentChat.tsx` | Main chat component - the primary export |
+| File                     | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `UniversalAgentChat.tsx` | Main chat component - the primary export       |
 | `EnhancedChatLayout.tsx` | Layout wrapper with sidebars and theme support |
-| `ChatSessionSidebar.tsx` | Left sidebar for session management |
-| `ChatSettingsPanel.tsx` | Settings panel with AI presets |
-| `ChatRightPanel.tsx` | Right panel with Canvas button |
-| `QuickActionsPanel.tsx` | Quick action buttons for common tasks |
-| `CanvasMode.tsx` | Full-screen code editor with preview |
-| `realtimeChatService.ts` | API service for AI chat |
-| `types.ts` | TypeScript type definitions |
-| `aiProviders.ts` | AI provider configurations |
-| `index.ts` | Clean exports |
+| `ChatSessionSidebar.tsx` | Left sidebar for session management            |
+| `ChatSettingsPanel.tsx`  | Settings panel with AI presets                 |
+| `ChatRightPanel.tsx`     | Right panel with Canvas button                 |
+| `QuickActionsPanel.tsx`  | Quick action buttons for common tasks          |
+| `CanvasMode.tsx`         | Full-screen code editor with preview           |
+| `realtimeChatService.ts` | API service for AI chat                        |
+| `types.ts`               | TypeScript type definitions                    |
+| `aiProviders.ts`         | AI provider configurations                     |
+| `index.ts`               | Clean exports                                  |
 
 ## 🚀 Usage
 
 ```tsx
-import { UniversalAgentChat, AgentChatConfig } from '@/components/universal-chat';
+import {
+  UniversalAgentChat,
+  AgentChatConfig,
+} from '@/components/universal-chat';
 
 const agentConfig: AgentChatConfig = {
   id: 'my-agent',
@@ -53,9 +56,11 @@ export default function MyAgentPage() {
 ## 🎨 Themes
 
 ### Default Theme
+
 Clean, light design with indigo/purple gradients.
 
 ### Neural Theme
+
 Dark cyber theme with cyan/purple accents and grid background.
 
 Toggle via the sparkles/sun icon in the header.
@@ -70,10 +75,12 @@ Toggle via the sparkles/sun icon in the header.
 ## 🔧 API Endpoint
 
 The chat service expects an endpoint at:
+
 - Production: `https://onelastai.co/api/studio/chat`
 - Development: `http://localhost:3000/api/studio/chat`
 
 Expected request body:
+
 ```json
 {
   "message": "User message",

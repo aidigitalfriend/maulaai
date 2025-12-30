@@ -14,6 +14,7 @@ export default function ConditionalFooter() {
   const isLiveSupportPage = pathname === '/support/live-support';
   const isLabPage = pathname?.startsWith('/lab');
   const isToolsPage = pathname?.startsWith('/tools');
+  const isCanvasAppPage = pathname === '/canvas-app';
 
   // Don't render footer on these pages
   if (
@@ -23,7 +24,8 @@ export default function ConditionalFooter() {
     isDashboardPage ||
     isLiveSupportPage ||
     isLabPage ||
-    isToolsPage
+    isToolsPage ||
+    isCanvasAppPage
   ) {
     return null;
   }

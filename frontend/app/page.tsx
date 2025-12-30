@@ -265,6 +265,317 @@ export default function HomePage() {
         backgroundStyle="gradient"
       />
 
+      {/* Canvas Builder Section - AI App Generator */}
+      <section className="section-padding bg-gradient-to-br from-neural-900 via-indigo-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/20 rounded-full text-indigo-300 text-sm font-medium mb-6">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                NEW: Canvas Builder
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Build Apps with
+                <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                  {' '}
+                  AI-Powered{' '}
+                </span>
+                Canvas
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Transform your ideas into fully functional web applications in
+                seconds. Our Canvas Builder uses advanced AI to generate
+                beautiful, responsive HTML applications from simple text
+                descriptions.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {[
+                  'Generate complete web apps from text prompts',
+                  'Multiple AI models including Gemini Pro',
+                  'Live preview with code export',
+                  'Iterative refinement with AI assistant',
+                  'Pre-built templates for quick starts',
+                ].map((feature, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-center gap-3 text-neural-200"
+                  >
+                    <span className="flex-shrink-0 w-6 h-6 bg-indigo-500/30 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-indigo-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  href="/canvas-app"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-indigo-500/30 group"
+                >
+                  Launch Canvas Builder
+                  <svg
+                    className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Link>
+                <Link
+                  href="/docs"
+                  className="inline-flex items-center gap-2 px-8 py-4 border border-white/30 hover:bg-white/10 text-white font-semibold rounded-xl transition-all"
+                >
+                  View Documentation
+                </Link>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-[#1e1e2e] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+                <div className="flex items-center gap-2 px-4 py-3 bg-[#161622] border-b border-white/5">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  </div>
+                  <span className="text-xs text-gray-400 ml-2">
+                    Canvas Builder
+                  </span>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                      <span className="text-indigo-400 text-sm font-mono">
+                        Prompt:
+                      </span>
+                      <span className="text-gray-300 text-sm">
+                        &quot;Create a modern SaaS landing page...&quot;
+                      </span>
+                    </div>
+                    <div className="h-px bg-white/10 my-4"></div>
+                    <div className="bg-[#252536] rounded-lg p-4 border border-white/5">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-gray-400">
+                          Generated Preview
+                        </span>
+                        <span className="text-xs text-green-400">
+                          ✓ Complete
+                        </span>
+                      </div>
+                      <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-lg h-32 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">
+                          Live Preview Area
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-10 w-10 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Populate Database Service Section */}
+      <section className="section-padding bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                />
+              </svg>
+              Database Services
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Populate Your Database with Quality Data
+            </h2>
+            <p className="text-xl text-neural-600 max-w-3xl mx-auto">
+              Need realistic test data or want to bootstrap your application?
+              Our AI-powered database population service creates structured,
+              meaningful data tailored to your schema.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {[
+              {
+                icon: '🎯',
+                title: 'Schema-Aware Generation',
+                description:
+                  'Our AI understands your database schema and generates data that respects relationships, constraints, and data types.',
+              },
+              {
+                icon: '⚡',
+                title: 'Bulk Data Creation',
+                description:
+                  'Generate thousands of records in seconds. Perfect for load testing, demos, and development environments.',
+              },
+              {
+                icon: '🔒',
+                title: 'Secure & Private',
+                description:
+                  'All generated data stays within your environment. No sensitive information leaves your infrastructure.',
+              },
+              {
+                icon: '🧠',
+                title: 'Smart Relationships',
+                description:
+                  'Automatically handles foreign keys, many-to-many relationships, and cascading data dependencies.',
+              },
+              {
+                icon: '📊',
+                title: 'Realistic Patterns',
+                description:
+                  'Generate data with realistic distributions, dates, names, addresses, and industry-specific content.',
+              },
+              {
+                icon: '🔄',
+                title: 'Repeatable Seeds',
+                description:
+                  'Use seed values for reproducible data generation. Perfect for consistent testing environments.',
+              },
+            ].map((feature, idx) => (
+              <div
+                key={idx}
+                className="p-6 bg-neural-50 rounded-xl hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-neural-200"
+              >
+                <div className="text-3xl mb-4">{feature.icon}</div>
+                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                <p className="text-neural-600 text-sm">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 md:p-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-2xl font-bold mb-4">
+                  Ready to Populate Your Database?
+                </h3>
+                <p className="text-neural-600 mb-6">
+                  Whether you&apos;re building a new application, setting up a
+                  test environment, or need realistic demo data, we&apos;ve got
+                  you covered.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                  >
+                    Get Started
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
+                    </svg>
+                  </Link>
+                  <Link
+                    href="/docs"
+                    className="inline-flex items-center gap-2 px-6 py-3 border border-green-600 text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors"
+                  >
+                    Learn More
+                  </Link>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="text-sm font-mono text-neural-600 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>MongoDB, PostgreSQL, MySQL supported</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>JSON, CSV, SQL export formats</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>Custom data templates</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>API integration available</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-500">✓</span>
+                    <span>GDPR-compliant fake data</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Explore All Agents Button */}
       <section className="bg-gradient-to-br from-white via-brand-50 to-accent-50 py-8">
         <div className="container-custom text-center">

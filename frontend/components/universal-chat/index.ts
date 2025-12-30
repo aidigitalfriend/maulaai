@@ -6,12 +6,18 @@ export { default as UniversalAgentChat } from './UniversalAgentChat';
 export type { AgentChatConfig } from './UniversalAgentChat';
 
 // Layout Components
-export { default as EnhancedChatLayout, useChatTheme } from './EnhancedChatLayout';
+export {
+  default as EnhancedChatLayout,
+  useChatTheme,
+} from './EnhancedChatLayout';
 export type { ChatTheme } from './EnhancedChatLayout';
 
 // Sub-Components
 export { default as ChatSessionSidebar } from './ChatSessionSidebar';
-export { default as ChatSettingsPanel, NEURAL_PRESETS } from './ChatSettingsPanel';
+export {
+  default as ChatSettingsPanel,
+  NEURAL_PRESETS,
+} from './ChatSettingsPanel';
 export type { AgentSettings } from './ChatSettingsPanel';
 export { default as ChatRightPanel } from './ChatRightPanel';
 export { default as QuickActionsPanel } from './QuickActionsPanel';
