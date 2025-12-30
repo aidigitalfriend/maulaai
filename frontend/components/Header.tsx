@@ -16,11 +16,12 @@ export default function Header() {
 
   useEffect(() => setMounted(true), []);
 
-  // Hide header on agent chat pages
+  // Hide header on agent chat pages and canvas-app
   if (
-    pathname?.startsWith('/agents/') &&
-    pathname !== '/agents' &&
-    pathname !== '/agents/categories'
+    (pathname?.startsWith('/agents/') &&
+      pathname !== '/agents' &&
+      pathname !== '/agents/categories') ||
+    pathname === '/canvas-app'
   ) {
     return null;
   }

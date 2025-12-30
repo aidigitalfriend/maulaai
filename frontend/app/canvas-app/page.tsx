@@ -379,11 +379,24 @@ export default function CanvasAppPage() {
   const [currentApp, setCurrentApp] = useState<GeneratedApp | null>(null);
   const [history, setHistory] = useState<GeneratedApp[]>([]);
   const [activePanel, setActivePanel] = useState<ActivePanel>('workspace');
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [genState, setGenState] = useState<GenerationState>({
     isGenerating: false,
     error: null,
     progressMessage: '',
   });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.model-dropdown')) {
+        setIsModelDropdownOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('gencraft_v4_history');
@@ -556,13 +569,16 @@ export default function CanvasAppPage() {
 
           <div className="flex items-center gap-4">
             {/* Model Selector */}
-            <div className="relative group">
-              <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold hover:border-indigo-300 transition-colors">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            <div className="relative model-dropdown">
+              <button 
+                onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold hover:border-indigo-300 transition-colors"
+              >
+                <span className={`w-2 h-2 rounded-full ${selectedModel.provider === 'Gemini' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
                 {selectedModel.name}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-3 w-3 text-gray-400"
+                  className={`h-3 w-3 text-gray-400 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -575,34 +591,55 @@ export default function CanvasAppPage() {
                   />
                 </svg>
               </button>
-              <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
-                <p className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  Select Model
-                </p>
-                {MODELS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedModel(m)}
-                    className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
-                      selectedModel.id === m.id
-                        ? 'bg-indigo-50 ring-1 ring-indigo-200'
-                        : ''
-                    }`}
-                  >
-                    <p className="text-xs font-bold text-gray-800">
-                      {m.name}{' '}
-                      {m.isThinking && (
-                        <span className="ml-1 text-[10px] bg-indigo-100 text-indigo-700 px-1 rounded">
-                          THINKING
+              {isModelDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1 w-72 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-2">
+                  <p className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    Select Model
+                  </p>
+                  {MODELS.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        setSelectedModel(m);
+                        setIsModelDropdownOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
+                        selectedModel.id === m.id
+                          ? 'bg-indigo-50 ring-1 ring-indigo-200'
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-gray-800">
+                          {m.name}{' '}
+                          {m.isThinking && (
+                            <span className="ml-1 text-[10px] bg-indigo-100 text-indigo-700 px-1 rounded">
+                              THINKING
+                            </span>
+                          )}
+                        </p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                          m.provider === 'Gemini' 
+                            ? 'bg-green-100 text-green-700' 
+                            : m.provider === 'OpenAI'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-purple-100 text-purple-700'
+                        }`}>
+                          {m.provider}
                         </span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {m.description}
+                      </p>
+                      {m.provider !== 'Gemini' && (
+                        <p className="text-[10px] text-orange-500 mt-1">
+                          ⚠️ Coming soon - API key required
+                        </p>
                       )}
-                    </p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">
-                      {m.description}
-                    </p>
-                  </button>
-                ))}
-              </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* View Toggle */}
@@ -717,7 +754,7 @@ export default function CanvasAppPage() {
 
         {/* Main Content Area */}
         <main className="flex-1 relative flex overflow-hidden">
-          <div className="flex-1 relative overflow-hidden bg-gray-50/30">
+          <div className={`relative overflow-hidden bg-gray-50/30 transition-all duration-300 ease-in-out ${activePanel ? 'flex-1' : 'w-full'}`}>
             {genState.isGenerating && (
               <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in">
                 <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-6 shadow-xl"></div>
@@ -731,7 +768,7 @@ export default function CanvasAppPage() {
                 </div>
               </div>
             )}
-            <div className="h-full">
+            <div className="h-full w-full">
               {viewMode === ViewMode.PREVIEW ? (
                 <Preview code={currentApp?.code || ''} />
               ) : (
@@ -742,11 +779,13 @@ export default function CanvasAppPage() {
 
           {/* Right Toggleable Panels */}
           <div
-            className={`h-full border-l border-gray-100 bg-white transition-all duration-300 ease-in-out flex shrink-0 overflow-hidden shadow-2xl ${
-              activePanel ? 'w-80' : 'w-0 border-l-0 opacity-0'
+            className={`h-full bg-white transition-all duration-300 ease-in-out overflow-hidden ${
+              activePanel 
+                ? 'w-80 border-l border-gray-100 shadow-2xl' 
+                : 'w-0'
             }`}
           >
-            <div className="w-80 flex flex-col h-full">
+            <div className={`w-80 flex flex-col h-full ${activePanel ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
               {activePanel === 'workspace' && (
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
                   <div className="flex items-center justify-between mb-6">
