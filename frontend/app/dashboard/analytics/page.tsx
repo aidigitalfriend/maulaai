@@ -12,11 +12,14 @@ import {
   DollarSign,
   Clock,
   RefreshCcw,
+  Download,
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import type { AnalyticsData } from '@/models/analytics';
+import AdvancedCharts from '@/components/AdvancedCharts';
+import { exportAnalyticsToPDF } from '@/lib/pdfExport';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,9 +65,7 @@ const statusColorMap: Record<string, string> = {
 
 export default function DashboardAnalyticsPage() {
   const { state } = useAuth();
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
-    null
-  );
+  const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,7 +124,24 @@ export default function DashboardAnalyticsPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [state.user]);
+  }, []);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!analyticsData) return;
+
+    try {
+      await exportAnalyticsToPDF(analyticsData, {
+        filename: `analytics-report-${new Date().toISOString().split('T')[0]}.pdf`,
+        title: 'Analytics Report',
+        includeCharts: true,
+        includeTables: true,
+        includeMetrics: true,
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      setError('Failed to export PDF report');
+    }
+  }, [analyticsData]);
 
   useEffect(() => {
     if (!state.user) return;
@@ -262,6 +280,14 @@ export default function DashboardAnalyticsPage() {
                 <Link href="/dashboard" className="btn-secondary">
                   Back to Dashboard
                 </Link>
+                <button
+                  onClick={handleExportPDF}
+                  className="btn-secondary inline-flex items-center gap-2"
+                  disabled={!analyticsData}
+                >
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </button>
                 <button
                   onClick={() => fetchAnalytics()}
                   className="btn-primary inline-flex items-center gap-2"
@@ -516,10 +542,8 @@ export default function DashboardAnalyticsPage() {
                 </div>
                 <ul className="space-y-4">
                   {analyticsData.recentActivity.slice(0, 6).map((activity) => {
-                    const statusKey = activity.status?.toLowerCase?.() ?? '';
-                    const badgeClass =
-                      statusColorMap[statusKey] ||
-                      'bg-neural-100 text-neural-600 border-neural-200';
+                    const statusKey = activity.status ? activity.status.toLowerCase() : '';
+                    const badgeClass = statusColorMap[statusKey] || 'bg-neural-100 text-neural-600 border-neural-200';
                     return (
                       <li
                         key={`${activity.timestamp}-${activity.agent}`}
@@ -548,6 +572,25 @@ export default function DashboardAnalyticsPage() {
                   })}
                 </ul>
               </div>
+            </div>
+
+            {/* Advanced Charts Section */}
+            <div className="mt-12">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-neural-900">Advanced Analytics</h2>
+                  <p className="text-neural-600">Interactive charts and detailed insights</p>
+                </div>
+                <button
+                  onClick={() => fetchAnalytics()}
+                  className="btn-secondary inline-flex items-center gap-2"
+                  disabled={isRefreshing}
+                >
+                  <RefreshCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Refresh Charts
+                </button>
+              </div>
+              <AdvancedCharts analyticsData={analyticsData} />
             </div>
           </div>
         </section>

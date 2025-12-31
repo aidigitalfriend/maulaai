@@ -287,6 +287,218 @@ export function onNewComment(callback: (data: any) => void): () => void {
 }
 
 /**
+ * Join a collaboration room
+ */
+export function joinRoom(roomId: string, userId: string, username: string): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('join-room', { roomId, userId, username })
+}
+
+/**
+ * Leave a collaboration room
+ */
+export function leaveRoom(roomId: string): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('leave-room', { roomId })
+}
+
+/**
+ * Send cursor position update
+ */
+export function updateCursor(roomId: string, userId: string, username: string, position: { x: number; y: number }): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('cursor-move', { roomId, userId, username, position })
+}
+
+/**
+ * Send content change for collaborative editing
+ */
+export function sendContentChange(roomId: string, userId: string, username: string, content: string, position: number): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('content-change', { roomId, userId, username, content, position })
+}
+
+/**
+ * Share AI Lab experiment
+ */
+export function shareExperiment(roomId: string, userId: string, username: string, experimentData: any): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('share-experiment', { roomId, userId, username, experimentData })
+}
+
+/**
+ * Send typing indicator
+ */
+export function startTyping(roomId: string, userId: string, username: string): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('typing-start', { roomId, userId, username })
+}
+
+/**
+ * Stop typing indicator
+ */
+export function stopTyping(roomId: string, userId: string): void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return
+  }
+
+  socket.emit('typing-stop', { roomId, userId })
+}
+
+/**
+ * Listen for room state updates
+ */
+export function onRoomState(callback: (data: { users: Array<{ userId: string; username: string }> }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('room-state', callback)
+  
+  return () => {
+    socket?.off('room-state', callback)
+  }
+}
+
+/**
+ * Listen for user joined room
+ */
+export function onUserJoined(callback: (data: { userId: string; username: string }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('user-joined', callback)
+  
+  return () => {
+    socket?.off('user-joined', callback)
+  }
+}
+
+/**
+ * Listen for user left room
+ */
+export function onUserLeft(callback: (data: { userId: string; username: string }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('user-left', callback)
+  
+  return () => {
+    socket?.off('user-left', callback)
+  }
+}
+
+/**
+ * Listen for cursor updates
+ */
+export function onCursorUpdate(callback: (data: { userId: string; username: string; position: { x: number; y: number }; timestamp: number }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('cursor-update', callback)
+  
+  return () => {
+    socket?.off('cursor-update', callback)
+  }
+}
+
+/**
+ * Listen for content updates
+ */
+export function onContentUpdate(callback: (data: { userId: string; username: string; content: string; position: number; timestamp: number }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('content-update', callback)
+  
+  return () => {
+    socket?.off('content-update', callback)
+  }
+}
+
+/**
+ * Listen for shared experiments
+ */
+export function onExperimentShared(callback: (data: { userId: string; username: string; experimentData: any; timestamp: number }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('experiment-shared', callback)
+  
+  return () => {
+    socket?.off('experiment-shared', callback)
+  }
+}
+
+/**
+ * Listen for typing indicators
+ */
+export function onUserTyping(callback: (data: { userId: string; username: string }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('user-typing', callback)
+  
+  return () => {
+    socket?.off('user-typing', callback)
+  }
+}
+
+/**
+ * Listen for stopped typing
+ */
+export function onUserStoppedTyping(callback: (data: { userId: string }) => void): () => void {
+  if (!socket) {
+    console.error('Socket not initialized')
+    return () => {}
+  }
+
+  socket.on('user-stopped-typing', callback)
+  
+  return () => {
+    socket?.off('user-stopped-typing', callback)
+  }
+}
+
+/**
  * Update user activity
  */
 export function updateActivity(): void {

@@ -13,6 +13,8 @@ import { MongoClient, ObjectId } from 'mongodb';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import { getClientPromise } from './lib/mongodb.js';
 import {
   initializeTracking,
@@ -39,6 +41,19 @@ if (!mongoose.models.AgentSubscription) {
 dotenv.config();
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3003',
+      'https://onelastai.co',
+      'https://www.onelastai.co',
+    ],
+    credentials: true,
+  },
+});
 const PORT = process.env.PORT || 3005;
 
 // Security middleware
@@ -4275,10 +4290,108 @@ async function initializeOptimizations() {
   }
 }
 
+// Socket.IO real-time collaboration
+const activeUsers = new Map();
+const activeRooms = new Map();
+
+io.on('connection', (socket) => {
+  console.log('🔗 User connected:', socket.id);
+
+  // User joins a room for collaboration
+  socket.on('join-room', (data) => {
+    const { roomId, userId, username } = data;
+    socket.join(roomId);
+
+    // Track active users in room
+    if (!activeRooms.has(roomId)) {
+      activeRooms.set(roomId, new Set());
+    }
+    activeRooms.get(roomId).add({ userId, username, socketId: socket.id });
+
+    // Notify others in room
+    socket.to(roomId).emit('user-joined', { userId, username });
+
+    // Send current room state to user
+    const roomUsers = Array.from(activeRooms.get(roomId)).map(user => ({
+      userId: user.userId,
+      username: user.username,
+    }));
+    socket.emit('room-state', { users: roomUsers });
+
+    console.log(`👥 User ${username} joined room ${roomId}`);
+  });
+
+  // Handle real-time cursor positions
+  socket.on('cursor-move', (data) => {
+    const { roomId, userId, username, position } = data;
+    socket.to(roomId).emit('cursor-update', {
+      userId,
+      username,
+      position,
+      timestamp: Date.now(),
+    });
+  });
+
+  // Handle collaborative editing
+  socket.on('content-change', (data) => {
+    const { roomId, userId, username, content, position } = data;
+    socket.to(roomId).emit('content-update', {
+      userId,
+      username,
+      content,
+      position,
+      timestamp: Date.now(),
+    });
+  });
+
+  // Handle AI Lab experiment sharing
+  socket.on('share-experiment', (data) => {
+    const { roomId, userId, username, experimentData } = data;
+    socket.to(roomId).emit('experiment-shared', {
+      userId,
+      username,
+      experimentData,
+      timestamp: Date.now(),
+    });
+  });
+
+  // Handle typing indicators
+  socket.on('typing-start', (data) => {
+    const { roomId, userId, username } = data;
+    socket.to(roomId).emit('user-typing', { userId, username });
+  });
+
+  socket.on('typing-stop', (data) => {
+    const { roomId, userId } = data;
+    socket.to(roomId).emit('user-stopped-typing', { userId });
+  });
+
+  // Handle user disconnect
+  socket.on('disconnect', () => {
+    console.log('🔌 User disconnected:', socket.id);
+
+    // Remove user from all rooms
+    for (const [roomId, users] of activeRooms.entries()) {
+      for (const user of users) {
+        if (user.socketId === socket.id) {
+          users.delete(user);
+          socket.to(roomId).emit('user-left', { userId: user.userId, username: user.username });
+
+          // Clean up empty rooms
+          if (users.size === 0) {
+            activeRooms.delete(roomId);
+          }
+          break;
+        }
+      }
+    }
+  });
+});
+
 // Initialize and start server
 initializeOptimizations()
   .then(() => {
-    app.listen(PORT, host, () => {
+    server.listen(PORT, host, () => {
       console.log(`🚀 Backend server running on ${host}:${PORT}`);
       console.log(`📊 Health check: http://${host}:${PORT}/health`);
 
