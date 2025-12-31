@@ -1,4 +1,3 @@
-
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -6,7 +5,13 @@ export interface ChatMessage {
   hasAudio?: boolean;
 }
 
-export type ModelProvider = 'Anthropic' | 'Groq' | 'Mistral' | 'Gemini' | 'OpenAI';
+export type ModelProvider =
+  | 'OpenAI'
+  | 'Anthropic'
+  | 'Groq'
+  | 'Mistral'
+  | 'Cohere'
+  | 'Gemini';
 
 export interface ModelOption {
   id: string;
@@ -27,7 +32,7 @@ export interface GeneratedApp {
 
 export enum ViewMode {
   PREVIEW = 'PREVIEW',
-  CODE = 'CODE'
+  CODE = 'CODE',
 }
 
 export interface GenerationState {

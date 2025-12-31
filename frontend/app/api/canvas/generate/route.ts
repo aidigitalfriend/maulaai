@@ -33,14 +33,16 @@ async function generateWithGroq(
 ) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error('Groq API key not configured. Please add GROQ_API_KEY to your environment.');
+    throw new Error(
+      'Groq API key not configured. Please add GROQ_API_KEY to your environment.'
+    );
   }
 
-  const groq = new OpenAI({ 
-    apiKey, 
-    baseURL: 'https://api.groq.com/openai/v1' 
+  const groq = new OpenAI({
+    apiKey,
+    baseURL: 'https://api.groq.com/openai/v1',
   });
-  
+
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: 'system', content: SYSTEM_INSTRUCTION },
   ];
@@ -84,14 +86,16 @@ async function generateWithMistral(
 ) {
   const apiKey = process.env.MISTRAL_API_KEY;
   if (!apiKey) {
-    throw new Error('Mistral API key not configured. Please add MISTRAL_API_KEY to your environment.');
+    throw new Error(
+      'Mistral API key not configured. Please add MISTRAL_API_KEY to your environment.'
+    );
   }
 
-  const mistral = new OpenAI({ 
-    apiKey, 
-    baseURL: 'https://api.mistral.ai/v1' 
+  const mistral = new OpenAI({
+    apiKey,
+    baseURL: 'https://api.mistral.ai/v1',
   });
-  
+
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: 'system', content: SYSTEM_INSTRUCTION },
   ];
@@ -124,6 +128,67 @@ async function generateWithMistral(
   });
 
   return cleanCode(response.choices[0]?.message?.content || '');
+}
+
+// Generate with Cohere
+async function generateWithCohere(
+  prompt: string,
+  modelId: string,
+  currentCode?: string,
+  history?: { role: string; text: string }[]
+) {
+  const apiKey = process.env.COHERE_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'Cohere API key not configured. Please add COHERE_API_KEY to your environment.'
+    );
+  }
+
+  // Map model IDs to Cohere models
+  let actualModel = 'command-a-03-2025';
+  if (modelId === 'command-r-08-2024') actualModel = 'command-r-08-2024';
+  if (modelId === 'command-r7b-12-2024') actualModel = 'command-r7b-12-2024';
+
+  // Build message history for Cohere
+  const chatHistory: { role: string; message: string }[] = [];
+  
+  if (currentCode) {
+    chatHistory.push({ role: 'USER', message: `Current code:\n${currentCode}` });
+    chatHistory.push({ role: 'CHATBOT', message: "I understand. I'll work with this code." });
+  }
+
+  if (history && history.length > 0) {
+    history.forEach((msg) => {
+      chatHistory.push({
+        role: msg.role === 'user' ? 'USER' : 'CHATBOT',
+        message: msg.text,
+      });
+    });
+  }
+
+  const response = await fetch('https://api.cohere.ai/v1/chat', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: actualModel,
+      message: prompt,
+      preamble: SYSTEM_INSTRUCTION,
+      chat_history: chatHistory,
+      temperature: 0.7,
+      max_tokens: 8192,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Cohere API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return cleanCode(data.text || '');
 }
 
 // Generate with Gemini
@@ -311,6 +376,9 @@ export async function POST(request: NextRequest) {
         break;
       case 'Mistral':
         code = await generateWithMistral(prompt, modelId, currentCode, history);
+        break;
+      case 'Cohere':
+        code = await generateWithCohere(prompt, modelId, currentCode, history);
         break;
       case 'Gemini':
         code = await generateWithGemini(
