@@ -542,8 +542,12 @@ export default function DashboardAnalyticsPage() {
                 </div>
                 <ul className="space-y-4">
                   {analyticsData.recentActivity.slice(0, 6).map((activity) => {
-                    const statusKey = activity.status ? activity.status.toLowerCase() : '';
-                    const badgeClass = statusColorMap[statusKey] || 'bg-neural-100 text-neural-600 border-neural-200';
+                    const statusKey = activity.status
+                      ? activity.status.toLowerCase()
+                      : '';
+                    const badgeClass =
+                      statusColorMap[statusKey] ||
+                      'bg-neural-100 text-neural-600 border-neural-200';
                     return (
                       <li
                         key={`${activity.timestamp}-${activity.agent}`}
@@ -578,15 +582,21 @@ export default function DashboardAnalyticsPage() {
             <div className="mt-12">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-neural-900">Advanced Analytics</h2>
-                  <p className="text-neural-600">Interactive charts and detailed insights</p>
+                  <h2 className="text-2xl font-bold text-neural-900">
+                    Advanced Analytics
+                  </h2>
+                  <p className="text-neural-600">
+                    Interactive charts and detailed insights
+                  </p>
                 </div>
                 <button
                   onClick={() => fetchAnalytics()}
                   className="btn-secondary inline-flex items-center gap-2"
                   disabled={isRefreshing}
                 >
-                  <RefreshCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCcw
+                    className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                  />
                   Refresh Charts
                 </button>
               </div>

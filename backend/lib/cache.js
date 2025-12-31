@@ -123,7 +123,14 @@ class CacheManager {
     try {
       // Try Redis first
       this.client = new Redis(
-        process.env.REDIS_URL || 'redis://localhost:6379'
+        process.env.REDIS_URL || 'redis://localhost:6379',
+        {
+          retryDelayOnFailover: 100,
+          enableReadyCheck: false,
+          maxRetriesPerRequest: 1,
+          lazyConnect: true,
+          reconnectOnError: () => false, // Disable automatic reconnection
+        }
       );
 
       this.client.on('connect', () => {

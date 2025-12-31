@@ -35,7 +35,10 @@ export class PDFExporter {
     return 65; // Return next Y position
   }
 
-  async addMetricsSection(metrics: Array<{ label: string; value: string; delta?: string }>, startY: number) {
+  async addMetricsSection(
+    metrics: Array<{ label: string; value: string; delta?: string }>,
+    startY: number
+  ) {
     this.pdf.setFontSize(16);
     this.pdf.setTextColor(40, 40, 40);
     this.pdf.text('Key Metrics', 20, startY);
@@ -67,7 +70,11 @@ export class PDFExporter {
     return yPos + 10;
   }
 
-  async addChartFromElement(element: HTMLElement, title: string, startY: number): Promise<number> {
+  async addChartFromElement(
+    element: HTMLElement,
+    title: string,
+    startY: number
+  ): Promise<number> {
     try {
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -101,7 +108,12 @@ export class PDFExporter {
     }
   }
 
-  async addTableSection(title: string, headers: string[], rows: string[][], startY: number): Promise<number> {
+  async addTableSection(
+    title: string,
+    headers: string[],
+    rows: string[][],
+    startY: number
+  ): Promise<number> {
     this.pdf.setFontSize(16);
     this.pdf.setTextColor(40, 40, 40);
     this.pdf.text(title, 20, startY);
@@ -114,7 +126,7 @@ export class PDFExporter {
     this.pdf.rect(20, yPos, 170, 8, 'F');
 
     headers.forEach((header, index) => {
-      const xPos = 25 + (index * 50);
+      const xPos = 25 + index * 50;
       this.pdf.setFontSize(10);
       this.pdf.text(header, xPos, yPos + 5);
     });
@@ -129,7 +141,7 @@ export class PDFExporter {
       this.pdf.rect(20, yPos, 170, 8, 'F');
 
       row.forEach((cell, cellIndex) => {
-        const xPos = 25 + (cellIndex * 50);
+        const xPos = 25 + cellIndex * 50;
         this.pdf.setFontSize(9);
         this.pdf.text(cell.substring(0, 15), xPos, yPos + 5);
       });
@@ -190,13 +202,17 @@ export async function exportAnalyticsToPDF(
     includeMetrics = true,
   } = options;
 
-  let yPos = await exporter.addPageTitle(title, 'Comprehensive Analytics Overview');
+  let yPos = await exporter.addPageTitle(
+    title,
+    'Comprehensive Analytics Overview'
+  );
 
   if (includeMetrics && analyticsData) {
     const metrics = [
       {
         label: 'Total Conversations',
-        value: analyticsData.usage?.conversations?.current?.toLocaleString() || '0',
+        value:
+          analyticsData.usage?.conversations?.current?.toLocaleString() || '0',
         delta: analyticsData.weeklyTrend?.conversationsChange || '',
       },
       {
@@ -219,24 +235,43 @@ export async function exportAnalyticsToPDF(
   }
 
   if (includeTables && analyticsData?.agentPerformance) {
-    const headers = ['Agent', 'Success Rate', 'Response Time', 'Total Requests'];
-    const rows = analyticsData.agentPerformance.slice(0, 10).map((agent: any) => [
-      agent.name || `Agent ${agent.agentId}`,
-      `${agent.successRate?.toFixed(1)}%` || '0%',
-      `${agent.avgResponseTime?.toFixed(0)}ms` || '0ms',
-      agent.totalRequests?.toString() || '0',
-    ]);
+    const headers = [
+      'Agent',
+      'Success Rate',
+      'Response Time',
+      'Total Requests',
+    ];
+    const rows = analyticsData.agentPerformance
+      .slice(0, 10)
+      .map((agent: any) => [
+        agent.name || `Agent ${agent.agentId}`,
+        `${agent.successRate?.toFixed(1)}%` || '0%',
+        `${agent.avgResponseTime?.toFixed(0)}ms` || '0ms',
+        agent.totalRequests?.toString() || '0',
+      ]);
 
-    yPos = await exporter.addTableSection('Agent Performance', headers, rows, yPos);
+    yPos = await exporter.addTableSection(
+      'Agent Performance',
+      headers,
+      rows,
+      yPos
+    );
   }
 
   // Add summary insights
   const summary = [
     'This report provides a comprehensive overview of your AI agent platform usage and performance.',
     `Total conversations: ${analyticsData?.usage?.conversations?.current || 0}`,
-    `Average success rate: ${analyticsData?.agentPerformance?.length ?
-      (analyticsData.agentPerformance.reduce((sum: number, agent: any) => sum + (agent.successRate || 0), 0) /
-       analyticsData.agentPerformance.length).toFixed(1) : 0}%`,
+    `Average success rate: ${
+      analyticsData?.agentPerformance?.length
+        ? (
+            analyticsData.agentPerformance.reduce(
+              (sum: number, agent: any) => sum + (agent.successRate || 0),
+              0
+            ) / analyticsData.agentPerformance.length
+          ).toFixed(1)
+        : 0
+    }%`,
     'Key insights: Monitor agent performance regularly and optimize based on usage patterns.',
   ];
 
@@ -255,7 +290,11 @@ export async function exportElementToPDF(
 
   let yPos = title ? await exporter.addPageTitle(title) : 20;
 
-  yPos = await exporter.addChartFromElement(element, title || 'Exported Content', yPos);
+  yPos = await exporter.addChartFromElement(
+    element,
+    title || 'Exported Content',
+    yPos
+  );
 
   await exporter.save(filename);
 }

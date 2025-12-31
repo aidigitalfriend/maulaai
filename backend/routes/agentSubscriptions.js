@@ -5,9 +5,16 @@ import Stripe from 'stripe';
 
 const router = express.Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
-});
+// Lazy initialization of Stripe
+let stripe = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-11-20.acacia',
+    });
+  }
+  return stripe;
+};
 
 // ============================================
 // 1. Create/Subscribe to Agent
@@ -462,7 +469,7 @@ router.post('/verify-session', async (req, res) => {
     console.log('🔍 Verifying Stripe session:', sessionId);
 
     // Retrieve the session from Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    const session = await getStripe().checkout.sessions.retrieve(sessionId, {
       expand: ['subscription', 'customer'],
     });
 

@@ -3,10 +3,14 @@
  * Real AI service integration for multilingual agents
  */
 
+import dotenv from 'dotenv';
+
+// Load environment variables FIRST before any other imports
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import os from 'os';
 import mongoose from 'mongoose';
 import { MongoClient, ObjectId } from 'mongodb';
@@ -31,14 +35,6 @@ import agentAIService from './lib/agent-ai-provider-service.js';
 import AgentSubscription from './models/AgentSubscription.js';
 // Import subscription cron job
 import { startSubscriptionExpirationCron } from './services/subscription-cron.js';
-
-// Ensure model is registered
-if (!mongoose.models.AgentSubscription) {
-  console.log('Registering AgentSubscription model...');
-  // The model should already be registered by the import
-}
-
-dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -4312,7 +4308,7 @@ io.on('connection', (socket) => {
     socket.to(roomId).emit('user-joined', { userId, username });
 
     // Send current room state to user
-    const roomUsers = Array.from(activeRooms.get(roomId)).map(user => ({
+    const roomUsers = Array.from(activeRooms.get(roomId)).map((user) => ({
       userId: user.userId,
       username: user.username,
     }));
@@ -4375,7 +4371,12 @@ io.on('connection', (socket) => {
       for (const user of users) {
         if (user.socketId === socket.id) {
           users.delete(user);
-          socket.to(roomId).emit('user-left', { userId: user.userId, username: user.username });
+          socket
+            .to(roomId)
+            .emit('user-left', {
+              userId: user.userId,
+              username: user.username,
+            });
 
           // Clean up empty rooms
           if (users.size === 0) {
