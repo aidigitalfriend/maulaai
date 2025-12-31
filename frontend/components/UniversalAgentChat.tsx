@@ -51,7 +51,15 @@ export interface AgentChatConfig {
   specialties?: string[];
   color?: string;
   aiProvider?: {
-    primary: 'openai' | 'anthropic' | 'gemini' | 'cohere' | 'mistral' | 'xai' | 'huggingface' | 'groq';
+    primary:
+      | 'openai'
+      | 'anthropic'
+      | 'gemini'
+      | 'cohere'
+      | 'mistral'
+      | 'xai'
+      | 'huggingface'
+      | 'groq';
     fallbacks: string[];
     model: string;
     reasoning?: string;

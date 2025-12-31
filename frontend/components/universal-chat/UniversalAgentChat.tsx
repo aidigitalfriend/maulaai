@@ -15,7 +15,7 @@ import {
   SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
 import EnhancedChatLayout from './EnhancedChatLayout';
-import { AgentSettings } from './ChatSettingsPanel';
+import { AgentConfig } from '../../app/agents/types';
 import QuickActionsPanel from './QuickActionsPanel';
 import realtimeChatService, {
   ChatMessage as ServiceChatMessage,
@@ -50,6 +50,12 @@ export interface AgentChatConfig {
   welcomeMessage: string;
   specialties?: string[];
   color?: string;
+  aiProvider?: {
+    primary: string;
+    fallbacks: string[];
+    model: string;
+    reasoning?: string;
+  };
 }
 
 interface UniversalAgentChatProps {
@@ -88,14 +94,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Settings state
+  // Settings state - initialize with agent's AI provider
   const [settings, setSettings] = useState<AgentSettings>({
     temperature: 0.7,
     maxTokens: 2000,
     mode: 'balanced',
     systemPrompt: '',
-    provider: 'mistral',
-    model: 'mistral-large-latest',
+    provider: (agent.aiProvider?.primary as any) || 'openai',
+    model: agent.aiProvider?.model || 'gpt-4o',
   });
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);

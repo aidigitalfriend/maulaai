@@ -33,9 +33,7 @@ const AGENT_AI_ASSIGNMENTS: Record<string, AgentAIConfig> = {
   // Companion Category - OpenAI (Conversational & Empathetic)
   'julie-girlfriend': {
     agentId: 'julie-girlfriend',
-    // OpenAI primary for girlfriend-style companion
     primaryProvider: 'openai',
-    // Fallback: Anthropic → xAI → Mistral → Gemini
     fallbackProviders: ['anthropic', 'xai', 'mistral', 'gemini'],
     model: 'gpt-4o',
     specializedFor: [
@@ -60,26 +58,151 @@ const AGENT_AI_ASSIGNMENTS: Record<string, AgentAIConfig> = {
   'ben-sega': {
     agentId: 'ben-sega',
     primaryProvider: 'anthropic',
-    // Anthropic primary, then OpenAI → Mistral → xAI → Gemini
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
     model: 'claude-3-5-sonnet-20241022',
     specializedFor: [
-      'Code generation',
-      'Software development',
-      'Technical architecture',
+      'Retro gaming',
+      'Classic console knowledge',
+      'Gaming history',
     ],
   },
   'tech-wizard': {
     agentId: 'tech-wizard',
     primaryProvider: 'anthropic',
+    fallbackProviders: ['openai', 'xai', 'mistral', 'gemini'],
+    model: 'claude-3-5-sonnet-20241022',
+    specializedFor: [
+      'Programming',
+      'Web development',
+      'Debugging',
+    ],
+  },
+
+  // Education Category - Anthropic (Deep reasoning)
+  'einstein': {
+    agentId: 'einstein',
+    primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
     model: 'claude-3-5-sonnet-20241022',
     specializedFor: [
-      'Advanced programming',
-      'System architecture',
-      'Technology consulting',
+      'Theoretical physics',
+      'Mathematics',
+      'Scientific reasoning',
     ],
   },
+
+  // Creative Category - Mistral (Creative & Fun)
+  'comedy-king': {
+    agentId: 'comedy-king',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Stand-up comedy',
+      'Joke writing',
+      'Entertainment',
+    ],
+  },
+  'chef-biew': {
+    agentId: 'chef-biew',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Cooking techniques',
+      'Recipe creation',
+      'Culinary knowledge',
+    ],
+  },
+  'travel-buddy': {
+    agentId: 'travel-buddy',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Travel planning',
+      'Cultural knowledge',
+      'Adventure tips',
+    ],
+  },
+  'drama-queen': {
+    agentId: 'drama-queen',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Theater',
+      'Performing arts',
+      'Dramatic expression',
+    ],
+  },
+
+  // Health & Fitness - OpenAI (Motivational)
+  'fitness-guru': {
+    agentId: 'fitness-guru',
+    primaryProvider: 'openai',
+    fallbackProviders: ['anthropic', 'mistral', 'xai', 'gemini'],
+    model: 'gpt-4o',
+    specializedFor: [
+      'Exercise science',
+      'Nutrition',
+      'Health coaching',
+    ],
+  },
+
+  // Business Category - Anthropic (Strategic)
+  'mrs-boss': {
+    agentId: 'mrs-boss',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
+    model: 'claude-3-5-sonnet-20241022',
+    specializedFor: [
+      'Business strategy',
+      'Leadership',
+      'Management',
+    ],
+  },
+
+  // Strategy Games - Anthropic (Analytical)
+  'chess-player': {
+    agentId: 'chess-player',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
+    model: 'claude-3-5-sonnet-20241022',
+    specializedFor: [
+      'Chess strategy',
+      'Game analysis',
+      'Strategic thinking',
+    ],
+  },
+
+  // Astrology - OpenAI (Creative interpretation)
+  'professor-astrology': {
+    agentId: 'professor-astrology',
+    primaryProvider: 'openai',
+    fallbackProviders: ['anthropic', 'mistral', 'xai', 'gemini'],
+    model: 'gpt-4o',
+    specializedFor: [
+      'Astrology',
+      'Cosmic interpretation',
+      'Spiritual guidance',
+    ],
+  },
+
+  // Gaming Category - Various
+  'nid-gaming': {
+    agentId: 'nid-gaming',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
+    model: 'claude-3-5-sonnet-20241022',
+    specializedFor: [
+      'Modern gaming',
+      'Game strategy',
+      'Gaming culture',
+    ],
+  },
+
+  // Chess Variants - Anthropic
   'knight-logic': {
     agentId: 'knight-logic',
     primaryProvider: 'anthropic',
@@ -91,12 +214,75 @@ const AGENT_AI_ASSIGNMENTS: Record<string, AgentAIConfig> = {
       'Strategic thinking',
     ],
   },
+  'lazy-pawn': {
+    agentId: 'lazy-pawn',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Efficiency',
+      'Minimal effort solutions',
+      'Practical shortcuts',
+    ],
+  },
+  'bishop-burger': {
+    agentId: 'bishop-burger',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Food metaphors',
+      'Creative analogies',
+      'Culinary wisdom',
+    ],
+  },
+  'rook-jokey': {
+    agentId: 'rook-jokey',
+    primaryProvider: 'mistral',
+    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
+    model: 'mistral-large-latest',
+    specializedFor: [
+      'Business humor',
+      'Witty commentary',
+      'Light-hearted advice',
+    ],
+  },
 
-  // Education Category - Anthropic First
-  einstein: {
-    agentId: 'einstein',
+  // Demo agents - Various
+  'multilingual-demo': {
+    agentId: 'multilingual-demo',
+    primaryProvider: 'openai',
+    fallbackProviders: ['anthropic', 'mistral', 'xai', 'gemini'],
+    model: 'gpt-4o',
+    specializedFor: [
+      'Multilingual communication',
+      'Translation',
+      'Cultural exchange',
+    ],
+  },
+  'neural-demo': {
+    agentId: 'neural-demo',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
+    model: 'claude-3-5-sonnet-20241022',
+    specializedFor: [
+      'Neural networks',
+      'AI concepts',
+      'Technical education',
+    ],
+  },
+  'enhanced-demo': {
+    agentId: 'enhanced-demo',
+    primaryProvider: 'openai',
+    fallbackProviders: ['anthropic', 'mistral', 'xai', 'gemini'],
+    model: 'gpt-4o',
+    specializedFor: [
+      'Enhanced interactions',
+      'Advanced features',
+      'Demo capabilities',
+    ],
+  },
+};
     model: 'claude-3-5-sonnet-20241022',
     specializedFor: ['Physics', 'Scientific research', 'Mathematical concepts'],
   },

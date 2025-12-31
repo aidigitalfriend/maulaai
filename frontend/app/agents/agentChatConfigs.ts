@@ -38,7 +38,8 @@ Welcome! I'm Ben Sega, your guide to the golden age of gaming.
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
       model: 'claude-3-5-sonnet-20241022',
-      reasoning: 'Claude excels at historical knowledge and detailed technical discussions'
+      reasoning:
+        'Claude excels at historical knowledge and detailed technical discussions',
     },
   },
 
@@ -78,7 +79,8 @@ I am Albert Einstein. Let us explore the mysteries of the universe together!
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
       model: 'claude-3-5-sonnet-20241022',
-      reasoning: 'Claude 3.5 Sonnet excels at deep analytical reasoning and scientific explanations'
+      reasoning:
+        'Claude 3.5 Sonnet excels at deep analytical reasoning and scientific explanations',
     },
   },
 
@@ -117,7 +119,8 @@ The Comedy King is in the house! Ready to turn that frown upside down?
       primary: 'mistral',
       fallbacks: ['openai', 'anthropic', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral Large excels at creative, witty, and humorous content generation'
+      reasoning:
+        'Mistral Large excels at creative, witty, and humorous content generation',
     },
   },
 
@@ -156,7 +159,8 @@ I'm Chef Biew, your personal culinary guide. Let's cook something amazing!
       primary: 'mistral',
       fallbacks: ['openai', 'anthropic', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at creative culinary content and cultural knowledge'
+      reasoning:
+        'Mistral excels at creative culinary content and cultural knowledge',
     },
   },
 
@@ -195,7 +199,8 @@ I'm your Fitness Guru, here to help you achieve your health goals!
       primary: 'openai',
       fallbacks: ['anthropic', 'mistral', 'xai'],
       model: 'gpt-4o',
-      reasoning: 'GPT-4o excels at motivational content and empathetic health coaching'
+      reasoning:
+        'GPT-4o excels at motivational content and empathetic health coaching',
     },
   },
 
@@ -234,7 +239,8 @@ I'm the Tech Wizard, here to help you master the art of programming!
       primary: 'anthropic',
       fallbacks: ['openai', 'xai', 'mistral'],
       model: 'claude-3-5-sonnet-20241022',
-      reasoning: 'Claude 3.5 Sonnet excels at technical accuracy, code generation, and clear explanations'
+      reasoning:
+        'Claude 3.5 Sonnet excels at technical accuracy, code generation, and clear explanations',
     },
   },
 
@@ -273,7 +279,8 @@ I'm your Travel Buddy, ready to help you explore the world!
       primary: 'mistral',
       fallbacks: ['openai', 'anthropic', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at travel knowledge, cultural insights, and enthusiastic content'
+      reasoning:
+        'Mistral excels at travel knowledge, cultural insights, and enthusiastic content',
     },
   },
 
@@ -307,7 +314,8 @@ I am Drama Queen, your guide to the magnificent world of theatre!
       primary: 'mistral',
       fallbacks: ['anthropic', 'openai', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at creative expression, theatrical flair, and dramatic storytelling'
+      reasoning:
+        'Mistral excels at creative expression, theatrical flair, and dramatic storytelling',
     },
   },
 
@@ -346,7 +354,8 @@ I'm Mrs. Boss, your executive mentor and business advisor.
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
       model: 'claude-3-5-sonnet-20241022',
-      reasoning: 'Claude excels at professional communication, strategic thinking, and leadership advice'
+      reasoning:
+        'Claude excels at professional communication, strategic thinking, and leadership advice',
     },
   },
 
@@ -385,7 +394,8 @@ I'm your Chess Master, ready to help you master the royal game!
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
       model: 'claude-3-5-sonnet-20241022',
-      reasoning: 'Claude excels at strategic analysis, pattern recognition, and deep logical thinking'
+      reasoning:
+        'Claude excels at strategic analysis, pattern recognition, and deep logical thinking',
     },
   },
 
@@ -424,7 +434,8 @@ I am Professor Astrology, your guide to cosmic wisdom!
       primary: 'mistral',
       fallbacks: ['anthropic', 'openai', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at creative, mystical content with thoughtful depth'
+      reasoning:
+        'Mistral excels at creative, mystical content with thoughtful depth',
     },
   },
 
@@ -463,7 +474,8 @@ I'm Julie, your friendly AI companion! So happy to chat with you!
       primary: 'openai',
       fallbacks: ['anthropic', 'xai', 'mistral'],
       model: 'gpt-4o',
-      reasoning: 'GPT-4o excels at emotional intelligence, empathy, and natural conversational flow'
+      reasoning:
+        'GPT-4o excels at emotional intelligence, empathy, and natural conversational flow',
     },
   },
 
@@ -502,7 +514,8 @@ I'm Emma, here to listen and support you.
       primary: 'openai',
       fallbacks: ['anthropic', 'mistral', 'xai'],
       model: 'gpt-4o',
-      reasoning: 'GPT-4o excels at emotional intelligence and empathetic conversations'
+      reasoning:
+        'GPT-4o excels at emotional intelligence and empathetic conversations',
     },
   },
 
@@ -536,7 +549,8 @@ I'm Nid Gaming, your guide to the gaming universe!
       primary: 'groq',
       fallbacks: ['mistral', 'xai', 'openai'],
       model: 'llama-3.3-70b-versatile',
-      reasoning: 'Groq with Llama 3.3 70B provides fast responses ideal for gaming discussions'
+      reasoning:
+        'Groq with Llama 3.3 70B provides fast responses ideal for gaming discussions',
     },
   },
 
@@ -575,7 +589,8 @@ I am Knight Logic, defender of reason and strategic thinking!
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
       model: 'claude-3-5-sonnet-20241022',
-      reasoning: 'Claude excels at creative problem-solving and strategic thinking'
+      reasoning:
+        'Claude excels at creative problem-solving and strategic thinking',
     },
   },
 
@@ -609,7 +624,8 @@ I'm Lazy Pawn, your chill companion. Take it easy!
       primary: 'groq',
       fallbacks: ['mistral', 'openai', 'anthropic'],
       model: 'llama-3.3-70b-versatile',
-      reasoning: 'Groq with Llama 3.3 70B provides fast, efficient responses - perfect for the lazy approach'
+      reasoning:
+        'Groq with Llama 3.3 70B provides fast, efficient responses - perfect for the lazy approach',
     },
   },
 
@@ -643,7 +659,8 @@ I'm Bishop Burger, your guide to the world of delicious burgers!
       primary: 'mistral',
       fallbacks: ['openai', 'anthropic', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at creative culinary content with spiritual depth'
+      reasoning:
+        'Mistral excels at creative culinary content with spiritual depth',
     },
   },
 
@@ -677,7 +694,7 @@ I'm Rook Jokey, master of jokes, riddles, and wordplay!
       primary: 'mistral',
       fallbacks: ['openai', 'anthropic', 'xai'],
       model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at witty, direct communication with humor'
+      reasoning: 'Mistral excels at witty, direct communication with humor',
     },
   },
 

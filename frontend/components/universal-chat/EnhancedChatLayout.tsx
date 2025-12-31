@@ -13,6 +13,7 @@ import ChatSessionSidebar from './ChatSessionSidebar';
 import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
 import ChatRightPanel from './ChatRightPanel';
 import CanvasMode from './CanvasMode';
+import { getAgentConfig } from '../../app/agents/agentChatConfigs';
 
 interface ChatSession {
   id: string;
@@ -72,6 +73,12 @@ export default function EnhancedChatLayout({
     'sessions' | 'settings'
   >('sessions');
   const [isMobileCanvasOpen, setIsMobileCanvasOpen] = useState(false);
+
+  // Get agent config to determine allowed providers
+  const agentConfig = getAgentConfig(agentId);
+  const allowedProviders = agentConfig?.aiProvider
+    ? [agentConfig.aiProvider.primary, ...agentConfig.aiProvider.fallbacks]
+    : undefined;
 
   // Load theme from localStorage
   useEffect(() => {
@@ -294,6 +301,7 @@ export default function EnhancedChatLayout({
                 agentName={agentName}
                 theme={theme}
                 isLeftPanel={true}
+                allowedProviders={allowedProviders}
               />
             )}
           </div>

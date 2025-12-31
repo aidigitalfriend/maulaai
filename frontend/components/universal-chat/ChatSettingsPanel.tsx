@@ -107,6 +107,7 @@ interface ChatSettingsPanelProps {
   agentName: string;
   theme?: 'default' | 'neural';
   isLeftPanel?: boolean;
+  allowedProviders?: string[];
 }
 
 export default function ChatSettingsPanel({
@@ -118,12 +119,20 @@ export default function ChatSettingsPanel({
   agentName,
   theme = 'default',
   isLeftPanel = false,
+  allowedProviders,
 }: ChatSettingsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(
     'presets'
   );
   const [activePreset, setActivePreset] = useState<string | null>(null);
+
+  // Filter available providers based on agent's allowed providers
+  const availableProviderOptions = allowedProviders
+    ? PROVIDER_MODEL_OPTIONS.filter((opt) =>
+        allowedProviders.includes(opt.provider)
+      )
+    : PROVIDER_MODEL_OPTIONS;
 
   // Close on outside click
   useEffect(() => {
@@ -341,7 +350,7 @@ export default function ChatSettingsPanel({
               }}
               className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
             >
-              {PROVIDER_MODEL_OPTIONS.map((opt) => (
+              {availableProviderOptions.map((opt) => (
                 <option key={opt.provider} value={opt.provider}>
                   {opt.label}
                 </option>
@@ -353,7 +362,7 @@ export default function ChatSettingsPanel({
               className={`w-full px-2 py-1.5 rounded-lg text-xs border mt-2 ${inputStyles}`}
             >
               {(
-                PROVIDER_MODEL_OPTIONS.find(
+                availableProviderOptions.find(
                   (opt) => opt.provider === settings.provider
                 )?.models || []
               ).map((model) => (
@@ -603,7 +612,7 @@ export default function ChatSettingsPanel({
                   value={settings.provider}
                   onChange={(e) => {
                     const newProvider = e.target.value as AIProvider;
-                    const providerOption = PROVIDER_MODEL_OPTIONS.find(
+                    const providerOption = availableProviderOptions.find(
                       (opt) => opt.provider === newProvider
                     );
                     const firstModel =
@@ -615,7 +624,7 @@ export default function ChatSettingsPanel({
                   }}
                   className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
                 >
-                  {PROVIDER_MODEL_OPTIONS.map((opt) => (
+                  {availableProviderOptions.map((opt) => (
                     <option key={opt.provider} value={opt.provider}>
                       {opt.label}
                     </option>
@@ -637,7 +646,7 @@ export default function ChatSettingsPanel({
                   className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
                 >
                   {(
-                    PROVIDER_MODEL_OPTIONS.find(
+                    availableProviderOptions.find(
                       (opt) => opt.provider === settings.provider
                     )?.models || []
                   ).map((model) => (
