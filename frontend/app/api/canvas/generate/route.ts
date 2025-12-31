@@ -151,10 +151,16 @@ async function generateWithCohere(
 
   // Build message history for Cohere
   const chatHistory: { role: string; message: string }[] = [];
-  
+
   if (currentCode) {
-    chatHistory.push({ role: 'USER', message: `Current code:\n${currentCode}` });
-    chatHistory.push({ role: 'CHATBOT', message: "I understand. I'll work with this code." });
+    chatHistory.push({
+      role: 'USER',
+      message: `Current code:\n${currentCode}`,
+    });
+    chatHistory.push({
+      role: 'CHATBOT',
+      message: "I understand. I'll work with this code.",
+    });
   }
 
   if (history && history.length > 0) {
@@ -169,7 +175,7 @@ async function generateWithCohere(
   const response = await fetch('https://api.cohere.ai/v1/chat', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -189,6 +195,60 @@ async function generateWithCohere(
 
   const data = await response.json();
   return cleanCode(data.text || '');
+}
+
+// Generate with xAI (Grok)
+async function generateWithXAI(
+  prompt: string,
+  modelId: string,
+  currentCode?: string,
+  history?: { role: string; text: string }[]
+) {
+  const apiKey = process.env.XAI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'xAI API key not configured. Please add XAI_API_KEY to your environment.'
+    );
+  }
+
+  const xai = new OpenAI({
+    apiKey,
+    baseURL: 'https://api.x.ai/v1',
+  });
+
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: 'system', content: SYSTEM_INSTRUCTION },
+  ];
+
+  if (currentCode) {
+    messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
+  }
+
+  if (history && history.length > 0) {
+    history.forEach((msg) => {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      });
+    });
+  }
+
+  messages.push({ role: 'user', content: prompt });
+
+  // Map model IDs to xAI models
+  let actualModel = 'grok-3';
+  if (modelId === 'grok-3-mini') actualModel = 'grok-3-mini';
+  if (modelId === 'grok-2') actualModel = 'grok-2-1212';
+  if (modelId === 'grok-4') actualModel = 'grok-4-0709';
+
+  const response = await xai.chat.completions.create({
+    model: actualModel,
+    messages,
+    temperature: 0.7,
+    max_tokens: 8192,
+  });
+
+  return cleanCode(response.choices[0]?.message?.content || '');
 }
 
 // Generate with Gemini
@@ -379,6 +439,9 @@ export async function POST(request: NextRequest) {
         break;
       case 'Cohere':
         code = await generateWithCohere(prompt, modelId, currentCode, history);
+        break;
+      case 'xAI':
+        code = await generateWithXAI(prompt, modelId, currentCode, history);
         break;
       case 'Gemini':
         code = await generateWithGemini(

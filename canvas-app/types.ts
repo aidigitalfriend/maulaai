@@ -11,6 +11,7 @@ export type ModelProvider =
   | 'Groq'
   | 'Mistral'
   | 'Cohere'
+  | 'xAI'
   | 'Gemini';
 
 export interface ModelOption {

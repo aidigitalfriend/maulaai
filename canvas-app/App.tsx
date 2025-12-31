@@ -76,6 +76,19 @@ const MODELS: ModelOption[] = [
     provider: 'Cohere',
     description: 'Optimized for RAG and conversational.',
   },
+  // xAI Grok - Working ✅
+  {
+    id: 'grok-3',
+    name: 'Grok 3',
+    provider: 'xAI',
+    description: 'xAI flagship model with strong reasoning.',
+  },
+  {
+    id: 'grok-3-mini',
+    name: 'Grok 3 Mini',
+    provider: 'xAI',
+    description: 'Fast and efficient Grok model.',
+  },
 ];
 
 const PRESET_TEMPLATES = [
