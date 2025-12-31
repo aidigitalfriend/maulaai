@@ -21,8 +21,19 @@ const Preview: React.FC<PreviewProps> = ({ code }) => {
   if (!code) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl m-4">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.75 17L9 21h6l-.75-4M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-16 w-16 mb-4 opacity-20"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M9.75 17L9 21h6l-.75-4M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
         </svg>
         <p className="text-lg font-medium">Your preview will appear here</p>
         <p className="text-sm">Describe your app idea and click "Generate"</p>

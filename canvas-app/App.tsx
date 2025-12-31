@@ -1,17 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { GeneratedApp, ViewMode, GenerationState, ChatMessage, ModelOption } from './types';
-import { generateAppCode } from './services/geminiService';
 import Preview from './components/Preview';
 import CodeView from './components/CodeView';
 import ChatBox from './components/ChatBox';
 
 const MODELS: ModelOption[] = [
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', provider: 'Gemini', description: 'Fast and efficient for basic layouts.' },
-  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', provider: 'Gemini', description: 'High reasoning for complex apps.' },
-  { id: 'gemini-3-pro-preview-thinking', name: 'Gemini 3 Pro (Thinking)', provider: 'Gemini', description: 'Maximum reasoning power for hard logic.', isThinking: true },
-  { id: 'gpt-4o', name: 'GPT-4o (Placeholder)', provider: 'OpenAI', description: 'Industry standard reasoning.' },
-  { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet (Placeholder)', provider: 'Anthropic', description: 'Expert coding assistant.' },
+  // Anthropic Claude - Working ✅
+  { id: 'claude-3-5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', description: 'Best coding assistant - highly recommended.' },
+  { id: 'claude-3-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic', description: 'Fast and efficient for quick iterations.' },
+  // Groq - Working ✅ (Ultra-fast inference)
+  { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', provider: 'Groq', description: 'Lightning-fast inference with Groq.' },
+  { id: 'mixtral-8x7b', name: 'Mixtral 8x7B', provider: 'Groq', description: 'Fast mixture of experts model.' },
+  // Mistral - Working ✅
+  { id: 'mistral-large', name: 'Mistral Large', provider: 'Mistral', description: 'Powerful reasoning and code generation.' },
+  { id: 'codestral', name: 'Codestral', provider: 'Mistral', description: 'Specialized for code generation.' },
 ];
 
 const PRESET_TEMPLATES = [
@@ -48,28 +51,35 @@ const App: React.FC = () => {
   const handleGenerate = async (instruction: string, isInitial: boolean = false) => {
     if (!instruction.trim() || genState.isGenerating) return;
 
-    const actualModelId = selectedModel.isThinking ? 'gemini-3-pro-preview' : selectedModel.id;
-    
-    if (selectedModel.provider !== 'Gemini') {
-      setGenState({ isGenerating: false, error: "Multi-provider support requires separate API keys. Currently only Gemini is active.", progressMessage: "" });
-      return;
-    }
-
     setGenState({ 
       isGenerating: true, 
       error: null, 
-      progressMessage: selectedModel.isThinking ? 'Deep thinking in progress...' : 'Building application...',
+      progressMessage: `Generating with ${selectedModel.name}...`,
       isThinking: selectedModel.isThinking
     });
 
     try {
-      const code = await generateAppCode(
-        instruction, 
-        actualModelId, 
-        !!selectedModel.isThinking, 
-        isInitial ? undefined : currentApp?.code,
-        isInitial ? [] : currentApp?.history
-      );
+      // Call the backend API instead of direct SDK
+      const response = await fetch('/api/canvas/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: instruction,
+          provider: selectedModel.provider,
+          modelId: selectedModel.id,
+          isThinking: selectedModel.isThinking || false,
+          currentCode: isInitial ? undefined : currentApp?.code,
+          history: isInitial ? [] : currentApp?.history,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to generate application');
+      }
+
+      const code = data.code;
 
       const userMsg: ChatMessage = { role: 'user', text: instruction, timestamp: Date.now() };
       const modelMsg: ChatMessage = { role: 'model', text: isInitial ? 'Application built!' : 'Changes applied.', timestamp: Date.now() };

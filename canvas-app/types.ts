@@ -6,7 +6,7 @@ export interface ChatMessage {
   hasAudio?: boolean;
 }
 
-export type ModelProvider = 'Gemini' | 'OpenAI' | 'Anthropic' | 'xAI' | 'Mistral';
+export type ModelProvider = 'Anthropic' | 'Groq' | 'Mistral' | 'Gemini' | 'OpenAI';
 
 export interface ModelOption {
   id: string;

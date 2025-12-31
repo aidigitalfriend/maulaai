@@ -24,6 +24,108 @@ function cleanCode(text: string): string {
     .trim();
 }
 
+// Generate with Groq (fast inference)
+async function generateWithGroq(
+  prompt: string,
+  modelId: string,
+  currentCode?: string,
+  history?: { role: string; text: string }[]
+) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error('Groq API key not configured. Please add GROQ_API_KEY to your environment.');
+  }
+
+  const groq = new OpenAI({ 
+    apiKey, 
+    baseURL: 'https://api.groq.com/openai/v1' 
+  });
+  
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: 'system', content: SYSTEM_INSTRUCTION },
+  ];
+
+  if (currentCode) {
+    messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
+  }
+
+  if (history && history.length > 0) {
+    history.forEach((msg) => {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      });
+    });
+  }
+
+  messages.push({ role: 'user', content: prompt });
+
+  // Map model IDs to Groq models
+  let actualModel = 'llama-3.3-70b-versatile';
+  if (modelId === 'mixtral-8x7b') actualModel = 'mixtral-8x7b-32768';
+  if (modelId === 'llama-3.1-8b') actualModel = 'llama-3.1-8b-instant';
+
+  const response = await groq.chat.completions.create({
+    model: actualModel,
+    messages,
+    temperature: 0.7,
+    max_tokens: 8192,
+  });
+
+  return cleanCode(response.choices[0]?.message?.content || '');
+}
+
+// Generate with Mistral
+async function generateWithMistral(
+  prompt: string,
+  modelId: string,
+  currentCode?: string,
+  history?: { role: string; text: string }[]
+) {
+  const apiKey = process.env.MISTRAL_API_KEY;
+  if (!apiKey) {
+    throw new Error('Mistral API key not configured. Please add MISTRAL_API_KEY to your environment.');
+  }
+
+  const mistral = new OpenAI({ 
+    apiKey, 
+    baseURL: 'https://api.mistral.ai/v1' 
+  });
+  
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: 'system', content: SYSTEM_INSTRUCTION },
+  ];
+
+  if (currentCode) {
+    messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
+  }
+
+  if (history && history.length > 0) {
+    history.forEach((msg) => {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text,
+      });
+    });
+  }
+
+  messages.push({ role: 'user', content: prompt });
+
+  // Map model IDs to Mistral models
+  let actualModel = 'mistral-large-latest';
+  if (modelId === 'mistral-small') actualModel = 'mistral-small-latest';
+  if (modelId === 'codestral') actualModel = 'codestral-latest';
+
+  const response = await mistral.chat.completions.create({
+    model: actualModel,
+    messages,
+    temperature: 0.7,
+    max_tokens: 8192,
+  });
+
+  return cleanCode(response.choices[0]?.message?.content || '');
+}
+
 // Generate with Gemini
 async function generateWithGemini(
   prompt: string,
@@ -190,7 +292,7 @@ export async function POST(request: NextRequest) {
     }
 
     let code: string;
-    const selectedProvider = provider || 'Gemini';
+    const selectedProvider = provider || 'Anthropic';
 
     switch (selectedProvider) {
       case 'OpenAI':
@@ -204,12 +306,26 @@ export async function POST(request: NextRequest) {
           history
         );
         break;
+      case 'Groq':
+        code = await generateWithGroq(prompt, modelId, currentCode, history);
+        break;
+      case 'Mistral':
+        code = await generateWithMistral(prompt, modelId, currentCode, history);
+        break;
       case 'Gemini':
-      default:
         code = await generateWithGemini(
           prompt,
           modelId,
           isThinking,
+          currentCode,
+          history
+        );
+        break;
+      default:
+        // Default to Anthropic as it's confirmed working
+        code = await generateWithAnthropic(
+          prompt,
+          modelId,
           currentCode,
           history
         );
