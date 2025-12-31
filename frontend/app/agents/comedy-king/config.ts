@@ -61,6 +61,13 @@ export const comedyKingConfig: AgentConfig = {
     premium: false
   },
 
+  aiProvider: {
+    primary: 'mistral',
+    fallbacks: ['openai', 'anthropic', 'xai'],
+    model: 'mistral-large-latest',
+    reasoning: 'Mistral Large excels at creative, witty, and humorous content generation - perfect for comedy and entertainment'
+  },
+
   details: {
     icon: '👑',
     sections: [

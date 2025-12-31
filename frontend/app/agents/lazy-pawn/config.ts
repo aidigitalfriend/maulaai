@@ -51,6 +51,13 @@ export const lazyPawnConfig: AgentConfig = {
     premium: false
   },
 
+  aiProvider: {
+    primary: 'groq',
+    fallbacks: ['mistral', 'openai', 'anthropic'],
+    model: 'llama-3.3-70b-versatile',
+    reasoning: 'Groq with Llama 3.3 70B provides fast, efficient responses - perfect for the lazy approach to productivity'
+  },
+
   details: {
     icon: '😴',
     sections: [

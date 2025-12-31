@@ -77,8 +77,9 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'groq',
     label: 'Groq',
     models: [
-      { value: 'llama-3-70b-8192', label: 'Llama 3 70B (Groq)' },
-      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (Groq)' },
+      { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Versatile)' },
+      { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B' },
+      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (32K context)' },
     ],
   },
 ];

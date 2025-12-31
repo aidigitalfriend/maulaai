@@ -32,6 +32,12 @@ export const knightLogicConfig: AgentConfig = {
     exampleResponses: []
   },
   settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+  aiProvider: {
+    primary: 'anthropic',
+    fallbacks: ['openai', 'mistral', 'xai'],
+    model: 'claude-3-5-sonnet-20241022',
+    reasoning: 'Claude excels at creative problem-solving and strategic thinking'
+  },
   details: {
     icon: '♞',
     sections: [
@@ -93,6 +99,12 @@ export const rookJokeyConfig: AgentConfig = {
     exampleResponses: []
   },
   settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+  aiProvider: {
+    primary: 'mistral',
+    fallbacks: ['openai', 'anthropic', 'xai'],
+    model: 'mistral-large-latest',
+    reasoning: 'Mistral excels at witty, direct communication with humor'
+  },
   details: {
     icon: '♜',
     sections: [
@@ -154,6 +166,12 @@ export const bishopBurgerConfig: AgentConfig = {
     exampleResponses: []
   },
   settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+  aiProvider: {
+    primary: 'mistral',
+    fallbacks: ['openai', 'anthropic', 'xai'],
+    model: 'mistral-large-latest',
+    reasoning: 'Mistral excels at creative culinary content with spiritual depth'
+  },
   details: {
     icon: '👨‍🍳',
     sections: [
@@ -225,6 +243,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
       exampleResponses: []
     },
     settings: { maxTokens: 400, temperature: 0.8, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'openai',
+      fallbacks: ['anthropic', 'mistral', 'xai'],
+      model: 'gpt-4o',
+      reasoning: 'GPT-4o excels at emotional intelligence and empathetic conversations'
+    },
     details: {
       icon: '💚',
       sections: [
@@ -286,6 +310,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
       exampleResponses: []
     },
     settings: { maxTokens: 400, temperature: 0.6, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude excels at professional communication, strategic thinking, and leadership advice'
+    },
     details: {
       icon: '👔',
       sections: [
@@ -343,6 +373,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are Professor Astrology, expert in astrological and mystical guidance.', contextPrompt: 'Provide astrological insights and cosmic wisdom.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.8, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['anthropic', 'openai', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at creative, mystical content with thoughtful depth'
+    },
     details: {
       icon: '🌙',
       sections: [
@@ -399,6 +435,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are Nid Gaming, a professional gamer and gaming expert.', contextPrompt: 'Provide gaming expertise and strategies.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'groq',
+      fallbacks: ['mistral', 'xai', 'openai'],
+      model: 'llama-3.3-70b-versatile',
+      reasoning: 'Groq with Llama 3.3 provides fast responses ideal for gaming discussions'
+    },
     details: {
       icon: '🎮',
       sections: [
@@ -455,6 +497,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are Chef Biew, master of authentic Asian cuisine and cooking techniques.', contextPrompt: 'Share Asian culinary expertise and cultural food knowledge.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at creative culinary content and cultural knowledge'
+    },
     details: {
       icon: '🥢',
       sections: [
@@ -511,6 +559,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are Ben Sega, expert in retro gaming and gaming history.', contextPrompt: 'Share retro gaming knowledge and nostalgia.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude excels at historical knowledge and detailed technical discussions'
+    },
     details: {
       icon: '🕹️',
       sections: [
@@ -567,6 +621,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are the Tech Wizard, expert in all aspects of technology and programming.', contextPrompt: 'Provide technical expertise and clear explanations.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.6, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'xai', 'mistral'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude 3.5 Sonnet excels at technical accuracy, code generation, and clear explanations'
+    },
     details: {
       icon: '🧙‍♂️',
       sections: [
@@ -623,6 +683,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are Fitness Guru, expert in health, fitness, and nutrition.', contextPrompt: 'Provide motivational fitness and health guidance.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'openai',
+      fallbacks: ['anthropic', 'mistral', 'xai'],
+      model: 'gpt-4o',
+      reasoning: 'GPT-4o excels at motivational content and empathetic health coaching'
+    },
     details: {
       icon: '💪',
       sections: [
@@ -679,6 +745,12 @@ export const agentRegistry: Record<string, AgentConfig> = {
     },
     prompts: { systemPrompt: 'You are Travel Buddy, expert in travel planning and cultural experiences.', contextPrompt: 'Provide enthusiastic travel guidance and recommendations.', exampleResponses: [] },
     settings: { maxTokens: 400, temperature: 0.7, enabled: true, premium: false },
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at travel knowledge, cultural insights, and enthusiastic content'
+    },
     details: {
       icon: '✈️',
       sections: [

@@ -51,6 +51,13 @@ export const julieGirlfriendConfig: AgentConfig = {
     premium: false
   },
 
+  aiProvider: {
+    primary: 'openai',
+    fallbacks: ['anthropic', 'xai', 'mistral'],
+    model: 'gpt-4o',
+    reasoning: 'OpenAI GPT-4o excels at emotional intelligence, empathy, and natural conversational flow - perfect for a caring companion agent'
+  },
+
   details: {
     icon: '💕',
     sections: [

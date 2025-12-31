@@ -61,6 +61,13 @@ export const einsteinConfig: AgentConfig = {
     premium: false
   },
 
+  aiProvider: {
+    primary: 'anthropic',
+    fallbacks: ['openai', 'mistral', 'xai'],
+    model: 'claude-3-5-sonnet-20241022',
+    reasoning: 'Claude 3.5 Sonnet excels at deep analytical reasoning, scientific explanations, and philosophical thinking - perfect for Einstein'
+  },
+
   details: {
     icon: '🧠',
     sections: [

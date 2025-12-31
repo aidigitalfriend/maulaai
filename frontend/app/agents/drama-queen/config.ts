@@ -51,6 +51,13 @@ export const dramaQueenConfig: AgentConfig = {
     premium: false
   },
 
+  aiProvider: {
+    primary: 'mistral',
+    fallbacks: ['anthropic', 'openai', 'xai'],
+    model: 'mistral-large-latest',
+    reasoning: 'Mistral Large excels at creative expression, theatrical flair, and dramatic storytelling'
+  },
+
   details: {
     icon: '🎭',
     sections: [

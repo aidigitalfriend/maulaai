@@ -61,6 +61,13 @@ export const chessPlayerConfig: AgentConfig = {
     premium: false
   },
 
+  aiProvider: {
+    primary: 'anthropic',
+    fallbacks: ['openai', 'mistral', 'xai'],
+    model: 'claude-3-5-sonnet-20241022',
+    reasoning: 'Claude 3.5 Sonnet excels at strategic analysis, pattern recognition, and deep logical thinking - perfect for chess mastery'
+  },
+
   details: {
     icon: '♟️',
     sections: [

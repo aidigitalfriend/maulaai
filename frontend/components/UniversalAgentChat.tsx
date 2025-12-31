@@ -50,6 +50,12 @@ export interface AgentChatConfig {
   welcomeMessage: string;
   specialties?: string[];
   color?: string;
+  aiProvider?: {
+    primary: 'openai' | 'anthropic' | 'gemini' | 'cohere' | 'mistral' | 'xai' | 'huggingface' | 'groq';
+    fallbacks: string[];
+    model: string;
+    reasoning?: string;
+  };
 }
 
 interface UniversalAgentChatProps {
@@ -88,14 +94,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Settings state
+  // Settings state - use agent's AI provider config if available
   const [settings, setSettings] = useState<AgentSettings>({
     temperature: 0.7,
     maxTokens: 2000,
     mode: 'balanced',
     systemPrompt: '',
-    provider: 'mistral',
-    model: 'mistral-large-latest',
+    provider: agent.aiProvider?.primary || 'mistral',
+    model: agent.aiProvider?.model || 'mistral-large-latest',
   });
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);

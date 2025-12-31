@@ -70,10 +70,10 @@ const AGENT_AI_ASSIGNMENTS = {
   },
   'professor-astrology': {
     agentId: 'professor-astrology',
-    primaryProvider: 'anthropic',
-    fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
-    specializedFor: ['Astronomy', 'Space science', 'Research data'],
+    primaryProvider: 'mistral',
+    fallbackProviders: ['anthropic', 'openai', 'xai'],
+    model: 'mistral-large-latest',
+    specializedFor: ['Astrology', 'Mystical guidance', 'Cosmic wisdom'],
   },
   // Entertainment Category - Mistral (Creative & Fun)
   'comedy-king': {
@@ -97,9 +97,9 @@ const AGENT_AI_ASSIGNMENTS = {
   },
   'nid-gaming': {
     agentId: 'nid-gaming',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'groq',
+    fallbackProviders: ['mistral', 'xai', 'openai'],
+    model: 'llama-3.3-70b-versatile',
     specializedFor: ['Gaming advice', 'Game strategies', 'Gaming culture'],
   },
   // Business Category - Mix of Anthropic & Mistral
@@ -123,13 +123,13 @@ const AGENT_AI_ASSIGNMENTS = {
   },
   'lazy-pawn': {
     agentId: 'lazy-pawn',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-medium-latest',
+    primaryProvider: 'groq',
+    fallbackProviders: ['mistral', 'openai', 'anthropic'],
+    model: 'llama-3.3-70b-versatile',
     specializedFor: [
-      'Casual business tips',
+      'Efficient solutions',
       'Productivity hacks',
-      'Work-life balance',
+      'Smart shortcuts',
     ],
   },
   'rook-jokey': {
@@ -272,6 +272,7 @@ class AgentAIProviderService {
       gemini: 'gemini-1.5-flash-latest',
       cohere: 'command-nightly',
       xai: 'grok-2',
+      groq: 'llama-3.3-70b-versatile',
     };
     return fallbackModels[provider];
   }
@@ -294,6 +295,7 @@ class AgentAIProviderService {
       gemini: 0,
       cohere: 0,
       xai: 0,
+      groq: 0,
     };
     Object.values(AGENT_AI_ASSIGNMENTS).forEach((config) => {
       stats[config.primaryProvider]++;

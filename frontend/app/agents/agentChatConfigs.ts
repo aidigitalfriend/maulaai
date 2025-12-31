@@ -1,6 +1,7 @@
 import { AgentChatConfig } from '../../components/UniversalAgentChat';
 
 // Centralized Agent Configurations for Universal Chat
+// AI Provider assignments based on personality matching
 export const agentChatConfigs: Record<string, AgentChatConfig> = {
   'ben-sega': {
     id: 'ben-sega',
@@ -33,6 +34,12 @@ Welcome! I'm Ben Sega, your guide to the golden age of gaming.
       'Arcade Games',
       'Gaming History',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude excels at historical knowledge and detailed technical discussions'
+    },
   },
 
   einstein: {
@@ -67,6 +74,12 @@ I am Albert Einstein. Let us explore the mysteries of the universe together!
       'Philosophy of Science',
       'Problem Solving',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude 3.5 Sonnet excels at deep analytical reasoning and scientific explanations'
+    },
   },
 
   'comedy-king': {
@@ -100,6 +113,12 @@ The Comedy King is in the house! Ready to turn that frown upside down?
       'Comedy Timing',
       'Entertainment',
     ],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral Large excels at creative, witty, and humorous content generation'
+    },
   },
 
   'chef-biew': {
@@ -133,6 +152,12 @@ I'm Chef Biew, your personal culinary guide. Let's cook something amazing!
       'Food Science',
       'International Cuisine',
     ],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at creative culinary content and cultural knowledge'
+    },
   },
 
   'fitness-guru': {
@@ -166,6 +191,12 @@ I'm your Fitness Guru, here to help you achieve your health goals!
       'Workout Planning',
       'Health & Wellness',
     ],
+    aiProvider: {
+      primary: 'openai',
+      fallbacks: ['anthropic', 'mistral', 'xai'],
+      model: 'gpt-4o',
+      reasoning: 'GPT-4o excels at motivational content and empathetic health coaching'
+    },
   },
 
   'tech-wizard': {
@@ -199,6 +230,12 @@ I'm the Tech Wizard, here to help you master the art of programming!
       'System Design',
       'Debugging',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'xai', 'mistral'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude 3.5 Sonnet excels at technical accuracy, code generation, and clear explanations'
+    },
   },
 
   'travel-buddy': {
@@ -232,6 +269,12 @@ I'm your Travel Buddy, ready to help you explore the world!
       'Budget Travel',
       'Adventure Tourism',
     ],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at travel knowledge, cultural insights, and enthusiastic content'
+    },
   },
 
   'drama-queen': {
@@ -260,6 +303,12 @@ I am Drama Queen, your guide to the magnificent world of theatre!
 
 *✨ The spotlight awaits! What theatrical magic shall we explore?*`,
     specialties: ['Theatre', 'Acting', 'Playwriting', 'Performance Arts'],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['anthropic', 'openai', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at creative expression, theatrical flair, and dramatic storytelling'
+    },
   },
 
   'mrs-boss': {
@@ -293,6 +342,12 @@ I'm Mrs. Boss, your executive mentor and business advisor.
       'Career Development',
       'Management',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude excels at professional communication, strategic thinking, and leadership advice'
+    },
   },
 
   'chess-player': {
@@ -326,6 +381,12 @@ I'm your Chess Master, ready to help you master the royal game!
       'Opening Theory',
       'Game Analysis',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude excels at strategic analysis, pattern recognition, and deep logical thinking'
+    },
   },
 
   'professor-astrology': {
@@ -359,6 +420,12 @@ I am Professor Astrology, your guide to cosmic wisdom!
       'Horoscopes',
       'Planetary Aspects',
     ],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['anthropic', 'openai', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at creative, mystical content with thoughtful depth'
+    },
   },
 
   'julie-girlfriend': {
@@ -392,6 +459,12 @@ I'm Julie, your friendly AI companion! So happy to chat with you!
       'Companionship',
       'Fun Chat',
     ],
+    aiProvider: {
+      primary: 'openai',
+      fallbacks: ['anthropic', 'xai', 'mistral'],
+      model: 'gpt-4o',
+      reasoning: 'GPT-4o excels at emotional intelligence, empathy, and natural conversational flow'
+    },
   },
 
   'emma-emotional': {
@@ -425,6 +498,12 @@ I'm Emma, here to listen and support you.
       'Mindfulness',
       'Wellness',
     ],
+    aiProvider: {
+      primary: 'openai',
+      fallbacks: ['anthropic', 'mistral', 'xai'],
+      model: 'gpt-4o',
+      reasoning: 'GPT-4o excels at emotional intelligence and empathetic conversations'
+    },
   },
 
   'nid-gaming': {
@@ -453,6 +532,12 @@ I'm Nid Gaming, your guide to the gaming universe!
 
 *✨ What are you playing right now? Let's talk games!*`,
     specialties: ['Video Games', 'Esports', 'Gaming Hardware', 'Game Strategy'],
+    aiProvider: {
+      primary: 'groq',
+      fallbacks: ['mistral', 'xai', 'openai'],
+      model: 'llama-3.3-70b-versatile',
+      reasoning: 'Groq with Llama 3.3 70B provides fast responses ideal for gaming discussions'
+    },
   },
 
   'knight-logic': {
@@ -486,6 +571,12 @@ I am Knight Logic, defender of reason and strategic thinking!
       'Problem Solving',
       'Critical Analysis',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-3-5-sonnet-20241022',
+      reasoning: 'Claude excels at creative problem-solving and strategic thinking'
+    },
   },
 
   'lazy-pawn': {
@@ -514,6 +605,12 @@ I'm Lazy Pawn, your chill companion. Take it easy!
 
 *✨ So... what's up? No rush to answer...*`,
     specialties: ['Relaxation', 'Stress Relief', 'Casual Chat', 'Life Advice'],
+    aiProvider: {
+      primary: 'groq',
+      fallbacks: ['mistral', 'openai', 'anthropic'],
+      model: 'llama-3.3-70b-versatile',
+      reasoning: 'Groq with Llama 3.3 70B provides fast, efficient responses - perfect for the lazy approach'
+    },
   },
 
   'bishop-burger': {
@@ -542,6 +639,12 @@ I'm Bishop Burger, your guide to the world of delicious burgers!
 
 *✨ Hungry? Let's talk about the greatest food invention: the burger!*`,
     specialties: ['Burgers', 'Fast Food', 'Recipes', 'Restaurant Reviews'],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at creative culinary content with spiritual depth'
+    },
   },
 
   'rook-jokey': {
@@ -570,6 +673,12 @@ I'm Rook Jokey, master of jokes, riddles, and wordplay!
 
 *✨ Why did the scarecrow win an award? He was outstanding in his field! 😄 Got a riddle for me?*`,
     specialties: ['Jokes', 'Riddles', 'Wordplay', 'Brain Teasers'],
+    aiProvider: {
+      primary: 'mistral',
+      fallbacks: ['openai', 'anthropic', 'xai'],
+      model: 'mistral-large-latest',
+      reasoning: 'Mistral excels at witty, direct communication with humor'
+    },
   },
 
   'multilingual-demo': {
