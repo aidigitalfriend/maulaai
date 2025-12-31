@@ -11,51 +11,24 @@ import CodeView from './components/CodeView';
 import ChatBox from './components/ChatBox';
 
 const MODELS: ModelOption[] = [
-  // OpenAI - Working ✅
-  {
-    id: 'gpt-4o',
-    name: 'GPT-4o',
-    provider: 'OpenAI',
-    description: 'Most capable OpenAI model with vision.',
-  },
-  {
-    id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
-    provider: 'OpenAI',
-    description: 'Fast and cost-effective OpenAI model.',
-  },
-  // Anthropic Claude - Working ✅
+  // Best models for code generation
   {
     id: 'claude-3-5-sonnet',
     name: 'Claude 3.5 Sonnet',
     provider: 'Anthropic',
-    description: 'Best coding assistant - highly recommended.',
+    description: 'Best for coding - highly recommended.',
   },
   {
-    id: 'claude-3-haiku',
-    name: 'Claude 3 Haiku',
-    provider: 'Anthropic',
-    description: 'Fast and efficient for quick iterations.',
-  },
-  // Groq - Working ✅ (Ultra-fast inference)
-  {
-    id: 'llama-3.3-70b',
-    name: 'Llama 3.3 70B',
-    provider: 'Groq',
-    description: 'Lightning-fast inference with Groq.',
+    id: 'gpt-4o',
+    name: 'GPT-4o',
+    provider: 'OpenAI',
+    description: 'Most capable OpenAI model.',
   },
   {
-    id: 'mixtral-8x7b',
-    name: 'Mixtral 8x7B',
-    provider: 'Groq',
-    description: 'Fast mixture of experts model.',
-  },
-  // Mistral - Working ✅
-  {
-    id: 'mistral-large',
-    name: 'Mistral Large',
-    provider: 'Mistral',
-    description: 'Powerful reasoning and code generation.',
+    id: 'grok-3',
+    name: 'Grok 3',
+    provider: 'xAI',
+    description: 'Strong reasoning and coding.',
   },
   {
     id: 'codestral',
@@ -63,31 +36,11 @@ const MODELS: ModelOption[] = [
     provider: 'Mistral',
     description: 'Specialized for code generation.',
   },
-  // Cohere - Working ✅
   {
-    id: 'command-a-03-2025',
-    name: 'Command A',
-    provider: 'Cohere',
-    description: 'Cohere flagship model for complex tasks.',
-  },
-  {
-    id: 'command-r-08-2024',
-    name: 'Command R',
-    provider: 'Cohere',
-    description: 'Optimized for RAG and conversational.',
-  },
-  // xAI Grok - Working ✅
-  {
-    id: 'grok-3',
-    name: 'Grok 3',
-    provider: 'xAI',
-    description: 'xAI flagship model with strong reasoning.',
-  },
-  {
-    id: 'grok-3-mini',
-    name: 'Grok 3 Mini',
-    provider: 'xAI',
-    description: 'Fast and efficient Grok model.',
+    id: 'llama-3.3-70b',
+    name: 'Llama 3.3 70B',
+    provider: 'Groq',
+    description: 'Ultra-fast inference.',
   },
 ];
 
