@@ -1,99 +1,122 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3005'
+// Simple in-memory session store (resets on server restart)
+const sessionStore = new Map<
+  string,
+  { messages: any[]; messageCount: number; createdAt: number }
+>();
+const SESSION_EXPIRY = 30 * 60 * 1000; // 30 minutes
+
+function getSessionKey(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  const ip = forwarded
+    ? forwarded.split(',')[0]
+    : req.headers.get('x-real-ip') || 'unknown';
+  return `session-${ip}`;
+}
+
+function cleanupExpiredSessions() {
+  const now = Date.now();
+  for (const [key, session] of sessionStore.entries()) {
+    if (now - session.createdAt > SESSION_EXPIRY) {
+      sessionStore.delete(key);
+    }
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
-    // Forward user identification headers
-    const headers: any = {
-      'Content-Type': 'application/json'
-    }
-    
-    // Get user ID from session/auth (simplified for now)
-    const authHeader = request.headers.get('authorization')
-    if (authHeader) {
-      headers['x-user-id'] = 'authenticated-user'
-    } else {
-      headers['x-user-id'] = 'anonymous'
+    cleanupExpiredSessions();
+    const sessionKey = getSessionKey(request);
+    const session = sessionStore.get(sessionKey);
+
+    if (!session) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          isNew: true,
+          messages: [],
+          messageCount: 0,
+          expired: false,
+        },
+      });
     }
 
-    const response = await fetch(`${BACKEND_URL}/api/studio/session`, {
-      method: 'GET',
-      headers
-    })
+    const now = Date.now();
+    const expired = now - session.createdAt > SESSION_EXPIRY;
 
-    const data = await response.json()
-    return NextResponse.json(data, { status: response.status })
+    if (expired) {
+      sessionStore.delete(sessionKey);
+      return NextResponse.json({
+        success: true,
+        data: {
+          isNew: false,
+          expired: true,
+          messages: [],
+          messageCount: 0,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        isNew: false,
+        expired: false,
+        messages: session.messages,
+        messageCount: session.messageCount,
+      },
+    });
   } catch (error) {
-    console.error('AI Studio session get error:', error)
+    console.error('Session GET error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to get session' },
       { status: 500 }
-    )
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    
-    // Forward user identification headers
-    const headers: any = {
-      'Content-Type': 'application/json'
-    }
-    
-    // Get user ID from session/auth (simplified for now)
-    const authHeader = request.headers.get('authorization')
-    if (authHeader) {
-      headers['x-user-id'] = 'authenticated-user'
-    } else {
-      headers['x-user-id'] = 'anonymous'
-    }
+    const body = await request.json();
+    const sessionKey = getSessionKey(request);
 
-    const response = await fetch(`${BACKEND_URL}/api/studio/session`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    })
+    const existingSession = sessionStore.get(sessionKey);
+    const createdAt = existingSession?.createdAt || Date.now();
 
-    const data = await response.json()
-    return NextResponse.json(data, { status: response.status })
+    sessionStore.set(sessionKey, {
+      messages: body.messages || [],
+      messageCount: body.messageCount || 0,
+      createdAt,
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Session saved',
+    });
   } catch (error) {
-    console.error('AI Studio session update error:', error)
+    console.error('Session POST error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update session' },
+      { success: false, error: 'Failed to save session' },
       { status: 500 }
-    )
+    );
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Forward user identification headers
-    const headers: any = {
-      'Content-Type': 'application/json'
-    }
-    
-    // Get user ID from session/auth (simplified for now)
-    const authHeader = request.headers.get('authorization')
-    if (authHeader) {
-      headers['x-user-id'] = 'authenticated-user'
-    } else {
-      headers['x-user-id'] = 'anonymous'
-    }
+    const sessionKey = getSessionKey(request);
+    sessionStore.delete(sessionKey);
 
-    const response = await fetch(`${BACKEND_URL}/api/studio/session`, {
-      method: 'DELETE',
-      headers
-    })
-
-    const data = await response.json()
-    return NextResponse.json(data, { status: response.status })
+    return NextResponse.json({
+      success: true,
+      message: 'Session cleared',
+    });
   } catch (error) {
-    console.error('AI Studio session clear error:', error)
+    console.error('Session DELETE error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to clear session' },
       { status: 500 }
-    )
+    );
   }
 }
