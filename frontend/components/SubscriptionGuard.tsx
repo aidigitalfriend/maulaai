@@ -17,7 +17,7 @@ interface SubscriptionGuardProps {
 
 /**
  * SubscriptionGuard - Protects pages that require an active subscription
- * 
+ *
  * Usage:
  * ```tsx
  * export default function MyProtectedPage() {
@@ -28,7 +28,7 @@ interface SubscriptionGuardProps {
  *   );
  * }
  * ```
- * 
+ *
  * This component:
  * 1. Shows loading spinner while checking auth/subscription status
  * 2. If not logged in: Shows login prompt
@@ -42,7 +42,8 @@ export function SubscriptionGuard({
 }: SubscriptionGuardProps) {
   const router = useRouter();
   const { state: authState } = useAuth();
-  const { hasActiveSubscription, isLoading: subscriptionLoading } = useSubscriptionStatus();
+  const { hasActiveSubscription, isLoading: subscriptionLoading } =
+    useSubscriptionStatus();
 
   // Combined loading state
   const isLoading = authState.isLoading || subscriptionLoading;
@@ -69,9 +70,10 @@ export function SubscriptionGuard({
           </div>
 
           <h1 className="text-2xl font-bold text-white mb-4">Login Required</h1>
-          
+
           <p className="text-neural-300 mb-8">
-            Please log in to access this feature. Already have an account? Sign in below.
+            Please log in to access this feature. Already have an account? Sign
+            in below.
           </p>
 
           <div className="flex flex-col gap-3">
@@ -81,7 +83,7 @@ export function SubscriptionGuard({
             >
               Log In
             </Link>
-            
+
             <Link
               href="/auth/signup"
               className="w-full px-6 py-3 border border-neural-600 rounded-xl font-semibold text-neural-300 hover:bg-neural-700 transition-all"
@@ -92,7 +94,10 @@ export function SubscriptionGuard({
 
           <p className="text-neural-500 text-sm mt-6">
             New to One Last AI?{' '}
-            <Link href="/pricing" className="text-brand-400 hover:text-brand-300">
+            <Link
+              href="/pricing"
+              className="text-brand-400 hover:text-brand-300"
+            >
               View our plans
             </Link>
           </p>
@@ -110,23 +115,28 @@ export function SubscriptionGuard({
             <Crown className="w-10 h-10 text-white" />
           </div>
 
-          <h1 className="text-2xl font-bold text-white mb-4">Subscription Required</h1>
-          
-          <p className="text-neural-300 mb-8">
-            {message}
-          </p>
+          <h1 className="text-2xl font-bold text-white mb-4">
+            Subscription Required
+          </h1>
+
+          <p className="text-neural-300 mb-8">{message}</p>
 
           <div className="bg-neural-900/50 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-semibold text-neural-400 mb-2">What you get:</h3>
+            <h3 className="text-sm font-semibold text-neural-400 mb-2">
+              What you get:
+            </h3>
             <ul className="text-left text-sm text-neural-300 space-y-2">
               <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span> Access to all Network Tools
+                <span className="text-green-400">✓</span> Access to all Network
+                Tools
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span> Access to all Developer Utils
+                <span className="text-green-400">✓</span> Access to all
+                Developer Utils
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span> Access to AI Lab Experiments
+                <span className="text-green-400">✓</span> Access to AI Lab
+                Experiments
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-400">✓</span> Chat with AI Agents
@@ -142,7 +152,7 @@ export function SubscriptionGuard({
               <Crown className="w-5 h-5" />
               View Subscription Plans
             </Link>
-            
+
             <button
               onClick={() => router.back()}
               className="w-full px-6 py-3 border border-neural-600 rounded-xl font-semibold text-neural-300 hover:bg-neural-700 transition-all"
