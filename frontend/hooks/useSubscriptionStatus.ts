@@ -32,7 +32,7 @@ export function useSubscriptionStatus(): SubscriptionStatus {
         setStatus((prev) => ({ ...prev, isLoading: true, error: null }));
 
         const response = await fetch(
-          `/api/subscriptions/user/${state.user.id}`,
+          `/api/agent/subscriptions/user/${state.user.id}`,
           {
             method: 'GET',
             headers: {
