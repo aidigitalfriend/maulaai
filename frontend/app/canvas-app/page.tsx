@@ -856,13 +856,15 @@ export default function CanvasAppPage() {
             <div className="relative model-dropdown">
               <button
                 onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold hover:border-indigo-300 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:border-indigo-300 transition-colors"
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
                     selectedModel.provider === 'Gemini'
                       ? 'bg-green-500'
-                      : 'bg-yellow-500'
+                      : selectedModel.provider === 'OpenAI'
+                      ? 'bg-yellow-500'
+                      : 'bg-purple-500'
                   }`}
                 ></span>
                 {selectedModel.name}
