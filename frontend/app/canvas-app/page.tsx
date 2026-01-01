@@ -863,8 +863,8 @@ export default function CanvasAppPage() {
                     selectedModel.provider === 'Gemini'
                       ? 'bg-green-500'
                       : selectedModel.provider === 'OpenAI'
-                      ? 'bg-yellow-500'
-                      : 'bg-purple-500'
+                        ? 'bg-yellow-500'
+                        : 'bg-purple-500'
                   }`}
                 ></span>
                 {selectedModel.name}
@@ -897,8 +897,8 @@ export default function CanvasAppPage() {
                           provider === 'Gemini'
                             ? 'text-green-600'
                             : provider === 'OpenAI'
-                            ? 'text-blue-600'
-                            : 'text-purple-600'
+                              ? 'text-blue-600'
+                              : 'text-purple-600'
                         }`}
                       >
                         {provider}
@@ -1099,8 +1099,6 @@ export default function CanvasAppPage() {
               />
             </svg>
           </button>
-
-
         </nav>
 
         {/* Main Content Area */}
@@ -1483,8 +1481,8 @@ export default function CanvasAppPage() {
                             selectedModel.provider === 'Gemini'
                               ? 'bg-green-100 text-green-700'
                               : selectedModel.provider === 'OpenAI'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-purple-100 text-purple-700'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-purple-100 text-purple-700'
                           }`}
                         >
                           {selectedModel.provider}
@@ -1566,8 +1564,6 @@ export default function CanvasAppPage() {
           </div>
         </div>
       )}
-
-
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
