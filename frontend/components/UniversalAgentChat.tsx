@@ -290,33 +290,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     setInputValue('');
     setIsLoading(true);
 
-    const conversationHistory: ServiceChatMessage[] =
-      activeSession.messages.map((m) => ({
-        id: m.id,
+    const conversationHistory = activeSession.messages
+      .filter(m => m.role !== 'assistant' || !m.isStreaming) // Exclude streaming messages
+      .map((m) => ({
         role: m.role,
-        content: m.content,
-        timestamp: m.timestamp,
+        content: m.content
       }));
-
-    conversationHistory.push({
-      id: userMessage.id,
-      role: 'user',
-      content: userInput,
-      timestamp: new Date(),
-    });
-
-    const agentConfig: AgentConfig = {
-      id: agent.id,
-      name: agent.name,
-      systemPrompt: settings.systemPrompt || agent.systemPrompt,
-      model: settings.model || 'mistral-large-latest',
-      temperature: settings.temperature,
-      maxTokens: settings.maxTokens,
-      provider:
-        settings.provider === 'openai'
-          ? 'mistral'
-          : (settings.provider as 'mistral' | 'gemini'),
-    };
 
     const assistantMessageId = `asst-${Date.now()}`;
     const assistantMessage: Message = {
@@ -340,82 +319,74 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       )
     );
 
-    let detectedCodeBlocks: CodeBlock[] = [];
+    try {
+      // Use the new agent chat API
+      const response = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userInput,
+          conversationHistory,
+          agentId: agent.id,
+          provider: settings.provider
+        }),
+      });
 
-    await realtimeChatService.sendMessageStream(
-      userInput,
-      conversationHistory,
-      agentConfig,
-      {
-        onToken: (token) => {
-          setSessions((prev) =>
-            prev.map((s) =>
-              s.id === activeSessionId
-                ? {
-                    ...s,
-                    messages: s.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? { ...m, content: m.content + token }
-                        : m
-                    ),
-                  }
-                : s
-            )
-          );
-        },
-        onComplete: (fullMessage) => {
-          setSessions((prev) =>
-            prev.map((s) =>
-              s.id === activeSessionId
-                ? {
-                    ...s,
-                    messages: s.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? {
-                            ...m,
-                            content: fullMessage,
-                            isStreaming: false,
-                            codeBlocks:
-                              detectedCodeBlocks.length > 0
-                                ? detectedCodeBlocks
-                                : undefined,
-                          }
-                        : m
-                    ),
-                  }
-                : s
-            )
-          );
-          setIsLoading(false);
-        },
-        onError: (error) => {
-          console.error('Chat error:', error);
-          setSessions((prev) =>
-            prev.map((s) =>
-              s.id === activeSessionId
-                ? {
-                    ...s,
-                    messages: s.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? {
-                            ...m,
-                            content: `❌ Sorry, I encountered an error: ${error.message}\n\nPlease try again.`,
-                            isStreaming: false,
-                          }
-                        : m
-                    ),
-                  }
-                : s
-            )
-          );
-          setIsLoading(false);
-        },
-        onCodeBlock: (codeBlock) => {
-          detectedCodeBlocks.push(codeBlock);
-        },
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
       }
-    );
-  }, [inputValue, activeSession, activeSessionId, isLoading, settings, agent]);
+
+      // Update the assistant message with the response
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? {
+                ...s,
+                messages: s.messages.map((m) =>
+                  m.id === assistantMessageId
+                    ? {
+                        ...m,
+                        content: data.message,
+                        isStreaming: false,
+                      }
+                    : m
+                ),
+                lastMessage: data.message.slice(0, 50),
+              }
+            : s
+        )
+      );
+
+    } catch (error) {
+      console.error('Chat error:', error);
+
+      // Update the message with error
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? {
+                ...s,
+                messages: s.messages.map((m) =>
+                  m.id === assistantMessageId
+                    ? {
+                        ...m,
+                        content: `❌ **Error:** ${error instanceof Error ? error.message : 'Something went wrong. Please try again.'}`,
+                        isStreaming: false,
+                      }
+                    : m
+                ),
+              }
+            : s
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [inputValue, activeSession, activeSessionId, isLoading, agent.id, settings.provider]);
 
   return (
     <EnhancedChatLayout

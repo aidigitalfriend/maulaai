@@ -76,11 +76,11 @@ I am Albert Einstein. Let us explore the mysteries of the universe together!
       'Problem Solving',
     ],
     aiProvider: {
-      primary: 'anthropic',
-      fallbacks: ['openai', 'mistral', 'xai'],
-      model: 'claude-3-5-sonnet-20241022',
+      primary: 'openai',
+      fallbacks: ['anthropic', 'mistral', 'gemini'],
+      model: 'gpt-4o',
       reasoning:
-        'Claude 3.5 Sonnet excels at deep analytical reasoning and scientific explanations',
+        'GPT-4o excels at precise scientific explanations, mathematical reasoning, and technical accuracy',
     },
   },
 
@@ -116,11 +116,11 @@ The Comedy King is in the house! Ready to turn that frown upside down?
       'Entertainment',
     ],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['openai', 'anthropic', 'xai'],
-      model: 'mistral-large-latest',
+      primary: 'xai',
+      fallbacks: ['openai', 'anthropic', 'mistral'],
+      model: 'grok-beta',
       reasoning:
-        'Mistral Large excels at creative, witty, and humorous content generation',
+        'Grok excels at humor, wit, and creative comedic content with a unique personality',
     },
   },
 
@@ -471,11 +471,11 @@ I'm Julie, your friendly AI companion! So happy to chat with you!
       'Fun Chat',
     ],
     aiProvider: {
-      primary: 'openai',
-      fallbacks: ['anthropic', 'xai', 'mistral'],
-      model: 'gpt-4o',
+      primary: 'anthropic',
+      fallbacks: ['openai', 'gemini', 'mistral'],
+      model: 'claude-3-5-sonnet-20241022',
       reasoning:
-        'GPT-4o excels at emotional intelligence, empathy, and natural conversational flow',
+        'Claude 3.5 Sonnet excels at emotional intelligence, empathy, and natural conversational flow for girlfriend-like interactions',
     },
   },
 
