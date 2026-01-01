@@ -716,7 +716,7 @@ export default function StatusPage() {
             </h3>
             {(() => {
               const items = data.agents
-                .map(a => ({ name: a.name, users: a.activeUsers }))
+                .map((a) => ({ name: a.name, users: a.activeUsers }))
                 .sort((a, b) => b.users - a.users)
                 .slice(0, 5);
               const max = Math.max(...items.map((i) => i.users), 1);
