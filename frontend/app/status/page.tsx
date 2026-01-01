@@ -715,7 +715,10 @@ export default function StatusPage() {
               Top Agents by Active Users
             </h3>
             {(() => {
-              const items = MOCK_TOP_AGENTS;
+              const items = data.agents
+                .map(a => ({ name: a.name, users: a.activeUsers }))
+                .sort((a, b) => b.users - a.users)
+                .slice(0, 5);
               const max = Math.max(...items.map((i) => i.users), 1);
               return (
                 <div className="space-y-3">

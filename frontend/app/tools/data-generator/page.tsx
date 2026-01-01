@@ -755,7 +755,8 @@ export default function DataGeneratorPage() {
                       Ready to Generate
                     </h3>
                     <p className="text-neural-500 text-sm max-w-sm">
-                      Select a template and click Generate to create your test data
+                      Select a template and click Generate to create your test
+                      data
                     </p>
                     <div className="mt-4 flex items-center gap-2 text-neural-600 text-xs font-mono">
                       <span className="text-green-500">$</span>
@@ -769,7 +770,10 @@ export default function DataGeneratorPage() {
                       <span className="text-green-400">→</span>
                       <span className="text-cyan-400">onelastai</span>
                       <span className="text-neural-600">$</span>
-                      <span className="text-neural-400">generate --template {selectedTemplate} --count {generatedData.length} --format {outputFormat}</span>
+                      <span className="text-neural-400">
+                        generate --template {selectedTemplate} --count{' '}
+                        {generatedData.length} --format {outputFormat}
+                      </span>
                     </div>
                     {/* Output */}
                     <pre className="text-sm font-mono text-neural-300 whitespace-pre leading-relaxed">
@@ -795,7 +799,8 @@ export default function DataGeneratorPage() {
                   {generatedData.length > 0 && (
                     <>
                       <span className="text-[10px] text-neural-500 font-mono">
-                        {(new Blob([formattedOutput]).size / 1024).toFixed(2)} KB
+                        {(new Blob([formattedOutput]).size / 1024).toFixed(2)}{' '}
+                        KB
                       </span>
                       <span className="flex items-center gap-1 text-[10px] text-green-400 font-mono">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
