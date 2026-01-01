@@ -427,149 +427,108 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Populate Database Service Section */}
+      {/* AI Data Generator Section */}
       <section className="section-padding bg-white">
         <div className="container-custom">
-          <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
-                />
-              </svg>
-              Database Services
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Populate Your Database with Quality Data
-            </h2>
-            <p className="text-xl text-neural-600 max-w-3xl mx-auto">
-              Need realistic test data or want to bootstrap your application?
-              Our AI-powered database population service creates structured,
-              meaningful data tailored to your schema.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {[
-              {
-                icon: '🎯',
-                title: 'Schema-Aware Generation',
-                description:
-                  'Our AI understands your database schema and generates data that respects relationships, constraints, and data types.',
-              },
-              {
-                icon: '⚡',
-                title: 'Bulk Data Creation',
-                description:
-                  'Generate thousands of records in seconds. Perfect for load testing, demos, and development environments.',
-              },
-              {
-                icon: '🔒',
-                title: 'Secure & Private',
-                description:
-                  'All generated data stays within your environment. No sensitive information leaves your infrastructure.',
-              },
-              {
-                icon: '🧠',
-                title: 'Smart Relationships',
-                description:
-                  'Automatically handles foreign keys, many-to-many relationships, and cascading data dependencies.',
-              },
-              {
-                icon: '📊',
-                title: 'Realistic Patterns',
-                description:
-                  'Generate data with realistic distributions, dates, names, addresses, and industry-specific content.',
-              },
-              {
-                icon: '🔄',
-                title: 'Repeatable Seeds',
-                description:
-                  'Use seed values for reproducible data generation. Perfect for consistent testing environments.',
-              },
-            ].map((feature, idx) => (
-              <div
-                key={idx}
-                className="p-6 bg-neural-50 rounded-xl hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-neural-200"
-              >
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
-                <p className="text-neural-600 text-sm">{feature.description}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                  />
+                </svg>
+                AI Data Generator
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Generate Test Data in Seconds
+              </h2>
+              <p className="text-lg text-neural-600 mb-6">
+                Create realistic test data for your applications instantly. 
+                Choose from pre-built templates or customize your own schema.
+              </p>
+              
+              {/* Feature Pills */}
+              <div className="flex flex-wrap gap-3 mb-8">
+                {['👤 Users', '🛒 Products', '📝 Posts', '📊 Analytics', '💬 Comments', '📧 Emails'].map((item) => (
+                  <span key={item} className="px-3 py-1.5 bg-neural-100 rounded-full text-sm text-neural-700">
+                    {item}
+                  </span>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 md:p-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-4">
-                  Ready to Populate Your Database?
-                </h3>
-                <p className="text-neural-600 mb-6">
-                  Whether you&apos;re building a new application, setting up a
-                  test environment, or need realistic demo data, we&apos;ve got
-                  you covered.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <Link
-                    href="/contact"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  href="/tools/data-generator"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Generate Data
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Get Started
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      />
-                    </svg>
-                  </Link>
-                  <Link
-                    href="/docs"
-                    className="inline-flex items-center gap-2 px-6 py-3 border border-green-600 text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors"
-                  >
-                    Learn More
-                  </Link>
-                </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Link>
+                <Link
+                  href="/docs"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-green-600 text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  Learn More
+                </Link>
               </div>
-              <div className="bg-white rounded-xl p-6 shadow-lg">
-                <div className="text-sm font-mono text-neural-600 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>MongoDB, PostgreSQL, MySQL supported</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>JSON, CSV, SQL export formats</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>Custom data templates</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>API integration available</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    <span>GDPR-compliant fake data</span>
-                  </div>
+            </div>
+
+            {/* Right - Interactive Preview */}
+            <div className="bg-gradient-to-br from-neural-900 to-neural-800 rounded-2xl p-6 shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
+                <span className="text-xs text-neural-400">data-generator.json</span>
+              </div>
+              <pre className="text-sm font-mono text-neural-300 overflow-hidden">
+                <code>{`{
+  "users": [
+    {
+      "id": "usr_a1b2c3",
+      "name": "Sarah Johnson",
+      "email": "sarah.j@example.com",
+      "role": "admin",
+      "created": "2026-01-02"
+    },
+    {
+      "id": "usr_d4e5f6", 
+      "name": "Mike Chen",
+      "email": "mike.c@example.com",
+      "role": "user",
+      "created": "2026-01-01"
+    }
+  ]
+}`}</code>
+              </pre>
+              <div className="mt-4 pt-4 border-t border-neural-700 flex items-center justify-between">
+                <span className="text-xs text-neural-400">2 records generated</span>
+                <span className="text-xs text-green-400">✓ Ready to export</span>
               </div>
             </div>
           </div>
