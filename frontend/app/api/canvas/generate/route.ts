@@ -33,9 +33,37 @@ async function generateWithGroq(
 ) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      'Groq API key not configured. Please add GROQ_API_KEY to your environment.'
-    );
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - Groq API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-orange-100">
+                    <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Groq API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your Groq API key to generate code with fast inference models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   }
 
   const groq = new OpenAI({
@@ -86,9 +114,37 @@ async function generateWithMistral(
 ) {
   const apiKey = process.env.MISTRAL_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      'Mistral API key not configured. Please add MISTRAL_API_KEY to your environment.'
-    );
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - Mistral API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100">
+                    <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Mistral API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your Mistral API key to generate code with Mistral models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   }
 
   const mistral = new OpenAI({
@@ -139,9 +195,37 @@ async function generateWithCohere(
 ) {
   const apiKey = process.env.COHERE_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      'Cohere API key not configured. Please add COHERE_API_KEY to your environment.'
-    );
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - Cohere API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100">
+                    <svg class="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Cohere API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your Cohere API key to generate code with Cohere models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   }
 
   // Map model IDs to Cohere models
@@ -206,9 +290,37 @@ async function generateWithXAI(
 ) {
   const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      'xAI API key not configured. Please add XAI_API_KEY to your environment.'
-    );
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - xAI API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-black">
+                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">xAI API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your xAI API key to generate code with Grok models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   }
 
   const xai = new OpenAI({
@@ -260,7 +372,39 @@ async function generateWithGemini(
   history?: { role: string; text: string }[]
 ) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) throw new Error('Gemini API key not configured');
+  if (!apiKey) {
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - Gemini API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                    <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Gemini API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your Gemini API key to generate code with Google models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+  }
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const contents: { role: string; parts: { text: string }[] }[] = [];
@@ -311,9 +455,37 @@ async function generateWithOpenAI(
 ) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.includes('placeholder')) {
-    throw new Error(
-      'OpenAI API key not configured. Please add a valid OPENAI_API_KEY to your environment.'
-    );
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - OpenAI API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">OpenAI API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your OpenAI API key to generate code with GPT models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   }
 
   const openai = new OpenAI({ apiKey });
@@ -361,9 +533,37 @@ async function generateWithAnthropic(
 ) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      'Anthropic API key not configured. Please add ANTHROPIC_API_KEY to your environment.'
-    );
+    // Return a mock response when API key is not configured
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - Anthropic API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+                    <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Anthropic API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your Anthropic API key to generate code with Claude models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   }
 
   const anthropic = new Anthropic({ apiKey });

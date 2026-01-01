@@ -106,7 +106,43 @@ async function streamWithGemini(
   history?: { role: string; text: string }[]
 ) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) throw new Error('Gemini API key not configured');
+  if (!apiKey) {
+    // Return a mock response when API key is not configured
+    const mockCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                    <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    The canvas app requires API keys to generate code. Please configure your AI provider API keys.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ chunk: mockCode })}\n\n`)
+    );
+    return;
+  }
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const contents: { role: string; parts: { text: string }[] }[] = [];
@@ -167,7 +203,41 @@ async function streamWithOpenAI(
 ) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.includes('placeholder')) {
-    throw new Error('OpenAI API key not configured');
+    // Return a mock response when API key is not configured
+    const mockCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - OpenAI API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">OpenAI API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your OpenAI API key to generate code with GPT models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ chunk: mockCode })}\n\n`)
+    );
+    return;
   }
 
   const openai = new OpenAI({ apiKey });
@@ -225,7 +295,41 @@ async function streamWithAnthropic(
 ) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    throw new Error('Anthropic API key not configured');
+    // Return a mock response when API key is not configured
+    const mockCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated App - Anthropic API Key Not Configured</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+                    <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Anthropic API Key Required</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Configure your Anthropic API key to generate code with Claude models.
+                </p>
+                <div class="mt-4 text-xs text-gray-400">
+                    Prompt: ${prompt}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ chunk: mockCode })}\n\n`)
+    );
+    return;
   }
 
   const anthropic = new Anthropic({ apiKey });
