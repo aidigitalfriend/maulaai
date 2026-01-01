@@ -92,7 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Skip authentication for public tools like canvas app
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/canvas-app')) {
+    if (
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/canvas-app')
+    ) {
       console.log('📱 Canvas app - skipping authentication');
       return;
     }

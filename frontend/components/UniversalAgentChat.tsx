@@ -291,10 +291,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     setIsLoading(true);
 
     const conversationHistory = activeSession.messages
-      .filter(m => m.role !== 'assistant' || !m.isStreaming) // Exclude streaming messages
+      .filter((m) => m.role !== 'assistant' || !m.isStreaming) // Exclude streaming messages
       .map((m) => ({
         role: m.role,
-        content: m.content
+        content: m.content,
       }));
 
     const assistantMessageId = `asst-${Date.now()}`;
@@ -330,7 +330,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           message: userInput,
           conversationHistory,
           agentId: agent.id,
-          provider: settings.provider
+          provider: settings.provider,
         }),
       });
 
@@ -360,7 +360,6 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             : s
         )
       );
-
     } catch (error) {
       console.error('Chat error:', error);
 
@@ -386,7 +385,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, activeSession, activeSessionId, isLoading, agent.id, settings.provider]);
+  }, [
+    inputValue,
+    activeSession,
+    activeSessionId,
+    isLoading,
+    agent.id,
+    settings.provider,
+  ]);
 
   return (
     <EnhancedChatLayout
