@@ -454,14 +454,24 @@ export default function HomePage() {
                 Generate Test Data in Seconds
               </h2>
               <p className="text-lg text-neural-600 mb-6">
-                Create realistic test data for your applications instantly. 
+                Create realistic test data for your applications instantly.
                 Choose from pre-built templates or customize your own schema.
               </p>
-              
+
               {/* Feature Pills */}
               <div className="flex flex-wrap gap-3 mb-8">
-                {['👤 Users', '🛒 Products', '📝 Posts', '📊 Analytics', '💬 Comments', '📧 Emails'].map((item) => (
-                  <span key={item} className="px-3 py-1.5 bg-neural-100 rounded-full text-sm text-neural-700">
+                {[
+                  '👤 Users',
+                  '🛒 Products',
+                  '📝 Posts',
+                  '📊 Analytics',
+                  '💬 Comments',
+                  '📧 Emails',
+                ].map((item) => (
+                  <span
+                    key={item}
+                    className="px-3 py-1.5 bg-neural-100 rounded-full text-sm text-neural-700"
+                  >
                     {item}
                   </span>
                 ))}
@@ -504,7 +514,9 @@ export default function HomePage() {
                   <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                   <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
-                <span className="text-xs text-neural-400">data-generator.json</span>
+                <span className="text-xs text-neural-400">
+                  data-generator.json
+                </span>
               </div>
               <pre className="text-sm font-mono text-neural-300 overflow-hidden">
                 <code>{`{
@@ -527,8 +539,12 @@ export default function HomePage() {
 }`}</code>
               </pre>
               <div className="mt-4 pt-4 border-t border-neural-700 flex items-center justify-between">
-                <span className="text-xs text-neural-400">2 records generated</span>
-                <span className="text-xs text-green-400">✓ Ready to export</span>
+                <span className="text-xs text-neural-400">
+                  2 records generated
+                </span>
+                <span className="text-xs text-green-400">
+                  ✓ Ready to export
+                </span>
               </div>
             </div>
           </div>

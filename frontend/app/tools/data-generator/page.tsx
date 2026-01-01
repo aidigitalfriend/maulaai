@@ -107,25 +107,173 @@ const templates = [
 ];
 
 // Data generation functions
-const firstNames = ['James', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Daniel', 'Ashley', 'Matthew', 'Amanda', 'Andrew', 'Stephanie', 'Joshua', 'Nicole', 'Christopher', 'Elizabeth', 'Brandon', 'Samantha', 'Ryan', 'Katherine'];
-const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
-const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'company.com', 'business.org', 'example.com'];
+const firstNames = [
+  'James',
+  'Sarah',
+  'Michael',
+  'Emily',
+  'David',
+  'Jessica',
+  'Daniel',
+  'Ashley',
+  'Matthew',
+  'Amanda',
+  'Andrew',
+  'Stephanie',
+  'Joshua',
+  'Nicole',
+  'Christopher',
+  'Elizabeth',
+  'Brandon',
+  'Samantha',
+  'Ryan',
+  'Katherine',
+];
+const lastNames = [
+  'Smith',
+  'Johnson',
+  'Williams',
+  'Brown',
+  'Jones',
+  'Garcia',
+  'Miller',
+  'Davis',
+  'Rodriguez',
+  'Martinez',
+  'Hernandez',
+  'Lopez',
+  'Gonzalez',
+  'Wilson',
+  'Anderson',
+  'Thomas',
+  'Taylor',
+  'Moore',
+  'Jackson',
+  'Martin',
+];
+const domains = [
+  'gmail.com',
+  'yahoo.com',
+  'outlook.com',
+  'company.com',
+  'business.org',
+  'example.com',
+];
 const roles = ['admin', 'user', 'moderator', 'editor', 'viewer'];
-const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books', 'Toys', 'Beauty', 'Automotive'];
-const productAdjectives = ['Premium', 'Professional', 'Ultra', 'Smart', 'Classic', 'Modern', 'Deluxe', 'Essential'];
-const productNouns = ['Widget', 'Gadget', 'Device', 'Kit', 'Set', 'Bundle', 'System', 'Tool'];
-const blogTitles = ['Getting Started with', 'The Ultimate Guide to', 'How to Master', '10 Tips for', 'Understanding', 'Best Practices for', 'Introduction to', 'Advanced Techniques in'];
-const topics = ['AI Development', 'Web Design', 'Data Science', 'Cloud Computing', 'Mobile Apps', 'DevOps', 'Machine Learning', 'Cybersecurity'];
-const eventTypes = ['page_view', 'button_click', 'form_submit', 'purchase', 'signup', 'login', 'search', 'share'];
-const industries = ['Technology', 'Healthcare', 'Finance', 'Education', 'Retail', 'Manufacturing', 'Media', 'Consulting'];
-const companySizes = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'];
-const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'];
+const categories = [
+  'Electronics',
+  'Clothing',
+  'Home & Garden',
+  'Sports',
+  'Books',
+  'Toys',
+  'Beauty',
+  'Automotive',
+];
+const productAdjectives = [
+  'Premium',
+  'Professional',
+  'Ultra',
+  'Smart',
+  'Classic',
+  'Modern',
+  'Deluxe',
+  'Essential',
+];
+const productNouns = [
+  'Widget',
+  'Gadget',
+  'Device',
+  'Kit',
+  'Set',
+  'Bundle',
+  'System',
+  'Tool',
+];
+const blogTitles = [
+  'Getting Started with',
+  'The Ultimate Guide to',
+  'How to Master',
+  '10 Tips for',
+  'Understanding',
+  'Best Practices for',
+  'Introduction to',
+  'Advanced Techniques in',
+];
+const topics = [
+  'AI Development',
+  'Web Design',
+  'Data Science',
+  'Cloud Computing',
+  'Mobile Apps',
+  'DevOps',
+  'Machine Learning',
+  'Cybersecurity',
+];
+const eventTypes = [
+  'page_view',
+  'button_click',
+  'form_submit',
+  'purchase',
+  'signup',
+  'login',
+  'search',
+  'share',
+];
+const industries = [
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Retail',
+  'Manufacturing',
+  'Media',
+  'Consulting',
+];
+const companySizes = [
+  '1-10',
+  '11-50',
+  '51-200',
+  '201-500',
+  '501-1000',
+  '1000+',
+];
+const cities = [
+  'New York',
+  'Los Angeles',
+  'Chicago',
+  'Houston',
+  'Phoenix',
+  'Philadelphia',
+  'San Antonio',
+  'San Diego',
+  'Dallas',
+  'San Jose',
+];
 const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'];
-const countries = ['USA', 'Canada', 'UK', 'Germany', 'France', 'Australia', 'Japan', 'Brazil'];
+const countries = [
+  'USA',
+  'Canada',
+  'UK',
+  'Germany',
+  'France',
+  'Australia',
+  'Japan',
+  'Brazil',
+];
 const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
 const transactionStatuses = ['completed', 'pending', 'failed', 'refunded'];
 const ratings = [1, 2, 3, 4, 5];
-const tags = ['technology', 'business', 'lifestyle', 'tutorial', 'news', 'review', 'guide', 'tips'];
+const tags = [
+  'technology',
+  'business',
+  'lifestyle',
+  'tutorial',
+  'news',
+  'review',
+  'guide',
+  'tips',
+];
 
 function randomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -136,7 +284,9 @@ function randomId(prefix: string): string {
 }
 
 function randomDate(start: Date, end: Date): string {
-  const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  const date = new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  );
   return date.toISOString().split('T')[0];
 }
 
@@ -145,9 +295,16 @@ function randomEmail(name: string): string {
   return `${cleanName}@${randomItem(domains)}`;
 }
 
-function generateRecord(templateId: string, index: number): Record<string, any> {
+function generateRecord(
+  templateId: string,
+  index: number
+): Record<string, any> {
   const now = new Date();
-  const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+  const yearAgo = new Date(
+    now.getFullYear() - 1,
+    now.getMonth(),
+    now.getDate()
+  );
 
   switch (templateId) {
     case 'users': {
@@ -178,7 +335,9 @@ function generateRecord(templateId: string, index: number): Record<string, any> 
         title: `${randomItem(blogTitles)} ${randomItem(topics)}`,
         content: `This comprehensive article covers everything you need to know about ${randomItem(topics).toLowerCase()}. Learn the best practices and tips from industry experts.`,
         author: `${randomItem(firstNames)} ${randomItem(lastNames)}`,
-        tags: [randomItem(tags), randomItem(tags), randomItem(tags)].filter((v, i, a) => a.indexOf(v) === i),
+        tags: [randomItem(tags), randomItem(tags), randomItem(tags)].filter(
+          (v, i, a) => a.indexOf(v) === i
+        ),
         publishedAt: randomDate(yearAgo, now),
       };
     case 'analytics':
@@ -186,8 +345,14 @@ function generateRecord(templateId: string, index: number): Record<string, any> 
         id: randomId('evt'),
         event: randomItem(eventTypes),
         userId: randomId('usr'),
-        metadata: { source: randomItem(['web', 'mobile', 'api']), version: '2.0' },
-        timestamp: new Date(yearAgo.getTime() + Math.random() * (now.getTime() - yearAgo.getTime())).toISOString(),
+        metadata: {
+          source: randomItem(['web', 'mobile', 'api']),
+          version: '2.0',
+        },
+        timestamp: new Date(
+          yearAgo.getTime() +
+            Math.random() * (now.getTime() - yearAgo.getTime())
+        ).toISOString(),
       };
     case 'comments':
       return {
@@ -237,8 +402,12 @@ function generateRecord(templateId: string, index: number): Record<string, any> 
         createdAt: randomDate(yearAgo, now),
       };
     case 'events':
-      const startDate = new Date(now.getTime() + Math.random() * 90 * 24 * 60 * 60 * 1000);
-      const endDate = new Date(startDate.getTime() + Math.random() * 4 * 60 * 60 * 1000);
+      const startDate = new Date(
+        now.getTime() + Math.random() * 90 * 24 * 60 * 60 * 1000
+      );
+      const endDate = new Date(
+        startDate.getTime() + Math.random() * 4 * 60 * 60 * 1000
+      );
       return {
         id: randomId('event'),
         title: `${randomItem(['Annual', 'Weekly', 'Monthly', 'Special'])} ${randomItem(['Meeting', 'Conference', 'Workshop', 'Webinar', 'Summit'])}`,
@@ -259,13 +428,16 @@ function generateData(templateId: string, count: number): any[] {
 function convertToCSV(data: any[]): string {
   if (data.length === 0) return '';
   const headers = Object.keys(data[0]);
-  const rows = data.map(row => 
-    headers.map(header => {
-      const value = row[header];
-      if (typeof value === 'object') return JSON.stringify(value);
-      if (typeof value === 'string' && value.includes(',')) return `"${value}"`;
-      return value;
-    }).join(',')
+  const rows = data.map((row) =>
+    headers
+      .map((header) => {
+        const value = row[header];
+        if (typeof value === 'object') return JSON.stringify(value);
+        if (typeof value === 'string' && value.includes(','))
+          return `"${value}"`;
+        return value;
+      })
+      .join(',')
   );
   return [headers.join(','), ...rows].join('\n');
 }
@@ -273,13 +445,14 @@ function convertToCSV(data: any[]): string {
 function convertToSQL(data: any[], tableName: string): string {
   if (data.length === 0) return '';
   const columns = Object.keys(data[0]);
-  const values = data.map(row => {
-    const vals = columns.map(col => {
+  const values = data.map((row) => {
+    const vals = columns.map((col) => {
       const val = row[col];
       if (val === null || val === undefined) return 'NULL';
       if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
       if (typeof val === 'number') return val;
-      if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
+      if (typeof val === 'object')
+        return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
       return `'${String(val).replace(/'/g, "''")}'`;
     });
     return `(${vals.join(', ')})`;
@@ -290,19 +463,21 @@ function convertToSQL(data: any[], tableName: string): string {
 export default function DataGeneratorPage() {
   const [selectedTemplate, setSelectedTemplate] = useState('users');
   const [recordCount, setRecordCount] = useState(10);
-  const [outputFormat, setOutputFormat] = useState<'json' | 'csv' | 'sql'>('json');
+  const [outputFormat, setOutputFormat] = useState<'json' | 'csv' | 'sql'>(
+    'json'
+  );
   const [generatedData, setGeneratedData] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [seed, setSeed] = useState('');
 
-  const currentTemplate = templates.find(t => t.id === selectedTemplate)!;
+  const currentTemplate = templates.find((t) => t.id === selectedTemplate)!;
 
   const handleGenerate = () => {
     if (seed) {
       // Simple seeded random (not cryptographically secure, but reproducible)
       let seedNum = 0;
       for (let i = 0; i < seed.length; i++) {
-        seedNum = ((seedNum << 5) - seedNum) + seed.charCodeAt(i);
+        seedNum = (seedNum << 5) - seedNum + seed.charCodeAt(i);
         seedNum = seedNum & seedNum;
       }
       // Reset Math.random isn't possible, but we simulate by using seed in generation
@@ -334,7 +509,11 @@ export default function DataGeneratorPage() {
 
   const handleDownload = () => {
     const extensions = { json: 'json', csv: 'csv', sql: 'sql' };
-    const mimeTypes = { json: 'application/json', csv: 'text/csv', sql: 'text/plain' };
+    const mimeTypes = {
+      json: 'application/json',
+      csv: 'text/csv',
+      sql: 'text/plain',
+    };
     const blob = new Blob([formattedOutput], { type: mimeTypes[outputFormat] });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -356,13 +535,18 @@ export default function DataGeneratorPage() {
               <Database className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">AI Data Generator</h1>
-              <p className="text-neural-400">Generate realistic test data in seconds</p>
+              <h1 className="text-3xl font-bold text-white">
+                AI Data Generator
+              </h1>
+              <p className="text-neural-400">
+                Generate realistic test data in seconds
+              </p>
             </div>
           </div>
           <p className="text-neural-300 max-w-2xl">
-            Choose a template, set the number of records, and generate realistic test data for your 
-            databases, APIs, and applications. Export as JSON, CSV, or SQL.
+            Choose a template, set the number of records, and generate realistic
+            test data for your databases, APIs, and applications. Export as
+            JSON, CSV, or SQL.
           </p>
         </div>
       </section>
@@ -387,11 +571,15 @@ export default function DataGeneratorPage() {
                       onClick={() => setSelectedTemplate(template.id)}
                       className={`p-3 rounded-xl text-left transition-all ${
                         isSelected
-                          ? 'bg-gradient-to-br ' + template.color + ' text-white shadow-lg'
+                          ? 'bg-gradient-to-br ' +
+                            template.color +
+                            ' text-white shadow-lg'
                           : 'bg-neural-700/50 text-neural-300 hover:bg-neural-700'
                       }`}
                     >
-                      <Icon className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-neural-400'}`} />
+                      <Icon
+                        className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-neural-400'}`}
+                      />
                       <div className="text-sm font-medium">{template.name}</div>
                     </button>
                   );
@@ -409,8 +597,12 @@ export default function DataGeneratorPage() {
               {/* Record Count Slider */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm text-neural-300">Number of Records</label>
-                  <span className="text-sm font-mono text-green-400">{recordCount}</span>
+                  <label className="text-sm text-neural-300">
+                    Number of Records
+                  </label>
+                  <span className="text-sm font-mono text-green-400">
+                    {recordCount}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -446,7 +638,9 @@ export default function DataGeneratorPage() {
 
               {/* Output Format */}
               <div className="mb-6">
-                <label className="text-sm text-neural-300 block mb-2">Output Format</label>
+                <label className="text-sm text-neural-300 block mb-2">
+                  Output Format
+                </label>
                 <div className="flex gap-2">
                   {(['json', 'csv', 'sql'] as const).map((format) => (
                     <button
@@ -506,36 +700,43 @@ export default function DataGeneratorPage() {
             </div>
           </div>
 
-          {/* Right Panel - Output */}
+          {/* Right Panel - Terminal Output */}
           <div className="lg:col-span-2">
-            <div className="bg-neural-800/50 rounded-2xl border border-neural-700 overflow-hidden h-full flex flex-col">
-              {/* Output Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-neural-700">
+            <div className="bg-[#1a1b26] rounded-xl border border-neural-700 overflow-hidden shadow-2xl shadow-black/50">
+              {/* Terminal Title Bar */}
+              <div className="flex items-center justify-between px-4 py-3 bg-[#24283b] border-b border-neural-700/50">
                 <div className="flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56] shadow-inner"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e] shadow-inner"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#27ca3f] shadow-inner"></div>
                   </div>
-                  <span className="text-sm text-neural-400 font-mono">
-                    {selectedTemplate}-data.{outputFormat}
-                  </span>
+                  <div className="flex items-center gap-2 ml-4">
+                    <Hash className="w-3.5 h-3.5 text-neural-500" />
+                    <span className="text-xs text-neural-400 font-mono">
+                      {selectedTemplate}-data.{outputFormat}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {generatedData.length > 0 && (
                     <>
                       <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neural-700 hover:bg-neural-600 rounded-lg text-sm text-neural-300 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neural-700/50 hover:bg-neural-600 rounded-md text-xs text-neural-300 transition-colors border border-neural-600/50"
                       >
-                        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                        {copied ? (
+                          <Check className="w-3.5 h-3.5 text-green-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
                         {copied ? 'Copied!' : 'Copy'}
                       </button>
                       <button
                         onClick={handleDownload}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neural-700 hover:bg-neural-600 rounded-lg text-sm text-neural-300 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neural-700/50 hover:bg-neural-600 rounded-md text-xs text-neural-300 transition-colors border border-neural-600/50"
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-3.5 h-3.5" />
                         Download
                       </button>
                     </>
@@ -543,35 +744,67 @@ export default function DataGeneratorPage() {
                 </div>
               </div>
 
-              {/* Output Content */}
-              <div className="flex-1 p-6 overflow-auto">
+              {/* Terminal Content - Fixed Height with Scroll */}
+              <div className="h-[500px] overflow-y-auto bg-[#1a1b26] custom-scrollbar">
                 {generatedData.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center">
-                    <Database className="w-16 h-16 text-neural-600 mb-4" />
-                    <h3 className="text-xl font-semibold text-neural-400 mb-2">
-                      No Data Generated Yet
+                  <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                    <div className="w-16 h-16 rounded-full bg-neural-800 flex items-center justify-center mb-4">
+                      <Database className="w-8 h-8 text-neural-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-neural-400 mb-2">
+                      Ready to Generate
                     </h3>
-                    <p className="text-neural-500 max-w-md">
-                      Select a template, choose the number of records, and click 
-                      &quot;Generate&quot; to create your test data.
+                    <p className="text-neural-500 text-sm max-w-sm">
+                      Select a template and click Generate to create your test data
                     </p>
+                    <div className="mt-4 flex items-center gap-2 text-neural-600 text-xs font-mono">
+                      <span className="text-green-500">$</span>
+                      <span className="animate-pulse">awaiting command...</span>
+                    </div>
                   </div>
                 ) : (
-                  <pre className="text-sm font-mono text-neural-300 whitespace-pre-wrap break-words">
-                    <code>{formattedOutput}</code>
-                  </pre>
+                  <div className="p-4">
+                    {/* Terminal prompt line */}
+                    <div className="flex items-center gap-2 text-xs font-mono mb-3 text-neural-500">
+                      <span className="text-green-400">→</span>
+                      <span className="text-cyan-400">onelastai</span>
+                      <span className="text-neural-600">$</span>
+                      <span className="text-neural-400">generate --template {selectedTemplate} --count {generatedData.length} --format {outputFormat}</span>
+                    </div>
+                    {/* Output */}
+                    <pre className="text-sm font-mono text-neural-300 whitespace-pre leading-relaxed">
+                      <code className="block">{formattedOutput}</code>
+                    </pre>
+                  </div>
                 )}
               </div>
 
-              {/* Output Footer */}
-              {generatedData.length > 0 && (
-                <div className="px-6 py-3 border-t border-neural-700 flex items-center justify-between">
-                  <span className="text-xs text-neural-500">
-                    {generatedData.length} records • {(new Blob([formattedOutput]).size / 1024).toFixed(2)} KB
+              {/* Terminal Status Bar */}
+              <div className="px-4 py-2 bg-[#24283b] border-t border-neural-700/50 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-[10px] text-neural-500 font-mono uppercase tracking-wider">
+                    {generatedData.length > 0 ? 'OUTPUT' : 'IDLE'}
                   </span>
-                  <span className="text-xs text-green-400">✓ Ready to export</span>
+                  {generatedData.length > 0 && (
+                    <span className="text-[10px] text-neural-500 font-mono">
+                      {generatedData.length} records
+                    </span>
+                  )}
                 </div>
-              )}
+                <div className="flex items-center gap-4">
+                  {generatedData.length > 0 && (
+                    <>
+                      <span className="text-[10px] text-neural-500 font-mono">
+                        {(new Blob([formattedOutput]).size / 1024).toFixed(2)} KB
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] text-green-400 font-mono">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                        Ready
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -588,17 +821,20 @@ export default function DataGeneratorPage() {
               {
                 icon: '⚡',
                 title: 'Instant Generation',
-                description: 'Generate up to 1000 records in seconds with realistic, varied data.',
+                description:
+                  'Generate up to 1000 records in seconds with realistic, varied data.',
               },
               {
                 icon: '🎯',
                 title: 'Multiple Formats',
-                description: 'Export as JSON, CSV, or SQL - ready for any database or application.',
+                description:
+                  'Export as JSON, CSV, or SQL - ready for any database or application.',
               },
               {
                 icon: '🔒',
                 title: 'Privacy First',
-                description: 'All data is generated client-side. Nothing is sent to any server.',
+                description:
+                  'All data is generated client-side. Nothing is sent to any server.',
               },
             ].map((feature, idx) => (
               <div
@@ -606,7 +842,9 @@ export default function DataGeneratorPage() {
                 className="p-6 bg-neural-800/30 rounded-xl border border-neural-700"
               >
                 <div className="text-3xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {feature.title}
+                </h3>
                 <p className="text-neural-400 text-sm">{feature.description}</p>
               </div>
             ))}
