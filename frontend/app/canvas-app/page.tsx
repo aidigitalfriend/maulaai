@@ -752,32 +752,11 @@ export default function CanvasAppPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 overflow-hidden flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              <span className="text-sm font-medium">Back</span>
-            </Link>
-            <div className="h-6 w-px bg-gray-300"></div>
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
                 <svg
@@ -986,9 +965,33 @@ export default function CanvasAppPage() {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-73px)]">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left Vertical Nav Bar */}
-        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center py-6 gap-6 shrink-0">
+        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center py-4 gap-4 shrink-0 border-r border-gray-700">
+          {/* Home Icon */}
+          <Link
+            href="/"
+            className="p-3 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/5"
+            title="Home"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+          </Link>
+
+          <div className="w-8 h-px bg-gray-600"></div>
+
           <button
             onClick={() => togglePanel('workspace')}
             className={`p-3 rounded-xl transition-all ${
@@ -1095,9 +1098,7 @@ export default function CanvasAppPage() {
             </svg>
           </button>
 
-          <div className="mt-auto">
-            <div className="w-2 h-2 rounded-full bg-green-500 mx-auto animate-pulse shadow-sm shadow-green-500/50"></div>
-          </div>
+
         </nav>
 
         {/* Main Content Area */}
@@ -1564,21 +1565,7 @@ export default function CanvasAppPage() {
         </div>
       )}
 
-      {/* Status Indicator */}
-      <div className="fixed bottom-4 left-20 z-40">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 backdrop-blur-sm rounded-full border border-gray-100 shadow-sm">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              genState.isGenerating
-                ? 'bg-indigo-500 animate-pulse'
-                : 'bg-green-500'
-            }`}
-          ></div>
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-            Canvas Builder Active
-          </span>
-        </div>
-      </div>
+
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
