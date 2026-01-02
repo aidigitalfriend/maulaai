@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BlogPost } from '@/app/constants';
 
 const BlogPage: React.FC = () => {
   const router = useRouter();
   const [selectedYear, setSelectedYear] = useState<number>(1936);
-  const [blogContent, setBlogContent] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to content on mobile when year changes
@@ -16,29 +14,6 @@ const BlogPage: React.FC = () => {
     if (contentRef.current && window.innerWidth < 1024) {
       contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [selectedYear]);
-
-  // Load content dynamically when year changes
-  useEffect(() => {
-    const loadContent = async () => {
-      setLoading(true);
-      try {
-        const contentModule = await import(`./content/${selectedYear}.ts`);
-        setBlogContent(contentModule.default);
-      } catch (error) {
-        console.error(
-          `Failed to load content for year ${selectedYear}:`,
-          error
-        );
-        setBlogContent(
-          '<div class="text-center text-gray-500">Content not available for this year.</div>'
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadContent();
   }, [selectedYear]);
 
   // Function to determine the era based on year
@@ -68,8 +43,8 @@ const BlogPage: React.FC = () => {
     return { name: 'Modern', color: 'bg-teal-500', icon: '🤖' };
   };
 
-  // Sample blog posts metadata - content loaded dynamically
-  const blogPosts: { [key: number]: Omit<BlogPost, 'content'> } = {
+  // Blog posts with full content embedded
+  const blogPosts: { [key: number]: BlogPost } = {
     1936: {
       id: 0,
       year: 1936,
@@ -15714,10 +15689,8 @@ const BlogPage: React.FC = () => {
   const getPostByYear = (year: number) => {
     const post = blogPosts[year];
     if (post) {
-      return {
-        ...post,
-        content: blogContent,
-      };
+      // Return post with its embedded content (not dynamic content)
+      return post;
     }
 
     // Check misplaced entries (string years like '1999-2000')
@@ -15729,7 +15702,7 @@ const BlogPage: React.FC = () => {
       const yearRange = entry.year as unknown as string;
       const [startYear] = yearRange.split('-').map((y: string) => parseInt(y));
       if (startYear === year) {
-        return { ...entry, year: year, content: blogContent };
+        return { ...entry, year: year };
       }
     }
 
@@ -15737,7 +15710,7 @@ const BlogPage: React.FC = () => {
     const allEntries = Object.values(blogPosts);
     for (const entry of allEntries) {
       if (typeof entry.year === 'number' && entry.year === year) {
-        return { ...entry, content: blogContent };
+        return entry;
       }
     }
 
