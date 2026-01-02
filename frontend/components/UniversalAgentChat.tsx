@@ -429,7 +429,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
                     : isNeural
-                      ? 'bg-gray-800/90 border border-gray-700 text-gray-100'
+                      ? 'bg-gray-800/90 border border-gray-700 text-gray-50'
                       : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
@@ -533,7 +533,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 </div>
                 <div
                   className={`text-xs mt-2 ${
-                    message.role === 'user' ? 'text-white/60' : 'text-gray-400'
+                    message.role === 'user' ? 'text-white/60' : isNeural ? 'text-gray-300' : 'text-gray-400'
                   }`}
                 >
                   {message.timestamp.toLocaleTimeString([], {
@@ -544,7 +544,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
                 {message.role === 'assistant' && (
                   <div
-                    className={`flex items-center space-x-1 mt-2 pt-2 border-t ${isNeural ? 'border-gray-700' : 'border-gray-100'}`}
+                    className={`flex items-center space-x-1 mt-2 pt-2 border-t ${isNeural ? 'border-gray-600' : 'border-gray-100'}`}
                   >
                     <button
                       onClick={() => handleFeedback(message.id, 'up')}
@@ -552,7 +552,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         messageFeedback[message.id] === 'up'
                           ? 'bg-green-100 text-green-600'
                           : isNeural
-                            ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
                             : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title="Good response"
@@ -565,7 +565,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         messageFeedback[message.id] === 'down'
                           ? 'bg-red-100 text-red-600'
                           : isNeural
-                            ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
                             : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title="Poor response"
@@ -573,7 +573,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       <HandThumbDownIcon className="w-4 h-4" />
                     </button>
                     <div
-                      className={`w-px h-4 mx-1 ${isNeural ? 'bg-gray-700' : 'bg-gray-200'}`}
+                      className={`w-px h-4 mx-1 ${isNeural ? 'bg-gray-600' : 'bg-gray-200'}`}
                     />
                     <button
                       onClick={() =>
@@ -583,7 +583,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         copiedMessageId === message.id
                           ? 'bg-indigo-100 text-indigo-600'
                           : isNeural
-                            ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
                             : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title={
@@ -596,14 +596,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     </button>
                     <button
                       onClick={() => handleShareMessage(message.content)}
-                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
+                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                       title="Share message"
                     >
                       <ShareIcon className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleListenMessage(message.content)}
-                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
+                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                       title="Listen to message"
                     >
                       <SpeakerWaveIcon className="w-4 h-4" />

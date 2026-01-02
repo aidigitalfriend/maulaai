@@ -331,12 +331,6 @@ export default function EnhancedChatLayout({
           {/* Corner glow effects */}
           <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Status indicator */}
-          <div className="absolute bottom-4 left-4 flex items-center space-x-2 text-xs text-cyan-400/60 pointer-events-none">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="font-mono">NEURAL_LINK_ACTIVE</span>
-          </div>
         </>
       )}
 
