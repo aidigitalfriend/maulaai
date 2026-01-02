@@ -132,7 +132,7 @@ const anthropicProvider: AIProvider = {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         system: systemPrompt || 'You are a helpful AI assistant.',
         messages: [...userMessages, { role: 'user', content: message }],
         max_tokens: 1200,
@@ -189,7 +189,7 @@ const xaiProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-beta',
+        model: 'grok-3-mini-beta',
         messages,
         max_tokens: 1200,
         temperature,
@@ -351,19 +351,22 @@ const groqProvider: AIProvider = {
           { role: 'user', content: message },
         ];
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages,
-        max_tokens: 1200,
-        temperature,
-      }),
-    });
+    const response = await fetch(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages,
+          max_tokens: 1200,
+          temperature,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -419,8 +422,7 @@ const cohereProvider: AIProvider = {
 
     const data = await response.json();
     return (
-      data.text ||
-      "I apologize, but I couldn't generate a response right now."
+      data.text || "I apologize, but I couldn't generate a response right now."
     );
   },
 };

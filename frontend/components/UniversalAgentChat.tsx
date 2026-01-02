@@ -14,7 +14,7 @@ import {
   ShareIcon,
   SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
-import EnhancedChatLayout from './EnhancedChatLayout';
+import EnhancedChatLayout, { useChatTheme } from './EnhancedChatLayout';
 import { AgentSettings } from './ChatSettingsPanel';
 import QuickActionsPanel from './QuickActionsPanel';
 import realtimeChatService, {
@@ -71,6 +71,9 @@ interface UniversalAgentChatProps {
 }
 
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
+  // Theme state
+  const { isNeural } = useChatTheme(agent.id);
+
   // Sessions state
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
@@ -425,7 +428,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
-                    : 'bg-white border border-gray-200 text-gray-900'
+                    : isNeural
+                      ? 'bg-gray-800/90 border border-gray-700 text-gray-100'
+                      : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -474,7 +479,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         return (
                           <blockquote
                             key={`line-${i}`}
-                            className="border-l-4 border-indigo-300 pl-3 italic my-2 text-gray-600"
+                            className={`border-l-4 border-indigo-300 pl-3 italic my-2 ${isNeural ? 'text-gray-300' : 'text-gray-600'}`}
                           >
                             <span
                               dangerouslySetInnerHTML={{
@@ -538,13 +543,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 </div>
 
                 {message.role === 'assistant' && (
-                  <div className="flex items-center space-x-1 mt-2 pt-2 border-t border-gray-100">
+                  <div
+                    className={`flex items-center space-x-1 mt-2 pt-2 border-t ${isNeural ? 'border-gray-700' : 'border-gray-100'}`}
+                  >
                     <button
                       onClick={() => handleFeedback(message.id, 'up')}
                       className={`p-1.5 rounded-lg transition-all ${
                         messageFeedback[message.id] === 'up'
                           ? 'bg-green-100 text-green-600'
-                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title="Good response"
                     >
@@ -555,13 +564,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       className={`p-1.5 rounded-lg transition-all ${
                         messageFeedback[message.id] === 'down'
                           ? 'bg-red-100 text-red-600'
-                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title="Poor response"
                     >
                       <HandThumbDownIcon className="w-4 h-4" />
                     </button>
-                    <div className="w-px h-4 bg-gray-200 mx-1" />
+                    <div
+                      className={`w-px h-4 mx-1 ${isNeural ? 'bg-gray-700' : 'bg-gray-200'}`}
+                    />
                     <button
                       onClick={() =>
                         handleCopyMessage(message.id, message.content)
@@ -569,7 +582,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       className={`p-1.5 rounded-lg transition-all ${
                         copiedMessageId === message.id
                           ? 'bg-indigo-100 text-indigo-600'
-                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title={
                         copiedMessageId === message.id
@@ -581,14 +596,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     </button>
                     <button
                       onClick={() => handleShareMessage(message.content)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                       title="Share message"
                     >
                       <ShareIcon className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleListenMessage(message.content)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                       title="Listen to message"
                     >
                       <SpeakerWaveIcon className="w-4 h-4" />
@@ -601,7 +616,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm">
+              <div
+                className={`rounded-2xl px-4 py-3 shadow-sm ${isNeural ? 'bg-gray-800/90 border border-gray-700' : 'bg-white border border-gray-200'}`}
+              >
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
                     <div
@@ -617,7 +634,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       style={{ animationDelay: '300ms' }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span
+                    className={`text-xs ${isNeural ? 'text-gray-300' : 'text-gray-500'}`}
+                  >
                     {agent.name} is thinking...
                   </span>
                 </div>
