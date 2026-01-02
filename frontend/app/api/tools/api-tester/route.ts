@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+i
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+mport { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,14 +20,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'URL is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     if (!method || typeof method !== 'string') {
       return NextResponse.json(
         { success: false, error: 'HTTP method is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     // Validate URL
@@ -25,7 +47,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Invalid URL format' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     // Prepare fetch options
@@ -75,7 +102,12 @@ export async function POST(request: NextRequest) {
           headers: responseHeaders,
           data: responseData
         }
-      })
+      }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
 
     } catch (fetchError: any) {
       // Handle network errors
@@ -99,7 +131,12 @@ export async function POST(request: NextRequest) {
           error: errorMessage 
         },
         { status: 500 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
   } catch (error: any) {
@@ -110,6 +147,11 @@ export async function POST(request: NextRequest) {
         error: error.message || 'Internal server error' 
       },
       { status: 500 }
-    )
+    , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
   }
 }

@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+i
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+mport { NextRequest, NextResponse } from 'next/server'
 import dns from 'dns'
 import { promisify } from 'util'
 
@@ -18,7 +30,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Domain name is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     // Clean domain name
@@ -120,12 +137,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'No DNS records found for this domain' },
         { status: 404 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     return NextResponse.json({
       success: true,
       data: results
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
     })
 
   } catch (error: any) {
@@ -136,6 +163,11 @@ export async function POST(request: NextRequest) {
         error: error.message || 'Failed to perform DNS lookup' 
       },
       { status: 500 }
-    )
+    , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
   }
 }

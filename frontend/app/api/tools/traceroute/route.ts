@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+i
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+mport { NextRequest, NextResponse } from 'next/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
@@ -12,7 +24,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Host is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     // Clean host
@@ -149,7 +166,12 @@ export async function POST(request: NextRequest) {
           hops,
           completed
         }
-      })
+      }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
 
     } catch (tracerouteError: any) {
       // Traceroute failed but might have partial results
@@ -158,7 +180,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'Traceroute failed or timed out'
-      }, { status: 500 })
+      }, { status: 500 }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
   } catch (error: any) {
@@ -169,6 +196,11 @@ export async function POST(request: NextRequest) {
         error: error.message || 'Failed to perform traceroute' 
       },
       { status: 500 }
-    )
+    , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
   }
 }

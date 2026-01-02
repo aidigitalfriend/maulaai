@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+i
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+mport { NextRequest, NextResponse } from 'next/server'
 
 // Simulate speed test (in production, you'd use actual speed test APIs or logic)
 export async function POST(request: NextRequest) {
@@ -43,7 +55,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          downloadSpeed: Math.min(downloadSpeedMbps, 1000), // Cap at 1 Gbps for realism
+          downloadSpeed: Math.min(downloadSpeedMbps, 1000, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    }), // Cap at 1 Gbps for realism
           uploadSpeed: Math.min(uploadSpeedMbps, 500), // Cap at 500 Mbps
           latency: avgLatency,
           jitter: jitter,
@@ -56,7 +73,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          downloadSpeed: Math.random() * 50 + 25, // Random 25-75 Mbps
+          downloadSpeed: Math.random(, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    }) * 50 + 25, // Random 25-75 Mbps
           uploadSpeed: Math.random() * 20 + 10, // Random 10-30 Mbps
           latency: avgLatency,
           jitter: jitter,
@@ -72,7 +94,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        downloadSpeed: Math.random() * 50 + 25,
+        downloadSpeed: Math.random(, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    }) * 50 + 25,
         uploadSpeed: Math.random() * 20 + 10,
         latency: Math.random() * 50 + 20,
         jitter: Math.random() * 10 + 2,

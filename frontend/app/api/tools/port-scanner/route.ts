@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+i
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+mport { NextRequest, NextResponse } from 'next/server'
 import net from 'net'
 
 // Common port services mapping
@@ -92,14 +104,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Host is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     if (!portRange || typeof portRange !== 'string') {
       return NextResponse.json(
         { success: false, error: 'Port range is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     // Clean host
@@ -112,14 +134,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Invalid port range' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     if (ports.length > 100) {
       return NextResponse.json(
         { success: false, error: 'Maximum 100 ports can be scanned at once' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     const startTime = Date.now()
@@ -152,6 +184,11 @@ export async function POST(request: NextRequest) {
         ports: results,
         scanTime
       }
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
     })
 
   } catch (error: any) {
@@ -171,6 +208,11 @@ export async function POST(request: NextRequest) {
         error: errorMessage
       },
       { status: 500 }
-    )
+    , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
   }
 }

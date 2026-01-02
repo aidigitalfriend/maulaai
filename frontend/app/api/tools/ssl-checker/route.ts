@@ -1,4 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+i
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
+mport { NextRequest, NextResponse } from 'next/server'
 import https from 'https'
 import tls from 'tls'
 
@@ -10,7 +22,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Domain name is required' },
         { status: 400 }
-      )
+      , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
     }
 
     // Clean domain name
@@ -83,6 +100,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: result
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
     })
 
   } catch (error: any) {
@@ -106,6 +128,11 @@ export async function POST(request: NextRequest) {
         error: errorMessage
       },
       { status: 500 }
-    )
+    , {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
   }
 }
