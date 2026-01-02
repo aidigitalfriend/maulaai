@@ -231,8 +231,8 @@ export default function EnhancedChatLayout({
                     ? 'bg-purple-500/20 text-purple-400'
                     : 'bg-indigo-100 text-indigo-600'
                   : isNeural
-                  ? 'hover:bg-purple-500/20 text-purple-400'
-                  : 'hover:bg-gray-100 text-gray-600'
+                    ? 'hover:bg-purple-500/20 text-purple-400'
+                    : 'hover:bg-gray-100 text-gray-600'
               }`}
               title="Agent Settings"
             >

@@ -329,17 +329,20 @@ export default function ChatSettingsPanel({
               value={settings.provider}
               onChange={(e) => {
                 const newProvider = e.target.value as AIProvider;
-                const models = PROVIDER_MODEL_OPTIONS[newProvider];
+                const providerOption = PROVIDER_MODEL_OPTIONS.find(
+                  (opt) => opt.provider === newProvider
+                );
+                const firstModel = providerOption?.models[0]?.value || settings.model;
                 onUpdateSettings({
                   provider: newProvider,
-                  model: models[0],
+                  model: firstModel,
                 });
               }}
               className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
             >
-              {Object.keys(PROVIDER_MODEL_OPTIONS).map((provider) => (
-                <option key={provider} value={provider}>
-                  {provider.toUpperCase()}
+              {PROVIDER_MODEL_OPTIONS.map((opt) => (
+                <option key={opt.provider} value={opt.provider}>
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -348,9 +351,11 @@ export default function ChatSettingsPanel({
               onChange={(e) => onUpdateSettings({ model: e.target.value })}
               className={`w-full px-2 py-1.5 rounded-lg text-xs border mt-2 ${inputStyles}`}
             >
-              {PROVIDER_MODEL_OPTIONS[settings.provider]?.map((model) => (
-                <option key={model} value={model}>
-                  {model}
+              {(PROVIDER_MODEL_OPTIONS.find(
+                (opt) => opt.provider === settings.provider
+              )?.models || []).map((model) => (
+                <option key={model.value} value={model.value}>
+                  {model.label}
                 </option>
               ))}
             </select>

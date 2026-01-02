@@ -533,7 +533,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 </div>
                 <div
                   className={`text-xs mt-2 ${
-                    message.role === 'user' ? 'text-white/60' : isNeural ? 'text-gray-300' : 'text-gray-400'
+                    message.role === 'user'
+                      ? 'text-white/60'
+                      : isNeural
+                        ? 'text-gray-300'
+                        : 'text-gray-400'
                   }`}
                 >
                   {message.timestamp.toLocaleTimeString([], {
