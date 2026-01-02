@@ -332,7 +332,8 @@ export default function ChatSettingsPanel({
                 const providerOption = PROVIDER_MODEL_OPTIONS.find(
                   (opt) => opt.provider === newProvider
                 );
-                const firstModel = providerOption?.models[0]?.value || settings.model;
+                const firstModel =
+                  providerOption?.models[0]?.value || settings.model;
                 onUpdateSettings({
                   provider: newProvider,
                   model: firstModel,
@@ -351,9 +352,11 @@ export default function ChatSettingsPanel({
               onChange={(e) => onUpdateSettings({ model: e.target.value })}
               className={`w-full px-2 py-1.5 rounded-lg text-xs border mt-2 ${inputStyles}`}
             >
-              {(PROVIDER_MODEL_OPTIONS.find(
-                (opt) => opt.provider === settings.provider
-              )?.models || []).map((model) => (
+              {(
+                PROVIDER_MODEL_OPTIONS.find(
+                  (opt) => opt.provider === settings.provider
+                )?.models || []
+              ).map((model) => (
                 <option key={model.value} value={model.value}>
                   {model.label}
                 </option>
@@ -450,8 +453,8 @@ export default function ChatSettingsPanel({
                       isActive
                         ? `${preset.bgColor} ${preset.borderColor} shadow-lg`
                         : isNeural
-                        ? 'border-gray-700 hover:border-gray-600 bg-gray-800/50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                          ? 'border-gray-700 hover:border-gray-600 bg-gray-800/50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                   >
                     <div className="flex items-center space-x-2 mb-1">
