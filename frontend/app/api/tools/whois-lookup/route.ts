@@ -4,6 +4,17 @@ import { promisify } from 'util'
 
 const execAsync = promisify(exec)
 
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
+
 export async function POST(request: NextRequest) {
   let cleanDomain = '' // Declare outside try block for fallback access
   
@@ -13,7 +24,13 @@ export async function POST(request: NextRequest) {
     if (!domain || typeof domain !== 'string') {
       return NextResponse.json(
         { success: false, error: 'Domain name is required' },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       )
     }
 
@@ -25,7 +42,13 @@ export async function POST(request: NextRequest) {
     if (!whoisApiKey) {
       return NextResponse.json(
         { success: false, error: 'WHOIS API key not configured' },
-        { status: 500 }
+        { 
+          status: 500,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       )
     }
 
@@ -74,13 +97,25 @@ export async function POST(request: NextRequest) {
             success: false, 
             error: 'WHOIS API service is currently unavailable. The API key may be invalid or has exceeded its quota. Please try again later or contact support.' 
           },
-          { status: 503 }
+          { 
+            status: 503,
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            }
+          }
         )
       }
       
       return NextResponse.json(
         { success: false, error: errorMsg },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       )
     }
 
@@ -110,6 +145,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: result
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
     })
 
   } catch (error: any) {
@@ -158,6 +198,11 @@ export async function POST(request: NextRequest) {
         success: true,
         data: result,
         fallback: true
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
       })
     } catch (fallbackError: any) {
       console.error('Fallback WHOIS Error:', fallbackError)
@@ -166,7 +211,13 @@ export async function POST(request: NextRequest) {
           success: false, 
           error: 'WHOIS service is currently unavailable. The API key may be invalid or the whois command is not installed on the server.' 
         },
-        { status: 503 }
+        { 
+          status: 503,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
       )
     }
   }
