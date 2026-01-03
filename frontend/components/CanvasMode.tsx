@@ -305,8 +305,8 @@ export default function CanvasMode({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: userPrompt,
-          provider: 'Anthropic',
-          modelId: 'claude-3-5-sonnet',
+          provider: 'Gemini', // Use Gemini as primary (more reliable)
+          modelId: 'gemini-1.5-flash',
           currentCode: generatedCode || undefined,
           history: messages.filter(m => !m.isStreaming).map(m => ({ role: m.role, text: m.content })),
         }),
@@ -337,8 +337,10 @@ export default function CanvasMode({
               
               try {
                 const parsed = JSON.parse(data);
-                if (parsed.content) {
-                  fullCode += parsed.content;
+                // API returns 'chunk' not 'content'
+                const chunkContent = parsed.chunk || parsed.content;
+                if (chunkContent) {
+                  fullCode += chunkContent;
                   setGeneratedCode(fullCode);
                   
                   // Update files in real-time
@@ -349,6 +351,10 @@ export default function CanvasMode({
                   if (fullCode.includes('</body>') || fullCode.includes('</html>') || fullCode.length % 500 < 50) {
                     updatePreview(fullCode);
                   }
+                }
+                if (parsed.done) {
+                  // Stream completed
+                  console.log('Stream completed');
                 }
                 if (parsed.error) {
                   throw new Error(parsed.error);
