@@ -110,13 +110,13 @@ export default function CanvasMode({
     }
   }, [activeTab?.content]);
 
-  // Theme styles
-  const bgPrimary = isNeural ? 'bg-gray-900' : 'bg-white';
-  const bgSecondary = isNeural ? 'bg-gray-800' : 'bg-gray-50';
-  const bgEditor = isNeural ? 'bg-gray-950' : 'bg-gray-900';
-  const borderColor = isNeural ? 'border-gray-700/50' : 'border-gray-200';
-  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
+  // Theme styles - Enhanced with shadcn aesthetics
+  const bgPrimary = isNeural ? 'bg-gradient-to-b from-gray-900 to-gray-950' : 'bg-gradient-to-b from-white to-slate-50';
+  const bgSecondary = isNeural ? 'bg-gray-800/80' : 'bg-slate-100/80';
+  const bgEditor = isNeural ? 'bg-gray-950' : 'bg-slate-900';
+  const borderColor = isNeural ? 'border-gray-700/40' : 'border-slate-200/80';
+  const textPrimary = isNeural ? 'text-gray-50' : 'text-slate-900';
+  const textSecondary = isNeural ? 'text-gray-400' : 'text-slate-500';
   const accentColor = isNeural ? 'cyan' : 'indigo';
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

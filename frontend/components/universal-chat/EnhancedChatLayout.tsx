@@ -124,17 +124,17 @@ export default function EnhancedChatLayout({
 
   const isNeural = theme === 'neural';
 
-  // Theme-based styles
+  // Theme-based styles - Enhanced with shadcn aesthetics
   const containerBg = isNeural
-    ? 'neural-bg neural-grid'
-    : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50';
+    ? 'neural-bg neural-grid bg-gradient-to-br from-gray-950 via-gray-900 to-slate-950'
+    : 'bg-gradient-to-br from-slate-50/90 via-white to-indigo-50/50';
 
   const headerBg = isNeural
-    ? 'bg-gray-900/80 border-cyan-500/20 backdrop-blur-xl'
-    : 'bg-white/80 border-gray-200 backdrop-blur-xl';
+    ? 'bg-gradient-to-r from-gray-900/95 via-gray-900/90 to-gray-900/95 border-cyan-500/15 backdrop-blur-2xl shadow-lg shadow-black/20'
+    : 'bg-gradient-to-r from-white/95 via-white/90 to-white/95 border-slate-200/80 backdrop-blur-2xl shadow-sm shadow-slate-200/50';
 
-  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-600';
+  const textPrimary = isNeural ? 'text-gray-50' : 'text-slate-900';
+  const textSecondary = isNeural ? 'text-gray-400' : 'text-slate-500';
 
   return (
     <div
