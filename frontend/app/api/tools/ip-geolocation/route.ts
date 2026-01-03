@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
@@ -8,54 +8,61 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-  })
+  });
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { ip } = await request.json()
+    const { ip } = await request.json();
 
     if (!ip || typeof ip !== 'string') {
       return NextResponse.json(
         { success: false, error: 'IP address is required' },
-        { status: 400 }
-      , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
+        { status: 400 },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     }
 
     // Clean IP address
-    const cleanIP = ip.trim()
-    const apiKey = process.env.IP_GEOLOCATION_API_KEY || process.env.WHOIS_API_KEY
+    const cleanIP = ip.trim();
+    const apiKey =
+      process.env.IP_GEOLOCATION_API_KEY || process.env.WHOIS_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
         { success: false, error: 'IP Geolocation API key not configured' },
-        { status: 500 }
-      , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
+        { status: 500 },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     }
 
-    console.log(`Attempting IP Geolocation lookup for: ${cleanIP}`)
+    console.log(`Attempting IP Geolocation lookup for: ${cleanIP}`);
 
     // Call WHOIS XML API IP Geolocation service
-    const apiUrl = `https://ip-geolocation.whoisxmlapi.com/api/v1?apiKey=${encodeURIComponent(apiKey)}&ipAddress=${encodeURIComponent(cleanIP)}`
+    const apiUrl = `https://ip-geolocation.whoisxmlapi.com/api/v1?apiKey=${encodeURIComponent(apiKey)}&ipAddress=${encodeURIComponent(cleanIP)}`;
 
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
-      }
-    })
+        Accept: 'application/json',
+      },
+    });
 
-    console.log('IP Geolocation API Response Status:', response.status, response.statusText)
+    console.log(
+      'IP Geolocation API Response Status:',
+      response.status,
+      response.statusText
+    );
 
     if (!response.ok) {
       // Check if it's a rate limit error
@@ -63,70 +70,78 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: 'IP Geolocation service is currently experiencing high demand. Please try again in a few moments. 🙏'
+            error:
+              'IP Geolocation service is currently experiencing high demand. Please try again in a few moments. 🙏',
           },
-          { status: 429 }
-        , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
+          { status: 429 },
+          {
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
+          }
+        );
       }
 
-      const errorText = await response.text()
-      console.error('IP Geolocation API Error:', errorText)
-      
+      const errorText = await response.text();
+      console.error('IP Geolocation API Error:', errorText);
+
       return NextResponse.json(
         {
           success: false,
-          error: 'IP Geolocation service is temporarily unavailable. Please try again later. 😊'
+          error:
+            'IP Geolocation service is temporarily unavailable. Please try again later. 😊',
         },
-        { status: 503 }
-      , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
+        { status: 503 },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     }
 
-    const responseText = await response.text()
-    let data: any
+    const responseText = await response.text();
+    let data: any;
 
     try {
-      data = JSON.parse(responseText)
+      data = JSON.parse(responseText);
     } catch (parseError) {
-      console.error('IP Geolocation API returned invalid JSON')
+      console.error('IP Geolocation API returned invalid JSON');
       return NextResponse.json(
         {
           success: false,
-          error: 'Received invalid response from geolocation service. Please try again. 🔄'
+          error:
+            'Received invalid response from geolocation service. Please try again. 🔄',
         },
-        { status: 500 }
-      , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
+        { status: 500 },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     }
 
     // Check for API errors
     if (data.error) {
-      console.error('IP Geolocation API Error:', data.error)
+      console.error('IP Geolocation API Error:', data.error);
       return NextResponse.json(
         {
           success: false,
-          error: 'Unable to retrieve geolocation data at this time. Please verify the IP address and try again. 🌐'
+          error:
+            'Unable to retrieve geolocation data at this time. Please verify the IP address and try again. 🌐',
         },
-        { status: 400 }
-      , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
+        { status: 400 },
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     }
 
     // Format the response data
@@ -139,7 +154,7 @@ export async function POST(request: NextRequest) {
         lat: data.location?.lat || 0,
         lng: data.location?.lng || 0,
         postalCode: data.location?.postalCode || '',
-        timezone: data.location?.timezone || ''
+        timezone: data.location?.timezone || '',
       },
       isp: data.isp || 'Unknown',
       connectionType: data.connection_type || data.connectionType || 'Unknown',
@@ -147,33 +162,37 @@ export async function POST(request: NextRequest) {
       asn: {
         asn: data.asn || '',
         name: data.as_name || data.asName || '',
-        route: data.as_route || data.asRoute || ''
-      }
-    }
+        route: data.as_route || data.asRoute || '',
+      },
+    };
 
-    return NextResponse.json({
-      success: true,
-      data: result
-    }, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    return NextResponse.json(
+      {
+        success: true,
+        data: result,
+      },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       }
-    })
-
+    );
   } catch (error: any) {
-    console.error('IP Geolocation Lookup Error:', error)
+    console.error('IP Geolocation Lookup Error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'An unexpected error occurred while looking up the IP address. Please try again later. 💫'
+        error:
+          'An unexpected error occurred while looking up the IP address. Please try again later. 💫',
       },
-      { status: 500 }
-    , {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      { status: 500 },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       }
-    })
+    );
   }
 }

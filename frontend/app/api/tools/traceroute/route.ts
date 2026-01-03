@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
@@ -8,13 +12,8 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-  });
+  })
 }
-
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 export async function POST(request: NextRequest) {
   try {

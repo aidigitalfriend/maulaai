@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
@@ -8,12 +8,12 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-  })
+  });
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { domain } = await request.json()
+    const { domain } = await request.json();
 
     if (!domain || typeof domain !== 'string') {
       return NextResponse.json(
@@ -23,14 +23,19 @@ export async function POST(request: NextRequest) {
           headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          }
+          },
         }
-      )
+      );
     }
 
-    const cleanDomain = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0]
+    const cleanDomain = domain
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '')
+      .split('/')[0];
 
-    console.log(`Scanning for threats: ${cleanDomain}`)
+    console.log(`Scanning for threats: ${cleanDomain}`);
 
     // Return mock threat intelligence data
     // Note: External API calls are blocked on this server
@@ -43,35 +48,40 @@ export async function POST(request: NextRequest) {
         phishing: false,
         malware: false,
         spam: false,
-        suspicious: false
+        suspicious: false,
       },
       analysis: {
         totalScans: 95,
         malicious: 0,
         suspicious: 0,
         harmless: 89,
-        undetected: 6
-      }
-    }
+        undetected: 6,
+      },
+    };
 
-    return NextResponse.json({ success: true, data: result }, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    })
-
-  } catch (error: any) {
-    console.error('Threat Intelligence Error:', error)
     return NextResponse.json(
-      { success: false, error: 'An unexpected error occurred. Please try again later. 💫' },
+      { success: true, data: result },
+      {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
+    );
+  } catch (error: any) {
+    console.error('Threat Intelligence Error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'An unexpected error occurred. Please try again later. 💫',
+      },
       {
         status: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
+        },
       }
-    )
+    );
   }
 }
