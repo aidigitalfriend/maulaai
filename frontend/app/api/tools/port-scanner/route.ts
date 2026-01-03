@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-mport { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import net from 'net'
 
 // Common port services mapping

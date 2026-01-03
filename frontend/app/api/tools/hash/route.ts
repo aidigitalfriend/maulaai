@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-mport { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 
 export async function POST(req: NextRequest){

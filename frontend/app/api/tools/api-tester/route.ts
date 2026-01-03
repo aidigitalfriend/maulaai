@@ -11,8 +11,6 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-mport { NextRequest, NextResponse } from 'next/server'
-
 export async function POST(request: NextRequest) {
   try {
     const { method, url, headers, body } = await request.json()

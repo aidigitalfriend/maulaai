@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-mport { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import dns from 'dns'
 import { promisify } from 'util'
 

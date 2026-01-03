@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-mport { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import https from 'https'
 import tls from 'tls'
 

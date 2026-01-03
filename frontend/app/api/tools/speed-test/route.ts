@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-mport { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Simulate speed test (in production, you'd use actual speed test APIs or logic)
 export async function POST(request: NextRequest) {
