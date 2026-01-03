@@ -196,7 +196,9 @@ export default function QuickActionsPanel({
             onClick={() => onSelectAction(action.prompt)}
             className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium rounded-xl border transition-all duration-200 ${buttonBase} hover:scale-[1.03] active:scale-[0.98] group`}
           >
-            <span className="group-hover:scale-110 transition-transform">{action.icon}</span>
+            <span className="group-hover:scale-110 transition-transform">
+              {action.icon}
+            </span>
             <span>{action.label}</span>
           </button>
         ))}

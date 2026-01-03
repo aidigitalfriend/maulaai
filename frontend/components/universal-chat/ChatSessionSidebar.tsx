@@ -185,8 +185,8 @@ export default function ChatSessionSidebar({
                       ? 'bg-cyan-400'
                       : 'bg-indigo-500'
                     : isNeural
-                    ? 'bg-gray-600'
-                    : 'bg-gray-300'
+                      ? 'bg-gray-600'
+                      : 'bg-gray-300'
                 }`}
               />
             </button>

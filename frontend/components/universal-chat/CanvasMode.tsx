@@ -56,6 +56,44 @@ const LANGUAGE_ICONS: Record<string, string> = {
   default: '📄',
 };
 
+// Pre-built templates for quick start
+const TEMPLATES = [
+  // Landing Pages
+  { id: 't1', name: 'SaaS Landing', category: 'Landing', icon: '🚀', prompt: 'Create a modern SaaS landing page with hero section, features grid, pricing cards, testimonials, and CTA. Use gradient backgrounds and smooth animations.' },
+  { id: 't2', name: 'Portfolio', category: 'Landing', icon: '👨‍💼', prompt: 'Build a creative portfolio website with about section, project gallery with hover effects, skills section, and contact form. Modern dark theme.' },
+  { id: 't3', name: 'Startup', category: 'Landing', icon: '💡', prompt: 'Design a startup landing page with animated hero, team section, how it works steps, and newsletter signup. Vibrant colors.' },
+  { id: 't4', name: 'Agency', category: 'Landing', icon: '🏢', prompt: 'Create a digital agency website with services showcase, case studies grid, client logos, and booking form. Professional design.' },
+  { id: 't5', name: 'App Promo', category: 'Landing', icon: '📱', prompt: 'Build a mobile app promotion page with phone mockup, feature highlights, download buttons, and app screenshots carousel.' },
+  
+  // Dashboards
+  { id: 't6', name: 'Analytics', category: 'Dashboard', icon: '📊', prompt: 'Create an analytics dashboard with stats cards, line chart placeholder, bar chart, recent activity list, and sidebar navigation. Dark theme.' },
+  { id: 't7', name: 'Admin Panel', category: 'Dashboard', icon: '⚙️', prompt: 'Build an admin panel with user management table, search/filter, pagination, sidebar menu, and top navbar with notifications.' },
+  { id: 't8', name: 'Finance', category: 'Dashboard', icon: '💰', prompt: 'Design a finance dashboard with balance cards, transaction history, expense chart, and quick action buttons. Clean minimal style.' },
+  { id: 't9', name: 'Project Manager', category: 'Dashboard', icon: '📋', prompt: 'Create a project management dashboard with kanban-style task cards, progress bars, team avatars, and deadline calendar.' },
+  { id: 't10', name: 'CRM', category: 'Dashboard', icon: '👥', prompt: 'Build a CRM dashboard with leads funnel, recent contacts, deal pipeline, and activity timeline. Professional blue theme.' },
+  
+  // E-commerce
+  { id: 't11', name: 'Product Store', category: 'E-commerce', icon: '🛒', prompt: 'Create an e-commerce product grid with filter sidebar, product cards with hover effects, cart icon, and sorting dropdown.' },
+  { id: 't12', name: 'Product Page', category: 'E-commerce', icon: '📦', prompt: 'Build a product detail page with image gallery, size/color selectors, add to cart button, reviews section, and related products.' },
+  { id: 't13', name: 'Checkout', category: 'E-commerce', icon: '💳', prompt: 'Design a checkout page with order summary, shipping form, payment method selector, and order confirmation. Clean UX.' },
+  { id: 't14', name: 'Fashion Store', category: 'E-commerce', icon: '👗', prompt: 'Create a fashion boutique homepage with hero banner, new arrivals, categories grid, and Instagram feed section.' },
+  { id: 't15', name: 'Food Delivery', category: 'E-commerce', icon: '🍔', prompt: 'Build a food delivery app UI with restaurant cards, menu items, cart sidebar, and delivery tracking section.' },
+  
+  // Components
+  { id: 't16', name: 'Login Form', category: 'Components', icon: '🔐', prompt: 'Create a beautiful login/signup form with social login buttons, input validation styling, and forgot password link. Glassmorphism style.' },
+  { id: 't17', name: 'Pricing Table', category: 'Components', icon: '💎', prompt: 'Build a 3-tier pricing table with feature comparison, popular badge, monthly/yearly toggle, and CTA buttons.' },
+  { id: 't18', name: 'Contact Form', category: 'Components', icon: '✉️', prompt: 'Design a contact form with name, email, subject, message fields, and submit button. Include form validation styling.' },
+  { id: 't19', name: 'Navigation', category: 'Components', icon: '🧭', prompt: 'Create a responsive navigation bar with logo, menu links, dropdown menu, mobile hamburger, and search icon.' },
+  { id: 't20', name: 'Cards Gallery', category: 'Components', icon: '🃏', prompt: 'Build a gallery of various card designs: blog card, user card, stats card, pricing card, and testimonial card.' },
+  
+  // Creative
+  { id: 't21', name: 'Blog', category: 'Creative', icon: '📝', prompt: 'Create a blog homepage with featured post hero, recent articles grid, categories sidebar, and newsletter signup.' },
+  { id: 't22', name: 'Event Page', category: 'Creative', icon: '🎉', prompt: 'Design an event landing page with countdown timer, speaker profiles, schedule timeline, and ticket purchase section.' },
+  { id: 't23', name: 'Resume/CV', category: 'Creative', icon: '📄', prompt: 'Build a digital resume/CV page with profile photo, experience timeline, skills bars, education, and download button.' },
+  { id: 't24', name: 'Restaurant', category: 'Creative', icon: '🍽️', prompt: 'Create a restaurant website with hero image, menu sections, reservation form, gallery, and location map placeholder.' },
+  { id: 't25', name: 'Fitness App', category: 'Creative', icon: '💪', prompt: 'Design a fitness app UI with workout cards, progress rings, activity calendar, and achievement badges.' },
+];
+
 export default function CanvasMode({
   isOpen,
   onClose,
@@ -74,6 +112,8 @@ export default function CanvasMode({
     'code'
   );
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -81,7 +121,7 @@ export default function CanvasMode({
       id: '1',
       role: 'assistant',
       content:
-        'Welcome to Canvas! I can help you write, edit, and improve code. What would you like to create?',
+        'Welcome to Canvas! 🎨 I can help you create amazing designs. Try a template or describe what you want to build!',
       timestamp: new Date(),
     },
   ]);
@@ -100,6 +140,20 @@ export default function CanvasMode({
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
+  // Get unique categories
+  const categories = ['All', ...Array.from(new Set(TEMPLATES.map(t => t.category)))];
+  
+  // Filter templates by category
+  const filteredTemplates = selectedCategory === 'All' 
+    ? TEMPLATES 
+    : TEMPLATES.filter(t => t.category === selectedCategory);
+
+  // Handle template selection
+  const handleTemplateSelect = (template: typeof TEMPLATES[0]) => {
+    setChatInput(template.prompt);
+    setShowTemplates(false);
+  };
+
   // Update line numbers when content changes
   useEffect(() => {
     if (activeTab) {
@@ -111,7 +165,9 @@ export default function CanvasMode({
   }, [activeTab?.content]);
 
   // Theme styles - Enhanced with shadcn aesthetics
-  const bgPrimary = isNeural ? 'bg-gradient-to-b from-gray-900 to-gray-950' : 'bg-gradient-to-b from-white to-slate-50';
+  const bgPrimary = isNeural
+    ? 'bg-gradient-to-b from-gray-900 to-gray-950'
+    : 'bg-gradient-to-b from-white to-slate-50';
   const bgSecondary = isNeural ? 'bg-gray-800/80' : 'bg-slate-100/80';
   const bgEditor = isNeural ? 'bg-gray-950' : 'bg-slate-900';
   const borderColor = isNeural ? 'border-gray-700/40' : 'border-slate-200/80';
@@ -141,21 +197,73 @@ export default function CanvasMode({
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const userPrompt = chatInput.trim();
     setChatInput('');
     setIsGenerating(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
+    try {
+      // Call the real Canvas API
+      const response = await fetch('/api/canvas/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userPrompt,
+          provider: 'Anthropic',
+          modelId: 'claude-3-5-sonnet',
+          currentCode: activeTab?.content,
+          history: messages.map(m => ({ role: m.role, text: m.content })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to generate code');
+      }
+
+      // Update the active tab with generated code
+      if (data.code) {
+        setTabs((prev) =>
+          prev.map((t) =>
+            t.id === activeTabId
+              ? { ...t, content: data.code, isModified: true, language: 'html', name: 'index.html' }
+              : t
+          )
+        );
+        setActiveView('split');
+        
+        // Auto-run the preview
+        setTimeout(() => {
+          if (previewRef.current) {
+            const doc = previewRef.current.contentDocument;
+            if (doc) {
+              doc.open();
+              doc.write(data.code);
+              doc.close();
+            }
+          }
+        }, 100);
+      }
+
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content:
-          "I understand! Let me help you with that. Here's what I suggest...",
+        content: '✨ Done! I\'ve generated the code and updated the preview. You can see the result on the right, or switch to Code view to edit.',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+
+    } catch (error: any) {
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Sorry, there was an error: ${error.message}. Please try again.`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsGenerating(false);
-    }, 1000);
+    }
   };
 
   const addNewTab = () => {
@@ -304,8 +412,8 @@ export default function CanvasMode({
                           ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white'
                           : 'bg-indigo-600 text-white'
                         : isNeural
-                        ? 'bg-gray-800 text-gray-100'
-                        : 'bg-gray-200 text-gray-900'
+                          ? 'bg-gray-800 text-gray-100'
+                          : 'bg-gray-200 text-gray-900'
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -346,6 +454,74 @@ export default function CanvasMode({
 
             {/* Chat Input */}
             <div className={`p-3 border-t ${borderColor}`}>
+              {/* Templates Toggle Button */}
+              <button
+                onClick={() => setShowTemplates(!showTemplates)}
+                className={`w-full mb-2 py-2 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all ${
+                  showTemplates
+                    ? isNeural
+                      ? 'bg-cyan-600/20 text-cyan-400 ring-1 ring-cyan-500/30'
+                      : 'bg-indigo-100 text-indigo-600 ring-1 ring-indigo-200'
+                    : isNeural
+                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span>🎨</span>
+                {showTemplates ? 'Hide Templates' : 'Browse 25+ Templates'}
+              </button>
+
+              {/* Templates Panel */}
+              {showTemplates && (
+                <div className={`mb-3 rounded-xl overflow-hidden ${isNeural ? 'bg-gray-800/50' : 'bg-gray-50'} border ${borderColor}`}>
+                  {/* Category Tabs */}
+                  <div className={`flex overflow-x-auto p-2 gap-1 border-b ${borderColor}`}>
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                          selectedCategory === cat
+                            ? isNeural
+                              ? 'bg-cyan-600 text-white'
+                              : 'bg-indigo-600 text-white'
+                            : isNeural
+                              ? 'text-gray-400 hover:bg-gray-700'
+                              : 'text-gray-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Templates Grid */}
+                  <div className="p-2 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-2">
+                      {filteredTemplates.map((template) => (
+                        <button
+                          key={template.id}
+                          onClick={() => handleTemplateSelect(template)}
+                          className={`p-2 rounded-lg text-left transition-all hover:scale-[1.02] ${
+                            isNeural
+                              ? 'bg-gray-700/50 hover:bg-gray-700 border border-gray-600/30 hover:border-cyan-500/30'
+                              : 'bg-white hover:bg-gray-50 border border-gray-200 hover:border-indigo-300 shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{template.icon}</span>
+                            <div>
+                              <p className={`text-xs font-medium ${textPrimary}`}>{template.name}</p>
+                              <p className={`text-[10px] ${textSecondary}`}>{template.category}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div
                 className={`flex items-end space-x-2 rounded-xl ${
                   isNeural ? 'bg-gray-800' : 'bg-gray-100'
@@ -361,7 +537,7 @@ export default function CanvasMode({
                       handleSendMessage();
                     }
                   }}
-                  placeholder="Ask AI to help with code..."
+                  placeholder="Describe what you want to build..."
                   className={`flex-1 resize-none bg-transparent outline-none text-sm ${textPrimary} placeholder-gray-500`}
                   rows={2}
                 />

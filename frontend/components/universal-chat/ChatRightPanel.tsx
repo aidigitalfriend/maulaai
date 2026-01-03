@@ -47,22 +47,30 @@ export default function ChatRightPanel({
             }`}
             title="Open Canvas"
           >
-            <div className={`absolute inset-0 ${isNeural ? 'bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-cyan-500/0' : 'bg-gradient-to-r from-indigo-500/0 via-indigo-500/10 to-indigo-500/0'} translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700`} />
+            <div
+              className={`absolute inset-0 ${isNeural ? 'bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-cyan-500/0' : 'bg-gradient-to-r from-indigo-500/0 via-indigo-500/10 to-indigo-500/0'} translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700`}
+            />
             <CodeBracketIcon
               className={`w-5 h-5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
-                isNeural ? 'text-cyan-400 group-hover:text-cyan-300' : 'text-indigo-600 group-hover:text-indigo-500'
+                isNeural
+                  ? 'text-cyan-400 group-hover:text-cyan-300'
+                  : 'text-indigo-600 group-hover:text-indigo-500'
               }`}
             />
           </button>
-          <span className={`mt-2 text-[10px] font-medium tracking-wide uppercase ${textMuted}`}>Canvas</span>
+          <span
+            className={`mt-2 text-[10px] font-medium tracking-wide uppercase ${textMuted}`}
+          >
+            Canvas
+          </span>
         </div>
 
         {/* Bottom indicator - Enhanced */}
         <div className="p-3 flex justify-center">
           <div
             className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
-              isNeural 
-                ? 'bg-gradient-to-r from-purple-400 to-cyan-400 animate-pulse shadow-lg shadow-purple-500/50' 
+              isNeural
+                ? 'bg-gradient-to-r from-purple-400 to-cyan-400 animate-pulse shadow-lg shadow-purple-500/50'
                 : 'bg-gradient-to-r from-indigo-400 to-purple-400 shadow-md shadow-indigo-500/30'
             }`}
           />

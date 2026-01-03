@@ -436,7 +436,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
-      <div
+              <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-md transition-all duration-200 hover:shadow-lg ${
                   message.role === 'user'
                     ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-indigo-500/20 hover:shadow-indigo-500/30'
