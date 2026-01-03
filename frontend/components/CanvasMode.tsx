@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -21,7 +22,11 @@ import {
   CodeBracketIcon,
   EyeIcon,
   ChevronDownIcon,
+  PlayIcon,
 } from '@heroicons/react/24/outline';
+
+// Monaco Editor - dynamically imported to avoid SSR issues
+const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
 // =============================================================================
 // TYPES
@@ -695,8 +700,22 @@ export default function CanvasMode({
             </button>
           </div>
 
-          {/* Device Toggle (only in preview mode) */}
-          {viewMode === 'preview' && (
+          {/* Run Button (in code mode) + Device Toggle (in preview mode) */}
+          {viewMode === 'code' ? (
+            <button
+              onClick={() => {
+                updatePreview(selectedFile?.content || generatedCode);
+                setViewMode('preview');
+              }}
+              disabled={!generatedCode}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                generatedCode ? 'bg-green-500 hover:bg-green-400 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <PlayIcon className="w-4 h-4" />
+              Run Preview
+            </button>
+          ) : (
             <div className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}>
               {(['desktop', 'tablet', 'mobile'] as const).map(device => (
                 <button
@@ -781,12 +800,46 @@ export default function CanvasMode({
               )}
             </div>
           ) : (
-            /* ===== CODE VIEW ===== */
-            <div className="w-full h-full overflow-auto custom-scrollbar">
+            /* ===== CODE VIEW with Monaco Editor ===== */
+            <div className="w-full h-full">
               {selectedFile || generatedCode ? (
-                <pre className={`p-4 text-sm font-mono ${brandColors.text} whitespace-pre-wrap`}>
-                  <code>{selectedFile?.content || generatedCode}</code>
-                </pre>
+                <MonacoEditor
+                  height="100%"
+                  language={selectedFile?.type === 'css' ? 'css' : selectedFile?.type === 'js' ? 'javascript' : 'html'}
+                  value={selectedFile?.content || generatedCode}
+                  theme="vs-dark"
+                  options={{
+                    readOnly: false,
+                    minimap: { enabled: true },
+                    fontSize: 13,
+                    wordWrap: 'on',
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    padding: { top: 16, bottom: 16 },
+                    fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                    fontLigatures: true,
+                    cursorBlinking: 'smooth',
+                    smoothScrolling: true,
+                    renderLineHighlight: 'all',
+                    bracketPairColorization: { enabled: true },
+                  }}
+                  onChange={(value) => {
+                    if (value) {
+                      if (selectedFile) {
+                        // Update the selected file content
+                        setGeneratedFiles(prev => prev.map(f => 
+                          f.id === selectedFile.id ? { ...f, content: value } : f
+                        ));
+                        setSelectedFile({ ...selectedFile, content: value });
+                      } else {
+                        setGeneratedCode(value);
+                      }
+                      // Update preview when code changes
+                      updatePreview(value);
+                    }
+                  }}
+                />
               ) : (
                 <div className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}>
                   <CodeBracketIcon className="w-12 h-12 opacity-30 mb-3" />
