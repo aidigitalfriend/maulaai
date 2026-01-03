@@ -330,24 +330,24 @@ interface CanvasState {
   sessionId: string;
   userId: string;
   agentId: string;
-  
+
   // UI State
   isOpen: boolean;
   activePanel: 'chat' | 'files' | 'preview';
   isFileTreeCollapsed: boolean;
   previewDevice: 'desktop' | 'tablet' | 'mobile';
-  
+
   // Chat State
   messages: ChatMessage[];
   isGenerating: boolean;
   showTemplates: boolean;
   selectedCategory: string;
-  
+
   // Files State
   files: CanvasFile[];
   selectedFile: string | null;
   uploadProgress: number;
-  
+
   // Generated Content
   generatedCode: string;
   projectName: string;
@@ -368,9 +368,9 @@ interface CanvasFile {
   path: string;
   type: 'html' | 'css' | 'js' | 'image' | 'other';
   size: number;
-  content?: string;        // For code files
-  s3Url?: string;          // For uploaded files
-  isGenerated: boolean;    // AI generated vs uploaded
+  content?: string; // For code files
+  s3Url?: string; // For uploaded files
+  isGenerated: boolean; // AI generated vs uploaded
   createdAt: Date;
 }
 
@@ -522,20 +522,20 @@ interface FileAttachment {
   _id: ObjectId,
   userId: ObjectId,                    // Reference to users collection
   agentId: String,                     // Which agent was used
-  
+
   name: String,                        // Project name
   description: String,                 // Optional description
   templateId: String,                  // If created from template
-  
+
   // Generated content
   mainCode: String,                    // Primary HTML/code
   files: [ObjectId],                   // Reference to canvasFiles
-  
+
   // Metadata
   status: String,                      // 'active' | 'archived' | 'deleted'
   totalGenerations: Number,            // How many times AI was called
   totalTokensUsed: Number,             // For usage tracking
-  
+
   // Timestamps
   createdAt: Date,
   updatedAt: Date,
@@ -553,24 +553,24 @@ db.canvasProjects.createIndex({ userId: 1, createdAt: -1 })
   _id: ObjectId,
   projectId: ObjectId,                 // Reference to canvasProjects
   userId: ObjectId,                    // For permission check
-  
+
   name: String,                        // File name (e.g., "index.html")
   path: String,                        // Full path (e.g., "/src/index.html")
   type: String,                        // 'html' | 'css' | 'js' | 'image' | etc
   mimeType: String,                    // MIME type
-  
+
   // Content (for code files)
   content: String,                     // Actual code content
-  
+
   // S3 Reference (for uploaded files)
   s3Key: String,                       // S3 object key
   s3Url: String,                       // Full S3 URL
-  
+
   // Metadata
   size: Number,                        // File size in bytes
   isGenerated: Boolean,                // true = AI generated, false = uploaded
   version: Number,                     // Version number for iterations
-  
+
   // Timestamps
   createdAt: Date,
   updatedAt: Date
@@ -587,10 +587,10 @@ db.canvasFiles.createIndex({ userId: 1, type: 1 })
   _id: ObjectId,
   projectId: ObjectId,                 // Reference to canvasProjects
   userId: ObjectId,
-  
+
   role: String,                        // 'user' | 'assistant'
   content: String,                     // Message text
-  
+
   // Attachments (for user uploads)
   attachments: [{
     fileId: ObjectId,
@@ -598,12 +598,12 @@ db.canvasFiles.createIndex({ userId: 1, type: 1 })
     type: String,
     url: String
   }],
-  
+
   // AI Response metadata
   tokensUsed: Number,                  // For AI responses
   modelUsed: String,                   // Which AI model
   generationTime: Number,              // ms taken
-  
+
   timestamp: Date
 }
 
@@ -616,16 +616,16 @@ db.canvasMessages.createIndex({ projectId: 1, timestamp: 1 })
 {
   _id: ObjectId,
   userId: ObjectId,
-  
+
   // Daily usage
   date: Date,                          // Day (YYYY-MM-DD)
-  
+
   // Counters
   generationsCount: Number,            // API calls made
   tokensUsed: Number,                  // Total tokens
   uploadsCount: Number,                // Files uploaded
   uploadsSizeMB: Number,               // Total upload size
-  
+
   // Timestamps
   createdAt: Date,
   updatedAt: Date
@@ -805,14 +805,14 @@ const UPLOAD_LIMITS = {
 
 ```typescript
 // Event types for streaming
-type StreamEvent = 
+type StreamEvent =
   | { type: 'start'; message: string }
-  | { type: 'thinking'; message: string }        // "Understanding your request..."
-  | { type: 'generating'; message: string }      // "Creating HTML structure..."
-  | { type: 'chunk'; code: string }              // Partial code
-  | { type: 'styling'; message: string }         // "Adding styles..."
-  | { type: 'complete'; files: CanvasFile[] }    // Final result
-  | { type: 'error'; error: string };            // Error occurred
+  | { type: 'thinking'; message: string } // "Understanding your request..."
+  | { type: 'generating'; message: string } // "Creating HTML structure..."
+  | { type: 'chunk'; code: string } // Partial code
+  | { type: 'styling'; message: string } // "Adding styles..."
+  | { type: 'complete'; files: CanvasFile[] } // Final result
+  | { type: 'error'; error: string }; // Error occurred
 ```
 
 ---
@@ -845,37 +845,37 @@ const SECURITY_MEASURES = {
   authentication: {
     requireLogin: true,
     sessionValidation: true,
-    jwtVerification: true
+    jwtVerification: true,
   },
-  
+
   // Authorization
   authorization: {
-    checkSubscription: true,          // Must have active agent subscription
-    checkProjectOwnership: true,      // Can only access own projects
-    checkUsageLimits: true           // Enforce storage/generation limits
+    checkSubscription: true, // Must have active agent subscription
+    checkProjectOwnership: true, // Can only access own projects
+    checkUsageLimits: true, // Enforce storage/generation limits
   },
-  
+
   // Input Validation
   inputValidation: {
-    sanitizePrompts: true,            // Clean user input
-    validateFileTypes: true,          // Only allow safe file types
-    limitFileSize: true,              // Enforce size limits
-    preventXSS: true                  // Sanitize for preview
+    sanitizePrompts: true, // Clean user input
+    validateFileTypes: true, // Only allow safe file types
+    limitFileSize: true, // Enforce size limits
+    preventXSS: true, // Sanitize for preview
   },
-  
+
   // Output Security
   outputSecurity: {
-    sandboxPreview: true,             // iframe sandbox attribute
-    cspHeaders: true,                 // Content Security Policy
-    sanitizeGenerated: true           // Clean AI output
+    sandboxPreview: true, // iframe sandbox attribute
+    cspHeaders: true, // Content Security Policy
+    sanitizeGenerated: true, // Clean AI output
   },
-  
+
   // Rate Limiting
   rateLimiting: {
-    generationsPerHour: 20,           // Max AI calls per hour
-    uploadsPerHour: 50,               // Max uploads per hour
-    requestsPerMinute: 30             // General rate limit
-  }
+    generationsPerHour: 20, // Max AI calls per hour
+    uploadsPerHour: 50, // Max uploads per hour
+    requestsPerMinute: 30, // General rate limit
+  },
 };
 ```
 
@@ -1136,16 +1136,17 @@ Before implementation, please confirm:
 
 This document outlines the complete technical specification for the Universal Chat Canvas feature:
 
-| Aspect | Description |
-|--------|-------------|
-| **Purpose** | AI-driven design tool inside every agent chat |
-| **User Role** | Request only, no direct editing |
-| **AI Role** | Generate all code/designs |
-| **Storage** | MongoDB (data) + S3 (files) |
-| **Access** | Users with active agent subscription |
-| **Templates** | 25 pre-built across 5 categories |
+| Aspect        | Description                                   |
+| ------------- | --------------------------------------------- |
+| **Purpose**   | AI-driven design tool inside every agent chat |
+| **User Role** | Request only, no direct editing               |
+| **AI Role**   | Generate all code/designs                     |
+| **Storage**   | MongoDB (data) + S3 (files)                   |
+| **Access**    | Users with active agent subscription          |
+| **Templates** | 25 pre-built across 5 categories              |
 
 **Next Steps:**
+
 1. Review this document
 2. Discuss any changes/additions
 3. Confirm answers to Section 12 questions
@@ -1153,4 +1154,4 @@ This document outlines the complete technical specification for the Universal Ch
 
 ---
 
-*Document created for onelastai.co Canvas feature development*
+_Document created for onelastai.co Canvas feature development_
