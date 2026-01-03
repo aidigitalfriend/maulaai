@@ -11,8 +11,6 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-import { NextRequest, NextResponse } from 'next/server'
-
 // Simulate speed test (in production, you'd use actual speed test APIs or logic)
 export async function POST(request: NextRequest) {
   try {
@@ -74,16 +72,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          downloadSpeed: Math.random(, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    }) * 50 + 25, // Random 25-75 Mbps
+          downloadSpeed: Math.random() * 50 + 25, // Random 25-75 Mbps
           uploadSpeed: Math.random() * 20 + 10, // Random 10-30 Mbps
           latency: avgLatency,
           jitter: jitter,
           server: 'Local Test Server'
+        }
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
       })
     }
@@ -95,16 +93,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        downloadSpeed: Math.random(, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    }) * 50 + 25,
+        downloadSpeed: Math.random() * 50 + 25,
         uploadSpeed: Math.random() * 20 + 10,
         latency: Math.random() * 50 + 20,
         jitter: Math.random() * 10 + 2,
         server: 'Simulated Test Server'
+      }
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       }
     })
   }

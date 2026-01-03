@@ -1,4 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import dns from 'dns'
+import { promisify } from 'util'
+
+const resolve4 = promisify(dns.resolve4)
+const resolve6 = promisify(dns.resolve6)
+const resolveMx = promisify(dns.resolveMx)
+const resolveNs = promisify(dns.resolveNs)
+const resolveTxt = promisify(dns.resolveTxt)
+const resolveCname = promisify(dns.resolveCname)
+const resolveSoa = promisify(dns.resolveSoa)
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
@@ -10,18 +20,6 @@ export async function OPTIONS(request: NextRequest) {
     },
   })
 }
-
-import { NextRequest, NextResponse } from 'next/server'
-import dns from 'dns'
-import { promisify } from 'util'
-
-const resolve4 = promisify(dns.resolve4)
-const resolve6 = promisify(dns.resolve6)
-const resolveMx = promisify(dns.resolveMx)
-const resolveNs = promisify(dns.resolveNs)
-const resolveTxt = promisify(dns.resolveTxt)
-const resolveCname = promisify(dns.resolveCname)
-const resolveSoa = promisify(dns.resolveSoa)
 
 export async function POST(request: NextRequest) {
   try {

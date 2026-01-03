@@ -11,8 +11,6 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-import { NextRequest, NextResponse } from 'next/server'
-
 export async function POST(request: NextRequest) {
   try {
     const { mac } = await request.json()
