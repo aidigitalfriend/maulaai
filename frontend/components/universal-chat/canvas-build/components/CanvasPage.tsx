@@ -215,6 +215,10 @@ export default function CanvasMode({
     'idle' | 'generating' | 'success' | 'error'
   >('idle');
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
+  const [showChatPanel, setShowChatPanel] = useState(true);
+  const [showFilesPanel, setShowFilesPanel] = useState(true);
+
+  const interactionLocked = isGenerating;
 
   // Initialize welcome message
   useEffect(() => {
@@ -601,7 +605,7 @@ export default function CanvasMode({
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 flex ${brandColors.bgMain}`}>
+    <div className={`fixed inset-0 z-50 flex ${brandColors.bgMain} relative`}>
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
@@ -611,297 +615,369 @@ export default function CanvasMode({
         />
       </div>
 
-      {/* =========== LEFT PANEL: AI CHAT =========== */}
-      <div
-        className={`w-[320px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
-      >
-        {/* Header */}
+      {/* Panel toggles */}
+      <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
         <div
-          className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b`}
+          className={`flex items-center gap-2 rounded-xl px-3 py-2 border ${brandColors.border} ${brandColors.bgPanel} shadow-lg shadow-cyan-500/10`}
         >
-          <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
-              <SparklesIcon className="w-4 h-4 text-white" />
-            </div>
-            <span className={`font-semibold ${brandColors.gradientText}`}>
-              AI Canvas
-            </span>
-          </div>
+          <span className={`text-xs font-semibold ${brandColors.gradientText}`}>
+            Panels
+          </span>
           <button
-            onClick={() => setShowTemplates(!showTemplates)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
-              showTemplates
+            onClick={() =>
+              !interactionLocked && setShowChatPanel((prev) => !prev)
+            }
+            disabled={interactionLocked}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${brandColors.border} ${
+              showChatPanel
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            Templates
-            <ChevronDownIcon
-              className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
-            />
+            Agent Chat
+          </button>
+          <button
+            onClick={() =>
+              !interactionLocked && setShowFilesPanel((prev) => !prev)
+            }
+            disabled={interactionLocked}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${brandColors.border} ${
+              showFilesPanel
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+          >
+            Files
           </button>
         </div>
+      </div>
 
-        {/* Templates Dropdown */}
-        {showTemplates && (
+      {interactionLocked && (
+        <div className="absolute inset-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div
-            className={`${brandColors.border} border-b max-h-80 overflow-hidden flex flex-col`}
+            className={`px-4 py-3 rounded-xl border ${brandColors.border} ${brandColors.bgPanel} flex items-center gap-2 shadow-lg shadow-cyan-500/20`}
           >
-            {/* Category Tabs */}
-            <div
-              className={`flex overflow-x-auto p-2 gap-1 ${brandColors.border} border-b flex-shrink-0`}
-            >
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                    selectedCategory === cat
-                      ? brandColors.btnPrimary
-                      : `${brandColors.textSecondary} ${brandColors.bgHover}`
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div className="flex gap-1">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" />
+              <div
+                className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                style={{ animationDelay: '120ms' }}
+              />
+              <div
+                className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
+                style={{ animationDelay: '240ms' }}
+              />
             </div>
+            <span className={`text-sm ${brandColors.text}`}>
+              Agent is building — interactions locked
+            </span>
+          </div>
+        </div>
+      )}
 
-            {/* Templates Grid */}
-            <div className="p-2 overflow-y-auto flex-1 custom-scrollbar">
-              <div className="grid grid-cols-2 gap-2">
-                {filteredTemplates.map((template) => (
+      {/* =========== LEFT PANEL: AI CHAT =========== */}
+      {showChatPanel && (
+        <div
+          className={`w-[320px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+        >
+          {/* Header */}
+          <div
+            className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b`}
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}
+              >
+                <SparklesIcon className="w-4 h-4 text-white" />
+              </div>
+              <span className={`font-semibold ${brandColors.gradientText}`}>
+                AI Canvas
+              </span>
+            </div>
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              disabled={interactionLocked}
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
+                showTemplates
+                  ? brandColors.btnPrimary
+                  : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+              } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              Templates
+              <ChevronDownIcon
+                className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
+              />
+            </button>
+          </div>
+
+          {/* Templates Dropdown */}
+          {showTemplates && (
+            <div
+              className={`${brandColors.border} border-b max-h-80 overflow-hidden flex flex-col`}
+            >
+              {/* Category Tabs */}
+              <div
+                className={`flex overflow-x-auto p-2 gap-1 ${brandColors.border} border-b flex-shrink-0`}
+              >
+                {categories.map((cat) => (
                   <button
-                    key={template.id}
-                    onClick={() => handleTemplateSelect(template)}
-                    className={`p-2.5 rounded-xl text-left transition-all hover:scale-[1.02] ${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/50 group`}
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    disabled={interactionLocked}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                      selectedCategory === cat
+                        ? brandColors.btnPrimary
+                        : `${brandColors.textSecondary} ${brandColors.bgHover}`
+                    } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg group-hover:scale-110 transition-transform">
-                        {template.icon}
-                      </span>
-                      <div>
-                        <p
-                          className={`text-xs font-medium ${brandColors.text}`}
-                        >
-                          {template.name}
-                        </p>
-                        <p className={`text-[10px] ${brandColors.textMuted}`}>
-                          {template.category}
-                        </p>
-                      </div>
-                    </div>
+                    {cat}
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
-                  msg.role === 'user'
-                    ? brandColors.btnPrimary
-                    : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
-                }`}
-              >
-                {msg.isStreaming ? (
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div
-                        className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
-                        style={{ animationDelay: '0ms' }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
-                        style={{ animationDelay: '150ms' }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
-                        style={{ animationDelay: '300ms' }}
-                      />
-                    </div>
-                    <span className={`text-xs ${brandColors.textSecondary}`}>
-                      Creating...
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                )}
-                {msg.attachments && msg.attachments.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {msg.attachments.map((file) => (
-                      <span
-                        key={file.id}
-                        className="text-xs bg-white/20 px-2 py-0.5 rounded"
-                      >
-                        📎 {file.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+              {/* Templates Grid */}
+              <div className="p-2 overflow-y-auto flex-1 custom-scrollbar">
+                <div className="grid grid-cols-2 gap-2">
+                  {filteredTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template)}
+                      disabled={interactionLocked}
+                      className={`p-2.5 rounded-xl text-left transition-all hover:scale-[1.02] ${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/50 group`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg group-hover:scale-110 transition-transform">
+                          {template.icon}
+                        </span>
+                        <div>
+                          <p
+                            className={`text-xs font-medium ${brandColors.text}`}
+                          >
+                            {template.name}
+                          </p>
+                          <p className={`text-[10px] ${brandColors.textMuted}`}>
+                            {template.category}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Uploaded Files */}
-        {uploadedFiles.length > 0 && (
-          <div className={`px-3 py-2 ${brandColors.border} border-t`}>
-            <div className="flex flex-wrap gap-2">
-              {uploadedFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${brandColors.border}`}
-                >
-                  <PhotoIcon className="w-3 h-3 text-cyan-400" />
-                  <span className={brandColors.text}>
-                    {file.name.slice(0, 12)}...
-                  </span>
-                  <button
-                    onClick={() => removeUploadedFile(file.id)}
-                    className="text-red-400 hover:text-red-300"
-                  >
-                    <XCircleIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Chat Input */}
-        <div className={`p-3 ${brandColors.border} border-t`}>
-          <div
-            className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}
-          >
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} transition-colors`}
-              title="Upload image"
-            >
-              <ArrowUpTrayIcon className="w-5 h-5" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-
-            <textarea
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Describe what you want to create..."
-              className={`flex-1 resize-none bg-transparent outline-none text-sm ${brandColors.text} placeholder-gray-500`}
-              rows={2}
-            />
-
-            <button
-              id="canvas-submit-btn"
-              onClick={handleSendMessage}
-              disabled={!chatInput.trim() || isGenerating}
-              className={`p-2 rounded-lg transition-all ${
-                chatInput.trim() && !isGenerating
-                  ? brandColors.btnPrimary
-                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <PaperAirplaneIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* =========== CENTER PANEL: FILES =========== */}
-      <div
-        className={`w-[200px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
-      >
-        <div
-          className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
-        >
-          <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
-          <span className={`text-sm font-medium ${brandColors.text}`}>
-            Files
-          </span>
-          {generatedFiles.length > 0 && (
-            <span
-              className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
-            >
-              {generatedFiles.length}
-            </span>
           )}
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
-          {generatedFiles.length > 0 ? (
-            <div className="space-y-1">
-              {generatedFiles.map((file) => (
-                <button
-                  key={file.id}
-                  onClick={() => {
-                    setSelectedFile(file);
-                    setViewMode('code');
-                  }}
-                  className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
-                    selectedFile?.id === file.id
-                      ? `${brandColors.btnPrimary}`
-                      : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
+                    msg.role === 'user'
+                      ? brandColors.btnPrimary
+                      : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
                   }`}
                 >
-                  <span className="text-sm group-hover:scale-110 transition-transform">
-                    {FILE_ICONS[file.type] || FILE_ICONS.other}
-                  </span>
-                  <span
-                    className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
-                  >
-                    {file.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={`text-center py-8 ${brandColors.textSecondary}`}>
-              <div
-                className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
-              >
-                <DocumentIcon className="w-5 h-5 opacity-50" />
+                  {msg.isStreaming ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div
+                          className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
+                          style={{ animationDelay: '0ms' }}
+                        />
+                        <div
+                          className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                          style={{ animationDelay: '150ms' }}
+                        />
+                        <div
+                          className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
+                          style={{ animationDelay: '300ms' }}
+                        />
+                      </div>
+                      <span className={`text-xs ${brandColors.textSecondary}`}>
+                        Creating...
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                  {msg.attachments && msg.attachments.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {msg.attachments.map((file) => (
+                        <span
+                          key={file.id}
+                          className="text-xs bg-white/20 px-2 py-0.5 rounded"
+                        >
+                          📎 {file.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-xs">No files yet</p>
-              <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
-                AI will create files here
-              </p>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Uploaded Files */}
+          {uploadedFiles.length > 0 && (
+            <div className={`px-3 py-2 ${brandColors.border} border-t`}>
+              <div className="flex flex-wrap gap-2">
+                {uploadedFiles.map((file) => (
+                  <div
+                    key={file.id}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${brandColors.border}`}
+                  >
+                    <PhotoIcon className="w-3 h-3 text-cyan-400" />
+                    <span className={brandColors.text}>
+                      {file.name.slice(0, 12)}...
+                    </span>
+                    <button
+                      onClick={() => removeUploadedFile(file.id)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <XCircleIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Chat Input */}
+          <div className={`p-3 ${brandColors.border} border-t`}>
+            <div
+              className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}
+            >
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={interactionLocked}
+                className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} transition-colors ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                title="Upload image"
+              >
+                <ArrowUpTrayIcon className="w-5 h-5" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              <textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Describe what you want to create..."
+                disabled={interactionLocked}
+                className={`flex-1 resize-none bg-transparent outline-none text-sm ${brandColors.text} placeholder-gray-500`}
+                rows={2}
+              />
+
+              <button
+                id="canvas-submit-btn"
+                onClick={handleSendMessage}
+                disabled={!chatInput.trim() || isGenerating}
+                className={`p-2 rounded-lg transition-all ${
+                  chatInput.trim() && !isGenerating
+                    ? brandColors.btnPrimary
+                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <PaperAirplaneIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========== CENTER PANEL: FILES =========== */}
+      {showFilesPanel && (
+        <div
+          className={`w-[200px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+        >
+          <div
+            className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
+          >
+            <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
+            <span className={`text-sm font-medium ${brandColors.text}`}>
+              Files
+            </span>
+            {generatedFiles.length > 0 && (
+              <span
+                className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
+              >
+                {generatedFiles.length}
+              </span>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+            {generatedFiles.length > 0 ? (
+              <div className="space-y-1">
+                {generatedFiles.map((file) => (
+                  <button
+                    key={file.id}
+                    onClick={() => {
+                      setSelectedFile(file);
+                      setViewMode('code');
+                    }}
+                    disabled={interactionLocked}
+                    className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
+                      selectedFile?.id === file.id
+                        ? `${brandColors.btnPrimary}`
+                        : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
+                    } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <span className="text-sm group-hover:scale-110 transition-transform">
+                      {FILE_ICONS[file.type] || FILE_ICONS.other}
+                    </span>
+                    <span
+                      className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+                    >
+                      {file.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className={`text-center py-8 ${brandColors.textSecondary}`}>
+                <div
+                  className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
+                >
+                  <DocumentIcon className="w-5 h-5 opacity-50" />
+                </div>
+                <p className="text-xs">No files yet</p>
+                <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
+                  AI will create files here
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Generation Status */}
+          {isGenerating && (
+            <div className={`px-3 py-2 ${brandColors.border} border-t`}>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                <span className={`text-xs ${brandColors.accentCyan}`}>
+                  Generating...
+                </span>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Generation Status */}
-        {isGenerating && (
-          <div className={`px-3 py-2 ${brandColors.border} border-t`}>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <span className={`text-xs ${brandColors.accentCyan}`}>
-                Generating...
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* =========== RIGHT PANEL: CODE / PREVIEW =========== */}
       <div className="flex-1 flex flex-col relative z-10">
