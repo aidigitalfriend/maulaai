@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -22,6 +23,10 @@ import {
   EyeIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
+
+const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
+  ssr: false,
+});
 
 // =============================================================================
 // TYPES
@@ -270,6 +275,13 @@ export default function CanvasMode({
   // HANDLERS
   // =============================================================================
 
+  const normalizeCode = useCallback((code: string) => {
+    let cleaned = code.trimStart();
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\s*/i, '');
+    cleaned = cleaned.replace(/```$/i, '');
+    return cleaned.trim();
+  }, []);
+
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {
       const doc = previewRef.current.contentDocument;
@@ -280,6 +292,15 @@ export default function CanvasMode({
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (viewMode !== 'preview') return;
+    const htmlContent =
+      selectedFile?.type === 'html' ? selectedFile.content : generatedCode;
+    if (htmlContent) {
+      updatePreview(htmlContent);
+    }
+  }, [viewMode, selectedFile, generatedCode, updatePreview]);
 
   // Extract files from generated code
   const extractFiles = useCallback((code: string): GeneratedFile[] => {
@@ -456,10 +477,11 @@ export default function CanvasMode({
                 const chunkContent = parsed.chunk || parsed.content;
                 if (chunkContent) {
                   fullCode += chunkContent;
-                  setGeneratedCode(fullCode);
+                  const cleaned = normalizeCode(fullCode);
+                  setGeneratedCode(cleaned);
 
                   // Update files in real-time
-                  const files = extractFiles(fullCode);
+                  const files = extractFiles(cleaned);
                   setGeneratedFiles(files);
 
                   // Update preview in real-time (throttled)
@@ -468,7 +490,7 @@ export default function CanvasMode({
                     fullCode.includes('</html>') ||
                     fullCode.length % 500 < 50
                   ) {
-                    updatePreview(fullCode);
+                    updatePreview(cleaned);
                   }
                 }
                 if (parsed.done) {
@@ -482,7 +504,7 @@ export default function CanvasMode({
                 // If not valid JSON, might be raw content
                 if (data && data !== '[DONE]' && !data.startsWith('{')) {
                   fullCode += data;
-                  setGeneratedCode(fullCode);
+                  setGeneratedCode(normalizeCode(fullCode));
                 }
               }
             }
@@ -492,9 +514,10 @@ export default function CanvasMode({
 
       // Final update
       if (fullCode) {
-        setGeneratedCode(fullCode);
-        updatePreview(fullCode);
-        const files = extractFiles(fullCode);
+        const cleaned = normalizeCode(fullCode);
+        setGeneratedCode(cleaned);
+        updatePreview(cleaned);
+        const files = extractFiles(cleaned);
         setGeneratedFiles(files);
         setGenerationStatus('success');
       } else {
@@ -1033,13 +1056,36 @@ export default function CanvasMode({
             </div>
           ) : (
             /* ===== CODE VIEW ===== */
-            <div className="w-full h-full overflow-auto custom-scrollbar">
+            <div className="w-full h-full overflow-hidden">
               {selectedFile || generatedCode ? (
-                <pre
-                  className={`p-4 text-sm font-mono ${brandColors.text} whitespace-pre-wrap`}
-                >
-                  <code>{selectedFile?.content || generatedCode}</code>
-                </pre>
+                <div className="h-full">
+                  <MonacoEditor
+                    height="100%"
+                    defaultLanguage="html"
+                    language={
+                      selectedFile?.type === 'css'
+                        ? 'css'
+                        : selectedFile?.type === 'js'
+                          ? 'javascript'
+                          : selectedFile?.type === 'json'
+                            ? 'json'
+                            : selectedFile?.type === 'tsx'
+                              ? 'typescript'
+                              : 'html'
+                    }
+                    theme="vs-dark"
+                    value={selectedFile?.content || generatedCode}
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      lineNumbers: 'on',
+                      wordWrap: 'on',
+                      scrollBeyondLastLine: false,
+                      fontSize: 13,
+                      padding: { top: 12, bottom: 12 },
+                    }}
+                  />
+                </div>
               ) : (
                 <div
                   className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}
