@@ -391,6 +391,7 @@ export default function CanvasMode({
 
     setMessages((prev) => [...prev, userMessage]);
     const userPrompt = chatInput.trim();
+    const uniquenessHint = `\n\nUniqueness requirements: produce a fresh layout, novel component structure, and a new color system for this request. Avoid reusing any previous templates. Seed: ${Date.now().toString(36)}-${Math.floor(Math.random() * 1_000_000)}`;
     setChatInput('');
     setUploadedFiles([]);
     setIsGenerating(true);
@@ -416,9 +417,9 @@ export default function CanvasMode({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: userPrompt,
-          provider: 'auto',
-          modelId: 'auto',
+          prompt: `${userPrompt}${uniquenessHint}`,
+          provider: 'mistral',
+          modelId: 'mistral-large-latest',
           currentCode: generatedCode || undefined,
           history: messages
             .filter((m) => !m.isStreaming)
