@@ -66,18 +66,102 @@ interface CanvasModeProps {
 // =============================================================================
 
 const TEMPLATES = [
-  { id: 't1', name: 'SaaS Landing', category: 'Landing', icon: '🚀', prompt: 'Create a modern SaaS landing page with hero section, features grid, pricing cards, testimonials, and CTA. Use gradient backgrounds and smooth animations.' },
-  { id: 't2', name: 'Portfolio', category: 'Landing', icon: '👨‍💼', prompt: 'Build a creative portfolio website with about section, project gallery with hover effects, skills section, and contact form. Modern dark theme.' },
-  { id: 't3', name: 'Analytics Dashboard', category: 'Dashboard', icon: '📊', prompt: 'Create an analytics dashboard with stats cards, line chart placeholder, bar chart, recent activity list, and sidebar navigation. Dark theme.' },
-  { id: 't4', name: 'Admin Panel', category: 'Dashboard', icon: '⚙️', prompt: 'Build an admin panel with user management table, search/filter, pagination, sidebar menu, and top navbar with notifications.' },
-  { id: 't5', name: 'E-commerce Store', category: 'E-commerce', icon: '🛒', prompt: 'Create an e-commerce product grid with filter sidebar, product cards with hover effects, cart icon, and sorting dropdown.' },
-  { id: 't6', name: 'Product Page', category: 'E-commerce', icon: '📦', prompt: 'Build a product detail page with image gallery, size/color selectors, add to cart button, reviews section, and related products.' },
-  { id: 't7', name: 'Login Form', category: 'Components', icon: '🔐', prompt: 'Create a beautiful login/signup form with social login buttons, input validation styling, and forgot password link. Glassmorphism style.' },
-  { id: 't8', name: 'Pricing Table', category: 'Components', icon: '💎', prompt: 'Build a 3-tier pricing table with feature comparison, popular badge, monthly/yearly toggle, and CTA buttons.' },
-  { id: 't9', name: 'Contact Form', category: 'Components', icon: '✉️', prompt: 'Design a contact form with name, email, subject, message fields, and submit button. Include form validation styling.' },
-  { id: 't10', name: 'Blog Layout', category: 'Creative', icon: '📝', prompt: 'Create a blog homepage with featured post hero, recent articles grid, categories sidebar, and newsletter signup.' },
-  { id: 't11', name: 'Event Page', category: 'Creative', icon: '🎉', prompt: 'Design an event landing page with countdown timer, speaker profiles, schedule timeline, and ticket purchase section.' },
-  { id: 't12', name: 'Restaurant', category: 'Creative', icon: '🍽️', prompt: 'Create a restaurant website with hero image, menu sections, reservation form, gallery, and location map placeholder.' },
+  {
+    id: 't1',
+    name: 'SaaS Landing',
+    category: 'Landing',
+    icon: '🚀',
+    prompt:
+      'Create a modern SaaS landing page with hero section, features grid, pricing cards, testimonials, and CTA. Use gradient backgrounds and smooth animations.',
+  },
+  {
+    id: 't2',
+    name: 'Portfolio',
+    category: 'Landing',
+    icon: '👨‍💼',
+    prompt:
+      'Build a creative portfolio website with about section, project gallery with hover effects, skills section, and contact form. Modern dark theme.',
+  },
+  {
+    id: 't3',
+    name: 'Analytics Dashboard',
+    category: 'Dashboard',
+    icon: '📊',
+    prompt:
+      'Create an analytics dashboard with stats cards, line chart placeholder, bar chart, recent activity list, and sidebar navigation. Dark theme.',
+  },
+  {
+    id: 't4',
+    name: 'Admin Panel',
+    category: 'Dashboard',
+    icon: '⚙️',
+    prompt:
+      'Build an admin panel with user management table, search/filter, pagination, sidebar menu, and top navbar with notifications.',
+  },
+  {
+    id: 't5',
+    name: 'E-commerce Store',
+    category: 'E-commerce',
+    icon: '🛒',
+    prompt:
+      'Create an e-commerce product grid with filter sidebar, product cards with hover effects, cart icon, and sorting dropdown.',
+  },
+  {
+    id: 't6',
+    name: 'Product Page',
+    category: 'E-commerce',
+    icon: '📦',
+    prompt:
+      'Build a product detail page with image gallery, size/color selectors, add to cart button, reviews section, and related products.',
+  },
+  {
+    id: 't7',
+    name: 'Login Form',
+    category: 'Components',
+    icon: '🔐',
+    prompt:
+      'Create a beautiful login/signup form with social login buttons, input validation styling, and forgot password link. Glassmorphism style.',
+  },
+  {
+    id: 't8',
+    name: 'Pricing Table',
+    category: 'Components',
+    icon: '💎',
+    prompt:
+      'Build a 3-tier pricing table with feature comparison, popular badge, monthly/yearly toggle, and CTA buttons.',
+  },
+  {
+    id: 't9',
+    name: 'Contact Form',
+    category: 'Components',
+    icon: '✉️',
+    prompt:
+      'Design a contact form with name, email, subject, message fields, and submit button. Include form validation styling.',
+  },
+  {
+    id: 't10',
+    name: 'Blog Layout',
+    category: 'Creative',
+    icon: '📝',
+    prompt:
+      'Create a blog homepage with featured post hero, recent articles grid, categories sidebar, and newsletter signup.',
+  },
+  {
+    id: 't11',
+    name: 'Event Page',
+    category: 'Creative',
+    icon: '🎉',
+    prompt:
+      'Design an event landing page with countdown timer, speaker profiles, schedule timeline, and ticket purchase section.',
+  },
+  {
+    id: 't12',
+    name: 'Restaurant',
+    category: 'Creative',
+    icon: '🍽️',
+    prompt:
+      'Create a restaurant website with hero image, menu sections, reservation form, gallery, and location map placeholder.',
+  },
 ];
 
 const FILE_ICONS: Record<string, string> = {
@@ -113,25 +197,31 @@ export default function CanvasMode({
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<FileAttachment[]>([]);
-  
+
   // UI State
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewDevice, setPreviewDevice] = useState<
+    'desktop' | 'tablet' | 'mobile'
+  >('desktop');
   const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview');
   const [copySuccess, setCopySuccess] = useState(false);
-  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+  const [generationStatus, setGenerationStatus] = useState<
+    'idle' | 'generating' | 'success' | 'error'
+  >('idle');
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
 
   // Initialize welcome message
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{
-        id: '1',
-        role: 'assistant',
-        content: `Hi! I'm ready to create amazing designs for you.\n\n🎯 Select a template or describe what you want to build!`,
-        timestamp: new Date(),
-      }]);
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: `Hi! I'm ready to create amazing designs for you.\n\n🎯 Select a template or describe what you want to build!`,
+          timestamp: new Date(),
+        },
+      ]);
     }
   }, [isOpen, messages.length]);
 
@@ -143,10 +233,12 @@ export default function CanvasMode({
   // =============================================================================
   // BRAND THEME STYLES
   // =============================================================================
-  
+
   const brandColors = {
-    gradientPrimary: 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500',
-    gradientText: 'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent',
+    gradientPrimary:
+      'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500',
+    gradientText:
+      'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent',
     bgMain: 'bg-[#0a0a0f]',
     bgPanel: 'bg-[#12121a]/95 backdrop-blur-xl',
     bgSecondary: 'bg-[#1a1a24]/80',
@@ -159,20 +251,25 @@ export default function CanvasMode({
     textMuted: 'text-gray-500',
     accentCyan: 'text-cyan-400',
     accentPurple: 'text-purple-400',
-    btnPrimary: 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white shadow-lg shadow-cyan-500/25',
+    btnPrimary:
+      'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white shadow-lg shadow-cyan-500/25',
     btnSecondary: 'bg-[#2a2a3a] hover:bg-[#353545] text-gray-200',
   };
 
   // Categories
-  const categories = ['All', ...Array.from(new Set(TEMPLATES.map(t => t.category)))];
-  const filteredTemplates = selectedCategory === 'All' 
-    ? TEMPLATES 
-    : TEMPLATES.filter(t => t.category === selectedCategory);
+  const categories = [
+    'All',
+    ...Array.from(new Set(TEMPLATES.map((t) => t.category))),
+  ];
+  const filteredTemplates =
+    selectedCategory === 'All'
+      ? TEMPLATES
+      : TEMPLATES.filter((t) => t.category === selectedCategory);
 
   // =============================================================================
   // HANDLERS
   // =============================================================================
-  
+
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {
       const doc = previewRef.current.contentDocument;
@@ -187,7 +284,7 @@ export default function CanvasMode({
   // Extract files from generated code
   const extractFiles = useCallback((code: string): GeneratedFile[] => {
     const files: GeneratedFile[] = [];
-    
+
     // Main HTML file
     if (code.includes('<html') || code.includes('<!DOCTYPE')) {
       files.push({
@@ -203,7 +300,9 @@ export default function CanvasMode({
     // Extract inline CSS
     const styleMatches = code.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
     if (styleMatches && styleMatches.length > 0) {
-      const cssContent = styleMatches.map(m => m.replace(/<\/?style[^>]*>/gi, '')).join('\n');
+      const cssContent = styleMatches
+        .map((m) => m.replace(/<\/?style[^>]*>/gi, ''))
+        .join('\n');
       if (cssContent.trim().length > 50) {
         files.push({
           id: 'f-css',
@@ -217,9 +316,13 @@ export default function CanvasMode({
     }
 
     // Extract inline JS
-    const scriptMatches = code.match(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/gi);
+    const scriptMatches = code.match(
+      /<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/gi
+    );
     if (scriptMatches && scriptMatches.length > 0) {
-      const jsContent = scriptMatches.map(m => m.replace(/<\/?script[^>]*>/gi, '')).join('\n');
+      const jsContent = scriptMatches
+        .map((m) => m.replace(/<\/?script[^>]*>/gi, ''))
+        .join('\n');
       if (jsContent.trim().length > 50) {
         files.push({
           id: 'f-js',
@@ -235,38 +338,44 @@ export default function CanvasMode({
     return files;
   }, []);
 
-  const handleTemplateSelect = useCallback((template: typeof TEMPLATES[0]) => {
-    setChatInput(template.prompt);
-    setShowTemplates(false);
-    // Auto-submit
-    setTimeout(() => {
-      const submitBtn = document.getElementById('canvas-submit-btn');
-      if (submitBtn) submitBtn.click();
-    }, 100);
-  }, []);
+  const handleTemplateSelect = useCallback(
+    (template: (typeof TEMPLATES)[0]) => {
+      setChatInput(template.prompt);
+      setShowTemplates(false);
+      // Auto-submit
+      setTimeout(() => {
+        const submitBtn = document.getElementById('canvas-submit-btn');
+        if (submitBtn) submitBtn.click();
+      }, 100);
+    },
+    []
+  );
 
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newFile: FileAttachment = {
-          id: Date.now().toString() + Math.random(),
-          name: file.name,
-          type: file.type,
-          url: event.target?.result as string,
-          size: file.size,
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const newFile: FileAttachment = {
+            id: Date.now().toString() + Math.random(),
+            name: file.name,
+            type: file.type,
+            url: event.target?.result as string,
+            size: file.size,
+          };
+          setUploadedFiles((prev) => [...prev, newFile]);
         };
-        setUploadedFiles(prev => [...prev, newFile]);
-      };
-      reader.readAsDataURL(file);
-    });
-  }, []);
+        reader.readAsDataURL(file);
+      });
+    },
+    []
+  );
 
   const removeUploadedFile = useCallback((fileId: string) => {
-    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+    setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
 
   const handleSendMessage = useCallback(async () => {
@@ -280,7 +389,7 @@ export default function CanvasMode({
       attachments: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     const userPrompt = chatInput.trim();
     setChatInput('');
     setUploadedFiles([]);
@@ -291,13 +400,16 @@ export default function CanvasMode({
 
     // Add streaming placeholder
     const streamingMsgId = (Date.now() + 1).toString();
-    setMessages(prev => [...prev, {
-      id: streamingMsgId,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-      isStreaming: true,
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: streamingMsgId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true,
+      },
+    ]);
 
     try {
       const response = await fetch('/api/canvas/stream', {
@@ -308,7 +420,9 @@ export default function CanvasMode({
           provider: 'auto',
           modelId: 'auto',
           currentCode: generatedCode || undefined,
-          history: messages.filter(m => !m.isStreaming).map(m => ({ role: m.role, text: m.content })),
+          history: messages
+            .filter((m) => !m.isStreaming)
+            .map((m) => ({ role: m.role, text: m.content })),
         }),
       });
 
@@ -334,7 +448,7 @@ export default function CanvasMode({
             if (line.startsWith('data: ')) {
               const data = line.slice(6).trim();
               if (data === '[DONE]') continue;
-              
+
               try {
                 const parsed = JSON.parse(data);
                 // API returns 'chunk' not 'content'
@@ -342,13 +456,17 @@ export default function CanvasMode({
                 if (chunkContent) {
                   fullCode += chunkContent;
                   setGeneratedCode(fullCode);
-                  
+
                   // Update files in real-time
                   const files = extractFiles(fullCode);
                   setGeneratedFiles(files);
-                  
+
                   // Update preview in real-time (throttled)
-                  if (fullCode.includes('</body>') || fullCode.includes('</html>') || fullCode.length % 500 < 50) {
+                  if (
+                    fullCode.includes('</body>') ||
+                    fullCode.includes('</html>') ||
+                    fullCode.length % 500 < 50
+                  ) {
                     updatePreview(fullCode);
                   }
                 }
@@ -383,24 +501,44 @@ export default function CanvasMode({
       }
 
       // Update message
-      setMessages(prev => prev.map(m => 
-        m.id === streamingMsgId 
-          ? { ...m, content: '✨ Done! Your design is ready.\n\nCheck the Preview or Code tab. Want changes? Just describe them!', isStreaming: false }
-          : m
-      ));
-
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === streamingMsgId
+            ? {
+                ...m,
+                content:
+                  '✨ Done! Your design is ready.\n\nCheck the Preview or Code tab. Want changes? Just describe them!',
+                isStreaming: false,
+              }
+            : m
+        )
+      );
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setGenerationStatus('error');
-      setMessages(prev => prev.map(m => 
-        m.id === streamingMsgId 
-          ? { ...m, content: `❌ Error: ${errorMsg}\n\nPlease try again.`, isStreaming: false }
-          : m
-      ));
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === streamingMsgId
+            ? {
+                ...m,
+                content: `❌ Error: ${errorMsg}\n\nPlease try again.`,
+                isStreaming: false,
+              }
+            : m
+        )
+      );
     } finally {
       setIsGenerating(false);
     }
-  }, [chatInput, isGenerating, uploadedFiles, generatedCode, messages, updatePreview, extractFiles]);
+  }, [
+    chatInput,
+    isGenerating,
+    uploadedFiles,
+    generatedCode,
+    messages,
+    updatePreview,
+    extractFiles,
+  ]);
 
   const handleDownload = useCallback(() => {
     if (!generatedCode) return;
@@ -443,38 +581,53 @@ export default function CanvasMode({
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
       </div>
 
       {/* =========== LEFT PANEL: AI CHAT =========== */}
-      <div className={`w-[320px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}>
+      <div
+        className={`w-[320px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+      >
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b`}>
+        <div
+          className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b`}
+        >
           <div className="flex items-center gap-2">
             <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
               <SparklesIcon className="w-4 h-4 text-white" />
             </div>
-            <span className={`font-semibold ${brandColors.gradientText}`}>AI Canvas</span>
+            <span className={`font-semibold ${brandColors.gradientText}`}>
+              AI Canvas
+            </span>
           </div>
           <button
             onClick={() => setShowTemplates(!showTemplates)}
             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
-              showTemplates 
+              showTemplates
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
             }`}
           >
             Templates
-            <ChevronDownIcon className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`} />
+            <ChevronDownIcon
+              className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
+            />
           </button>
         </div>
 
         {/* Templates Dropdown */}
         {showTemplates && (
-          <div className={`${brandColors.border} border-b max-h-80 overflow-hidden flex flex-col`}>
+          <div
+            className={`${brandColors.border} border-b max-h-80 overflow-hidden flex flex-col`}
+          >
             {/* Category Tabs */}
-            <div className={`flex overflow-x-auto p-2 gap-1 ${brandColors.border} border-b flex-shrink-0`}>
-              {categories.map(cat => (
+            <div
+              className={`flex overflow-x-auto p-2 gap-1 ${brandColors.border} border-b flex-shrink-0`}
+            >
+              {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
@@ -488,21 +641,29 @@ export default function CanvasMode({
                 </button>
               ))}
             </div>
-            
+
             {/* Templates Grid */}
             <div className="p-2 overflow-y-auto flex-1 custom-scrollbar">
               <div className="grid grid-cols-2 gap-2">
-                {filteredTemplates.map(template => (
+                {filteredTemplates.map((template) => (
                   <button
                     key={template.id}
                     onClick={() => handleTemplateSelect(template)}
                     className={`p-2.5 rounded-xl text-left transition-all hover:scale-[1.02] ${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/50 group`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-lg group-hover:scale-110 transition-transform">{template.icon}</span>
+                      <span className="text-lg group-hover:scale-110 transition-transform">
+                        {template.icon}
+                      </span>
                       <div>
-                        <p className={`text-xs font-medium ${brandColors.text}`}>{template.name}</p>
-                        <p className={`text-[10px] ${brandColors.textMuted}`}>{template.category}</p>
+                        <p
+                          className={`text-xs font-medium ${brandColors.text}`}
+                        >
+                          {template.name}
+                        </p>
+                        <p className={`text-[10px] ${brandColors.textMuted}`}>
+                          {template.category}
+                        </p>
                       </div>
                     </div>
                   </button>
@@ -514,29 +675,48 @@ export default function CanvasMode({
 
         {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-          {messages.map(msg => (
-            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
-                msg.role === 'user'
-                  ? brandColors.btnPrimary
-                  : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
-              }`}>
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
+                  msg.role === 'user'
+                    ? brandColors.btnPrimary
+                    : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
+                }`}
+              >
                 {msg.isStreaming ? (
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div
+                        className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
-                    <span className={`text-xs ${brandColors.textSecondary}`}>Creating...</span>
+                    <span className={`text-xs ${brandColors.textSecondary}`}>
+                      Creating...
+                    </span>
                   </div>
                 ) : (
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 )}
                 {msg.attachments && msg.attachments.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
-                    {msg.attachments.map(file => (
-                      <span key={file.id} className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                    {msg.attachments.map((file) => (
+                      <span
+                        key={file.id}
+                        className="text-xs bg-white/20 px-2 py-0.5 rounded"
+                      >
                         📎 {file.name}
                       </span>
                     ))}
@@ -552,11 +732,19 @@ export default function CanvasMode({
         {uploadedFiles.length > 0 && (
           <div className={`px-3 py-2 ${brandColors.border} border-t`}>
             <div className="flex flex-wrap gap-2">
-              {uploadedFiles.map(file => (
-                <div key={file.id} className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${brandColors.border}`}>
+              {uploadedFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${brandColors.border}`}
+                >
                   <PhotoIcon className="w-3 h-3 text-cyan-400" />
-                  <span className={brandColors.text}>{file.name.slice(0, 12)}...</span>
-                  <button onClick={() => removeUploadedFile(file.id)} className="text-red-400 hover:text-red-300">
+                  <span className={brandColors.text}>
+                    {file.name.slice(0, 12)}...
+                  </span>
+                  <button
+                    onClick={() => removeUploadedFile(file.id)}
+                    className="text-red-400 hover:text-red-300"
+                  >
                     <XCircleIcon className="w-4 h-4" />
                   </button>
                 </div>
@@ -567,7 +755,9 @@ export default function CanvasMode({
 
         {/* Chat Input */}
         <div className={`p-3 ${brandColors.border} border-t`}>
-          <div className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}>
+          <div
+            className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}
+          >
             <button
               onClick={() => fileInputRef.current?.click()}
               className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} transition-colors`}
@@ -583,7 +773,7 @@ export default function CanvasMode({
               onChange={handleFileUpload}
               className="hidden"
             />
-            
+
             <textarea
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
@@ -597,7 +787,7 @@ export default function CanvasMode({
               className={`flex-1 resize-none bg-transparent outline-none text-sm ${brandColors.text} placeholder-gray-500`}
               rows={2}
             />
-            
+
             <button
               id="canvas-submit-btn"
               onClick={handleSendMessage}
@@ -615,21 +805,29 @@ export default function CanvasMode({
       </div>
 
       {/* =========== CENTER PANEL: FILES =========== */}
-      <div className={`w-[200px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}>
-        <div className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}>
+      <div
+        className={`w-[200px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+      >
+        <div
+          className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
+        >
           <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
-          <span className={`text-sm font-medium ${brandColors.text}`}>Files</span>
+          <span className={`text-sm font-medium ${brandColors.text}`}>
+            Files
+          </span>
           {generatedFiles.length > 0 && (
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}>
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
+            >
               {generatedFiles.length}
             </span>
           )}
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
           {generatedFiles.length > 0 ? (
             <div className="space-y-1">
-              {generatedFiles.map(file => (
+              {generatedFiles.map((file) => (
                 <button
                   key={file.id}
                   onClick={() => {
@@ -637,23 +835,33 @@ export default function CanvasMode({
                     setViewMode('code');
                   }}
                   className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
-                    selectedFile?.id === file.id 
-                      ? `${brandColors.btnPrimary}` 
+                    selectedFile?.id === file.id
+                      ? `${brandColors.btnPrimary}`
                       : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
                   }`}
                 >
-                  <span className="text-sm group-hover:scale-110 transition-transform">{FILE_ICONS[file.type] || FILE_ICONS.other}</span>
-                  <span className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}>{file.name}</span>
+                  <span className="text-sm group-hover:scale-110 transition-transform">
+                    {FILE_ICONS[file.type] || FILE_ICONS.other}
+                  </span>
+                  <span
+                    className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+                  >
+                    {file.name}
+                  </span>
                 </button>
               ))}
             </div>
           ) : (
             <div className={`text-center py-8 ${brandColors.textSecondary}`}>
-              <div className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}>
+              <div
+                className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
+              >
                 <DocumentIcon className="w-5 h-5 opacity-50" />
               </div>
               <p className="text-xs">No files yet</p>
-              <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>AI will create files here</p>
+              <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
+                AI will create files here
+              </p>
             </div>
           )}
         </div>
@@ -663,7 +871,9 @@ export default function CanvasMode({
           <div className={`px-3 py-2 ${brandColors.border} border-t`}>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <span className={`text-xs ${brandColors.accentCyan}`}>Generating...</span>
+              <span className={`text-xs ${brandColors.accentCyan}`}>
+                Generating...
+              </span>
             </div>
           </div>
         )}
@@ -672,13 +882,19 @@ export default function CanvasMode({
       {/* =========== RIGHT PANEL: CODE / PREVIEW =========== */}
       <div className="flex-1 flex flex-col relative z-10">
         {/* Toolbar */}
-        <div className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}>
+        <div
+          className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
+        >
           {/* View Toggle: Preview / Code */}
-          <div className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}>
+          <div
+            className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
+          >
             <button
               onClick={() => setViewMode('preview')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'preview' ? brandColors.btnPrimary : brandColors.textSecondary
+                viewMode === 'preview'
+                  ? brandColors.btnPrimary
+                  : brandColors.textSecondary
               }`}
             >
               <EyeIcon className="w-4 h-4" />
@@ -687,7 +903,9 @@ export default function CanvasMode({
             <button
               onClick={() => setViewMode('code')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'code' ? brandColors.btnPrimary : brandColors.textSecondary
+                viewMode === 'code'
+                  ? brandColors.btnPrimary
+                  : brandColors.textSecondary
               }`}
             >
               <CodeBracketIcon className="w-4 h-4" />
@@ -697,19 +915,29 @@ export default function CanvasMode({
 
           {/* Device Toggle (only in preview mode) */}
           {viewMode === 'preview' && (
-            <div className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}>
-              {(['desktop', 'tablet', 'mobile'] as const).map(device => (
+            <div
+              className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
+            >
+              {(['desktop', 'tablet', 'mobile'] as const).map((device) => (
                 <button
                   key={device}
                   onClick={() => setPreviewDevice(device)}
                   className={`p-2 rounded-md transition-all ${
-                    previewDevice === device ? brandColors.btnPrimary : brandColors.textSecondary
+                    previewDevice === device
+                      ? brandColors.btnPrimary
+                      : brandColors.textSecondary
                   }`}
                   title={device}
                 >
-                  {device === 'desktop' && <ComputerDesktopIcon className="w-4 h-4" />}
-                  {device === 'tablet' && <DeviceTabletIcon className="w-4 h-4" />}
-                  {device === 'mobile' && <DevicePhoneMobileIcon className="w-4 h-4" />}
+                  {device === 'desktop' && (
+                    <ComputerDesktopIcon className="w-4 h-4" />
+                  )}
+                  {device === 'tablet' && (
+                    <DeviceTabletIcon className="w-4 h-4" />
+                  )}
+                  {device === 'mobile' && (
+                    <DevicePhoneMobileIcon className="w-4 h-4" />
+                  )}
                 </button>
               ))}
             </div>
@@ -723,7 +951,11 @@ export default function CanvasMode({
               className={`p-2 rounded-lg transition-all ${brandColors.textSecondary} ${brandColors.bgHover} disabled:opacity-50 disabled:cursor-not-allowed`}
               title="Copy code"
             >
-              {copySuccess ? <CheckCircleIcon className="w-4 h-4 text-green-400" /> : <DocumentDuplicateIcon className="w-4 h-4" />}
+              {copySuccess ? (
+                <CheckCircleIcon className="w-4 h-4 text-green-400" />
+              ) : (
+                <DocumentDuplicateIcon className="w-4 h-4" />
+              )}
             </button>
             <button
               onClick={handleOpenInNewTab}
@@ -758,8 +990,13 @@ export default function CanvasMode({
             /* ===== PREVIEW VIEW ===== */
             <div className="w-full h-full p-4 overflow-auto">
               {generatedCode ? (
-                <div className={`${deviceStyles[previewDevice]} bg-white rounded-xl overflow-hidden transition-all duration-300`}
-                     style={{ boxShadow: '0 0 60px rgba(34, 211, 238, 0.15), 0 0 30px rgba(168, 85, 247, 0.1)' }}>
+                <div
+                  className={`${deviceStyles[previewDevice]} bg-white rounded-xl overflow-hidden transition-all duration-300`}
+                  style={{
+                    boxShadow:
+                      '0 0 60px rgba(34, 211, 238, 0.15), 0 0 30px rgba(168, 85, 247, 0.1)',
+                  }}
+                >
                   <iframe
                     ref={previewRef}
                     title="Preview"
@@ -768,14 +1005,27 @@ export default function CanvasMode({
                   />
                 </div>
               ) : (
-                <div className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}>
-                  <div className={`w-20 h-20 rounded-2xl ${brandColors.bgSecondary} flex items-center justify-center mb-4 border ${brandColors.borderAccent}`}>
-                    <SparklesIcon className={`w-10 h-10 ${brandColors.accentCyan} opacity-60`} />
+                <div
+                  className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}
+                >
+                  <div
+                    className={`w-20 h-20 rounded-2xl ${brandColors.bgSecondary} flex items-center justify-center mb-4 border ${brandColors.borderAccent}`}
+                  >
+                    <SparklesIcon
+                      className={`w-10 h-10 ${brandColors.accentCyan} opacity-60`}
+                    />
                   </div>
-                  <h3 className={`text-lg font-semibold ${brandColors.gradientText} mb-2`}>Ready to Create</h3>
+                  <h3
+                    className={`text-lg font-semibold ${brandColors.gradientText} mb-2`}
+                  >
+                    Ready to Create
+                  </h3>
                   <p className="text-sm text-center max-w-xs">
-                    Select a template or describe what you want.<br />
-                    <span className={brandColors.accentPurple}>Preview will appear here!</span>
+                    Select a template or describe what you want.
+                    <br />
+                    <span className={brandColors.accentPurple}>
+                      Preview will appear here!
+                    </span>
                   </p>
                 </div>
               )}
@@ -784,14 +1034,20 @@ export default function CanvasMode({
             /* ===== CODE VIEW ===== */
             <div className="w-full h-full overflow-auto custom-scrollbar">
               {selectedFile || generatedCode ? (
-                <pre className={`p-4 text-sm font-mono ${brandColors.text} whitespace-pre-wrap`}>
+                <pre
+                  className={`p-4 text-sm font-mono ${brandColors.text} whitespace-pre-wrap`}
+                >
                   <code>{selectedFile?.content || generatedCode}</code>
                 </pre>
               ) : (
-                <div className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}>
+                <div
+                  className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}
+                >
                   <CodeBracketIcon className="w-12 h-12 opacity-30 mb-3" />
                   <p className="text-sm">No code yet</p>
-                  <p className={`text-xs ${brandColors.textMuted}`}>Generated code will appear here</p>
+                  <p className={`text-xs ${brandColors.textMuted}`}>
+                    Generated code will appear here
+                  </p>
                 </div>
               )}
             </div>
@@ -799,13 +1055,17 @@ export default function CanvasMode({
         </div>
 
         {/* Status Bar */}
-        <div className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-t ${brandColors.bgSecondary}`}>
+        <div
+          className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-t ${brandColors.bgSecondary}`}
+        >
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               {generationStatus === 'generating' && (
                 <>
                   <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                  <span className={`text-xs ${brandColors.accentCyan}`}>Generating...</span>
+                  <span className={`text-xs ${brandColors.accentCyan}`}>
+                    Generating...
+                  </span>
                 </>
               )}
               {generationStatus === 'success' && (
@@ -822,8 +1082,12 @@ export default function CanvasMode({
               )}
               {generationStatus === 'idle' && (
                 <>
-                  <span className={`w-2 h-2 rounded-full ${brandColors.bgSecondary}`} />
-                  <span className={`text-xs ${brandColors.textMuted}`}>Waiting</span>
+                  <span
+                    className={`w-2 h-2 rounded-full ${brandColors.bgSecondary}`}
+                  />
+                  <span className={`text-xs ${brandColors.textMuted}`}>
+                    Waiting
+                  </span>
                 </>
               )}
             </div>

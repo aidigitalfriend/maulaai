@@ -105,7 +105,9 @@ export async function POST(request: NextRequest) {
             : 'No AI providers are configured';
 
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: fallbackMessage })}\n\n`)
+          encoder.encode(
+            `data: ${JSON.stringify({ error: fallbackMessage })}\n\n`
+          )
         );
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
