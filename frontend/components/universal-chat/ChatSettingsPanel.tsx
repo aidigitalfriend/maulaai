@@ -16,8 +16,8 @@ import {
   ChevronUpIcon,
   BeakerIcon,
 } from '@heroicons/react/24/outline';
-import type { AIProvider } from './types';
-import { PROVIDER_MODEL_OPTIONS } from './aiProviders';
+import type { AIProvider } from '../../app/agents/types';
+import { PROVIDER_MODEL_OPTIONS } from '../../lib/aiProviders';
 
 export interface AgentSettings {
   temperature: number;
@@ -107,7 +107,6 @@ interface ChatSettingsPanelProps {
   agentName: string;
   theme?: 'default' | 'neural';
   isLeftPanel?: boolean;
-  allowedProviders?: string[];
 }
 
 export default function ChatSettingsPanel({
@@ -119,20 +118,12 @@ export default function ChatSettingsPanel({
   agentName,
   theme = 'default',
   isLeftPanel = false,
-  allowedProviders,
 }: ChatSettingsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(
     'presets'
   );
   const [activePreset, setActivePreset] = useState<string | null>(null);
-
-  // Filter available providers based on agent's allowed providers
-  const availableProviderOptions = allowedProviders
-    ? PROVIDER_MODEL_OPTIONS.filter((opt) =>
-        allowedProviders.includes(opt.provider)
-      )
-    : PROVIDER_MODEL_OPTIONS;
 
   // Close on outside click
   useEffect(() => {
@@ -350,7 +341,7 @@ export default function ChatSettingsPanel({
               }}
               className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
             >
-              {availableProviderOptions.map((opt) => (
+              {PROVIDER_MODEL_OPTIONS.map((opt) => (
                 <option key={opt.provider} value={opt.provider}>
                   {opt.label}
                 </option>
@@ -362,7 +353,7 @@ export default function ChatSettingsPanel({
               className={`w-full px-2 py-1.5 rounded-lg text-xs border mt-2 ${inputStyles}`}
             >
               {(
-                availableProviderOptions.find(
+                PROVIDER_MODEL_OPTIONS.find(
                   (opt) => opt.provider === settings.provider
                 )?.models || []
               ).map((model) => (
@@ -462,8 +453,8 @@ export default function ChatSettingsPanel({
                       isActive
                         ? `${preset.bgColor} ${preset.borderColor} shadow-lg`
                         : isNeural
-                        ? 'border-gray-700 hover:border-gray-600 bg-gray-800/50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                          ? 'border-gray-700 hover:border-gray-600 bg-gray-800/50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                   >
                     <div className="flex items-center space-x-2 mb-1">
@@ -612,7 +603,7 @@ export default function ChatSettingsPanel({
                   value={settings.provider}
                   onChange={(e) => {
                     const newProvider = e.target.value as AIProvider;
-                    const providerOption = availableProviderOptions.find(
+                    const providerOption = PROVIDER_MODEL_OPTIONS.find(
                       (opt) => opt.provider === newProvider
                     );
                     const firstModel =
@@ -624,7 +615,7 @@ export default function ChatSettingsPanel({
                   }}
                   className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
                 >
-                  {availableProviderOptions.map((opt) => (
+                  {PROVIDER_MODEL_OPTIONS.map((opt) => (
                     <option key={opt.provider} value={opt.provider}>
                       {opt.label}
                     </option>
@@ -646,7 +637,7 @@ export default function ChatSettingsPanel({
                   className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
                 >
                   {(
-                    availableProviderOptions.find(
+                    PROVIDER_MODEL_OPTIONS.find(
                       (opt) => opt.provider === settings.provider
                     )?.models || []
                   ).map((model) => (

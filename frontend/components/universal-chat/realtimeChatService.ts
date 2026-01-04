@@ -200,11 +200,6 @@ class RealtimeChatService {
     this.abortController = null;
   }
 
-  // Check if request is in progress
-  isRequestInProgress(): boolean {
-    return this.abortController !== null;
-  }
-
   // Generate unique message ID
   generateMessageId(): string {
     return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -216,6 +211,5 @@ class RealtimeChatService {
   }
 }
 
-// Export singleton instance
 export const realtimeChatService = new RealtimeChatService();
 export default realtimeChatService;

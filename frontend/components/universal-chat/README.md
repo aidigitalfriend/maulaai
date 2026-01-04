@@ -4,19 +4,20 @@ A complete, professional chat interface with real AI integration, session manage
 
 ## 📁 Files Overview
 
-| File                     | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `UniversalAgentChat.tsx` | Main chat component - the primary export       |
-| `EnhancedChatLayout.tsx` | Layout wrapper with sidebars and theme support |
-| `ChatSessionSidebar.tsx` | Left sidebar for session management            |
-| `ChatSettingsPanel.tsx`  | Settings panel with AI presets                 |
-| `ChatRightPanel.tsx`     | Right panel with Canvas button                 |
-| `QuickActionsPanel.tsx`  | Quick action buttons for common tasks          |
-| `CanvasMode.tsx`         | Full-screen code editor with preview           |
-| `realtimeChatService.ts` | API service for AI chat                        |
-| `types.ts`               | TypeScript type definitions                    |
-| `aiProviders.ts`         | AI provider configurations                     |
-| `index.ts`               | Clean exports                                  |
+| File                                     | Description                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------- |
+| `UniversalAgentChat.tsx`                 | Main chat component - the primary export                              |
+| `EnhancedChatLayout.tsx`                 | Layout wrapper with sidebars and theme support                        |
+| `ChatSessionSidebar.tsx`                 | Left sidebar for session management                                   |
+| `ChatSettingsPanel.tsx`                  | Settings panel with AI presets                                        |
+| `ChatRightPanel.tsx`                     | Right panel with Canvas button                                        |
+| `QuickActionsPanel.tsx`                  | Quick action buttons for common tasks                                 |
+| `canvas-build/CanvasMode.tsx`            | Canvas shim export (imports `canvas-build/components/CanvasPage.tsx`) |
+| `canvas-build/components/CanvasPage.tsx` | Full-screen code editor with preview (Canvas overlay)                 |
+| `realtimeChatService.ts`                 | API service for AI chat                                               |
+| `types.ts`                               | TypeScript type definitions                                           |
+| `aiProviders.ts`                         | AI provider configurations                                            |
+| `index.ts`                               | Clean exports                                                         |
 
 ## 🚀 Usage
 
@@ -40,6 +41,8 @@ export default function MyAgentPage() {
   return <UniversalAgentChat agent={agentConfig} />;
 }
 ```
+
+> Canvas docs now live alongside the component in `canvas-build/README.md`.
 
 ## ✨ Features
 

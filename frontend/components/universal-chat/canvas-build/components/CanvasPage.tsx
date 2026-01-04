@@ -1,0 +1,1125 @@
+'use client';
+
+import { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  XMarkIcon,
+  PaperAirplaneIcon,
+  SparklesIcon,
+  ArrowDownTrayIcon,
+  DocumentDuplicateIcon,
+  ArrowTopRightOnSquareIcon,
+  DevicePhoneMobileIcon,
+  DeviceTabletIcon,
+  ComputerDesktopIcon,
+  FolderIcon,
+  DocumentIcon,
+  PhotoIcon,
+  ArrowUpTrayIcon,
+  XCircleIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  CodeBracketIcon,
+  EyeIcon,
+  ChevronDownIcon,
+} from '@heroicons/react/24/outline';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  attachments?: FileAttachment[];
+  isStreaming?: boolean;
+}
+
+interface FileAttachment {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+  size: number;
+}
+
+interface GeneratedFile {
+  id: string;
+  name: string;
+  path: string;
+  type: 'html' | 'css' | 'js' | 'tsx' | 'json' | 'image' | 'other';
+  content: string;
+  size: number;
+}
+
+interface CanvasModeProps {
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly theme?: 'default' | 'neural';
+  readonly agentId?: string;
+  readonly agentName?: string;
+}
+
+// =============================================================================
+// TEMPLATES
+// =============================================================================
+
+const TEMPLATES = [
+  {
+    id: 't1',
+    name: 'SaaS Landing',
+    category: 'Landing',
+    icon: '🚀',
+    prompt:
+      'Create a modern SaaS landing page with hero section, features grid, pricing cards, testimonials, and CTA. Use gradient backgrounds and smooth animations.',
+  },
+  {
+    id: 't2',
+    name: 'Portfolio',
+    category: 'Landing',
+    icon: '👨‍💼',
+    prompt:
+      'Build a creative portfolio website with about section, project gallery with hover effects, skills section, and contact form. Modern dark theme.',
+  },
+  {
+    id: 't3',
+    name: 'Analytics Dashboard',
+    category: 'Dashboard',
+    icon: '📊',
+    prompt:
+      'Create an analytics dashboard with stats cards, line chart placeholder, bar chart, recent activity list, and sidebar navigation. Dark theme.',
+  },
+  {
+    id: 't4',
+    name: 'Admin Panel',
+    category: 'Dashboard',
+    icon: '⚙️',
+    prompt:
+      'Build an admin panel with user management table, search/filter, pagination, sidebar menu, and top navbar with notifications.',
+  },
+  {
+    id: 't5',
+    name: 'E-commerce Store',
+    category: 'E-commerce',
+    icon: '🛒',
+    prompt:
+      'Create an e-commerce product grid with filter sidebar, product cards with hover effects, cart icon, and sorting dropdown.',
+  },
+  {
+    id: 't6',
+    name: 'Product Page',
+    category: 'E-commerce',
+    icon: '📦',
+    prompt:
+      'Build a product detail page with image gallery, size/color selectors, add to cart button, reviews section, and related products.',
+  },
+  {
+    id: 't7',
+    name: 'Login Form',
+    category: 'Components',
+    icon: '🔐',
+    prompt:
+      'Create a beautiful login/signup form with social login buttons, input validation styling, and forgot password link. Glassmorphism style.',
+  },
+  {
+    id: 't8',
+    name: 'Pricing Table',
+    category: 'Components',
+    icon: '💎',
+    prompt:
+      'Build a 3-tier pricing table with feature comparison, popular badge, monthly/yearly toggle, and CTA buttons.',
+  },
+  {
+    id: 't9',
+    name: 'Contact Form',
+    category: 'Components',
+    icon: '✉️',
+    prompt:
+      'Design a contact form with name, email, subject, message fields, and submit button. Include form validation styling.',
+  },
+  {
+    id: 't10',
+    name: 'Blog Layout',
+    category: 'Creative',
+    icon: '📝',
+    prompt:
+      'Create a blog homepage with featured post hero, recent articles grid, categories sidebar, and newsletter signup.',
+  },
+  {
+    id: 't11',
+    name: 'Event Page',
+    category: 'Creative',
+    icon: '🎉',
+    prompt:
+      'Design an event landing page with countdown timer, speaker profiles, schedule timeline, and ticket purchase section.',
+  },
+  {
+    id: 't12',
+    name: 'Restaurant',
+    category: 'Creative',
+    icon: '🍽️',
+    prompt:
+      'Create a restaurant website with hero image, menu sections, reservation form, gallery, and location map placeholder.',
+  },
+];
+
+const FILE_ICONS: Record<string, string> = {
+  html: '🌐',
+  css: '🎨',
+  js: '📜',
+  tsx: '⚛️',
+  json: '📋',
+  image: '🖼️',
+  folder: '📁',
+  other: '📄',
+};
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
+export default function CanvasMode({
+  isOpen,
+  onClose,
+  theme = 'neural',
+  agentId = 'default',
+  agentName = 'AI Assistant',
+}: CanvasModeProps) {
+  const previewRef = useRef<HTMLIFrameElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string>('');
+  const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileAttachment[]>([]);
+
+  // UI State
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [previewDevice, setPreviewDevice] = useState<
+    'desktop' | 'tablet' | 'mobile'
+  >('desktop');
+  const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<
+    'idle' | 'generating' | 'success' | 'error'
+  >('idle');
+  const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
+
+  // Initialize welcome message
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: `Hi! I'm ready to create amazing designs for you.\n\n🎯 Select a template or describe what you want to build!`,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }, [isOpen, messages.length]);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // =============================================================================
+  // BRAND THEME STYLES
+  // =============================================================================
+
+  const brandColors = {
+    gradientPrimary:
+      'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500',
+    gradientText:
+      'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent',
+    bgMain: 'bg-[#0a0a0f]',
+    bgPanel: 'bg-[#12121a]/95 backdrop-blur-xl',
+    bgSecondary: 'bg-[#1a1a24]/80',
+    bgInput: 'bg-[#1e1e2a]',
+    bgHover: 'hover:bg-[#252530]',
+    border: 'border-[#2a2a3a]',
+    borderAccent: 'border-cyan-500/30',
+    text: 'text-gray-100',
+    textSecondary: 'text-gray-400',
+    textMuted: 'text-gray-500',
+    accentCyan: 'text-cyan-400',
+    accentPurple: 'text-purple-400',
+    btnPrimary:
+      'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white shadow-lg shadow-cyan-500/25',
+    btnSecondary: 'bg-[#2a2a3a] hover:bg-[#353545] text-gray-200',
+  };
+
+  // Categories
+  const categories = [
+    'All',
+    ...Array.from(new Set(TEMPLATES.map((t) => t.category))),
+  ];
+  const filteredTemplates =
+    selectedCategory === 'All'
+      ? TEMPLATES
+      : TEMPLATES.filter((t) => t.category === selectedCategory);
+
+  // =============================================================================
+  // HANDLERS
+  // =============================================================================
+
+  const updatePreview = useCallback((code: string) => {
+    if (previewRef.current) {
+      const doc = previewRef.current.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(code);
+        doc.close();
+      }
+    }
+  }, []);
+
+  // Extract files from generated code
+  const extractFiles = useCallback((code: string): GeneratedFile[] => {
+    const files: GeneratedFile[] = [];
+
+    // Main HTML file
+    if (code.includes('<html') || code.includes('<!DOCTYPE')) {
+      files.push({
+        id: 'f-html',
+        name: 'index.html',
+        path: '/index.html',
+        type: 'html',
+        content: code,
+        size: new Blob([code]).size,
+      });
+    }
+
+    // Extract inline CSS
+    const styleMatches = code.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+    if (styleMatches && styleMatches.length > 0) {
+      const cssContent = styleMatches
+        .map((m) => m.replace(/<\/?style[^>]*>/gi, ''))
+        .join('\n');
+      if (cssContent.trim().length > 50) {
+        files.push({
+          id: 'f-css',
+          name: 'styles.css',
+          path: '/styles.css',
+          type: 'css',
+          content: cssContent.trim(),
+          size: new Blob([cssContent]).size,
+        });
+      }
+    }
+
+    // Extract inline JS
+    const scriptMatches = code.match(
+      /<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/gi
+    );
+    if (scriptMatches && scriptMatches.length > 0) {
+      const jsContent = scriptMatches
+        .map((m) => m.replace(/<\/?script[^>]*>/gi, ''))
+        .join('\n');
+      if (jsContent.trim().length > 50) {
+        files.push({
+          id: 'f-js',
+          name: 'script.js',
+          path: '/script.js',
+          type: 'js',
+          content: jsContent.trim(),
+          size: new Blob([jsContent]).size,
+        });
+      }
+    }
+
+    return files;
+  }, []);
+
+  const handleTemplateSelect = useCallback(
+    (template: (typeof TEMPLATES)[0]) => {
+      setChatInput(template.prompt);
+      setShowTemplates(false);
+      // Auto-submit
+      setTimeout(() => {
+        const submitBtn = document.getElementById('canvas-submit-btn');
+        if (submitBtn) submitBtn.click();
+      }, 100);
+    },
+    []
+  );
+
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
+
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const newFile: FileAttachment = {
+            id: Date.now().toString() + Math.random(),
+            name: file.name,
+            type: file.type,
+            url: event.target?.result as string,
+            size: file.size,
+          };
+          setUploadedFiles((prev) => [...prev, newFile]);
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+    []
+  );
+
+  const removeUploadedFile = useCallback((fileId: string) => {
+    setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
+  }, []);
+
+  const handleSendMessage = useCallback(async () => {
+    if (!chatInput.trim() || isGenerating) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: chatInput.trim(),
+      timestamp: new Date(),
+      attachments: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    const userPrompt = chatInput.trim();
+    setChatInput('');
+    setUploadedFiles([]);
+    setIsGenerating(true);
+    setShowTemplates(false);
+    setGenerationStatus('generating');
+    setViewMode('preview'); // Switch to preview when generating
+
+    // Add streaming placeholder
+    const streamingMsgId = (Date.now() + 1).toString();
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: streamingMsgId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true,
+      },
+    ]);
+
+    try {
+      const response = await fetch('/api/canvas/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userPrompt,
+          provider: 'auto',
+          modelId: 'auto',
+          currentCode: generatedCode || undefined,
+          history: messages
+            .filter((m) => !m.isStreaming)
+            .map((m) => ({ role: m.role, text: m.content })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullCode = '';
+      let buffer = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                // API returns 'chunk' not 'content'
+                const chunkContent = parsed.chunk || parsed.content;
+                if (chunkContent) {
+                  fullCode += chunkContent;
+                  setGeneratedCode(fullCode);
+
+                  // Update files in real-time
+                  const files = extractFiles(fullCode);
+                  setGeneratedFiles(files);
+
+                  // Update preview in real-time (throttled)
+                  if (
+                    fullCode.includes('</body>') ||
+                    fullCode.includes('</html>') ||
+                    fullCode.length % 500 < 50
+                  ) {
+                    updatePreview(fullCode);
+                  }
+                }
+                if (parsed.done) {
+                  // Stream completed
+                  console.log('Stream completed');
+                }
+                if (parsed.error) {
+                  throw new Error(parsed.error);
+                }
+              } catch (parseError) {
+                // If not valid JSON, might be raw content
+                if (data && data !== '[DONE]' && !data.startsWith('{')) {
+                  fullCode += data;
+                  setGeneratedCode(fullCode);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Final update
+      if (fullCode) {
+        setGeneratedCode(fullCode);
+        updatePreview(fullCode);
+        const files = extractFiles(fullCode);
+        setGeneratedFiles(files);
+        setGenerationStatus('success');
+      } else {
+        throw new Error('No code generated');
+      }
+
+      // Update message
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === streamingMsgId
+            ? {
+                ...m,
+                content:
+                  '✨ Done! Your design is ready.\n\nCheck the Preview or Code tab. Want changes? Just describe them!',
+                isStreaming: false,
+              }
+            : m
+        )
+      );
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setGenerationStatus('error');
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === streamingMsgId
+            ? {
+                ...m,
+                content: `❌ Error: ${errorMsg}\n\nPlease try again.`,
+                isStreaming: false,
+              }
+            : m
+        )
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [
+    chatInput,
+    isGenerating,
+    uploadedFiles,
+    generatedCode,
+    messages,
+    updatePreview,
+    extractFiles,
+  ]);
+
+  const handleDownload = useCallback(() => {
+    if (!generatedCode) return;
+    const blob = new Blob([generatedCode], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'canvas-project.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [generatedCode]);
+
+  const handleCopyCode = useCallback(() => {
+    const contentToCopy = selectedFile?.content || generatedCode;
+    if (contentToCopy) {
+      navigator.clipboard.writeText(contentToCopy);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  }, [generatedCode, selectedFile]);
+
+  const handleOpenInNewTab = useCallback(() => {
+    if (!generatedCode) return;
+    const blob = new Blob([generatedCode], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  }, [generatedCode]);
+
+  // Device styles
+  const deviceStyles = {
+    desktop: 'w-full h-full',
+    tablet: 'w-[768px] h-full mx-auto',
+    mobile: 'w-[375px] h-full mx-auto',
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className={`fixed inset-0 z-50 flex ${brandColors.bgMain}`}>
+      {/* Animated background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
+      </div>
+
+      {/* =========== LEFT PANEL: AI CHAT =========== */}
+      <div
+        className={`w-[320px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+      >
+        {/* Header */}
+        <div
+          className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b`}
+        >
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
+              <SparklesIcon className="w-4 h-4 text-white" />
+            </div>
+            <span className={`font-semibold ${brandColors.gradientText}`}>
+              AI Canvas
+            </span>
+          </div>
+          <button
+            onClick={() => setShowTemplates(!showTemplates)}
+            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
+              showTemplates
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+          >
+            Templates
+            <ChevronDownIcon
+              className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </div>
+
+        {/* Templates Dropdown */}
+        {showTemplates && (
+          <div
+            className={`${brandColors.border} border-b max-h-80 overflow-hidden flex flex-col`}
+          >
+            {/* Category Tabs */}
+            <div
+              className={`flex overflow-x-auto p-2 gap-1 ${brandColors.border} border-b flex-shrink-0`}
+            >
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                    selectedCategory === cat
+                      ? brandColors.btnPrimary
+                      : `${brandColors.textSecondary} ${brandColors.bgHover}`
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Templates Grid */}
+            <div className="p-2 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="grid grid-cols-2 gap-2">
+                {filteredTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => handleTemplateSelect(template)}
+                    className={`p-2.5 rounded-xl text-left transition-all hover:scale-[1.02] ${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/50 group`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg group-hover:scale-110 transition-transform">
+                        {template.icon}
+                      </span>
+                      <div>
+                        <p
+                          className={`text-xs font-medium ${brandColors.text}`}
+                        >
+                          {template.name}
+                        </p>
+                        <p className={`text-[10px] ${brandColors.textMuted}`}>
+                          {template.category}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
+                  msg.role === 'user'
+                    ? brandColors.btnPrimary
+                    : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
+                }`}
+              >
+                {msg.isStreaming ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div
+                        className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
+                    </div>
+                    <span className={`text-xs ${brandColors.textSecondary}`}>
+                      Creating...
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                )}
+                {msg.attachments && msg.attachments.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {msg.attachments.map((file) => (
+                      <span
+                        key={file.id}
+                        className="text-xs bg-white/20 px-2 py-0.5 rounded"
+                      >
+                        📎 {file.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Uploaded Files */}
+        {uploadedFiles.length > 0 && (
+          <div className={`px-3 py-2 ${brandColors.border} border-t`}>
+            <div className="flex flex-wrap gap-2">
+              {uploadedFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${brandColors.border}`}
+                >
+                  <PhotoIcon className="w-3 h-3 text-cyan-400" />
+                  <span className={brandColors.text}>
+                    {file.name.slice(0, 12)}...
+                  </span>
+                  <button
+                    onClick={() => removeUploadedFile(file.id)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <XCircleIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Chat Input */}
+        <div className={`p-3 ${brandColors.border} border-t`}>
+          <div
+            className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}
+          >
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} transition-colors`}
+              title="Upload image"
+            >
+              <ArrowUpTrayIcon className="w-5 h-5" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
+            <textarea
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Describe what you want to create..."
+              className={`flex-1 resize-none bg-transparent outline-none text-sm ${brandColors.text} placeholder-gray-500`}
+              rows={2}
+            />
+
+            <button
+              id="canvas-submit-btn"
+              onClick={handleSendMessage}
+              disabled={!chatInput.trim() || isGenerating}
+              className={`p-2 rounded-lg transition-all ${
+                chatInput.trim() && !isGenerating
+                  ? brandColors.btnPrimary
+                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <PaperAirplaneIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* =========== CENTER PANEL: FILES =========== */}
+      <div
+        className={`w-[200px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+      >
+        <div
+          className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
+        >
+          <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
+          <span className={`text-sm font-medium ${brandColors.text}`}>
+            Files
+          </span>
+          {generatedFiles.length > 0 && (
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
+            >
+              {generatedFiles.length}
+            </span>
+          )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+          {generatedFiles.length > 0 ? (
+            <div className="space-y-1">
+              {generatedFiles.map((file) => (
+                <button
+                  key={file.id}
+                  onClick={() => {
+                    setSelectedFile(file);
+                    setViewMode('code');
+                  }}
+                  className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
+                    selectedFile?.id === file.id
+                      ? `${brandColors.btnPrimary}`
+                      : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
+                  }`}
+                >
+                  <span className="text-sm group-hover:scale-110 transition-transform">
+                    {FILE_ICONS[file.type] || FILE_ICONS.other}
+                  </span>
+                  <span
+                    className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+                  >
+                    {file.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className={`text-center py-8 ${brandColors.textSecondary}`}>
+              <div
+                className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
+              >
+                <DocumentIcon className="w-5 h-5 opacity-50" />
+              </div>
+              <p className="text-xs">No files yet</p>
+              <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
+                AI will create files here
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Generation Status */}
+        {isGenerating && (
+          <div className={`px-3 py-2 ${brandColors.border} border-t`}>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span className={`text-xs ${brandColors.accentCyan}`}>
+                Generating...
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* =========== RIGHT PANEL: CODE / PREVIEW =========== */}
+      <div className="flex-1 flex flex-col relative z-10">
+        {/* Toolbar */}
+        <div
+          className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
+        >
+          {/* View Toggle: Preview / Code */}
+          <div
+            className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
+          >
+            <button
+              onClick={() => setViewMode('preview')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'preview'
+                  ? brandColors.btnPrimary
+                  : brandColors.textSecondary
+              }`}
+            >
+              <EyeIcon className="w-4 h-4" />
+              Preview
+            </button>
+            <button
+              onClick={() => setViewMode('code')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'code'
+                  ? brandColors.btnPrimary
+                  : brandColors.textSecondary
+              }`}
+            >
+              <CodeBracketIcon className="w-4 h-4" />
+              Code
+            </button>
+          </div>
+
+          {/* Device Toggle (only in preview mode) */}
+          {viewMode === 'preview' && (
+            <div
+              className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
+            >
+              {(['desktop', 'tablet', 'mobile'] as const).map((device) => (
+                <button
+                  key={device}
+                  onClick={() => setPreviewDevice(device)}
+                  className={`p-2 rounded-md transition-all ${
+                    previewDevice === device
+                      ? brandColors.btnPrimary
+                      : brandColors.textSecondary
+                  }`}
+                  title={device}
+                >
+                  {device === 'desktop' && (
+                    <ComputerDesktopIcon className="w-4 h-4" />
+                  )}
+                  {device === 'tablet' && (
+                    <DeviceTabletIcon className="w-4 h-4" />
+                  )}
+                  {device === 'mobile' && (
+                    <DevicePhoneMobileIcon className="w-4 h-4" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleCopyCode}
+              disabled={!generatedCode}
+              className={`p-2 rounded-lg transition-all ${brandColors.textSecondary} ${brandColors.bgHover} disabled:opacity-50 disabled:cursor-not-allowed`}
+              title="Copy code"
+            >
+              {copySuccess ? (
+                <CheckCircleIcon className="w-4 h-4 text-green-400" />
+              ) : (
+                <DocumentDuplicateIcon className="w-4 h-4" />
+              )}
+            </button>
+            <button
+              onClick={handleOpenInNewTab}
+              disabled={!generatedCode}
+              className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} disabled:opacity-50 disabled:cursor-not-allowed`}
+              title="Open in new tab"
+            >
+              <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleDownload}
+              disabled={!generatedCode}
+              className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} disabled:opacity-50 disabled:cursor-not-allowed`}
+              title="Download"
+            >
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            </button>
+            <div className={`w-px h-6 ${brandColors.bgSecondary} mx-1`} />
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+              title="Close"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className={`flex-1 overflow-hidden ${brandColors.bgMain}`}>
+          {viewMode === 'preview' ? (
+            /* ===== PREVIEW VIEW ===== */
+            <div className="w-full h-full p-4 overflow-auto">
+              {generatedCode ? (
+                <div
+                  className={`${deviceStyles[previewDevice]} bg-white rounded-xl overflow-hidden transition-all duration-300`}
+                  style={{
+                    boxShadow:
+                      '0 0 60px rgba(34, 211, 238, 0.15), 0 0 30px rgba(168, 85, 247, 0.1)',
+                  }}
+                >
+                  <iframe
+                    ref={previewRef}
+                    title="Preview"
+                    className="w-full h-full border-none"
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}
+                >
+                  <div
+                    className={`w-20 h-20 rounded-2xl ${brandColors.bgSecondary} flex items-center justify-center mb-4 border ${brandColors.borderAccent}`}
+                  >
+                    <SparklesIcon
+                      className={`w-10 h-10 ${brandColors.accentCyan} opacity-60`}
+                    />
+                  </div>
+                  <h3
+                    className={`text-lg font-semibold ${brandColors.gradientText} mb-2`}
+                  >
+                    Ready to Create
+                  </h3>
+                  <p className="text-sm text-center max-w-xs">
+                    Select a template or describe what you want.
+                    <br />
+                    <span className={brandColors.accentPurple}>
+                      Preview will appear here!
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ===== CODE VIEW ===== */
+            <div className="w-full h-full overflow-auto custom-scrollbar">
+              {selectedFile || generatedCode ? (
+                <pre
+                  className={`p-4 text-sm font-mono ${brandColors.text} whitespace-pre-wrap`}
+                >
+                  <code>{selectedFile?.content || generatedCode}</code>
+                </pre>
+              ) : (
+                <div
+                  className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}
+                >
+                  <CodeBracketIcon className="w-12 h-12 opacity-30 mb-3" />
+                  <p className="text-sm">No code yet</p>
+                  <p className={`text-xs ${brandColors.textMuted}`}>
+                    Generated code will appear here
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Status Bar */}
+        <div
+          className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-t ${brandColors.bgSecondary}`}
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {generationStatus === 'generating' && (
+                <>
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span className={`text-xs ${brandColors.accentCyan}`}>
+                    Generating...
+                  </span>
+                </>
+              )}
+              {generationStatus === 'success' && (
+                <>
+                  <CheckCircleIcon className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-green-400">Ready</span>
+                </>
+              )}
+              {generationStatus === 'error' && (
+                <>
+                  <ExclamationCircleIcon className="w-4 h-4 text-red-400" />
+                  <span className="text-xs text-red-400">Error</span>
+                </>
+              )}
+              {generationStatus === 'idle' && (
+                <>
+                  <span
+                    className={`w-2 h-2 rounded-full ${brandColors.bgSecondary}`}
+                  />
+                  <span className={`text-xs ${brandColors.textMuted}`}>
+                    Waiting
+                  </span>
+                </>
+              )}
+            </div>
+            {selectedFile && viewMode === 'code' && (
+              <span className={`text-xs ${brandColors.textSecondary}`}>
+                {selectedFile.name} • {(selectedFile.size / 1024).toFixed(1)} KB
+              </span>
+            )}
+          </div>
+          <span className={`text-xs ${brandColors.gradientText}`}>
+            Powered by AI Canvas ✨
+          </span>
+        </div>
+      </div>
+
+      {/* Custom scrollbar styles */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(34, 211, 238, 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(34, 211, 238, 0.5);
+        }
+      `}</style>
+    </div>
+  );
+}

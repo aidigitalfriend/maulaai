@@ -14,8 +14,8 @@ import {
   ShareIcon,
   SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
-import EnhancedChatLayout from './EnhancedChatLayout';
-import { AgentConfig } from '../../app/agents/types';
+import EnhancedChatLayout, { useChatTheme } from './EnhancedChatLayout';
+import { AgentSettings } from './ChatSettingsPanel';
 import QuickActionsPanel from './QuickActionsPanel';
 import realtimeChatService, {
   ChatMessage as ServiceChatMessage,
@@ -51,7 +51,15 @@ export interface AgentChatConfig {
   specialties?: string[];
   color?: string;
   aiProvider?: {
-    primary: string;
+    primary:
+      | 'openai'
+      | 'anthropic'
+      | 'gemini'
+      | 'cohere'
+      | 'mistral'
+      | 'xai'
+      | 'huggingface'
+      | 'groq';
     fallbacks: string[];
     model: string;
     reasoning?: string;
@@ -63,6 +71,9 @@ interface UniversalAgentChatProps {
 }
 
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
+  // Theme state
+  const { isNeural } = useChatTheme(agent.id);
+
   // Sessions state
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
@@ -94,14 +105,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Settings state - initialize with agent's AI provider
+  // Settings state - use agent's AI provider config if available
   const [settings, setSettings] = useState<AgentSettings>({
     temperature: 0.7,
     maxTokens: 2000,
     mode: 'balanced',
     systemPrompt: '',
-    provider: (agent.aiProvider?.primary as any) || 'openai',
-    model: agent.aiProvider?.model || 'gpt-4o',
+    provider: agent.aiProvider?.primary || 'mistral',
+    model: agent.aiProvider?.model || 'mistral-large-latest',
   });
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);
@@ -282,33 +293,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     setInputValue('');
     setIsLoading(true);
 
-    const conversationHistory: ServiceChatMessage[] =
-      activeSession.messages.map((m) => ({
-        id: m.id,
+    const conversationHistory = activeSession.messages
+      .filter((m) => m.role !== 'assistant' || !m.isStreaming) // Exclude streaming messages
+      .map((m) => ({
         role: m.role,
         content: m.content,
-        timestamp: m.timestamp,
       }));
-
-    conversationHistory.push({
-      id: userMessage.id,
-      role: 'user',
-      content: userInput,
-      timestamp: new Date(),
-    });
-
-    const agentConfig: AgentConfig = {
-      id: agent.id,
-      name: agent.name,
-      systemPrompt: settings.systemPrompt || agent.systemPrompt,
-      model: settings.model || 'mistral-large-latest',
-      temperature: settings.temperature,
-      maxTokens: settings.maxTokens,
-      provider:
-        settings.provider === 'openai'
-          ? 'mistral'
-          : (settings.provider as 'mistral' | 'gemini'),
-    };
 
     const assistantMessageId = `asst-${Date.now()}`;
     const assistantMessage: Message = {
@@ -332,82 +322,80 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       )
     );
 
-    let detectedCodeBlocks: CodeBlock[] = [];
+    try {
+      // Use the new agent chat API
+      const response = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userInput,
+          conversationHistory,
+          agentId: agent.id,
+          provider: settings.provider,
+        }),
+      });
 
-    await realtimeChatService.sendMessageStream(
-      userInput,
-      conversationHistory,
-      agentConfig,
-      {
-        onToken: (token) => {
-          setSessions((prev) =>
-            prev.map((s) =>
-              s.id === activeSessionId
-                ? {
-                    ...s,
-                    messages: s.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? { ...m, content: m.content + token }
-                        : m
-                    ),
-                  }
-                : s
-            )
-          );
-        },
-        onComplete: (fullMessage) => {
-          setSessions((prev) =>
-            prev.map((s) =>
-              s.id === activeSessionId
-                ? {
-                    ...s,
-                    messages: s.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? {
-                            ...m,
-                            content: fullMessage,
-                            isStreaming: false,
-                            codeBlocks:
-                              detectedCodeBlocks.length > 0
-                                ? detectedCodeBlocks
-                                : undefined,
-                          }
-                        : m
-                    ),
-                  }
-                : s
-            )
-          );
-          setIsLoading(false);
-        },
-        onError: (error) => {
-          console.error('Chat error:', error);
-          setSessions((prev) =>
-            prev.map((s) =>
-              s.id === activeSessionId
-                ? {
-                    ...s,
-                    messages: s.messages.map((m) =>
-                      m.id === assistantMessageId
-                        ? {
-                            ...m,
-                            content: `❌ Sorry, I encountered an error: ${error.message}\n\nPlease try again.`,
-                            isStreaming: false,
-                          }
-                        : m
-                    ),
-                  }
-                : s
-            )
-          );
-          setIsLoading(false);
-        },
-        onCodeBlock: (codeBlock) => {
-          detectedCodeBlocks.push(codeBlock);
-        },
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
       }
-    );
-  }, [inputValue, activeSession, activeSessionId, isLoading, settings, agent]);
+
+      // Update the assistant message with the response
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? {
+                ...s,
+                messages: s.messages.map((m) =>
+                  m.id === assistantMessageId
+                    ? {
+                        ...m,
+                        content: data.message,
+                        isStreaming: false,
+                      }
+                    : m
+                ),
+                lastMessage: data.message.slice(0, 50),
+              }
+            : s
+        )
+      );
+    } catch (error) {
+      console.error('Chat error:', error);
+
+      // Update the message with error
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === activeSessionId
+            ? {
+                ...s,
+                messages: s.messages.map((m) =>
+                  m.id === assistantMessageId
+                    ? {
+                        ...m,
+                        content: `❌ **Error:** ${error instanceof Error ? error.message : 'Something went wrong. Please try again.'}`,
+                        isStreaming: false,
+                      }
+                    : m
+                ),
+              }
+            : s
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    inputValue,
+    activeSession,
+    activeSessionId,
+    isLoading,
+    agent.id,
+    settings.provider,
+  ]);
 
   return (
     <EnhancedChatLayout
@@ -437,10 +425,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               }`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-md transition-all duration-200 hover:shadow-lg ${
+                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
                   message.role === 'user'
-                    ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-indigo-500/20 hover:shadow-indigo-500/30'
-                    : 'bg-gradient-to-br from-white to-slate-50/80 border border-slate-200/60 text-slate-900 shadow-slate-200/50 hover:border-slate-300/80'
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
+                    : isNeural
+                      ? 'bg-gray-800/90 border border-gray-700 text-gray-50'
+                      : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -489,7 +479,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         return (
                           <blockquote
                             key={`line-${i}`}
-                            className="border-l-4 border-indigo-300 pl-3 italic my-2 text-gray-600"
+                            className={`border-l-4 border-indigo-300 pl-3 italic my-2 ${isNeural ? 'text-gray-300' : 'text-gray-600'}`}
                           >
                             <span
                               dangerouslySetInnerHTML={{
@@ -543,7 +533,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 </div>
                 <div
                   className={`text-xs mt-2 ${
-                    message.role === 'user' ? 'text-white/60' : 'text-gray-400'
+                    message.role === 'user'
+                      ? 'text-white/60'
+                      : isNeural
+                        ? 'text-gray-300'
+                        : 'text-gray-400'
                   }`}
                 >
                   {message.timestamp.toLocaleTimeString([], {
@@ -553,13 +547,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 </div>
 
                 {message.role === 'assistant' && (
-                  <div className="flex items-center space-x-1 mt-2 pt-2 border-t border-gray-100">
+                  <div
+                    className={`flex items-center space-x-1 mt-2 pt-2 border-t ${isNeural ? 'border-gray-600' : 'border-gray-100'}`}
+                  >
                     <button
                       onClick={() => handleFeedback(message.id, 'up')}
                       className={`p-1.5 rounded-lg transition-all ${
                         messageFeedback[message.id] === 'up'
                           ? 'bg-green-100 text-green-600'
-                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title="Good response"
                     >
@@ -570,13 +568,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       className={`p-1.5 rounded-lg transition-all ${
                         messageFeedback[message.id] === 'down'
                           ? 'bg-red-100 text-red-600'
-                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title="Poor response"
                     >
                       <HandThumbDownIcon className="w-4 h-4" />
                     </button>
-                    <div className="w-px h-4 bg-gray-200 mx-1" />
+                    <div
+                      className={`w-px h-4 mx-1 ${isNeural ? 'bg-gray-600' : 'bg-gray-200'}`}
+                    />
                     <button
                       onClick={() =>
                         handleCopyMessage(message.id, message.content)
@@ -584,7 +586,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       className={`p-1.5 rounded-lg transition-all ${
                         copiedMessageId === message.id
                           ? 'bg-indigo-100 text-indigo-600'
-                          : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
                       }`}
                       title={
                         copiedMessageId === message.id
@@ -596,14 +600,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     </button>
                     <button
                       onClick={() => handleShareMessage(message.content)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                       title="Share message"
                     >
                       <ShareIcon className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleListenMessage(message.content)}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                       title="Listen to message"
                     >
                       <SpeakerWaveIcon className="w-4 h-4" />
@@ -616,7 +620,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm">
+              <div
+                className={`rounded-2xl px-4 py-3 shadow-sm ${isNeural ? 'bg-gray-800/90 border border-gray-700' : 'bg-white border border-gray-200'}`}
+              >
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
                     <div
@@ -632,7 +638,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       style={{ animationDelay: '300ms' }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span
+                    className={`text-xs ${isNeural ? 'text-gray-300' : 'text-gray-500'}`}
+                  >
                     {agent.name} is thinking...
                   </span>
                 </div>
@@ -653,8 +661,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           }
         />
 
-        {/* Input Area - Enhanced */}
-        <div className="flex-shrink-0 px-4 py-3 border-t border-slate-200/60 bg-gradient-to-t from-white via-white/98 to-white/95 backdrop-blur-xl">
+        {/* Input Area */}
+        <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
           <input
             ref={fileInputRef}
             type="file"
@@ -676,10 +684,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             <button
               type="button"
               onClick={() => setIsRecording(!isRecording)}
-              className={`p-2.5 rounded-xl transition-all duration-200 ${
+              className={`p-2.5 rounded-xl transition-all ${
                 isRecording
-                  ? 'bg-gradient-to-br from-red-500 to-rose-600 text-white animate-pulse shadow-lg shadow-red-500/30'
-                  : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 hover:text-indigo-600 hover:shadow-md'
+                  ? 'bg-red-500 text-white animate-pulse'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
               title="Speech to Text"
             >
@@ -689,7 +697,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2.5 rounded-xl bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 hover:text-indigo-600 hover:shadow-md transition-all duration-200"
+              className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
               title="Upload File"
             >
               <PaperClipIcon className="w-5 h-5" />
@@ -698,7 +706,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             <button
               type="button"
               onClick={() => alert('Voice-to-Voice coming soon!')}
-              className="p-2.5 rounded-xl bg-slate-100/80 text-slate-600 hover:bg-slate-200/80 hover:text-indigo-600 hover:shadow-md transition-all duration-200"
+              className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
               title="Voice Conversation"
             >
               <PhoneIcon className="w-5 h-5" />
@@ -710,13 +718,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={`Message ${agent.name}...`}
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200/80 bg-white/90 text-slate-900 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 focus:bg-white transition-all duration-200 placeholder:text-slate-400 shadow-sm hover:shadow-md focus:shadow-lg focus:shadow-indigo-500/10"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-gray-400"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:from-indigo-600 hover:via-indigo-500 hover:to-purple-500 hover:scale-105 active:scale-95 shadow-md shadow-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/40"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:from-indigo-600 hover:to-purple-700"
               >
                 {isLoading ? (
                   <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
@@ -742,8 +750,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             </div>
           </form>
 
-          <div className="mt-1.5 text-center">
-            <p className="text-[10px] text-slate-400">
+          <div className="mt-1 text-center">
+            <p className="text-[10px] text-gray-400">
               AI digital friend can make mistakes. Check important info.
             </p>
           </div>

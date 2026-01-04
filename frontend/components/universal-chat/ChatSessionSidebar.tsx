@@ -110,26 +110,26 @@ export default function ChatSessionSidebar({
     if (e.key === 'Escape') handleRenameCancel();
   };
 
-  // Theme styles - Enhanced with shadcn aesthetics
+  // Theme styles
   const sidebarBg = isNeural
-    ? 'bg-gradient-to-b from-gray-900 via-gray-900/98 to-gray-950 border-cyan-500/10'
-    : 'bg-gradient-to-b from-white via-slate-50/50 to-white border-slate-200/80';
+    ? 'bg-gray-900/95 border-cyan-500/20'
+    : 'bg-white border-gray-200';
 
   const headerBg = isNeural
-    ? 'bg-gradient-to-br from-cyan-950/40 via-gray-900/60 to-purple-950/40 border-b border-cyan-500/20 backdrop-blur-xl'
-    : 'bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 border-b border-slate-200/80 backdrop-blur-xl';
+    ? 'bg-gradient-to-r from-cyan-600/20 to-purple-600/20 border-b border-cyan-500/20'
+    : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200';
 
   const sessionItemBg = isNeural
-    ? 'bg-gray-800/30 hover:bg-gray-800/60 border-gray-700/30 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/5'
-    : 'bg-white/60 hover:bg-white border-slate-200/60 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5';
+    ? 'bg-gray-800/50 hover:bg-gray-800 border-gray-700/50'
+    : 'bg-gray-50 hover:bg-gray-100 border-gray-200';
 
   const sessionItemActive = isNeural
-    ? 'bg-gradient-to-r from-cyan-500/15 to-purple-500/10 border-cyan-500/40 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/20'
-    : 'bg-gradient-to-r from-indigo-50 to-purple-50/50 border-indigo-300/60 shadow-md shadow-indigo-500/10 ring-1 ring-indigo-200/50';
+    ? 'bg-cyan-500/20 border-cyan-500/50 shadow-lg shadow-cyan-500/10'
+    : 'bg-indigo-100 border-indigo-300 shadow-sm';
 
-  const textPrimary = isNeural ? 'text-gray-50' : 'text-slate-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-slate-600';
-  const textMuted = isNeural ? 'text-gray-500' : 'text-slate-400';
+  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
+  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
+  const textMuted = isNeural ? 'text-gray-500' : 'text-gray-400';
 
   // Collapsed state
   if (isCollapsed) {
@@ -185,8 +185,8 @@ export default function ChatSessionSidebar({
                       ? 'bg-cyan-400'
                       : 'bg-indigo-500'
                     : isNeural
-                      ? 'bg-gray-600'
-                      : 'bg-gray-300'
+                    ? 'bg-gray-600'
+                    : 'bg-gray-300'
                 }`}
               />
             </button>
@@ -225,16 +225,16 @@ export default function ChatSessionSidebar({
           )}
         </div>
 
-        {/* New Chat Button - Enhanced */}
+        {/* New Chat Button */}
         <button
           onClick={onNewChat}
-          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 group ${
+          className={`w-full py-2.5 px-4 rounded-xl font-medium transition-all flex items-center justify-center space-x-2 ${
             isNeural
-              ? 'bg-gradient-to-r from-cyan-600 via-cyan-500 to-purple-600 hover:from-cyan-500 hover:via-cyan-400 hover:to-purple-500 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-[1.02] active:scale-[0.98]'
-              : 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-600 hover:via-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98]'
+              ? 'bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white shadow-lg shadow-cyan-500/25'
+              : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-md'
           }`}
         >
-          <SparklesIcon className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+          <SparklesIcon className="w-4 h-4" />
           <span>New Conversation</span>
         </button>
 

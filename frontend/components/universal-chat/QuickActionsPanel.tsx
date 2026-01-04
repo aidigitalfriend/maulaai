@@ -113,21 +113,21 @@ export default function QuickActionsPanel({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const isNeural = theme === 'neural';
 
-  // Theme styles - Enhanced with shadcn aesthetics
+  // Theme styles
   const panelBg = isNeural
-    ? 'bg-gradient-to-t from-gray-900/95 via-gray-900/90 to-gray-900/80 border-cyan-500/10 backdrop-blur-xl'
-    : 'bg-gradient-to-t from-white/98 via-white/95 to-white/90 border-slate-200/60 backdrop-blur-xl';
+    ? 'bg-gray-900/80 border-cyan-500/20'
+    : 'bg-white/90 border-gray-200';
 
-  const textPrimary = isNeural ? 'text-gray-50' : 'text-slate-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-slate-500';
+  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
+  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
 
   const buttonBase = isNeural
-    ? 'bg-gray-800/40 hover:bg-gray-700/60 border-gray-700/40 text-gray-200 hover:text-cyan-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10'
-    : 'bg-white/80 hover:bg-white border-slate-200/80 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10';
+    ? 'bg-gray-800/50 hover:bg-gray-700 border-gray-700/50 text-gray-200'
+    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700';
 
   const buttonActive = isNeural
-    ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/15 border-cyan-500/50 text-cyan-300 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/20'
-    : 'bg-gradient-to-r from-indigo-100 to-purple-100/80 border-indigo-300 text-indigo-700 shadow-md shadow-indigo-500/10 ring-1 ring-indigo-200/50';
+    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+    : 'bg-indigo-100 border-indigo-300 text-indigo-700';
 
   const categories = [...new Set(QUICK_ACTIONS.map((a) => a.category))];
   const filteredActions = selectedCategory
@@ -188,17 +188,15 @@ export default function QuickActionsPanel({
         ))}
       </div>
 
-      {/* Action Buttons - Enhanced */}
+      {/* Action Buttons */}
       <div className="px-3 pb-3 flex flex-wrap gap-2">
         {filteredActions.map((action) => (
           <button
             key={action.id}
             onClick={() => onSelectAction(action.prompt)}
-            className={`flex items-center space-x-1.5 px-3.5 py-2 text-xs font-medium rounded-xl border transition-all duration-200 ${buttonBase} hover:scale-[1.03] active:scale-[0.98] group`}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 text-xs rounded-lg border transition-all ${buttonBase} hover:scale-105`}
           >
-            <span className="group-hover:scale-110 transition-transform">
-              {action.icon}
-            </span>
+            {action.icon}
             <span>{action.label}</span>
           </button>
         ))}

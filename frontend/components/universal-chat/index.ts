@@ -21,7 +21,7 @@ export {
 export type { AgentSettings } from './ChatSettingsPanel';
 export { default as ChatRightPanel } from './ChatRightPanel';
 export { default as QuickActionsPanel } from './QuickActionsPanel';
-export { default as CanvasMode } from './CanvasMode';
+export { default as CanvasMode } from './canvas-build/CanvasMode';
 
 // Services
 export { default as realtimeChatService } from './realtimeChatService';
