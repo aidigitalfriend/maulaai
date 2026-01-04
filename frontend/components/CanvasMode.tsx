@@ -305,8 +305,8 @@ export default function CanvasMode({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: userPrompt,
-          provider: 'Gemini', // Use Gemini as primary (more reliable)
-          modelId: 'gemini-1.5-flash',
+          provider: 'auto',
+          modelId: 'auto',
           currentCode: generatedCode || undefined,
           history: messages.filter(m => !m.isStreaming).map(m => ({ role: m.role, text: m.content })),
         }),

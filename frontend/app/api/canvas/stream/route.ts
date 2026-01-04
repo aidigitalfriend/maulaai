@@ -16,6 +16,27 @@ Rules for generated code:
 7. Always return the FULL updated file.
 8. Use smooth animations and transitions for a polished feel.`;
 
+const PROVIDER_PRIORITY: ReadonlyArray<'Anthropic' | 'OpenAI' | 'Gemini'> = [
+  'Anthropic',
+  'OpenAI',
+  'Gemini',
+];
+
+function getProviderQueue(requested?: string) {
+  const base = Array.from(PROVIDER_PRIORITY);
+  if (!requested || requested.toLowerCase() === 'auto') {
+    return base;
+  }
+
+  const normalized = requested.toLowerCase();
+  const matched = base.find((name) => name.toLowerCase() === normalized);
+  if (!matched) {
+    return base;
+  }
+
+  return [matched, ...base.filter((name) => name !== matched)];
+}
+
 export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
 
@@ -30,50 +51,66 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const selectedProvider = provider || 'Gemini';
+    const providersToTry = getProviderQueue(provider);
 
     // Create a readable stream
     const stream = new ReadableStream({
       async start(controller) {
-        try {
-          if (selectedProvider === 'Gemini') {
-            await streamWithGemini(
-              controller,
-              encoder,
-              prompt,
-              modelId,
-              isThinking,
-              currentCode,
-              history
-            );
-          } else if (selectedProvider === 'OpenAI') {
-            await streamWithOpenAI(
-              controller,
-              encoder,
-              prompt,
-              modelId,
-              currentCode,
-              history
-            );
-          } else if (selectedProvider === 'Anthropic') {
-            await streamWithAnthropic(
-              controller,
-              encoder,
-              prompt,
-              modelId,
-              currentCode,
-              history
-            );
+        const errors: string[] = [];
+
+        for (const candidate of providersToTry) {
+          try {
+            if (candidate === 'Anthropic') {
+              await streamWithAnthropic(
+                controller,
+                encoder,
+                prompt,
+                modelId,
+                currentCode,
+                history
+              );
+            } else if (candidate === 'OpenAI') {
+              await streamWithOpenAI(
+                controller,
+                encoder,
+                prompt,
+                modelId,
+                currentCode,
+                history
+              );
+            } else {
+              await streamWithGemini(
+                controller,
+                encoder,
+                prompt,
+                modelId,
+                isThinking,
+                currentCode,
+                history
+              );
+            }
+
+            controller.close();
+            return;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Unknown error';
+            errors.push(`${candidate}: ${message}`);
           }
-          controller.close();
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : 'Stream error';
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: errorMsg })}\n\n`)
-          );
-          controller.close();
         }
+
+        const fallbackMessage =
+          errors.length > 0
+            ? errors.join(' | ')
+            : 'No AI providers are configured';
+
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ error: fallbackMessage })}\n\n`)
+        );
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+        );
+        controller.close();
       },
     });
 
@@ -106,91 +143,63 @@ async function streamWithGemini(
   history?: { role: string; text: string }[]
 ) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) {
-    // Return a mock response when API key is not configured
-    const mockCode = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated App - API Key Not Configured</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-8">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
-                    <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                </div>
-                <h3 class="mt-4 text-lg font-medium text-gray-900">Model not available</h3>
-                <p class="mt-2 text-sm text-gray-500">
-                    Technical issue occurred. Please try again later.
-                </p>
-                <div class="mt-4 text-xs text-gray-400">
-                    Prompt: ${prompt}
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>`;
-    controller.enqueue(
-      encoder.encode(`data: ${JSON.stringify({ chunk: mockCode })}\n\n`)
-    );
-    return;
+  if (!apiKey || apiKey.includes('placeholder')) {
+    throw new Error('Gemini API key is not configured');
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const contents: { role: string; parts: { text: string }[] }[] = [];
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const contents: { role: string; parts: { text: string }[] }[] = [];
 
-  if (currentCode) {
-    contents.push({
-      role: 'user',
-      parts: [{ text: `Current code:\n${currentCode}` }],
-    });
-  }
-
-  if (history && history.length > 0) {
-    history.forEach((msg) => {
+    if (currentCode) {
       contents.push({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }],
+        role: 'user',
+        parts: [{ text: `Current code:\n${currentCode}` }],
       });
-    });
-  }
-
-  contents.push({ role: 'user', parts: [{ text: prompt }] });
-
-  let actualModel = 'gemini-1.5-flash';
-  if (modelId.includes('pro')) actualModel = 'gemini-1.5-pro';
-
-  const model = genAI.getGenerativeModel({
-    model: actualModel,
-    systemInstruction: SYSTEM_INSTRUCTION,
-    generationConfig: {
-      temperature: isThinking ? 1 : 0.7,
-      maxOutputTokens: 8192,
-    },
-  });
-
-  const result = await model.generateContentStream({ contents });
-
-  for await (const chunk of result.stream) {
-    const text = chunk.text();
-    if (text) {
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
-      );
     }
-  }
 
-  controller.enqueue(
-    encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
-  );
+    if (history && history.length > 0) {
+      history.forEach((msg) => {
+        contents.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }],
+        });
+      });
+    }
+
+    contents.push({ role: 'user', parts: [{ text: prompt }] });
+
+    let actualModel = 'gemini-1.5-flash';
+    if (modelId.includes('pro')) actualModel = 'gemini-1.5-pro';
+
+    const model = genAI.getGenerativeModel({
+      model: actualModel,
+      systemInstruction: SYSTEM_INSTRUCTION,
+      generationConfig: {
+        temperature: isThinking ? 1 : 0.7,
+        maxOutputTokens: 8192,
+      },
+    });
+
+    const result = await model.generateContentStream({ contents });
+
+    for await (const chunk of result.stream) {
+      const text = chunk.text();
+      if (text) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+        );
+      }
+    }
+
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Gemini stream failed';
+    throw new Error(message);
+  }
 }
 
 async function streamWithOpenAI(
@@ -203,86 +212,58 @@ async function streamWithOpenAI(
 ) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.includes('placeholder')) {
-    // Return a mock response when API key is not configured
-    const mockCode = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated App - OpenAI API Key Not Configured</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-</head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="p-8">
-            <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
-                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-                <h3 class="mt-4 text-lg font-medium text-gray-900">Model not available</h3>
-                <p class="mt-2 text-sm text-gray-500">
-                    Technical issue occurred. Please try again later.
-                </p>
-                <div class="mt-4 text-xs text-gray-400">
-                    Prompt: ${prompt}
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>`;
-    controller.enqueue(
-      encoder.encode(`data: ${JSON.stringify({ chunk: mockCode })}\n\n`)
-    );
-    return;
+    throw new Error('OpenAI API key is not configured');
   }
 
-  const openai = new OpenAI({ apiKey });
-  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: 'system', content: SYSTEM_INSTRUCTION },
-  ];
+  try {
+    const openai = new OpenAI({ apiKey });
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM_INSTRUCTION },
+    ];
 
-  if (currentCode) {
-    messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
-  }
-
-  if (history && history.length > 0) {
-    history.forEach((msg) => {
-      messages.push({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.text,
-      });
-    });
-  }
-
-  messages.push({ role: 'user', content: prompt });
-
-  let actualModel = 'gpt-4o';
-  if (modelId === 'gpt-4o-mini') actualModel = 'gpt-4o-mini';
-
-  const stream = await openai.chat.completions.create({
-    model: actualModel,
-    messages,
-    temperature: 0.7,
-    max_tokens: 8192,
-    stream: true,
-  });
-
-  for await (const chunk of stream) {
-    const text = chunk.choices[0]?.delta?.content;
-    if (text) {
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
-      );
+    if (currentCode) {
+      messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
     }
-  }
 
-  controller.enqueue(
-    encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
-  );
+    if (history && history.length > 0) {
+      history.forEach((msg) => {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.text,
+        });
+      });
+    }
+
+    messages.push({ role: 'user', content: prompt });
+
+    let actualModel = 'gpt-4o';
+    if (modelId === 'gpt-4o-mini') actualModel = 'gpt-4o-mini';
+
+    const stream = await openai.chat.completions.create({
+      model: actualModel,
+      messages,
+      temperature: 0.7,
+      max_tokens: 8192,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content;
+      if (text) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+        );
+      }
+    }
+
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'OpenAI stream failed';
+    throw new Error(message);
+  }
 }
 
 async function streamWithAnthropic(
