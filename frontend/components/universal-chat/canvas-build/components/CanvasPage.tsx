@@ -679,6 +679,49 @@ export default function CanvasMode({
           >
             <EyeIcon className="w-5 h-5" />
           </button>
+          <div className="h-px w-full bg-white/5 my-1" />
+          <button
+            onClick={() => {
+              setActivePane('preview');
+              setPreviewDevice('desktop');
+            }}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'preview' && previewDevice === 'desktop'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Desktop preview"
+          >
+            <ComputerDesktopIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => {
+              setActivePane('preview');
+              setPreviewDevice('tablet');
+            }}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'preview' && previewDevice === 'tablet'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Tablet preview"
+          >
+            <DeviceTabletIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => {
+              setActivePane('preview');
+              setPreviewDevice('mobile');
+            }}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'preview' && previewDevice === 'mobile'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Mobile preview"
+          >
+            <DevicePhoneMobileIcon className="w-5 h-5" />
+          </button>
           <button
             onClick={() => setActivePane('code')}
             className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
@@ -1015,40 +1058,8 @@ export default function CanvasMode({
       <div className="flex-1 flex flex-col relative z-10">
         {/* Toolbar */}
         <div
-          className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
+          className={`flex items-center justify-end px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
         >
-          {/* Device Toggle (only in preview mode) */}
-          {viewMode === 'preview' ? (
-            <div
-              className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
-            >
-              {(['desktop', 'tablet', 'mobile'] as const).map((device) => (
-                <button
-                  key={device}
-                  onClick={() => setPreviewDevice(device)}
-                  className={`p-2 rounded-md transition-all ${
-                    previewDevice === device
-                      ? brandColors.btnPrimary
-                      : brandColors.textSecondary
-                  }`}
-                  title={device}
-                >
-                  {device === 'desktop' && (
-                    <ComputerDesktopIcon className="w-4 h-4" />
-                  )}
-                  {device === 'tablet' && (
-                    <DeviceTabletIcon className="w-4 h-4" />
-                  )}
-                  {device === 'mobile' && (
-                    <DevicePhoneMobileIcon className="w-4 h-4" />
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div />
-          )}
-
           {/* Actions */}
           <div className="flex items-center gap-1">
             <button
