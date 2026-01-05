@@ -27,6 +27,7 @@ import {
   DocumentTextIcon,
   ClockIcon,
   EllipsisHorizontalIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -207,6 +208,7 @@ export default function CanvasMode({
   const previewRef = useRef<HTMLIFrameElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasLoadedMessages = useRef(false);
 
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -238,23 +240,42 @@ export default function CanvasMode({
   const [openHistoryMenuId, setOpenHistoryMenuId] = useState<string | null>(
     null
   );
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history'
   >('chat');
 
-  // Initialize welcome message
+  // Restore chat messages once when opened, or seed with welcome message
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([
-        {
-          id: '1',
-          role: 'assistant',
-          content: `Hi! I'm ready to create amazing designs for you.\n\n🎯 Select a template or describe what you want to build!`,
-          timestamp: new Date(),
-        },
-      ]);
+    if (!isOpen || hasLoadedMessages.current) return;
+    hasLoadedMessages.current = true;
+    if (typeof window === 'undefined') return;
+
+    try {
+      const stored = localStorage.getItem('canvasMessages');
+      if (stored) {
+        const parsed: ChatMessage[] = JSON.parse(stored).map((m: any) => ({
+          ...m,
+          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+        }));
+        if (parsed.length > 0) {
+          setMessages(parsed);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load messages', err);
     }
-  }, [isOpen, messages.length]);
+
+    setMessages([
+      {
+        id: '1',
+        role: 'assistant',
+        content: `Hi! I'm ready to create amazing designs for you.\n\n🎯 Select a template or describe what you want to build!`,
+        timestamp: new Date(),
+      },
+    ]);
+  }, [isOpen]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -364,6 +385,25 @@ export default function CanvasMode({
       console.error('Failed to save history', err);
     }
   }, [historyEntries]);
+
+  // Persist chat messages to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const serialized = JSON.stringify(
+        messages.map((m) => ({
+          ...m,
+          timestamp:
+            m.timestamp instanceof Date
+              ? m.timestamp.toISOString()
+              : m.timestamp,
+        }))
+      );
+      localStorage.setItem('canvasMessages', serialized);
+    } catch (err) {
+      console.error('Failed to save messages', err);
+    }
+  }, [messages]);
 
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {
@@ -608,16 +648,18 @@ export default function CanvasMode({
         setGeneratedFiles(files);
         setGenerationStatus('success');
 
-        setHistoryEntries((prev) => [
-          {
-            id: `${Date.now()}`,
-            name: summarizePrompt(userPrompt),
-            prompt: userPrompt,
-            code: cleaned,
-            timestamp: Date.now(),
-          },
-          ...prev,
-        ]);
+        setHistoryEntries((prev) =>
+          [
+            {
+              id: `${Date.now()}`,
+              name: summarizePrompt(userPrompt),
+              prompt: userPrompt,
+              code: cleaned,
+              timestamp: Date.now(),
+            },
+            ...prev,
+          ].slice(0, 20)
+        );
       } else {
         throw new Error('No code generated');
       }
@@ -926,6 +968,46 @@ export default function CanvasMode({
               <span className={`text-sm ${brandColors.text}`}>History</span>
             )}
           </button>
+          <button
+            onClick={() => {
+              if (!showNavOverlay) setShowNavOverlay(true);
+              setShowSettingsPanel((v) => !v);
+            }}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+              showSettingsPanel
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Settings"
+          >
+            <Cog6ToothIcon className="w-5 h-5" />
+            {showNavOverlay && (
+              <span className={`text-sm ${brandColors.text}`}>Settings</span>
+            )}
+          </button>
+          {showSettingsPanel && showNavOverlay && (
+            <div className="w-full px-1">
+              <div
+                className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-3 mt-1 text-xs ${brandColors.textSecondary}`}
+              >
+                <div
+                  className={`flex items-center gap-2 mb-2 ${brandColors.text}`}
+                >
+                  <Cog6ToothIcon className="w-4 h-4" />
+                  <span className="font-semibold text-sm">
+                    Fine-tune best practices
+                  </span>
+                </div>
+                <ul className="space-y-1 list-disc list-inside leading-relaxed">
+                  <li>Write one focused change request at a time.</li>
+                  <li>Share constraints: stack, style, data shapes, limits.</li>
+                  <li>Provide examples: good/bad snippets and target tone.</li>
+                  <li>State outputs you need: code, plan, tests, or diffs.</li>
+                  <li>Call out blockers early (auth, CORS, missing APIs).</li>
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

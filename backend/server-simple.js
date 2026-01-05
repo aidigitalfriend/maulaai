@@ -1142,8 +1142,7 @@ async function handleAuthVerify(req, res) {
 
     console.log('🎫 Session ID received from cookie, verifying...');
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const db = mongoose.connection.db;
     const users = db.collection('users');
 
     // Find user with valid session
@@ -1594,7 +1593,7 @@ app.get('/api/user/rewards/:userId', async (req, res) => {
     // If no rewards data exists, create default with some starter content
     if (!rewardsData) {
       // Check user's activity to give appropriate starting rewards
-      const chatInteractions = db.collection('chat_interactions');
+      const chatInteractions = db.collection('chatinteractions');
       const userActivity = await chatInteractions.countDocuments({
         userId: sessionUser._id,
       });
@@ -1909,7 +1908,7 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     }
 
     // Build query for chat interactions
-    const chatInteractions = db.collection('chat_interactions');
+    const chatInteractions = db.collection('chatinteractions');
     const query = { userId: sessionUser._id };
 
     // Add search functionality
@@ -1931,7 +1930,7 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     // Get conversations with pagination
     const conversations = await chatInteractions
       .find(query)
-      .sort({ timestamp: -1 }) // Most recent first
+      .sort({ createdAt: -1 }) // Most recent first
       .skip((parseInt(page) - 1) * parseInt(limit))
       .limit(parseInt(limit))
       .toArray();
@@ -2118,18 +2117,21 @@ const getUsageDefaults = (planKey) => {
 
 // GET /api/user/billing/:userId - Get comprehensive billing data
 app.get('/api/user/billing/:userId', async (req, res) => {
-  try {
+      const rawDate = conv.createdAt || conv.startedAt || conv.timestamp;
+      const createdAt =
+        rawDate instanceof Date ? rawDate : rawDate ? new Date(rawDate) : new Date();
+
+      return {
     const { userId } = req.params;
 
     // Get session ID from HttpOnly cookie
-    const sessionId = req.cookies?.session_id;
-
-    if (!sessionId) {
+        date: createdAt.toISOString().split('T')[0],
       return res.status(401).json({ message: 'No session ID' });
     }
 
     const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+        lastMessage: lastMessage ? lastMessage.content.substring(0, 80) : '',
+        createdAt,
     const users = db.collection('users');
 
     // Find user with valid session
@@ -2699,15 +2701,17 @@ app.get('/api/user/security/:userId', async (req, res) => {
     const recentActivity = await chatInteractions
       .find({
         agentName: { $regex: agentInfo.name, $options: 'i' },
-        timestamp: { $gte: startDate },
+        createdAt: { $gte: startDate },
       })
-      .sort({ timestamp: -1 })
+      .sort({ createdAt: -1 })
       .limit(10)
       .toArray();
 
     // Transform recent activity
     const transformedActivity = recentActivity.map((activity) => {
-      const minutesAgo = Math.floor((now - activity.timestamp) / (1000 * 60));
+      const activityDate =
+        activity.createdAt || activity.startedAt || activity.timestamp || now;
+      const minutesAgo = Math.floor((now - new Date(activityDate)) / (1000 * 60));
       const timeAgo =
         minutesAgo < 60
           ? `${minutesAgo} min ago`
