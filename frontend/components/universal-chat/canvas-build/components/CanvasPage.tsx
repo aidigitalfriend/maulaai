@@ -691,7 +691,7 @@ export default function CanvasMode({
 
       {/* =========== LEFT PANEL: AI CHAT =========== */}
       <div
-        className={`${showChatPanel ? 'w-[320px]' : 'w-[56px]'} flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10 transition-all duration-300 overflow-hidden`}
+        className={`${showChatPanel ? 'w-[320px]' : 'w-0'} flex flex-col ${brandColors.bgPanel} ${showChatPanel ? `${brandColors.border} border-r` : 'border-transparent'} relative z-10 transition-all duration-300 overflow-hidden`}
       >
         {/* Header */}
         <div
@@ -919,7 +919,7 @@ export default function CanvasMode({
 
       {/* =========== CENTER PANEL: FILES =========== */}
       <div
-        className={`${showFilesPanel ? 'w-[200px]' : 'w-[56px]'} flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10 transition-all duration-300 overflow-hidden`}
+        className={`${showFilesPanel ? 'w-[200px]' : 'w-0'} flex flex-col ${brandColors.bgPanel} ${showFilesPanel ? `${brandColors.border} border-r` : 'border-transparent'} relative z-10 transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
