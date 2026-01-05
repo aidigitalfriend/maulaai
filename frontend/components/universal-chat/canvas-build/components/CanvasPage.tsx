@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import {
   XMarkIcon,
@@ -232,10 +233,11 @@ export default function CanvasMode({
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [showNavOverlay, setShowNavOverlay] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
-  const [abortController, setAbortController] = useState<AbortController | null>(
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
+  const [openHistoryMenuId, setOpenHistoryMenuId] = useState<string | null>(
     null
   );
-  const [openHistoryMenuId, setOpenHistoryMenuId] = useState<string | null>(null);
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history'
   >('chat');
@@ -634,7 +636,8 @@ export default function CanvasMode({
         )
       );
     } catch (error: unknown) {
-      const isAborted = error instanceof DOMException && error.name === 'AbortError';
+      const isAborted =
+        error instanceof DOMException && error.name === 'AbortError';
       const errorMsg = isAborted
         ? 'Stopped by user'
         : error instanceof Error
@@ -675,21 +678,32 @@ export default function CanvasMode({
     }
   }, [abortController]);
 
-  const handleDeleteHistoryEntry = useCallback((id: string) => {
-    setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
-    if (openHistoryMenuId === id) setOpenHistoryMenuId(null);
-  }, [openHistoryMenuId]);
+  const handleDeleteHistoryEntry = useCallback(
+    (id: string) => {
+      setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
+      if (openHistoryMenuId === id) setOpenHistoryMenuId(null);
+    },
+    [openHistoryMenuId]
+  );
 
-  const handleRenameHistoryEntry = useCallback((id: string) => {
-    const entry = historyEntries.find((e) => e.id === id);
-    if (!entry) return;
-    const newName = window.prompt('Rename build', entry.name || 'Untitled build');
-    if (!newName) return;
-    setHistoryEntries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, name: newName.trim() || e.name } : e))
-    );
-    setOpenHistoryMenuId(null);
-  }, [historyEntries]);
+  const handleRenameHistoryEntry = useCallback(
+    (id: string) => {
+      const entry = historyEntries.find((e) => e.id === id);
+      if (!entry) return;
+      const newName = window.prompt(
+        'Rename build',
+        entry.name || 'Untitled build'
+      );
+      if (!newName) return;
+      setHistoryEntries((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, name: newName.trim() || e.name } : e
+        )
+      );
+      setOpenHistoryMenuId(null);
+    },
+    [historyEntries]
+  );
 
   const handleDownloadHistoryEntry = useCallback((entry: HistoryEntry) => {
     const blob = new Blob([entry.code], { type: 'text/html' });
@@ -775,7 +789,14 @@ export default function CanvasMode({
           className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-transform flex items-center gap-2`}
           title={showNavOverlay ? 'Close navigation' : 'Open navigation'}
         >
-          <SparklesIcon className="w-5 h-5 text-white" />
+          <Image
+            src="/images/logos/company-logo.png"
+            alt="One Last AI logo"
+            width={24}
+            height={24}
+            className="w-6 h-6 object-contain"
+            priority
+          />
           {showNavOverlay && (
             <span className={`text-sm font-semibold ${brandColors.text}`}>
               Navigation
@@ -918,7 +939,14 @@ export default function CanvasMode({
         >
           <div className="flex items-center gap-2">
             <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
-              <SparklesIcon className="w-4 h-4 text-white" />
+              <Image
+                src="/images/logos/company-logo.png"
+                alt="One Last AI logo"
+                width={20}
+                height={20}
+                className="w-5 h-5 object-contain"
+                priority
+              />
             </div>
             {showChatPanel && (
               <span className={`font-semibold ${brandColors.gradientText}`}>
@@ -1163,13 +1191,15 @@ export default function CanvasMode({
               {activePane === 'history' ? 'History' : 'Files'}
             </span>
           )}
-          {generatedFiles.length > 0 && showFilesPanel && activePane !== 'history' && (
-            <span
-              className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
-            >
-              {generatedFiles.length}
-            </span>
-          )}
+          {generatedFiles.length > 0 &&
+            showFilesPanel &&
+            activePane !== 'history' && (
+              <span
+                className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
+              >
+                {generatedFiles.length}
+              </span>
+            )}
         </div>
 
         {activePane === 'history' && showHistoryPanel ? (
@@ -1190,7 +1220,11 @@ export default function CanvasMode({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex flex-col">
-                      <span className={`text-sm font-medium ${brandColors.text}`}>{entry.name || 'Untitled build'}</span>
+                      <span
+                        className={`text-sm font-medium ${brandColors.text}`}
+                      >
+                        {entry.name || 'Untitled build'}
+                      </span>
                       <span className={`text-[11px] ${brandColors.textMuted}`}>
                         {new Date(entry.timestamp).toLocaleString()}
                       </span>
@@ -1210,7 +1244,9 @@ export default function CanvasMode({
                       <div className="relative">
                         <button
                           onClick={() =>
-                            setOpenHistoryMenuId((prev) => (prev === entry.id ? null : entry.id))
+                            setOpenHistoryMenuId((prev) =>
+                              prev === entry.id ? null : entry.id
+                            )
                           }
                           className={`p-1 rounded-lg ${brandColors.bgHover} ${brandColors.textSecondary} hover:${brandColors.text}`}
                           title="More options"
@@ -1250,54 +1286,58 @@ export default function CanvasMode({
                       </div>
                     </div>
                   </div>
-                  <p className={`text-xs mt-2 ${brandColors.textSecondary}`}>{entry.prompt}</p>
+                  <p className={`text-xs mt-2 ${brandColors.textSecondary}`}>
+                    {entry.prompt}
+                  </p>
                 </div>
               ))
             )}
           </div>
         ) : (
           showFilesPanel && (
-          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
-            {generatedFiles.length > 0 ? (
-              <div className="space-y-1">
-                {generatedFiles.map((file) => (
-                  <button
-                    key={file.id}
-                    onClick={() => {
-                      setSelectedFile(file);
-                      setViewMode('code');
-                    }}
-                    className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
-                      selectedFile?.id === file.id
-                        ? `${brandColors.btnPrimary}`
-                        : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
-                    }`}
-                  >
-                    <span className="text-sm group-hover:scale-110 transition-transform">
-                      {FILE_ICONS[file.type] || FILE_ICONS.other}
-                    </span>
-                    <span
-                      className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+              {generatedFiles.length > 0 ? (
+                <div className="space-y-1">
+                  {generatedFiles.map((file) => (
+                    <button
+                      key={file.id}
+                      onClick={() => {
+                        setSelectedFile(file);
+                        setViewMode('code');
+                      }}
+                      className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
+                        selectedFile?.id === file.id
+                          ? `${brandColors.btnPrimary}`
+                          : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
+                      }`}
                     >
-                      {file.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className={`text-center py-8 ${brandColors.textSecondary}`}>
-                <div
-                  className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
-                >
-                  <DocumentIcon className="w-5 h-5 opacity-50" />
+                      <span className="text-sm group-hover:scale-110 transition-transform">
+                        {FILE_ICONS[file.type] || FILE_ICONS.other}
+                      </span>
+                      <span
+                        className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+                      >
+                        {file.name}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-                <p className="text-xs">No files yet</p>
-                <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
-                  AI will create files here
-                </p>
-              </div>
-            )}
-          </div>
+              ) : (
+                <div
+                  className={`text-center py-8 ${brandColors.textSecondary}`}
+                >
+                  <div
+                    className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
+                  >
+                    <DocumentIcon className="w-5 h-5 opacity-50" />
+                  </div>
+                  <p className="text-xs">No files yet</p>
+                  <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
+                    AI will create files here
+                  </p>
+                </div>
+              )}
+            </div>
           )
         )}
 
