@@ -331,7 +331,6 @@ export default function EnhancedChatLayout({
         isOpen={isMobileCanvasOpen}
         onClose={() => setIsMobileCanvasOpen(false)}
         theme={theme}
-        showPanelToggles={false}
       />
     </div>
   );

@@ -71,7 +71,6 @@ export default function ChatRightPanel({
         isOpen={isCanvasOpen}
         onClose={() => setIsCanvasOpen(false)}
         theme={theme}
-        showPanelToggles={false}
       />
     </>
   );
