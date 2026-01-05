@@ -65,6 +65,7 @@ interface CanvasModeProps {
   readonly theme?: 'default' | 'neural';
   readonly agentId?: string;
   readonly agentName?: string;
+  readonly showPanelToggles?: boolean;
 }
 
 // =============================================================================
@@ -191,6 +192,7 @@ export default function CanvasMode({
   theme = 'neural',
   agentId = 'default',
   agentName = 'AI Assistant',
+  showPanelToggles = true,
 }: CanvasModeProps) {
   const previewRef = useRef<HTMLIFrameElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -617,40 +619,42 @@ export default function CanvasMode({
       </div>
 
       {/* Panel toggles */}
-      <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
-        <div
-          className={`flex items-center gap-2 rounded-xl px-2 py-2 border ${brandColors.border} ${brandColors.bgPanel} shadow-lg shadow-cyan-500/10`}
-        >
-          <button
-            onClick={() =>
-              !interactionLocked && setShowChatPanel((prev) => !prev)
-            }
-            disabled={interactionLocked}
-            title={showChatPanel ? 'Hide chat' : 'Show chat'}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all border ${brandColors.border} ${
-              showChatPanel
-                ? brandColors.btnPrimary
-                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+      {showPanelToggles && (
+        <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
+          <div
+            className={`flex items-center gap-2 rounded-xl px-2 py-2 border ${brandColors.border} ${brandColors.bgPanel} shadow-lg shadow-cyan-500/10`}
           >
-            <ChatBubbleLeftRightIcon className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() =>
-              !interactionLocked && setShowFilesPanel((prev) => !prev)
-            }
-            disabled={interactionLocked}
-            title={showFilesPanel ? 'Hide files' : 'Show files'}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all border ${brandColors.border} ${
-              showFilesPanel
-                ? brandColors.btnPrimary
-                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
-          >
-            <FolderIcon className="w-4 h-4" />
-          </button>
+            <button
+              onClick={() =>
+                !interactionLocked && setShowChatPanel((prev) => !prev)
+              }
+              disabled={interactionLocked}
+              title={showChatPanel ? 'Hide chat' : 'Show chat'}
+              className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all border ${brandColors.border} ${
+                showChatPanel
+                  ? brandColors.btnPrimary
+                  : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+              } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              <ChatBubbleLeftRightIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() =>
+                !interactionLocked && setShowFilesPanel((prev) => !prev)
+              }
+              disabled={interactionLocked}
+              title={showFilesPanel ? 'Hide files' : 'Show files'}
+              className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all border ${brandColors.border} ${
+                showFilesPanel
+                  ? brandColors.btnPrimary
+                  : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+              } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              <FolderIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {interactionLocked && (
         <div className="absolute inset-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center">
