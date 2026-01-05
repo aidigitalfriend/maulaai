@@ -254,35 +254,6 @@ export default function CanvasMode({
     }
   }, [isOpen, messages.length]);
 
-  // Load history from localStorage on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = localStorage.getItem('canvasHistory');
-      if (stored) {
-        const parsed: HistoryEntry[] = JSON.parse(stored);
-        setHistoryEntries(
-          parsed.map((entry) => ({
-            ...entry,
-            name: entry.name || summarizePrompt(entry.prompt),
-          }))
-        );
-      }
-    } catch (err) {
-      console.error('Failed to load history', err);
-    }
-  }, [summarizePrompt]);
-
-  // Persist history to localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('canvasHistory', JSON.stringify(historyEntries));
-    } catch (err) {
-      console.error('Failed to save history', err);
-    }
-  }, [historyEntries]);
-
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -362,6 +333,35 @@ export default function CanvasMode({
     const firstLine = clean.split('\n')[0];
     return firstLine.length > 80 ? `${firstLine.slice(0, 77)}...` : firstLine;
   }, []);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('canvasHistory');
+      if (stored) {
+        const parsed: HistoryEntry[] = JSON.parse(stored);
+        setHistoryEntries(
+          parsed.map((entry) => ({
+            ...entry,
+            name: entry.name || summarizePrompt(entry.prompt),
+          }))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to load history', err);
+    }
+  }, [summarizePrompt]);
+
+  // Persist history to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('canvasHistory', JSON.stringify(historyEntries));
+    } catch (err) {
+      console.error('Failed to save history', err);
+    }
+  }, [historyEntries]);
 
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {
@@ -1298,6 +1298,7 @@ export default function CanvasMode({
               </div>
             )}
           </div>
+          )
         )}
 
         {/* Generation Status */}
