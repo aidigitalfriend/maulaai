@@ -24,6 +24,7 @@ import {
   ChevronDownIcon,
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -219,6 +220,9 @@ export default function CanvasMode({
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
   const [showChatPanel, setShowChatPanel] = useState(true);
   const [showFilesPanel, setShowFilesPanel] = useState(true);
+  const [activePane, setActivePane] = useState<
+    'chat' | 'files' | 'preview' | 'templates'
+  >('chat');
 
   // Initialize welcome message
   useEffect(() => {
@@ -274,6 +278,21 @@ export default function CanvasMode({
     selectedCategory === 'All'
       ? TEMPLATES
       : TEMPLATES.filter((t) => t.category === selectedCategory);
+
+  // Sync pane selection with visible panels and modes
+  useEffect(() => {
+    const chatActive = activePane === 'chat' || activePane === 'templates';
+    const filesActive = activePane === 'files';
+    setShowChatPanel(chatActive);
+    setShowFilesPanel(filesActive);
+    setShowTemplates(activePane === 'templates');
+    if (activePane === 'preview') {
+      setViewMode('preview');
+    }
+    if (filesActive && generatedFiles.length > 0) {
+      setViewMode('code');
+    }
+  }, [activePane, generatedFiles.length]);
 
   // =============================================================================
   // HANDLERS
@@ -615,6 +634,61 @@ export default function CanvasMode({
         />
       </div>
 
+      {/* =========== LEFT TOOLBAR =========== */}
+      <div
+        className={`w-14 flex flex-col items-center gap-2 py-4 ${brandColors.bgPanel} ${brandColors.border} border-r relative z-20`}
+      >
+        <div className={`p-2 rounded-lg ${brandColors.gradientPrimary}`}>
+          <SparklesIcon className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex flex-col gap-2 w-full px-2 mt-2">
+          <button
+            onClick={() => setActivePane('chat')}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'chat'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Chat"
+          >
+            <ChatBubbleLeftRightIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setActivePane('files')}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'files'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Files"
+          >
+            <FolderIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setActivePane('preview')}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'preview'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Preview"
+          >
+            <EyeIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setActivePane('templates')}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'templates'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Templates"
+          >
+            <Squares2X2Icon className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
       {/* =========== LEFT PANEL: AI CHAT =========== */}
       <div
         className={`${showChatPanel ? 'w-[320px]' : 'w-[56px]'} flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10 transition-all duration-300 overflow-hidden`}
@@ -632,26 +706,13 @@ export default function CanvasMode({
                 AI Canvas
               </span>
             )}
-            <div className="flex items-center gap-1 ml-1">
-              <button
-                onClick={() => setShowChatPanel((prev) => !prev)}
-                className={`p-1.5 rounded-md border ${brandColors.border} ${brandColors.bgHover} transition-colors ${showChatPanel ? 'text-cyan-400' : brandColors.textSecondary}`}
-                title={`${showChatPanel ? 'Hide' : 'Show'} chat panel`}
-              >
-                <ChatBubbleLeftRightIcon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setShowFilesPanel((prev) => !prev)}
-                className={`p-1.5 rounded-md border ${brandColors.border} ${brandColors.bgHover} transition-colors ${showFilesPanel ? 'text-cyan-400' : brandColors.textSecondary}`}
-                title={`${showFilesPanel ? 'Hide' : 'Show'} file panel`}
-              >
-                <DocumentTextIcon className="w-4 h-4" />
-              </button>
-            </div>
           </div>
           {showChatPanel && (
             <button
-              onClick={() => setShowTemplates(!showTemplates)}
+              onClick={() => {
+                setActivePane('templates');
+                setShowTemplates(true);
+              }}
               className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
                 showTemplates
                   ? brandColors.btnPrimary
