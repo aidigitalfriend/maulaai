@@ -1048,10 +1048,7 @@ export default function CanvasMode({
         <div
           className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
         >
-          <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${brandColors.gradientPrimary}`}>
-              <SparklesIcon className="w-4 h-4 text-white" />
-            </div>
+          <div className="flex items-center">
             <span className={`text-sm font-semibold ${brandColors.gradientText}`}>
               One Last AI
             </span>
