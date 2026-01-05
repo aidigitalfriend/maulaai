@@ -221,7 +221,7 @@ export default function CanvasMode({
   const [showChatPanel, setShowChatPanel] = useState(true);
   const [showFilesPanel, setShowFilesPanel] = useState(true);
   const [activePane, setActivePane] = useState<
-    'chat' | 'files' | 'preview' | 'templates'
+    'chat' | 'files' | 'preview' | 'templates' | 'code'
   >('chat');
 
   // Initialize welcome message
@@ -282,14 +282,18 @@ export default function CanvasMode({
   // Sync pane selection with visible panels and modes
   useEffect(() => {
     const chatActive = activePane === 'chat' || activePane === 'templates';
-    const filesActive = activePane === 'files';
+    const filesActive = activePane === 'files' || activePane === 'code';
     setShowChatPanel(chatActive);
     setShowFilesPanel(filesActive);
     setShowTemplates(activePane === 'templates');
+
     if (activePane === 'preview') {
       setViewMode('preview');
     }
-    if (filesActive && generatedFiles.length > 0) {
+    if (activePane === 'code') {
+      setViewMode('code');
+    }
+    if (filesActive && generatedFiles.length > 0 && activePane !== 'preview') {
       setViewMode('code');
     }
   }, [activePane, generatedFiles.length]);
@@ -676,6 +680,17 @@ export default function CanvasMode({
             <EyeIcon className="w-5 h-5" />
           </button>
           <button
+            onClick={() => setActivePane('code')}
+            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+              activePane === 'code'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Code"
+          >
+            <CodeBracketIcon className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => setActivePane('templates')}
             className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
               activePane === 'templates'
@@ -1002,36 +1017,8 @@ export default function CanvasMode({
         <div
           className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
         >
-          {/* View Toggle: Preview / Code */}
-          <div
-            className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
-          >
-            <button
-              onClick={() => setViewMode('preview')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'preview'
-                  ? brandColors.btnPrimary
-                  : brandColors.textSecondary
-              }`}
-            >
-              <EyeIcon className="w-4 h-4" />
-              Preview
-            </button>
-            <button
-              onClick={() => setViewMode('code')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'code'
-                  ? brandColors.btnPrimary
-                  : brandColors.textSecondary
-              }`}
-            >
-              <CodeBracketIcon className="w-4 h-4" />
-              Code
-            </button>
-          </div>
-
           {/* Device Toggle (only in preview mode) */}
-          {viewMode === 'preview' && (
+          {viewMode === 'preview' ? (
             <div
               className={`flex items-center rounded-lg ${brandColors.bgInput} p-0.5 border ${brandColors.border}`}
             >
@@ -1058,6 +1045,8 @@ export default function CanvasMode({
                 </button>
               ))}
             </div>
+          ) : (
+            <div />
           )}
 
           {/* Actions */}
