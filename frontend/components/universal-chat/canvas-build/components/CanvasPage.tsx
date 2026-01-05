@@ -792,9 +792,9 @@ export default function CanvasMode({
           <Image
             src="/images/logos/company-logo.png"
             alt="One Last AI logo"
-            width={24}
-            height={24}
-            className="w-6 h-6 object-contain"
+            width={20}
+            height={20}
+            className="w-5 h-5 object-contain"
             priority
           />
           {showNavOverlay && (
@@ -939,14 +939,7 @@ export default function CanvasMode({
         >
           <div className="flex items-center gap-2">
             <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
-              <Image
-                src="/images/logos/company-logo.png"
-                alt="One Last AI logo"
-                width={20}
-                height={20}
-                className="w-5 h-5 object-contain"
-                priority
-              />
+              <SparklesIcon className="w-4 h-4 text-white" />
             </div>
             {showChatPanel && (
               <span className={`font-semibold ${brandColors.gradientText}`}>
