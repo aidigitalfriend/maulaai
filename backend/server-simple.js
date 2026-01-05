@@ -2117,21 +2117,18 @@ const getUsageDefaults = (planKey) => {
 
 // GET /api/user/billing/:userId - Get comprehensive billing data
 app.get('/api/user/billing/:userId', async (req, res) => {
-      const rawDate = conv.createdAt || conv.startedAt || conv.timestamp;
-      const createdAt =
-        rawDate instanceof Date ? rawDate : rawDate ? new Date(rawDate) : new Date();
-
-      return {
+  try {
     const { userId } = req.params;
 
     // Get session ID from HttpOnly cookie
-        date: createdAt.toISOString().split('T')[0],
+    const sessionId = req.cookies?.session_id;
+
+    if (!sessionId) {
       return res.status(401).json({ message: 'No session ID' });
     }
 
     const client = await getClientPromise();
-        lastMessage: lastMessage ? lastMessage.content.substring(0, 80) : '',
-        createdAt,
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
     const users = db.collection('users');
 
     // Find user with valid session
