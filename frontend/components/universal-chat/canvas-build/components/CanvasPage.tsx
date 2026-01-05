@@ -24,6 +24,7 @@ import {
   ChevronDownIcon,
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -219,9 +220,16 @@ export default function CanvasMode({
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
   const [showChatPanel, setShowChatPanel] = useState(true);
   const [showFilesPanel, setShowFilesPanel] = useState(true);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [showNavOverlay, setShowNavOverlay] = useState(false);
+  const [historyEntries, setHistoryEntries] = useState<
+    { id: string; prompt: string; code: string; timestamp: number }[]
+  >([]);
+  const [abortController, setAbortController] = useState<AbortController | null>(
+    null
+  );
   const [activePane, setActivePane] = useState<
-    'chat' | 'files' | 'preview' | 'templates' | 'code'
+    'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history'
   >('chat');
 
   // Initialize welcome message
@@ -283,8 +291,10 @@ export default function CanvasMode({
   useEffect(() => {
     const chatActive = activePane === 'chat' || activePane === 'templates';
     const filesActive = activePane === 'files' || activePane === 'code';
+    const historyActive = activePane === 'history';
     setShowChatPanel(chatActive);
     setShowFilesPanel(filesActive);
+    setShowHistoryPanel(historyActive);
     setShowTemplates(activePane === 'templates');
 
     if (activePane === 'preview') {
@@ -460,10 +470,14 @@ export default function CanvasMode({
       },
     ]);
 
+    const controller = new AbortController();
+    setAbortController(controller);
+
     try {
       const response = await fetch('/api/canvas/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           prompt: `${userPrompt}${uniquenessHint}`,
           provider: 'mistral',
@@ -547,6 +561,16 @@ export default function CanvasMode({
         const files = extractFiles(cleaned);
         setGeneratedFiles(files);
         setGenerationStatus('success');
+
+        setHistoryEntries((prev) => [
+          {
+            id: `${Date.now()}`,
+            prompt: userPrompt,
+            code: cleaned,
+            timestamp: Date.now(),
+          },
+          ...prev,
+        ]);
       } else {
         throw new Error('No code generated');
       }
@@ -565,14 +589,21 @@ export default function CanvasMode({
         )
       );
     } catch (error: unknown) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      const isAborted = error instanceof DOMException && error.name === 'AbortError';
+      const errorMsg = isAborted
+        ? 'Stopped by user'
+        : error instanceof Error
+          ? error.message
+          : 'Unknown error';
       setGenerationStatus('error');
       setMessages((prev) =>
         prev.map((m) =>
           m.id === streamingMsgId
             ? {
                 ...m,
-                content: `❌ Error: ${errorMsg}\n\nPlease try again.`,
+                content: isAborted
+                  ? '⏹️ Generation stopped by user.'
+                  : `❌ Error: ${errorMsg}\n\nPlease try again.`,
                 isStreaming: false,
               }
             : m
@@ -580,6 +611,7 @@ export default function CanvasMode({
       );
     } finally {
       setIsGenerating(false);
+      setAbortController(null);
     }
   }, [
     chatInput,
@@ -590,6 +622,12 @@ export default function CanvasMode({
     updatePreview,
     extractFiles,
   ]);
+
+  const handleStopGeneration = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+    }
+  }, [abortController]);
 
   const handleDownload = useCallback(() => {
     if (!generatedCode) return;
@@ -761,6 +799,20 @@ export default function CanvasMode({
             <CodeBracketIcon className="w-5 h-5" />
             {showNavOverlay && (
               <span className={`text-sm ${brandColors.text}`}>Code</span>
+            )}
+          </button>
+          <button
+            onClick={() => setActivePane('history')}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+              activePane === 'history'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="History"
+          >
+            <ClockIcon className="w-5 h-5" />
+            {showNavOverlay && (
+              <span className={`text-sm ${brandColors.text}`}>History</span>
             )}
           </button>
         </div>
@@ -977,18 +1029,28 @@ export default function CanvasMode({
                 rows={2}
               />
 
-              <button
-                id="canvas-submit-btn"
-                onClick={handleSendMessage}
-                disabled={!chatInput.trim() || isGenerating}
-                className={`p-2 rounded-lg transition-all ${
-                  chatInput.trim() && !isGenerating
-                    ? brandColors.btnPrimary
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <PaperAirplaneIcon className="w-5 h-5" />
-              </button>
+              {isGenerating ? (
+                <button
+                  onClick={handleStopGeneration}
+                  className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+                  title="Stop generation"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  id="canvas-submit-btn"
+                  onClick={handleSendMessage}
+                  disabled={!chatInput.trim()}
+                  className={`p-2 rounded-lg transition-all ${
+                    chatInput.trim()
+                      ? brandColors.btnPrimary
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  <PaperAirplaneIcon className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -996,18 +1058,22 @@ export default function CanvasMode({
 
       {/* =========== CENTER PANEL: FILES =========== */}
       <div
-        className={`${showFilesPanel ? 'w-[200px]' : 'w-0'} flex flex-col ${brandColors.bgPanel} ${showFilesPanel ? `${brandColors.border} border-r` : 'border-transparent'} relative z-10 transition-all duration-300 overflow-hidden`}
+        className={`${showFilesPanel || showHistoryPanel ? 'w-[220px]' : 'w-0'} flex flex-col ${brandColors.bgPanel} ${showFilesPanel || showHistoryPanel ? `${brandColors.border} border-r` : 'border-transparent'} relative z-10 transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
         >
-          <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
-          {showFilesPanel && (
+          {activePane === 'history' ? (
+            <ClockIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
+          ) : (
+            <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
+          )}
+          {(showFilesPanel || showHistoryPanel) && (
             <span className={`text-sm font-medium ${brandColors.text}`}>
-              Files
+              {activePane === 'history' ? 'History' : 'Files'}
             </span>
           )}
-          {generatedFiles.length > 0 && showFilesPanel && (
+          {generatedFiles.length > 0 && showFilesPanel && activePane !== 'history' && (
             <span
               className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
             >
@@ -1016,7 +1082,42 @@ export default function CanvasMode({
           )}
         </div>
 
-        {showFilesPanel && (
+        {activePane === 'history' && showHistoryPanel ? (
+          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-2">
+            {historyEntries.length === 0 ? (
+              <div className={`text-center py-8 ${brandColors.textSecondary}`}>
+                <ClockIcon className="w-8 h-8 opacity-50 mx-auto mb-2" />
+                <p className="text-xs">No history yet</p>
+                <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
+                  Generate something to see it here
+                </p>
+              </div>
+            ) : (
+              historyEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className={`border ${brandColors.border} rounded-lg p-2 ${brandColors.bgSecondary} ${brandColors.bgHover} transition-all`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs ${brandColors.text}`}>{new Date(entry.timestamp).toLocaleString()}</span>
+                    <button
+                      onClick={() => {
+                        setGeneratedCode(entry.code);
+                        setViewMode('code');
+                        setActivePane('code');
+                      }}
+                      className={`text-xs ${brandColors.accentCyan} hover:text-cyan-300`}
+                    >
+                      Open
+                    </button>
+                  </div>
+                  <p className={`text-sm mt-1 ${brandColors.text}`}>{entry.prompt}</p>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          showFilesPanel && (
           <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
             {generatedFiles.length > 0 ? (
               <div className="space-y-1">
@@ -1061,7 +1162,7 @@ export default function CanvasMode({
         )}
 
         {/* Generation Status */}
-        {isGenerating && showFilesPanel && (
+        {isGenerating && showFilesPanel && activePane !== 'history' && (
           <div className={`px-3 py-2 ${brandColors.border} border-t`}>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
@@ -1163,13 +1264,19 @@ export default function CanvasMode({
                   >
                     Ready to Create
                   </h3>
-                  <p className="text-sm text-center max-w-xs">
+                  <p className="text-sm text-center">
                     Select a template or describe what you want.
                     <br />
                     <span className={brandColors.accentPurple}>
                       Preview will appear here!
                     </span>
                   </p>
+                  {isGenerating && (
+                    <div className="flex items-center gap-2 mt-3 text-xs text-cyan-300">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                      <span>Generating preview...</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1267,7 +1374,6 @@ export default function CanvasMode({
             Powered by AI Canvas ✨
           </span>
         </div>
-
       </div>
 
       {/* Custom scrollbar styles */}
