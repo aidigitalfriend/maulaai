@@ -22,6 +22,8 @@ import {
   CodeBracketIcon,
   EyeIcon,
   ChevronDownIcon,
+  ChatBubbleLeftRightIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -215,6 +217,8 @@ export default function CanvasMode({
     'idle' | 'generating' | 'success' | 'error'
   >('idle');
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
+  const [showChatPanel, setShowChatPanel] = useState(true);
+  const [showFilesPanel, setShowFilesPanel] = useState(true);
 
   // Initialize welcome message
   useEffect(() => {
@@ -613,7 +617,7 @@ export default function CanvasMode({
 
       {/* =========== LEFT PANEL: AI CHAT =========== */}
       <div
-        className={`w-[320px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+        className={`${showChatPanel ? 'w-[320px]' : 'w-[56px]'} flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10 transition-all duration-300 overflow-hidden`}
       >
         {/* Header */}
         <div
@@ -623,27 +627,47 @@ export default function CanvasMode({
             <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
               <SparklesIcon className="w-4 h-4 text-white" />
             </div>
-            <span className={`font-semibold ${brandColors.gradientText}`}>
-              AI Canvas
-            </span>
+            {showChatPanel && (
+              <span className={`font-semibold ${brandColors.gradientText}`}>
+                AI Canvas
+              </span>
+            )}
+            <div className="flex items-center gap-1 ml-1">
+              <button
+                onClick={() => setShowChatPanel((prev) => !prev)}
+                className={`p-1.5 rounded-md border ${brandColors.border} ${brandColors.bgHover} transition-colors ${showChatPanel ? 'text-cyan-400' : brandColors.textSecondary}`}
+                title={`${showChatPanel ? 'Hide' : 'Show'} chat panel`}
+              >
+                <ChatBubbleLeftRightIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowFilesPanel((prev) => !prev)}
+                className={`p-1.5 rounded-md border ${brandColors.border} ${brandColors.bgHover} transition-colors ${showFilesPanel ? 'text-cyan-400' : brandColors.textSecondary}`}
+                title={`${showFilesPanel ? 'Hide' : 'Show'} file panel`}
+              >
+                <DocumentTextIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => setShowTemplates(!showTemplates)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
-              showTemplates
-                ? brandColors.btnPrimary
-                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
-          >
-            Templates
-            <ChevronDownIcon
-              className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
-            />
-          </button>
+          {showChatPanel && (
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1 ${
+                showTemplates
+                  ? brandColors.btnPrimary
+                  : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+              }`}
+            >
+              Temp
+              <ChevronDownIcon
+                className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`}
+              />
+            </button>
+          )}
         </div>
 
         {/* Templates Dropdown */}
-        {showTemplates && (
+        {showTemplates && showChatPanel && (
           <div
             className={`${brandColors.border} border-b max-h-80 overflow-hidden flex flex-col`}
           >
@@ -698,62 +722,64 @@ export default function CanvasMode({
         )}
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+        {showChatPanel && (
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
+            {messages.map((msg) => (
               <div
-                className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
-                  msg.role === 'user'
-                    ? brandColors.btnPrimary
-                    : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
-                }`}
+                key={msg.id}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                {msg.isStreaming ? (
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div
-                        className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
-                        style={{ animationDelay: '0ms' }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
-                        style={{ animationDelay: '150ms' }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
-                        style={{ animationDelay: '300ms' }}
-                      />
-                    </div>
-                    <span className={`text-xs ${brandColors.textSecondary}`}>
-                      Creating...
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                )}
-                {msg.attachments && msg.attachments.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {msg.attachments.map((file) => (
-                      <span
-                        key={file.id}
-                        className="text-xs bg-white/20 px-2 py-0.5 rounded"
-                      >
-                        📎 {file.name}
+                <div
+                  className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${
+                    msg.role === 'user'
+                      ? brandColors.btnPrimary
+                      : `${brandColors.bgSecondary} ${brandColors.text} border ${brandColors.border}`
+                  }`}
+                >
+                  {msg.isStreaming ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div
+                          className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce"
+                          style={{ animationDelay: '0ms' }}
+                        />
+                        <div
+                          className="w-2 h-2 rounded-full bg-purple-400 animate-bounce"
+                          style={{ animationDelay: '150ms' }}
+                        />
+                        <div
+                          className="w-2 h-2 rounded-full bg-pink-400 animate-bounce"
+                          style={{ animationDelay: '300ms' }}
+                        />
+                      </div>
+                      <span className={`text-xs ${brandColors.textSecondary}`}>
+                        Creating...
                       </span>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                  {msg.attachments && msg.attachments.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {msg.attachments.map((file) => (
+                        <span
+                          key={file.id}
+                          className="text-xs bg-white/20 px-2 py-0.5 rounded"
+                        >
+                          📎 {file.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        )}
 
         {/* Uploaded Files */}
-        {uploadedFiles.length > 0 && (
+        {uploadedFiles.length > 0 && showChatPanel && (
           <div className={`px-3 py-2 ${brandColors.border} border-t`}>
             <div className="flex flex-wrap gap-2">
               {uploadedFiles.map((file) => (
@@ -778,68 +804,72 @@ export default function CanvasMode({
         )}
 
         {/* Chat Input */}
-        <div className={`p-3 ${brandColors.border} border-t`}>
-          <div
-            className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}
-          >
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} transition-colors`}
-              title="Upload image"
+        {showChatPanel && (
+          <div className={`p-3 ${brandColors.border} border-t`}>
+            <div
+              className={`flex items-end gap-2 rounded-xl ${brandColors.bgInput} p-2 border ${brandColors.border} focus-within:border-cyan-500/50 transition-colors`}
             >
-              <ArrowUpTrayIcon className="w-5 h-5" />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-            />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className={`p-2 rounded-lg ${brandColors.textSecondary} ${brandColors.bgHover} transition-colors`}
+                title="Upload image"
+              >
+                <ArrowUpTrayIcon className="w-5 h-5" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
 
-            <textarea
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Describe what you want to create..."
-              className={`flex-1 resize-none bg-transparent outline-none text-sm ${brandColors.text} placeholder-gray-500`}
-              rows={2}
-            />
+              <textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Describe what you want to create..."
+                className={`flex-1 resize-none bg-transparent outline-none text-sm ${brandColors.text} placeholder-gray-500`}
+                rows={2}
+              />
 
-            <button
-              id="canvas-submit-btn"
-              onClick={handleSendMessage}
-              disabled={!chatInput.trim() || isGenerating}
-              className={`p-2 rounded-lg transition-all ${
-                chatInput.trim() && !isGenerating
-                  ? brandColors.btnPrimary
-                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <PaperAirplaneIcon className="w-5 h-5" />
-            </button>
+              <button
+                id="canvas-submit-btn"
+                onClick={handleSendMessage}
+                disabled={!chatInput.trim() || isGenerating}
+                className={`p-2 rounded-lg transition-all ${
+                  chatInput.trim() && !isGenerating
+                    ? brandColors.btnPrimary
+                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <PaperAirplaneIcon className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* =========== CENTER PANEL: FILES =========== */}
       <div
-        className={`w-[200px] flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10`}
+        className={`${showFilesPanel ? 'w-[200px]' : 'w-[56px]'} flex flex-col ${brandColors.border} border-r ${brandColors.bgPanel} relative z-10 transition-all duration-300 overflow-hidden`}
       >
         <div
           className={`flex items-center gap-2 px-3 py-3 ${brandColors.border} border-b`}
         >
           <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
-          <span className={`text-sm font-medium ${brandColors.text}`}>
-            Files
-          </span>
-          {generatedFiles.length > 0 && (
+          {showFilesPanel && (
+            <span className={`text-sm font-medium ${brandColors.text}`}>
+              Files
+            </span>
+          )}
+          {generatedFiles.length > 0 && showFilesPanel && (
             <span
               className={`text-xs px-1.5 py-0.5 rounded-full ${brandColors.gradientPrimary} text-white`}
             >
@@ -848,50 +878,52 @@ export default function CanvasMode({
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
-          {generatedFiles.length > 0 ? (
-            <div className="space-y-1">
-              {generatedFiles.map((file) => (
-                <button
-                  key={file.id}
-                  onClick={() => {
-                    setSelectedFile(file);
-                    setViewMode('code');
-                  }}
-                  className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
-                    selectedFile?.id === file.id
-                      ? `${brandColors.btnPrimary}`
-                      : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
-                  }`}
-                >
-                  <span className="text-sm group-hover:scale-110 transition-transform">
-                    {FILE_ICONS[file.type] || FILE_ICONS.other}
-                  </span>
-                  <span
-                    className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+        {showFilesPanel && (
+          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+            {generatedFiles.length > 0 ? (
+              <div className="space-y-1">
+                {generatedFiles.map((file) => (
+                  <button
+                    key={file.id}
+                    onClick={() => {
+                      setSelectedFile(file);
+                      setViewMode('code');
+                    }}
+                    className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-all group ${
+                      selectedFile?.id === file.id
+                        ? `${brandColors.btnPrimary}`
+                        : `${brandColors.bgSecondary} ${brandColors.bgHover} border ${brandColors.border} hover:border-cyan-500/30`
+                    }`}
                   >
-                    {file.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={`text-center py-8 ${brandColors.textSecondary}`}>
-              <div
-                className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
-              >
-                <DocumentIcon className="w-5 h-5 opacity-50" />
+                    <span className="text-sm group-hover:scale-110 transition-transform">
+                      {FILE_ICONS[file.type] || FILE_ICONS.other}
+                    </span>
+                    <span
+                      className={`text-xs truncate ${selectedFile?.id === file.id ? 'text-white' : brandColors.text}`}
+                    >
+                      {file.name}
+                    </span>
+                  </button>
+                ))}
               </div>
-              <p className="text-xs">No files yet</p>
-              <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
-                AI will create files here
-              </p>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className={`text-center py-8 ${brandColors.textSecondary}`}>
+                <div
+                  className={`w-10 h-10 mx-auto rounded-lg ${brandColors.bgSecondary} flex items-center justify-center mb-2`}
+                >
+                  <DocumentIcon className="w-5 h-5 opacity-50" />
+                </div>
+                <p className="text-xs">No files yet</p>
+                <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
+                  AI will create files here
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Generation Status */}
-        {isGenerating && (
+        {isGenerating && showFilesPanel && (
           <div className={`px-3 py-2 ${brandColors.border} border-t`}>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
