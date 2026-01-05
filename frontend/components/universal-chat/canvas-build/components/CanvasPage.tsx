@@ -25,6 +25,7 @@ import {
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
   ClockIcon,
+  EllipsisHorizontalIcon,
 } from '@heroicons/react/24/outline';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -59,6 +60,14 @@ interface GeneratedFile {
   type: 'html' | 'css' | 'js' | 'tsx' | 'json' | 'image' | 'other';
   content: string;
   size: number;
+}
+
+interface HistoryEntry {
+  id: string;
+  name: string;
+  prompt: string;
+  code: string;
+  timestamp: number;
 }
 
 interface CanvasModeProps {
@@ -222,12 +231,11 @@ export default function CanvasMode({
   const [showFilesPanel, setShowFilesPanel] = useState(true);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [showNavOverlay, setShowNavOverlay] = useState(false);
-  const [historyEntries, setHistoryEntries] = useState<
-    { id: string; prompt: string; code: string; timestamp: number }[]
-  >([]);
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [abortController, setAbortController] = useState<AbortController | null>(
     null
   );
+  const [openHistoryMenuId, setOpenHistoryMenuId] = useState<string | null>(null);
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history'
   >('chat');
@@ -245,6 +253,35 @@ export default function CanvasMode({
       ]);
     }
   }, [isOpen, messages.length]);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('canvasHistory');
+      if (stored) {
+        const parsed: HistoryEntry[] = JSON.parse(stored);
+        setHistoryEntries(
+          parsed.map((entry) => ({
+            ...entry,
+            name: entry.name || summarizePrompt(entry.prompt),
+          }))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to load history', err);
+    }
+  }, [summarizePrompt]);
+
+  // Persist history to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem('canvasHistory', JSON.stringify(historyEntries));
+    } catch (err) {
+      console.error('Failed to save history', err);
+    }
+  }, [historyEntries]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -317,6 +354,13 @@ export default function CanvasMode({
     cleaned = cleaned.replace(/^```[a-zA-Z]*\s*/i, '');
     cleaned = cleaned.replace(/```$/i, '');
     return cleaned.trim();
+  }, []);
+
+  const summarizePrompt = useCallback((prompt: string) => {
+    const clean = prompt.trim();
+    if (!clean) return 'Untitled build';
+    const firstLine = clean.split('\n')[0];
+    return firstLine.length > 80 ? `${firstLine.slice(0, 77)}...` : firstLine;
   }, []);
 
   const updatePreview = useCallback((code: string) => {
@@ -565,6 +609,7 @@ export default function CanvasMode({
         setHistoryEntries((prev) => [
           {
             id: `${Date.now()}`,
+            name: summarizePrompt(userPrompt),
             prompt: userPrompt,
             code: cleaned,
             timestamp: Date.now(),
@@ -621,6 +666,7 @@ export default function CanvasMode({
     messages,
     updatePreview,
     extractFiles,
+    summarizePrompt,
   ]);
 
   const handleStopGeneration = useCallback(() => {
@@ -628,6 +674,50 @@ export default function CanvasMode({
       abortController.abort();
     }
   }, [abortController]);
+
+  const handleDeleteHistoryEntry = useCallback((id: string) => {
+    setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
+    if (openHistoryMenuId === id) setOpenHistoryMenuId(null);
+  }, [openHistoryMenuId]);
+
+  const handleRenameHistoryEntry = useCallback((id: string) => {
+    const entry = historyEntries.find((e) => e.id === id);
+    if (!entry) return;
+    const newName = window.prompt('Rename build', entry.name || 'Untitled build');
+    if (!newName) return;
+    setHistoryEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, name: newName.trim() || e.name } : e))
+    );
+    setOpenHistoryMenuId(null);
+  }, [historyEntries]);
+
+  const handleDownloadHistoryEntry = useCallback((entry: HistoryEntry) => {
+    const blob = new Blob([entry.code], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${entry.name || 'canvas-build'}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setOpenHistoryMenuId(null);
+  }, []);
+
+  const handleShareHistoryEntry = useCallback(async (entry: HistoryEntry) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: entry.name, text: entry.code });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(entry.code);
+        alert('Code copied to clipboard');
+      } else {
+        alert('Sharing is not supported in this browser');
+      }
+    } catch (err) {
+      console.error('Share failed', err);
+    } finally {
+      setOpenHistoryMenuId(null);
+    }
+  }, []);
 
   const handleDownload = useCallback(() => {
     if (!generatedCode) return;
@@ -1096,22 +1186,71 @@ export default function CanvasMode({
               historyEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className={`border ${brandColors.border} rounded-lg p-2 ${brandColors.bgSecondary} ${brandColors.bgHover} transition-all`}
+                  className={`border ${brandColors.border} rounded-lg p-2 ${brandColors.bgSecondary} ${brandColors.bgHover} transition-all relative`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs ${brandColors.text}`}>{new Date(entry.timestamp).toLocaleString()}</span>
-                    <button
-                      onClick={() => {
-                        setGeneratedCode(entry.code);
-                        setViewMode('code');
-                        setActivePane('code');
-                      }}
-                      className={`text-xs ${brandColors.accentCyan} hover:text-cyan-300`}
-                    >
-                      Open
-                    </button>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col">
+                      <span className={`text-sm font-medium ${brandColors.text}`}>{entry.name || 'Untitled build'}</span>
+                      <span className={`text-[11px] ${brandColors.textMuted}`}>
+                        {new Date(entry.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setGeneratedCode(entry.code);
+                          setViewMode('code');
+                          setActivePane('code');
+                          setOpenHistoryMenuId(null);
+                        }}
+                        className={`text-xs ${brandColors.accentCyan} hover:text-cyan-300 px-2 py-1 rounded-lg ${brandColors.bgHover}`}
+                      >
+                        Open
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setOpenHistoryMenuId((prev) => (prev === entry.id ? null : entry.id))
+                          }
+                          className={`p-1 rounded-lg ${brandColors.bgHover} ${brandColors.textSecondary} hover:${brandColors.text}`}
+                          title="More options"
+                        >
+                          <EllipsisHorizontalIcon className="w-5 h-5" />
+                        </button>
+                        {openHistoryMenuId === entry.id && (
+                          <div
+                            className={`absolute right-0 mt-2 w-36 rounded-lg border ${brandColors.border} ${brandColors.bgPanel} shadow-lg z-10`}
+                          >
+                            <button
+                              onClick={() => handleRenameHistoryEntry(entry.id)}
+                              className={`w-full text-left px-3 py-2 text-sm ${brandColors.text} ${brandColors.bgHover}`}
+                            >
+                              Rename
+                            </button>
+                            <button
+                              onClick={() => handleDownloadHistoryEntry(entry)}
+                              className={`w-full text-left px-3 py-2 text-sm ${brandColors.text} ${brandColors.bgHover}`}
+                            >
+                              Download
+                            </button>
+                            <button
+                              onClick={() => handleShareHistoryEntry(entry)}
+                              className={`w-full text-left px-3 py-2 text-sm ${brandColors.text} ${brandColors.bgHover}`}
+                            >
+                              Share
+                            </button>
+                            <button
+                              onClick={() => handleDeleteHistoryEntry(entry.id)}
+                              className={`w-full text-left px-3 py-2 text-sm text-red-400 hover:text-red-300 ${brandColors.bgHover}`}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <p className={`text-sm mt-1 ${brandColors.text}`}>{entry.prompt}</p>
+                  <p className={`text-xs mt-2 ${brandColors.textSecondary}`}>{entry.prompt}</p>
                 </div>
               ))
             )}
