@@ -6,6 +6,7 @@ import {
   XMarkIcon,
   PaperAirplaneIcon,
   SparklesIcon,
+  ChatBubbleLeftRightIcon,
   ArrowDownTrayIcon,
   DocumentDuplicateIcon,
   ArrowTopRightOnSquareIcon,
@@ -618,36 +619,35 @@ export default function CanvasMode({
       {/* Panel toggles */}
       <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
         <div
-          className={`flex items-center gap-2 rounded-xl px-3 py-2 border ${brandColors.border} ${brandColors.bgPanel} shadow-lg shadow-cyan-500/10`}
+          className={`flex items-center gap-2 rounded-xl px-2 py-2 border ${brandColors.border} ${brandColors.bgPanel} shadow-lg shadow-cyan-500/10`}
         >
-          <span className={`text-xs font-semibold ${brandColors.gradientText}`}>
-            Panels
-          </span>
           <button
             onClick={() =>
               !interactionLocked && setShowChatPanel((prev) => !prev)
             }
             disabled={interactionLocked}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${brandColors.border} ${
+            title={showChatPanel ? 'Hide chat' : 'Show chat'}
+            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all border ${brandColors.border} ${
               showChatPanel
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
             } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            Agent Chat
+            <ChatBubbleLeftRightIcon className="w-4 h-4" />
           </button>
           <button
             onClick={() =>
               !interactionLocked && setShowFilesPanel((prev) => !prev)
             }
             disabled={interactionLocked}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${brandColors.border} ${
+            title={showFilesPanel ? 'Hide files' : 'Show files'}
+            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all border ${brandColors.border} ${
               showFilesPanel
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
             } ${interactionLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            Files
+            <FolderIcon className="w-4 h-4" />
           </button>
         </div>
       </div>
