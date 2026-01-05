@@ -24,7 +24,6 @@ import {
   ChevronDownIcon,
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
-  Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
@@ -733,17 +732,6 @@ export default function CanvasMode({
           >
             <CodeBracketIcon className="w-5 h-5" />
           </button>
-          <button
-            onClick={() => setActivePane('templates')}
-            className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
-              activePane === 'templates'
-                ? brandColors.btnPrimary
-                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
-            title="Templates"
-          >
-            <Squares2X2Icon className="w-5 h-5" />
-          </button>
         </div>
       </div>
 
@@ -1058,8 +1046,16 @@ export default function CanvasMode({
       <div className="flex-1 flex flex-col relative z-10">
         {/* Toolbar */}
         <div
-          className={`flex items-center justify-end px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
+          className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
         >
+          <div className="flex items-center gap-2">
+            <div className={`p-2 rounded-lg ${brandColors.gradientPrimary}`}>
+              <SparklesIcon className="w-4 h-4 text-white" />
+            </div>
+            <span className={`text-sm font-semibold ${brandColors.gradientText}`}>
+              One Last AI
+            </span>
+          </div>
           {/* Actions */}
           <div className="flex items-center gap-1">
             <button
