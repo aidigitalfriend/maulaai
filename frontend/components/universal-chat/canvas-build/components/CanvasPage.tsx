@@ -219,6 +219,7 @@ export default function CanvasMode({
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
   const [showChatPanel, setShowChatPanel] = useState(true);
   const [showFilesPanel, setShowFilesPanel] = useState(true);
+  const [showNavOverlay, setShowNavOverlay] = useState(false);
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code'
   >('chat');
@@ -641,9 +642,13 @@ export default function CanvasMode({
       <div
         className={`w-14 flex flex-col items-center gap-2 py-4 ${brandColors.bgPanel} ${brandColors.border} border-r relative z-20`}
       >
-        <div className={`p-2 rounded-lg ${brandColors.gradientPrimary}`}>
+        <button
+          onClick={() => setShowNavOverlay(true)}
+          className={`p-2 rounded-lg ${brandColors.gradientPrimary} hover:scale-105 transition-transform`}
+          title="Open canvas navigation"
+        >
           <SparklesIcon className="w-5 h-5 text-white" />
-        </div>
+        </button>
         <div className="flex flex-col gap-2 w-full px-2 mt-2">
           <button
             onClick={() => setActivePane('chat')}
@@ -1049,7 +1054,9 @@ export default function CanvasMode({
           className={`flex items-center justify-between px-4 py-2 ${brandColors.border} border-b ${brandColors.bgSecondary}`}
         >
           <div className="flex items-center">
-            <span className={`text-sm font-semibold ${brandColors.gradientText}`}>
+            <span
+              className={`text-sm font-semibold ${brandColors.gradientText}`}
+            >
               One Last AI
             </span>
           </div>
@@ -1234,6 +1241,112 @@ export default function CanvasMode({
             Powered by AI Canvas ✨
           </span>
         </div>
+
+        {/* Brand navigation overlay */}
+        {showNavOverlay && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+              onClick={() => setShowNavOverlay(false)}
+            />
+            <div
+              className={`fixed top-0 right-0 h-full w-72 ${brandColors.bgPanel} ${brandColors.border} border-l z-50 shadow-2xl shadow-cyan-500/20`}
+            >
+              <div
+                className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b`}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}
+                  >
+                    <SparklesIcon className="w-4 h-4 text-white" />
+                  </div>
+                  <span
+                    className={`text-sm font-semibold ${brandColors.gradientText}`}
+                  >
+                    Navigation
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowNavOverlay(false)}
+                  className={`${brandColors.textSecondary} ${brandColors.bgHover} p-2 rounded-lg hover:text-white transition-colors`}
+                  title="Close"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-2 overflow-y-auto h-[calc(100%-64px)] custom-scrollbar">
+                {[
+                  {
+                    key: 'chat',
+                    label: 'Chat',
+                    icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />,
+                    action: () => setActivePane('chat'),
+                  },
+                  {
+                    key: 'files',
+                    label: 'Files',
+                    icon: <FolderIcon className="w-5 h-5" />,
+                    action: () => setActivePane('files'),
+                  },
+                  {
+                    key: 'preview',
+                    label: 'Preview',
+                    icon: <EyeIcon className="w-5 h-5" />,
+                    action: () => setActivePane('preview'),
+                  },
+                  {
+                    key: 'code',
+                    label: 'Code',
+                    icon: <CodeBracketIcon className="w-5 h-5" />,
+                    action: () => setActivePane('code'),
+                  },
+                  {
+                    key: 'templates',
+                    label: 'Templates',
+                    icon: <DocumentTextIcon className="w-5 h-5" />,
+                    action: () => {
+                      setActivePane('templates');
+                      setShowTemplates(true);
+                    },
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => {
+                      item.action();
+                      setShowNavOverlay(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-3 rounded-xl border ${brandColors.border} ${brandColors.bgSecondary} ${brandColors.bgHover} transition-all hover:border-cyan-500/40 ${activePane === item.key ? 'ring-1 ring-cyan-400/50' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                          activePane === item.key
+                            ? brandColors.btnPrimary
+                            : `${brandColors.bgSecondary}`
+                        }`}
+                      >
+                        {item.icon}
+                      </div>
+                      <span
+                        className={`text-sm font-medium ${brandColors.text}`}
+                      >
+                        {item.label}
+                      </span>
+                    </div>
+                    {activePane === item.key && (
+                      <span className={`text-xs ${brandColors.accentCyan}`}>
+                        Active
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Custom scrollbar styles */}
