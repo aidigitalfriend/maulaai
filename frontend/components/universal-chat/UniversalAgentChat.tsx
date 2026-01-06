@@ -22,6 +22,7 @@ import realtimeChatService, {
   AgentConfig,
   CodeBlock,
 } from './realtimeChatService';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -71,6 +72,9 @@ interface UniversalAgentChatProps {
 }
 
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
+  // Auth
+  const { state: authState } = useAuth();
+
   // Theme state
   const { isNeural } = useChatTheme(agent.id);
 
@@ -114,6 +118,84 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     provider: agent.aiProvider?.primary || 'mistral',
     model: agent.aiProvider?.model || 'mistral-large-latest',
   });
+
+  // Load sessions from database
+  const loadSessions = useCallback(async () => {
+    if (!authState.isAuthenticated || !authState.user) {
+      // For non-authenticated users, keep default session
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/chat/sessions?agentId=${agent.id}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.sessions.length > 0) {
+          const formattedSessions = data.sessions.map((session: any) => ({
+            id: session.id,
+            name: session.name,
+            messages: session.messages.map((msg: any) => ({
+              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.timestamp || msg.createdAt),
+            })),
+            lastMessage: session.lastMessage,
+            messageCount: session.messageCount,
+            updatedAt: new Date(session.updatedAt),
+          }));
+
+          setSessions(formattedSessions);
+          setActiveSessionId(formattedSessions[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+    }
+  }, [authState.isAuthenticated, authState.user, agent.id]);
+
+  // Save session to database
+  const saveSession = useCallback(
+    async (session: ChatSession) => {
+      if (!authState.isAuthenticated || !authState.user) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/chat/interactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            conversationId: session.id,
+            agentId: agent.id,
+            messages: session.messages.map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            })),
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to save session');
+        }
+      } catch (error) {
+        console.error('Error saving session:', error);
+      }
+    },
+    [authState.isAuthenticated, authState.user, agent.id]
+  );
+
+  // Load sessions on mount and when auth changes
+  useEffect(() => {
+    loadSessions();
+  }, [loadSessions]);
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);
 
@@ -387,6 +469,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       );
     } finally {
       setIsLoading(false);
+      // Save session to database after message exchange
+      const updatedSession = sessions.find((s) => s.id === activeSessionId);
+      if (updatedSession) {
+        saveSession(updatedSession);
+      }
     }
   }, [
     inputValue,
@@ -395,6 +482,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     isLoading,
     agent.id,
     settings.provider,
+    sessions,
+    saveSession,
   ]);
 
   return (

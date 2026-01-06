@@ -23,6 +23,7 @@ import careersRouter from './careers.js';
 import webinarsRouter from './webinars.js';
 import favoritesRouter from './favorites.js';
 import suggestionsRouter from './suggestions.js';
+import chatRouter from './chat.js';
 
 const router = express.Router();
 
@@ -108,6 +109,7 @@ router.get('/version', (req, res) => {
       'gamification',
       'community',
       'subscriptions',
+      'chat',
     ],
   });
 });
@@ -194,6 +196,15 @@ router.use('/community', communityRouter);
 router.use('/support', apiLimiter);
 router.use('/support', supportRouter);
 
+// Contact routes (direct access for frontend)
+router.use('/contact', apiLimiter);
+router.post('/contact', supportRouter);
+router.get('/contact', supportRouter);
+router.get('/contact/stats/overview', supportRouter);
+router.get('/contact/:id', supportRouter);
+router.patch('/contact/:id/status', supportRouter);
+router.post('/contact/:id/response', supportRouter);
+
 // ============================================
 // BILLING ROUTES
 // ============================================
@@ -228,6 +239,13 @@ router.use('/favorites', favoritesRouter);
 
 router.use('/suggestions', apiLimiter);
 router.use('/suggestions', suggestionsRouter);
+
+// ============================================
+// CHAT ROUTES
+// ============================================
+
+router.use('/chat', apiLimiter);
+router.use('/chat', chatRouter);
 
 // ============================================
 // SUBSCRIPTIONS ROUTES

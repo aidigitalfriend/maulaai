@@ -7,6 +7,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { SupportTicket } from '../models/SupportTicket.js';
 import { Consultation } from '../models/Consultation.js';
+import { ContactMessage } from '../models/ContactMessage.js';
 
 const router = express.Router();
 
@@ -331,6 +332,310 @@ router.post('/consultations/:consultationId/feedback', async (req, res) => {
   } catch (error) {
     console.error('Error submitting feedback:', error);
     res.status(500).json({ error: 'Failed to submit feedback' });
+  }
+});
+
+// ============================================
+// CONTACT MESSAGES
+// ============================================
+
+/**
+ * Submit a contact message
+ */
+router.post('/contact', async (req, res) => {
+  try {
+    const { name, email, subject, message, agentName, category, priority } =
+      req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const contactMessage = new ContactMessage({
+      name,
+      email,
+      subject,
+      message,
+      agentName,
+      category: category || 'general',
+      priority: priority || 'normal',
+      metadata: {
+        userAgent: req.get('User-Agent'),
+        ipAddress: req.ip,
+        referrer: req.get('Referer'),
+      },
+    });
+
+    await contactMessage.save();
+
+    res.json({
+      success: true,
+      message: "Thank you for your message! We'll get back to you soon.",
+      ticketId: contactMessage.ticketId,
+    });
+  } catch (error) {
+    console.error('Error submitting contact message:', error);
+    res.status(500).json({ error: 'Failed to submit message' });
+  }
+});
+
+/**
+ * Get contact messages (admin only)
+ */
+router.get('/contact', async (req, res) => {
+  try {
+    const {
+      status,
+      category,
+      priority,
+      page = 1,
+      limit = 20,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    const query = {};
+    if (status) query.status = status;
+    if (category) query.category = category;
+    if (priority) query.priority = priority;
+
+    const options = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 },
+      populate: [
+        { path: 'assignedTo', select: 'name email' },
+        { path: 'response.respondedBy', select: 'name email' },
+      ],
+    };
+
+    const result = await ContactMessage.paginate(query, options);
+
+    // Get stats
+    const stats = await ContactMessage.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+          read: { $sum: { $cond: [{ $eq: ['$status', 'read'] }, 1, 0] } },
+          replied: { $sum: { $cond: [{ $eq: ['$status', 'replied'] }, 1, 0] } },
+          closed: { $sum: { $cond: [{ $eq: ['$status', 'closed'] }, 1, 0] } },
+        },
+      },
+    ]);
+
+    res.json({
+      success: true,
+      data: result.docs,
+      pagination: {
+        page: result.page,
+        pages: result.totalPages,
+        total: result.totalDocs,
+        limit: result.limit,
+      },
+      stats: stats[0] || {
+        total: 0,
+        pending: 0,
+        read: 0,
+        replied: 0,
+        closed: 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching contact messages:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+/**
+ * Get a specific contact message
+ */
+router.get('/contact/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const message = await ContactMessage.findById(id).populate([
+      { path: 'assignedTo', select: 'name email' },
+      { path: 'response.respondedBy', select: 'name email' },
+    ]);
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    res.json({
+      success: true,
+      data: message,
+    });
+  } catch (error) {
+    console.error('Error fetching contact message:', error);
+    res.status(500).json({ error: 'Failed to fetch message' });
+  }
+});
+
+/**
+ * Update contact message status
+ */
+router.patch('/contact/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, assignedTo } = req.body;
+
+    const update = {};
+    if (status) update.status = status;
+    if (assignedTo) update.assignedTo = assignedTo;
+
+    const message = await ContactMessage.findByIdAndUpdate(id, update, {
+      new: true,
+    }).populate([
+      { path: 'assignedTo', select: 'name email' },
+      { path: 'response.respondedBy', select: 'name email' },
+    ]);
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    res.json({
+      success: true,
+      data: message,
+    });
+  } catch (error) {
+    console.error('Error updating contact message:', error);
+    res.status(500).json({ error: 'Failed to update message' });
+  }
+});
+
+/**
+ * Add response to contact message
+ */
+router.post('/contact/:id/response', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content, respondedBy } = req.body;
+
+    if (!content || !respondedBy) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const message = await ContactMessage.findById(id);
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    message.response = {
+      content,
+      respondedBy,
+      respondedAt: new Date(),
+    };
+    message.status = 'replied';
+
+    await message.save();
+
+    await message.populate([
+      { path: 'assignedTo', select: 'name email' },
+      { path: 'response.respondedBy', select: 'name email' },
+    ]);
+
+    res.json({
+      success: true,
+      data: message,
+    });
+  } catch (error) {
+    console.error('Error adding response:', error);
+    res.status(500).json({ error: 'Failed to add response' });
+  }
+});
+
+/**
+ * Get contact message statistics
+ */
+router.get('/contact/stats/overview', async (req, res) => {
+  try {
+    const stats = await ContactMessage.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+          read: { $sum: { $cond: [{ $eq: ['$status', 'read'] }, 1, 0] } },
+          replied: { $sum: { $cond: [{ $eq: ['$status', 'replied'] }, 1, 0] } },
+          closed: { $sum: { $cond: [{ $eq: ['$status', 'closed'] }, 1, 0] } },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1,
+          pending: 1,
+          read: 1,
+          replied: 1,
+          closed: 1,
+          responseRate: {
+            $multiply: [
+              { $divide: ['$replied', { $max: ['$total', 1] }] },
+              100,
+            ],
+          },
+        },
+      },
+    ]);
+
+    // Category breakdown
+    const categoryStats = await ContactMessage.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    // Recent activity (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const recentStats = await ContactMessage.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: thirtyDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        overview: stats[0] || {
+          total: 0,
+          pending: 0,
+          read: 0,
+          replied: 0,
+          closed: 0,
+          responseRate: 0,
+        },
+        categories: categoryStats,
+        recentActivity: recentStats,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching contact stats:', error);
+    res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 });
 

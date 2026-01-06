@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 
 // Initialize API keys from environment (NEVER expose these to frontend)
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -6,6 +7,88 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const XAI_API_KEY = process.env.XAI_API_KEY;
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+// Chat Interaction Schema (inline to avoid import issues)
+const chatInteractionSchema = new mongoose.Schema(
+  {
+    conversationId: { type: String, required: true, index: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
+    agentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Agent',
+      index: true,
+    },
+    channel: { type: String, enum: ['web', 'mobile', 'api'], default: 'web' },
+    language: { type: String, default: 'en' },
+    messages: [
+      {
+        role: {
+          type: String,
+          enum: ['user', 'assistant', 'system'],
+          required: true,
+        },
+        content: { type: String, required: true },
+        attachments: [{ type: mongoose.Schema.Types.Mixed }],
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    summary: {
+      keywords: [{ type: String }],
+      actionItems: [{ type: String }],
+    },
+    metrics: {
+      totalTokens: { type: Number, default: 0 },
+      durationMs: { type: Number, default: 0 },
+      turnCount: { type: Number, default: 0 },
+    },
+    status: {
+      type: String,
+      enum: ['active', 'closed', 'archived'],
+      default: 'active',
+    },
+    metadata: {
+      tags: [{ type: String }],
+      priority: {
+        type: String,
+        enum: ['low', 'medium', 'high'],
+        default: 'medium',
+      },
+    },
+    startedAt: { type: Date, default: Date.now },
+    closedAt: { type: Date },
+  },
+  {
+    timestamps: true,
+    collection: 'chatinteractions',
+  }
+);
+
+const ChatInteraction =
+  mongoose.models.ChatInteraction ||
+  mongoose.model('ChatInteraction', chatInteractionSchema);
+
+// Database connection
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not configured');
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URI, {
+      dbName: process.env.MONGODB_DB || 'onelastai',
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    throw error;
+  }
+}
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 30 * 60 * 1000; // 30 minutes
@@ -390,6 +473,8 @@ export async function POST(request: NextRequest) {
       conversationHistory = [],
       agentId,
       provider: requestedProvider,
+      userId,
+      conversationId,
     } = await request.json();
 
     if (!message || typeof message !== 'string') {
@@ -485,6 +570,51 @@ Remember: You're the demo for One Last AI's agents. Show them personality beats 
           },
           { status: 500 }
         );
+      }
+    }
+
+    // Save chat interaction to database if userId and conversationId provided
+    if (userId && conversationId) {
+      try {
+        await connectToDatabase();
+
+        // Prepare messages for database
+        const dbMessages = [
+          ...conversationHistory.map((msg: any) => ({
+            role: msg.role,
+            content: msg.content,
+            createdAt: msg.timestamp || new Date(),
+          })),
+          {
+            role: 'user',
+            content: message,
+            createdAt: new Date(),
+          },
+          {
+            role: 'assistant',
+            content: responseMessage,
+            createdAt: new Date(),
+          },
+        ];
+
+        // Create or update chat interaction
+        const chatInteraction = new ChatInteraction({
+          conversationId,
+          userId,
+          agentId: agentId || null,
+          messages: dbMessages,
+          metrics: {
+            turnCount: conversationHistory.length + 1,
+            durationMs: 0, // Could be calculated if needed
+          },
+          status: 'active',
+        });
+
+        await chatInteraction.save();
+        console.log(`💾 Saved chat interaction: ${conversationId}`);
+      } catch (dbError) {
+        console.error('Failed to save chat interaction:', dbError);
+        // Don't fail the request if DB save fails
       }
     }
 
