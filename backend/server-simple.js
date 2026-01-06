@@ -2708,7 +2708,9 @@ app.get('/api/user/security/:userId', async (req, res) => {
     const transformedActivity = recentActivity.map((activity) => {
       const activityDate =
         activity.createdAt || activity.startedAt || activity.timestamp || now;
-      const minutesAgo = Math.floor((now - new Date(activityDate)) / (1000 * 60));
+      const minutesAgo = Math.floor(
+        (now - new Date(activityDate)) / (1000 * 60)
+      );
       const timeAgo =
         minutesAgo < 60
           ? `${minutesAgo} min ago`
@@ -4372,12 +4374,10 @@ io.on('connection', (socket) => {
       for (const user of users) {
         if (user.socketId === socket.id) {
           users.delete(user);
-          socket
-            .to(roomId)
-            .emit('user-left', {
-              userId: user.userId,
-              username: user.username,
-            });
+          socket.to(roomId).emit('user-left', {
+            userId: user.userId,
+            username: user.username,
+          });
 
           // Clean up empty rooms
           if (users.size === 0) {

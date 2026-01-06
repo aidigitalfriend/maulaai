@@ -847,7 +847,9 @@ export default function CanvasMode({
         </button>
         <div className="flex flex-col gap-2 w-full px-2 mt-2">
           <button
-            onClick={() => setActivePane('chat')}
+            onClick={() =>
+              setActivePane((prev) => (prev === 'chat' ? 'preview' : 'chat'))
+            }
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
               activePane === 'chat'
                 ? brandColors.btnPrimary
@@ -861,7 +863,9 @@ export default function CanvasMode({
             )}
           </button>
           <button
-            onClick={() => setActivePane('files')}
+            onClick={() =>
+              setActivePane((prev) => (prev === 'files' ? 'preview' : 'files'))
+            }
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
               activePane === 'files'
                 ? brandColors.btnPrimary
@@ -875,7 +879,11 @@ export default function CanvasMode({
             )}
           </button>
           <button
-            onClick={() => setActivePane('preview')}
+            onClick={() =>
+              setActivePane((prev) =>
+                prev === 'preview' ? 'preview' : 'preview'
+              )
+            }
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
               activePane === 'preview'
                 ? brandColors.btnPrimary
@@ -941,7 +949,9 @@ export default function CanvasMode({
             )}
           </button>
           <button
-            onClick={() => setActivePane('code')}
+            onClick={() =>
+              setActivePane((prev) => (prev === 'code' ? 'preview' : 'code'))
+            }
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
               activePane === 'code'
                 ? brandColors.btnPrimary
@@ -955,7 +965,11 @@ export default function CanvasMode({
             )}
           </button>
           <button
-            onClick={() => setActivePane('history')}
+            onClick={() =>
+              setActivePane((prev) =>
+                prev === 'history' ? 'preview' : 'history'
+              )
+            }
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
               activePane === 'history'
                 ? brandColors.btnPrimary
