@@ -119,6 +119,24 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     model: agent.aiProvider?.model || 'mistral-large-latest',
   });
 
+  const handleUpdateSettings = useCallback(
+    (next: Partial<AgentSettings>) => {
+      setSettings((prev) => ({ ...prev, ...next }));
+    },
+    []
+  );
+
+  const handleResetSettings = useCallback(() => {
+    setSettings({
+      temperature: 0.7,
+      maxTokens: 2000,
+      mode: 'balanced',
+      systemPrompt: '',
+      provider: agent.aiProvider?.primary || 'mistral',
+      model: agent.aiProvider?.model || 'mistral-large-latest',
+    });
+  }, [agent.aiProvider?.model, agent.aiProvider?.primary]);
+
   const isValidObjectId = useCallback(
     (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
     []
