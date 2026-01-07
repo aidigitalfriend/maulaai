@@ -20,7 +20,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
 });
 
-function safeDateFromUnix(seconds?: number | null, plan?: 'daily' | 'weekly' | 'monthly') {
+function safeDateFromUnix(
+  seconds?: number | null,
+  plan?: 'daily' | 'weekly' | 'monthly'
+) {
   const base = seconds ? new Date(seconds * 1000) : new Date();
   const date = isNaN(base.getTime()) ? new Date() : base;
 
@@ -287,8 +290,8 @@ async function handleCheckoutSessionCompleted(
           planType === 'daily'
             ? 'day'
             : planType === 'weekly'
-            ? 'week'
-            : 'month',
+              ? 'week'
+              : 'month',
         amount: subscription.items.data[0]?.price?.unit_amount || 0,
         currentPeriodEnd: expiryDate,
       },

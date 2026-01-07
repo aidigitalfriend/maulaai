@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import {
   PaperAirplaneIcon,
   MicrophoneIcon,
@@ -42,6 +45,13 @@ interface ChatSession {
   updatedAt?: Date;
 }
 
+interface ChatAttachment {
+  name: string;
+  type: string;
+  url?: string;
+  data?: string;
+}
+
 export interface AgentChatConfig {
   id: string;
   name: string;
@@ -70,6 +80,14 @@ export interface AgentChatConfig {
 interface UniversalAgentChatProps {
   agent: AgentChatConfig;
 }
+
+const getSpeechRecognition = () => {
+  if (typeof window === 'undefined') return null;
+  const SR =
+    (window as any).SpeechRecognition ||
+    (window as any).webkitSpeechRecognition;
+  return SR || null;
+};
 
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Auth
@@ -102,12 +120,15 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [hasSpeechRecognition, setHasSpeechRecognition] = useState(false);
   const [messageFeedback, setMessageFeedback] = useState<
     Record<string, 'up' | 'down' | null>
   >({});
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Settings state - use agent's AI provider config if available
   const [settings, setSettings] = useState<AgentSettings>({
@@ -119,12 +140,33 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     model: agent.aiProvider?.model || 'mistral-large-latest',
   });
 
-  const handleUpdateSettings = useCallback(
-    (next: Partial<AgentSettings>) => {
-      setSettings((prev) => ({ ...prev, ...next }));
-    },
-    []
-  );
+  // Load persisted settings per agent
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setHasSpeechRecognition(!!getSpeechRecognition());
+    const saved = localStorage.getItem(`agent-settings-${agent.id}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setSettings((prev) => ({ ...prev, ...parsed }));
+      } catch (err) {
+        console.error('Failed to parse saved settings', err);
+      }
+    }
+  }, [agent.id]);
+
+  // Persist settings
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(
+      `agent-settings-${agent.id}`,
+      JSON.stringify(settings)
+    );
+  }, [settings, agent.id]);
+
+  const handleUpdateSettings = useCallback((next: Partial<AgentSettings>) => {
+    setSettings((prev) => ({ ...prev, ...next }));
+  }, []);
 
   const handleResetSettings = useCallback(() => {
     setSettings({
@@ -136,6 +178,51 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       model: agent.aiProvider?.model || 'mistral-large-latest',
     });
   }, [agent.aiProvider?.model, agent.aiProvider?.primary]);
+
+  // Initialize browser Speech-to-Text
+  useEffect(() => {
+    const SR = getSpeechRecognition();
+    if (!SR) {
+      setIsRecording(false);
+      return;
+    }
+    const recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setInputValue((prev) => `${prev.trim()} ${transcript}`.trim());
+    };
+
+    recognition.onerror = () => setIsRecording(false);
+    recognition.onend = () => setIsRecording(false);
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.stop();
+    };
+  }, []);
+
+  useEffect(() => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    if (isRecording) {
+      try {
+        recognition.start();
+      } catch (err) {
+        console.error('Speech recognition start failed', err);
+        setIsRecording(false);
+      }
+    } else {
+      recognition.stop();
+    }
+  }, [isRecording]);
 
   const isValidObjectId = useCallback(
     (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
@@ -375,6 +462,106 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     [agent.name]
   );
 
+  const handleFilesSelected = useCallback(
+    async (fileList: FileList | null) => {
+      if (!fileList || fileList.length === 0) return;
+
+      const maxFileSizeMb = Number(process.env.NEXT_PUBLIC_MAX_FILE_SIZE) || 10;
+      const maxBytes = maxFileSizeMb * 1024 * 1024;
+
+      const readPreview = (file: File) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve((reader.result as string) || '');
+          reader.onerror = () => reject(new Error('File read failed'));
+          if (
+            file.type.startsWith('text/') ||
+            file.type === 'application/json'
+          ) {
+            reader.readAsText(file);
+          } else {
+            reader.readAsDataURL(file);
+          }
+        });
+
+      const newAttachments: ChatAttachment[] = [];
+
+      for (const file of Array.from(fileList)) {
+        if (file.size > maxBytes) {
+          console.warn(
+            `Skipping ${file.name}: exceeds ${maxFileSizeMb}MB limit`
+          );
+          continue;
+        }
+
+        try {
+          const presignResp = await fetch('/api/uploads/presign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              contentType: file.type || 'application/octet-stream',
+            }),
+          });
+
+          if (!presignResp.ok) {
+            console.error('Failed to get upload URL', await presignResp.text());
+            continue;
+          }
+
+          const { uploadUrl, fileUrl } = await presignResp.json();
+
+          const uploadResp = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': file.type || 'application/octet-stream',
+            },
+            body: file,
+          });
+
+          if (!uploadResp.ok) {
+            console.error(
+              `Upload failed for ${file.name}:`,
+              uploadResp.status,
+              await uploadResp.text()
+            );
+            continue;
+          }
+
+          let preview: string | undefined;
+          try {
+            const result = await readPreview(file);
+            const trimmed =
+              result.length > 4000 ? `${result.slice(0, 4000)}...` : result;
+            preview = trimmed;
+          } catch (err) {
+            console.warn(
+              'Preview read failed, skipping preview for',
+              file.name
+            );
+          }
+
+          newAttachments.push({
+            name: file.name,
+            type: file.type,
+            url: fileUrl,
+            data: preview || `File available at ${fileUrl}`,
+          });
+        } catch (err) {
+          console.error('Failed to upload file', err);
+        }
+      }
+
+      if (newAttachments.length > 0) {
+        setAttachments((prev) => [...prev, ...newAttachments]);
+        if (!inputValue) {
+          setInputValue('');
+        }
+      }
+    },
+    [inputValue]
+  );
+
   const handleExportSession = useCallback(() => {
     if (typeof window === 'undefined') return;
     if (!activeSession) return;
@@ -403,7 +590,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     URL.revokeObjectURL(url);
   }, [activeSession, agent.name]);
 
-  const handleListenMessage = useCallback((content: string) => {
+  // Ref to track playing audio for TTS
+  const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleListenMessage = useCallback(async (content: string) => {
+    if (typeof window === 'undefined') return;
+
     const cleanText = content
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
@@ -413,19 +605,78 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       .replace(/^[•-]\s/gm, '')
       .replace(/>\s/g, '');
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    speechSynthesis.speak(utterance);
+    // Stop any currently playing audio
+    if (ttsAudioRef.current) {
+      ttsAudioRef.current.pause();
+      ttsAudioRef.current = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // Try ElevenLabs first, fall back to browser TTS
+    try {
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: cleanText }),
+      });
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        ttsAudioRef.current = audio;
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          ttsAudioRef.current = null;
+        };
+        await audio.play();
+        return;
+      }
+    } catch (err) {
+      console.warn('ElevenLabs TTS failed, using browser TTS:', err);
+    }
+
+    // Fallback to browser speechSynthesis
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    }
   }, []);
 
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || !activeSession || isLoading) return;
+    if (
+      (!inputValue.trim() && attachments.length === 0) ||
+      !activeSession ||
+      isLoading
+    )
+      return;
+
+    const attachmentText =
+      attachments.length > 0
+        ? attachments
+            .map((file) => {
+              const parts = [
+                `Attachment: ${file.name}${file.type ? ` (${file.type})` : ''}`,
+              ];
+              if (file.url) {
+                parts.push(`URL: ${file.url}`);
+              }
+              if (file.data) {
+                parts.push(String(file.data));
+              }
+              return parts.join('\n');
+            })
+            .join('\n\n') + '\n\n'
+        : '';
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: inputValue,
+      content: `${attachmentText}${inputValue}`.trim(),
       timestamp: new Date(),
     };
 
@@ -443,8 +694,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       )
     );
 
-    const userInput = inputValue;
+    const userInput = `${attachmentText}${inputValue}`.trim();
     setInputValue('');
+    setAttachments([]);
     setIsLoading(true);
 
     const conversationHistory = activeSession.messages
@@ -488,6 +740,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           conversationHistory,
           agentId: agent.id,
           provider: settings.provider,
+          model: settings.model,
+          temperature: settings.temperature,
+          maxTokens: settings.maxTokens,
+          systemPrompt: settings.systemPrompt,
+          mode: settings.mode,
+          attachments,
         }),
       });
 
@@ -549,11 +807,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     }
   }, [
     inputValue,
+    attachments,
     activeSession,
     activeSessionId,
     isLoading,
     agent.id,
     settings.provider,
+    settings.model,
+    settings.temperature,
+    settings.maxTokens,
+    settings.systemPrompt,
+    settings.mode,
     sessions,
     saveSession,
   ]);
@@ -594,103 +858,40 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                  {message.content
-                    .split('\n')
-                    .map((line, i) => {
-                      let processedLine = line.replace(
-                        /\*\*(.*?)\*\*/g,
-                        '<strong>$1</strong>'
-                      );
-                      processedLine = processedLine.replace(
-                        /\*(.*?)\*/g,
-                        '<em>$1</em>'
-                      );
-
-                      if (line.startsWith('```')) return null;
-                      if (line.startsWith('---')) {
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeHighlight]}
+                    components={{
+                      code({ inline, className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        if (inline) {
+                          return (
+                            <code
+                              className={`px-1.5 py-0.5 rounded bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 ${className || ''}`}
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          );
+                        }
                         return (
-                          <hr
-                            key={`line-${i}`}
-                            className="my-2 border-gray-300"
-                          />
-                        );
-                      }
-                      if (line.startsWith('## ')) {
-                        return (
-                          <h3
-                            key={`line-${i}`}
-                            className="font-bold text-base mt-2"
+                          <pre
+                            className={`rounded-lg border border-gray-200 bg-gray-900 text-gray-100 overflow-x-auto p-3 ${className || ''}`}
                           >
-                            {line.slice(3)}
-                          </h3>
+                            <code
+                              className={match ? `language-${match[1]}` : ''}
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          </pre>
                         );
-                      }
-                      if (line.startsWith('# ')) {
-                        return (
-                          <h2
-                            key={`line-${i}`}
-                            className="font-bold text-lg mt-2"
-                          >
-                            {line.slice(2)}
-                          </h2>
-                        );
-                      }
-                      if (line.startsWith('> ')) {
-                        return (
-                          <blockquote
-                            key={`line-${i}`}
-                            className={`border-l-4 border-indigo-300 pl-3 italic my-2 ${isNeural ? 'text-gray-300' : 'text-gray-600'}`}
-                          >
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: processedLine.slice(2),
-                              }}
-                            />
-                          </blockquote>
-                        );
-                      }
-                      if (line.startsWith('• ') || line.startsWith('- ')) {
-                        return (
-                          <div
-                            key={`line-${i}`}
-                            className="flex items-start space-x-2"
-                          >
-                            <span className="text-indigo-500">•</span>
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: processedLine.slice(2),
-                              }}
-                            />
-                          </div>
-                        );
-                      }
-                      if (/^\d+\.\s/.test(line)) {
-                        const num = /^(\d+)\./.exec(line)?.[1];
-                        return (
-                          <div
-                            key={`line-${i}`}
-                            className="flex items-start space-x-2"
-                          >
-                            <span className="text-indigo-500 font-medium">
-                              {num}.
-                            </span>
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: processedLine.replace(/^\d+\.\s/, ''),
-                              }}
-                            />
-                          </div>
-                        );
-                      }
-                      return (
-                        <span
-                          key={`line-${i}`}
-                          dangerouslySetInnerHTML={{ __html: processedLine }}
-                        />
-                      );
-                    })
-                    .filter(Boolean)}
+                      },
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
                 </div>
                 <div
                   className={`text-xs mt-2 ${
@@ -829,11 +1030,40 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             type="file"
             className="hidden"
             aria-label="File upload"
+            multiple
             onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) setInputValue(`[File: ${file.name}] `);
+              handleFilesSelected(e.target.files);
+              e.target.value = '';
             }}
           />
+
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-1 pb-2">
+              {attachments.map((file, idx) => (
+                <div
+                  key={`${file.name}-${idx}`}
+                  className="flex items-center space-x-2 rounded-lg bg-gray-100 text-gray-700 px-2 py-1 text-xs"
+                >
+                  <span
+                    className="font-medium truncate max-w-[140px]"
+                    title={`${file.name} (${file.type || 'file'})`}
+                  >
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-gray-500 hover:text-gray-700"
+                    onClick={() =>
+                      setAttachments((prev) => prev.filter((_, i) => i !== idx))
+                    }
+                    aria-label={`Remove ${file.name}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <form
             onSubmit={(e) => {
@@ -850,7 +1080,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   ? 'bg-red-500 text-white animate-pulse'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
-              title="Speech to Text"
+              disabled={!hasSpeechRecognition}
+              title={
+                hasSpeechRecognition
+                  ? 'Speech to Text'
+                  : 'Speech recognition not available in this browser'
+              }
             >
               <MicrophoneIcon className="w-5 h-5" />
             </button>
@@ -910,6 +1145,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               </button>
             </div>
           </form>
+
+          {!hasSpeechRecognition && (
+            <p className="mt-1 text-[11px] text-gray-400">
+              Speech recognition not available in this browser.
+            </p>
+          )}
 
           <div className="mt-1 text-center">
             <p className="text-[10px] text-gray-400">

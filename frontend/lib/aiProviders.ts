@@ -24,12 +24,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'anthropic',
     label: 'Anthropic',
     models: [
-      {
-        value: 'claude-3-5-sonnet-20241022',
-        label: 'Claude 3.5 Sonnet (Latest)',
-      },
-      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
-      { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
+      { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Default)' },
     ],
   },
   {

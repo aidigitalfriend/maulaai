@@ -49,7 +49,9 @@ interface AIProvider {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature?: number
+    temperature?: number,
+    maxTokens?: number,
+    model?: string
   ) => Promise<string>;
 }
 
@@ -60,7 +62,9 @@ const openaiProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
 
@@ -88,9 +92,9 @@ const openaiProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: model || 'gpt-4o',
         messages,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         temperature,
       }),
     });
@@ -116,7 +120,9 @@ const anthropicProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured');
 
@@ -132,10 +138,10 @@ const anthropicProvider: AIProvider = {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: model || 'claude-3-haiku-20240307',
         system: systemPrompt || 'You are a helpful AI assistant.',
         messages: [...userMessages, { role: 'user', content: message }],
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         temperature,
       }),
     });
@@ -161,7 +167,9 @@ const xaiProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!XAI_API_KEY) throw new Error('xAI API key not configured');
 
@@ -189,9 +197,9 @@ const xaiProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-3-mini-beta',
+        model: model || 'grok-3-mini-beta',
         messages,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         temperature,
       }),
     });
@@ -217,7 +225,9 @@ const mistralProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!MISTRAL_API_KEY) throw new Error('Mistral API key not configured');
 
@@ -245,9 +255,9 @@ const mistralProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'mistral-large-latest',
+        model: model || 'mistral-large-latest',
         messages,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         temperature,
       }),
     });
@@ -273,7 +283,9 @@ const geminiProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured');
 
@@ -303,7 +315,7 @@ const geminiProvider: AIProvider = {
           ],
           generationConfig: {
             temperature,
-            maxOutputTokens: 1200,
+            maxOutputTokens: maxTokens,
             topK: 40,
             topP: 0.95,
           },
@@ -330,7 +342,9 @@ const groqProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!GROQ_API_KEY) throw new Error('Groq API key not configured');
 
@@ -360,9 +374,9 @@ const groqProvider: AIProvider = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: model || 'llama-3.3-70b-versatile',
           messages,
-          max_tokens: 1200,
+          max_tokens: maxTokens,
           temperature,
         }),
       }
@@ -389,7 +403,9 @@ const cohereProvider: AIProvider = {
     message: string,
     conversationHistory: any[],
     systemPrompt?: string,
-    temperature = 0.7
+    temperature = 0.7,
+    maxTokens = 1200,
+    model?: string
   ) => {
     if (!COHERE_API_KEY) throw new Error('Cohere API key not configured');
 
@@ -405,12 +421,12 @@ const cohereProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'command-r-plus',
+        model: model || 'command-r-plus',
         message,
         chat_history: chatHistory,
         preamble: systemPrompt || 'You are a helpful AI assistant.',
         temperature,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
       }),
     });
 
@@ -654,6 +670,11 @@ export async function POST(request: NextRequest) {
       conversationHistory = [],
       agentId,
       provider: requestedProvider,
+      model: requestedModel,
+      temperature: requestedTemperature,
+      maxTokens: requestedMaxTokens,
+      systemPrompt: requestedSystemPrompt,
+      attachments = [],
     } = await request.json();
 
     if (!message || typeof message !== 'string' || !agentId) {
@@ -671,6 +692,37 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    const temperature =
+      typeof requestedTemperature === 'number'
+        ? requestedTemperature
+        : agentConfig.temperature;
+    const systemPrompt = requestedSystemPrompt || agentConfig.systemPrompt;
+    const maxTokens =
+      typeof requestedMaxTokens === 'number' ? requestedMaxTokens : 1200;
+    const model =
+      typeof requestedModel === 'string' && requestedModel.trim()
+        ? requestedModel
+        : undefined;
+
+    const attachmentNote =
+      Array.isArray(attachments) && attachments.length > 0
+        ? attachments
+            .map((file: any) => {
+              const lines = [
+                `Attachment: ${file.name || 'file'}${file.type ? ` (${file.type})` : ''}`,
+              ];
+              if (file.data) {
+                lines.push(String(file.data).slice(0, 1000));
+              }
+              return lines.join('\n');
+            })
+            .join('\n\n')
+        : '';
+
+    const enrichedMessage = attachmentNote
+      ? `${attachmentNote}\n\n${message}`
+      : message;
 
     // Determine which provider to use
     let providerName = requestedProvider || agentConfig.primary;
@@ -692,10 +744,12 @@ export async function POST(request: NextRequest) {
 
     try {
       responseMessage = await providers[providerName].callAPI(
-        message,
+        enrichedMessage,
         conversationHistory,
-        agentConfig.systemPrompt,
-        agentConfig.temperature
+        systemPrompt,
+        temperature,
+        maxTokens,
+        model
       );
     } catch (error) {
       console.error(`${providerName} API failed for agent ${agentId}:`, error);
@@ -706,11 +760,14 @@ export async function POST(request: NextRequest) {
 
         try {
           const fallbackProvider = providers[fallback];
+          // Don't pass the model to fallback providers - let them use their defaults
           responseMessage = await fallbackProvider.callAPI(
-            message,
+            enrichedMessage,
             conversationHistory,
-            agentConfig.systemPrompt,
-            agentConfig.temperature
+            systemPrompt,
+            temperature,
+            maxTokens,
+            undefined // Use provider's default model for fallbacks
           );
           console.log(
             `Successfully fell back to ${fallback} for agent ${agentId}`
