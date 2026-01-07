@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { body, param, validationResult } from 'express-validator';
 import { ChatInteraction } from '../models/Analytics.js';
 import User from '../models/User.js';
@@ -191,7 +192,7 @@ router.post(
   '/sessions',
   requireAuth,
   [
-    body('agentId').isMongoId(),
+    body('agentId').optional().isString(), // allow string ids or omit entirely
     body('name').optional().isString().isLength({ min: 1, max: 100 }),
     body('description').optional().isString().isLength({ max: 500 }),
     body('tags').optional().isArray(),
@@ -203,14 +204,7 @@ router.post(
       const { agentId, name, description, tags, settings } = req.body;
       const userId = req.user._id;
 
-      // Verify agent exists
-      const agent = await Agent.findById(agentId);
-      if (!agent) {
-        return res.status(404).json({
-          success: false,
-          error: 'Agent not found',
-        });
-      }
+      const agent = agentId ? await Agent.findById(agentId) : null;
 
       // Generate session ID
       const sessionId = `session-${Date.now()}-${Math.random()
@@ -221,8 +215,9 @@ router.post(
       const session = new ChatSession({
         sessionId,
         userId,
-        agentId,
-        name: name || `Chat with ${agent.name}`,
+        agentId: mongoose.Types.ObjectId.isValid(agentId) ? agentId : undefined,
+        name:
+          name || (agent?.name ? `Chat with ${agent.name}` : 'Chat session'),
         description: description || '',
         tags: tags || [],
         settings: settings || {},
@@ -237,19 +232,19 @@ router.post(
       await session.save();
 
       // Create initial interaction with welcome message
-      const conversationId = `conv-${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
+      const conversationId = sessionId; // align interactions with session id for retrieval
       const welcomeInteraction = new ChatInteraction({
         conversationId,
         userId,
-        agentId,
+        agentId: mongoose.Types.ObjectId.isValid(agentId) ? agentId : undefined,
         messages: [
           {
             role: 'assistant',
             content:
-              agent.systemPrompt ||
-              `Hello! I'm ${agent.name}. How can I help you today?`,
+              agent?.systemPrompt ||
+              `Hello! I am ${
+                agent?.name || 'your assistant'
+              }. How can I help you today?`,
             createdAt: new Date(),
           },
         ],
@@ -265,7 +260,7 @@ router.post(
           name: session.name,
           description: session.description,
           agentId: session.agentId,
-          agentName: agent.name,
+          agentName: agent?.name || 'Agent',
           tags: session.tags,
           isActive: session.isActive,
           messageCount: 0,
@@ -338,7 +333,7 @@ router.post(
   requireAuth,
   [
     body('conversationId').isString().notEmpty(),
-    body('agentId').isMongoId(),
+    body('agentId').optional().isString(), // relax: accept string or omit
     body('messages').isArray().notEmpty(),
     body('messages.*.role').isIn(['user', 'assistant', 'system']),
     body('messages.*.content').isString().notEmpty(),
@@ -349,20 +344,13 @@ router.post(
       const { conversationId, agentId, messages, summary, metrics } = req.body;
       const userId = req.user._id;
 
-      // Verify agent exists
-      const agent = await Agent.findById(agentId);
-      if (!agent) {
-        return res.status(404).json({
-          success: false,
-          error: 'Agent not found',
-        });
-      }
+      const agent = agentId ? await Agent.findById(agentId) : null;
 
       // Create interaction
       const interaction = new ChatInteraction({
         conversationId,
         userId,
-        agentId,
+        agentId: mongoose.Types.ObjectId.isValid(agentId) ? agentId : undefined,
         messages: messages.map((msg) => ({
           role: msg.role,
           content: msg.content,

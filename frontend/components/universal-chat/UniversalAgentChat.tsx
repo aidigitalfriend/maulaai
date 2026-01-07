@@ -119,6 +119,43 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     model: agent.aiProvider?.model || 'mistral-large-latest',
   });
 
+  const isValidObjectId = useCallback(
+    (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
+    []
+  );
+
+  const fetchSessionMessages = useCallback(async (sessionId: string) => {
+    try {
+      const resp = await fetch(`/api/chat/sessions/${sessionId}`, {
+        credentials: 'include',
+      });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.success && data.session) {
+        const msgs = (data.session.messages || []).map((msg: any) => ({
+          id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp || msg.createdAt),
+        }));
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  messages: msgs,
+                  messageCount: msgs.length,
+                  updatedAt: new Date(),
+                }
+              : s
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to fetch session messages', err);
+    }
+  }, []);
+
   // Load sessions from database
   const loadSessions = useCallback(async () => {
     if (!authState.isAuthenticated || !authState.user) {
@@ -127,7 +164,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     }
 
     try {
-      const response = await fetch(`/api/chat/sessions?agentId=${agent.id}`, {
+      const query = isValidObjectId(agent.id) ? `?agentId=${agent.id}` : '';
+      const response = await fetch(`/api/chat/sessions${query}`, {
         credentials: 'include',
       });
 
@@ -137,12 +175,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           const formattedSessions = data.sessions.map((session: any) => ({
             id: session.id,
             name: session.name,
-            messages: session.messages.map((msg: any) => ({
-              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-              role: msg.role,
-              content: msg.content,
-              timestamp: new Date(msg.timestamp || msg.createdAt),
-            })),
+            messages: session.messages
+              ? session.messages.map((msg: any) => ({
+                  id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+                  role: msg.role,
+                  content: msg.content,
+                  timestamp: new Date(msg.timestamp || msg.createdAt),
+                }))
+              : [],
             lastMessage: session.lastMessage,
             messageCount: session.messageCount,
             updatedAt: new Date(session.updatedAt),
@@ -150,12 +190,24 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
           setSessions(formattedSessions);
           setActiveSessionId(formattedSessions[0].id);
+
+          // load messages for the first session
+          const firstId = formattedSessions[0]?.id;
+          if (firstId) {
+            await fetchSessionMessages(firstId);
+          }
         }
       }
     } catch (error) {
       console.error('Failed to load sessions:', error);
     }
-  }, [authState.isAuthenticated, authState.user, agent.id]);
+  }, [
+    authState.isAuthenticated,
+    authState.user,
+    agent.id,
+    fetchSessionMessages,
+    isValidObjectId,
+  ]);
 
   // Save session to database
   const saveSession = useCallback(
@@ -173,7 +225,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           credentials: 'include',
           body: JSON.stringify({
             conversationId: session.id,
-            agentId: agent.id,
+            ...(isValidObjectId(agent.id) ? { agentId: agent.id } : {}),
             messages: session.messages.map((msg) => ({
               role: msg.role,
               content: msg.content,
@@ -189,7 +241,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         console.error('Error saving session:', error);
       }
     },
-    [authState.isAuthenticated, authState.user, agent.id]
+    [authState.isAuthenticated, authState.user, agent.id, isValidObjectId]
   );
 
   // Load sessions on mount and when auth changes
@@ -205,30 +257,51 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   }, [activeSession?.messages]);
 
   // Handlers
-  const handleNewSession = useCallback(() => {
-    const newId = `session-${Date.now()}`;
-    const newSession: ChatSession = {
-      id: newId,
-      name: `Conversation ${sessions.length + 1}`,
-      messages: [
-        {
-          id: `msg-${Date.now()}`,
-          role: 'assistant',
-          content: `🚀 **New conversation started!**\n\nI'm ${agent.name}, ready to assist you. What would you like to explore today?\n\n---\n*Connected to AI • Settings available in ⚙️ panel*`,
-          timestamp: new Date(),
-        },
-      ],
-      lastMessage: 'New conversation started',
-      messageCount: 1,
-      updatedAt: new Date(),
-    };
-    setSessions((prev) => [newSession, ...prev]);
-    setActiveSessionId(newId);
-  }, [sessions.length, agent.name]);
+  const handleNewSession = useCallback(async () => {
+    try {
+      const body: Record<string, any> = {
+        name: `Conversation ${sessions.length + 1}`,
+      };
+      if (isValidObjectId(agent.id)) {
+        body.agentId = agent.id;
+      }
 
-  const handleSelectSession = useCallback((id: string) => {
-    setActiveSessionId(id);
-  }, []);
+      const resp = await fetch('/api/chat/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) {
+        console.error('Failed to create session');
+        return;
+      }
+      const data = await resp.json();
+      if (data.success && data.session) {
+        const session: ChatSession = {
+          id: data.session.id,
+          name: data.session.name,
+          messages: [],
+          lastMessage: '',
+          messageCount: 0,
+          updatedAt: new Date(data.session.updatedAt || Date.now()),
+        };
+        setSessions((prev) => [session, ...prev]);
+        setActiveSessionId(session.id);
+        await fetchSessionMessages(session.id);
+      }
+    } catch (err) {
+      console.error('Error creating session', err);
+    }
+  }, [agent.id, sessions.length, fetchSessionMessages, isValidObjectId]);
+
+  const handleSelectSession = useCallback(
+    (id: string) => {
+      setActiveSessionId(id);
+      fetchSessionMessages(id);
+    },
+    [fetchSessionMessages]
+  );
 
   const handleDeleteSession = useCallback(
     (id: string) => {
@@ -249,55 +322,6 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     );
   }, []);
 
-  const handleExportSession = useCallback(
-    (id: string) => {
-      const session = sessions.find((s) => s.id === id);
-      if (!session) return;
-
-      let exportText = `Chat Session: ${session.name}\n`;
-      exportText += `Agent: ${agent.name}\n`;
-      exportText += `Exported: ${new Date().toLocaleString()}\n\n`;
-      exportText += '='.repeat(60) + '\n\n';
-
-      session.messages.forEach((msg) => {
-        const role = msg.role === 'user' ? 'You' : agent.name;
-        exportText += `[${msg.timestamp.toLocaleString()}] ${role}:\n`;
-        exportText += `${msg.content}\n\n`;
-      });
-
-      const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${agent.name.replace(
-        /[^a-z0-9]/gi,
-        '_'
-      )}_${session.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    },
-    [sessions, agent.name]
-  );
-
-  const handleUpdateSettings = useCallback(
-    (newSettings: Partial<AgentSettings>) => {
-      setSettings((prev) => ({ ...prev, ...newSettings }));
-    },
-    []
-  );
-
-  const handleResetSettings = useCallback(() => {
-    setSettings({
-      temperature: 0.7,
-      maxTokens: 2000,
-      mode: 'balanced',
-      systemPrompt: '',
-      provider: 'mistral',
-      model: 'mistral-large-latest',
-    });
-  }, []);
-
-  // Message action handlers
   const handleFeedback = useCallback(
     (messageId: string, type: 'up' | 'down') => {
       setMessageFeedback((prev) => ({
@@ -308,24 +332,26 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     []
   );
 
-  const handleCopyMessage = useCallback(
-    (messageId: string, content: string) => {
-      navigator.clipboard.writeText(content);
-      setCopiedMessageId(messageId);
-      setTimeout(() => setCopiedMessageId(null), 2000);
-    },
-    []
-  );
+  const handleCopyMessage = useCallback(async (id: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(id);
+      setTimeout(() => setCopiedMessageId(null), 1200);
+    } catch (err) {
+      console.error('Failed to copy message', err);
+    }
+  }, []);
 
   const handleShareMessage = useCallback(
-    (content: string) => {
-      if (navigator.share) {
-        navigator.share({
-          title: `${agent.name} Response`,
-          text: content,
-        });
-      } else {
-        navigator.clipboard.writeText(content);
+    async (content: string) => {
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: agent.name, text: content });
+        } else {
+          await navigator.clipboard.writeText(content);
+        }
+      } catch (err) {
+        console.error('Failed to share message', err);
       }
     },
     [agent.name]
