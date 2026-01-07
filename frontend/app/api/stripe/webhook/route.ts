@@ -20,6 +20,28 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
 });
 
+function safeDateFromUnix(seconds?: number | null, plan?: 'daily' | 'weekly' | 'monthly') {
+  const base = seconds ? new Date(seconds * 1000) : new Date();
+  const date = isNaN(base.getTime()) ? new Date() : base;
+
+  if (!plan) return date;
+
+  const fallback = new Date(date);
+  switch (plan) {
+    case 'daily':
+      fallback.setDate(fallback.getDate() + 1);
+      break;
+    case 'weekly':
+      fallback.setDate(fallback.getDate() + 7);
+      break;
+    case 'monthly':
+    default:
+      fallback.setMonth(fallback.getMonth() + 1);
+      break;
+  }
+  return fallback;
+}
+
 export async function POST(request: NextRequest) {
   console.log('🔥 STRIPE WEBHOOK RECEIVED - STARTING PROCESSING');
 
@@ -240,6 +262,12 @@ async function handleCheckoutSessionCompleted(
     else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
       planType = 'weekly';
 
+    const startDate = safeDateFromUnix(subscription.current_period_start);
+    const expiryDate = safeDateFromUnix(
+      subscription.current_period_end,
+      planType
+    );
+
     const agentSub = new AgentSubscriptionModel({
       userId: metadata?.userId,
       agentId: metadata?.agentId,
@@ -249,8 +277,8 @@ async function handleCheckoutSessionCompleted(
         ? subscription.items.data[0].price.unit_amount / 100
         : 0,
       status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate: new Date(subscription.current_period_start * 1000),
-      expiryDate: new Date(subscription.current_period_end * 1000),
+      startDate,
+      expiryDate,
       autoRenew: false, // Always false for one-time purchase model
       stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
       billing: {
@@ -262,7 +290,7 @@ async function handleCheckoutSessionCompleted(
             ? 'week'
             : 'month',
         amount: subscription.items.data[0]?.price?.unit_amount || 0,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodEnd: expiryDate,
       },
     });
 
@@ -377,6 +405,12 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
       planType = 'weekly';
 
+    const startDate = safeDateFromUnix(subscription.current_period_start);
+    const expiryDate = safeDateFromUnix(
+      subscription.current_period_end,
+      planType
+    );
+
     const agentSub = new AgentSubscriptionModel({
       userId: subscription.metadata?.userId,
       agentId: subscription.metadata?.agentId,
@@ -385,8 +419,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
         ? subscription.items.data[0].price.unit_amount / 100
         : 0,
       status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate: new Date(subscription.current_period_start * 1000),
-      expiryDate: new Date(subscription.current_period_end * 1000),
+      startDate,
+      expiryDate,
       autoRenew: false, // Always false for one-time purchase model
       stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
     });
@@ -420,6 +454,12 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
       planType = 'weekly';
 
+    const startDate = safeDateFromUnix(subscription.current_period_start);
+    const expiryDate = safeDateFromUnix(
+      subscription.current_period_end,
+      planType
+    );
+
     const agentSub = new AgentSubscriptionModel({
       userId: subscription.metadata?.userId,
       agentId: subscription.metadata?.agentId,
@@ -428,8 +468,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
         ? subscription.items.data[0].price.unit_amount / 100
         : 0,
       status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate: new Date(subscription.current_period_start * 1000),
-      expiryDate: new Date(subscription.current_period_end * 1000),
+      startDate,
+      expiryDate,
       autoRenew: false, // Always false for one-time purchase model
     });
 
@@ -439,8 +479,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     // Update existing subscription
     existingSubscription.status =
       subscription.status === 'active' ? 'active' : 'expired';
-    existingSubscription.expiryDate = new Date(
-      subscription.current_period_end * 1000
+    existingSubscription.expiryDate = safeDateFromUnix(
+      subscription.current_period_end,
+      planType
     );
     existingSubscription.autoRenew = false; // Always false for one-time purchase model
     existingSubscription.updatedAt = new Date();

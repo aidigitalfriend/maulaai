@@ -357,6 +357,34 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     [agent.name]
   );
 
+  const handleExportSession = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (!activeSession) return;
+
+    const exportLines = [
+      `# ${agent.name} Chat Export`,
+      `Session: ${activeSession.name}`,
+      `Date: ${new Date().toISOString()}`,
+      '',
+      '---',
+      '',
+      ...activeSession.messages.map((m) => {
+        const prefix = m.role === 'user' ? 'User' : 'Assistant';
+        return `**${prefix}:** ${m.content}`;
+      }),
+    ];
+
+    const blob = new Blob([exportLines.join('\n')], {
+      type: 'text/markdown',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${agent.name.replace(/\s+/g, '-').toLowerCase()}-${activeSession.id}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [activeSession, agent.name]);
+
   const handleListenMessage = useCallback((content: string) => {
     const cleanText = content
       .replace(/\*\*(.*?)\*\*/g, '$1')
