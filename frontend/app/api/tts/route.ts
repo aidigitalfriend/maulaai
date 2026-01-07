@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to list available voices
+// Using hardcoded list since API key may not have voices_read permission
 export async function GET() {
   if (!ELEVENLABS_API_KEY) {
     return NextResponse.json(
@@ -84,42 +85,51 @@ export async function GET() {
     );
   }
 
+  // Common ElevenLabs voices (works without voices_read permission)
+  const fallbackVoices = [
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', labels: { gender: 'female', accent: 'american' } },
+    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', labels: { gender: 'female', accent: 'american' } },
+    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', labels: { gender: 'female', accent: 'american' } },
+    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', labels: { gender: 'male', accent: 'american' } },
+    { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli', labels: { gender: 'female', accent: 'american' } },
+    { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', labels: { gender: 'male', accent: 'american' } },
+    { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', labels: { gender: 'male', accent: 'american' } },
+    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', labels: { gender: 'male', accent: 'american' } },
+    { id: 'yoZ06aMxZJJ28mfd3POQ', name: 'Sam', labels: { gender: 'male', accent: 'american' } },
+  ];
+
   try {
+    // Try to fetch from API first
     const response = await fetch('https://api.elevenlabs.io/v1/voices', {
       headers: {
         'xi-api-key': ELEVENLABS_API_KEY,
       },
     });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { message: 'Failed to fetch voices' },
-        { status: response.status }
-      );
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Return API voices if available
+      const voices =
+        data.voices?.map(
+          (v: {
+            voice_id: string;
+            name: string;
+            labels?: Record<string, string>;
+          }) => ({
+            id: v.voice_id,
+            name: v.name,
+            labels: v.labels,
+          })
+        ) || fallbackVoices;
+
+      return NextResponse.json({ voices, source: 'api' });
     }
 
-    const data = await response.json();
-
-    // Return simplified voice list
-    const voices =
-      data.voices?.map(
-        (v: {
-          voice_id: string;
-          name: string;
-          labels?: Record<string, string>;
-        }) => ({
-          id: v.voice_id,
-          name: v.name,
-          labels: v.labels,
-        })
-      ) || [];
-
-    return NextResponse.json({ voices });
+    // Fallback to hardcoded list if API fails or lacks permission
+    return NextResponse.json({ voices: fallbackVoices, source: 'fallback' });
   } catch (error) {
-    console.error('Voice list error:', error);
-    return NextResponse.json(
-      { message: 'Failed to fetch voices' },
-      { status: 500 }
-    );
+    console.error('Voice list error, using fallback:', error);
+    return NextResponse.json({ voices: fallbackVoices, source: 'fallback' });
   }
 }
