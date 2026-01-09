@@ -246,12 +246,17 @@ export default function CanvasMode({
 
   // AI Settings State
   const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
-  const [selectedModel, setSelectedModel] = useState<string>('mistral-large-latest');
+  const [selectedModel, setSelectedModel] = useState<string>(
+    'mistral-large-latest'
+  );
   const [temperature, setTemperature] = useState<number>(0.7);
   const [maxTokens, setMaxTokens] = useState<number>(4096);
 
   // Provider/Model options
-  const providerModels: Record<string, { name: string; models: { id: string; name: string }[] }> = {
+  const providerModels: Record<
+    string,
+    { name: string; models: { id: string; name: string }[] }
+  > = {
     mistral: {
       name: 'Mistral AI',
       models: [
@@ -286,9 +291,7 @@ export default function CanvasMode({
     },
     xai: {
       name: 'xAI (Grok)',
-      models: [
-        { id: 'grok-beta', name: 'Grok Beta' },
-      ],
+      models: [{ id: 'grok-beta', name: 'Grok Beta' }],
     },
   };
 
@@ -1427,12 +1430,24 @@ export default function CanvasMode({
                 className={`flex items-center justify-between mb-3 ${brandColors.text}`}
               >
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <svg
+                    className="w-4 h-4 text-pink-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
                   </svg>
                   <span className="font-semibold text-sm">Temperature</span>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded ${brandColors.bgInput} ${brandColors.textSecondary}`}>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${brandColors.bgInput} ${brandColors.textSecondary}`}
+                >
                   {temperature.toFixed(1)}
                 </span>
               </div>
@@ -1449,7 +1464,9 @@ export default function CanvasMode({
                   background: `linear-gradient(to right, #06b6d4 0%, #a855f7 ${(temperature / 2) * 100}%, #1e1e2a ${(temperature / 2) * 100}%)`,
                 }}
               />
-              <div className={`flex justify-between text-[10px] mt-1 ${brandColors.textMuted}`}>
+              <div
+                className={`flex justify-between text-[10px] mt-1 ${brandColors.textMuted}`}
+              >
                 <span>Precise</span>
                 <span>Balanced</span>
                 <span>Creative</span>
@@ -1464,12 +1481,24 @@ export default function CanvasMode({
                 className={`flex items-center justify-between mb-3 ${brandColors.text}`}
               >
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <svg
+                    className="w-4 h-4 text-cyan-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
                   </svg>
                   <span className="font-semibold text-sm">Max Tokens</span>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded ${brandColors.bgInput} ${brandColors.textSecondary}`}>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${brandColors.bgInput} ${brandColors.textSecondary}`}
+                >
                   {maxTokens.toLocaleString()}
                 </span>
               </div>
@@ -1486,7 +1515,9 @@ export default function CanvasMode({
                   background: `linear-gradient(to right, #06b6d4 0%, #a855f7 ${((maxTokens - 1024) / (16384 - 1024)) * 100}%, #1e1e2a ${((maxTokens - 1024) / (16384 - 1024)) * 100}%)`,
                 }}
               />
-              <div className={`flex justify-between text-[10px] mt-1 ${brandColors.textMuted}`}>
+              <div
+                className={`flex justify-between text-[10px] mt-1 ${brandColors.textMuted}`}
+              >
                 <span>1K</span>
                 <span>8K</span>
                 <span>16K</span>
