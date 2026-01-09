@@ -93,7 +93,6 @@ fi
 print_status "2) Pushing to origin/main"
 git push origin main
 
-git reset --hard origin/main
 print_status "3) Deploying to production server"
 SSH_COMMAND=$(cat <<'REMOTE'
 set -euo pipefail
