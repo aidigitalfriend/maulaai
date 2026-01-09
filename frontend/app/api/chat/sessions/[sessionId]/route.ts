@@ -27,8 +27,8 @@ interface ChatSession {
   updatedAt: string;
 }
 
-function getUserId(): string | null {
-  const cookieStore = cookies();
+async function getUserId(): Promise<string> {
+  const cookieStore = await cookies();
   const authToken = cookieStore.get('auth_token')?.value;
 
   if (!authToken) {
@@ -50,14 +50,7 @@ export async function GET(
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
-    const userId = getUserId();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+    const userId = await getUserId();
     const { sessionId } = await params;
 
     const userSessions = sessionStore.get(userId);
@@ -102,14 +95,7 @@ export async function POST(
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
-    const userId = getUserId();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+    const userId = await getUserId();
     const { sessionId } = await params;
     const body = await request.json();
     const { role, content, attachments } = body;
@@ -177,14 +163,7 @@ export async function DELETE(
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
-    const userId = getUserId();
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
+    const userId = await getUserId();
     const { sessionId } = await params;
 
     const userSessions = sessionStore.get(userId);

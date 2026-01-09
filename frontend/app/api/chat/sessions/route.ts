@@ -27,9 +27,9 @@ interface ChatSession {
   updatedAt: string;
 }
 
-function getUserId(request: NextRequest): string | null {
+async function getUserId(): Promise<string> {
   // Try to get user from cookie/session
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const authToken = cookieStore.get('auth_token')?.value;
 
   // For demo/development, use a default user ID if no auth
@@ -52,13 +52,7 @@ function generateId(): string {
 // GET - List all sessions for user
 export async function GET(request: NextRequest) {
   try {
-    const userId = getUserId(request);
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = await getUserId();
 
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId');
@@ -106,13 +100,7 @@ export async function GET(request: NextRequest) {
 // POST - Create new session
 export async function POST(request: NextRequest) {
   try {
-    const userId = getUserId(request);
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = await getUserId();
 
     const body = await request.json();
     const { name, agentId } = body;
@@ -159,13 +147,7 @@ export async function POST(request: NextRequest) {
 // PUT - Update session (rename)
 export async function PUT(request: NextRequest) {
   try {
-    const userId = getUserId(request);
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = await getUserId();
 
     const body = await request.json();
     const { sessionId, name } = body;
@@ -218,13 +200,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete session
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = getUserId(request);
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = await getUserId();
 
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
