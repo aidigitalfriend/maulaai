@@ -244,6 +244,54 @@ export default function CanvasMode({
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history' | 'settings'
   >('chat');
 
+  // AI Settings State
+  const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
+  const [selectedModel, setSelectedModel] = useState<string>('mistral-large-latest');
+  const [temperature, setTemperature] = useState<number>(0.7);
+  const [maxTokens, setMaxTokens] = useState<number>(4096);
+
+  // Provider/Model options
+  const providerModels: Record<string, { name: string; models: { id: string; name: string }[] }> = {
+    mistral: {
+      name: 'Mistral AI',
+      models: [
+        { id: 'mistral-large-latest', name: 'Mistral Large' },
+        { id: 'mistral-small-latest', name: 'Mistral Small' },
+        { id: 'codestral-latest', name: 'Codestral' },
+      ],
+    },
+    openai: {
+      name: 'OpenAI',
+      models: [
+        { id: 'gpt-4o', name: 'GPT-4o' },
+        { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+      ],
+    },
+    anthropic: {
+      name: 'Anthropic',
+      models: [
+        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+        { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
+        { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+      ],
+    },
+    gemini: {
+      name: 'Google Gemini',
+      models: [
+        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+      ],
+    },
+    xai: {
+      name: 'xAI (Grok)',
+      models: [
+        { id: 'grok-beta', name: 'Grok Beta' },
+      ],
+    },
+  };
+
   // Restore chat messages once when opened, or seed with welcome message
   useEffect(() => {
     if (!isOpen || hasLoadedMessages.current) return;
@@ -566,8 +614,10 @@ export default function CanvasMode({
         signal: controller.signal,
         body: JSON.stringify({
           prompt: `${userPrompt}${uniquenessHint}`,
-          provider: 'mistral',
-          modelId: 'mistral-large-latest',
+          provider: selectedProvider,
+          modelId: selectedModel,
+          temperature,
+          maxTokens,
           currentCode: generatedCode || undefined,
           history: messages
             .filter((m) => !m.isStreaming)
@@ -1257,7 +1307,11 @@ export default function CanvasMode({
           )}
           {(showFilesPanel || showHistoryPanel) && (
             <span className={`text-sm font-medium ${brandColors.text}`}>
-              {activePane === 'history' ? 'History' : activePane === 'settings' ? 'Settings' : 'Files'}
+              {activePane === 'history'
+                ? 'History'
+                : activePane === 'settings'
+                  ? 'Settings'
+                  : 'Files'}
             </span>
           )}
           {generatedFiles.length > 0 &&
@@ -1285,7 +1339,9 @@ export default function CanvasMode({
                   Fine-tune best practices
                 </span>
               </div>
-              <ul className={`space-y-2 text-xs ${brandColors.textSecondary} leading-relaxed`}>
+              <ul
+                className={`space-y-2 text-xs ${brandColors.textSecondary} leading-relaxed`}
+              >
                 <li className="flex items-start gap-2">
                   <span className="text-cyan-400">•</span>
                   Write one focused change request at a time.
@@ -1309,6 +1365,7 @@ export default function CanvasMode({
               </ul>
             </div>
 
+            {/* AI Provider Selection */}
             <div
               className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
             >
@@ -1316,71 +1373,123 @@ export default function CanvasMode({
                 className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
               >
                 <CodeBracketIcon className="w-4 h-4 text-purple-400" />
-                <span className="font-semibold text-sm">
-                  Output Preferences
-                </span>
+                <span className="font-semibold text-sm">AI Provider</span>
               </div>
-              <div className="space-y-3">
-                <label className="flex items-center justify-between">
-                  <span className={`text-xs ${brandColors.textSecondary}`}>Auto-preview</span>
-                  <div className={`w-10 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/50 relative cursor-pointer`}>
-                    <div className="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-cyan-400 transition-all"></div>
-                  </div>
-                </label>
-                <label className="flex items-center justify-between">
-                  <span className={`text-xs ${brandColors.textSecondary}`}>Show code hints</span>
-                  <div className={`w-10 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/50 relative cursor-pointer`}>
-                    <div className="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-cyan-400 transition-all"></div>
-                  </div>
-                </label>
-              </div>
+              <select
+                value={selectedProvider}
+                onChange={(e) => {
+                  const newProvider = e.target.value;
+                  setSelectedProvider(newProvider);
+                  // Auto-select first model of new provider
+                  const firstModel = providerModels[newProvider]?.models[0]?.id;
+                  if (firstModel) setSelectedModel(firstModel);
+                }}
+                title="Select AI Provider"
+                className={`w-full px-3 py-2 rounded-lg text-sm ${brandColors.bgInput} ${brandColors.border} border ${brandColors.text} focus:outline-none focus:ring-2 focus:ring-cyan-500/50`}
+              >
+                {Object.entries(providerModels).map(([key, provider]) => (
+                  <option key={key} value={key}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
+            {/* AI Model Selection */}
             <div
               className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
             >
               <div
                 className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
               >
-                <DevicePhoneMobileIcon className="w-4 h-4 text-pink-400" />
-                <span className="font-semibold text-sm">
-                  Default Preview
+                <SparklesIcon className="w-4 h-4 text-cyan-400" />
+                <span className="font-semibold text-sm">Model</span>
+              </div>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                title="Select AI Model"
+                className={`w-full px-3 py-2 rounded-lg text-sm ${brandColors.bgInput} ${brandColors.border} border ${brandColors.text} focus:outline-none focus:ring-2 focus:ring-cyan-500/50`}
+              >
+                {providerModels[selectedProvider]?.models.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Temperature Setting */}
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center justify-between mb-3 ${brandColors.text}`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span className="font-semibold text-sm">Temperature</span>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded ${brandColors.bgInput} ${brandColors.textSecondary}`}>
+                  {temperature.toFixed(1)}
                 </span>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPreviewDevice('desktop')}
-                  className={`flex-1 p-2 rounded-lg text-xs flex flex-col items-center gap-1 transition-all ${
-                    previewDevice === 'desktop'
-                      ? brandColors.btnPrimary
-                      : `${brandColors.bgHover} ${brandColors.textSecondary}`
-                  }`}
-                >
-                  <ComputerDesktopIcon className="w-4 h-4" />
-                  Desktop
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('tablet')}
-                  className={`flex-1 p-2 rounded-lg text-xs flex flex-col items-center gap-1 transition-all ${
-                    previewDevice === 'tablet'
-                      ? brandColors.btnPrimary
-                      : `${brandColors.bgHover} ${brandColors.textSecondary}`
-                  }`}
-                >
-                  <DeviceTabletIcon className="w-4 h-4" />
-                  Tablet
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('mobile')}
-                  className={`flex-1 p-2 rounded-lg text-xs flex flex-col items-center gap-1 transition-all ${
-                    previewDevice === 'mobile'
-                      ? brandColors.btnPrimary
-                      : `${brandColors.bgHover} ${brandColors.textSecondary}`
-                  }`}
-                >
-                  <DevicePhoneMobileIcon className="w-4 h-4" />
-                  Mobile
-                </button>
+              <input
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                title="Adjust temperature"
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500"
+                style={{
+                  background: `linear-gradient(to right, #06b6d4 0%, #a855f7 ${(temperature / 2) * 100}%, #1e1e2a ${(temperature / 2) * 100}%)`,
+                }}
+              />
+              <div className={`flex justify-between text-[10px] mt-1 ${brandColors.textMuted}`}>
+                <span>Precise</span>
+                <span>Balanced</span>
+                <span>Creative</span>
+              </div>
+            </div>
+
+            {/* Max Tokens Setting */}
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center justify-between mb-3 ${brandColors.text}`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <span className="font-semibold text-sm">Max Tokens</span>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded ${brandColors.bgInput} ${brandColors.textSecondary}`}>
+                  {maxTokens.toLocaleString()}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="1024"
+                max="16384"
+                step="512"
+                value={maxTokens}
+                onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                title="Adjust max tokens"
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #06b6d4 0%, #a855f7 ${((maxTokens - 1024) / (16384 - 1024)) * 100}%, #1e1e2a ${((maxTokens - 1024) / (16384 - 1024)) * 100}%)`,
+                }}
+              />
+              <div className={`flex justify-between text-[10px] mt-1 ${brandColors.textMuted}`}>
+                <span>1K</span>
+                <span>8K</span>
+                <span>16K</span>
               </div>
             </div>
           </div>
