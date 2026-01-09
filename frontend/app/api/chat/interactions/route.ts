@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import dbConnect from '@/lib/mongodb';
 import mongoose from 'mongoose';
 
 // Helper to authenticate user from session cookie
@@ -11,7 +11,7 @@ async function authenticateUser(request: NextRequest) {
   }
 
   try {
-    await connectToDatabase();
+    await dbConnect();
     const db = mongoose.connection.db;
 
     if (!db) {
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectToDatabase();
+    await dbConnect();
     const db = mongoose.connection.db;
 
     if (!db) {
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
     const conversationId = searchParams.get('conversationId');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    await connectToDatabase();
+    await dbConnect();
     const db = mongoose.connection.db;
 
     if (!db) {
