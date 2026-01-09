@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb';
 
-// Force dynamic rendering 
+// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // Shared session store reference (fallback if no MongoDB)
@@ -31,7 +31,9 @@ interface ChatSession {
 }
 
 // Authenticate user from request cookies (same pattern as preferences API)
-async function authenticateUser(request: NextRequest): Promise<{ userId: string } | { error: string; status: number }> {
+async function authenticateUser(
+  request: NextRequest
+): Promise<{ userId: string } | { error: string; status: number }> {
   const sessionId = request.cookies.get('session_id')?.value;
 
   if (!sessionId) {
@@ -77,20 +79,25 @@ export async function GET(
   try {
     const { sessionId } = await params;
 
-    const userSessions = sessionStore.get(userId);
+    let userSessions = sessionStore.get(userId);
     if (!userSessions) {
-      return NextResponse.json(
-        { success: false, error: 'Session not found' },
-        { status: 404 }
-      );
+      userSessions = new Map();
+      sessionStore.set(userId, userSessions);
     }
 
-    const session = userSessions.get(sessionId);
+    let session = userSessions.get(sessionId);
+    
+    // Auto-create session if it doesn't exist (handles in-memory store resets)
     if (!session) {
-      return NextResponse.json(
-        { success: false, error: 'Session not found' },
-        { status: 404 }
-      );
+      const now = new Date().toISOString();
+      session = {
+        id: sessionId,
+        name: 'New Conversation',
+        messages: [],
+        createdAt: now,
+        updatedAt: now,
+      };
+      userSessions.set(sessionId, session);
     }
 
     return NextResponse.json({

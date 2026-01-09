@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb';
 
-// Force dynamic rendering 
+// Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 // In-memory session store (fallback if no MongoDB)
@@ -31,10 +31,15 @@ interface ChatSession {
 }
 
 // Authenticate user from request cookies (same pattern as preferences API)
-async function authenticateUser(request: NextRequest): Promise<{ userId: string } | { error: string; status: number }> {
+async function authenticateUser(
+  request: NextRequest
+): Promise<{ userId: string } | { error: string; status: number }> {
   const sessionId = request.cookies.get('session_id')?.value;
 
-  console.log('[chat/sessions] Auth check - session_id cookie:', sessionId ? 'present' : 'missing');
+  console.log(
+    '[chat/sessions] Auth check - session_id cookie:',
+    sessionId ? 'present' : 'missing'
+  );
 
   if (!sessionId) {
     return { error: 'No session ID', status: 401 };
@@ -50,7 +55,10 @@ async function authenticateUser(request: NextRequest): Promise<{ userId: string 
       sessionExpiry: { $gt: new Date() },
     });
 
-    console.log('[chat/sessions] MongoDB session lookup:', sessionUser ? 'found user' : 'no user found');
+    console.log(
+      '[chat/sessions] MongoDB session lookup:',
+      sessionUser ? 'found user' : 'no user found'
+    );
 
     if (!sessionUser) {
       return { error: 'Invalid or expired session', status: 401 };
