@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getClientPromise } from '@/lib/mongodb';
 
-// Shared session store reference (in production, use a database)
+// Shared session store reference (fallback if no MongoDB)
 const sessionStore = new Map<string, Map<string, ChatSession>>();
 
 interface ChatMessage {
@@ -28,16 +29,38 @@ interface ChatSession {
 }
 
 async function getUserId(): Promise<string> {
-  const cookieStore = await cookies();
-  const authToken = cookieStore.get('auth_token')?.value;
+  try {
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get('session_id')?.value;
 
-  if (!authToken) {
-    const guestId = cookieStore.get('guest_id')?.value;
-    if (guestId) return `guest_${guestId}`;
+    if (!sessionId) {
+      const guestId = cookieStore.get('guest_id')?.value;
+      if (guestId) return `guest_${guestId}`;
+      return 'guest_default';
+    }
+
+    try {
+      const client = await getClientPromise();
+      const db = client.db(process.env.MONGODB_DB || 'onelastai');
+      const users = db.collection('users');
+
+      const sessionUser = await users.findOne({
+        sessionId,
+        sessionExpiry: { $gt: new Date() },
+      });
+
+      if (sessionUser) {
+        return sessionUser._id.toString();
+      }
+    } catch (dbError) {
+      console.error('MongoDB error in getUserId:', dbError);
+    }
+
+    return 'guest_default';
+  } catch (error) {
+    console.error('Error getting user ID:', error);
     return 'guest_default';
   }
-
-  return `user_${authToken.slice(0, 16)}`;
 }
 
 function generateId(): string {

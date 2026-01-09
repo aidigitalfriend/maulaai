@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getClientPromise } from '@/lib/mongodb';
 
-// In-memory session store (in production, use a database like MongoDB)
+// In-memory session store (fallback if no MongoDB)
 const sessionStore = new Map<string, Map<string, ChatSession>>();
 
 interface ChatMessage {
@@ -27,22 +28,42 @@ interface ChatSession {
   updatedAt: string;
 }
 
-async function getUserId(): Promise<string> {
-  // Try to get user from cookie/session
-  const cookieStore = await cookies();
-  const authToken = cookieStore.get('auth_token')?.value;
+async function getUserId(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get('session_id')?.value;
 
-  // For demo/development, use a default user ID if no auth
-  if (!authToken) {
-    // Generate a persistent guest ID based on a cookie
-    const guestId = cookieStore.get('guest_id')?.value;
-    if (guestId) return `guest_${guestId}`;
+    if (!sessionId) {
+      // Fallback to guest mode
+      const guestId = cookieStore.get('guest_id')?.value;
+      if (guestId) return `guest_${guestId}`;
+      return 'guest_default';
+    }
+
+    // Verify session with MongoDB
+    try {
+      const client = await getClientPromise();
+      const db = client.db(process.env.MONGODB_DB || 'onelastai');
+      const users = db.collection('users');
+
+      const sessionUser = await users.findOne({
+        sessionId,
+        sessionExpiry: { $gt: new Date() },
+      });
+
+      if (sessionUser) {
+        return sessionUser._id.toString();
+      }
+    } catch (dbError) {
+      console.error('MongoDB error in getUserId:', dbError);
+    }
+
+    // Fallback to guest if session invalid
+    return 'guest_default';
+  } catch (error) {
+    console.error('Error getting user ID:', error);
     return 'guest_default';
   }
-
-  // In production, decode the auth token to get user ID
-  // For now, use a simple hash of the token
-  return `user_${authToken.slice(0, 16)}`;
 }
 
 function generateId(): string {
