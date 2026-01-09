@@ -10,7 +10,7 @@ export interface ProviderModelOption {
 }
 
 // Central mapping of AI providers to their available models
-// Updated to match Canvas page models for consistency
+// Limited to 5 providers to match Canvas page for consistency
 export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
   {
     provider: 'mistral',
@@ -50,15 +50,6 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     ],
   },
   {
-    provider: 'gemini',
-    label: 'Google Gemini',
-    models: [
-      { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (Latest)' },
-      { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-      { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-    ],
-  },
-  {
     provider: 'xai',
     label: 'xAI Grok',
     models: [
@@ -74,23 +65,6 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Versatile)' },
       { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B' },
       { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (32K context)' },
-    ],
-  },
-  {
-    provider: 'cohere',
-    label: 'Cohere',
-    models: [
-      { value: 'command-r-plus', label: 'Command R+ (Best)' },
-      { value: 'command-r', label: 'Command R' },
-      { value: 'command', label: 'Command' },
-    ],
-  },
-  {
-    provider: 'huggingface',
-    label: 'HuggingFace',
-    models: [
-      { value: 'meta-llama-3-70b', label: 'Meta Llama 3 70B' },
-      { value: 'mistralai-mixtral-8x7b', label: 'Mixtral 8x7B' },
     ],
   },
 ];
