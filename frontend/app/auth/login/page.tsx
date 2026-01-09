@@ -26,7 +26,7 @@ function LoginPageContent() {
   // Redirect if already authenticated
   useEffect(() => {
     if (state.isAuthenticated) {
-      const redirectTo = searchParams.get('redirect') || '/dashboard';
+      const redirectTo = searchParams.get('redirect') || '/dashboard/overview';
       router.push(redirectTo);
     }
   }, [state.isAuthenticated, router, searchParams]);
