@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { getClientPromise } from '@/lib/mongodb';
+
+// Force dynamic rendering 
+export const dynamic = 'force-dynamic';
 
 // In-memory session store (fallback if no MongoDB)
 const sessionStore = new Map<string, Map<string, ChatSession>>();
@@ -28,41 +30,36 @@ interface ChatSession {
   updatedAt: string;
 }
 
-async function getUserId(): Promise<string | null> {
+// Authenticate user from request cookies (same pattern as preferences API)
+async function authenticateUser(request: NextRequest): Promise<{ userId: string } | { error: string; status: number }> {
+  const sessionId = request.cookies.get('session_id')?.value;
+
+  console.log('[chat/sessions] Auth check - session_id cookie:', sessionId ? 'present' : 'missing');
+
+  if (!sessionId) {
+    return { error: 'No session ID', status: 401 };
+  }
+
   try {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session_id')?.value;
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const users = db.collection('users');
 
-    if (!sessionId) {
-      // Fallback to guest mode
-      const guestId = cookieStore.get('guest_id')?.value;
-      if (guestId) return `guest_${guestId}`;
-      return 'guest_default';
+    const sessionUser = await users.findOne({
+      sessionId,
+      sessionExpiry: { $gt: new Date() },
+    });
+
+    console.log('[chat/sessions] MongoDB session lookup:', sessionUser ? 'found user' : 'no user found');
+
+    if (!sessionUser) {
+      return { error: 'Invalid or expired session', status: 401 };
     }
 
-    // Verify session with MongoDB
-    try {
-      const client = await getClientPromise();
-      const db = client.db(process.env.MONGODB_DB || 'onelastai');
-      const users = db.collection('users');
-
-      const sessionUser = await users.findOne({
-        sessionId,
-        sessionExpiry: { $gt: new Date() },
-      });
-
-      if (sessionUser) {
-        return sessionUser._id.toString();
-      }
-    } catch (dbError) {
-      console.error('MongoDB error in getUserId:', dbError);
-    }
-
-    // Fallback to guest if session invalid
-    return 'guest_default';
-  } catch (error) {
-    console.error('Error getting user ID:', error);
-    return 'guest_default';
+    return { userId: sessionUser._id.toString() };
+  } catch (dbError) {
+    console.error('[chat/sessions] MongoDB error:', dbError);
+    return { error: 'Database error', status: 500 };
   }
 }
 
@@ -72,9 +69,13 @@ function generateId(): string {
 
 // GET - List all sessions for user
 export async function GET(request: NextRequest) {
-  try {
-    const userId = await getUserId();
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
 
+  try {
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId');
 
@@ -120,9 +121,13 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new session
 export async function POST(request: NextRequest) {
-  try {
-    const userId = await getUserId();
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
 
+  try {
     const body = await request.json();
     const { name, agentId } = body;
 
@@ -167,9 +172,13 @@ export async function POST(request: NextRequest) {
 
 // PUT - Update session (rename)
 export async function PUT(request: NextRequest) {
-  try {
-    const userId = await getUserId();
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
 
+  try {
     const body = await request.json();
     const { sessionId, name } = body;
 
@@ -220,9 +229,13 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - Delete session
 export async function DELETE(request: NextRequest) {
-  try {
-    const userId = await getUserId();
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
 
+  try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
 

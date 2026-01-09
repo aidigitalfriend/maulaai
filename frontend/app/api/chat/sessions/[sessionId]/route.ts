@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { getClientPromise } from '@/lib/mongodb';
+
+// Force dynamic rendering 
+export const dynamic = 'force-dynamic';
 
 // Shared session store reference (fallback if no MongoDB)
 const sessionStore = new Map<string, Map<string, ChatSession>>();
@@ -28,38 +30,32 @@ interface ChatSession {
   updatedAt: string;
 }
 
-async function getUserId(): Promise<string> {
+// Authenticate user from request cookies (same pattern as preferences API)
+async function authenticateUser(request: NextRequest): Promise<{ userId: string } | { error: string; status: number }> {
+  const sessionId = request.cookies.get('session_id')?.value;
+
+  if (!sessionId) {
+    return { error: 'No session ID', status: 401 };
+  }
+
   try {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session_id')?.value;
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const users = db.collection('users');
 
-    if (!sessionId) {
-      const guestId = cookieStore.get('guest_id')?.value;
-      if (guestId) return `guest_${guestId}`;
-      return 'guest_default';
+    const sessionUser = await users.findOne({
+      sessionId,
+      sessionExpiry: { $gt: new Date() },
+    });
+
+    if (!sessionUser) {
+      return { error: 'Invalid or expired session', status: 401 };
     }
 
-    try {
-      const client = await getClientPromise();
-      const db = client.db(process.env.MONGODB_DB || 'onelastai');
-      const users = db.collection('users');
-
-      const sessionUser = await users.findOne({
-        sessionId,
-        sessionExpiry: { $gt: new Date() },
-      });
-
-      if (sessionUser) {
-        return sessionUser._id.toString();
-      }
-    } catch (dbError) {
-      console.error('MongoDB error in getUserId:', dbError);
-    }
-
-    return 'guest_default';
-  } catch (error) {
-    console.error('Error getting user ID:', error);
-    return 'guest_default';
+    return { userId: sessionUser._id.toString() };
+  } catch (dbError) {
+    console.error('[chat/sessions/id] MongoDB error:', dbError);
+    return { error: 'Database error', status: 500 };
   }
 }
 
@@ -72,8 +68,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
+
   try {
-    const userId = await getUserId();
     const { sessionId } = await params;
 
     const userSessions = sessionStore.get(userId);
@@ -117,8 +118,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
+
   try {
-    const userId = await getUserId();
     const { sessionId } = await params;
     const body = await request.json();
     const { role, content, attachments } = body;
@@ -185,8 +191,13 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ message: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth;
+
   try {
-    const userId = await getUserId();
     const { sessionId } = await params;
 
     const userSessions = sessionStore.get(userId);
