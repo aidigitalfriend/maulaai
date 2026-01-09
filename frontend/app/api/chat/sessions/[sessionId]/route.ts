@@ -86,7 +86,7 @@ export async function GET(
     }
 
     let session = userSessions.get(sessionId);
-    
+
     // Auto-create session if it doesn't exist (handles in-memory store resets)
     if (!session) {
       const now = new Date().toISOString();
