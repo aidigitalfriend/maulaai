@@ -87,15 +87,51 @@ export async function GET() {
 
   // Common ElevenLabs voices (works without voices_read permission)
   const fallbackVoices = [
-    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', labels: { gender: 'female', accent: 'american' } },
-    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', labels: { gender: 'female', accent: 'american' } },
-    { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi', labels: { gender: 'female', accent: 'american' } },
-    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', labels: { gender: 'male', accent: 'american' } },
-    { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli', labels: { gender: 'female', accent: 'american' } },
-    { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', labels: { gender: 'male', accent: 'american' } },
-    { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold', labels: { gender: 'male', accent: 'american' } },
-    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', labels: { gender: 'male', accent: 'american' } },
-    { id: 'yoZ06aMxZJJ28mfd3POQ', name: 'Sam', labels: { gender: 'male', accent: 'american' } },
+    {
+      id: 'EXAVITQu4vr4xnSDxMaL',
+      name: 'Sarah',
+      labels: { gender: 'female', accent: 'american' },
+    },
+    {
+      id: '21m00Tcm4TlvDq8ikWAM',
+      name: 'Rachel',
+      labels: { gender: 'female', accent: 'american' },
+    },
+    {
+      id: 'AZnzlk1XvdvUeBnXmlld',
+      name: 'Domi',
+      labels: { gender: 'female', accent: 'american' },
+    },
+    {
+      id: 'ErXwobaYiN019PkySvjV',
+      name: 'Antoni',
+      labels: { gender: 'male', accent: 'american' },
+    },
+    {
+      id: 'MF3mGyEYCl7XYWbV9V6O',
+      name: 'Elli',
+      labels: { gender: 'female', accent: 'american' },
+    },
+    {
+      id: 'TxGEqnHWrfWFTfGW9XjX',
+      name: 'Josh',
+      labels: { gender: 'male', accent: 'american' },
+    },
+    {
+      id: 'VR6AewLTigWG4xSOukaG',
+      name: 'Arnold',
+      labels: { gender: 'male', accent: 'american' },
+    },
+    {
+      id: 'pNInz6obpgDQGcFmaJgB',
+      name: 'Adam',
+      labels: { gender: 'male', accent: 'american' },
+    },
+    {
+      id: 'yoZ06aMxZJJ28mfd3POQ',
+      name: 'Sam',
+      labels: { gender: 'male', accent: 'american' },
+    },
   ];
 
   try {
@@ -108,7 +144,7 @@ export async function GET() {
 
     if (response.ok) {
       const data = await response.json();
-      
+
       // Return API voices if available
       const voices =
         data.voices?.map(

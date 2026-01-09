@@ -240,9 +240,8 @@ export default function CanvasMode({
   const [openHistoryMenuId, setOpenHistoryMenuId] = useState<string | null>(
     null
   );
-  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [activePane, setActivePane] = useState<
-    'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history'
+    'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history' | 'settings'
   >('chat');
 
   // Restore chat messages once when opened, or seed with welcome message
@@ -323,9 +322,10 @@ export default function CanvasMode({
     const chatActive = activePane === 'chat' || activePane === 'templates';
     const filesActive = activePane === 'files' || activePane === 'code';
     const historyActive = activePane === 'history';
+    const settingsActive = activePane === 'settings';
     setShowChatPanel(chatActive);
     setShowFilesPanel(filesActive);
-    setShowHistoryPanel(historyActive);
+    setShowHistoryPanel(historyActive || settingsActive);
     setShowTemplates(activePane === 'templates');
 
     if (activePane === 'preview') {
@@ -983,12 +983,13 @@ export default function CanvasMode({
             )}
           </button>
           <button
-            onClick={() => {
-              if (!showNavOverlay) setShowNavOverlay(true);
-              setShowSettingsPanel((v) => !v);
-            }}
+            onClick={() =>
+              setActivePane((prev) =>
+                prev === 'settings' ? 'preview' : 'settings'
+              )
+            }
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
-              showSettingsPanel
+              activePane === 'settings'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
             }`}
@@ -999,29 +1000,6 @@ export default function CanvasMode({
               <span className={`text-sm ${brandColors.text}`}>Settings</span>
             )}
           </button>
-          {showSettingsPanel && showNavOverlay && (
-            <div className="w-full px-1">
-              <div
-                className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-3 mt-1 text-xs ${brandColors.textSecondary}`}
-              >
-                <div
-                  className={`flex items-center gap-2 mb-2 ${brandColors.text}`}
-                >
-                  <Cog6ToothIcon className="w-4 h-4" />
-                  <span className="font-semibold text-sm">
-                    Fine-tune best practices
-                  </span>
-                </div>
-                <ul className="space-y-1 list-disc list-inside leading-relaxed">
-                  <li>Write one focused change request at a time.</li>
-                  <li>Share constraints: stack, style, data shapes, limits.</li>
-                  <li>Provide examples: good/bad snippets and target tone.</li>
-                  <li>State outputs you need: code, plan, tests, or diffs.</li>
-                  <li>Call out blockers early (auth, CORS, missing APIs).</li>
-                </ul>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -1263,7 +1241,7 @@ export default function CanvasMode({
         )}
       </div>
 
-      {/* =========== CENTER PANEL: FILES =========== */}
+      {/* =========== CENTER PANEL: FILES / HISTORY / SETTINGS =========== */}
       <div
         className={`${showFilesPanel || showHistoryPanel ? 'w-[220px]' : 'w-0'} flex flex-col ${brandColors.bgPanel} ${showFilesPanel || showHistoryPanel ? `${brandColors.border} border-r` : 'border-transparent'} relative z-10 transition-all duration-300 overflow-hidden`}
       >
@@ -1272,12 +1250,14 @@ export default function CanvasMode({
         >
           {activePane === 'history' ? (
             <ClockIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
+          ) : activePane === 'settings' ? (
+            <Cog6ToothIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
           ) : (
             <FolderIcon className={`w-4 h-4 ${brandColors.accentCyan}`} />
           )}
           {(showFilesPanel || showHistoryPanel) && (
             <span className={`text-sm font-medium ${brandColors.text}`}>
-              {activePane === 'history' ? 'History' : 'Files'}
+              {activePane === 'history' ? 'History' : activePane === 'settings' ? 'Settings' : 'Files'}
             </span>
           )}
           {generatedFiles.length > 0 &&
@@ -1291,7 +1271,120 @@ export default function CanvasMode({
             )}
         </div>
 
-        {activePane === 'history' && showHistoryPanel ? (
+        {activePane === 'settings' && showHistoryPanel ? (
+          /* =========== SETTINGS PANEL CONTENT =========== */
+          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar space-y-4">
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
+              >
+                <SparklesIcon className="w-4 h-4 text-cyan-400" />
+                <span className="font-semibold text-sm">
+                  Fine-tune best practices
+                </span>
+              </div>
+              <ul className={`space-y-2 text-xs ${brandColors.textSecondary} leading-relaxed`}>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400">•</span>
+                  Write one focused change request at a time.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400">•</span>
+                  Share constraints: stack, style, data shapes, limits.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-pink-400">•</span>
+                  Provide examples: good/bad snippets and target tone.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400">•</span>
+                  State outputs you need: code, plan, tests, or diffs.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400">•</span>
+                  Call out blockers early (auth, CORS, missing APIs).
+                </li>
+              </ul>
+            </div>
+
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
+              >
+                <CodeBracketIcon className="w-4 h-4 text-purple-400" />
+                <span className="font-semibold text-sm">
+                  Output Preferences
+                </span>
+              </div>
+              <div className="space-y-3">
+                <label className="flex items-center justify-between">
+                  <span className={`text-xs ${brandColors.textSecondary}`}>Auto-preview</span>
+                  <div className={`w-10 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/50 relative cursor-pointer`}>
+                    <div className="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-cyan-400 transition-all"></div>
+                  </div>
+                </label>
+                <label className="flex items-center justify-between">
+                  <span className={`text-xs ${brandColors.textSecondary}`}>Show code hints</span>
+                  <div className={`w-10 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/50 relative cursor-pointer`}>
+                    <div className="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-cyan-400 transition-all"></div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
+              >
+                <DevicePhoneMobileIcon className="w-4 h-4 text-pink-400" />
+                <span className="font-semibold text-sm">
+                  Default Preview
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPreviewDevice('desktop')}
+                  className={`flex-1 p-2 rounded-lg text-xs flex flex-col items-center gap-1 transition-all ${
+                    previewDevice === 'desktop'
+                      ? brandColors.btnPrimary
+                      : `${brandColors.bgHover} ${brandColors.textSecondary}`
+                  }`}
+                >
+                  <ComputerDesktopIcon className="w-4 h-4" />
+                  Desktop
+                </button>
+                <button
+                  onClick={() => setPreviewDevice('tablet')}
+                  className={`flex-1 p-2 rounded-lg text-xs flex flex-col items-center gap-1 transition-all ${
+                    previewDevice === 'tablet'
+                      ? brandColors.btnPrimary
+                      : `${brandColors.bgHover} ${brandColors.textSecondary}`
+                  }`}
+                >
+                  <DeviceTabletIcon className="w-4 h-4" />
+                  Tablet
+                </button>
+                <button
+                  onClick={() => setPreviewDevice('mobile')}
+                  className={`flex-1 p-2 rounded-lg text-xs flex flex-col items-center gap-1 transition-all ${
+                    previewDevice === 'mobile'
+                      ? brandColors.btnPrimary
+                      : `${brandColors.bgHover} ${brandColors.textSecondary}`
+                  }`}
+                >
+                  <DevicePhoneMobileIcon className="w-4 h-4" />
+                  Mobile
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : activePane === 'history' && showHistoryPanel ? (
           <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-2">
             {historyEntries.length === 0 ? (
               <div className={`text-center py-8 ${brandColors.textSecondary}`}>
