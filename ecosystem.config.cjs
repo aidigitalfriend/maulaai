@@ -40,9 +40,9 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3005,
-        REDIS_URL: 'redis://default:O0GuKqY8vfZp4I9QZxG4wwpyhLFxJ2uJ@redis-17779.crce185.ap-seast-1-1.ec2.cloud.redislabs.com:17779',
         DOTENV_CONFIG_PATH: '/home/ubuntu/shiny-friend-disco/backend/.env',
       },
+      env_file: '/home/ubuntu/shiny-friend-disco/backend/.env',
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,
