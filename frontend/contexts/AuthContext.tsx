@@ -245,6 +245,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear local user data
       secureAuthStorage.clearUser();
       dispatch({ type: 'AUTH_LOGOUT' });
+
+      // Redirect to home page after logout
+      window.location.href = 'https://onelastai.co';
     }
   };
 
