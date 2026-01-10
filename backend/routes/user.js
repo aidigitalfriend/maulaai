@@ -50,7 +50,9 @@ router.get('/profile', async (req, res) => {
     }
 
     // Generate cache key
-    const cacheKey = userId ? cacheKeys.user(`${userId}:profile`) : `user:email:${userEmail}:profile`;
+    const cacheKey = userId
+      ? cacheKeys.user(`${userId}:profile`)
+      : `user:email:${userEmail}:profile`;
 
     // Try to get from cache first
     const cachedProfile = await cache.get(cacheKey);
@@ -58,7 +60,7 @@ router.get('/profile', async (req, res) => {
       return res.json({
         success: true,
         profile: cachedProfile,
-        cached: true
+        cached: true,
       });
     }
 
@@ -107,7 +109,7 @@ router.get('/profile', async (req, res) => {
     res.json({
       success: true,
       profile: profile,
-      cached: false
+      cached: false,
     });
   } catch (error) {
     console.error('Get user profile error:', error);
@@ -173,7 +175,9 @@ router.put('/profile', async (req, res) => {
     await user.save();
 
     // Invalidate cache for this user
-    const cacheKey = userId ? cacheKeys.user(`${userId}:profile`) : `user:email:${userEmail}:profile`;
+    const cacheKey = userId
+      ? cacheKeys.user(`${userId}:profile`)
+      : `user:email:${userEmail}:profile`;
     await cache.del(cacheKey);
 
     // Return complete profile data
@@ -322,7 +326,7 @@ router.get('/profile/:userId', async (req, res) => {
       return res.json({
         success: true,
         profile: cachedProfile,
-        cached: true
+        cached: true,
       });
     }
 
@@ -365,7 +369,7 @@ router.get('/profile/:userId', async (req, res) => {
     res.json({
       success: true,
       profile: profile,
-      cached: false
+      cached: false,
     });
   } catch (error) {
     console.error('Get user profile by ID error:', error);

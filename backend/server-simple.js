@@ -1184,6 +1184,31 @@ app.post('/api/auth/verify', handleAuthVerify);
 // verification endpoint if needed.
 app.post('/api/auth-backend/verify', handleAuthVerify);
 
+// POST /api/auth/logout - Logout and clear session
+app.post('/api/auth/logout', async (req, res) => {
+  try {
+    console.log('🚪 Auth logout endpoint called');
+
+    // Clear session cookie
+    res.clearCookie('session_id', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    console.log('✅ Session cookie cleared successfully');
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // User endpoints
 // GET /api/user/profile - Get current user profile
 app.get('/api/user/profile', async (req, res) => {
