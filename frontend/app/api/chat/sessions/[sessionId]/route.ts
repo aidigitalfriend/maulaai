@@ -77,7 +77,7 @@ async function checkAgentSubscription(
       user: userId,
       agentId: agentId,
       status: 'active',
-      'billing.currentPeriodEnd': { $gt: new Date() }
+      'billing.currentPeriodEnd': { $gt: new Date() },
     });
 
     return !!activeSubscription;
@@ -219,7 +219,7 @@ export async function POST(
           user: userId,
           agentId: agentId,
           status: 'active',
-          'billing.currentPeriodEnd': { $gt: new Date() }
+          'billing.currentPeriodEnd': { $gt: new Date() },
         });
         subscriptionId = activeSub?._id?.toString();
       }
