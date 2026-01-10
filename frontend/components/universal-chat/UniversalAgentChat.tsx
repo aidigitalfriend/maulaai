@@ -285,7 +285,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     }
 
     try {
-      const query = isValidObjectId(agent.id) ? `?agentId=${agent.id}` : '';
+      // Always include agentId in query to ensure agent-specific sessions
+      const query = `?agentId=${encodeURIComponent(agent.id)}`;
       const response = await fetch(`/api/chat/sessions${query}`, {
         credentials: 'include',
       });
@@ -347,7 +348,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           body: JSON.stringify({
             role: message.role,
             content: message.content,
-            ...(isValidObjectId(agent.id) ? { agentId: agent.id } : {}),
+            agentId: agent.id, // Always include agentId for proper session association
           }),
         });
 
@@ -413,10 +414,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     try {
       const body: Record<string, any> = {
         name: `Conversation ${sessions.length + 1}`,
+        agentId: agent.id, // Always include agentId for proper separation
       };
-      if (isValidObjectId(agent.id)) {
-        body.agentId = agent.id;
-      }
 
       const resp = await fetch('/api/chat/sessions', {
         method: 'POST',
