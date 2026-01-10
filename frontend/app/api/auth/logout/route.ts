@@ -10,11 +10,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Clear the HttpOnly session cookie by setting it with maxAge 0
+    // Clear the HttpOnly session cookie - must match how it was set
     response.cookies.set('session_id', '', {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'lax',  // Must match login cookie settings
       maxAge: 0, // Immediately expire the cookie
       path: '/',
     });

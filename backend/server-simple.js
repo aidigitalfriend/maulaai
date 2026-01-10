@@ -1189,11 +1189,29 @@ app.post('/api/auth/logout', async (req, res) => {
   try {
     console.log('🚪 Auth logout endpoint called');
 
-    // Clear session cookie
+    // Get session ID to invalidate in database
+    const sessionId = req.cookies?.session_id;
+    
+    if (sessionId) {
+      try {
+        // Invalidate session in database
+        const db = mongoose.connection.db;
+        const users = db.collection('users');
+        await users.updateOne(
+          { sessionId: sessionId },
+          { $unset: { sessionId: '', sessionExpiry: '' } }
+        );
+        console.log('✅ Session invalidated in database');
+      } catch (dbError) {
+        console.error('⚠️ Error invalidating session in DB:', dbError);
+      }
+    }
+
+    // Clear session cookie - must match how it was set in login
     res.clearCookie('session_id', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',  // Must match login cookie settings
       path: '/',
     });
 

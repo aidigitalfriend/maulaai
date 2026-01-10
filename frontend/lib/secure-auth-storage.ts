@@ -51,7 +51,10 @@ export const secureAuthStorage = {
         credentials: 'include', // Sends HttpOnly cookies automatically
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
         },
+        cache: 'no-store',
       });
 
       if (response.ok) {
