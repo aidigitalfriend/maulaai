@@ -18,18 +18,11 @@ async function authenticateUser(request: NextRequest) {
       return null;
     }
 
-    // Verify session exists in sessions collection
-    const session = await db.collection('sessions').findOne({
-      sessionId: sessionId,
-    });
-
-    if (!session || !session.userId) {
-      return null;
-    }
-
-    // Get user from users collection
+    // Session is stored directly on the user document (not a separate collection)
+    // Backend stores sessionId and sessionExpiry on user during login
     const user = await db.collection('users').findOne({
-      _id: new mongoose.Types.ObjectId(session.userId),
+      sessionId: sessionId,
+      sessionExpiry: { $gt: new Date() },
     });
 
     return user;
