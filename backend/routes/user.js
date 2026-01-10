@@ -3,6 +3,8 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import User from '../models/User.js';
+import { cache, cacheKeys, queryCache } from '../lib/cache.js';
+
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -47,6 +49,19 @@ router.get('/profile', async (req, res) => {
         .json({ success: false, error: 'Authentication required' });
     }
 
+    // Generate cache key
+    const cacheKey = userId ? cacheKeys.user(`${userId}:profile`) : `user:email:${userEmail}:profile`;
+
+    // Try to get from cache first
+    const cachedProfile = await cache.get(cacheKey);
+    if (cachedProfile) {
+      return res.json({
+        success: true,
+        profile: cachedProfile,
+        cached: true
+      });
+    }
+
     // Find user by ID or email
     let user;
     if (userId) {
@@ -86,9 +101,13 @@ router.get('/profile', async (req, res) => {
       },
     };
 
+    // Cache the profile for 10 minutes
+    await cache.set(cacheKey, profile, 600);
+
     res.json({
       success: true,
       profile: profile,
+      cached: false
     });
   } catch (error) {
     console.error('Get user profile error:', error);
@@ -152,6 +171,10 @@ router.put('/profile', async (req, res) => {
 
     user.updatedAt = new Date();
     await user.save();
+
+    // Invalidate cache for this user
+    const cacheKey = userId ? cacheKeys.user(`${userId}:profile`) : `user:email:${userEmail}:profile`;
+    await cache.del(cacheKey);
 
     // Return complete profile data
     const profile = {
@@ -226,6 +249,10 @@ router.post(
       user.updatedAt = new Date();
       await user.save();
 
+      // Invalidate cache for this user
+      const cacheKey = cacheKeys.user(`${userId}:profile`);
+      await cache.del(cacheKey);
+
       res.json({
         success: true,
         avatarUrl: avatarUrl,
@@ -259,6 +286,10 @@ router.patch('/profile/:userId/preferences', async (req, res) => {
     user.updatedAt = new Date();
     await user.save();
 
+    // Invalidate cache for this user
+    const cacheKey = cacheKeys.user(`${userId}:profile`);
+    await cache.del(cacheKey);
+
     res.json({
       success: true,
       preferences: user.preferences,
@@ -280,6 +311,19 @@ router.get('/profile/:userId', async (req, res) => {
       return res
         .status(400)
         .json({ success: false, error: 'User ID is required' });
+    }
+
+    // Generate cache key
+    const cacheKey = cacheKeys.user(`${userId}:profile`);
+
+    // Try to get from cache first
+    const cachedProfile = await cache.get(cacheKey);
+    if (cachedProfile) {
+      return res.json({
+        success: true,
+        profile: cachedProfile,
+        cached: true
+      });
     }
 
     const user = await User.findById(userId).select('-password -__v');
@@ -315,9 +359,13 @@ router.get('/profile/:userId', async (req, res) => {
       },
     };
 
+    // Cache the profile for 10 minutes
+    await cache.set(cacheKey, profile, 600);
+
     res.json({
       success: true,
       profile: profile,
+      cached: false
     });
   } catch (error) {
     console.error('Get user profile by ID error:', error);
