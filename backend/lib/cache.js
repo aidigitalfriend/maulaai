@@ -116,7 +116,16 @@ class CacheManager {
   constructor() {
     this.client = null;
     this.isConnected = false;
-    this.init();
+    this.memoryCache = new Map();
+    this.initialized = false;
+    // Don't initialize immediately - wait for first use
+  }
+
+  async ensureInitialized() {
+    if (this.initialized) return;
+
+    this.initialized = true;
+    await this.init();
   }
 
   async init() {
@@ -145,15 +154,15 @@ class CacheManager {
         );
         this.client = null;
         this.isConnected = false;
-        this.memoryCache = new Map();
       });
     } catch (error) {
       console.warn('⚠️ Redis not available, using in-memory cache');
-      this.memoryCache = new Map();
     }
   }
 
   async get(key) {
+    await this.ensureInitialized();
+
     try {
       if (this.client && this.isConnected) {
         const value = await this.client.get(key);
@@ -174,6 +183,8 @@ class CacheManager {
   }
 
   async set(key, value, ttlSeconds = 300) {
+    await this.ensureInitialized();
+
     try {
       const data = JSON.stringify(value);
       if (this.client && this.isConnected) {
@@ -190,6 +201,8 @@ class CacheManager {
   }
 
   async del(key) {
+    await this.ensureInitialized();
+
     try {
       if (this.client && this.isConnected) {
         await this.client.del(key);
@@ -202,6 +215,8 @@ class CacheManager {
   }
 
   async clear(pattern = '*') {
+    await this.ensureInitialized();
+
     try {
       if (this.client && this.isConnected) {
         const keys = await this.client.keys(pattern);
