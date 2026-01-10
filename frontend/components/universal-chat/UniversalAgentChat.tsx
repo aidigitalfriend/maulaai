@@ -237,12 +237,23 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       if (!resp.ok) return;
       const data = await resp.json();
       if (data.success && data.session) {
-        const msgs = (data.session.messages || []).map((msg: any) => ({
+        let msgs = (data.session.messages || []).map((msg: any) => ({
           id: msg.id || `msg-${Date.now()}-${Math.random()}`,
           role: msg.role,
           content: msg.content,
           timestamp: new Date(msg.timestamp || msg.createdAt),
         }));
+
+        // If no messages, add welcome message locally (don't save to DB)
+        if (msgs.length === 0) {
+          msgs = [{
+            id: `welcome-${Date.now()}`,
+            role: 'assistant' as const,
+            content: agent.welcomeMessage,
+            timestamp: new Date(),
+          }];
+        }
+
         setSessions((prev) =>
           prev.map((s) =>
             s.id === sessionId
@@ -259,7 +270,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     } catch (err) {
       console.error('Failed to fetch session messages', err);
     }
-  }, []);
+  }, [agent.welcomeMessage]);
 
   // Load sessions from database
   const loadSessions = useCallback(async () => {
@@ -314,7 +325,38 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     isValidObjectId,
   ]);
 
-  // Save session to database
+  // Save message to session in database
+  const saveMessageToSession = useCallback(
+    async (sessionId: string, message: Message) => {
+      if (!authState.isAuthenticated || !authState.user) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            role: message.role,
+            content: message.content,
+            ...(isValidObjectId(agent.id) ? { agentId: agent.id } : {}),
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to save message to session');
+        }
+      } catch (error) {
+        console.error('Error saving message:', error);
+      }
+    },
+    [authState.isAuthenticated, authState.user, agent.id, isValidObjectId]
+  );
+
+  // Legacy save session (for analytics/interactions)
   const saveSession = useCallback(
     async (session: ChatSession) => {
       if (!authState.isAuthenticated || !authState.user) {
@@ -383,22 +425,32 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       }
       const data = await resp.json();
       if (data.success && data.session) {
+        // Create welcome message for new session
+        const welcomeMessage: Message = {
+          id: `welcome-${Date.now()}`,
+          role: 'assistant',
+          content: agent.welcomeMessage,
+          timestamp: new Date(),
+        };
+
         const session: ChatSession = {
           id: data.session.id,
           name: data.session.name,
-          messages: [],
-          lastMessage: '',
-          messageCount: 0,
+          messages: [welcomeMessage],
+          lastMessage: agent.welcomeMessage.slice(0, 50),
+          messageCount: 1,
           updatedAt: new Date(data.session.updatedAt || Date.now()),
         };
         setSessions((prev) => [session, ...prev]);
         setActiveSessionId(session.id);
-        await fetchSessionMessages(session.id);
+
+        // Save welcome message to database
+        await saveMessageToSession(session.id, welcomeMessage);
       }
     } catch (err) {
       console.error('Error creating session', err);
     }
-  }, [agent.id, sessions.length, fetchSessionMessages, isValidObjectId]);
+  }, [agent.id, agent.welcomeMessage, sessions.length, isValidObjectId, saveMessageToSession]);
 
   const handleSelectSession = useCallback(
     (id: string) => {
@@ -755,6 +807,15 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         throw new Error(data.error || 'Failed to send message');
       }
 
+      // Create final assistant message
+      const finalAssistantMessage: Message = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date(),
+        isStreaming: false,
+      };
+
       // Update the assistant message with the response
       setSessions((prev) =>
         prev.map((s) =>
@@ -763,11 +824,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 ...s,
                 messages: s.messages.map((m) =>
                   m.id === assistantMessageId
-                    ? {
-                        ...m,
-                        content: data.message,
-                        isStreaming: false,
-                      }
+                    ? finalAssistantMessage
                     : m
                 ),
                 lastMessage: data.message.slice(0, 50),
@@ -775,6 +832,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             : s
         )
       );
+
+      // Save both messages to the session in database
+      await saveMessageToSession(activeSessionId, userMessage);
+      await saveMessageToSession(activeSessionId, finalAssistantMessage);
     } catch (error) {
       console.error('Chat error:', error);
 
@@ -799,7 +860,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       );
     } finally {
       setIsLoading(false);
-      // Save session to database after message exchange
+      // Legacy: also save to interactions for analytics
       const updatedSession = sessions.find((s) => s.id === activeSessionId);
       if (updatedSession) {
         saveSession(updatedSession);
@@ -820,6 +881,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     settings.mode,
     sessions,
     saveSession,
+    saveMessageToSession,
   ]);
 
   return (
