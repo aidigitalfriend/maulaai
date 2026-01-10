@@ -246,8 +246,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       secureAuthStorage.clearUser();
       dispatch({ type: 'AUTH_LOGOUT' });
 
-      // Redirect to home page after logout
-      window.location.href = 'https://onelastai.co';
+      // Force redirect to home page with cache busting
+      window.location.replace(`/?logout=${Date.now()}`);
     }
   };
 
