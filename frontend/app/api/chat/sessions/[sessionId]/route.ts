@@ -94,7 +94,10 @@ export async function GET(
         updatedAt: now,
       };
       await sessionsCollection.insertOne(session);
-      console.log('[chat/sessions/id] Auto-created session in MongoDB:', sessionId);
+      console.log(
+        '[chat/sessions/id] Auto-created session in MongoDB:',
+        sessionId
+      );
     }
 
     return NextResponse.json({
@@ -160,24 +163,31 @@ export async function POST(
       session = {
         id: sessionId,
         userId,
-        name: role === 'user' ? content.slice(0, 50) + (content.length > 50 ? '...' : '') : `Conversation ${sessionCount + 1}`,
+        name:
+          role === 'user'
+            ? content.slice(0, 50) + (content.length > 50 ? '...' : '')
+            : `Conversation ${sessionCount + 1}`,
         agentId: agentId || undefined,
         messages: [message],
         createdAt: now,
         updatedAt: now,
       };
       await sessionsCollection.insertOne(session);
-      console.log('[chat/sessions/id] Created session with first message:', sessionId);
+      console.log(
+        '[chat/sessions/id] Created session with first message:',
+        sessionId
+      );
     } else {
       // Update existing session - add message
       const updateData: Record<string, unknown> = {
         $push: { messages: message },
-        $set: { updatedAt: now }
+        $set: { updatedAt: now },
       };
 
       // Update name if first user message
       if (session.messages.length === 0 && role === 'user') {
-        (updateData.$set as Record<string, unknown>).name = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+        (updateData.$set as Record<string, unknown>).name =
+          content.slice(0, 50) + (content.length > 50 ? '...' : '');
       }
 
       // Update agentId if provided and not set
@@ -185,10 +195,7 @@ export async function POST(
         (updateData.$set as Record<string, unknown>).agentId = agentId;
       }
 
-      await sessionsCollection.updateOne(
-        { id: sessionId, userId },
-        updateData
-      );
+      await sessionsCollection.updateOne({ id: sessionId, userId }, updateData);
     }
 
     return NextResponse.json({
@@ -219,7 +226,10 @@ export async function DELETE(
     const { sessionId } = await params;
     const sessionsCollection = db.collection('chat_sessions');
 
-    const result = await sessionsCollection.deleteOne({ id: sessionId, userId });
+    const result = await sessionsCollection.deleteOne({
+      id: sessionId,
+      userId,
+    });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(

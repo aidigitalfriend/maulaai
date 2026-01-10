@@ -251,7 +251,10 @@ export async function DELETE(request: NextRequest) {
 
     const sessionsCollection = db.collection('chat_sessions');
 
-    const result = await sessionsCollection.deleteOne({ id: sessionId, userId });
+    const result = await sessionsCollection.deleteOne({
+      id: sessionId,
+      userId,
+    });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
