@@ -25,6 +25,7 @@ interface ChatSession {
   userId: string;
   name: string;
   agentId?: string;
+  subscriptionId?: string; // Reference to the active subscription
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
@@ -59,6 +60,30 @@ async function authenticateUser(
   } catch (dbError) {
     console.error('[chat/sessions/id] MongoDB error:', dbError);
     return { error: 'Database error', status: 500 };
+  }
+}
+
+// Check if user has active subscription for specific agent
+async function checkAgentSubscription(
+  db: any,
+  userId: string,
+  agentId: string
+): Promise<boolean> {
+  try {
+    const subscriptions = db.collection('subscriptions');
+
+    // Check if user has active subscription for this agent
+    const activeSubscription = await subscriptions.findOne({
+      user: userId,
+      agentId: agentId,
+      status: 'active',
+      'billing.currentPeriodEnd': { $gt: new Date() }
+    });
+
+    return !!activeSubscription;
+  } catch (error) {
+    console.error('[chat/sessions/id] Subscription check error:', error);
+    return false;
   }
 }
 
@@ -152,6 +177,17 @@ export async function POST(
       );
     }
 
+    // Validate agent subscription if agentId is provided
+    if (agentId) {
+      const hasSubscription = await checkAgentSubscription(db, userId, agentId);
+      if (!hasSubscription) {
+        return NextResponse.json(
+          { success: false, error: 'No active subscription for this agent' },
+          { status: 403 }
+        );
+      }
+    }
+
     const sessionsCollection = db.collection('chat_sessions');
 
     // Check if session exists
@@ -175,6 +211,19 @@ export async function POST(
     };
 
     if (!session) {
+      // Get the active subscription for this agent to link it to the session
+      let subscriptionId: string | undefined;
+      if (agentId) {
+        const subscriptions = db.collection('subscriptions');
+        const activeSub = await subscriptions.findOne({
+          user: userId,
+          agentId: agentId,
+          status: 'active',
+          'billing.currentPeriodEnd': { $gt: new Date() }
+        });
+        subscriptionId = activeSub?._id?.toString();
+      }
+
       // Create new session with the first message
       const sessionCount = await sessionsCollection.countDocuments({ userId });
       session = {
@@ -185,6 +234,7 @@ export async function POST(
             ? content.slice(0, 50) + (content.length > 50 ? '...' : '')
             : `Conversation ${sessionCount + 1}`,
         agentId: agentId || undefined,
+        subscriptionId: subscriptionId, // Link to active subscription
         messages: [message],
         createdAt: now,
         updatedAt: now,

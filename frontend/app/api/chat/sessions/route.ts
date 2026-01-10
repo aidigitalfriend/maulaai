@@ -25,6 +25,7 @@ interface ChatSession {
   userId: string;
   name: string;
   agentId?: string;
+  subscriptionId?: string; // Reference to the active subscription
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
@@ -72,6 +73,30 @@ async function authenticateUser(
   }
 }
 
+// Check if user has active subscription for specific agent
+async function checkAgentSubscription(
+  db: any,
+  userId: string,
+  agentId: string
+): Promise<boolean> {
+  try {
+    const subscriptions = db.collection('subscriptions');
+
+    // Check if user has active subscription for this agent
+    const activeSubscription = await subscriptions.findOne({
+      user: userId,
+      agentId: agentId,
+      status: 'active',
+      'billing.currentPeriodEnd': { $gt: new Date() }
+    });
+
+    return !!activeSubscription;
+  } catch (error) {
+    console.error('[chat/sessions] Subscription check error:', error);
+    return false;
+  }
+}
+
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
@@ -87,6 +112,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId');
+
+    // Validate agent subscription if agentId is specified
+    if (agentId) {
+      const hasSubscription = await checkAgentSubscription(db, userId, agentId);
+      if (!hasSubscription) {
+        return NextResponse.json(
+          { success: false, error: 'No active subscription for this agent' },
+          { status: 403 }
+        );
+      }
+    }
 
     const sessionsCollection = db.collection('chat_sessions');
 
@@ -109,6 +145,7 @@ export async function GET(request: NextRequest) {
         id: s.id,
         name: s.name,
         agentId: s.agentId,
+        subscriptionId: s.subscriptionId, // Include subscription reference
         messageCount: s.messages?.length || 0,
         lastMessage:
           s.messages?.[s.messages.length - 1]?.content?.slice(0, 100) || '',
@@ -137,6 +174,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, agentId } = body;
 
+    // Validate agent subscription before creating session
+    if (agentId) {
+      const hasSubscription = await checkAgentSubscription(db, userId, agentId);
+      if (!hasSubscription) {
+        return NextResponse.json(
+          { success: false, error: 'No active subscription for this agent' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Get the active subscription for this agent to link it to the session
+    let subscriptionId: string | undefined;
+    if (agentId) {
+      const subscriptions = db.collection('subscriptions');
+      const activeSub = await subscriptions.findOne({
+        user: userId,
+        agentId: agentId,
+        status: 'active',
+        'billing.currentPeriodEnd': { $gt: new Date() }
+      });
+      subscriptionId = activeSub?._id?.toString();
+    }
+
     const sessionsCollection = db.collection('chat_sessions');
 
     // Count existing sessions for naming
@@ -148,6 +209,7 @@ export async function POST(request: NextRequest) {
       userId,
       name: name || `Conversation ${sessionCount + 1}`,
       agentId: agentId || undefined,
+      subscriptionId: subscriptionId, // Link to active subscription
       messages: [],
       createdAt: now,
       updatedAt: now,
@@ -164,6 +226,7 @@ export async function POST(request: NextRequest) {
         id: session.id,
         name: session.name,
         agentId: session.agentId,
+        subscriptionId: session.subscriptionId, // Include subscription reference
         messageCount: 0,
         lastMessage: '',
         createdAt: session.createdAt,
