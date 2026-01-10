@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
         Bucket: bucket,
         Key: key,
         ContentType: contentType,
-        ACL: 'public-read',
+        // Note: ACL removed - using bucket policy for public read access instead
+        // (bucket has "Bucket owner enforced" which disables ACLs)
       }),
       { expiresIn: 300 }
     );
