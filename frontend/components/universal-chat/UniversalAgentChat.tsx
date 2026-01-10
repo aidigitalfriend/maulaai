@@ -472,14 +472,29 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   );
 
   const handleDeleteSession = useCallback(
-    (id: string) => {
-      setSessions((prev) => {
-        const filtered = prev.filter((s) => s.id !== id);
-        if (activeSessionId === id && filtered.length > 0) {
-          setActiveSessionId(filtered[0].id);
+    async (id: string) => {
+      try {
+        const response = await fetch(`/api/chat/sessions?sessionId=${id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          console.error('Failed to delete session');
+          return;
         }
-        return filtered;
-      });
+
+        // Update local state after successful deletion
+        setSessions((prev) => {
+          const filtered = prev.filter((s) => s.id !== id);
+          if (activeSessionId === id && filtered.length > 0) {
+            setActiveSessionId(filtered[0].id);
+          }
+          return filtered;
+        });
+      } catch (error) {
+        console.error('Error deleting session:', error);
+      }
     },
     [activeSessionId]
   );

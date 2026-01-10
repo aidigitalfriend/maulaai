@@ -28,6 +28,7 @@ interface ChatSession {
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
+  deleted?: boolean;
 }
 
 // Authenticate user from request cookies
@@ -81,6 +82,14 @@ export async function GET(
     const sessionsCollection = db.collection('chat_sessions');
 
     let session = await sessionsCollection.findOne({ id: sessionId, userId });
+
+    // Check if session exists and is not deleted
+    if (session && session.deleted) {
+      return NextResponse.json(
+        { success: false, error: 'Session not found' },
+        { status: 404 }
+      );
+    }
 
     // Auto-create session if it doesn't exist
     if (!session) {
@@ -147,6 +156,14 @@ export async function POST(
 
     // Check if session exists
     let session = await sessionsCollection.findOne({ id: sessionId, userId });
+
+    // Don't allow adding messages to deleted sessions
+    if (session && session.deleted) {
+      return NextResponse.json(
+        { success: false, error: 'Session not found' },
+        { status: 404 }
+      );
+    }
 
     const now = new Date().toISOString();
     const message: ChatMessage = {
@@ -226,19 +243,21 @@ export async function DELETE(
     const { sessionId } = await params;
     const sessionsCollection = db.collection('chat_sessions');
 
-    const result = await sessionsCollection.deleteOne({
-      id: sessionId,
-      userId,
-    });
+    const now = new Date().toISOString();
+    const result = await sessionsCollection.findOneAndUpdate(
+      { id: sessionId, userId },
+      { $set: { deleted: true, updatedAt: now } },
+      { returnDocument: 'after' }
+    );
 
-    if (result.deletedCount === 0) {
+    if (!result) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
 
-    console.log('[chat/sessions/id] Deleted session from MongoDB:', sessionId);
+    console.log('[chat/sessions/id] Soft deleted session:', sessionId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -28,6 +28,7 @@ interface ChatSession {
   messages: ChatMessage[];
   createdAt: string;
   updatedAt: string;
+  deleted?: boolean;
 }
 
 // Authenticate user from request cookies
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest) {
     const sessionsCollection = db.collection('chat_sessions');
 
     // Build query
-    const query: Record<string, unknown> = { userId };
+    const query: Record<string, unknown> = { userId, deleted: { $ne: true } };
     if (agentId) {
       query.agentId = agentId;
     }
@@ -251,19 +252,21 @@ export async function DELETE(request: NextRequest) {
 
     const sessionsCollection = db.collection('chat_sessions');
 
-    const result = await sessionsCollection.deleteOne({
-      id: sessionId,
-      userId,
-    });
+    const now = new Date().toISOString();
+    const result = await sessionsCollection.findOneAndUpdate(
+      { id: sessionId, userId },
+      { $set: { deleted: true, updatedAt: now } },
+      { returnDocument: 'after' }
+    );
 
-    if (result.deletedCount === 0) {
+    if (!result) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
 
-    console.log('[chat/sessions] Deleted session from MongoDB:', sessionId);
+    console.log('[chat/sessions] Soft deleted session:', sessionId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
