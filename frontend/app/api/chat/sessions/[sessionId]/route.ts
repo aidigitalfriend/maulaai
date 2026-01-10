@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
-
-// Shared session store reference (fallback if no MongoDB)
-const sessionStore = new Map<string, Map<string, ChatSession>>();
 
 interface ChatMessage {
   id: string;
@@ -22,7 +20,9 @@ interface ChatMessage {
 }
 
 interface ChatSession {
+  _id?: ObjectId;
   id: string;
+  userId: string;
   name: string;
   agentId?: string;
   messages: ChatMessage[];
@@ -30,10 +30,10 @@ interface ChatSession {
   updatedAt: string;
 }
 
-// Authenticate user from request cookies (same pattern as preferences API)
+// Authenticate user from request cookies
 async function authenticateUser(
   request: NextRequest
-): Promise<{ userId: string } | { error: string; status: number }> {
+): Promise<{ userId: string; db: any } | { error: string; status: number }> {
   const sessionId = request.cookies.get('session_id')?.value;
 
   if (!sessionId) {
@@ -54,7 +54,7 @@ async function authenticateUser(
       return { error: 'Invalid or expired session', status: 401 };
     }
 
-    return { userId: sessionUser._id.toString() };
+    return { userId: sessionUser._id.toString(), db };
   } catch (dbError) {
     console.error('[chat/sessions/id] MongoDB error:', dbError);
     return { error: 'Database error', status: 500 };
@@ -65,7 +65,7 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// GET - Get session with messages
+// GET - Get session with messages (from MongoDB)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -74,30 +74,27 @@ export async function GET(
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId } = auth;
+  const { userId, db } = auth;
 
   try {
     const { sessionId } = await params;
+    const sessionsCollection = db.collection('chat_sessions');
 
-    let userSessions = sessionStore.get(userId);
-    if (!userSessions) {
-      userSessions = new Map();
-      sessionStore.set(userId, userSessions);
-    }
+    let session = await sessionsCollection.findOne({ id: sessionId, userId });
 
-    let session = userSessions.get(sessionId);
-
-    // Auto-create session if it doesn't exist (handles in-memory store resets)
+    // Auto-create session if it doesn't exist
     if (!session) {
       const now = new Date().toISOString();
       session = {
         id: sessionId,
+        userId,
         name: 'New Conversation',
         messages: [],
         createdAt: now,
         updatedAt: now,
       };
-      userSessions.set(sessionId, session);
+      await sessionsCollection.insertOne(session);
+      console.log('[chat/sessions/id] Auto-created session in MongoDB:', sessionId);
     }
 
     return NextResponse.json({
@@ -106,7 +103,7 @@ export async function GET(
         id: session.id,
         name: session.name,
         agentId: session.agentId,
-        messages: session.messages,
+        messages: session.messages || [],
         createdAt: session.createdAt,
         updatedAt: session.updatedAt,
       },
@@ -120,7 +117,7 @@ export async function GET(
   }
 }
 
-// POST - Add message to session
+// POST - Add message to session (in MongoDB)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -129,12 +126,12 @@ export async function POST(
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId } = auth;
+  const { userId, db } = auth;
 
   try {
     const { sessionId } = await params;
     const body = await request.json();
-    const { role, content, attachments } = body;
+    const { role, content, attachments, agentId } = body;
 
     if (!role || !content) {
       return NextResponse.json(
@@ -143,41 +140,55 @@ export async function POST(
       );
     }
 
-    let userSessions = sessionStore.get(userId);
-    if (!userSessions) {
-      userSessions = new Map();
-      sessionStore.set(userId, userSessions);
-    }
+    const sessionsCollection = db.collection('chat_sessions');
 
-    let session = userSessions.get(sessionId);
+    // Check if session exists
+    let session = await sessionsCollection.findOne({ id: sessionId, userId });
 
-    // Auto-create session if it doesn't exist
-    if (!session) {
-      const now = new Date().toISOString();
-      session = {
-        id: sessionId,
-        name: `Conversation ${userSessions.size + 1}`,
-        messages: [],
-        createdAt: now,
-        updatedAt: now,
-      };
-      userSessions.set(sessionId, session);
-    }
-
+    const now = new Date().toISOString();
     const message: ChatMessage = {
       id: generateId(),
       role,
       content,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
       attachments: attachments || undefined,
     };
 
-    session.messages.push(message);
-    session.updatedAt = message.timestamp;
+    if (!session) {
+      // Create new session with the first message
+      const sessionCount = await sessionsCollection.countDocuments({ userId });
+      session = {
+        id: sessionId,
+        userId,
+        name: role === 'user' ? content.slice(0, 50) + (content.length > 50 ? '...' : '') : `Conversation ${sessionCount + 1}`,
+        agentId: agentId || undefined,
+        messages: [message],
+        createdAt: now,
+        updatedAt: now,
+      };
+      await sessionsCollection.insertOne(session);
+      console.log('[chat/sessions/id] Created session with first message:', sessionId);
+    } else {
+      // Update existing session - add message
+      const updateData: Record<string, unknown> = {
+        $push: { messages: message },
+        $set: { updatedAt: now }
+      };
 
-    // Update session name based on first user message
-    if (session.messages.length === 1 && role === 'user') {
-      session.name = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+      // Update name if first user message
+      if (session.messages.length === 0 && role === 'user') {
+        (updateData.$set as Record<string, unknown>).name = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+      }
+
+      // Update agentId if provided and not set
+      if (agentId && !session.agentId) {
+        (updateData.$set as Record<string, unknown>).agentId = agentId;
+      }
+
+      await sessionsCollection.updateOne(
+        { id: sessionId, userId },
+        updateData
+      );
     }
 
     return NextResponse.json({
@@ -193,7 +204,7 @@ export async function POST(
   }
 }
 
-// DELETE - Delete session
+// DELETE - Delete session (from MongoDB)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -202,26 +213,22 @@ export async function DELETE(
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId } = auth;
+  const { userId, db } = auth;
 
   try {
     const { sessionId } = await params;
+    const sessionsCollection = db.collection('chat_sessions');
 
-    const userSessions = sessionStore.get(userId);
-    if (!userSessions) {
+    const result = await sessionsCollection.deleteOne({ id: sessionId, userId });
+
+    if (result.deletedCount === 0) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
 
-    const deleted = userSessions.delete(sessionId);
-    if (!deleted) {
-      return NextResponse.json(
-        { success: false, error: 'Session not found' },
-        { status: 404 }
-      );
-    }
+    console.log('[chat/sessions/id] Deleted session from MongoDB:', sessionId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

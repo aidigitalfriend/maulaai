@@ -83,14 +83,17 @@ export async function POST(request: NextRequest) {
     const interaction = {
       conversationId,
       userId: user._id,
-      agentId: agentId && mongoose.Types.ObjectId.isValid(agentId)
-        ? new mongoose.Types.ObjectId(agentId)
-        : undefined,
-      messages: messages.map((msg: { role: string; content: string; timestamp?: number }) => ({
-        role: msg.role,
-        content: msg.content,
-        createdAt: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-      })),
+      agentId:
+        agentId && mongoose.Types.ObjectId.isValid(agentId)
+          ? new mongoose.Types.ObjectId(agentId)
+          : undefined,
+      messages: messages.map(
+        (msg: { role: string; content: string; timestamp?: number }) => ({
+          role: msg.role,
+          content: msg.content,
+          createdAt: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+        })
+      ),
       summary,
       metrics,
       status: 'active',
@@ -99,17 +102,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Save to chatinteractions collection
-    const result = await db.collection('chatinteractions').insertOne(interaction);
+    const result = await db
+      .collection('chatinteractions')
+      .insertOne(interaction);
 
-    return NextResponse.json({
-      success: true,
-      interaction: {
-        id: result.insertedId,
-        conversationId,
-        messageCount: messages.length,
-        createdAt: interaction.createdAt,
+    return NextResponse.json(
+      {
+        success: true,
+        interaction: {
+          id: result.insertedId,
+          conversationId,
+          messageCount: messages.length,
+          createdAt: interaction.createdAt,
+        },
       },
-    }, { status: 201 });
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error saving chat interaction:', error);
     return NextResponse.json(
