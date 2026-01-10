@@ -229,48 +229,53 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     []
   );
 
-  const fetchSessionMessages = useCallback(async (sessionId: string) => {
-    try {
-      const resp = await fetch(`/api/chat/sessions/${sessionId}`, {
-        credentials: 'include',
-      });
-      if (!resp.ok) return;
-      const data = await resp.json();
-      if (data.success && data.session) {
-        let msgs = (data.session.messages || []).map((msg: any) => ({
-          id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-          role: msg.role,
-          content: msg.content,
-          timestamp: new Date(msg.timestamp || msg.createdAt),
-        }));
+  const fetchSessionMessages = useCallback(
+    async (sessionId: string) => {
+      try {
+        const resp = await fetch(`/api/chat/sessions/${sessionId}`, {
+          credentials: 'include',
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (data.success && data.session) {
+          let msgs = (data.session.messages || []).map((msg: any) => ({
+            id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.timestamp || msg.createdAt),
+          }));
 
-        // If no messages, add welcome message locally (don't save to DB)
-        if (msgs.length === 0) {
-          msgs = [{
-            id: `welcome-${Date.now()}`,
-            role: 'assistant' as const,
-            content: agent.welcomeMessage,
-            timestamp: new Date(),
-          }];
+          // If no messages, add welcome message locally (don't save to DB)
+          if (msgs.length === 0) {
+            msgs = [
+              {
+                id: `welcome-${Date.now()}`,
+                role: 'assistant' as const,
+                content: agent.welcomeMessage,
+                timestamp: new Date(),
+              },
+            ];
+          }
+
+          setSessions((prev) =>
+            prev.map((s) =>
+              s.id === sessionId
+                ? {
+                    ...s,
+                    messages: msgs,
+                    messageCount: msgs.length,
+                    updatedAt: new Date(),
+                  }
+                : s
+            )
+          );
         }
-
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === sessionId
-              ? {
-                  ...s,
-                  messages: msgs,
-                  messageCount: msgs.length,
-                  updatedAt: new Date(),
-                }
-              : s
-          )
-        );
+      } catch (err) {
+        console.error('Failed to fetch session messages', err);
       }
-    } catch (err) {
-      console.error('Failed to fetch session messages', err);
-    }
-  }, [agent.welcomeMessage]);
+    },
+    [agent.welcomeMessage]
+  );
 
   // Load sessions from database
   const loadSessions = useCallback(async () => {
@@ -450,7 +455,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     } catch (err) {
       console.error('Error creating session', err);
     }
-  }, [agent.id, agent.welcomeMessage, sessions.length, isValidObjectId, saveMessageToSession]);
+  }, [
+    agent.id,
+    agent.welcomeMessage,
+    sessions.length,
+    isValidObjectId,
+    saveMessageToSession,
+  ]);
 
   const handleSelectSession = useCallback(
     (id: string) => {
@@ -823,9 +834,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             ? {
                 ...s,
                 messages: s.messages.map((m) =>
-                  m.id === assistantMessageId
-                    ? finalAssistantMessage
-                    : m
+                  m.id === assistantMessageId ? finalAssistantMessage : m
                 ),
                 lastMessage: data.message.slice(0, 50),
               }
