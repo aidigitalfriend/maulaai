@@ -31,10 +31,10 @@ ssh -i "$SSH_KEY_FILE" "$SERVER" << 'EOF'
 echo "🔧 Installing NGINX config..."
 sudo cp ~/onelastai.co.conf /etc/nginx/sites-available/onelastai.co
 
-echo "🔗 Creating symlink if needed..."
-if [[ ! -L /etc/nginx/sites-enabled/onelastai.co ]]; then
-  sudo ln -s /etc/nginx/sites-available/onelastai.co /etc/nginx/sites-enabled/
-fi
+echo "🔗 Ensuring proper symlink (removing any stale copies)..."
+# Remove existing file/symlink and create fresh symlink
+sudo rm -f /etc/nginx/sites-enabled/onelastai.co
+sudo ln -s /etc/nginx/sites-available/onelastai.co /etc/nginx/sites-enabled/
 
 echo "✅ Testing NGINX config..."
 sudo nginx -t
