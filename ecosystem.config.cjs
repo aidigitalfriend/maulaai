@@ -43,6 +43,10 @@ module.exports = {
         DOTENV_CONFIG_PATH: '/home/ubuntu/shiny-friend-disco/backend/.env',
       },
       env_file: '/home/ubuntu/shiny-friend-disco/backend/.env',
+      // Explicitly set Redis URL to ensure it's loaded
+      env_production: {
+        REDIS_URL: 'redis://default:O0GuKqY8vfZp4I9QZxG4wwpyhLFxJ2uJ@redis-17779.crce185.ap-seast-1-1.ec2.cloud.redislabs.com:17779',
+      },
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,
