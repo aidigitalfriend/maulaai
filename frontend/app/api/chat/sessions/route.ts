@@ -80,17 +80,41 @@ async function checkAgentSubscription(
   agentId: string
 ): Promise<boolean> {
   try {
-    const subscriptions = db.collection('subscriptions');
-
-    // Check if user has active subscription for this agent
-    const activeSubscription = await subscriptions.findOne({
-      user: userId,
+    // Check agentsubscriptions collection (one-time purchases)
+    const agentSubscriptions = db.collection('agentsubscriptions');
+    const activeAgentSub = await agentSubscriptions.findOne({
+      userId: userId,
       agentId: agentId,
       status: 'active',
-      'billing.currentPeriodEnd': { $gt: new Date() },
+      expiryDate: { $gt: new Date() },
     });
 
-    return !!activeSubscription;
+    if (activeAgentSub) {
+      console.log('[chat/sessions] Found active agent subscription for user:', userId, 'agent:', agentId);
+      return true;
+    }
+
+    // Also check legacy subscriptions collection as fallback
+    const subscriptions = db.collection('subscriptions');
+    const legacySub = await subscriptions.findOne({
+      $and: [
+        { $or: [{ user: userId }, { userId: userId }] },
+        { agentId: agentId },
+        { status: 'active' },
+        { $or: [
+          { 'billing.currentPeriodEnd': { $gt: new Date() } },
+          { expiryDate: { $gt: new Date() } },
+        ]},
+      ],
+    });
+
+    if (legacySub) {
+      console.log('[chat/sessions] Found legacy subscription for user:', userId, 'agent:', agentId);
+      return true;
+    }
+
+    console.log('[chat/sessions] No active subscription found for user:', userId, 'agent:', agentId);
+    return false;
   } catch (error) {
     console.error('[chat/sessions] Subscription check error:', error);
     return false;
@@ -188,14 +212,27 @@ export async function POST(request: NextRequest) {
     // Get the active subscription for this agent to link it to the session
     let subscriptionId: string | undefined;
     if (agentId) {
-      const subscriptions = db.collection('subscriptions');
-      const activeSub = await subscriptions.findOne({
-        user: userId,
+      // First check agentsubscriptions collection
+      const agentSubscriptions = db.collection('agentsubscriptions');
+      const activeAgentSub = await agentSubscriptions.findOne({
+        userId: userId,
         agentId: agentId,
         status: 'active',
-        'billing.currentPeriodEnd': { $gt: new Date() },
+        expiryDate: { $gt: new Date() },
       });
-      subscriptionId = activeSub?._id?.toString();
+      
+      if (activeAgentSub) {
+        subscriptionId = activeAgentSub._id?.toString();
+      } else {
+        // Fallback to legacy subscriptions collection
+        const subscriptions = db.collection('subscriptions');
+        const legacySub = await subscriptions.findOne({
+          $or: [{ user: userId }, { userId: userId }],
+          agentId: agentId,
+          status: 'active',
+        });
+        subscriptionId = legacySub?._id?.toString();
+      }
     }
 
     const sessionsCollection = db.collection('chat_sessions');
