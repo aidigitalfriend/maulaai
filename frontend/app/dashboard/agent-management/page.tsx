@@ -45,6 +45,7 @@ export default function AgentManagementPage() {
   >(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancellingAgentId, setCancellingAgentId] = useState<string | null>(null);
   const redirectToSubscribe = useSubscribeRedirect();
 
   useEffect(() => {
@@ -158,8 +159,46 @@ export default function AgentManagementPage() {
     goToSubscribe(agentId, agentName);
   };
 
-  const handleCancelSubscription = (agentId: string, agentName: string) => {
-    goToSubscribe(agentId, agentName, { intent: 'cancel' });
+  const handleCancelSubscription = async (agentId: string, agentName: string) => {
+    if (!userId) return;
+    
+    // Confirm cancellation
+    if (!confirm(`Are you sure you want to cancel your subscription to ${agentName}? You will lose access immediately.`)) {
+      return;
+    }
+
+    setCancellingAgentId(agentId);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/subscriptions/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId,
+          agentId,
+          immediate: true,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      // Successfully cancelled - refresh subscriptions list
+      const updatedSubs = await agentSubscriptionService.getUserSubscriptions(userId);
+      setSubscriptions(updatedSubs);
+      
+      alert(`Successfully cancelled your subscription to ${agentName}.`);
+    } catch (err) {
+      console.error('Cancel subscription error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to cancel subscription. Please try again.');
+    } finally {
+      setCancellingAgentId(null);
+    }
   };
 
   const handleChatWithAgent = (agentId: string) => {
@@ -331,12 +370,22 @@ export default function AgentManagementPage() {
                                 agent.agentName
                               )
                             }
-                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50"
+                            disabled={cancellingAgentId === agent.agentId}
+                            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Cancel Subscription
-                            <span className="text-xs uppercase tracking-widest font-semibold">
-                              Stop
-                            </span>
+                            {cancellingAgentId === agent.agentId ? (
+                              <>
+                                <span>Cancelling...</span>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              </>
+                            ) : (
+                              <>
+                                Cancel Subscription
+                                <span className="text-xs uppercase tracking-widest font-semibold">
+                                  Stop
+                                </span>
+                              </>
+                            )}
                           </button>
                         </>
                       )}

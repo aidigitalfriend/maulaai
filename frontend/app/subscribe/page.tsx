@@ -11,6 +11,7 @@ function SubscriptionContent() {
   const { state } = useAuth();
   const agentName = searchParams.get('agent') || 'AI Agent';
   const agentSlug = searchParams.get('slug') || 'agent';
+  const intent = searchParams.get('intent'); // Check for cancel intent
   const [checking, setChecking] = useState(true);
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -48,6 +49,17 @@ function SubscriptionContent() {
           if (data.hasAccess && data.subscription) {
             // ✅ Store active subscription data instead of redirecting
             setActiveSubscription(data.subscription);
+            
+            // If intent is cancel, auto-trigger the cancel confirmation
+            if (intent === 'cancel') {
+              // Small delay to ensure state is updated
+              setTimeout(() => {
+                const cancelButton = document.querySelector('[data-cancel-button]') as HTMLButtonElement;
+                if (cancelButton) {
+                  cancelButton.click();
+                }
+              }, 500);
+            }
           }
         }
       } catch (error) {
@@ -58,7 +70,7 @@ function SubscriptionContent() {
     };
 
     checkAccessAndRedirect();
-  }, [agentName, agentSlug, router, state.isAuthenticated, state.user]);
+  }, [agentName, agentSlug, router, state.isAuthenticated, state.user, intent]);
 
   // ✅ Handle subscription cancellation
   const handleCancelSubscription = async () => {
@@ -79,6 +91,7 @@ function SubscriptionContent() {
       const response = await fetch('/api/subscriptions/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           userId: state.user.id,
           agentId: agentSlug,
@@ -91,11 +104,16 @@ function SubscriptionContent() {
         throw new Error(data.error || 'Failed to cancel subscription');
       }
 
-      // Successfully cancelled - refresh to show pricing plans
+      // Successfully cancelled
       setActiveSubscription(null);
       alert(
         'Access cancelled successfully. You can purchase again anytime to continue using this agent.'
       );
+      
+      // If came from agent management with cancel intent, redirect back
+      if (intent === 'cancel') {
+        router.push('/dashboard/agent-management');
+      }
     } catch (error) {
       console.error('Cancel subscription error:', error);
       setErrorMessage(
@@ -306,6 +324,7 @@ function SubscriptionContent() {
                 <button
                   onClick={handleCancelSubscription}
                   disabled={cancelling}
+                  data-cancel-button
                   className="btn-secondary flex-1 bg-red-500/10 border-red-500/20 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {cancelling ? '⏳ Cancelling...' : '❌ Cancel Access'}
