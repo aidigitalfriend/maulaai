@@ -27,6 +27,13 @@ import realtimeChatService, {
 } from './realtimeChatService';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface MessageAttachment {
+  name: string;
+  type: string;
+  url?: string;
+  preview?: string; // For displaying image thumbnail
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -34,6 +41,7 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   codeBlocks?: CodeBlock[];
+  attachments?: MessageAttachment[]; // Store attachments separately for display
 }
 
 interface ChatSession {
@@ -732,7 +740,19 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     )
       return;
 
-    const attachmentText =
+    // Store attachments for display (images show as thumbnails)
+    const messageAttachments: MessageAttachment[] = attachments.map((file) => ({
+      name: file.name,
+      type: file.type,
+      url: file.url,
+      preview: file.type.startsWith('image/') ? (file.url || file.data) : undefined,
+    }));
+
+    // Build display content (clean, without raw URLs/base64)
+    const displayContent = inputValue.trim() || (attachments.length > 0 ? '📎 Sent attachment(s)' : '');
+
+    // Build API content with attachment info for the AI
+    const attachmentTextForApi =
       attachments.length > 0
         ? attachments
             .map((file) => {
@@ -753,8 +773,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: `${attachmentText}${inputValue}`.trim(),
+      content: displayContent, // Clean content for display
       timestamp: new Date(),
+      attachments: messageAttachments.length > 0 ? messageAttachments : undefined,
     };
 
     setSessions((prev) =>
@@ -763,7 +784,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           ? {
               ...s,
               messages: [...s.messages, userMessage],
-              lastMessage: inputValue.slice(0, 50),
+              lastMessage: displayContent.slice(0, 50),
               messageCount: s.messages.length + 1,
               updatedAt: new Date(),
             }
@@ -771,7 +792,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       )
     );
 
-    const userInput = `${attachmentText}${inputValue}`.trim();
+    // Use full content with attachment data for API
+    const userInput = `${attachmentTextForApi}${inputValue}`.trim();
     setInputValue('');
     setAttachments([]);
     setIsLoading(true);
@@ -944,6 +966,33 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 }`}
               >
                 <div className="prose prose-sm max-w-none dark:prose-invert">
+                  {/* Display attachments (images as thumbnails) */}
+                  {message.attachments && message.attachments.length > 0 && (
+                    <div className="mb-3 space-y-2">
+                      {message.attachments.map((attachment, idx) => (
+                        <div key={idx}>
+                          {attachment.type.startsWith('image/') && attachment.preview ? (
+                            <div className="relative group">
+                              <img
+                                src={attachment.preview}
+                                alt={attachment.name}
+                                className="max-w-[200px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => attachment.url && window.open(attachment.url, '_blank')}
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                                {attachment.name}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 p-2 bg-black/10 rounded-lg text-sm">
+                              <span>📎</span>
+                              <span className="truncate">{attachment.name}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeHighlight]}
