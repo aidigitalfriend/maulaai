@@ -997,6 +997,67 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeHighlight]}
                     components={{
+                      // Custom image renderer with download button
+                      img({ src, alt, ...props }) {
+                        const handleDownload = async () => {
+                          if (!src) return;
+                          try {
+                            const response = await fetch(src);
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = alt || 'generated-image.png';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                          } catch (error) {
+                            // Fallback: open in new tab
+                            window.open(src, '_blank');
+                          }
+                        };
+                        
+                        return (
+                          <div className="relative group my-3">
+                            <img
+                              src={src}
+                              alt={alt}
+                              className="max-w-full rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
+                              onClick={() => window.open(src, '_blank')}
+                              {...props}
+                            />
+                            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownload();
+                                }}
+                                className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
+                                title="Download image"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(src, '_blank');
+                                }}
+                                className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
+                                title="Open full size"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Open
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      },
                       code({ inline, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         if (inline) {

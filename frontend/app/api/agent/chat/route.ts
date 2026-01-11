@@ -863,7 +863,8 @@ export async function POST(request: NextRequest) {
       try {
         const imageResult = await generateImage(message);
         if (imageResult) {
-          const responseWithImage = `I've created an image based on your request!\n\n![Generated Image](${imageResult.imageUrl})\n\n**Prompt used:** ${imageResult.revisedPrompt}`;
+          // Clean response without showing the prompt
+          const responseWithImage = `Here's the image I created for you! ✨\n\n![Generated Image](${imageResult.imageUrl})`;
           return NextResponse.json({
             message: responseWithImage,
             provider: 'openai-dalle',
