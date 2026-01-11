@@ -1308,7 +1308,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         {/* Quick Actions Panel */}
         <QuickActionsPanel
           onSelectAction={(prompt) => setInputValue(prompt)}
-          theme="default"
+          theme={isNeural ? 'neural' : 'default'}
           isCollapsed={isQuickActionsCollapsed}
           onToggleCollapse={() =>
             setIsQuickActionsCollapsed(!isQuickActionsCollapsed)

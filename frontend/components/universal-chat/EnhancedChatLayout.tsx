@@ -341,13 +341,36 @@ export function useChatTheme(agentId: string) {
   const [theme, setTheme] = useState<ChatTheme>('default');
 
   useEffect(() => {
+    // Initial load
     const savedTheme = localStorage.getItem(
       `chat-theme-${agentId}`
     ) as ChatTheme;
     if (savedTheme) {
       setTheme(savedTheme);
     }
-  }, [agentId]);
+
+    // Listen for storage changes from other components
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `chat-theme-${agentId}` && e.newValue) {
+        setTheme(e.newValue as ChatTheme);
+      }
+    };
+
+    // Also poll for changes (for same-tab updates)
+    const checkTheme = () => {
+      const currentTheme = localStorage.getItem(`chat-theme-${agentId}`) as ChatTheme;
+      if (currentTheme && currentTheme !== theme) {
+        setTheme(currentTheme);
+      }
+    };
+    const interval = setInterval(checkTheme, 100);
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [agentId, theme]);
 
   const toggleTheme = useCallback(() => {
     const newTheme = theme === 'default' ? 'neural' : 'default';
