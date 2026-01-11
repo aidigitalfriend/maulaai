@@ -139,17 +139,14 @@ function EnhancedChatLayoutContent({
 
             <div className="flex items-center space-x-2">
               {/* Platform Logo */}
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isNeural ? 'bg-gradient-to-br from-cyan-500 to-purple-600' : 'bg-gradient-to-br from-indigo-500 to-purple-600'}`}>
-                <span className="text-white text-sm font-bold">O</span>
-              </div>
-              <div>
-                <h1 className={`text-sm font-semibold ${textPrimary}`}>
-                  OneLastAI
-                </h1>
-                <p className={`text-[10px] ${textSecondary}`}>
-                  AI Digital Friend
-                </p>
-              </div>
+              <img 
+                src="/images/logos/company-logo.png" 
+                alt="OneLastAI" 
+                className="h-8 w-auto object-contain"
+              />
+              <p className={`text-[11px] ${textSecondary}`}>
+                AI Digital Friend
+              </p>
             </div>
           </div>
 
