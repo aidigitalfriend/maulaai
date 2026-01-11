@@ -1316,7 +1316,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         />
 
         {/* Input Area */}
-        <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className={`flex-shrink-0 px-4 py-2 border-t backdrop-blur-sm ${isNeural ? 'border-gray-700 bg-gray-900/80' : 'border-gray-200 bg-white/80'}`}>
           <input
             ref={fileInputRef}
             type="file"
@@ -1334,7 +1334,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               {attachments.map((file, idx) => (
                 <div
                   key={`${file.name}-${idx}`}
-                  className="flex items-center space-x-2 rounded-lg bg-gray-100 text-gray-700 px-2 py-1 text-xs"
+                  className={`flex items-center space-x-2 rounded-lg px-2 py-1 text-xs ${isNeural ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
                 >
                   <span
                     className="font-medium truncate max-w-[140px]"
@@ -1370,7 +1370,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               className={`p-2.5 rounded-xl transition-all ${
                 isRecording
                   ? 'bg-red-500 text-white animate-pulse'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : isNeural
+                    ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
               disabled={!hasSpeechRecognition}
               title={
@@ -1385,7 +1387,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+              className={`p-2.5 rounded-xl transition-all ${isNeural ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               title="Upload File"
             >
               <PaperClipIcon className="w-5 h-5" />
@@ -1394,7 +1396,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             <button
               type="button"
               onClick={() => alert('Voice-to-Voice coming soon!')}
-              className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+              className={`p-2.5 rounded-xl transition-all ${isNeural ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               title="Voice Conversation"
             >
               <PhoneIcon className="w-5 h-5" />
@@ -1406,7 +1408,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={`Message ${agent.name}...`}
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-gray-400"
+                className={`w-full px-4 py-3 pr-12 rounded-xl border transition-all ${isNeural ? 'border-gray-700 bg-gray-800 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent' : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent'}`}
                 disabled={isLoading}
               />
               <button
@@ -1439,13 +1441,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           </form>
 
           {!hasSpeechRecognition && (
-            <p className="mt-1 text-[11px] text-gray-400">
+            <p className={`mt-1 text-[11px] ${isNeural ? 'text-gray-500' : 'text-gray-400'}`}>
               Speech recognition not available in this browser.
             </p>
           )}
 
           <div className="mt-1 text-center">
-            <p className="text-[10px] text-gray-400">
+            <p className={`text-[10px] ${isNeural ? 'text-gray-500' : 'text-gray-400'}`}>
               AI digital friend can make mistakes. Check important info.
             </p>
           </div>
