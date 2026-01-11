@@ -49,12 +49,14 @@ function SubscriptionContent() {
           if (data.hasAccess && data.subscription) {
             // ✅ Store active subscription data instead of redirecting
             setActiveSubscription(data.subscription);
-            
+
             // If intent is cancel, auto-trigger the cancel confirmation
             if (intent === 'cancel') {
               // Small delay to ensure state is updated
               setTimeout(() => {
-                const cancelButton = document.querySelector('[data-cancel-button]') as HTMLButtonElement;
+                const cancelButton = document.querySelector(
+                  '[data-cancel-button]'
+                ) as HTMLButtonElement;
                 if (cancelButton) {
                   cancelButton.click();
                 }
@@ -109,7 +111,7 @@ function SubscriptionContent() {
       alert(
         'Access cancelled successfully. You can purchase again anytime to continue using this agent.'
       );
-      
+
       // If came from agent management with cancel intent, redirect back
       if (intent === 'cancel') {
         router.push('/dashboard/agent-management');
@@ -397,8 +399,8 @@ function SubscriptionContent() {
                   {processingPlan === plan.billingCycle
                     ? '⏳ Processing...'
                     : processingPlan
-                    ? 'Processing...'
-                    : `Purchase ${plan.type} Access`}
+                      ? 'Processing...'
+                      : `Purchase ${plan.type} Access`}
                 </button>
               </div>
             ))}

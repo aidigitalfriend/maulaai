@@ -1191,7 +1191,7 @@ app.post('/api/auth/logout', async (req, res) => {
 
     // Get session ID to invalidate in database
     const sessionId = req.cookies?.session_id;
-    
+
     if (sessionId) {
       try {
         // Invalidate session in database
@@ -1211,7 +1211,7 @@ app.post('/api/auth/logout', async (req, res) => {
     res.clearCookie('session_id', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',  // Must match login cookie settings
+      sameSite: 'lax', // Must match login cookie settings
       path: '/',
     });
 

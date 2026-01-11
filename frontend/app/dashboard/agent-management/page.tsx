@@ -45,7 +45,9 @@ export default function AgentManagementPage() {
   >(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [cancellingAgentId, setCancellingAgentId] = useState<string | null>(null);
+  const [cancellingAgentId, setCancellingAgentId] = useState<string | null>(
+    null
+  );
   const redirectToSubscribe = useSubscribeRedirect();
 
   useEffect(() => {
@@ -60,9 +62,8 @@ export default function AgentManagementPage() {
 
       setIsLoading(true);
       try {
-        const data = await agentSubscriptionService.getUserSubscriptions(
-          userId
-        );
+        const data =
+          await agentSubscriptionService.getUserSubscriptions(userId);
         if (isMounted) {
           setSubscriptions(data);
           setError(null);
@@ -159,11 +160,18 @@ export default function AgentManagementPage() {
     goToSubscribe(agentId, agentName);
   };
 
-  const handleCancelSubscription = async (agentId: string, agentName: string) => {
+  const handleCancelSubscription = async (
+    agentId: string,
+    agentName: string
+  ) => {
     if (!userId) return;
-    
+
     // Confirm cancellation
-    if (!confirm(`Are you sure you want to cancel your subscription to ${agentName}? You will lose access immediately.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to cancel your subscription to ${agentName}? You will lose access immediately.`
+      )
+    ) {
       return;
     }
 
@@ -189,13 +197,18 @@ export default function AgentManagementPage() {
       }
 
       // Successfully cancelled - refresh subscriptions list
-      const updatedSubs = await agentSubscriptionService.getUserSubscriptions(userId);
+      const updatedSubs =
+        await agentSubscriptionService.getUserSubscriptions(userId);
       setSubscriptions(updatedSubs);
-      
+
       alert(`Successfully cancelled your subscription to ${agentName}.`);
     } catch (err) {
       console.error('Cancel subscription error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to cancel subscription. Please try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to cancel subscription. Please try again.'
+      );
     } finally {
       setCancellingAgentId(null);
     }
@@ -210,9 +223,8 @@ export default function AgentManagementPage() {
       const loadSubscriptions = async () => {
         setIsLoading(true);
         try {
-          const data = await agentSubscriptionService.getUserSubscriptions(
-            userId
-          );
+          const data =
+            await agentSubscriptionService.getUserSubscriptions(userId);
           setSubscriptions(data);
           setError(null);
         } catch (err) {

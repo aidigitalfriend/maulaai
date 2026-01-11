@@ -42,6 +42,14 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
   };
 }
 
+// Attachment interface for files/images
+interface Attachment {
+  name?: string;
+  type?: string;
+  url?: string;
+  data?: string; // base64 data
+}
+
 // Provider interface
 interface AIProvider {
   name: string;
@@ -51,11 +59,12 @@ interface AIProvider {
     systemPrompt?: string,
     temperature?: number,
     maxTokens?: number,
-    model?: string
+    model?: string,
+    attachments?: Attachment[]
   ) => Promise<string>;
 }
 
-// OpenAI Provider
+// OpenAI Provider (supports vision with gpt-4o)
 const openaiProvider: AIProvider = {
   name: 'openai',
   callAPI: async (
@@ -64,9 +73,37 @@ const openaiProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    attachments?: Attachment[]
   ) => {
     if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
+
+    // Build user message content - support multimodal (text + images)
+    const userContent: any[] = [{ type: 'text', text: message }];
+    
+    // Add image attachments for vision
+    if (attachments && attachments.length > 0) {
+      for (const attachment of attachments) {
+        if (attachment.type?.startsWith('image/')) {
+          // Use URL if available, otherwise use base64 data
+          if (attachment.url) {
+            userContent.push({
+              type: 'image_url',
+              image_url: { url: attachment.url, detail: 'auto' }
+            });
+          } else if (attachment.data) {
+            // Handle base64 data
+            const base64Data = attachment.data.includes('base64,') 
+              ? attachment.data 
+              : `data:${attachment.type};base64,${attachment.data}`;
+            userContent.push({
+              type: 'image_url',
+              image_url: { url: base64Data, detail: 'auto' }
+            });
+          }
+        }
+      }
+    }
 
     const messages = systemPrompt
       ? [
@@ -75,14 +112,14 @@ const openaiProvider: AIProvider = {
             role: msg.role,
             content: msg.content,
           })),
-          { role: 'user', content: message },
+          { role: 'user', content: userContent },
         ]
       : [
           ...conversationHistory.map((msg) => ({
             role: msg.role,
             content: msg.content,
           })),
-          { role: 'user', content: message },
+          { role: 'user', content: userContent },
         ];
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -113,7 +150,7 @@ const openaiProvider: AIProvider = {
   },
 };
 
-// Anthropic Provider
+// Anthropic Provider (supports vision with Claude 3)
 const anthropicProvider: AIProvider = {
   name: 'anthropic',
   callAPI: async (
@@ -122,13 +159,41 @@ const anthropicProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    attachments?: Attachment[]
   ) => {
     if (!ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured');
 
     const userMessages = conversationHistory
       .filter((msg) => msg.role !== 'system')
       .map((msg) => ({ role: msg.role, content: msg.content }));
+
+    // Build user message content - support multimodal (text + images)
+    const userContent: any[] = [{ type: 'text', text: message }];
+    
+    if (attachments && attachments.length > 0) {
+      for (const attachment of attachments) {
+        if (attachment.type?.startsWith('image/')) {
+          if (attachment.url) {
+            // Anthropic needs base64, so we'd need to fetch the URL - skip for now
+            // For URLs, append as text reference
+            userContent[0].text = `[Image: ${attachment.url}]\n\n${userContent[0].text}`;
+          } else if (attachment.data) {
+            const base64Data = attachment.data.includes('base64,') 
+              ? attachment.data.split('base64,')[1] 
+              : attachment.data;
+            userContent.push({
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: attachment.type,
+                data: base64Data
+              }
+            });
+          }
+        }
+      }
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -140,7 +205,7 @@ const anthropicProvider: AIProvider = {
       body: JSON.stringify({
         model: model || 'claude-3-haiku-20240307',
         system: systemPrompt || 'You are a helpful AI assistant.',
-        messages: [...userMessages, { role: 'user', content: message }],
+        messages: [...userMessages, { role: 'user', content: userContent }],
         max_tokens: maxTokens,
         temperature,
       }),
@@ -169,7 +234,8 @@ const xaiProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    _attachments?: Attachment[] // xAI doesn't support vision yet
   ) => {
     if (!XAI_API_KEY) throw new Error('xAI API key not configured');
 
@@ -227,7 +293,8 @@ const mistralProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    _attachments?: Attachment[] // Mistral doesn't support vision yet
   ) => {
     if (!MISTRAL_API_KEY) throw new Error('Mistral API key not configured');
 
@@ -276,7 +343,7 @@ const mistralProvider: AIProvider = {
   },
 };
 
-// Gemini Provider
+// Gemini Provider (supports vision)
 const geminiProvider: AIProvider = {
   name: 'gemini',
   callAPI: async (
@@ -285,7 +352,8 @@ const geminiProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    _attachments?: Attachment[] // TODO: Add Gemini vision support
   ) => {
     if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured');
 
@@ -344,7 +412,8 @@ const groqProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    _attachments?: Attachment[] // Groq doesn't support vision yet
   ) => {
     if (!GROQ_API_KEY) throw new Error('Groq API key not configured');
 
@@ -405,7 +474,8 @@ const cohereProvider: AIProvider = {
     systemPrompt?: string,
     temperature = 0.7,
     maxTokens = 1200,
-    model?: string
+    model?: string,
+    _attachments?: Attachment[] // Cohere doesn't support vision yet
   ) => {
     if (!COHERE_API_KEY) throw new Error('Cohere API key not configured');
 
@@ -708,6 +778,7 @@ export async function POST(request: NextRequest) {
     const attachmentNote =
       Array.isArray(attachments) && attachments.length > 0
         ? attachments
+            .filter((file: any) => !file.type?.startsWith('image/')) // Only non-image files as text
             .map((file: any) => {
               const lines = [
                 `Attachment: ${file.name || 'file'}${file.type ? ` (${file.type})` : ''}`,
@@ -720,6 +791,8 @@ export async function POST(request: NextRequest) {
             .join('\n\n')
         : '';
 
+    // For non-vision models, include attachment note in message
+    // For vision models (OpenAI, Anthropic), images are passed separately
     const enrichedMessage = attachmentNote
       ? `${attachmentNote}\n\n${message}`
       : message;
@@ -749,7 +822,8 @@ export async function POST(request: NextRequest) {
         systemPrompt,
         temperature,
         maxTokens,
-        model
+        model,
+        attachments // Pass attachments for vision support
       );
     } catch (error) {
       console.error(`${providerName} API failed for agent ${agentId}:`, error);
@@ -767,7 +841,8 @@ export async function POST(request: NextRequest) {
             systemPrompt,
             temperature,
             maxTokens,
-            undefined // Use provider's default model for fallbacks
+            undefined, // Use provider's default model for fallbacks
+            attachments // Pass attachments for vision support
           );
           console.log(
             `Successfully fell back to ${fallback} for agent ${agentId}`

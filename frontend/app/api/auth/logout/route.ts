@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('session_id', '', {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',  // Must match login cookie settings
+      sameSite: 'lax', // Must match login cookie settings
       maxAge: 0, // Immediately expire the cookie
       path: '/',
     });

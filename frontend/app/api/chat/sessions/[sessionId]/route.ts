@@ -80,7 +80,12 @@ async function checkAgentSubscription(
     });
 
     if (activeAgentSub) {
-      console.log('[chat/sessions/id] Found active agent subscription for user:', userId, 'agent:', agentId);
+      console.log(
+        '[chat/sessions/id] Found active agent subscription for user:',
+        userId,
+        'agent:',
+        agentId
+      );
       return true;
     }
 
@@ -91,19 +96,31 @@ async function checkAgentSubscription(
         { $or: [{ user: userId }, { userId: userId }] },
         { agentId: agentId },
         { status: 'active' },
-        { $or: [
-          { 'billing.currentPeriodEnd': { $gt: new Date() } },
-          { expiryDate: { $gt: new Date() } },
-        ]},
+        {
+          $or: [
+            { 'billing.currentPeriodEnd': { $gt: new Date() } },
+            { expiryDate: { $gt: new Date() } },
+          ],
+        },
       ],
     });
 
     if (legacySub) {
-      console.log('[chat/sessions/id] Found legacy subscription for user:', userId, 'agent:', agentId);
+      console.log(
+        '[chat/sessions/id] Found legacy subscription for user:',
+        userId,
+        'agent:',
+        agentId
+      );
       return true;
     }
 
-    console.log('[chat/sessions/id] No active subscription found for user:', userId, 'agent:', agentId);
+    console.log(
+      '[chat/sessions/id] No active subscription found for user:',
+      userId,
+      'agent:',
+      agentId
+    );
     return false;
   } catch (error) {
     console.error('[chat/sessions/id] Subscription check error:', error);
