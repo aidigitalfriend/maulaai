@@ -999,21 +999,35 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     components={{
                       // Custom image renderer with download button
                       img({ src, alt, ...props }) {
-                        const handleDownload = async () => {
+                        const handleDownload = async (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           if (!src) return;
+                          
+                          const filename = alt || `generated-image-${Date.now()}.png`;
+                          
                           try {
-                            const response = await fetch(src);
+                            // Use our proxy endpoint to bypass CORS
+                            const proxyUrl = `/api/uploads/proxy-download?url=${encodeURIComponent(src)}&filename=${encodeURIComponent(filename)}`;
+                            
+                            const response = await fetch(proxyUrl);
+                            if (!response.ok) throw new Error('Proxy failed');
+                            
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = alt || 'generated-image.png';
+                            a.download = filename;
+                            a.style.display = 'none';
                             document.body.appendChild(a);
                             a.click();
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
+                            setTimeout(() => {
+                              document.body.removeChild(a);
+                              window.URL.revokeObjectURL(url);
+                            }, 100);
                           } catch (error) {
-                            // Fallback: open in new tab
+                            console.error('Download failed:', error);
+                            // Last resort: open image in new tab for manual save
                             window.open(src, '_blank');
                           }
                         };
@@ -1029,10 +1043,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             />
                             <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDownload();
-                                }}
+                                onClick={handleDownload}
                                 className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
                                 title="Download image"
                               >
