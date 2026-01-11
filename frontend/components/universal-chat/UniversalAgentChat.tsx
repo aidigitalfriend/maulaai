@@ -745,11 +745,15 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       name: file.name,
       type: file.type,
       url: file.url,
-      preview: file.type.startsWith('image/') ? (file.url || file.data) : undefined,
+      preview: file.type.startsWith('image/')
+        ? file.url || file.data
+        : undefined,
     }));
 
     // Build display content (clean, without raw URLs/base64)
-    const displayContent = inputValue.trim() || (attachments.length > 0 ? '📎 Sent attachment(s)' : '');
+    const displayContent =
+      inputValue.trim() ||
+      (attachments.length > 0 ? '📎 Sent attachment(s)' : '');
 
     // Build API content with attachment info for the AI
     const attachmentTextForApi =
@@ -775,7 +779,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       role: 'user',
       content: displayContent, // Clean content for display
       timestamp: new Date(),
-      attachments: messageAttachments.length > 0 ? messageAttachments : undefined,
+      attachments:
+        messageAttachments.length > 0 ? messageAttachments : undefined,
     };
 
     setSessions((prev) =>
@@ -971,13 +976,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     <div className="mb-3 space-y-2">
                       {message.attachments.map((attachment, idx) => (
                         <div key={idx}>
-                          {attachment.type.startsWith('image/') && attachment.preview ? (
+                          {attachment.type.startsWith('image/') &&
+                          attachment.preview ? (
                             <div className="relative group">
                               <img
                                 src={attachment.preview}
                                 alt={attachment.name}
                                 className="max-w-[200px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => attachment.url && window.open(attachment.url, '_blank')}
+                                onClick={() =>
+                                  attachment.url &&
+                                  window.open(attachment.url, '_blank')
+                                }
                               />
                               <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity truncate">
                                 {attachment.name}
@@ -986,7 +995,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           ) : (
                             <div className="flex items-center gap-2 p-2 bg-black/10 rounded-lg text-sm">
                               <span>📎</span>
-                              <span className="truncate">{attachment.name}</span>
+                              <span className="truncate">
+                                {attachment.name}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -1003,16 +1014,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           e.preventDefault();
                           e.stopPropagation();
                           if (!src) return;
-                          
-                          const filename = alt || `generated-image-${Date.now()}.png`;
-                          
+
+                          const filename =
+                            alt || `generated-image-${Date.now()}.png`;
+
                           try {
                             // Use our proxy endpoint to bypass CORS
                             const proxyUrl = `/api/uploads/proxy-download?url=${encodeURIComponent(src)}&filename=${encodeURIComponent(filename)}`;
-                            
+
                             const response = await fetch(proxyUrl);
                             if (!response.ok) throw new Error('Proxy failed');
-                            
+
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
@@ -1031,7 +1043,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             window.open(src, '_blank');
                           }
                         };
-                        
+
                         return (
                           <div className="relative group my-3">
                             <img
@@ -1047,8 +1059,18 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                                 className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
                                 title="Download image"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                  />
                                 </svg>
                                 Download
                               </button>
@@ -1060,8 +1082,18 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                                 className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
                                 title="Open full size"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
                                 </svg>
                                 Open
                               </button>
@@ -1069,8 +1101,48 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           </div>
                         );
                       },
+                      // Custom ordered list with bright numbers
+                      ol({ children, ...props }) {
+                        return (
+                          <ol className="list-none space-y-2 my-3" {...props}>
+                            {children}
+                          </ol>
+                        );
+                      },
+                      // Custom list item with colorful number badge
+                      li({ children, ordered, index, ...props }) {
+                        // Check if parent is ordered list by looking at context
+                        const isOrdered = (props as any).node?.parent?.tagName === 'ol';
+                        if (isOrdered || ordered) {
+                          const num = ((props as any).node?.position?.start?.line || index || 0);
+                          return (
+                            <li className="flex items-start gap-3" {...props}>
+                              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold text-sm flex items-center justify-center shadow-lg">
+                                {num}
+                              </span>
+                              <div className="flex-1 pt-0.5">{children}</div>
+                            </li>
+                          );
+                        }
+                        return (
+                          <li className="flex items-start gap-2 my-1" {...props}>
+                            <span className="text-cyan-400 mt-1.5">•</span>
+                            <div className="flex-1">{children}</div>
+                          </li>
+                        );
+                      },
                       code({ inline, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
+                        const codeString = String(children).replace(/\n$/, '');
+                        
+                        const handleCopy = async () => {
+                          try {
+                            await navigator.clipboard.writeText(codeString);
+                          } catch (err) {
+                            console.error('Failed to copy:', err);
+                          }
+                        };
+                        
                         if (inline) {
                           return (
                             <code
@@ -1082,16 +1154,30 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           );
                         }
                         return (
-                          <pre
-                            className={`rounded-lg border border-gray-200 bg-gray-900 text-gray-100 overflow-x-auto p-3 ${className || ''}`}
-                          >
-                            <code
-                              className={match ? `language-${match[1]}` : ''}
-                              {...props}
+                          <div className="relative group my-3">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                              <button
+                                onClick={handleCopy}
+                                className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                                title="Copy code"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Copy
+                              </button>
+                            </div>
+                            <pre
+                              className={`rounded-lg border border-gray-700 bg-gray-900 text-gray-100 overflow-x-auto p-3 pr-20 ${className || ''}`}
                             >
-                              {children}
-                            </code>
-                          </pre>
+                              <code
+                                className={match ? `language-${match[1]}` : ''}
+                                {...props}
+                              >
+                                {children}
+                              </code>
+                            </pre>
+                          </div>
                         );
                       },
                     }}

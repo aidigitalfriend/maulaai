@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
   const filename = searchParams.get('filename') || 'image.png';
 
   if (!imageUrl) {
-    return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing url parameter' },
+      { status: 400 }
+    );
   }
 
   // Validate URL - only allow certain domains for security
@@ -20,10 +23,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const urlObj = new URL(imageUrl);
-    const isAllowed = allowedDomains.some(domain => urlObj.hostname.includes(domain));
-    
+    const isAllowed = allowedDomains.some((domain) =>
+      urlObj.hostname.includes(domain)
+    );
+
     if (!isAllowed) {
-      return NextResponse.json({ error: 'Domain not allowed' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Domain not allowed' },
+        { status: 403 }
+      );
     }
 
     // Fetch the image from the original source
