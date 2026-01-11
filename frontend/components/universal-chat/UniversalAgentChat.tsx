@@ -879,11 +879,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              
+
               if (data.error) {
                 throw new Error(data.error);
               }
-              
+
               if (data.token) {
                 fullContent += data.token;
                 // Update message in real-time
@@ -902,7 +902,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   )
                 );
               }
-              
+
               if (data.done) {
                 // Mark streaming as complete
                 setSessions((prev) =>
@@ -1024,11 +1024,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
-                <div className={`prose prose-sm max-w-none ${
-                  isNeural 
-                    ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-cyan-400 prose-li:text-white' 
-                    : ''
-                }`}>
+                <div
+                  className={`prose prose-sm max-w-none ${
+                    isNeural
+                      ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-cyan-400 prose-li:text-white'
+                      : ''
+                  }`}
+                >
                   {/* Display attachments (images as thumbnails) */}
                   {message.attachments && message.attachments.length > 0 && (
                     <div className="mb-3 space-y-2">

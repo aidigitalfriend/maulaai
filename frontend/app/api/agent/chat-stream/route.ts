@@ -51,7 +51,9 @@ export async function POST(request: NextRequest) {
 
     if (!rateLimit.allowed) {
       return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        JSON.stringify({
+          error: 'Rate limit exceeded. Please try again later.',
+        }),
         { status: 429, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -69,21 +71,21 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (!message?.trim()) {
-      return new Response(
-        JSON.stringify({ error: 'Message is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Message is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Create streaming response
     const encoder = new TextEncoder();
-    
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
           // Build messages array
           const messages: any[] = [];
-          
+
           if (systemPrompt) {
             messages.push({ role: 'system', content: systemPrompt });
           }
@@ -128,32 +130,41 @@ export async function POST(request: NextRequest) {
 
           if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
             // Anthropic streaming
-            const systemMessage = messages.find(m => m.role === 'system');
-            const chatMessages = messages.filter(m => m.role !== 'system');
+            const systemMessage = messages.find((m) => m.role === 'system');
+            const chatMessages = messages.filter((m) => m.role !== 'system');
 
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': ANTHROPIC_API_KEY,
-                'anthropic-version': '2023-06-01',
-              },
-              body: JSON.stringify({
-                model: model || 'claude-sonnet-4-20250514',
-                max_tokens: maxTokens,
-                temperature,
-                system: systemMessage?.content || 'You are a helpful AI assistant.',
-                messages: chatMessages.map(m => ({
-                  role: m.role,
-                  content: typeof m.content === 'string' ? m.content : m.content,
-                })),
-                stream: true,
-              }),
-            });
+            const response = await fetch(
+              'https://api.anthropic.com/v1/messages',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-api-key': ANTHROPIC_API_KEY,
+                  'anthropic-version': '2023-06-01',
+                },
+                body: JSON.stringify({
+                  model: model || 'claude-sonnet-4-20250514',
+                  max_tokens: maxTokens,
+                  temperature,
+                  system:
+                    systemMessage?.content || 'You are a helpful AI assistant.',
+                  messages: chatMessages.map((m) => ({
+                    role: m.role,
+                    content:
+                      typeof m.content === 'string' ? m.content : m.content,
+                  })),
+                  stream: true,
+                }),
+              }
+            );
 
             if (!response.ok) {
               const errorData = await response.text();
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorData })}\n\n`));
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: errorData })}\n\n`
+                )
+              );
               controller.close();
               return;
             }
@@ -176,11 +187,18 @@ export async function POST(request: NextRequest) {
                 if (line.startsWith('data: ')) {
                   const data = line.slice(6);
                   if (data === '[DONE]') continue;
-                  
+
                   try {
                     const parsed = JSON.parse(data);
-                    if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: parsed.delta.text })}\n\n`));
+                    if (
+                      parsed.type === 'content_block_delta' &&
+                      parsed.delta?.text
+                    ) {
+                      controller.enqueue(
+                        encoder.encode(
+                          `data: ${JSON.stringify({ token: parsed.delta.text })}\n\n`
+                        )
+                      );
                     }
                   } catch (e) {
                     // Skip invalid JSON
@@ -190,24 +208,31 @@ export async function POST(request: NextRequest) {
             }
           } else if (OPENAI_API_KEY) {
             // OpenAI streaming (default)
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${OPENAI_API_KEY}`,
-              },
-              body: JSON.stringify({
-                model: model || 'gpt-4o',
-                messages,
-                temperature,
-                max_tokens: maxTokens,
-                stream: true,
-              }),
-            });
+            const response = await fetch(
+              'https://api.openai.com/v1/chat/completions',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${OPENAI_API_KEY}`,
+                },
+                body: JSON.stringify({
+                  model: model || 'gpt-4o',
+                  messages,
+                  temperature,
+                  max_tokens: maxTokens,
+                  stream: true,
+                }),
+              }
+            );
 
             if (!response.ok) {
               const errorData = await response.text();
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorData })}\n\n`));
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: errorData })}\n\n`
+                )
+              );
               controller.close();
               return;
             }
@@ -230,12 +255,14 @@ export async function POST(request: NextRequest) {
                 if (line.startsWith('data: ')) {
                   const data = line.slice(6);
                   if (data === '[DONE]') continue;
-                  
+
                   try {
                     const parsed = JSON.parse(data);
                     const token = parsed.choices?.[0]?.delta?.content;
                     if (token) {
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
+                      );
                     }
                   } catch (e) {
                     // Skip invalid JSON
@@ -244,15 +271,25 @@ export async function POST(request: NextRequest) {
               }
             }
           } else {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'No API key configured' })}\n\n`));
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ error: 'No API key configured' })}\n\n`
+              )
+            );
           }
 
           // Send done signal
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+          );
           controller.close();
         } catch (error) {
           console.error('Streaming error:', error);
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`));
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`
+            )
+          );
           controller.close();
         }
       },
@@ -262,14 +299,14 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     });
   } catch (error) {
     console.error('Stream API error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
