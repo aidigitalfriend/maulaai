@@ -524,6 +524,67 @@ const providers: Record<string, AIProvider> = {
   cohere: cohereProvider,
 };
 
+// Vision-capable providers (can analyze images)
+const VISION_CAPABLE_PROVIDERS = ['openai', 'anthropic', 'gemini'];
+
+// Image generation capable providers
+const IMAGE_GEN_PROVIDERS = ['openai']; // DALL-E via OpenAI
+
+// Check if message is requesting image generation
+function isImageGenerationRequest(message: string): boolean {
+  const lowerMessage = message.toLowerCase();
+  const imageGenPatterns = [
+    /\b(create|generate|make|draw|produce|design)\b.*\b(image|picture|photo|illustration|art|artwork|graphic|visual)\b/i,
+    /\b(image|picture|photo|illustration|art|artwork|graphic|visual)\b.*\b(of|for|showing|depicting)\b/i,
+    /\bshow me\b.*\b(image|picture|what.*looks like)\b/i,
+    /\bvisualize\b/i,
+    /\bdall-?e\b/i,
+    /\bgenerate\b.*\b(a|an|the)\b/i,
+  ];
+  return imageGenPatterns.some(pattern => pattern.test(lowerMessage));
+}
+
+// Check if attachments contain images
+function hasImageAttachments(attachments?: Attachment[]): boolean {
+  return attachments?.some(a => a.type?.startsWith('image/')) || false;
+}
+
+// Generate image using DALL-E
+async function generateImage(prompt: string): Promise<{ imageUrl: string; revisedPrompt: string } | null> {
+  if (!OPENAI_API_KEY) return null;
+  
+  try {
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt: prompt,
+        n: 1,
+        size: '1024x1024',
+        quality: 'standard',
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('DALL-E API error:', await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      imageUrl: data.data?.[0]?.url || '',
+      revisedPrompt: data.data?.[0]?.revised_prompt || prompt,
+    };
+  } catch (error) {
+    console.error('Image generation error:', error);
+    return null;
+  }
+}
+
 // Agent-specific provider mappings with detailed configurations
 const agentProviderMappings: Record<
   string,
@@ -797,8 +858,45 @@ export async function POST(request: NextRequest) {
       ? `${attachmentNote}\n\n${message}`
       : message;
 
+    // Check if this is an image generation request
+    if (isImageGenerationRequest(message) && !hasImageAttachments(attachments)) {
+      try {
+        const imageResult = await generateImage(message);
+        if (imageResult) {
+          const responseWithImage = `I've created an image based on your request!\n\n![Generated Image](${imageResult.imageUrl})\n\n**Prompt used:** ${imageResult.revisedPrompt}`;
+          return NextResponse.json({
+            message: responseWithImage,
+            provider: 'openai-dalle',
+            agentId,
+            remaining: rateLimit.remaining,
+            imageGenerated: true,
+            imageUrl: imageResult.imageUrl,
+          });
+        }
+      } catch (imgError) {
+        console.error('Image generation failed, falling back to text response:', imgError);
+        // Fall through to regular text response
+      }
+    }
+
     // Determine which provider to use
     let providerName = requestedProvider || agentConfig.primary;
+    
+    // If images are attached and selected provider doesn't support vision, fallback to vision-capable provider
+    const hasImages = hasImageAttachments(attachments);
+    if (hasImages && !VISION_CAPABLE_PROVIDERS.includes(providerName)) {
+      console.log(`Provider ${providerName} doesn't support vision, falling back to OpenAI for image analysis`);
+      // Try OpenAI first (best vision support), then Anthropic
+      if (OPENAI_API_KEY) {
+        providerName = 'openai';
+      } else if (ANTHROPIC_API_KEY) {
+        providerName = 'anthropic';
+      } else if (GEMINI_API_KEY) {
+        providerName = 'gemini';
+      }
+      // Add a note to the response about the fallback
+    }
+    
     const provider = providers[providerName];
 
     if (!provider) {
@@ -828,9 +926,24 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error(`${providerName} API failed for agent ${agentId}:`, error);
 
-      // Try fallback providers
-      for (const fallback of agentConfig.fallbackProviders) {
+      // Try fallback providers - prioritize vision-capable ones if images are attached
+      let fallbackOrder = agentConfig.fallbackProviders;
+      if (hasImages) {
+        // Reorder fallbacks to try vision-capable providers first
+        fallbackOrder = [
+          ...fallbackOrder.filter(p => VISION_CAPABLE_PROVIDERS.includes(p)),
+          ...fallbackOrder.filter(p => !VISION_CAPABLE_PROVIDERS.includes(p))
+        ];
+      }
+      
+      for (const fallback of fallbackOrder) {
         if (fallback === providerName) continue; // Skip the one that just failed
+        
+        // Skip non-vision providers if we have images
+        if (hasImages && !VISION_CAPABLE_PROVIDERS.includes(fallback)) {
+          console.log(`Skipping ${fallback} for fallback - doesn't support vision`);
+          continue;
+        }
 
         try {
           const fallbackProvider = providers[fallback];
