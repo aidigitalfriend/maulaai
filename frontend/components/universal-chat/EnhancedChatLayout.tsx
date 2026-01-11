@@ -68,7 +68,7 @@ function EnhancedChatLayoutContent({
 }: EnhancedChatLayoutProps) {
   // Use theme from context
   const { theme, toggleTheme, isNeural } = useChatTheme();
-  
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -139,9 +139,9 @@ function EnhancedChatLayoutContent({
 
             <div className="flex items-center space-x-2">
               {/* Platform Logo */}
-              <img 
-                src="/images/logos/company-logo.png" 
-                alt="OneLastAI" 
+              <img
+                src="/images/logos/company-logo.png"
+                alt="OneLastAI"
                 className="h-8 w-auto object-contain"
               />
               <p className={`text-[11px] ${textSecondary}`}>

@@ -1,6 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 
 export type ChatTheme = 'default' | 'neural';
 
@@ -24,19 +31,24 @@ export function ThemeProvider({ children, agentId }: ThemeProviderProps) {
   // Load theme from localStorage on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const savedTheme = localStorage.getItem(`chat-theme-${agentId}`) as ChatTheme;
+    const savedTheme = localStorage.getItem(
+      `chat-theme-${agentId}`
+    ) as ChatTheme;
     if (savedTheme) {
       setThemeState(savedTheme);
     }
   }, [agentId]);
 
   // Update theme and persist to localStorage
-  const setTheme = useCallback((newTheme: ChatTheme) => {
-    setThemeState(newTheme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`chat-theme-${agentId}`, newTheme);
-    }
-  }, [agentId]);
+  const setTheme = useCallback(
+    (newTheme: ChatTheme) => {
+      setThemeState(newTheme);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`chat-theme-${agentId}`, newTheme);
+      }
+    },
+    [agentId]
+  );
 
   // Toggle between themes
   const toggleTheme = useCallback(() => {
@@ -53,9 +65,7 @@ export function ThemeProvider({ children, agentId }: ThemeProviderProps) {
   };
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 
@@ -77,29 +87,34 @@ export function useChatTheme() {
 // Legacy hook for backward compatibility (accepts agentId but ignores it when context exists)
 export function useChatThemeWithAgent(agentId: string) {
   const context = useContext(ThemeContext);
-  
+
   // If we're inside a provider, use it
   if (context !== undefined) {
     return context;
   }
-  
+
   // Fallback: standalone usage (not recommended but maintains backward compatibility)
   const [theme, setThemeState] = useState<ChatTheme>('default');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const savedTheme = localStorage.getItem(`chat-theme-${agentId}`) as ChatTheme;
+    const savedTheme = localStorage.getItem(
+      `chat-theme-${agentId}`
+    ) as ChatTheme;
     if (savedTheme) {
       setThemeState(savedTheme);
     }
   }, [agentId]);
 
-  const setTheme = useCallback((newTheme: ChatTheme) => {
-    setThemeState(newTheme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`chat-theme-${agentId}`, newTheme);
-    }
-  }, [agentId]);
+  const setTheme = useCallback(
+    (newTheme: ChatTheme) => {
+      setThemeState(newTheme);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`chat-theme-${agentId}`, newTheme);
+      }
+    },
+    [agentId]
+  );
 
   const toggleTheme = useCallback(() => {
     const newTheme = theme === 'default' ? 'neural' : 'default';

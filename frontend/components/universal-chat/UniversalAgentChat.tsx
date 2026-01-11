@@ -834,8 +834,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     );
 
     try {
-      // Use the new agent chat API
-      const response = await fetch('/api/agent/chat', {
+      // Use streaming API for real-time token display
+      const response = await fetch('/api/agent/chat-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -854,35 +854,88 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Failed to send message');
       }
 
-      // Create final assistant message
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response stream');
+
+      const decoder = new TextDecoder();
+      let fullContent = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
+              if (data.token) {
+                fullContent += data.token;
+                // Update message in real-time
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: fullContent }
+                              : m
+                          ),
+                        }
+                      : s
+                  )
+                );
+              }
+              
+              if (data.done) {
+                // Mark streaming as complete
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, isStreaming: false }
+                              : m
+                          ),
+                          lastMessage: fullContent.slice(0, 50),
+                        }
+                      : s
+                  )
+                );
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+            }
+          }
+        }
+      }
+
+      // Create final assistant message for saving
       const finalAssistantMessage: Message = {
         id: assistantMessageId,
         role: 'assistant',
-        content: data.message,
+        content: fullContent,
         timestamp: new Date(),
         isStreaming: false,
       };
-
-      // Update the assistant message with the response
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? {
-                ...s,
-                messages: s.messages.map((m) =>
-                  m.id === assistantMessageId ? finalAssistantMessage : m
-                ),
-                lastMessage: data.message.slice(0, 50),
-              }
-            : s
-        )
-      );
 
       // Save both messages to the session in database
       await saveMessageToSession(activeSessionId, userMessage);
@@ -967,11 +1020,15 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
                     : isNeural
-                      ? 'bg-gray-800/90 border border-gray-700 text-gray-50'
+                      ? 'bg-gray-800/90 border border-gray-700 text-white'
                       : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
-                <div className="prose prose-sm max-w-none dark:prose-invert">
+                <div className={`prose prose-sm max-w-none ${
+                  isNeural 
+                    ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-cyan-400 prose-li:text-white' 
+                    : ''
+                }`}>
                   {/* Display attachments (images as thumbnails) */}
                   {message.attachments && message.attachments.length > 0 && (
                     <div className="mb-3 space-y-2">
@@ -1113,9 +1170,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       // Custom list item with colorful number badge
                       li({ children, ordered, index, ...props }) {
                         // Check if parent is ordered list by looking at context
-                        const isOrdered = (props as any).node?.parent?.tagName === 'ol';
+                        const isOrdered =
+                          (props as any).node?.parent?.tagName === 'ol';
                         if (isOrdered || ordered) {
-                          const num = ((props as any).node?.position?.start?.line || index || 0);
+                          const num =
+                            (props as any).node?.position?.start?.line ||
+                            index ||
+                            0;
                           return (
                             <li className="flex items-start gap-3" {...props}>
                               <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold text-sm flex items-center justify-center shadow-lg">
@@ -1126,7 +1187,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           );
                         }
                         return (
-                          <li className="flex items-start gap-2 my-1" {...props}>
+                          <li
+                            className="flex items-start gap-2 my-1"
+                            {...props}
+                          >
                             <span className="text-cyan-400 mt-1.5">•</span>
                             <div className="flex-1">{children}</div>
                           </li>
@@ -1135,7 +1199,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       code({ inline, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         const codeString = String(children).replace(/\n$/, '');
-                        
+
                         const handleCopy = async () => {
                           try {
                             await navigator.clipboard.writeText(codeString);
@@ -1143,7 +1207,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             console.error('Failed to copy:', err);
                           }
                         };
-                        
+
                         if (inline) {
                           return (
                             <code
@@ -1162,8 +1226,18 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                                 className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors"
                                 title="Copy code"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                  />
                                 </svg>
                                 Copy
                               </button>
@@ -1185,6 +1259,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   >
                     {message.content}
                   </ReactMarkdown>
+                  {/* Blinking cursor during streaming */}
+                  {message.isStreaming && (
+                    <span className="inline-block w-2 h-5 ml-1 bg-current animate-pulse rounded-sm" />
+                  )}
                 </div>
                 <div
                   className={`text-xs mt-2 ${
@@ -1317,7 +1395,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         />
 
         {/* Input Area */}
-        <div className={`flex-shrink-0 px-4 py-2 border-t backdrop-blur-sm ${isNeural ? 'border-gray-700 bg-gray-900/80' : 'border-gray-200 bg-white/80'}`}>
+        <div
+          className={`flex-shrink-0 px-4 py-2 border-t backdrop-blur-sm ${isNeural ? 'border-gray-700 bg-gray-900/80' : 'border-gray-200 bg-white/80'}`}
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -1442,13 +1522,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           </form>
 
           {!hasSpeechRecognition && (
-            <p className={`mt-1 text-[11px] ${isNeural ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p
+              className={`mt-1 text-[11px] ${isNeural ? 'text-gray-500' : 'text-gray-400'}`}
+            >
               Speech recognition not available in this browser.
             </p>
           )}
 
           <div className="mt-1 text-center">
-            <p className={`text-[10px] ${isNeural ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p
+              className={`text-[10px] ${isNeural ? 'text-gray-500' : 'text-gray-400'}`}
+            >
               AI digital friend can make mistakes. Check important info.
             </p>
           </div>
