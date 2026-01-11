@@ -122,7 +122,7 @@ function EnhancedChatLayoutContent({
       {/* Top Header Bar */}
       <div className={`flex-shrink-0 border-b ${headerBg} z-40`}>
         <div className="flex items-center justify-between px-4 py-2">
-          {/* Left: Mobile menu + Agent info */}
+          {/* Left: Mobile menu + Platform branding */}
           <div className="flex items-center space-x-3">
             {showSidebar && (
               <button
@@ -138,18 +138,16 @@ function EnhancedChatLayoutContent({
             )}
 
             <div className="flex items-center space-x-2">
-              <span className="text-xl">{agentIcon}</span>
+              {/* Platform Logo */}
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isNeural ? 'bg-gradient-to-br from-cyan-500 to-purple-600' : 'bg-gradient-to-br from-indigo-500 to-purple-600'}`}>
+                <span className="text-white text-sm font-bold">O</span>
+              </div>
               <div>
                 <h1 className={`text-sm font-semibold ${textPrimary}`}>
-                  {agentName}
+                  OneLastAI
                 </h1>
                 <p className={`text-[10px] ${textSecondary}`}>
-                  {sessions.length > 0
-                    ? `${
-                        sessions.find((s) => s.id === activeSessionId)?.name ||
-                        'Select a conversation'
-                      }`
-                    : 'Start a new conversation'}
+                  AI Digital Friend
                 </p>
               </div>
             </div>
