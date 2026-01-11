@@ -17,7 +17,8 @@ import {
   ShareIcon,
   SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
-import EnhancedChatLayout, { useChatTheme } from './EnhancedChatLayout';
+import EnhancedChatLayout from './EnhancedChatLayout';
+import { useChatTheme } from './ThemeContext';
 import { AgentSettings } from './ChatSettingsPanel';
 import QuickActionsPanel from './QuickActionsPanel';
 import realtimeChatService, {
@@ -101,8 +102,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Auth
   const { state: authState } = useAuth();
 
-  // Theme state
-  const { isNeural } = useChatTheme(agent.id);
+  // Theme state - uses context provided by EnhancedChatLayout
+  const { isNeural } = useChatTheme();
 
   // Sessions state
   const [sessions, setSessions] = useState<ChatSession[]>([

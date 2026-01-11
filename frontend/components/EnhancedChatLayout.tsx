@@ -1,3 +1,3 @@
 'use client';
-export { default, useChatTheme } from './universal-chat/EnhancedChatLayout';
-export type { ChatTheme } from './universal-chat/EnhancedChatLayout';
+export { default } from './universal-chat/EnhancedChatLayout';
+export { useChatTheme, ChatTheme } from './universal-chat/ThemeContext';

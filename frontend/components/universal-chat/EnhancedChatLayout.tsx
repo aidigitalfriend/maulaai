@@ -13,6 +13,10 @@ import ChatSessionSidebar from './ChatSessionSidebar';
 import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
 import ChatRightPanel from './ChatRightPanel';
 import CanvasMode from './canvas-build/CanvasMode';
+import { ThemeProvider, useChatTheme, ChatTheme } from './ThemeContext';
+
+// Re-export for backward compatibility
+export { useChatTheme, ChatTheme } from './ThemeContext';
 
 interface ChatSession {
   id: string;
@@ -42,9 +46,8 @@ interface EnhancedChatLayoutProps {
   externalUrl?: string;
 }
 
-export type ChatTheme = 'default' | 'neural';
-
-export default function EnhancedChatLayout({
+// Inner component that uses the theme context
+function EnhancedChatLayoutContent({
   children,
   agentId,
   agentName,
@@ -63,7 +66,9 @@ export default function EnhancedChatLayout({
   showThemeToggle = true,
   externalUrl,
 }: EnhancedChatLayoutProps) {
-  const [theme, setTheme] = useState<ChatTheme>('default');
+  // Use theme from context
+  const { theme, toggleTheme, isNeural } = useChatTheme();
+  
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -72,23 +77,6 @@ export default function EnhancedChatLayout({
     'sessions' | 'settings'
   >('sessions');
   const [isMobileCanvasOpen, setIsMobileCanvasOpen] = useState(false);
-
-  // Load theme from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem(
-      `chat-theme-${agentId}`
-    ) as ChatTheme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, [agentId]);
-
-  // Save theme to localStorage
-  const toggleTheme = useCallback(() => {
-    const newTheme = theme === 'default' ? 'neural' : 'default';
-    setTheme(newTheme);
-    localStorage.setItem(`chat-theme-${agentId}`, newTheme);
-  }, [theme, agentId]);
 
   // Check for mobile
   useEffect(() => {
@@ -114,8 +102,6 @@ export default function EnhancedChatLayout({
       }
     }
   };
-
-  const isNeural = theme === 'neural';
 
   // Theme-based styles
   const containerBg = isNeural
@@ -336,48 +322,16 @@ export default function EnhancedChatLayout({
   );
 }
 
-// Export utility hook for theme management
-export function useChatTheme(agentId: string) {
-  const [theme, setTheme] = useState<ChatTheme>('default');
+// Inner component that uses context
+function EnhancedChatLayoutInner(props: EnhancedChatLayoutProps) {
+  return <EnhancedChatLayoutContent {...props} />;
+}
 
-  useEffect(() => {
-    // Initial load
-    const savedTheme = localStorage.getItem(
-      `chat-theme-${agentId}`
-    ) as ChatTheme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
-    // Listen for storage changes from other components
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === `chat-theme-${agentId}` && e.newValue) {
-        setTheme(e.newValue as ChatTheme);
-      }
-    };
-
-    // Also poll for changes (for same-tab updates)
-    const checkTheme = () => {
-      const currentTheme = localStorage.getItem(`chat-theme-${agentId}`) as ChatTheme;
-      if (currentTheme && currentTheme !== theme) {
-        setTheme(currentTheme);
-      }
-    };
-    const interval = setInterval(checkTheme, 100);
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, [agentId, theme]);
-
-  const toggleTheme = useCallback(() => {
-    const newTheme = theme === 'default' ? 'neural' : 'default';
-    setTheme(newTheme);
-    localStorage.setItem(`chat-theme-${agentId}`, newTheme);
-    return newTheme;
-  }, [theme, agentId]);
-
-  return { theme, setTheme, toggleTheme, isNeural: theme === 'neural' };
+// Main export that wraps with ThemeProvider
+export default function EnhancedChatLayout(props: EnhancedChatLayoutProps) {
+  return (
+    <ThemeProvider agentId={props.agentId}>
+      <EnhancedChatLayoutContent {...props} />
+    </ThemeProvider>
+  );
 }
