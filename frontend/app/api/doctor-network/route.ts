@@ -370,51 +370,46 @@ class AIProvider {
 }
 
 async function getAIResponse(messages: any[]): Promise<string> {
-  // Use backend chat API which has proven working Mistral integration
-  try {
-    console.log('[Doctor Network] Calling backend chat API with Mistral...');
-
-    // Get the last user message
-    const lastMessage = messages[messages.length - 1];
-    const userMessage = lastMessage?.content || '';
-
-    const response = await fetch('https://onelastai.co/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: userMessage,
-        model: 'mistral-small-latest',
-        agentId: 'doctor-network',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Backend API returned ${response.status}`);
+  // Try providers in order: Mistral (primary), OpenAI, Anthropic, Gemini
+  const providers = ['mistral', 'openai', 'anthropic', 'gemini'];
+  
+  for (const provider of providers) {
+    try {
+      console.log(`[Doctor Network] Trying ${provider}...`);
+      
+      switch (provider) {
+        case 'mistral':
+          if (process.env.MISTRAL_API_KEY) {
+            return await AIProvider.callMistral(messages);
+          }
+          break;
+        case 'openai':
+          if (process.env.OPENAI_API_KEY) {
+            return await AIProvider.callOpenAI(messages);
+          }
+          break;
+        case 'anthropic':
+          if (process.env.ANTHROPIC_API_KEY) {
+            return await AIProvider.callAnthropic(messages);
+          }
+          break;
+        case 'gemini':
+          if (process.env.GEMINI_API_KEY) {
+            return await AIProvider.callGemini(messages);
+          }
+          break;
+      }
+    } catch (error) {
+      console.error(`[Doctor Network] ${provider} failed:`, error);
+      continue; // Try next provider
     }
-
-    const data = await response.json();
-    console.log('[Doctor Network] Backend responded successfully');
-    return (
-      data.response ||
-      data.message ||
-      "I apologize, but I couldn't generate a response right now."
-    );
-  } catch (error) {
-    console.error('[Doctor Network] Backend API error:', error);
-
-    // Fallback message
-    return `I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment. 🔄
-
-In the meantime, here are some quick tips:
-• Your IP address identifies your internet connection
-• ISP stands for Internet Service Provider  
-• VPNs can help protect your privacy online
-• Private networks use different IP ranges than public internet
-
-For immediate help, check the IP information displayed above or try refreshing this page.`;
   }
+
+  // All providers failed - return helpful fallback
+  console.error('[Doctor Network] All AI providers failed');
+  return `I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment. 🔄
+
+Quick networking tip: Your IP address is like your home address for the internet - it helps data find its way to your device!`;
 }
 
 // Advanced security analysis for proactive alerts
