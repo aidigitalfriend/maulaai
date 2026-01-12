@@ -211,8 +211,9 @@ const nextConfig = {
           // Content Security Policy - allow Stripe, Cloudflare Insights, AI APIs, and S3 uploads
           {
             key: 'Content-Security-Policy-Report-Only',
+            // Allow Monaco workers (blob), Tailwind CDN, and third-party assets used by the canvas preview while keeping reports enabled only.
             value:
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network https://static.cloudflareinsights.com; connect-src 'self' https://api.stripe.com https://m.stripe.network https://cloudflareinsights.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://*.s3.ap-southeast-1.amazonaws.com https://one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net https://js.stripe.com https://m.stripe.network https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://m.stripe.network https://cloudflareinsights.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://*.s3.ap-southeast-1.amazonaws.com https://one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob: data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; upgrade-insecure-requests;",
           },
         ],
       },
