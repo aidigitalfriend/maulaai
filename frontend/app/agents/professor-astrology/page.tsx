@@ -8,7 +8,10 @@ const agentConfig = getAgentConfig('professor-astrology')!;
 
 export default function ProfessorAstrologyPage() {
   return (
-    <AgentSubscriptionGuard agentId="professor-astrology" agentName={agentConfig.name}>
+    <AgentSubscriptionGuard
+      agentId="professor-astrology"
+      agentName={agentConfig.name}
+    >
       <UniversalAgentChat agent={agentConfig} />
     </AgentSubscriptionGuard>
   );

@@ -8,7 +8,10 @@ const agentConfig = getAgentConfig('emma-emotional')!;
 
 export default function EmmaEmotionalPage() {
   return (
-    <AgentSubscriptionGuard agentId="emma-emotional" agentName={agentConfig.name}>
+    <AgentSubscriptionGuard
+      agentId="emma-emotional"
+      agentName={agentConfig.name}
+    >
       <UniversalAgentChat agent={agentConfig} />
     </AgentSubscriptionGuard>
   );

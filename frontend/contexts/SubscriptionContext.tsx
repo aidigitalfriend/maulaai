@@ -1,8 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import { useAuth } from './AuthContext';
-import { agentSubscriptionService, type AgentSubscription } from '@/services/agentSubscriptionService';
+import {
+  agentSubscriptionService,
+  type AgentSubscription,
+} from '@/services/agentSubscriptionService';
 
 interface SubscriptionContextType {
   subscriptions: AgentSubscription[];
@@ -14,9 +23,15 @@ interface SubscriptionContextType {
   refreshSubscriptions: () => Promise<void>;
 }
 
-const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
+const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
+  undefined
+);
 
-export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
+export function SubscriptionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { state } = useAuth();
   const [subscriptions, setSubscriptions] = useState<AgentSubscription[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +49,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setError(null);
 
       // Use the same service as dashboard - this is known to work
-      const allSubscriptions = await agentSubscriptionService.getUserSubscriptions(state.user.id);
-      
+      const allSubscriptions =
+        await agentSubscriptionService.getUserSubscriptions(state.user.id);
+
       // Filter to only active, non-expired subscriptions
       const activeSubscriptions = allSubscriptions.filter(
         (sub) =>
@@ -45,7 +61,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setSubscriptions(activeSubscriptions);
     } catch (err) {
       console.error('Error fetching subscriptions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch subscriptions');
+      setError(
+        err instanceof Error ? err.message : 'Failed to fetch subscriptions'
+      );
       setSubscriptions([]);
     } finally {
       setLoading(false);
@@ -84,12 +102,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     (agentId: string): number => {
       const sub = getSubscription(agentId);
       if (!sub) return 0;
-      
+
       const now = new Date();
       const expiry = new Date(sub.expiryDate);
       const diffTime = expiry.getTime() - now.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       return Math.max(0, diffDays);
     },
     [getSubscription]
@@ -119,7 +137,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 export function useSubscriptions() {
   const context = useContext(SubscriptionContext);
   if (context === undefined) {
-    throw new Error('useSubscriptions must be used within a SubscriptionProvider');
+    throw new Error(
+      'useSubscriptions must be used within a SubscriptionProvider'
+    );
   }
   return context;
 }

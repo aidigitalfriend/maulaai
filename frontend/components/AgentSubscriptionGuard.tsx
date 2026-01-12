@@ -34,7 +34,12 @@ export function AgentSubscriptionGuard({
 }: AgentSubscriptionGuardProps) {
   const router = useRouter();
   const { state: authState } = useAuth();
-  const { hasActiveSubscription, getSubscription, getDaysRemaining, loading: subscriptionLoading } = useSubscriptions();
+  const {
+    hasActiveSubscription,
+    getSubscription,
+    getDaysRemaining,
+    loading: subscriptionLoading,
+  } = useSubscriptions();
 
   // Combined loading state
   const isLoading = authState.isLoading || subscriptionLoading;
@@ -110,7 +115,8 @@ export function AgentSubscriptionGuard({
           </h1>
 
           <p className="text-neural-300 mb-8">
-            You need an active subscription to chat with {agentName}. Choose a plan that works for you.
+            You need an active subscription to chat with {agentName}. Choose a
+            plan that works for you.
           </p>
 
           <div className="bg-neural-900/50 rounded-xl p-4 mb-6">
@@ -119,10 +125,12 @@ export function AgentSubscriptionGuard({
             </h3>
             <ul className="text-left text-sm text-neural-300 space-y-2">
               <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span> Unlimited chat with {agentName}
+                <span className="text-green-400">✓</span> Unlimited chat with{' '}
+                {agentName}
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-green-400">✓</span> Voice chat capabilities
+                <span className="text-green-400">✓</span> Voice chat
+                capabilities
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-400">✓</span> File & image uploads

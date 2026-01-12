@@ -205,7 +205,13 @@ function SubscriptionSuccessContent() {
               </div>
               <div>
                 <span className="text-neural-500">Status:</span>
-                <span className="font-medium ml-2 text-green-600 capitalize">
+                <span
+                  className={`font-medium ml-2 capitalize ${
+                    subscriptionData.subscription.status === 'active'
+                      ? 'text-green-600'
+                      : 'text-red-500'
+                  }`}
+                >
                   {subscriptionData.subscription.status}
                 </span>
               </div>
@@ -218,7 +224,10 @@ function SubscriptionSuccessContent() {
               <div>
                 <span className="text-neural-500">Renews:</span>
                 <span className="font-medium ml-2">
-                  {subscriptionData.subscription.daysUntilRenewal} days
+                  {subscriptionData.subscription.daysRemaining ||
+                    subscriptionData.subscription.daysUntilRenewal ||
+                    0}{' '}
+                  days
                 </span>
               </div>
             </div>

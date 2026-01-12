@@ -8,7 +8,10 @@ const agentConfig = getAgentConfig('julie-girlfriend')!;
 
 export default function JulieGirlfriendPage() {
   return (
-    <AgentSubscriptionGuard agentId="julie-girlfriend" agentName={agentConfig.name}>
+    <AgentSubscriptionGuard
+      agentId="julie-girlfriend"
+      agentName={agentConfig.name}
+    >
       <UniversalAgentChat agent={agentConfig} />
     </AgentSubscriptionGuard>
   );

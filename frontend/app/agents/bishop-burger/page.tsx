@@ -8,7 +8,10 @@ const agentConfig = getAgentConfig('bishop-burger')!;
 
 export default function BishopBurgerPage() {
   return (
-    <AgentSubscriptionGuard agentId="bishop-burger" agentName={agentConfig.name}>
+    <AgentSubscriptionGuard
+      agentId="bishop-burger"
+      agentName={agentConfig.name}
+    >
       <UniversalAgentChat agent={agentConfig} />
     </AgentSubscriptionGuard>
   );

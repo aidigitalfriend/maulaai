@@ -439,9 +439,24 @@ router.get('/check/:userId/:agentId', async (req, res) => {
       expiryDate: { $gt: new Date() },
     }).sort({ createdAt: -1 });
 
+    // Calculate days remaining if subscription exists
+    let daysRemaining = 0;
+    if (subscription && subscription.expiryDate) {
+      daysRemaining = Math.ceil(
+        (new Date(subscription.expiryDate).getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      );
+    }
+
     res.json({
       hasActiveSubscription: !!subscription,
-      subscription: subscription,
+      hasAccess: !!subscription, // For frontend compatibility
+      subscription: subscription
+        ? {
+            ...subscription.toObject(),
+            daysRemaining,
+          }
+        : null,
     });
   } catch (error) {
     console.error('Error checking subscription:', error);
@@ -565,15 +580,23 @@ router.post('/verify-session', async (req, res) => {
     });
 
     if (existingByStripeId) {
-      // Update user field if missing
+      // Update user field if missing AND ensure status is active
+      // Since payment is successful, this subscription should be active
+      existingByStripeId.status = 'active';
+      existingByStripeId.startDate = startDate;
+      existingByStripeId.expiryDate = expiryDate;
       if (!existingByStripeId.userId) {
         existingByStripeId.userId = userId;
-        existingByStripeId.updatedAt = new Date();
-        await existingByStripeId.save();
-        console.log('✅ Updated user field for existing subscription');
       }
+      existingByStripeId.updatedAt = new Date();
+      await existingByStripeId.save();
+      console.log('✅ Updated existing subscription to active:', subscriptionData.id);
 
-      console.log('✅ Subscription already verified:', subscriptionData.id);
+      const daysRemaining = Math.ceil(
+        (existingByStripeId.expiryDate.getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      );
+
       return res.json({
         success: true,
         hasAccess: true,
@@ -581,12 +604,9 @@ router.post('/verify-session', async (req, res) => {
           id: existingByStripeId._id,
           agentId: existingByStripeId.agentId,
           plan: existingByStripeId.plan,
-          status: existingByStripeId.status,
+          status: 'active', // Always return active for successful payment
           expiryDate: existingByStripeId.expiryDate,
-          daysRemaining: Math.ceil(
-            (existingByStripeId.expiryDate.getTime() - Date.now()) /
-              (1000 * 60 * 60 * 24)
-          ),
+          daysRemaining: daysRemaining > 0 ? daysRemaining : 0,
           price: existingByStripeId.price,
         },
       });
