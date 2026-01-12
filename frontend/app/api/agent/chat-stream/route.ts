@@ -3,6 +3,9 @@ import { NextRequest } from 'next/server';
 // Initialize API keys from environment
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+const XAI_API_KEY = process.env.XAI_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
@@ -128,8 +131,70 @@ export async function POST(request: NextRequest) {
             content: userContent.length === 1 ? message : userContent,
           });
 
+          // Helper function to stream OpenAI-compatible responses
+          async function streamOpenAICompatible(apiUrl: string, apiKey: string, defaultModel: string) {
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: model || defaultModel,
+                messages,
+                temperature,
+                max_tokens: maxTokens,
+                stream: true,
+              }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.text();
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ error: errorData })}\n\n`)
+              );
+              controller.close();
+              return;
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) throw new Error('No reader available');
+
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  if (data === '[DONE]') continue;
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    const token = parsed.choices?.[0]?.delta?.content;
+                    if (token) {
+                      controller.enqueue(
+                        encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
+                      );
+                    }
+                  } catch (e) {
+                    // Skip invalid JSON
+                  }
+                }
+              }
+            }
+          }
+
+          // Route to the appropriate provider
           if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
-            // Anthropic streaming
+            // Anthropic streaming (different format)
             const systemMessage = messages.find((m) => m.role === 'system');
             const chatMessages = messages.filter((m) => m.role !== 'system');
 
@@ -206,74 +271,52 @@ export async function POST(request: NextRequest) {
                 }
               }
             }
-          } else if (OPENAI_API_KEY) {
-            // OpenAI streaming (default)
-            const response = await fetch(
-              'https://api.openai.com/v1/chat/completions',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${OPENAI_API_KEY}`,
-                },
-                body: JSON.stringify({
-                  model: model || 'gpt-4o',
-                  messages,
-                  temperature,
-                  max_tokens: maxTokens,
-                  stream: true,
-                }),
-              }
+          } else if (provider === 'mistral' && MISTRAL_API_KEY) {
+            // Mistral uses OpenAI-compatible API
+            await streamOpenAICompatible(
+              'https://api.mistral.ai/v1/chat/completions',
+              MISTRAL_API_KEY,
+              'mistral-large-latest'
             );
-
-            if (!response.ok) {
-              const errorData = await response.text();
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ error: errorData })}\n\n`
-                )
-              );
-              controller.close();
-              return;
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) throw new Error('No reader available');
-
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
-
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6);
-                  if (data === '[DONE]') continue;
-
-                  try {
-                    const parsed = JSON.parse(data);
-                    const token = parsed.choices?.[0]?.delta?.content;
-                    if (token) {
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
-                      );
-                    }
-                  } catch (e) {
-                    // Skip invalid JSON
-                  }
-                }
-              }
-            }
+          } else if (provider === 'xai' && XAI_API_KEY) {
+            // xAI Grok uses OpenAI-compatible API
+            await streamOpenAICompatible(
+              'https://api.x.ai/v1/chat/completions',
+              XAI_API_KEY,
+              'grok-3'
+            );
+          } else if (provider === 'groq' && GROQ_API_KEY) {
+            // Groq uses OpenAI-compatible API
+            await streamOpenAICompatible(
+              'https://api.groq.com/openai/v1/chat/completions',
+              GROQ_API_KEY,
+              'llama-3.3-70b-versatile'
+            );
+          } else if (provider === 'openai' && OPENAI_API_KEY) {
+            // OpenAI 
+            await streamOpenAICompatible(
+              'https://api.openai.com/v1/chat/completions',
+              OPENAI_API_KEY,
+              'gpt-4o'
+            );
+          } else if (OPENAI_API_KEY) {
+            // Fallback to OpenAI if provider not available
+            await streamOpenAICompatible(
+              'https://api.openai.com/v1/chat/completions',
+              OPENAI_API_KEY,
+              'gpt-4o'
+            );
+          } else if (MISTRAL_API_KEY) {
+            // Fallback to Mistral
+            await streamOpenAICompatible(
+              'https://api.mistral.ai/v1/chat/completions',
+              MISTRAL_API_KEY,
+              'mistral-large-latest'
+            );
           } else {
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ error: 'No API key configured' })}\n\n`
+                `data: ${JSON.stringify({ error: 'No API key configured for the selected provider' })}\n\n`
               )
             );
           }
@@ -310,3 +353,4 @@ export async function POST(request: NextRequest) {
     });
   }
 }
+
