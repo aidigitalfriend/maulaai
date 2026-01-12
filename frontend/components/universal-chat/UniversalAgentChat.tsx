@@ -9,6 +9,7 @@ import {
   MicrophoneIcon,
   PaperClipIcon,
   PhoneIcon,
+  StopIcon,
 } from '@heroicons/react/24/solid';
 import {
   HandThumbUpIcon,
@@ -138,6 +139,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Settings state - use agent's AI provider config if available
   const [settings, setSettings] = useState<AgentSettings>({
@@ -834,6 +836,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     );
 
     try {
+      // Create abort controller for stop functionality
+      abortControllerRef.current = new AbortController();
+      
       // Use streaming API for real-time token display
       const response = await fetch('/api/agent/chat-stream', {
         method: 'POST',
@@ -852,6 +857,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           mode: settings.mode,
           attachments,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -941,29 +947,53 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       await saveMessageToSession(activeSessionId, userMessage);
       await saveMessageToSession(activeSessionId, finalAssistantMessage);
     } catch (error) {
-      console.error('Chat error:', error);
+      // Check if it was an abort (user stopped)
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Mark message as stopped but keep content
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === activeSessionId
+              ? {
+                  ...s,
+                  messages: s.messages.map((m) =>
+                    m.id === assistantMessageId
+                      ? {
+                          ...m,
+                          content: m.content + '\n\n*[Response stopped by user]*',
+                          isStreaming: false,
+                        }
+                      : m
+                  ),
+                }
+              : s
+          )
+        );
+      } else {
+        console.error('Chat error:', error);
 
-      // Update the message with error
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? {
-                ...s,
-                messages: s.messages.map((m) =>
-                  m.id === assistantMessageId
-                    ? {
-                        ...m,
-                        content: `❌ **Error:** ${error instanceof Error ? error.message : 'Something went wrong. Please try again.'}`,
-                        isStreaming: false,
-                      }
-                    : m
-                ),
-              }
-            : s
-        )
-      );
+        // Update the message with error
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === activeSessionId
+              ? {
+                  ...s,
+                  messages: s.messages.map((m) =>
+                    m.id === assistantMessageId
+                      ? {
+                          ...m,
+                          content: `❌ **Error:** ${error instanceof Error ? error.message : 'Something went wrong. Please try again.'}`,
+                          isStreaming: false,
+                        }
+                      : m
+                  ),
+                }
+              : s
+          )
+        );
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
       // Legacy: also save to interactions for analytics
       const updatedSession = sessions.find((s) => s.id === activeSessionId);
       if (updatedSession) {
@@ -987,6 +1017,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     saveSession,
     saveMessageToSession,
   ]);
+
+  // Stop generation function
+  const handleStopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }, []);
 
   return (
     <EnhancedChatLayout
@@ -1027,8 +1064,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 <div
                   className={`prose prose-sm max-w-none ${
                     isNeural
-                      ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-cyan-400 prose-li:text-white'
-                      : ''
+                      ? 'prose-invert prose-p:text-gray-200 prose-headings:text-transparent prose-headings:bg-clip-text prose-headings:bg-gradient-to-r prose-headings:from-purple-400 prose-headings:to-cyan-400 prose-strong:text-purple-300 prose-strong:font-bold prose-a:text-cyan-400 prose-li:text-gray-200'
+                      : 'prose-headings:text-purple-600 prose-strong:text-indigo-600 prose-strong:font-bold'
                   }`}
                 >
                   {/* Display attachments (images as thumbnails) */}
@@ -1190,12 +1227,50 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         }
                         return (
                           <li
-                            className="flex items-start gap-2 my-1"
+                            className="flex items-start gap-3 my-2"
                             {...props}
                           >
-                            <span className="text-cyan-400 mt-1.5">•</span>
-                            <div className="flex-1">{children}</div>
+                            <span className="flex-shrink-0 w-2.5 h-2.5 mt-2 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 shadow-sm shadow-purple-500/30"></span>
+                            <div className="flex-1 text-gray-200">{children}</div>
                           </li>
+                        );
+                      },
+                      // Custom strong/bold text with purple color
+                      strong({ children, ...props }) {
+                        return (
+                          <strong className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                            {children}
+                          </strong>
+                        );
+                      },
+                      // Custom paragraph with better spacing
+                      p({ children, ...props }) {
+                        return (
+                          <p className="my-2 leading-relaxed text-gray-200" {...props}>
+                            {children}
+                          </p>
+                        );
+                      },
+                      // Custom headings with gradient colors
+                      h1({ children, ...props }) {
+                        return (
+                          <h1 className="text-xl font-bold my-3 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                            {children}
+                          </h1>
+                        );
+                      },
+                      h2({ children, ...props }) {
+                        return (
+                          <h2 className="text-lg font-bold my-2.5 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                            {children}
+                          </h2>
+                        );
+                      },
+                      h3({ children, ...props }) {
+                        return (
+                          <h3 className="text-base font-semibold my-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                            {children}
+                          </h3>
                         );
                       },
                       code({ inline, className, children, ...props }) {
@@ -1494,32 +1569,25 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 className={`w-full px-4 py-3 pr-12 rounded-xl border transition-all ${isNeural ? 'border-gray-700 bg-gray-800 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent' : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent'}`}
                 disabled={isLoading}
               />
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isLoading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:from-indigo-600 hover:to-purple-700"
-              >
-                {isLoading ? (
-                  <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                ) : (
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={handleStopGeneration}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-red-500 to-rose-600 text-white transition-all hover:from-red-600 hover:to-rose-700"
+                  title="Stop generating"
+                >
+                  <StopIcon className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:from-indigo-600 hover:to-purple-700"
+                  title="Send message"
+                >
                   <PaperAirplaneIcon className="w-5 h-5" />
-                )}
-              </button>
+                </button>
+              )}
             </div>
           </form>
 
