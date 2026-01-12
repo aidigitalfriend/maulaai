@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyRequest, unauthorizedResponse } from '../../../../lib/validateAuth';
 
-const BACKEND_BASE =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'https://onelastai.co:3005';
+// Use internal backend URL for server-to-server communication
+const BACKEND_BASE = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
 export async function GET(
   request: NextRequest,
@@ -23,6 +23,7 @@ export async function GET(
       headers: {
         'Content-Type': 'application/json',
       },
+      cache: 'no-store',
     });
 
     const data = await res.json();

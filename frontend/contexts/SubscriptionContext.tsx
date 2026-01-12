@@ -2,26 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-
-interface Subscription {
-  _id: string;
-  userId: string;
-  agentId: string;
-  plan: string;
-  status: 'active' | 'cancelled' | 'expired';
-  startDate: string;
-  expiryDate: string;
-  stripeSessionId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { agentSubscriptionService, type AgentSubscription } from '@/services/agentSubscriptionService';
 
 interface SubscriptionContextType {
-  subscriptions: Subscription[];
+  subscriptions: AgentSubscription[];
   loading: boolean;
   error: string | null;
   hasActiveSubscription: (agentId: string) => boolean;
-  getSubscription: (agentId: string) => Subscription | undefined;
+  getSubscription: (agentId: string) => AgentSubscription | undefined;
   getDaysRemaining: (agentId: string) => number;
   refreshSubscriptions: () => Promise<void>;
 }
@@ -30,7 +18,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { state } = useAuth();
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [subscriptions, setSubscriptions] = useState<AgentSubscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,22 +33,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/subscriptions/${state.user.id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscriptions');
-      }
-
-      const data = await response.json();
+      // Use the same service as dashboard - this is known to work
+      const allSubscriptions = await agentSubscriptionService.getUserSubscriptions(state.user.id);
       
       // Filter to only active, non-expired subscriptions
-      const activeSubscriptions = (data.subscriptions || []).filter(
-        (sub: Subscription) =>
+      const activeSubscriptions = allSubscriptions.filter(
+        (sub) =>
           sub.status === 'active' && new Date(sub.expiryDate) > new Date()
       );
 
@@ -91,7 +69,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   );
 
   const getSubscription = useCallback(
-    (agentId: string): Subscription | undefined => {
+    (agentId: string): AgentSubscription | undefined => {
       return subscriptions.find(
         (sub) =>
           sub.agentId === agentId &&
