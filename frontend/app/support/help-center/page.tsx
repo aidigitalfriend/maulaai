@@ -25,7 +25,7 @@ export default function SupportHelpCenter() {
           title: 'Documentation',
           description: 'Complete guides and API documentation for developers',
           icon: <BookOpen className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/docs',
+          href: '/docs',
           color: 'from-blue-600 to-blue-400',
           features: ['Getting Started', 'API Reference', 'Integration Guide'],
         },
@@ -33,7 +33,7 @@ export default function SupportHelpCenter() {
           title: 'Tutorials',
           description: 'Step-by-step tutorials for all agents and features',
           icon: <Video className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/tutorials',
+          href: '/resources/tutorials',
           color: 'from-purple-600 to-purple-400',
           features: ['Agent Walkthroughs', 'Best Practices', 'Video Guides'],
         },
@@ -41,7 +41,7 @@ export default function SupportHelpCenter() {
           title: 'FAQ & Help',
           description: 'Answers to frequently asked questions',
           icon: <FileText className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/faqs',
+          href: '/support/faqs',
           color: 'from-green-600 to-green-400',
           features: ['Common Questions', 'Troubleshooting', 'Tips & Tricks'],
         },
@@ -49,7 +49,7 @@ export default function SupportHelpCenter() {
           title: 'Blog & Case Studies',
           description: 'Insights, case studies, and product updates',
           icon: <Scroll className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/blog',
+          href: '/resources/blog',
           color: 'from-orange-600 to-orange-400',
           features: ['Industry News', 'Success Stories', 'Use Cases'],
         },
@@ -62,7 +62,7 @@ export default function SupportHelpCenter() {
           title: 'Community',
           description: 'Connect with other users and get community support',
           icon: <Users className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/community',
+          href: '/community',
           color: 'from-pink-600 to-pink-400',
           features: ['Community Forum', 'Events', 'Networking'],
         },
@@ -70,7 +70,7 @@ export default function SupportHelpCenter() {
           title: 'Product Roadmap',
           description: "See what we're building next and share feedback",
           icon: <Map className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/roadmap',
+          href: '/community/roadmap',
           color: 'from-indigo-600 to-indigo-400',
           features: ['Upcoming Features', 'Status Updates', 'Public Roadmap'],
         },
@@ -78,7 +78,7 @@ export default function SupportHelpCenter() {
           title: 'Submit Ideas & Suggestions',
           description: 'Share feature requests and improvement ideas',
           icon: <Lightbulb className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/suggestions',
+          href: '/community/suggestions',
           color: 'from-yellow-600 to-yellow-400',
           features: ['Feature Requests', 'Improvements', 'Community Voting'],
         },
@@ -86,7 +86,7 @@ export default function SupportHelpCenter() {
           title: 'Live Support & Chat',
           description: 'Get real-time assistance from our support team',
           icon: <MessageSquare className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/support/live',
+          href: '/support/live-support',
           color: 'from-cyan-600 to-cyan-400',
           features: ['Live Chat', 'Real-time Help', 'Expert Support'],
         },
@@ -99,7 +99,7 @@ export default function SupportHelpCenter() {
           title: 'Pricing Plans',
           description: 'Explore our pricing options and choose the right plan',
           icon: <ShoppingCart className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/pricing',
+          href: '/pricing',
           color: 'from-red-600 to-red-400',
           features: [
             'Per-Agent Pricing',
@@ -111,7 +111,7 @@ export default function SupportHelpCenter() {
           title: 'Book a Consultation',
           description: 'Schedule a one-on-one consultation with an expert',
           icon: <Phone className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/support/book-consultation',
+          href: '/support/book-consultation',
           color: 'from-emerald-600 to-emerald-400',
           features: [
             'Expert Consultation',
@@ -123,7 +123,7 @@ export default function SupportHelpCenter() {
           title: 'Contact Us',
           description: 'Get in touch with our team for any inquiries',
           icon: <Zap className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/support/contact',
+          href: '/support/contact-us',
           color: 'from-violet-600 to-violet-400',
           features: ['Email Support', 'Contact Form', 'Response Guarantee'],
         },
@@ -131,7 +131,7 @@ export default function SupportHelpCenter() {
           title: 'Create Support Ticket',
           description: 'Submit a ticket for technical issues or problems',
           icon: <BarChart3 className="w-8 h-8" />,
-          href: 'https://status.onelastai.co/support/ticket',
+          href: '/support/create-ticket',
           color: 'from-teal-600 to-teal-400',
           features: ['Issue Tracking', 'Priority Support', 'Ticket History'],
         },
@@ -158,7 +158,7 @@ export default function SupportHelpCenter() {
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
             <Link
-              href="https://status.onelastai.co/faqs"
+              href="/support/faqs"
               className="bg-neural-800 hover:bg-neural-700 border border-neural-700 hover:border-brand-600 p-4 rounded-lg text-center transition group"
             >
               <p className="text-2xl mb-2">❓</p>
@@ -167,7 +167,7 @@ export default function SupportHelpCenter() {
               </p>
             </Link>
             <Link
-              href="https://status.onelastai.co/docs"
+              href="/docs"
               className="bg-neural-800 hover:bg-neural-700 border border-neural-700 hover:border-brand-600 p-4 rounded-lg text-center transition group"
             >
               <p className="text-2xl mb-2">📚</p>
@@ -176,7 +176,7 @@ export default function SupportHelpCenter() {
               </p>
             </Link>
             <Link
-              href="https://status.onelastai.co/support/live"
+              href="/support/live-support"
               className="bg-neural-800 hover:bg-neural-700 border border-neural-700 hover:border-brand-600 p-4 rounded-lg text-center transition group"
             >
               <p className="text-2xl mb-2">💬</p>
@@ -185,7 +185,7 @@ export default function SupportHelpCenter() {
               </p>
             </Link>
             <Link
-              href="https://status.onelastai.co/support/ticket"
+              href="/support/create-ticket"
               className="bg-neural-800 hover:bg-neural-700 border border-neural-700 hover:border-brand-600 p-4 rounded-lg text-center transition group"
             >
               <p className="text-2xl mb-2">🎫</p>
