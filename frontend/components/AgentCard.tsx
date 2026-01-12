@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronRightIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import AgentDetailsModal from './AgentDetailsModal'
 import type { AgentConfig } from '@/app/agents/types'
+import { useSubscriptions } from '@/contexts/SubscriptionContext'
 
 interface AgentCardProps {
   agent: AgentConfig
@@ -13,6 +14,11 @@ interface AgentCardProps {
 
 export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
   const [showDetails, setShowDetails] = useState(false)
+  const { hasActiveSubscription, getSubscription, getDaysRemaining, loading } = useSubscriptions()
+  
+  const isSubscribed = hasActiveSubscription(agent.id)
+  const subscription = getSubscription(agent.id)
+  const daysRemaining = getDaysRemaining(agent.id)
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Prevent navigation if clicking the details button
@@ -22,10 +28,21 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
     }
   }
 
+  // Determine link and text based on subscription status
+  const linkHref = isSubscribed 
+    ? `/agents/${agent.id}` 
+    : `/subscribe?agent=${encodeURIComponent(agent.name)}&slug=${agent.id}`
+  
+  const actionText = loading 
+    ? 'Checking...' 
+    : isSubscribed 
+      ? `✓ Subscribed (${daysRemaining}d left)` 
+      : 'Subscribe to Access'
+
   return (
     <>
       <Link
-        href={`/subscribe?agent=${encodeURIComponent(agent.name)}&slug=${agent.id}`}
+        href={linkHref}
         className="agent-card animate-fade-in-up relative"
         style={{ animationDelay: `${index * 100}ms` }}
         onClick={handleCardClick}
@@ -65,8 +82,8 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-neural-100 gap-3">
-          <span className="text-sm font-medium text-brand-600 flex-1">
-            Subscribe to Access
+          <span className={`text-sm font-medium flex-1 ${isSubscribed ? 'text-green-600' : 'text-brand-600'}`}>
+            {actionText}
           </span>
           
           <div className="flex items-center gap-2">
