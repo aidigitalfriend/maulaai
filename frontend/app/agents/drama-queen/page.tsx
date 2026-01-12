@@ -1,15 +1,10 @@
 'use client';
 
 import UniversalAgentChat from '../../../components/UniversalAgentChat';
-import AgentSubscriptionGuard from '../../../components/AgentSubscriptionGuard';
 import { getAgentConfig } from '../agentChatConfigs';
 
 const agentConfig = getAgentConfig('drama-queen')!;
 
-export default function DramaQueenPage() {
-  return (
-    <AgentSubscriptionGuard agentId="drama-queen" agentName={agentConfig.name}>
-      <UniversalAgentChat agent={agentConfig} />
-    </AgentSubscriptionGuard>
-  );
+export default function AgentPage() {
+  return <UniversalAgentChat agent={agentConfig} />;
 }
