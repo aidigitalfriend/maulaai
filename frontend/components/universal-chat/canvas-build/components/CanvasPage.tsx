@@ -30,8 +30,21 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
+// Monaco Editor with proper loading state
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full bg-[#1e1e1e]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex gap-1">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+        <span className="text-sm text-gray-400">Loading editor...</span>
+      </div>
+    </div>
+  ),
 });
 
 // =============================================================================
@@ -461,20 +474,91 @@ export default function CanvasMode({
       const doc = previewRef.current.contentDocument;
       if (doc) {
         doc.open();
-        doc.write(code);
+        // Ensure the HTML has proper structure and styling
+        let finalCode = code;
+        
+        // If code doesn't have DOCTYPE, add proper HTML wrapper with Tailwind
+        if (!code.toLowerCase().includes('<!doctype')) {
+          finalCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100vh; background: #ffffff; }
+  </style>
+</head>
+<body class="bg-white">
+${code}
+<script>
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>
+</body>
+</html>`;
+        } else {
+          // Even if it has DOCTYPE, ensure Tailwind is loaded
+          if (!code.includes('tailwindcss') && !code.includes('cdn.tailwind')) {
+            finalCode = code.replace(
+              /<head>/i,
+              `<head>\n  <script src="https://cdn.tailwindcss.com"></script>`
+            );
+          }
+        }
+        
+        doc.write(finalCode);
         doc.close();
+        
+        // Initialize Lucide icons after content is written
+        setTimeout(() => {
+          try {
+            const iframeWindow = previewRef.current?.contentWindow;
+            if (iframeWindow && (iframeWindow as any).lucide) {
+              (iframeWindow as any).lucide.createIcons();
+            }
+          } catch (e) {
+            // Ignore cross-origin errors
+          }
+        }, 200);
       }
     }
   }, []);
 
+  // Update preview when generatedCode changes and view is preview
   useEffect(() => {
     if (viewMode !== 'preview') return;
     const htmlContent =
       selectedFile?.type === 'html' ? selectedFile.content : generatedCode;
     if (htmlContent) {
-      updatePreview(htmlContent);
+      // Small delay to ensure iframe is mounted
+      const timer = setTimeout(() => {
+        updatePreview(htmlContent);
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [viewMode, selectedFile, generatedCode, updatePreview]);
+
+  // Also update preview when switching to preview mode with existing code
+  useEffect(() => {
+    if (viewMode === 'preview' && generatedCode && previewRef.current) {
+      const timer = setTimeout(() => {
+        updatePreview(generatedCode);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, updatePreview, generatedCode]);
+
+  // Auto-select first file (index.html) when files are generated
+  useEffect(() => {
+    if (generatedFiles.length > 0 && !selectedFile) {
+      setSelectedFile(generatedFiles[0]);
+    }
+  }, [generatedFiles, selectedFile]);
 
   // Extract files from generated code
   const extractFiles = useCallback((code: string): GeneratedFile[] => {
@@ -1737,7 +1821,7 @@ export default function CanvasMode({
             <div className="w-full h-full p-4 overflow-auto">
               {generatedCode ? (
                 <div
-                  className={`${deviceStyles[previewDevice]} bg-white rounded-xl overflow-hidden transition-all duration-300`}
+                  className={`${deviceStyles[previewDevice]} rounded-xl overflow-hidden transition-all duration-300`}
                   style={{
                     boxShadow:
                       '0 0 60px rgba(34, 211, 238, 0.15), 0 0 30px rgba(168, 85, 247, 0.1)',
@@ -1746,8 +1830,9 @@ export default function CanvasMode({
                   <iframe
                     ref={previewRef}
                     title="Preview"
-                    className="w-full h-full border-none"
-                    sandbox="allow-scripts allow-same-origin"
+                    className="w-full h-full border-none bg-white"
+                    sandbox="allow-scripts allow-same-origin allow-forms"
+                    style={{ minHeight: '600px', backgroundColor: '#ffffff' }}
                   />
                 </div>
               ) : (
@@ -1785,34 +1870,60 @@ export default function CanvasMode({
           ) : (
             /* ===== CODE VIEW ===== */
             <div className="w-full h-full overflow-hidden">
-              {selectedFile || generatedCode ? (
-                <div className="h-full">
-                  <MonacoEditor
-                    height="100%"
-                    defaultLanguage="html"
-                    language={
-                      selectedFile?.type === 'css'
-                        ? 'css'
-                        : selectedFile?.type === 'js'
-                          ? 'javascript'
-                          : selectedFile?.type === 'json'
-                            ? 'json'
-                            : selectedFile?.type === 'tsx'
-                              ? 'typescript'
-                              : 'html'
-                    }
-                    theme="vs-dark"
-                    value={selectedFile?.content || generatedCode}
-                    options={{
-                      readOnly: true,
-                      minimap: { enabled: false },
-                      lineNumbers: 'on',
-                      wordWrap: 'on',
-                      scrollBeyondLastLine: false,
-                      fontSize: 13,
-                      padding: { top: 12, bottom: 12 },
-                    }}
-                  />
+              {(selectedFile?.content || generatedCode) ? (
+                <div className="h-full flex flex-col">
+                  {/* File tabs */}
+                  {generatedFiles.length > 0 && (
+                    <div className={`flex items-center gap-1 px-2 py-1 ${brandColors.bgSecondary} border-b ${brandColors.border} overflow-x-auto`}>
+                      {generatedFiles.map((file) => (
+                        <button
+                          key={file.id}
+                          onClick={() => setSelectedFile(file)}
+                          className={`flex items-center gap-1 px-3 py-1.5 rounded-t text-xs whitespace-nowrap transition-colors ${
+                            selectedFile?.id === file.id
+                              ? 'bg-[#1e1e1e] text-white border-t border-x border-cyan-500/30'
+                              : `${brandColors.textSecondary} hover:text-white hover:bg-[#2a2a3a]`
+                          }`}
+                        >
+                          <span>{FILE_ICONS[file.type] || FILE_ICONS.other}</span>
+                          {file.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex-1 min-h-0">
+                    <MonacoEditor
+                      height="100%"
+                      defaultLanguage="html"
+                      language={
+                        selectedFile?.type === 'css'
+                          ? 'css'
+                          : selectedFile?.type === 'js'
+                            ? 'javascript'
+                            : selectedFile?.type === 'json'
+                              ? 'json'
+                              : selectedFile?.type === 'tsx'
+                                ? 'typescript'
+                                : 'html'
+                      }
+                      theme="vs-dark"
+                      value={selectedFile?.content || generatedCode}
+                      options={{
+                        readOnly: true,
+                        minimap: { enabled: true },
+                        lineNumbers: 'on',
+                        wordWrap: 'on',
+                        scrollBeyondLastLine: false,
+                        fontSize: 13,
+                        padding: { top: 12, bottom: 12 },
+                        automaticLayout: true,
+                        scrollbar: {
+                          vertical: 'visible',
+                          horizontal: 'visible',
+                        },
+                      }}
+                    />
+                  </div>
                 </div>
               ) : (
                 <div
