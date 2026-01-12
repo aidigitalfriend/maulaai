@@ -132,7 +132,11 @@ export async function POST(request: NextRequest) {
           });
 
           // Helper function to stream OpenAI-compatible responses
-          async function streamOpenAICompatible(apiUrl: string, apiKey: string, defaultModel: string) {
+          async function streamOpenAICompatible(
+            apiUrl: string,
+            apiKey: string,
+            defaultModel: string
+          ) {
             const response = await fetch(apiUrl, {
               method: 'POST',
               headers: {
@@ -151,7 +155,9 @@ export async function POST(request: NextRequest) {
             if (!response.ok) {
               const errorData = await response.text();
               controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ error: errorData })}\n\n`)
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: errorData })}\n\n`
+                )
               );
               controller.close();
               return;
@@ -293,7 +299,7 @@ export async function POST(request: NextRequest) {
               'llama-3.3-70b-versatile'
             );
           } else if (provider === 'openai' && OPENAI_API_KEY) {
-            // OpenAI 
+            // OpenAI
             await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               OPENAI_API_KEY,
@@ -353,4 +359,3 @@ export async function POST(request: NextRequest) {
     });
   }
 }
-

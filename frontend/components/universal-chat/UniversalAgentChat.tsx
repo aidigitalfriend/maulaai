@@ -838,7 +838,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     try {
       // Create abort controller for stop functionality
       abortControllerRef.current = new AbortController();
-      
+
       // Use streaming API for real-time token display
       const response = await fetch('/api/agent/chat-stream', {
         method: 'POST',
@@ -959,7 +959,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     m.id === assistantMessageId
                       ? {
                           ...m,
-                          content: m.content + '\n\n*[Response stopped by user]*',
+                          content:
+                            m.content + '\n\n*[Response stopped by user]*',
                           isStreaming: false,
                         }
                       : m
@@ -1231,14 +1232,19 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             {...props}
                           >
                             <span className="flex-shrink-0 w-2.5 h-2.5 mt-2 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 shadow-sm shadow-purple-500/30"></span>
-                            <div className="flex-1 text-gray-200">{children}</div>
+                            <div className="flex-1 text-gray-200">
+                              {children}
+                            </div>
                           </li>
                         );
                       },
                       // Custom strong/bold text with purple color
                       strong({ children, ...props }) {
                         return (
-                          <strong className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                          <strong
+                            className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            {...props}
+                          >
                             {children}
                           </strong>
                         );
@@ -1246,7 +1252,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       // Custom paragraph with better spacing
                       p({ children, ...props }) {
                         return (
-                          <p className="my-2 leading-relaxed text-gray-200" {...props}>
+                          <p
+                            className="my-2 leading-relaxed text-gray-200"
+                            {...props}
+                          >
                             {children}
                           </p>
                         );
@@ -1254,21 +1263,30 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       // Custom headings with gradient colors
                       h1({ children, ...props }) {
                         return (
-                          <h1 className="text-xl font-bold my-3 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                          <h1
+                            className="text-xl font-bold my-3 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            {...props}
+                          >
                             {children}
                           </h1>
                         );
                       },
                       h2({ children, ...props }) {
                         return (
-                          <h2 className="text-lg font-bold my-2.5 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                          <h2
+                            className="text-lg font-bold my-2.5 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            {...props}
+                          >
                             {children}
                           </h2>
                         );
                       },
                       h3({ children, ...props }) {
                         return (
-                          <h3 className="text-base font-semibold my-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400" {...props}>
+                          <h3
+                            className="text-base font-semibold my-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            {...props}
+                          >
                             {children}
                           </h3>
                         );

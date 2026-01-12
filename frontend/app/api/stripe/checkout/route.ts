@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
     }
 
     const checkData = await checkRes.json();
-    
+
     // Check both possible field names for backwards compatibility
     const hasActive = checkData.hasAccess || checkData.hasActiveSubscription;
-    
+
     if (hasActive && checkData.subscription) {
       return NextResponse.json(
         {

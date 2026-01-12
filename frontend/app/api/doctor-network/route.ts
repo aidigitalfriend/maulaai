@@ -372,11 +372,11 @@ class AIProvider {
 async function getAIResponse(messages: any[]): Promise<string> {
   // Try providers in order: Mistral (primary), OpenAI, Anthropic, Gemini
   const providers = ['mistral', 'openai', 'anthropic', 'gemini'];
-  
+
   for (const provider of providers) {
     try {
       console.log(`[Doctor Network] Trying ${provider}...`);
-      
+
       switch (provider) {
         case 'mistral':
           if (process.env.MISTRAL_API_KEY) {

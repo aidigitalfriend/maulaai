@@ -590,7 +590,10 @@ router.post('/verify-session', async (req, res) => {
       }
       existingByStripeId.updatedAt = new Date();
       await existingByStripeId.save();
-      console.log('✅ Updated existing subscription to active:', subscriptionData.id);
+      console.log(
+        '✅ Updated existing subscription to active:',
+        subscriptionData.id
+      );
 
       const daysRemaining = Math.ceil(
         (existingByStripeId.expiryDate.getTime() - Date.now()) /

@@ -5,16 +5,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const queryIP = searchParams.get('ip')?.trim() || '';
-    
+
     // Get client IP from headers (set by NGINX/proxy) or request
-    const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
+    const forwardedFor =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
     const realIP = request.headers.get('x-real-ip') || '';
-    
+
     // Priority: query param > x-forwarded-for > x-real-ip
     const targetIP = queryIP || forwardedFor || realIP || '';
 
     // Use ip-api.com (free, no key needed) as primary
-    const ipApiFields = 'status,message,query,reverse,country,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting';
+    const ipApiFields =
+      'status,message,query,reverse,country,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,mobile,proxy,hosting';
     const ipApiUrl = `http://ip-api.com/json/${encodeURIComponent(targetIP || '')}?fields=${ipApiFields}`;
 
     let raw = null;
@@ -22,23 +24,23 @@ export async function GET(request: NextRequest) {
 
     try {
       const response = await fetch(ipApiUrl, {
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
       });
       raw = await response.json();
-      
+
       if (!response.ok || raw?.status === 'fail') {
         throw new Error(raw?.message || 'ip-api.com lookup failed');
       }
     } catch (err) {
       // Fallback to ipapi.co
       console.log('[ipinfo] ip-api.com failed, trying ipapi.co:', err);
-      
+
       const ipapiUrl = `https://ipapi.co/${encodeURIComponent(targetIP || '')}/json/`;
       const response2 = await fetch(ipapiUrl, {
-        headers: { 'Accept': 'application/json' },
+        headers: { Accept: 'application/json' },
       });
       const json2 = await response2.json();
-      
+
       if (!response2.ok || json2?.error) {
         return NextResponse.json(
           { success: false, error: json2?.reason || 'IP lookup failed' },
@@ -68,7 +70,8 @@ export async function GET(request: NextRequest) {
     const proxy = isIpApi ? !!raw.proxy : !!raw.proxy;
     const hosting = isIpApi
       ? !!raw.hosting
-      : raw.hosting === true || /cloud|hosting|datacenter/i.test(org || isp || '');
+      : raw.hosting === true ||
+        /cloud|hosting|datacenter/i.test(org || isp || '');
 
     // Derive ASN number if embedded like "AS15169 Google LLC"
     let asn = '';
@@ -118,9 +121,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[ipinfo] Error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'IP lookup failed' 
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'IP lookup failed',
       },
       { status: 500 }
     );
