@@ -208,6 +208,25 @@ const FILE_ICONS: Record<string, string> = {
 };
 
 // =============================================================================
+// SPLASH SCREEN MESSAGES
+// =============================================================================
+
+const SPLASH_MESSAGES = [
+  { text: "✨ Crafting your vision into reality...", emoji: "🎨" },
+  { text: "🚀 Building something amazing for you...", emoji: "🔮" },
+  { text: "💡 Transforming ideas into code...", emoji: "⚡" },
+  { text: "🎯 Perfecting every pixel...", emoji: "✅" },
+  { text: "🌟 Adding the finishing touches...", emoji: "💎" },
+  { text: "🔧 Engineering excellence in progress...", emoji: "⚙️" },
+  { text: "🎪 Creating magic with AI...", emoji: "🪄" },
+  { text: "📐 Designing with precision...", emoji: "🎨" },
+  { text: "💫 Almost there, hang tight...", emoji: "⏳" },
+  { text: "🌈 Bringing colors to life...", emoji: "🖌️" },
+  { text: "⚡ Supercharging your experience...", emoji: "🚀" },
+  { text: "🎭 Styling your masterpiece...", emoji: "✨" },
+];
+
+// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
@@ -256,6 +275,9 @@ export default function CanvasMode({
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history' | 'settings'
   >('chat');
+
+  // Splash screen state
+  const [splashMessageIndex, setSplashMessageIndex] = useState(0);
 
   // AI Settings State
   const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
@@ -344,6 +366,20 @@ export default function CanvasMode({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Rotate splash messages every 1.5 seconds while generating
+  useEffect(() => {
+    if (!isGenerating) {
+      setSplashMessageIndex(0);
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      setSplashMessageIndex((prev) => (prev + 1) % SPLASH_MESSAGES.length);
+    }, 1500);
+    
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   // =============================================================================
   // BRAND THEME STYLES
@@ -1816,7 +1852,75 @@ ${code}
 
         {/* Content Area */}
         <div className={`flex-1 overflow-hidden ${brandColors.bgMain}`}>
-          {viewMode === 'preview' ? (
+          {/* ===== SPLASH SCREEN DURING GENERATION ===== */}
+          {isGenerating ? (
+            <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
+              {/* Animated background elements */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              </div>
+              
+              {/* Logo and content */}
+              <div className="relative z-10 flex flex-col items-center">
+                {/* Animated logo container */}
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-3xl blur-xl opacity-50 animate-pulse" />
+                  <div className={`relative w-24 h-24 rounded-3xl ${brandColors.bgPanel} border ${brandColors.borderAccent} flex items-center justify-center overflow-hidden`}>
+                    <Image
+                      src="/images/logos/company-logo.png"
+                      alt="One Last AI"
+                      width={64}
+                      height={64}
+                      className="w-16 h-16 object-contain animate-pulse"
+                      priority
+                    />
+                  </div>
+                  {/* Rotating ring */}
+                  <div className="absolute inset-0 rounded-3xl border-2 border-transparent border-t-cyan-400 border-r-purple-400 animate-spin" style={{ animationDuration: '2s' }} />
+                </div>
+                
+                {/* Brand name */}
+                <h2 className={`text-2xl font-bold ${brandColors.gradientText} mb-4`}>
+                  One Last AI
+                </h2>
+                
+                {/* Animated message */}
+                <div className="h-16 flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-3xl animate-bounce" style={{ animationDuration: '1s' }}>
+                      {SPLASH_MESSAGES[splashMessageIndex].emoji}
+                    </span>
+                  </div>
+                  <p className={`text-lg ${brandColors.text} text-center transition-all duration-500 ease-in-out`}>
+                    {SPLASH_MESSAGES[splashMessageIndex].text}
+                  </p>
+                </div>
+                
+                {/* Progress indicator */}
+                <div className="mt-8 flex items-center gap-2">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        i === splashMessageIndex % 5
+                          ? 'bg-cyan-400 scale-125'
+                          : 'bg-gray-600'
+                      }`}
+                      style={{ animationDelay: `${i * 0.1}s` }}
+                    />
+                  ))}
+                </div>
+                
+                {/* Sub-message */}
+                <p className={`mt-6 text-sm ${brandColors.textMuted} text-center max-w-md`}>
+                  Our AI is crafting a unique experience just for you.<br />
+                  This usually takes 10-30 seconds.
+                </p>
+              </div>
+            </div>
+          ) : viewMode === 'preview' ? (
             /* ===== PREVIEW VIEW ===== */
             <div className="w-full h-full p-4 overflow-auto">
               {generatedCode ? (
@@ -1858,12 +1962,6 @@ ${code}
                       Preview will appear here!
                     </span>
                   </p>
-                  {isGenerating && (
-                    <div className="flex items-center gap-2 mt-3 text-xs text-cyan-300">
-                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                      <span>Generating preview...</span>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
