@@ -30,22 +30,96 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 
-// Monaco Editor with proper loading state
-const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-full bg-[#1e1e1e]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="flex gap-1">
-          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-        </div>
-        <span className="text-sm text-gray-400">Loading editor...</span>
+// Lazy load Monaco Editor with proper error handling
+const MonacoEditor = dynamic(
+  () =>
+    import('@monaco-editor/react').then((mod) => {
+      // Configure loader after module loads
+      mod.loader.config({
+        paths: {
+          vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs',
+        },
+      });
+      return mod.default;
+    }),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-col items-center justify-center h-full bg-[#0a0a0f]">
+        <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-sm text-gray-400">Loading code editor...</p>
       </div>
-    </div>
-  ),
-});
+    ),
+  }
+);
+
+// =============================================================================
+// MARKDOWN RENDERER
+// =============================================================================
+
+const renderMarkdown = (text: string): string => {
+  if (!text) return '';
+  return (
+    text
+      // Bold: **text** or __text__
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')
+      // Italic: *text* or _text_
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      // Code: `text`
+      .replace(
+        /`([^`]+)`/g,
+        '<code class="bg-white/10 px-1 py-0.5 rounded text-cyan-300">$1</code>'
+      )
+      // Links: [text](url)
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" class="text-cyan-400 underline" target="_blank">$1</a>'
+      )
+      // Line breaks
+      .replace(/\n/g, '<br />')
+  );
+};
+
+// Extract only HTML code from mixed response (strips explanatory text)
+const extractHtmlFromResponse = (
+  response: string
+): { html: string; explanation: string } => {
+  const trimmed = response.trim();
+
+  // Try to find HTML code block
+  const htmlBlockMatch = trimmed.match(/```html\s*([\s\S]*?)```/i);
+  if (htmlBlockMatch) {
+    const html = htmlBlockMatch[1].trim();
+    const explanation = trimmed
+      .replace(htmlBlockMatch[0], '')
+      .trim()
+      .replace(/^[\s\n]+|[\s\n]+$/g, '');
+    return { html, explanation };
+  }
+
+  // Try to find <!DOCTYPE html> or <html> tags
+  const doctypeMatch = trimmed.match(/<!DOCTYPE\s+html[\s\S]*$/i);
+  if (doctypeMatch) {
+    const htmlStart = trimmed.indexOf(doctypeMatch[0]);
+    const explanation = trimmed.substring(0, htmlStart).trim();
+    return { html: doctypeMatch[0], explanation };
+  }
+
+  const htmlTagMatch = trimmed.match(/<html[\s\S]*<\/html>/i);
+  if (htmlTagMatch) {
+    const htmlStart = trimmed.indexOf(htmlTagMatch[0]);
+    const htmlEnd = htmlStart + htmlTagMatch[0].length;
+    const beforeText = trimmed.substring(0, htmlStart).trim();
+    const afterText = trimmed.substring(htmlEnd).trim();
+    const explanation = [beforeText, afterText].filter(Boolean).join('\n\n');
+    return { html: htmlTagMatch[0], explanation };
+  }
+
+  // No HTML found, return as explanation
+  return { html: '', explanation: trimmed };
+};
 
 // =============================================================================
 // TYPES
@@ -208,25 +282,6 @@ const FILE_ICONS: Record<string, string> = {
 };
 
 // =============================================================================
-// SPLASH SCREEN MESSAGES
-// =============================================================================
-
-const SPLASH_MESSAGES = [
-  { text: "✨ Crafting your vision into reality...", emoji: "🎨" },
-  { text: "🚀 Building something amazing for you...", emoji: "🔮" },
-  { text: "💡 Transforming ideas into code...", emoji: "⚡" },
-  { text: "🎯 Perfecting every pixel...", emoji: "✅" },
-  { text: "🌟 Adding the finishing touches...", emoji: "💎" },
-  { text: "🔧 Engineering excellence in progress...", emoji: "⚙️" },
-  { text: "🎪 Creating magic with AI...", emoji: "🪄" },
-  { text: "📐 Designing with precision...", emoji: "🎨" },
-  { text: "💫 Almost there, hang tight...", emoji: "⏳" },
-  { text: "🌈 Bringing colors to life...", emoji: "🖌️" },
-  { text: "⚡ Supercharging your experience...", emoji: "🚀" },
-  { text: "🎭 Styling your masterpiece...", emoji: "✨" },
-];
-
-// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
@@ -275,9 +330,6 @@ export default function CanvasMode({
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history' | 'settings'
   >('chat');
-
-  // Splash screen state
-  const [splashMessageIndex, setSplashMessageIndex] = useState(0);
 
   // AI Settings State
   const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
@@ -356,7 +408,7 @@ export default function CanvasMode({
       {
         id: '1',
         role: 'assistant',
-        content: `Hi! I'm ready to create amazing designs for you.\n\n🎯 Select a template or describe what you want to build!`,
+        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\nI'll ask a few questions to understand your needs, then we can start building!`,
         timestamp: new Date(),
       },
     ]);
@@ -366,20 +418,6 @@ export default function CanvasMode({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Rotate splash messages every 1.5 seconds while generating
-  useEffect(() => {
-    if (!isGenerating) {
-      setSplashMessageIndex(0);
-      return;
-    }
-    
-    const interval = setInterval(() => {
-      setSplashMessageIndex((prev) => (prev + 1) % SPLASH_MESSAGES.length);
-    }, 1500);
-    
-    return () => clearInterval(interval);
-  }, [isGenerating]);
 
   // =============================================================================
   // BRAND THEME STYLES
@@ -444,9 +482,13 @@ export default function CanvasMode({
   // =============================================================================
 
   const normalizeCode = useCallback((code: string) => {
-    let cleaned = code.trimStart();
-    cleaned = cleaned.replace(/^```[a-zA-Z]*\s*/i, '');
-    cleaned = cleaned.replace(/```$/i, '');
+    let cleaned = code.trim();
+    // Remove leading markdown code blocks (```html, ```HTML, etc.)
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/gim, '');
+    // Remove trailing markdown code blocks
+    cleaned = cleaned.replace(/\n?```\s*$/gim, '');
+    // Also handle case where ``` appears in the middle (shouldn't happen but just in case)
+    cleaned = cleaned.replace(/```\s*$/gm, '');
     return cleaned.trim();
   }, []);
 
@@ -507,94 +549,116 @@ export default function CanvasMode({
 
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {
+      // Comprehensive CSS fix for icons and layout issues
+      const iconFixCSS = `
+<style>
+  /* CRITICAL: Fix for oversized icons - constrain ALL SVGs aggressively */
+  svg:not([width]):not([class*="w-"]):not(.chart):not(.graph) { 
+    width: 24px !important; 
+    height: 24px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    display: inline-block !important;
+  }
+  
+  /* Force constrain all Lucide icons */
+  [data-lucide], i[data-lucide], .lucide { 
+    width: 24px !important; 
+    height: 24px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+  }
+  
+  [data-lucide] svg, i[data-lucide] svg, .lucide svg { 
+    width: 100% !important; 
+    height: 100% !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+  }
+  
+  /* Icons in buttons, links, spans should be constrained */
+  button svg, a svg, span svg, div svg, p svg { 
+    max-width: 32px !important; 
+    max-height: 32px !important; 
+  }
+  
+  /* Hero/feature icons can be slightly larger but still constrained */
+  .hero svg, .feature svg, .icon-lg svg, [class*="icon"] svg {
+    max-width: 64px !important;
+    max-height: 64px !important;
+  }
+  
+  /* Ensure body doesn't have overflowing SVGs */
+  body > svg:not([class]) {
+    display: none !important;
+  }
+  
+  /* Reset any SVG that might be positioned absolutely and taking full screen */
+  svg[style*="position: absolute"], svg[style*="position:absolute"] {
+    max-width: 100px !important;
+    max-height: 100px !important;
+  }
+</style>
+`;
+      // Insert CSS fix before </head> if head exists, otherwise before </body>
+      let fixedCode = code;
+      if (code.includes('</head>')) {
+        fixedCode = code.replace('</head>', iconFixCSS + '</head>');
+      } else if (code.includes('</body>')) {
+        fixedCode = code.replace('</body>', iconFixCSS + '</body>');
+      } else {
+        // No head or body tag found, prepend the CSS
+        fixedCode = iconFixCSS + code;
+      }
+
+      // Also try to initialize Lucide if it's being used
+      const lucideInit = `
+<script>
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    document.addEventListener('DOMContentLoaded', function() { 
+      lucide.createIcons(); 
+      // After icons are created, ensure they're sized properly
+      document.querySelectorAll('[data-lucide]').forEach(function(el) {
+        el.style.width = '24px';
+        el.style.height = '24px';
+      });
+    });
+    setTimeout(function() { 
+      if (lucide.createIcons) {
+        lucide.createIcons(); 
+        document.querySelectorAll('[data-lucide]').forEach(function(el) {
+          el.style.width = '24px';
+          el.style.height = '24px';
+        });
+      }
+    }, 100);
+  }
+</script>
+`;
+      if (fixedCode.includes('lucide') || fixedCode.includes('data-lucide')) {
+        fixedCode = fixedCode.replace('</body>', lucideInit + '</body>');
+      }
+
+      // Use doc.write() with allow-same-origin sandbox (required for external CDN requests)
       const doc = previewRef.current.contentDocument;
       if (doc) {
         doc.open();
-        // Ensure the HTML has proper structure and styling
-        let finalCode = code;
-        
-        // If code doesn't have DOCTYPE, add proper HTML wrapper with Tailwind
-        if (!code.toLowerCase().includes('<!doctype')) {
-          finalCode = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { min-height: 100vh; background: #ffffff; }
-  </style>
-</head>
-<body class="bg-white">
-${code}
-<script>
-  // Initialize Lucide icons
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
-</script>
-</body>
-</html>`;
-        } else {
-          // Even if it has DOCTYPE, ensure Tailwind is loaded
-          if (!code.includes('tailwindcss') && !code.includes('cdn.tailwind')) {
-            finalCode = code.replace(
-              /<head>/i,
-              `<head>\n  <script src="https://cdn.tailwindcss.com"></script>`
-            );
-          }
-        }
-        
-        doc.write(finalCode);
+        doc.write(fixedCode);
         doc.close();
-        
-        // Initialize Lucide icons after content is written
-        setTimeout(() => {
-          try {
-            const iframeWindow = previewRef.current?.contentWindow;
-            if (iframeWindow && (iframeWindow as any).lucide) {
-              (iframeWindow as any).lucide.createIcons();
-            }
-          } catch (e) {
-            // Ignore cross-origin errors
-          }
-        }, 200);
       }
     }
   }, []);
 
-  // Update preview when generatedCode changes and view is preview
   useEffect(() => {
     if (viewMode !== 'preview') return;
     const htmlContent =
       selectedFile?.type === 'html' ? selectedFile.content : generatedCode;
     if (htmlContent) {
-      // Small delay to ensure iframe is mounted
-      const timer = setTimeout(() => {
-        updatePreview(htmlContent);
-      }, 50);
-      return () => clearTimeout(timer);
+      updatePreview(htmlContent);
     }
   }, [viewMode, selectedFile, generatedCode, updatePreview]);
-
-  // Also update preview when switching to preview mode with existing code
-  useEffect(() => {
-    if (viewMode === 'preview' && generatedCode && previewRef.current) {
-      const timer = setTimeout(() => {
-        updatePreview(generatedCode);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [viewMode, updatePreview, generatedCode]);
-
-  // Auto-select first file (index.html) when files are generated
-  useEffect(() => {
-    if (generatedFiles.length > 0 && !selectedFile) {
-      setSelectedFile(generatedFiles[0]);
-    }
-  }, [generatedFiles, selectedFile]);
 
   // Extract files from generated code
   const extractFiles = useCallback((code: string): GeneratedFile[] => {
@@ -706,13 +770,11 @@ ${code}
 
     setMessages((prev) => [...prev, userMessage]);
     const userPrompt = chatInput.trim();
-    const uniquenessHint = `\n\nUniqueness requirements: produce a fresh layout, novel component structure, and a new color system for this request. Avoid reusing any previous templates. Seed: ${Date.now().toString(36)}-${Math.floor(Math.random() * 1_000_000)}`;
     setChatInput('');
     setUploadedFiles([]);
     setIsGenerating(true);
     setShowTemplates(false);
     setGenerationStatus('generating');
-    setViewMode('preview'); // Switch to preview when generating
 
     // Add streaming placeholder
     const streamingMsgId = (Date.now() + 1).toString();
@@ -736,7 +798,7 @@ ${code}
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          prompt: `${userPrompt}${uniquenessHint}`,
+          prompt: userPrompt,
           provider: selectedProvider,
           modelId: selectedModel,
           temperature,
@@ -754,7 +816,7 @@ ${code}
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      let fullCode = '';
+      let fullResponse = '';
       let buffer = '';
 
       if (reader) {
@@ -776,21 +838,42 @@ ${code}
                 // API returns 'chunk' not 'content'
                 const chunkContent = parsed.chunk || parsed.content;
                 if (chunkContent) {
-                  fullCode += chunkContent;
-                  const cleaned = normalizeCode(fullCode);
-                  setGeneratedCode(cleaned);
+                  fullResponse += chunkContent;
 
-                  // Update files in real-time
-                  const files = extractFiles(cleaned);
-                  setGeneratedFiles(files);
+                  // Extract HTML from potentially mixed response
+                  const { html } = extractHtmlFromResponse(fullResponse);
+                  const hasHtmlCode =
+                    html &&
+                    (html.includes('<!DOCTYPE') ||
+                      html.includes('<html') ||
+                      html.includes('<body'));
 
-                  // Update preview in real-time (throttled)
-                  if (
-                    fullCode.includes('</body>') ||
-                    fullCode.includes('</html>') ||
-                    fullCode.length % 500 < 50
-                  ) {
-                    updatePreview(cleaned);
+                  if (hasHtmlCode) {
+                    // It's code - update the preview with only the HTML
+                    const cleaned = normalizeCode(html);
+                    setGeneratedCode(cleaned);
+
+                    // Update files in real-time
+                    const files = extractFiles(cleaned);
+                    setGeneratedFiles(files);
+
+                    // Update preview in real-time (throttled)
+                    if (
+                      html.includes('</body>') ||
+                      html.includes('</html>') ||
+                      fullResponse.length % 500 < 50
+                    ) {
+                      updatePreview(cleaned);
+                    }
+                  } else {
+                    // It's conversational text - update the chat message
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === streamingMsgId
+                          ? { ...m, content: fullResponse }
+                          : m
+                      )
+                    );
                   }
                 }
                 if (parsed.done) {
@@ -803,8 +886,7 @@ ${code}
               } catch (parseError) {
                 // If not valid JSON, might be raw content
                 if (data && data !== '[DONE]' && !data.startsWith('{')) {
-                  fullCode += data;
-                  setGeneratedCode(normalizeCode(fullCode));
+                  fullResponse += data;
                 }
               }
             }
@@ -812,44 +894,70 @@ ${code}
         }
       }
 
-      // Final update
-      if (fullCode) {
-        const cleaned = normalizeCode(fullCode);
-        setGeneratedCode(cleaned);
-        updatePreview(cleaned);
-        const files = extractFiles(cleaned);
-        setGeneratedFiles(files);
-        setGenerationStatus('success');
+      // Final update - extract HTML and separate explanatory text
+      if (fullResponse) {
+        const { html, explanation } = extractHtmlFromResponse(fullResponse);
 
-        setHistoryEntries((prev) =>
-          [
-            {
-              id: `${Date.now()}`,
-              name: summarizePrompt(userPrompt),
-              prompt: userPrompt,
-              code: cleaned,
-              timestamp: Date.now(),
-            },
-            ...prev,
-          ].slice(0, 20)
-        );
+        // Check if we found actual HTML code
+        const hasHtmlCode =
+          html &&
+          (html.includes('<!DOCTYPE') ||
+            html.includes('<html') ||
+            html.includes('<body'));
+
+        if (hasHtmlCode) {
+          // We have HTML code - clean and display it
+          const cleaned = normalizeCode(html);
+          setGeneratedCode(cleaned);
+          updatePreview(cleaned);
+          setViewMode('preview');
+          const files = extractFiles(cleaned);
+          setGeneratedFiles(files);
+          setGenerationStatus('success');
+
+          setHistoryEntries((prev) =>
+            [
+              {
+                id: `${Date.now()}`,
+                name: summarizePrompt(userPrompt),
+                prompt: userPrompt,
+                code: cleaned,
+                timestamp: Date.now(),
+              },
+              ...prev,
+            ].slice(0, 20)
+          );
+
+          // Show explanation in chat if any, otherwise default message
+          const chatMessage = explanation
+            ? explanation
+            : '✨ Done! Your design is ready.\n\nCheck the Preview or Code tab. Want changes? Just describe them!';
+
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamingMsgId
+                ? {
+                    ...m,
+                    content: chatMessage,
+                    isStreaming: false,
+                  }
+                : m
+            )
+          );
+        } else {
+          // It's conversational - just finalize the message
+          setGenerationStatus('idle');
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamingMsgId
+                ? { ...m, content: fullResponse, isStreaming: false }
+                : m
+            )
+          );
+        }
       } else {
-        throw new Error('No code generated');
+        throw new Error('No response received');
       }
-
-      // Update message
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === streamingMsgId
-            ? {
-                ...m,
-                content:
-                  '✨ Done! Your design is ready.\n\nCheck the Preview or Code tab. Want changes? Just describe them!',
-                isStreaming: false,
-              }
-            : m
-        )
-      );
     } catch (error: unknown) {
       const isAborted =
         error instanceof DOMException && error.name === 'AbortError';
@@ -1305,7 +1413,12 @@ ${code}
                       </span>
                     </div>
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <div
+                      className="text-sm prose-invert"
+                      dangerouslySetInnerHTML={{
+                        __html: renderMarkdown(msg.content),
+                      }}
+                    />
                   )}
                   {msg.attachments && msg.attachments.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -1852,80 +1965,12 @@ ${code}
 
         {/* Content Area */}
         <div className={`flex-1 overflow-hidden ${brandColors.bgMain}`}>
-          {/* ===== SPLASH SCREEN DURING GENERATION ===== */}
-          {isGenerating ? (
-            <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-              </div>
-              
-              {/* Logo and content */}
-              <div className="relative z-10 flex flex-col items-center">
-                {/* Animated logo container */}
-                <div className="relative mb-8">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-3xl blur-xl opacity-50 animate-pulse" />
-                  <div className={`relative w-24 h-24 rounded-3xl ${brandColors.bgPanel} border ${brandColors.borderAccent} flex items-center justify-center overflow-hidden`}>
-                    <Image
-                      src="/images/logos/company-logo.png"
-                      alt="One Last AI"
-                      width={64}
-                      height={64}
-                      className="w-16 h-16 object-contain animate-pulse"
-                      priority
-                    />
-                  </div>
-                  {/* Rotating ring */}
-                  <div className="absolute inset-0 rounded-3xl border-2 border-transparent border-t-cyan-400 border-r-purple-400 animate-spin" style={{ animationDuration: '2s' }} />
-                </div>
-                
-                {/* Brand name */}
-                <h2 className={`text-2xl font-bold ${brandColors.gradientText} mb-4`}>
-                  One Last AI
-                </h2>
-                
-                {/* Animated message */}
-                <div className="h-16 flex flex-col items-center justify-center">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-3xl animate-bounce" style={{ animationDuration: '1s' }}>
-                      {SPLASH_MESSAGES[splashMessageIndex].emoji}
-                    </span>
-                  </div>
-                  <p className={`text-lg ${brandColors.text} text-center transition-all duration-500 ease-in-out`}>
-                    {SPLASH_MESSAGES[splashMessageIndex].text}
-                  </p>
-                </div>
-                
-                {/* Progress indicator */}
-                <div className="mt-8 flex items-center gap-2">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        i === splashMessageIndex % 5
-                          ? 'bg-cyan-400 scale-125'
-                          : 'bg-gray-600'
-                      }`}
-                      style={{ animationDelay: `${i * 0.1}s` }}
-                    />
-                  ))}
-                </div>
-                
-                {/* Sub-message */}
-                <p className={`mt-6 text-sm ${brandColors.textMuted} text-center max-w-md`}>
-                  Our AI is crafting a unique experience just for you.<br />
-                  This usually takes 10-30 seconds.
-                </p>
-              </div>
-            </div>
-          ) : viewMode === 'preview' ? (
+          {viewMode === 'preview' ? (
             /* ===== PREVIEW VIEW ===== */
             <div className="w-full h-full p-4 overflow-auto">
               {generatedCode ? (
                 <div
-                  className={`${deviceStyles[previewDevice]} rounded-xl overflow-hidden transition-all duration-300`}
+                  className={`${deviceStyles[previewDevice]} bg-white rounded-xl overflow-hidden transition-all duration-300`}
                   style={{
                     boxShadow:
                       '0 0 60px rgba(34, 211, 238, 0.15), 0 0 30px rgba(168, 85, 247, 0.1)',
@@ -1934,9 +1979,8 @@ ${code}
                   <iframe
                     ref={previewRef}
                     title="Preview"
-                    className="w-full h-full border-none bg-white"
-                    sandbox="allow-scripts allow-same-origin allow-forms"
-                    style={{ minHeight: '600px', backgroundColor: '#ffffff' }}
+                    className="w-full h-full border-none"
+                    sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups"
                   />
                 </div>
               ) : (
@@ -1962,66 +2006,56 @@ ${code}
                       Preview will appear here!
                     </span>
                   </p>
+                  {isGenerating && (
+                    <div className="flex items-center gap-2 mt-3 text-xs text-cyan-300">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                      <span>Generating preview...</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           ) : (
             /* ===== CODE VIEW ===== */
             <div className="w-full h-full overflow-hidden">
-              {(selectedFile?.content || generatedCode) ? (
-                <div className="h-full flex flex-col">
-                  {/* File tabs */}
-                  {generatedFiles.length > 0 && (
-                    <div className={`flex items-center gap-1 px-2 py-1 ${brandColors.bgSecondary} border-b ${brandColors.border} overflow-x-auto`}>
-                      {generatedFiles.map((file) => (
-                        <button
-                          key={file.id}
-                          onClick={() => setSelectedFile(file)}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-t text-xs whitespace-nowrap transition-colors ${
-                            selectedFile?.id === file.id
-                              ? 'bg-[#1e1e1e] text-white border-t border-x border-cyan-500/30'
-                              : `${brandColors.textSecondary} hover:text-white hover:bg-[#2a2a3a]`
-                          }`}
-                        >
-                          <span>{FILE_ICONS[file.type] || FILE_ICONS.other}</span>
-                          {file.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex-1 min-h-0">
-                    <MonacoEditor
-                      height="100%"
-                      defaultLanguage="html"
-                      language={
-                        selectedFile?.type === 'css'
-                          ? 'css'
-                          : selectedFile?.type === 'js'
-                            ? 'javascript'
-                            : selectedFile?.type === 'json'
-                              ? 'json'
-                              : selectedFile?.type === 'tsx'
-                                ? 'typescript'
-                                : 'html'
-                      }
-                      theme="vs-dark"
-                      value={selectedFile?.content || generatedCode}
-                      options={{
-                        readOnly: true,
-                        minimap: { enabled: true },
-                        lineNumbers: 'on',
-                        wordWrap: 'on',
-                        scrollBeyondLastLine: false,
-                        fontSize: 13,
-                        padding: { top: 12, bottom: 12 },
-                        automaticLayout: true,
-                        scrollbar: {
-                          vertical: 'visible',
-                          horizontal: 'visible',
-                        },
-                      }}
-                    />
-                  </div>
+              {selectedFile || generatedCode ? (
+                <div className="h-full">
+                  <MonacoEditor
+                    height="100%"
+                    defaultLanguage="html"
+                    language={
+                      selectedFile?.type === 'css'
+                        ? 'css'
+                        : selectedFile?.type === 'js'
+                          ? 'javascript'
+                          : selectedFile?.type === 'json'
+                            ? 'json'
+                            : selectedFile?.type === 'tsx'
+                              ? 'typescript'
+                              : 'html'
+                    }
+                    theme="vs-dark"
+                    value={selectedFile?.content || generatedCode}
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      lineNumbers: 'on',
+                      wordWrap: 'on',
+                      scrollBeyondLastLine: false,
+                      fontSize: 13,
+                      padding: { top: 12, bottom: 12 },
+                    }}
+                    loading={
+                      <div
+                        className={`flex flex-col items-center justify-center h-full ${brandColors.bgMain}`}
+                      >
+                        <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-3" />
+                        <p className={`text-sm ${brandColors.textSecondary}`}>
+                          Loading editor...
+                        </p>
+                      </div>
+                    }
+                  />
                 </div>
               ) : (
                 <div
