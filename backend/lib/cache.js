@@ -118,45 +118,63 @@ class CacheManager {
     this.isConnected = false;
     this.memoryCache = new Map();
     this.initialized = false;
-    // Don't initialize immediately - wait for first use
+    // Initialize Redis connection on startup
+    this.init();
   }
 
   async ensureInitialized() {
     if (this.initialized) return;
-
     this.initialized = true;
-    await this.init();
+    // Already initialized in constructor
   }
 
   async init() {
+    this.initialized = true;
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    
     try {
       // Try Redis first
-      this.client = new Redis(
-        process.env.REDIS_URL || 'redis://localhost:6379',
-        {
-          retryDelayOnFailover: 100,
-          enableReadyCheck: false,
-          maxRetriesPerRequest: 1,
-          lazyConnect: true,
-          reconnectOnError: () => false, // Disable automatic reconnection
-        }
-      );
+      this.client = new Redis(redisUrl, {
+        retryDelayOnFailover: 100,
+        enableReadyCheck: true,
+        maxRetriesPerRequest: 3,
+        lazyConnect: false, // Connect immediately
+        connectTimeout: 10000,
+        reconnectOnError: (err) => {
+          console.warn('⚠️ Redis reconnect error:', err.message);
+          return true; // Allow reconnection
+        },
+      });
 
       this.client.on('connect', () => {
-        console.log('✅ Redis cache connected');
+        console.log('✅ Redis cache connected to:', redisUrl.replace(/:[^:@]+@/, ':***@'));
+        this.isConnected = true;
+      });
+
+      this.client.on('ready', () => {
+        console.log('✅ Redis cache ready');
         this.isConnected = true;
       });
 
       this.client.on('error', (err) => {
-        console.warn(
-          '⚠️ Redis connection failed, falling back to in-memory cache:',
-          err.message
-        );
-        this.client = null;
+        console.warn('⚠️ Redis connection error:', err.message);
         this.isConnected = false;
       });
+
+      this.client.on('close', () => {
+        console.warn('⚠️ Redis connection closed');
+        this.isConnected = false;
+      });
+
+      // Test connection with ping
+      await this.client.ping();
+      console.log('✅ Redis PING successful');
+      this.isConnected = true;
+      
     } catch (error) {
-      console.warn('⚠️ Redis not available, using in-memory cache');
+      console.warn('⚠️ Redis not available, using in-memory cache:', error.message);
+      this.client = null;
+      this.isConnected = false;
     }
   }
 
