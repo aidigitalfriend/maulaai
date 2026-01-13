@@ -1536,14 +1536,25 @@ app.get('/api/user/analytics', async (req, res) => {
     const chatSessions = db.collection('chat_sessions');
     
     // Get all user's chat sessions (try ObjectId, string, and converted ObjectId)
+    // Note: createdAt may be stored as ISO string, so compare both ways
     const userIdStr = user._id.toString();
+    const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
     const userSessions = await chatSessions.find({
-      $or: [
-        { userId: user._id },
-        { userId: userIdStr },  // Sessions store userId as string
-        { userId: new ObjectId(userIdStr) }
-      ],
-      createdAt: { $gte: thirtyDaysAgo }
+      $and: [
+        {
+          $or: [
+            { userId: user._id },
+            { userId: userIdStr },  // Sessions store userId as string
+            { userId: new ObjectId(userIdStr) }
+          ]
+        },
+        {
+          $or: [
+            { createdAt: { $gte: thirtyDaysAgo } },  // If stored as Date
+            { createdAt: { $gte: thirtyDaysAgoISO } }  // If stored as ISO string
+          ]
+        }
+      ]
     }).sort({ createdAt: -1 }).toArray();
 
     // Calculate total conversations (each session = 1 conversation)
@@ -1692,22 +1703,35 @@ app.get('/api/user/analytics', async (req, res) => {
     // ============================================
     // Combine security logs and chat sessions
     const securityLogs = db.collection('securityLogs');
+    const thirtyMinutesAgoISO = thirtyMinutesAgo.toISOString();
     const recentSecurityLogs = await securityLogs
       .find({ 
         userId: user._id.toString(),
-        timestamp: { $gte: thirtyMinutesAgo }
+        $or: [
+          { timestamp: { $gte: thirtyMinutesAgo } },
+          { timestamp: { $gte: thirtyMinutesAgoISO } }
+        ]
       })
       .sort({ timestamp: -1 })
       .limit(10)
       .toArray();
 
     const recentChatSessions = await chatSessions.find({
-      $or: [
-        { userId: user._id },
-        { userId: userIdStr },  // Sessions store userId as string
-        { userId: new ObjectId(userIdStr) }
-      ],
-      updatedAt: { $gte: thirtyMinutesAgo }
+      $and: [
+        {
+          $or: [
+            { userId: user._id },
+            { userId: userIdStr },  // Sessions store userId as string
+            { userId: new ObjectId(userIdStr) }
+          ]
+        },
+        {
+          $or: [
+            { updatedAt: { $gte: thirtyMinutesAgo } },
+            { updatedAt: { $gte: thirtyMinutesAgoISO } }
+          ]
+        }
+      ]
     }).sort({ updatedAt: -1 }).limit(10).toArray();
 
     // Map action types to display names
