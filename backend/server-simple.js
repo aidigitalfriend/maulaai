@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+import { S3Client, HeadBucketCommand } from '@aws-sdk/client-s3';
 import cors from 'cors';
 import helmet from 'helmet';
 import os from 'os';
@@ -321,6 +322,27 @@ app.get('/health', async (req, res) => {
     mongoStatus = 'error';
   }
 
+  // Check S3 status
+  let s3Status = 'not_configured';
+  let s3Connected = false;
+  const s3Bucket = process.env.AWS_S3_BUCKET || process.env.S3_BUCKET_NAME;
+  try {
+    if (s3Bucket && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      const s3Client = new S3Client({
+        region: process.env.AWS_REGION || 'ap-southeast-1',
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+      await s3Client.send(new HeadBucketCommand({ Bucket: s3Bucket }));
+      s3Status = 'connected';
+      s3Connected = true;
+    }
+  } catch (e) {
+    s3Status = s3Bucket ? 'error' : 'not_configured';
+  }
+
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -339,6 +361,9 @@ app.get('/health', async (req, res) => {
       redisConnected,
       mongodb: mongoStatus,
       mongodbState: mongoose.connection.readyState,
+      s3: s3Status,
+      s3Connected,
+      s3Bucket: s3Bucket || null,
     },
     hasAIService,
   });
@@ -378,6 +403,27 @@ app.get('/api/health', async (req, res) => {
     mongoStatus = 'error';
   }
 
+  // Check S3 status
+  let s3Status = 'not_configured';
+  let s3Connected = false;
+  const s3Bucket = process.env.AWS_S3_BUCKET || process.env.S3_BUCKET_NAME;
+  try {
+    if (s3Bucket && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      const s3Client = new S3Client({
+        region: process.env.AWS_REGION || 'ap-southeast-1',
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+      await s3Client.send(new HeadBucketCommand({ Bucket: s3Bucket }));
+      s3Status = 'connected';
+      s3Connected = true;
+    }
+  } catch (e) {
+    s3Status = s3Bucket ? 'error' : 'not_configured';
+  }
+
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -396,6 +442,9 @@ app.get('/api/health', async (req, res) => {
       redisConnected,
       mongodb: mongoStatus,
       mongodbState: mongoose.connection.readyState,
+      s3: s3Status,
+      s3Connected,
+      s3Bucket: s3Bucket || null,
     },
     hasAIService,
   });
