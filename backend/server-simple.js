@@ -288,7 +288,7 @@ function buildCpuMem() {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   const hasAIService = !!(
     process.env.OPENAI_API_KEY ||
     process.env.ANTHROPIC_API_KEY ||
@@ -296,11 +296,36 @@ app.get('/health', (req, res) => {
     process.env.COHERE_API_KEY
   );
 
+  // Check Redis status
+  let redisStatus = 'not_configured';
+  let redisConnected = false;
+  try {
+    if (cache.client && cache.isConnected) {
+      await cache.client.ping();
+      redisStatus = 'connected';
+      redisConnected = true;
+    } else if (cache.memoryCache) {
+      redisStatus = 'fallback_memory';
+    }
+  } catch (e) {
+    redisStatus = 'error';
+  }
+
+  // Check MongoDB status
+  let mongoStatus = 'disconnected';
+  try {
+    if (mongoose.connection.readyState === 1) {
+      mongoStatus = 'connected';
+    }
+  } catch (e) {
+    mongoStatus = 'error';
+  }
+
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: process.env.APP_VERSION || '1.0.0',
+    version: process.env.APP_VERSION || '2.0.0',
     services: {
       openai: !!process.env.OPENAI_API_KEY,
       anthropic: !!process.env.ANTHROPIC_API_KEY,
@@ -309,12 +334,18 @@ app.get('/health', (req, res) => {
       elevenlabs: !!process.env.ELEVENLABS_API_KEY,
       googleTranslate: !!process.env.GOOGLE_TRANSLATE_API_KEY,
     },
+    infrastructure: {
+      redis: redisStatus,
+      redisConnected,
+      mongodb: mongoStatus,
+      mongodbState: mongoose.connection.readyState,
+    },
     hasAIService,
   });
 });
 
 // Compatibility alias: /api/health -> same as /health
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const hasAIService = !!(
     process.env.OPENAI_API_KEY ||
     process.env.ANTHROPIC_API_KEY ||
@@ -322,11 +353,36 @@ app.get('/api/health', (req, res) => {
     process.env.COHERE_API_KEY
   );
 
+  // Check Redis status
+  let redisStatus = 'not_configured';
+  let redisConnected = false;
+  try {
+    if (cache.client && cache.isConnected) {
+      await cache.client.ping();
+      redisStatus = 'connected';
+      redisConnected = true;
+    } else if (cache.memoryCache) {
+      redisStatus = 'fallback_memory';
+    }
+  } catch (e) {
+    redisStatus = 'error';
+  }
+
+  // Check MongoDB status
+  let mongoStatus = 'disconnected';
+  try {
+    if (mongoose.connection.readyState === 1) {
+      mongoStatus = 'connected';
+    }
+  } catch (e) {
+    mongoStatus = 'error';
+  }
+
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: process.env.APP_VERSION || '1.0.0',
+    version: process.env.APP_VERSION || '2.0.0',
     services: {
       openai: !!process.env.OPENAI_API_KEY,
       anthropic: !!process.env.ANTHROPIC_API_KEY,
@@ -334,6 +390,12 @@ app.get('/api/health', (req, res) => {
       cohere: !!process.env.COHERE_API_KEY,
       elevenlabs: !!process.env.ELEVENLABS_API_KEY,
       googleTranslate: !!process.env.GOOGLE_TRANSLATE_API_KEY,
+    },
+    infrastructure: {
+      redis: redisStatus,
+      redisConnected,
+      mongodb: mongoStatus,
+      mongodbState: mongoose.connection.readyState,
     },
     hasAIService,
   });
