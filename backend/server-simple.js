@@ -1535,11 +1535,13 @@ app.get('/api/user/analytics', async (req, res) => {
     // ============================================
     const chatSessions = db.collection('chat_sessions');
     
-    // Get all user's chat sessions (try both ObjectId and string userId)
+    // Get all user's chat sessions (try ObjectId, string, and converted ObjectId)
+    const userIdStr = user._id.toString();
     const userSessions = await chatSessions.find({
       $or: [
         { userId: user._id },
-        { userId: new ObjectId(user._id.toString()) }
+        { userId: userIdStr },  // Sessions store userId as string
+        { userId: new ObjectId(userIdStr) }
       ],
       createdAt: { $gte: thirtyDaysAgo }
     }).sort({ createdAt: -1 }).toArray();
@@ -1702,7 +1704,8 @@ app.get('/api/user/analytics', async (req, res) => {
     const recentChatSessions = await chatSessions.find({
       $or: [
         { userId: user._id },
-        { userId: new ObjectId(user._id.toString()) }
+        { userId: userIdStr },  // Sessions store userId as string
+        { userId: new ObjectId(userIdStr) }
       ],
       updatedAt: { $gte: thirtyMinutesAgo }
     }).sort({ updatedAt: -1 }).limit(10).toArray();
