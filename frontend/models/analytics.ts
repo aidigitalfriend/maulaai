@@ -63,13 +63,33 @@ export interface AnalyticsData {
     agent: string;
     action: string;
     status: string;
+    type?: string;
+    messages?: number;
+    ip?: string;
+    location?: string;
   }>;
   costAnalysis: {
     currentMonth: number;
     projectedMonth: number;
     breakdown: Array<{ category: string; cost: number; percentage: number }>;
   };
-  topAgents: Array<{ name: string; usage: number }>;
+  topAgents: Array<{ 
+    name: string; 
+    usage: number;
+    totalSpent?: number;
+    subscriptions?: number;
+    lastUsed?: string;
+  }>;
+
+  // Summary data
+  summary?: {
+    totalConversations: number;
+    totalMessages: number;
+    totalApiCalls: number;
+    activeAgents: number;
+    averageResponseTime: string;
+    successRate: number;
+  };
 
   // Real-time agent status for dashboard
   agentStatus?: string;

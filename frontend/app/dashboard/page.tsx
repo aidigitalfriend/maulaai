@@ -656,24 +656,33 @@ function DashboardContent() {
                 Top Agents
               </h2>
               <div className="space-y-4">
-                {analyticsData.topAgents.map((agent, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-neural-700">
-                        {agent.name}
-                      </span>
-                      <span className="text-sm font-semibold text-brand-600">
-                        {agent.usage}%
-                      </span>
+                {analyticsData.topAgents && analyticsData.topAgents.length > 0 ? (
+                  analyticsData.topAgents.map((agent, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-neural-700">
+                          {agent.name}
+                        </span>
+                        <span className="text-sm font-semibold text-brand-600">
+                          {agent.usage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-neural-100 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="h-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 transition-all duration-500"
+                          style={{ width: `${agent.usage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-neural-100 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className="h-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 transition-all duration-500"
-                        style={{ width: `${agent.usage}%` }}
-                      ></div>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-neural-500">
+                    <p className="text-sm">No agent subscriptions yet.</p>
+                    <Link href="/agents" className="text-brand-600 hover:underline text-sm mt-2 inline-block">
+                      Browse available agents →
+                    </Link>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -705,24 +714,30 @@ function DashboardContent() {
                 <p className="text-sm font-semibold text-neural-700 mb-3">
                   Cost Breakdown
                 </p>
-                {analyticsData.costAnalysis.breakdown.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center"
-                  >
-                    <span className="text-sm text-neural-600">
-                      {item.category}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-neural-800">
-                        ${item.cost}
+                {analyticsData.costAnalysis.breakdown && analyticsData.costAnalysis.breakdown.length > 0 ? (
+                  analyticsData.costAnalysis.breakdown.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-sm text-neural-600">
+                        {item.category}
                       </span>
-                      <span className="text-xs text-neural-500">
-                        ({item.percentage}%)
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-neural-800">
+                          ${item.cost}
+                        </span>
+                        <span className="text-xs text-neural-500">
+                          ({item.percentage}%)
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-neural-500 text-center py-4">
+                    No costs this month
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -754,43 +769,51 @@ function DashboardContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {analyticsData.agentPerformance.map((agent, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-neural-100 hover:bg-neural-50 transition-colors"
-                    >
-                      <td className="py-4 px-4">
-                        <span className="font-medium text-neural-800">
-                          {agent.name}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-neural-700">
-                        {agent.conversations.toLocaleString()}
-                      </td>
-                      <td className="py-4 px-4 text-neural-700">
-                        {agent.messages.toLocaleString()}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="flex items-center gap-1 text-neural-700">
-                          <Clock className="w-4 h-4" />
-                          {agent.avgResponseTime}s
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`font-semibold ${
-                            agent.successRate >= 95
-                              ? 'text-green-600'
-                              : agent.successRate >= 90
-                              ? 'text-yellow-600'
-                              : 'text-red-600'
-                          }`}
-                        >
-                          {agent.successRate}%
-                        </span>
+                  {analyticsData.agentPerformance && analyticsData.agentPerformance.length > 0 ? (
+                    analyticsData.agentPerformance.map((agent, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-neural-100 hover:bg-neural-50 transition-colors"
+                      >
+                        <td className="py-4 px-4">
+                          <span className="font-medium text-neural-800">
+                            {agent.name}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-neural-700">
+                          {agent.conversations.toLocaleString()}
+                        </td>
+                        <td className="py-4 px-4 text-neural-700">
+                          {agent.messages.toLocaleString()}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="flex items-center gap-1 text-neural-700">
+                            <Clock className="w-4 h-4" />
+                            {agent.avgResponseTime}s
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`font-semibold ${
+                              agent.successRate >= 95
+                                ? 'text-green-600'
+                                : agent.successRate >= 90
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
+                            }`}
+                          >
+                            {agent.successRate}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-neural-500">
+                        No conversations yet. Start chatting with an AI agent to see performance data.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -805,35 +828,44 @@ function DashboardContent() {
               <span className="text-sm text-neural-600">Last 30 minutes</span>
             </div>
             <div className="space-y-3">
-              {analyticsData.recentActivity.map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-neural-50 rounded-lg hover:bg-neural-100 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        activity.status === 'success'
-                          ? 'bg-green-500'
-                          : activity.status === 'active'
-                          ? 'bg-blue-500 animate-pulse'
-                          : 'bg-red-500'
-                      }`}
-                    ></div>
-                    <div>
-                      <p className="text-sm font-medium text-neural-800">
-                        {activity.action}
-                      </p>
-                      <p className="text-xs text-neural-600">
-                        {activity.agent}
-                      </p>
+              {analyticsData.recentActivity && analyticsData.recentActivity.length > 0 ? (
+                analyticsData.recentActivity.map((activity, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 bg-neural-50 rounded-lg hover:bg-neural-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          activity.status === 'success' || activity.status === 'completed'
+                            ? 'bg-green-500'
+                            : activity.status === 'active'
+                            ? 'bg-blue-500 animate-pulse'
+                            : activity.status === 'warning'
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                        }`}
+                      ></div>
+                      <div>
+                        <p className="text-sm font-medium text-neural-800">
+                          {activity.action}
+                        </p>
+                        <p className="text-xs text-neural-600">
+                          {activity.agent}
+                        </p>
+                      </div>
                     </div>
+                    <span className="text-xs text-neural-500">
+                      {new Date(activity.timestamp).toLocaleTimeString()}
+                    </span>
                   </div>
-                  <span className="text-xs text-neural-500">
-                    {activity.timestamp}
-                  </span>
+                ))
+              ) : (
+                <div className="text-center py-8 text-neural-500">
+                  <p className="text-sm">No recent activity in the last 30 minutes.</p>
+                  <p className="text-xs mt-2">Activity will appear here when you use the platform.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

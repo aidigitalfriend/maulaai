@@ -1413,13 +1413,194 @@ app.get('/api/user/analytics', async (req, res) => {
       });
     }
 
-    // Fetch recent activity from securityLogs for this user
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const thirtyMinutesAgo = new Date(now - 30 * 60 * 1000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // ============================================
+    // FETCH REAL CHAT DATA FROM chatinteractions
+    // ============================================
+    const chatInteractions = db.collection('chatinteractions');
+    
+    // Get all user's chat interactions (try both ObjectId and string userId)
+    const userChats = await chatInteractions.find({
+      $or: [
+        { userId: user._id },
+        { userId: user._id.toString() }
+      ],
+      createdAt: { $gte: thirtyDaysAgo }
+    }).sort({ createdAt: -1 }).toArray();
+
+    // Calculate total conversations (unique conversationIds)
+    const uniqueConversations = new Set(userChats.map(c => c.conversationId));
+    const totalConversations = uniqueConversations.size;
+
+    // Calculate total messages
+    const totalMessages = userChats.reduce((sum, chat) => {
+      return sum + (chat.messages?.length || 0);
+    }, 0);
+
+    // Calculate API calls (each chat interaction = 1 API call)
+    const totalApiCalls = userChats.length;
+
+    // ============================================
+    // GET USER'S SUBSCRIPTIONS (ACTIVE AGENTS)
+    // ============================================
+    const subscriptions = db.collection('subscriptions');
+    const activeSubscriptions = await subscriptions.find({
+      userId: user._id.toString(),
+      status: 'active',
+      expiryDate: { $gt: now }
+    }).toArray();
+    const activeAgentCount = activeSubscriptions.length;
+
+    // ============================================
+    // GET TOP AGENTS (by subscription count/revenue)
+    // ============================================
+    const topAgentsAgg = await subscriptions.aggregate([
+      { $match: { userId: user._id.toString() } },
+      { $group: {
+          _id: '$agentId',
+          totalSpent: { $sum: '$price' },
+          subscriptionCount: { $sum: 1 },
+          lastSubscribed: { $max: '$createdAt' }
+        }
+      },
+      { $sort: { totalSpent: -1 } },
+      { $limit: 5 }
+    ]).toArray();
+
+    // Get agent names for top agents
+    const agentsCollection = db.collection('agents');
+    const topAgents = await Promise.all(topAgentsAgg.map(async (agent) => {
+      let agentDoc = null;
+      try {
+        // Try to find by ObjectId first
+        agentDoc = await agentsCollection.findOne({ _id: new ObjectId(agent._id) });
+        // If not found, try by slug
+        if (!agentDoc) {
+          agentDoc = await agentsCollection.findOne({ slug: agent._id });
+        }
+      } catch (e) {
+        // If ObjectId fails, try by slug
+        agentDoc = await agentsCollection.findOne({ slug: agent._id });
+      }
+      // Calculate usage as percentage of total subscriptions
+      const totalSubs = topAgentsAgg.reduce((sum, a) => sum + a.subscriptionCount, 0);
+      const usagePercent = totalSubs > 0 ? Math.round((agent.subscriptionCount / totalSubs) * 100) : 0;
+      return {
+        name: agentDoc?.name || agentDoc?.slug || agent._id || 'Unknown Agent',
+        usage: usagePercent,
+        totalSpent: agent.totalSpent || 0,
+        subscriptions: agent.subscriptionCount || 0,
+        lastUsed: agent.lastSubscribed || null
+      };
+    }));
+
+    // ============================================
+    // CALCULATE AGENT PERFORMANCE FROM CHAT DATA
+    // ============================================
+    const agentPerformanceMap = new Map();
+    for (const chat of userChats) {
+      const agentId = chat.agentId?.toString() || 'default';
+      if (!agentPerformanceMap.has(agentId)) {
+        agentPerformanceMap.set(agentId, {
+          conversations: 0,
+          messages: 0,
+          totalDuration: 0,
+          successCount: 0
+        });
+      }
+      const perf = agentPerformanceMap.get(agentId);
+      perf.conversations++;
+      perf.messages += chat.messages?.length || 0;
+      perf.totalDuration += chat.metrics?.durationMs || 0;
+      // Count as success if chat has at least one assistant response
+      if (chat.messages?.some(m => m.role === 'assistant')) {
+        perf.successCount++;
+      }
+    }
+
+    const agentPerformance = await Promise.all(
+      Array.from(agentPerformanceMap.entries()).map(async ([agentId, perf]) => {
+        let agentDoc = null;
+        try {
+          if (agentId !== 'default') {
+            agentDoc = await agentsCollection.findOne({ _id: new ObjectId(agentId) });
+            if (!agentDoc) {
+              agentDoc = await agentsCollection.findOne({ slug: agentId });
+            }
+          }
+        } catch (e) {
+          agentDoc = await agentsCollection.findOne({ slug: agentId });
+        }
+        const avgResponseTime = perf.conversations > 0 
+          ? (perf.totalDuration / perf.conversations / 1000).toFixed(2) 
+          : '0';
+        const successRate = perf.conversations > 0 
+          ? Math.round((perf.successCount / perf.conversations) * 100) 
+          : 0;
+        return {
+          name: agentDoc?.name || agentId === 'default' ? 'AI Studio' : agentId,
+          conversations: perf.conversations,
+          messages: perf.messages,
+          avgResponseTime: parseFloat(avgResponseTime),
+          successRate: successRate
+        };
+      })
+    );
+
+    // ============================================
+    // CALCULATE DAILY USAGE (LAST 7 DAYS)
+    // ============================================
+    const dailyUsage = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayStart = new Date(dateStr);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const dayChats = userChats.filter(chat => {
+        const chatDate = new Date(chat.createdAt);
+        return chatDate >= dayStart && chatDate < dayEnd;
+      });
+
+      const dayConversations = new Set(dayChats.map(c => c.conversationId)).size;
+      const dayMessages = dayChats.reduce((sum, chat) => sum + (chat.messages?.length || 0), 0);
+
+      dailyUsage.push({
+        date: dateStr,
+        conversations: dayConversations,
+        messages: dayMessages,
+        apiCalls: dayChats.length
+      });
+    }
+
+    // ============================================
+    // FETCH RECENT ACTIVITY (LAST 30 MINUTES)
+    // ============================================
+    // Combine security logs and chat interactions
     const securityLogs = db.collection('securityLogs');
-    const recentLogs = await securityLogs
-      .find({ userId: user._id.toString() })
+    const recentSecurityLogs = await securityLogs
+      .find({ 
+        userId: user._id.toString(),
+        timestamp: { $gte: thirtyMinutesAgo }
+      })
       .sort({ timestamp: -1 })
-      .limit(20)
+      .limit(10)
       .toArray();
+
+    const recentChats = await chatInteractions.find({
+      $or: [
+        { userId: user._id },
+        { userId: user._id.toString() }
+      ],
+      createdAt: { $gte: thirtyMinutesAgo }
+    }).sort({ createdAt: -1 }).limit(10).toArray();
 
     // Map action types to display names
     const actionDisplayNames = {
@@ -1437,7 +1618,6 @@ app.get('/api/user/analytics', async (req, res) => {
       session_created: 'Session Created',
     };
 
-    // Map action types to status
     const actionStatusMap = {
       login_success: 'success',
       login_failed: 'failed',
@@ -1453,128 +1633,180 @@ app.get('/api/user/analytics', async (req, res) => {
       session_created: 'success',
     };
 
-    // Transform security logs to activity format
-    const recentActivity = recentLogs.map((log) => {
+    // Transform security logs
+    const securityActivities = recentSecurityLogs.map((log) => {
       const actionName = log.action || 'unknown';
       return {
-        action:
-          actionDisplayNames[actionName] ||
-          actionName
-            .replace(/_/g, ' ')
-            .replace(/\b\w/g, (l) => l.toUpperCase()),
-        agent: log.device
-          ? `${log.device} - ${log.browser || 'Unknown'}`
-          : log.location || 'System',
+        action: actionDisplayNames[actionName] || actionName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        agent: log.device ? `${log.device} - ${log.browser || 'Unknown'}` : log.location || 'System',
         status: actionStatusMap[actionName] || 'completed',
-        timestamp: log.timestamp
-          ? new Date(log.timestamp).toISOString()
-          : new Date().toISOString(),
+        timestamp: log.timestamp ? new Date(log.timestamp).toISOString() : new Date().toISOString(),
         ip: log.ip || null,
         location: log.location || null,
+        type: 'security'
       };
     });
 
-    // Get daily usage data (last 7 days)
-    const now = new Date();
-    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    // Transform chat activities
+    const chatActivities = await Promise.all(recentChats.map(async (chat) => {
+      let agentName = 'AI Studio';
+      if (chat.agentId) {
+        try {
+          const agentDoc = await agentsCollection.findOne({ _id: new ObjectId(chat.agentId) });
+          agentName = agentDoc?.name || agentName;
+        } catch (e) {}
+      }
+      return {
+        action: 'AI Conversation',
+        agent: agentName,
+        status: 'completed',
+        timestamp: chat.createdAt ? new Date(chat.createdAt).toISOString() : new Date().toISOString(),
+        messages: chat.messages?.length || 0,
+        type: 'chat'
+      };
+    }));
 
-    // Generate daily usage from security logs
-    const dailyUsage = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+    // Combine and sort activities
+    const recentActivity = [...securityActivities, ...chatActivities]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 15);
 
-      // Count activities for this day
-      const dayStart = new Date(dateStr);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
-
-      const dayLogs = recentLogs.filter((log) => {
-        const logDate = new Date(log.timestamp);
-        return logDate >= dayStart && logDate < dayEnd;
-      });
-
-      dailyUsage.push({
-        date: dateStr,
-        conversations: dayLogs.filter((l) => l.action === 'ai_chat').length,
-        messages: dayLogs.length,
-        apiCalls: dayLogs.filter((l) =>
-          ['login_success', 'login_failed'].includes(l.action)
-        ).length,
-      });
-    }
-
-    // Get user's subscriptions count
-    const subscriptions = db.collection('subscriptions');
-    const userSubscriptions = await subscriptions.countDocuments({
+    // ============================================
+    // CALCULATE COST ANALYSIS
+    // ============================================
+    // Get this month's subscriptions
+    const monthlySubscriptions = await subscriptions.find({
       userId: user._id.toString(),
-      status: 'active',
-    });
+      createdAt: { $gte: monthStart }
+    }).toArray();
 
-    // Calculate weekly trend
-    const thisWeekLogs = recentLogs.filter(
-      (log) => new Date(log.timestamp) >= sevenDaysAgo
-    );
-    const loginCount = thisWeekLogs.filter(
-      (l) => l.action === 'login_success'
-    ).length;
+    const currentMonthCost = monthlySubscriptions.reduce((sum, sub) => sum + (sub.price || 0), 0);
+    
+    // Project based on current usage rate
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysPassed = now.getDate();
+    const projectedCost = daysPassed > 0 ? Math.round((currentMonthCost / daysPassed) * daysInMonth * 100) / 100 : 0;
 
+    // Cost breakdown by agent
+    const costBreakdownAgg = await subscriptions.aggregate([
+      { 
+        $match: { 
+          userId: user._id.toString(),
+          createdAt: { $gte: monthStart }
+        }
+      },
+      { $group: {
+          _id: '$agentId',
+          amount: { $sum: '$price' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { amount: -1 } },
+      { $limit: 5 }
+    ]).toArray();
+
+    const costBreakdown = await Promise.all(costBreakdownAgg.map(async (item) => {
+      let agentName = 'Unknown Agent';
+      try {
+        const agentDoc = await agentsCollection.findOne({ _id: new ObjectId(item._id) });
+        if (!agentDoc) {
+          const agentBySlug = await agentsCollection.findOne({ slug: item._id });
+          agentName = agentBySlug?.name || item._id;
+        } else {
+          agentName = agentDoc.name;
+        }
+      } catch (e) {
+        agentName = item._id || 'Unknown';
+      }
+      return {
+        category: agentName,
+        cost: item.amount || 0,
+        percentage: currentMonthCost > 0 ? Math.round((item.amount / currentMonthCost) * 100) : 0
+      };
+    }));
+
+    // ============================================
+    // CALCULATE SUCCESS RATE
+    // ============================================
+    const overallSuccessRate = userChats.length > 0
+      ? Math.round((userChats.filter(c => c.messages?.some(m => m.role === 'assistant')).length / userChats.length) * 100)
+      : 0;
+
+    // ============================================
+    // BUILD ANALYTICS RESPONSE
+    // ============================================
     const analyticsData = {
       success: true,
       period: 'last30days',
       summary: {
-        totalConversations: thisWeekLogs.filter((l) => l.action === 'ai_chat')
-          .length,
-        totalMessages: thisWeekLogs.length,
-        totalApiCalls: loginCount,
-        activeAgents: userSubscriptions,
-        averageResponseTime: 1.2,
+        totalConversations,
+        totalMessages,
+        totalApiCalls,
+        activeAgents: activeAgentCount,
+        averageResponseTime: agentPerformance.length > 0 
+          ? (agentPerformance.reduce((sum, a) => sum + a.avgResponseTime, 0) / agentPerformance.length).toFixed(2)
+          : '0',
+        successRate: overallSuccessRate
       },
       usage: {
         conversations: {
-          current: thisWeekLogs.filter((l) => l.action === 'ai_chat').length,
+          current: totalConversations,
           limit: 1000,
-          percentage: 0,
+          percentage: Math.round((totalConversations / 1000) * 100),
           unit: 'conversations',
         },
         agents: {
-          current: userSubscriptions,
+          current: activeAgentCount,
           limit: 18,
-          percentage: Math.round((userSubscriptions / 18) * 100),
+          percentage: Math.round((activeAgentCount / 18) * 100),
           unit: 'agents',
         },
         apiCalls: {
-          current: loginCount,
+          current: totalApiCalls,
           limit: 50000,
-          percentage: 0,
+          percentage: Math.round((totalApiCalls / 50000) * 100),
           unit: 'calls',
         },
-        storage: { current: 0, limit: 10000, percentage: 0, unit: 'KB' },
+        storage: { 
+          current: Math.round(totalMessages * 0.5), // Estimate ~0.5KB per message
+          limit: 10000, 
+          percentage: Math.round((totalMessages * 0.5 / 10000) * 100), 
+          unit: 'KB' 
+        },
         messages: {
-          current: thisWeekLogs.length,
+          current: totalMessages,
           limit: 100000,
-          percentage: 0,
+          percentage: Math.round((totalMessages / 100000) * 100),
           unit: 'messages',
         },
       },
-      dailyUsage: dailyUsage,
+      dailyUsage,
       weeklyTrend: {
-        conversationsChange:
-          '+' + thisWeekLogs.filter((l) => l.action === 'ai_chat').length,
-        apiCallsChange: '+' + loginCount,
-        messagesChange: '+' + thisWeekLogs.length,
+        conversationsChange: `+${totalConversations}`,
+        apiCallsChange: `+${totalApiCalls}`,
+        messagesChange: `+${totalMessages}`,
         responseTimeChange: '-0.1s',
       },
-      agentPerformance: [],
-      recentActivity: recentActivity,
+      agentPerformance: agentPerformance.slice(0, 10),
+      recentActivity,
       costAnalysis: {
-        currentMonth: 0,
-        projectedMonth: 0,
-        breakdown: [],
+        currentMonth: currentMonthCost,
+        projectedMonth: projectedCost,
+        breakdown: costBreakdown,
       },
-      topAgents: [],
-      subscription: {
+      topAgents,
+      subscription: activeSubscriptions.length > 0 ? {
+        plan: activeSubscriptions[0].plan || 'Active Plan',
+        status: 'active',
+        price: activeSubscriptions.reduce((sum, s) => sum + (s.price || 0), 0),
+        period: 'month',
+        renewalDate: activeSubscriptions[0].expiryDate 
+          ? new Date(activeSubscriptions[0].expiryDate).toLocaleDateString()
+          : 'N/A',
+        daysUntilRenewal: activeSubscriptions[0].expiryDate 
+          ? Math.ceil((new Date(activeSubscriptions[0].expiryDate) - now) / (1000 * 60 * 60 * 24))
+          : 0,
+      } : {
         plan: 'No Active Plan',
         status: 'inactive',
         price: 0,
@@ -1584,9 +1816,7 @@ app.get('/api/user/analytics', async (req, res) => {
       },
     };
 
-    console.log(
-      `✅ Analytics returned for user ${user._id} with ${recentActivity.length} activities`
-    );
+    console.log(`✅ Analytics returned for user ${user._id}: ${totalConversations} conversations, ${totalMessages} messages, ${activeAgentCount} active agents`);
     res.json(analyticsData);
   } catch (error) {
     console.error('Analytics error:', error);
