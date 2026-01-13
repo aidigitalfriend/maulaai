@@ -61,16 +61,18 @@ export default function SpeedTestPage() {
     }
   }
 
-  const getSpeedColor = (speed: number, type: 'download' | 'upload') => {
+  const getSpeedColor = (speed: number | null | undefined, type: 'download' | 'upload') => {
+    const s = speed ?? 0
     const threshold = type === 'download' ? 25 : 10
-    if (speed < threshold / 2) return 'red'
-    if (speed < threshold) return 'yellow'
+    if (s < threshold / 2) return 'red'
+    if (s < threshold) return 'yellow'
     return 'green'
   }
 
-  const getLatencyColor = (latency: number) => {
-    if (latency < 50) return 'green'
-    if (latency < 100) return 'yellow'
+  const getLatencyColor = (latency: number | null | undefined) => {
+    const l = latency ?? 0
+    if (l < 50) return 'green'
+    if (l < 100) return 'yellow'
     return 'red'
   }
 
@@ -156,7 +158,7 @@ export default function SpeedTestPage() {
                 </div>
                 <div className="text-center">
                   <p className={`text-5xl font-bold text-${getSpeedColor(result.downloadSpeed, 'download')}-400 mb-2`}>
-                    {result.downloadSpeed.toFixed(2)}
+                    {(result.downloadSpeed ?? 0).toFixed(2)}
                   </p>
                   <p className="text-neural-300 text-lg">Mbps</p>
                 </div>
@@ -172,7 +174,7 @@ export default function SpeedTestPage() {
                 </div>
                 <div className="text-center">
                   <p className={`text-5xl font-bold text-${getSpeedColor(result.uploadSpeed, 'upload')}-400 mb-2`}>
-                    {result.uploadSpeed.toFixed(2)}
+                    {(result.uploadSpeed ?? 0).toFixed(2)}
                   </p>
                   <p className="text-neural-300 text-lg">Mbps</p>
                 </div>
@@ -190,7 +192,7 @@ export default function SpeedTestPage() {
                   <h3 className="text-lg font-semibold text-white">Latency (Ping)</h3>
                 </div>
                 <p className={`text-3xl font-bold text-${getLatencyColor(result.latency)}-400`}>
-                  {result.latency.toFixed(2)} ms
+                  {(result.latency ?? 0).toFixed(2)} ms
                 </p>
               </div>
 
@@ -203,7 +205,7 @@ export default function SpeedTestPage() {
                   <h3 className="text-lg font-semibold text-white">Jitter</h3>
                 </div>
                 <p className="text-3xl font-bold text-purple-400">
-                  {result.jitter.toFixed(2)} ms
+                  {(result.jitter ?? 0).toFixed(2)} ms
                 </p>
               </div>
             </div>

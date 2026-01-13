@@ -55,21 +55,24 @@ export async function POST(request: NextRequest) {
       // 3. Estimate upload speed (simplified - typically lower than download)
       const uploadSpeedMbps = downloadSpeedMbps * 0.4; // Rough estimate: upload is typically 40% of download
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          downloadSpeed: Math.min(downloadSpeedMbps, 1000, {
-            headers: {
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            },
-          }), // Cap at 1 Gbps for realism
-          uploadSpeed: Math.min(uploadSpeedMbps, 500), // Cap at 500 Mbps
-          latency: avgLatency,
-          jitter: jitter,
-          server: 'Cloudflare Speed Test Server',
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            downloadSpeed: Math.min(downloadSpeedMbps, 1000), // Cap at 1 Gbps for realism
+            uploadSpeed: Math.min(uploadSpeedMbps, 500), // Cap at 500 Mbps
+            latency: avgLatency,
+            jitter: jitter,
+            server: 'Cloudflare Speed Test Server',
+          },
         },
-      });
+        {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
+      );
     } catch (downloadError) {
       // Fallback if speed test fails
       return NextResponse.json(
