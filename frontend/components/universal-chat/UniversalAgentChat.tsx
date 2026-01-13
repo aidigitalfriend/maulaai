@@ -1352,6 +1352,69 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           </div>
                         );
                       },
+                      // Custom table styling for theme awareness
+                      table({ children, ...props }) {
+                        return (
+                          <div className="overflow-x-auto my-4">
+                            <table
+                              className={`min-w-full border-collapse rounded-lg overflow-hidden ${isNeural ? 'bg-gray-800/50' : 'bg-white shadow-sm'}`}
+                              {...props}
+                            >
+                              {children}
+                            </table>
+                          </div>
+                        );
+                      },
+                      thead({ children, ...props }) {
+                        return (
+                          <thead
+                            className={`${isNeural ? 'bg-gray-700/80' : 'bg-indigo-50'}`}
+                            {...props}
+                          >
+                            {children}
+                          </thead>
+                        );
+                      },
+                      tbody({ children, ...props }) {
+                        return (
+                          <tbody
+                            className={`${isNeural ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}`}
+                            {...props}
+                          >
+                            {children}
+                          </tbody>
+                        );
+                      },
+                      tr({ children, ...props }) {
+                        return (
+                          <tr
+                            className={`${isNeural ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'}`}
+                            {...props}
+                          >
+                            {children}
+                          </tr>
+                        );
+                      },
+                      th({ children, ...props }) {
+                        return (
+                          <th
+                            className={`px-4 py-3 text-left text-sm font-semibold ${isNeural ? 'text-cyan-400' : 'text-indigo-700'}`}
+                            {...props}
+                          >
+                            {children}
+                          </th>
+                        );
+                      },
+                      td({ children, ...props }) {
+                        return (
+                          <td
+                            className={`px-4 py-3 text-sm ${isNeural ? 'text-gray-200' : 'text-gray-700'}`}
+                            {...props}
+                          >
+                            {children}
+                          </td>
+                        );
+                      },
                     }}
                   >
                     {message.content}
