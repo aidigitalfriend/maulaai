@@ -1560,9 +1560,12 @@ app.get('/api/user/analytics', async (req, res) => {
     // Calculate total conversations (each session = 1 conversation)
     const totalConversations = userSessions.length;
 
-    // Calculate total messages from session stats
+    // Calculate total messages from session stats OR messages array
     const totalMessages = userSessions.reduce((sum, session) => {
-      return sum + (session.stats?.messageCount || 0);
+      // Try stats.messageCount first, then messages array length
+      const msgCount = session.stats?.messageCount || 
+                       (Array.isArray(session.messages) ? session.messages.length : 0);
+      return sum + msgCount;
     }, 0);
 
     // Calculate API calls (based on message count - each message pair = 1 API call)
@@ -1638,7 +1641,10 @@ app.get('/api/user/analytics', async (req, res) => {
       }
       const perf = agentPerformanceMap.get(agentId);
       perf.conversations++;
-      perf.messages += session.stats?.messageCount || 0;
+      // Try stats.messageCount first, then messages array length
+      const msgCount = session.stats?.messageCount || 
+                       (Array.isArray(session.messages) ? session.messages.length : 0);
+      perf.messages += msgCount;
       perf.totalDuration += session.stats?.durationMs || 0;
       perf.totalTokens += session.stats?.totalTokens || 0;
     }
