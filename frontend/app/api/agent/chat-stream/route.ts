@@ -1,11 +1,16 @@
 import { NextRequest } from 'next/server';
 
-// Initialize API keys from environment
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
-const XAI_API_KEY = process.env.XAI_API_KEY;
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+// Helper function to get API keys at request time
+// This ensures environment variables are read dynamically
+function getApiKeys() {
+  return {
+    openai: process.env.OPENAI_API_KEY,
+    anthropic: process.env.ANTHROPIC_API_KEY,
+    mistral: process.env.MISTRAL_API_KEY,
+    xai: process.env.XAI_API_KEY,
+    groq: process.env.GROQ_API_KEY,
+  };
+}
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
@@ -79,6 +84,13 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    // Get API keys at request time
+    const apiKeys = getApiKeys();
+    
+    // Log available providers for debugging
+    console.log(`[chat-stream] Request provider: ${provider}, model: ${model}`);
+    console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}`);
 
     // Create streaming response
     const encoder = new TextEncoder();
@@ -210,7 +222,7 @@ export async function POST(request: NextRequest) {
           // Route to the appropriate provider
           let hadError = false;
           
-          if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
+          if (provider === 'anthropic' && apiKeys.anthropic) {
             // Anthropic streaming (different format)
             const systemMessage = messages.find((m) => m.role === 'system');
             const chatMessages = messages.filter((m) => m.role !== 'system');
@@ -222,7 +234,7 @@ export async function POST(request: NextRequest) {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': ANTHROPIC_API_KEY,
+                    'x-api-key': apiKeys.anthropic,
                     'anthropic-version': '2023-06-01',
                   },
                   body: JSON.stringify({
@@ -295,48 +307,48 @@ export async function POST(request: NextRequest) {
               console.error('Anthropic streaming error:', error);
               hadError = true;
             }
-          } else if (provider === 'mistral' && MISTRAL_API_KEY) {
+          } else if (provider === 'mistral' && apiKeys.mistral) {
             // Mistral uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
-              MISTRAL_API_KEY,
+              apiKeys.mistral,
               'mistral-large-latest'
             );
-          } else if (provider === 'xai' && XAI_API_KEY) {
+          } else if (provider === 'xai' && apiKeys.xai) {
             // xAI Grok uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.x.ai/v1/chat/completions',
-              XAI_API_KEY,
+              apiKeys.xai,
               'grok-3'
             );
-          } else if (provider === 'groq' && GROQ_API_KEY) {
+          } else if (provider === 'groq' && apiKeys.groq) {
             // Groq uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.groq.com/openai/v1/chat/completions',
-              GROQ_API_KEY,
+              apiKeys.groq,
               'llama-3.3-70b-versatile'
             );
-          } else if (provider === 'openai' && OPENAI_API_KEY) {
+          } else if (provider === 'openai' && apiKeys.openai) {
             // OpenAI
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
-              OPENAI_API_KEY,
+              apiKeys.openai,
               'gpt-4o'
             );
-          } else if (OPENAI_API_KEY) {
+          } else if (apiKeys.openai) {
             // Fallback to OpenAI if provider not available
-            console.log(`Provider ${provider} not available, falling back to OpenAI`);
+            console.log(`[chat-stream] Provider ${provider} not available, falling back to OpenAI`);
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
-              OPENAI_API_KEY,
+              apiKeys.openai,
               'gpt-4o'
             );
-          } else if (MISTRAL_API_KEY) {
+          } else if (apiKeys.mistral) {
             // Fallback to Mistral
-            console.log(`No OpenAI key, falling back to Mistral`);
+            console.log(`[chat-stream] No OpenAI key, falling back to Mistral`);
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
-              MISTRAL_API_KEY,
+              apiKeys.mistral,
               'mistral-large-latest'
             );
           } else {
