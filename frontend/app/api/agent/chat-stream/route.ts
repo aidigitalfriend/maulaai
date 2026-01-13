@@ -132,11 +132,12 @@ export async function POST(request: NextRequest) {
           });
 
           // Helper function to stream OpenAI-compatible responses
+          // Returns true if controller was closed due to error
           async function streamOpenAICompatible(
             apiUrl: string,
             apiKey: string,
             defaultModel: string
-          ) {
+          ): Promise<boolean> {
             const response = await fetch(apiUrl, {
               method: 'POST',
               headers: {
@@ -154,17 +155,24 @@ export async function POST(request: NextRequest) {
 
             if (!response.ok) {
               const errorData = await response.text();
+              console.error(`API error (${apiUrl}):`, errorData);
               controller.enqueue(
                 encoder.encode(
-                  `data: ${JSON.stringify({ error: errorData })}\n\n`
+                  `data: ${JSON.stringify({ error: `API error: ${response.status}` })}\n\n`
                 )
               );
-              controller.close();
-              return;
+              return true; // Indicate error occurred
             }
 
             const reader = response.body?.getReader();
-            if (!reader) throw new Error('No reader available');
+            if (!reader) {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: 'No reader available' })}\n\n`
+                )
+              );
+              return true;
+            }
 
             const decoder = new TextDecoder();
             let buffer = '';
@@ -196,125 +204,137 @@ export async function POST(request: NextRequest) {
                 }
               }
             }
+            return false; // No error
           }
 
           // Route to the appropriate provider
+          let hadError = false;
+          
           if (provider === 'anthropic' && ANTHROPIC_API_KEY) {
             // Anthropic streaming (different format)
             const systemMessage = messages.find((m) => m.role === 'system');
             const chatMessages = messages.filter((m) => m.role !== 'system');
 
-            const response = await fetch(
-              'https://api.anthropic.com/v1/messages',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'x-api-key': ANTHROPIC_API_KEY,
-                  'anthropic-version': '2023-06-01',
-                },
-                body: JSON.stringify({
-                  model: model || 'claude-sonnet-4-20250514',
-                  max_tokens: maxTokens,
-                  temperature,
-                  system:
-                    systemMessage?.content || 'You are a helpful AI assistant.',
-                  messages: chatMessages.map((m) => ({
-                    role: m.role,
-                    content:
-                      typeof m.content === 'string' ? m.content : m.content,
-                  })),
-                  stream: true,
-                }),
-              }
-            );
-
-            if (!response.ok) {
-              const errorData = await response.text();
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ error: errorData })}\n\n`
-                )
+            try {
+              const response = await fetch(
+                'https://api.anthropic.com/v1/messages',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': ANTHROPIC_API_KEY,
+                    'anthropic-version': '2023-06-01',
+                  },
+                  body: JSON.stringify({
+                    model: model || 'claude-sonnet-4-20250514',
+                    max_tokens: maxTokens,
+                    temperature,
+                    system:
+                      systemMessage?.content || 'You are a helpful AI assistant.',
+                    messages: chatMessages.map((m) => ({
+                      role: m.role,
+                      content:
+                        typeof m.content === 'string' ? m.content : m.content,
+                    })),
+                    stream: true,
+                  }),
+                }
               );
-              controller.close();
-              return;
-            }
 
-            const reader = response.body?.getReader();
-            if (!reader) throw new Error('No reader available');
+              if (!response.ok) {
+                const errorData = await response.text();
+                console.error('Anthropic API error:', errorData);
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ error: `Anthropic API error: ${response.status}` })}\n\n`
+                  )
+                );
+                hadError = true;
+              } else {
+                const reader = response.body?.getReader();
+                if (!reader) {
+                  hadError = true;
+                } else {
+                  const decoder = new TextDecoder();
+                  let buffer = '';
 
-            const decoder = new TextDecoder();
-            let buffer = '';
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
 
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
+                    for (const line of lines) {
+                      if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
 
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6);
-                  if (data === '[DONE]') continue;
-
-                  try {
-                    const parsed = JSON.parse(data);
-                    if (
-                      parsed.type === 'content_block_delta' &&
-                      parsed.delta?.text
-                    ) {
-                      controller.enqueue(
-                        encoder.encode(
-                          `data: ${JSON.stringify({ token: parsed.delta.text })}\n\n`
-                        )
-                      );
+                        try {
+                          const parsed = JSON.parse(data);
+                          if (
+                            parsed.type === 'content_block_delta' &&
+                            parsed.delta?.text
+                          ) {
+                            controller.enqueue(
+                              encoder.encode(
+                                `data: ${JSON.stringify({ token: parsed.delta.text })}\n\n`
+                              )
+                            );
+                          }
+                        } catch (e) {
+                          // Skip invalid JSON
+                        }
+                      }
                     }
-                  } catch (e) {
-                    // Skip invalid JSON
                   }
                 }
               }
+            } catch (error) {
+              console.error('Anthropic streaming error:', error);
+              hadError = true;
             }
           } else if (provider === 'mistral' && MISTRAL_API_KEY) {
             // Mistral uses OpenAI-compatible API
-            await streamOpenAICompatible(
+            hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               MISTRAL_API_KEY,
               'mistral-large-latest'
             );
           } else if (provider === 'xai' && XAI_API_KEY) {
             // xAI Grok uses OpenAI-compatible API
-            await streamOpenAICompatible(
+            hadError = await streamOpenAICompatible(
               'https://api.x.ai/v1/chat/completions',
               XAI_API_KEY,
               'grok-3'
             );
           } else if (provider === 'groq' && GROQ_API_KEY) {
             // Groq uses OpenAI-compatible API
-            await streamOpenAICompatible(
+            hadError = await streamOpenAICompatible(
               'https://api.groq.com/openai/v1/chat/completions',
               GROQ_API_KEY,
               'llama-3.3-70b-versatile'
             );
           } else if (provider === 'openai' && OPENAI_API_KEY) {
             // OpenAI
-            await streamOpenAICompatible(
+            hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               OPENAI_API_KEY,
               'gpt-4o'
             );
           } else if (OPENAI_API_KEY) {
             // Fallback to OpenAI if provider not available
-            await streamOpenAICompatible(
+            console.log(`Provider ${provider} not available, falling back to OpenAI`);
+            hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               OPENAI_API_KEY,
               'gpt-4o'
             );
           } else if (MISTRAL_API_KEY) {
             // Fallback to Mistral
-            await streamOpenAICompatible(
+            console.log(`No OpenAI key, falling back to Mistral`);
+            hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               MISTRAL_API_KEY,
               'mistral-large-latest'
@@ -325,6 +345,7 @@ export async function POST(request: NextRequest) {
                 `data: ${JSON.stringify({ error: 'No API key configured for the selected provider' })}\n\n`
               )
             );
+            hadError = true;
           }
 
           // Send done signal
@@ -334,12 +355,19 @@ export async function POST(request: NextRequest) {
           controller.close();
         } catch (error) {
           console.error('Streaming error:', error);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`
-            )
-          );
-          controller.close();
+          try {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ error: 'Streaming failed: ' + (error as Error).message })}\n\n`
+              )
+            );
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+            );
+            controller.close();
+          } catch (closeError) {
+            // Controller already closed, ignore
+          }
         }
       },
     });
