@@ -107,9 +107,6 @@ export default function ConversationHistoryPage() {
       setExporting(false);
     }
   };
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [error, setError] = useState('');
 
   const fetchConversations = useCallback(
     async (
