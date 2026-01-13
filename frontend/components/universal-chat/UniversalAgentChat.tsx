@@ -1064,9 +1064,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               >
                 <div
                   className={`prose prose-sm max-w-none ${
-                    isNeural
-                      ? 'prose-invert prose-p:text-gray-200 prose-headings:text-transparent prose-headings:bg-clip-text prose-headings:bg-gradient-to-r prose-headings:from-purple-400 prose-headings:to-cyan-400 prose-strong:text-purple-300 prose-strong:font-bold prose-a:text-cyan-400 prose-li:text-gray-200'
-                      : 'prose-headings:text-purple-600 prose-strong:text-indigo-600 prose-strong:font-bold'
+                    message.role === 'user'
+                      ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-white/90 prose-li:text-white'
+                      : isNeural
+                        ? 'prose-invert prose-p:text-gray-200 prose-headings:text-transparent prose-headings:bg-clip-text prose-headings:bg-gradient-to-r prose-headings:from-purple-400 prose-headings:to-cyan-400 prose-strong:text-purple-300 prose-strong:font-bold prose-a:text-cyan-400 prose-li:text-gray-200'
+                        : 'prose-p:text-gray-700 prose-headings:text-purple-600 prose-strong:text-indigo-600 prose-strong:font-bold prose-a:text-indigo-500 prose-li:text-gray-700'
                   }`}
                 >
                   {/* Display attachments (images as thumbnails) */}
@@ -1231,8 +1233,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             className="flex items-start gap-3 my-2"
                             {...props}
                           >
-                            <span className="flex-shrink-0 w-2.5 h-2.5 mt-2 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 shadow-sm shadow-purple-500/30"></span>
-                            <div className="flex-1 text-gray-200">
+                            <span className={`flex-shrink-0 w-2.5 h-2.5 mt-2 rounded-full bg-gradient-to-r ${isNeural ? 'from-purple-500 to-cyan-500 shadow-sm shadow-purple-500/30' : 'from-indigo-500 to-purple-500'}`}></span>
+                            <div className={`flex-1 ${isNeural ? 'text-gray-200' : 'text-gray-700'}`}>
                               {children}
                             </div>
                           </li>
@@ -1242,7 +1244,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       strong({ children, ...props }) {
                         return (
                           <strong
-                            className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            className={`font-bold text-transparent bg-clip-text bg-gradient-to-r ${isNeural ? 'from-purple-400 to-cyan-400' : 'from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1253,7 +1255,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       p({ children, ...props }) {
                         return (
                           <p
-                            className="my-2 leading-relaxed text-gray-200"
+                            className={`my-2 leading-relaxed ${isNeural ? 'text-gray-200' : 'text-gray-700'}`}
                             {...props}
                           >
                             {children}
@@ -1264,7 +1266,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       h1({ children, ...props }) {
                         return (
                           <h1
-                            className="text-xl font-bold my-3 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            className={`text-xl font-bold my-3 text-transparent bg-clip-text bg-gradient-to-r ${isNeural ? 'from-purple-400 to-cyan-400' : 'from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1274,7 +1276,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       h2({ children, ...props }) {
                         return (
                           <h2
-                            className="text-lg font-bold my-2.5 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            className={`text-lg font-bold my-2.5 text-transparent bg-clip-text bg-gradient-to-r ${isNeural ? 'from-purple-400 to-cyan-400' : 'from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1284,7 +1286,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       h3({ children, ...props }) {
                         return (
                           <h3
-                            className="text-base font-semibold my-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400"
+                            className={`text-base font-semibold my-2 text-transparent bg-clip-text bg-gradient-to-r ${isNeural ? 'from-purple-400 to-cyan-400' : 'from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1306,7 +1308,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         if (inline) {
                           return (
                             <code
-                              className={`px-1.5 py-0.5 rounded bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 ${className || ''}`}
+                              className={`px-1.5 py-0.5 rounded ${isNeural ? 'bg-gray-700 text-gray-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'} ${className || ''}`}
                               {...props}
                             >
                               {children}
@@ -1318,7 +1320,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                               <button
                                 onClick={handleCopy}
-                                className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors ${isNeural ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
                                 title="Copy code"
                               >
                                 <svg
@@ -1338,7 +1340,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                               </button>
                             </div>
                             <pre
-                              className={`rounded-lg border border-gray-700 bg-gray-900 text-gray-100 overflow-x-auto p-3 pr-20 ${className || ''}`}
+                              className={`rounded-lg border overflow-x-auto p-3 pr-20 ${isNeural ? 'border-gray-700 bg-gray-900 text-gray-100' : 'border-gray-200 bg-gray-50 text-gray-800'} ${className || ''}`}
                             >
                               <code
                                 className={match ? `language-${match[1]}` : ''}
