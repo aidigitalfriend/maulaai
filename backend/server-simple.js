@@ -2661,14 +2661,18 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Build query for chat interactions
-    const chatInteractions = db.collection('chatinteractions');
-    const query = { userId: sessionUser._id };
+    // Query chat_sessions collection (main conversation data)
+    // userId is stored as string in chat_sessions
+    const chatSessions = db.collection('chat_sessions');
+    const userIdStr = sessionUser._id.toString();
+    
+    // Build base query - userId is stored as string in chat_sessions
+    const query = { userId: userIdStr };
 
     // Add search functionality
     if (search) {
       query.$or = [
-        { agentName: { $regex: search, $options: 'i' } },
+        { agentId: { $regex: search, $options: 'i' } },
         {
           messages: {
             $elemMatch: { content: { $regex: search, $options: 'i' } },
@@ -2678,59 +2682,74 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     }
 
     // Get total count for pagination
-    const total = await chatInteractions.countDocuments(query);
+    const total = await chatSessions.countDocuments(query);
     const totalPages = Math.ceil(total / parseInt(limit));
 
-    // Get conversations with pagination
-    const conversations = await chatInteractions
+    console.log(`[Conversations] User ${userIdStr}: Found ${total} conversations`);
+
+    // Get conversations with pagination, sorted by most recent
+    const conversations = await chatSessions
       .find(query)
-      .sort({ createdAt: -1 }) // Most recent first
+      .sort({ updatedAt: -1, createdAt: -1 })
       .skip((parseInt(page) - 1) * parseInt(limit))
       .limit(parseInt(limit))
       .toArray();
 
     // Transform conversations for frontend
     const transformedConversations = conversations.map((conv) => {
-      const messageCount = conv.messages ? conv.messages.length : 0;
-      const lastMessage =
-        conv.messages && conv.messages.length > 0
-          ? conv.messages[conv.messages.length - 1]
-          : null;
+      const messages = conv.messages || [];
+      const messageCount = messages.length;
+      const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 
       // Calculate approximate duration (estimate based on message count)
       const estimatedDuration = Math.max(1, Math.ceil(messageCount * 1.5)); // ~1.5 min per message
 
       // Get conversation topic (use first user message or fallback)
       let topic = 'General Conversation';
-      if (conv.messages && conv.messages.length > 0) {
-        const firstUserMessage = conv.messages.find(
-          (msg) => msg.role === 'user'
-        );
+      if (messages.length > 0) {
+        const firstUserMessage = messages.find((msg) => msg.role === 'user');
         if (firstUserMessage && firstUserMessage.content) {
-          // Extract first 50 characters as topic
-          topic = firstUserMessage.content.substring(0, 50);
-          if (firstUserMessage.content.length > 50) topic += '...';
+          // Extract first 80 characters as topic
+          topic = firstUserMessage.content.substring(0, 80);
+          if (firstUserMessage.content.length > 80) topic += '...';
         }
+      }
+
+      // Format agent name nicely
+      const agentId = conv.agentId || 'assistant';
+      const agentName = agentId
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+      // Get date from updatedAt, createdAt, or _id timestamp
+      let dateStr = new Date().toISOString().split('T')[0];
+      if (conv.updatedAt) {
+        dateStr = new Date(conv.updatedAt).toISOString().split('T')[0];
+      } else if (conv.createdAt) {
+        dateStr = new Date(conv.createdAt).toISOString().split('T')[0];
+      } else if (conv._id) {
+        // Extract timestamp from ObjectId
+        dateStr = new Date(conv._id.getTimestamp()).toISOString().split('T')[0];
       }
 
       return {
         id: conv._id.toString(),
-        agent: conv.agentName || 'Assistant',
+        agent: agentName,
+        agentId: agentId,
         topic: topic,
-        date: conv.timestamp
-          ? conv.timestamp.toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
+        date: dateStr,
         duration: `${estimatedDuration}m`,
         messageCount: messageCount,
         lastMessage: lastMessage
           ? {
               content:
-                lastMessage.content.substring(0, 100) +
-                (lastMessage.content.length > 100 ? '...' : ''),
-              timestamp: lastMessage.timestamp || conv.timestamp,
+                (lastMessage.content || '').substring(0, 100) +
+                ((lastMessage.content || '').length > 100 ? '...' : ''),
+              timestamp: lastMessage.timestamp || conv.updatedAt || conv.createdAt,
             }
           : null,
-        timestamp: conv.timestamp || new Date(),
+        timestamp: conv.updatedAt || conv.createdAt || new Date(),
       };
     });
 
@@ -2750,6 +2769,113 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     });
   } catch (error) {
     console.error('Conversation history error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// GET /api/user/conversations/:userId/export - Export conversations as JSON or CSV
+app.get('/api/user/conversations/:userId/export', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { format = 'json' } = req.query;
+
+    // Get session ID from HttpOnly cookie
+    const sessionId = req.cookies?.session_id;
+
+    if (!sessionId) {
+      return res.status(401).json({ message: 'No session ID' });
+    }
+
+    const client = await getClientPromise();
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
+    const users = db.collection('users');
+
+    // Find user with valid session
+    const sessionUser = await users.findOne({
+      sessionId: sessionId,
+      sessionExpiry: { $gt: new Date() },
+    });
+
+    if (!sessionUser) {
+      return res.status(401).json({ message: 'Invalid or expired session' });
+    }
+
+    // Check if user is requesting their own conversations
+    if (sessionUser._id.toString() !== userId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Query all chat_sessions for this user
+    const chatSessions = db.collection('chat_sessions');
+    const userIdStr = sessionUser._id.toString();
+    
+    const conversations = await chatSessions
+      .find({ userId: userIdStr })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .toArray();
+
+    console.log(`[Export] Exporting ${conversations.length} conversations for user ${userIdStr}`);
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvRows = ['Date,Agent,Messages,Topic,Duration'];
+      
+      conversations.forEach((conv) => {
+        const messages = conv.messages || [];
+        const agentId = conv.agentId || 'assistant';
+        const agentName = agentId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        
+        let topic = 'General Conversation';
+        if (messages.length > 0) {
+          const firstUserMsg = messages.find(m => m.role === 'user');
+          if (firstUserMsg?.content) {
+            topic = firstUserMsg.content.substring(0, 50).replace(/"/g, '""');
+          }
+        }
+        
+        let dateStr = new Date().toISOString().split('T')[0];
+        if (conv.updatedAt) dateStr = new Date(conv.updatedAt).toISOString().split('T')[0];
+        else if (conv.createdAt) dateStr = new Date(conv.createdAt).toISOString().split('T')[0];
+        else if (conv._id) dateStr = new Date(conv._id.getTimestamp()).toISOString().split('T')[0];
+        
+        const duration = `${Math.max(1, Math.ceil(messages.length * 1.5))}m`;
+        
+        csvRows.push(`"${dateStr}","${agentName}",${messages.length},"${topic}","${duration}"`);
+      });
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="conversations_${new Date().toISOString().split('T')[0]}.csv"`);
+      return res.send(csvRows.join('\n'));
+    }
+
+    // Default: JSON format with full conversation data
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      totalConversations: conversations.length,
+      conversations: conversations.map((conv) => {
+        const messages = conv.messages || [];
+        const agentId = conv.agentId || 'assistant';
+        
+        return {
+          id: conv._id.toString(),
+          agent: agentId,
+          messageCount: messages.length,
+          createdAt: conv.createdAt || conv._id?.getTimestamp(),
+          updatedAt: conv.updatedAt,
+          messages: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp,
+          })),
+        };
+      }),
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="conversations_${new Date().toISOString().split('T')[0]}.json"`);
+    return res.json(exportData);
+  } catch (error) {
+    console.error('Conversation export error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

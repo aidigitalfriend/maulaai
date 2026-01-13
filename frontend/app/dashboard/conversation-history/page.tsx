@@ -9,6 +9,9 @@ import {
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ArrowDownTrayIcon,
+  DocumentTextIcon,
+  TableCellsIcon,
 } from '@heroicons/react/24/outline';
 
 export const dynamic = 'force-dynamic';
@@ -70,6 +73,40 @@ export default function ConversationHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] =
     useState<PaginationState>(DEFAULT_PAGINATION);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  // Export conversations
+  const handleExport = async (format: 'json' | 'csv') => {
+    if (!state.user?.id) return;
+    
+    setExporting(true);
+    try {
+      const response = await fetch(
+        `/api/user/conversations/${state.user.id}/export?format=${format}`,
+        { credentials: 'include' }
+      );
+      
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `conversations_${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (err) {
+      console.error('Export error:', err);
+      setError('Failed to export conversations');
+    } finally {
+      setExporting(false);
+    }
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState('');
@@ -189,18 +226,48 @@ export default function ConversationHistoryPage() {
       {/* Header */}
       <section className="py-12 px-4 border-b border-neural-200">
         <div className="container-custom">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
                 Conversation History
               </h1>
               <p className="text-neural-600">
                 Review and manage your past interactions
+                {pagination.total > 0 && (
+                  <span className="ml-2 text-brand-600 font-medium">
+                    ({pagination.total} conversations)
+                  </span>
+                )}
               </p>
             </div>
-            <Link href="/dashboard/overview" className="btn-secondary">
-              Back to Dashboard
-            </Link>
+            <div className="flex items-center gap-3">
+              {/* Export Buttons */}
+              {pagination.total > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleExport('json')}
+                    disabled={exporting}
+                    className="flex items-center gap-2 px-4 py-2 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 disabled:opacity-50 transition-colors"
+                    title="Export as JSON"
+                  >
+                    <DocumentTextIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">JSON</span>
+                  </button>
+                  <button
+                    onClick={() => handleExport('csv')}
+                    disabled={exporting}
+                    className="flex items-center gap-2 px-4 py-2 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 disabled:opacity-50 transition-colors"
+                    title="Export as CSV"
+                  >
+                    <TableCellsIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">CSV</span>
+                  </button>
+                </div>
+              )}
+              <Link href="/dashboard/overview" className="btn-secondary">
+                Back to Dashboard
+              </Link>
+            </div>
           </div>
 
           {/* Search */}
