@@ -1420,30 +1420,29 @@ app.get('/api/user/analytics', async (req, res) => {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     // ============================================
-    // FETCH REAL CHAT DATA FROM chatinteractions
+    // FETCH REAL CHAT DATA FROM chat_sessions
     // ============================================
-    const chatInteractions = db.collection('chatinteractions');
+    const chatSessions = db.collection('chat_sessions');
     
-    // Get all user's chat interactions (try both ObjectId and string userId)
-    const userChats = await chatInteractions.find({
+    // Get all user's chat sessions (try both ObjectId and string userId)
+    const userSessions = await chatSessions.find({
       $or: [
         { userId: user._id },
-        { userId: user._id.toString() }
+        { userId: new ObjectId(user._id.toString()) }
       ],
       createdAt: { $gte: thirtyDaysAgo }
     }).sort({ createdAt: -1 }).toArray();
 
-    // Calculate total conversations (unique conversationIds)
-    const uniqueConversations = new Set(userChats.map(c => c.conversationId));
-    const totalConversations = uniqueConversations.size;
+    // Calculate total conversations (each session = 1 conversation)
+    const totalConversations = userSessions.length;
 
-    // Calculate total messages
-    const totalMessages = userChats.reduce((sum, chat) => {
-      return sum + (chat.messages?.length || 0);
+    // Calculate total messages from session stats
+    const totalMessages = userSessions.reduce((sum, session) => {
+      return sum + (session.stats?.messageCount || 0);
     }, 0);
 
-    // Calculate API calls (each chat interaction = 1 API call)
-    const totalApiCalls = userChats.length;
+    // Calculate API calls (based on message count - each message pair = 1 API call)
+    const totalApiCalls = Math.ceil(totalMessages / 2);
 
     // ============================================
     // GET USER'S SUBSCRIPTIONS (ACTIVE AGENTS)
@@ -1500,27 +1499,24 @@ app.get('/api/user/analytics', async (req, res) => {
     }));
 
     // ============================================
-    // CALCULATE AGENT PERFORMANCE FROM CHAT DATA
+    // CALCULATE AGENT PERFORMANCE FROM CHAT SESSIONS
     // ============================================
     const agentPerformanceMap = new Map();
-    for (const chat of userChats) {
-      const agentId = chat.agentId?.toString() || 'default';
+    for (const session of userSessions) {
+      const agentId = session.agentId?.toString() || 'default';
       if (!agentPerformanceMap.has(agentId)) {
         agentPerformanceMap.set(agentId, {
           conversations: 0,
           messages: 0,
           totalDuration: 0,
-          successCount: 0
+          totalTokens: 0
         });
       }
       const perf = agentPerformanceMap.get(agentId);
       perf.conversations++;
-      perf.messages += chat.messages?.length || 0;
-      perf.totalDuration += chat.metrics?.durationMs || 0;
-      // Count as success if chat has at least one assistant response
-      if (chat.messages?.some(m => m.role === 'assistant')) {
-        perf.successCount++;
-      }
+      perf.messages += session.stats?.messageCount || 0;
+      perf.totalDuration += session.stats?.durationMs || 0;
+      perf.totalTokens += session.stats?.totalTokens || 0;
     }
 
     const agentPerformance = await Promise.all(
@@ -1539,15 +1535,13 @@ app.get('/api/user/analytics', async (req, res) => {
         const avgResponseTime = perf.conversations > 0 
           ? (perf.totalDuration / perf.conversations / 1000).toFixed(2) 
           : '0';
-        const successRate = perf.conversations > 0 
-          ? Math.round((perf.successCount / perf.conversations) * 100) 
-          : 0;
+        // Sessions with messages are successful
         return {
-          name: agentDoc?.name || agentId === 'default' ? 'AI Studio' : agentId,
+          name: agentDoc?.name || (agentId === 'default' ? 'AI Studio' : agentId),
           conversations: perf.conversations,
           messages: perf.messages,
           avgResponseTime: parseFloat(avgResponseTime),
-          successRate: successRate
+          successRate: perf.messages > 0 ? 100 : 0
         };
       })
     );
@@ -1564,26 +1558,26 @@ app.get('/api/user/analytics', async (req, res) => {
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const dayChats = userChats.filter(chat => {
-        const chatDate = new Date(chat.createdAt);
-        return chatDate >= dayStart && chatDate < dayEnd;
+      const daySessions = userSessions.filter(session => {
+        const sessionDate = new Date(session.createdAt);
+        return sessionDate >= dayStart && sessionDate < dayEnd;
       });
 
-      const dayConversations = new Set(dayChats.map(c => c.conversationId)).size;
-      const dayMessages = dayChats.reduce((sum, chat) => sum + (chat.messages?.length || 0), 0);
+      const dayConversations = daySessions.length;
+      const dayMessages = daySessions.reduce((sum, session) => sum + (session.stats?.messageCount || 0), 0);
 
       dailyUsage.push({
         date: dateStr,
         conversations: dayConversations,
         messages: dayMessages,
-        apiCalls: dayChats.length
+        apiCalls: Math.ceil(dayMessages / 2)
       });
     }
 
     // ============================================
     // FETCH RECENT ACTIVITY (LAST 30 MINUTES)
     // ============================================
-    // Combine security logs and chat interactions
+    // Combine security logs and chat sessions
     const securityLogs = db.collection('securityLogs');
     const recentSecurityLogs = await securityLogs
       .find({ 
@@ -1594,13 +1588,13 @@ app.get('/api/user/analytics', async (req, res) => {
       .limit(10)
       .toArray();
 
-    const recentChats = await chatInteractions.find({
+    const recentChatSessions = await chatSessions.find({
       $or: [
         { userId: user._id },
-        { userId: user._id.toString() }
+        { userId: new ObjectId(user._id.toString()) }
       ],
-      createdAt: { $gte: thirtyMinutesAgo }
-    }).sort({ createdAt: -1 }).limit(10).toArray();
+      updatedAt: { $gte: thirtyMinutesAgo }
+    }).sort({ updatedAt: -1 }).limit(10).toArray();
 
     // Map action types to display names
     const actionDisplayNames = {
@@ -1647,21 +1641,21 @@ app.get('/api/user/analytics', async (req, res) => {
       };
     });
 
-    // Transform chat activities
-    const chatActivities = await Promise.all(recentChats.map(async (chat) => {
+    // Transform chat session activities
+    const chatActivities = await Promise.all(recentChatSessions.map(async (session) => {
       let agentName = 'AI Studio';
-      if (chat.agentId) {
+      if (session.agentId) {
         try {
-          const agentDoc = await agentsCollection.findOne({ _id: new ObjectId(chat.agentId) });
+          const agentDoc = await agentsCollection.findOne({ _id: new ObjectId(session.agentId) });
           agentName = agentDoc?.name || agentName;
         } catch (e) {}
       }
       return {
-        action: 'AI Conversation',
+        action: session.name || 'AI Conversation',
         agent: agentName,
         status: 'completed',
-        timestamp: chat.createdAt ? new Date(chat.createdAt).toISOString() : new Date().toISOString(),
-        messages: chat.messages?.length || 0,
+        timestamp: session.updatedAt ? new Date(session.updatedAt).toISOString() : new Date().toISOString(),
+        messages: session.stats?.messageCount || 0,
         type: 'chat'
       };
     }));
@@ -1728,8 +1722,10 @@ app.get('/api/user/analytics', async (req, res) => {
     // ============================================
     // CALCULATE SUCCESS RATE
     // ============================================
-    const overallSuccessRate = userChats.length > 0
-      ? Math.round((userChats.filter(c => c.messages?.some(m => m.role === 'assistant')).length / userChats.length) * 100)
+    // Sessions with messages = successful
+    const sessionsWithMessages = userSessions.filter(s => (s.stats?.messageCount || 0) > 0).length;
+    const overallSuccessRate = userSessions.length > 0
+      ? Math.round((sessionsWithMessages / userSessions.length) * 100)
       : 0;
 
     // ============================================
