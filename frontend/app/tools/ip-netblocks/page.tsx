@@ -14,9 +14,11 @@ interface NetblockData {
   nethandle: string;
   nettype: string;
   cidr: string;
+  parent?: string;
   organization: string;
   orgId: string;
   country: string;
+  city?: string;
   updated: string;
   created: string;
   description: string;
@@ -27,7 +29,17 @@ interface NetblockData {
     name: string;
     route: string;
     domain: string;
+    type?: string;
   };
+  abuseContact?: {
+    email: string;
+    phone: string;
+    role: string;
+  } | null;
+  adminContact?: {
+    email: string;
+    role: string;
+  } | null;
   totalNetblocks: number;
   allNetblocks: Array<{
     range: string;
@@ -35,6 +47,8 @@ interface NetblockData {
     organization: string;
     cidr: string;
     size: number;
+    asn?: string;
+    asnName?: string;
   }>;
 }
 
@@ -198,6 +212,22 @@ export default function IPNetblocksPage() {
                   <InfoCard icon={Building2} label="ASN Name" value={data.as.name} />
                   <InfoCard icon={Network} label="Route" value={data.as.route} />
                   <InfoCard icon={Globe} label="Domain" value={data.as.domain} />
+                  {data.as.type && <InfoCard icon={Server} label="Type" value={data.as.type} />}
+                </div>
+              </div>
+            )}
+
+            {/* Abuse Contact */}
+            {data.abuseContact && (
+              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
+                <h3 className="text-xl font-semibold mb-4 text-red-400 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5" />
+                  Abuse Contact
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <InfoCard icon={Building2} label="Role" value={data.abuseContact.role} />
+                  <InfoCard icon={Globe} label="Email" value={data.abuseContact.email} />
+                  <InfoCard icon={Server} label="Phone" value={data.abuseContact.phone} />
                 </div>
               </div>
             )}
@@ -224,24 +254,42 @@ export default function IPNetblocksPage() {
                 <div className="space-y-3">
                   {data.allNetblocks.map((nb, idx) => (
                     <div key={idx} className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                      <div className="flex flex-wrap items-center gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div>
-                          <span className="text-sm text-gray-400">Range: </span>
+                          <span className="text-sm text-gray-400 block">Range</span>
                           <span className="font-mono text-cyan-400">{nb.range || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-400">CIDR: </span>
+                          <span className="text-sm text-gray-400 block">CIDR</span>
                           <span className="font-mono text-white">{nb.cidr || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-400">Name: </span>
+                          <span className="text-sm text-gray-400 block">Name</span>
                           <span className="text-white">{nb.netname || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-400">Size: </span>
+                          <span className="text-sm text-gray-400 block">Size</span>
                           <span className="text-white">{formatSize(nb.size)}</span>
                         </div>
+                        {nb.asn && nb.asn !== 'N/A' && (
+                          <div>
+                            <span className="text-sm text-gray-400 block">ASN</span>
+                            <span className="text-green-400">{nb.asn}</span>
+                          </div>
+                        )}
+                        {nb.asnName && nb.asnName !== 'N/A' && (
+                          <div>
+                            <span className="text-sm text-gray-400 block">ASN Name</span>
+                            <span className="text-white">{nb.asnName}</span>
+                          </div>
+                        )}
                       </div>
+                      {nb.organization && nb.organization !== 'N/A' && (
+                        <div className="mt-2 pt-2 border-t border-gray-700">
+                          <span className="text-sm text-gray-400">Organization: </span>
+                          <span className="text-white">{nb.organization}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
