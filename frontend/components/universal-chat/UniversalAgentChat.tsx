@@ -1058,20 +1058,18 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
                     : isNeural
-                      ? 'bg-[#4B5563] border border-gray-700/50 !text-[#E5E7EB]'
-                      : 'bg-white border border-gray-200 text-gray-900'
+                      ? 'bg-[#2B2B2B] border border-gray-700/50 !text-[#E5E7EB]'
+                      : 'bg-[#2B2B2B] border border-gray-700/50 !text-[#E5E7EB]'
                 }`}
               >
                 <div
                   className={`prose prose-sm max-w-none ${
                     message.role === 'user'
                       ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-white/90 prose-li:text-white'
-                      : isNeural
-                        ? 'prose-invert !text-[#E5E7EB] prose-p:!text-[#E5E7EB] prose-headings:!text-white prose-strong:!text-[#7C6CFF] prose-strong:!font-bold prose-a:!text-[#7C6CFF] prose-li:!text-[#E5E7EB] prose-em:!text-[#9CA3AF]'
-                        : 'prose-p:text-gray-700 prose-headings:text-purple-600 prose-strong:text-indigo-600 prose-strong:font-bold prose-a:text-indigo-500 prose-li:text-gray-700'
+                      : 'prose-invert !text-[#E5E7EB] prose-p:!text-[#E5E7EB] prose-headings:!text-white prose-strong:!text-[#7C6CFF] prose-strong:!font-bold prose-a:!text-[#7C6CFF] prose-li:!text-[#E5E7EB] prose-em:!text-[#9CA3AF]'
                   }`}
                   style={
-                    message.role !== 'user' && isNeural
+                    message.role !== 'user'
                       ? { color: '#E5E7EB' }
                       : undefined
                   }
@@ -1109,7 +1107,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       ))}
                     </div>
                   )}
-                  <div style={isNeural && message.role !== 'user' ? { color: '#E5E7EB', fontSize: '14px', lineHeight: '1.5' } : undefined}>
+                  <div style={message.role !== 'user' ? { color: '#E5E7EB', fontSize: '14px', lineHeight: '1.5' } : undefined}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeHighlight]}
