@@ -548,7 +548,7 @@ export default function StatusPage() {
             <div className="bg-white rounded-2xl p-5 border border-neural-200 shadow-sm">
               <p className="text-sm text-neural-600">Requests today</p>
               <div className="text-3xl font-extrabold text-neural-800">
-                {data.api.requestsToday.toLocaleString()}
+                {(data.api.requestsToday ?? 0).toLocaleString()}
               </div>
             </div>
             <div className="bg-white rounded-2xl p-5 border border-neural-200 shadow-sm">
@@ -631,7 +631,7 @@ export default function StatusPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">Active Users</h3>
             <div className="text-3xl font-bold text-purple-600 mb-2">
-              {data.agents.reduce((sum, a) => sum + a.activeUsers, 0)}
+              {data.agents.reduce((sum, a) => sum + (a.activeUsers ?? 0), 0)}
             </div>
             <p className="text-sm text-neural-600">Across All Agents</p>
           </div>
@@ -650,22 +650,24 @@ export default function StatusPage() {
                 >
                   <div
                     className="w-full bg-gradient-to-t from-brand-600 to-brand-400 rounded-t-lg transition-all hover:opacity-80"
-                    style={{ height: `${day.uptime}%` }}
+                    style={{ height: `${day.uptime ?? 0}%` }}
                   />
                   <span className="text-xs text-neural-600">
-                    {new Date(day.date).toLocaleDateString('en-US', {
+                    {day.date ? new Date(day.date).toLocaleDateString('en-US', {
                       weekday: 'short',
-                    })}
+                    }) : '-'}
                   </span>
                 </div>
               ))}
             </div>
             <div className="mt-4 text-center text-sm text-neural-600">
               Average:{' '}
-              {(
-                data.historical.reduce((sum, d) => sum + d.uptime, 0) /
-                data.historical.length
-              ).toFixed(2)}
+              {data.historical.length > 0
+                ? (
+                    data.historical.reduce((sum, d) => sum + (d.uptime ?? 0), 0) /
+                    data.historical.length
+                  ).toFixed(2)
+                : '0.00'}
               %
             </div>
           </div>
@@ -676,9 +678,10 @@ export default function StatusPage() {
             <div className="h-64 flex items-end justify-between gap-2">
               {data.historical.map((day, i) => {
                 const maxRequests = Math.max(
-                  ...data.historical.map((d) => d.requests)
+                  ...data.historical.map((d) => d.requests ?? 0),
+                  1
                 );
-                const height = (day.requests / maxRequests) * 100;
+                const height = ((day.requests ?? 0) / maxRequests) * 100;
                 return (
                   <div
                     key={i}
@@ -690,20 +693,20 @@ export default function StatusPage() {
                         style={{ height: `${height * 2.5}px` }}
                       />
                       <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-neural-900 px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                        {day.requests.toLocaleString()}
+                        {(day.requests ?? 0).toLocaleString()}
                       </div>
                     </div>
                     <span className="text-xs text-neural-600">
-                      {new Date(day.date).toLocaleDateString('en-US', {
+                      {day.date ? new Date(day.date).toLocaleDateString('en-US', {
                         weekday: 'short',
-                      })}
+                      }) : '-'}
                     </span>
                   </div>
                 );
               })}
             </div>
             <div className="mt-4 text-center text-sm text-neural-600">
-              Total Today: {data.api.requestsToday.toLocaleString()} requests
+              Total Today: {(data.api.requestsToday ?? 0).toLocaleString()} requests
             </div>
           </div>
         </div>
@@ -716,7 +719,7 @@ export default function StatusPage() {
             </h3>
             {(() => {
               const items = data.agents
-                .map((a) => ({ name: a.name, users: a.activeUsers }))
+                .map((a) => ({ name: a.name ?? 'Unknown', users: a.activeUsers ?? 0 }))
                 .sort((a, b) => b.users - a.users)
                 .slice(0, 5);
               const max = Math.max(...items.map((i) => i.users), 1);
@@ -751,7 +754,7 @@ export default function StatusPage() {
               </h3>
               <p className="text-neural-600 text-sm">
                 {(data.api.errorsToday ?? 0).toLocaleString()} errors of{' '}
-                {data.api.requestsToday.toLocaleString()} requests
+                {(data.api.requestsToday ?? 0).toLocaleString()} requests
               </p>
               <div className="mt-4">
                 <span className="inline-block w-3 h-3 rounded-full bg-brand-600 mr-2" />

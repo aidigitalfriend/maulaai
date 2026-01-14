@@ -613,12 +613,29 @@ async function fetchRealStatusData() {
           date: day._id,
           pageViews: day.pageViews || 0,
           avgTimeSpent: Math.round(day.avgTimeSpent || 0),
-          apiRequests: apiDay.requests || 0,
+          requests: apiDay.requests || 0,  // Frontend expects 'requests' not 'apiRequests'
           apiErrors: apiDay.errors || 0,
           avgResponseTime: Math.round(apiDay.avgResponseTime || 0),
           uptime: apiDay.errors > 0 ? 99.5 : 99.99
         };
       });
+
+      // If no historical data, generate placeholder for last 7 days
+      if (historical.length === 0) {
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          historical.push({
+            date: d.toISOString().split('T')[0],
+            pageViews: 0,
+            avgTimeSpent: 0,
+            requests: 0,
+            apiErrors: 0,
+            avgResponseTime: 0,
+            uptime: 99.99
+          });
+        }
+      }
 
       // 6. Get REAL tool usage data
       const toolUsageCollection = mongoDb.collection('toolusages');
