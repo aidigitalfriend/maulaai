@@ -1320,7 +1320,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         if (inline) {
                           return (
                             <code
-                              className={`px-1.5 py-0.5 rounded ${isNeural ? 'bg-gray-700 !text-[#E5E7EB]' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'} ${className || ''}`}
+                              className={`px-1.5 py-0.5 rounded ${className || ''}`}
+                              style={{
+                                backgroundColor: '#1a1a1a',
+                                color: '#7C6CFF',
+                                border: '1px solid rgba(124, 108, 255, 0.2)'
+                              }}
                               {...props}
                             >
                               {children}
@@ -1332,7 +1337,20 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                               <button
                                 onClick={handleCopy}
-                                className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors ${isNeural ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                                className="px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors"
+                                style={{
+                                  backgroundColor: 'rgba(124, 108, 255, 0.1)',
+                                  color: '#7C6CFF',
+                                  border: '1px solid rgba(124, 108, 255, 0.3)'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'rgba(124, 108, 255, 0.2)';
+                                  e.currentTarget.style.borderColor = 'rgba(124, 108, 255, 0.5)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'rgba(124, 108, 255, 0.1)';
+                                  e.currentTarget.style.borderColor = 'rgba(124, 108, 255, 0.3)';
+                                }}
                                 title="Copy code"
                               >
                                 <svg
@@ -1352,7 +1370,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                               </button>
                             </div>
                             <pre
-                              className={`rounded-lg border overflow-x-auto p-3 pr-20 ${isNeural ? 'border-gray-700 bg-gray-900 text-gray-100' : 'border-gray-200 bg-gray-50 text-gray-800'} ${className || ''}`}
+                              className={`rounded-lg border overflow-x-auto p-3 pr-20 ${className || ''}`}
+                              style={{
+                                backgroundColor: '#0f0f0f',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                boxShadow: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+                                color: '#E5E7EB'
+                              }}
                             >
                               <code
                                 className={match ? `language-${match[1]}` : ''}
