@@ -7,7 +7,8 @@ export type AIProvider =
   | 'mistral'
   | 'xai'
   | 'huggingface'
-  | 'groq';
+  | 'groq'
+  | 'cerebras';
 
 export interface AgentConfig {
   id: string;

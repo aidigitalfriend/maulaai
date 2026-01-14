@@ -67,4 +67,15 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B (32K context)' },
     ],
   },
+  {
+    provider: 'cerebras',
+    label: 'Cerebras (Entropy)',
+    models: [
+      { value: 'llama-3.3-70b', label: 'Llama 3.3 70B' },
+      { value: 'llama-3.1-70b', label: 'Llama 3.1 70B' },
+      { value: 'llama-3.1-8b', label: 'Llama 3.1 8B' },
+      { value: 'llama3.1-8b', label: 'Llama 3.1 8B (legacy)' },
+      { value: 'llama3.1-70b', label: 'Llama 3.1 70B (legacy)' },
+    ],
+  },
 ];

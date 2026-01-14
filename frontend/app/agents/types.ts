@@ -17,7 +17,8 @@ export type AIProvider =
   | 'mistral'
   | 'xai'
   | 'huggingface'
-  | 'groq';
+  | 'groq'
+  | 'cerebras';
 
 export interface DetailedSection {
   title: string;

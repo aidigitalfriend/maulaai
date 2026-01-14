@@ -9,6 +9,7 @@ function getApiKeys() {
     mistral: process.env.MISTRAL_API_KEY,
     xai: process.env.XAI_API_KEY,
     groq: process.env.GROQ_API_KEY,
+    cerebras: process.env.CEREBRAS_API_KEY,
   };
 }
 
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
     
     // Log available providers for debugging
     console.log(`[chat-stream] Request provider: ${provider}, model: ${model}`);
-    console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}`);
+    console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}, cerebras=${!!apiKeys.cerebras}`);
 
     // Create streaming response
     const encoder = new TextEncoder();
@@ -225,7 +226,13 @@ export async function POST(request: NextRequest) {
           if (provider === 'anthropic' && apiKeys.anthropic) {
             // Anthropic streaming (different format)
             const systemMessage = messages.find((m) => m.role === 'system');
-            const chatMessages = messages.filter((m) => m.role !== 'system');
+            // Filter out empty messages and system messages for Anthropic
+            const chatMessages = messages
+              .filter((m) => m.role !== 'system')
+              .filter((m) => {
+                const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
+                return content && content.trim().length > 0;
+              });
 
             try {
               const response = await fetch(
@@ -327,6 +334,13 @@ export async function POST(request: NextRequest) {
               'https://api.groq.com/openai/v1/chat/completions',
               apiKeys.groq,
               'llama-3.3-70b-versatile'
+            );
+          } else if (provider === 'cerebras' && apiKeys.cerebras) {
+            // Cerebras uses OpenAI-compatible API
+            hadError = await streamOpenAICompatible(
+              'https://api.cerebras.ai/v1/chat/completions',
+              apiKeys.cerebras,
+              'llama-3.3-70b'
             );
           } else if (provider === 'openai' && apiKeys.openai) {
             // OpenAI
