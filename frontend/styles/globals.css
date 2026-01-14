@@ -682,6 +682,9 @@ textarea::placeholder {
 /* Chat Message Color Hierarchy - Override global styles for optimal readability */
 /* Neural theme message text colors with proper contrast */
 .prose-invert.prose-sm {
+  /* Base color for all text */
+  color: #E5E7EB !important;
+  
   /* Headings: Pure white for maximum contrast */
   --tw-prose-headings: #FFFFFF;
   --tw-prose-invert-headings: #FFFFFF;
@@ -709,4 +712,43 @@ textarea::placeholder {
   /* Code: Light gray on dark background */
   --tw-prose-code: #E5E7EB;
   --tw-prose-invert-code: #E5E7EB;
+}
+
+/* Direct element targeting for maximum specificity */
+.prose-invert.prose-sm p,
+.prose-invert.prose-sm div,
+.prose-invert.prose-sm span:not(strong):not(em):not(code) {
+  color: #E5E7EB !important;
+}
+
+.prose-invert.prose-sm h1,
+.prose-invert.prose-sm h2,
+.prose-invert.prose-sm h3,
+.prose-invert.prose-sm h4,
+.prose-invert.prose-sm h5,
+.prose-invert.prose-sm h6 {
+  color: #FFFFFF !important;
+}
+
+.prose-invert.prose-sm strong,
+.prose-invert.prose-sm b {
+  color: #7C6CFF !important;
+  font-weight: 700;
+}
+
+.prose-invert.prose-sm a {
+  color: #7C6CFF !important;
+}
+
+.prose-invert.prose-sm em,
+.prose-invert.prose-sm i {
+  color: #9CA3AF !important;
+}
+
+.prose-invert.prose-sm li {
+  color: #E5E7EB !important;
+}
+
+.prose-invert.prose-sm code {
+  color: #E5E7EB !important;
 }
