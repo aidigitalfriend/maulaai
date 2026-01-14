@@ -363,10 +363,10 @@ export async function createCheckoutSession({
   // Get agent-specific plan details
   const planDetails = getAgentSubscriptionPlan(agentId, plan);
 
-  // Create checkout session for subscription
-  // Note: cancel_at_period_end will be set via webhook after subscription is created
+  // Create checkout session for one-time payment (NOT recurring subscription)
+  // These are time-limited access passes, not auto-renewing subscriptions
   const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
+    mode: 'payment',
     payment_method_types: ['card'],
     customer_email: userEmail,
     line_items: [
@@ -375,15 +375,6 @@ export async function createCheckoutSession({
         quantity: 1,
       },
     ],
-    subscription_data: {
-      metadata: {
-        userId,
-        agentId,
-        agentName,
-        plan,
-        cancelAtPeriodEnd: 'true', // Flag for webhook to set cancel_at_period_end
-      },
-    },
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
@@ -391,6 +382,7 @@ export async function createCheckoutSession({
       agentId,
       agentName,
       plan,
+      accessDuration: plan === 'daily' ? '1' : plan === 'weekly' ? '7' : '30',
     },
   });
 
