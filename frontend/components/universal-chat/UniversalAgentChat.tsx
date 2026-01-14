@@ -1058,7 +1058,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   message.role === 'user'
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white'
                     : isNeural
-                      ? 'bg-[#2B2B2B] border border-gray-700/50 !text-[#E5E7EB]'
+                      ? 'bg-[#4B5563] border border-gray-700/50 !text-[#E5E7EB]'
                       : 'bg-white border border-gray-200 text-gray-900'
                 }`}
               >
