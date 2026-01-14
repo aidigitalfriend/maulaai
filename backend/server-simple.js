@@ -485,16 +485,30 @@ async function fetchRealStatusData() {
   let realErrorsToday = 0;
   let realAvgResponseTime = metrics.avgResponseMs;
   let realConnectionPool = 0;
-  let realActiveUsers = 0;  // Total active users across all agents
+  let realActiveUsers = 0; // Total active users across all agents
   let historical = [];
   let toolsData = [];
 
   // Define the 18 valid agent slugs to show on status page
   const validAgentSlugs = [
-    'ben-sega', 'bishop-burger', 'chef-biew', 'chess-player', 'comedy-king',
-    'drama-queen', 'einstein', 'emma-emotional', 'fitness-guru', 'julie-girlfriend',
-    'knight-logic', 'lazy-pawn', 'mrs-boss', 'nid-gaming', 'professor-astrology',
-    'rook-jokey', 'tech-wizard', 'travel-buddy'
+    'ben-sega',
+    'bishop-burger',
+    'chef-biew',
+    'chess-player',
+    'comedy-king',
+    'drama-queen',
+    'einstein',
+    'emma-emotional',
+    'fitness-guru',
+    'julie-girlfriend',
+    'knight-logic',
+    'lazy-pawn',
+    'mrs-boss',
+    'nid-gaming',
+    'professor-astrology',
+    'rook-jokey',
+    'tech-wizard',
+    'travel-buddy',
   ];
 
   // Display names for agents (capitalize properly)
@@ -505,7 +519,7 @@ async function fetchRealStatusData() {
     'chess-player': 'Chess Player',
     'comedy-king': 'Comedy King',
     'drama-queen': 'Drama Queen',
-    'einstein': 'Einstein',
+    einstein: 'Einstein',
     'emma-emotional': 'Emma Emotional',
     'fitness-guru': 'Fitness Guru',
     'julie-girlfriend': 'Julie Girlfriend',
@@ -516,7 +530,7 @@ async function fetchRealStatusData() {
     'professor-astrology': 'Professor Astrology',
     'rook-jokey': 'Rook Jokey',
     'tech-wizard': 'Tech Wizard',
-    'travel-buddy': 'Travel Buddy'
+    'travel-buddy': 'Travel Buddy',
   };
 
   if (mongoDb) {
@@ -526,12 +540,19 @@ async function fetchRealStatusData() {
       const agents = await agentsCollection
         .find({
           $and: [
-            { $or: [{ isActive: true }, { status: { $in: ['active', 'operational'] } }] },
-            { $or: [
-              { slug: { $in: validAgentSlugs } },
-              { agentId: { $in: validAgentSlugs } }
-            ]}
-          ]
+            {
+              $or: [
+                { isActive: true },
+                { status: { $in: ['active', 'operational'] } },
+              ],
+            },
+            {
+              $or: [
+                { slug: { $in: validAgentSlugs } },
+                { agentId: { $in: validAgentSlugs } },
+              ],
+            },
+          ],
         })
         .toArray();
 
@@ -543,32 +564,37 @@ async function fetchRealStatusData() {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
 
-      // Get active session count per agent from chatinteractions
-      const agentSessionCounts = await chatCollection
+      // Get active users per agent from ACTIVE subscriptions (not chatinteractions)
+      const subscriptionsCollection = mongoDb.collection('subscriptions');
+      const agentActiveUsers = await subscriptionsCollection
         .aggregate([
-          { $match: { createdAt: { $gte: oneDayAgo } } },
+          { $match: { status: 'active', agentId: { $exists: true, $ne: null } } },
           { $group: { _id: '$agentId', count: { $sum: 1 } } },
         ])
         .toArray();
 
-      // Create a map of agent sessions
-      const sessionMap = new Map();
-      agentSessionCounts.forEach((s) => {
-        if (s._id) sessionMap.set(s._id.toString(), s.count);
+      console.log('DEBUG: agentActiveUsers from subscriptions:', agentActiveUsers);
+
+      // Create a map of agent active users from subscriptions
+      const activeUsersMap = new Map();
+      agentActiveUsers.forEach((s) => {
+        if (s._id) activeUsersMap.set(s._id.toString(), s.count);
       });
+
+      console.log('DEBUG: activeUsersMap:', Object.fromEntries(activeUsersMap));
 
       // Get real-time active users from sessions collection
       const activeSessions = await sessionsCollection.countDocuments({
         lastActivity: { $gte: fifteenMinAgo },
         isActive: true,
       });
-      realActiveUsers = activeSessions;  // Store for return object
+      realActiveUsers = activeSessions; // Store for return object
 
       // Map agents to status format with REAL data, using proper display names
       // First deduplicate by slug
       const seenSlugs = new Set();
       agentsData = agents
-        .filter(agent => {
+        .filter((agent) => {
           const slug = agent.slug || agent.agentId;
           if (!slug || !validAgentSlugs.includes(slug) || seenSlugs.has(slug)) {
             return false;
@@ -589,8 +615,9 @@ async function fetchRealStatusData() {
                 : 'outage',
             responseTime: metrics.avgResponseMs || 100,
             activeUsers:
-              sessionMap.get(agent.agentId) ||
-              sessionMap.get(agent._id?.toString()) ||
+              activeUsersMap.get(agent.agentId) ||
+              activeUsersMap.get(agent._id?.toString()) ||
+              activeUsersMap.get(slug) ||
               0,
             totalUsers: agent.stats?.totalUsers || 0,
             totalSessions:
@@ -603,7 +630,7 @@ async function fetchRealStatusData() {
 
       // If DB returned fewer agents than expected, add missing ones from the valid list
       if (agentsData.length < validAgentSlugs.length) {
-        validAgentSlugs.forEach(slug => {
+        validAgentSlugs.forEach((slug) => {
           if (!seenSlugs.has(slug)) {
             agentsData.push({
               name: agentDisplayNames[slug] || slug,
@@ -623,7 +650,7 @@ async function fetchRealStatusData() {
 
       // If no agents found in DB at all, use the full list
       if (agentsData.length === 0) {
-        agentsData = validAgentSlugs.map(slug => ({
+        agentsData = validAgentSlugs.map((slug) => ({
           name: agentDisplayNames[slug] || slug,
           slug: slug,
           status: 'operational',
@@ -1025,7 +1052,7 @@ async function fetchRealStatusData() {
     tools: toolsData,
     historical: historical,
     incidents: [],
-    totalActiveUsers: realActiveUsers,  // Active users in last 15 minutes
+    totalActiveUsers: realActiveUsers, // Active users in last 15 minutes
   };
 }
 
