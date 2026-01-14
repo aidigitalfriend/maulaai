@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
                   headers: {
                     'Content-Type': 'application/json',
                     'x-api-key': apiKeys.anthropic,
-                    'anthropic-version': '2023-06-01',
+                    'anthropic-version': '2024-10-22',
                   },
                   body: JSON.stringify({
                     model: model || 'claude-sonnet-4-20250514',
