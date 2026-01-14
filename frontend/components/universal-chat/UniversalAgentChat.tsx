@@ -1501,7 +1501,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
                 {message.role === 'assistant' && (
                   <div
-                    className={`flex items-center space-x-1 mt-2 pt-2 border-t ${isNeural ? 'border-gray-600' : 'border-gray-100'}`}
+                    className={`flex items-center space-x-1 mt-2 pt-2 border-t relative z-50 ${isNeural ? 'border-gray-600' : 'border-gray-100'}`}
                   >
                     <button
                       onClick={() => handleFeedback(message.id, 'up')}
