@@ -483,8 +483,14 @@ async function fetchRealStatusData() {
   if (mongoDb) {
     try {
       // 1. Fetch ALL agents from agents collection
+      // Support both 'isActive' (actual schema) and 'status' field patterns
       const agentsCollection = mongoDb.collection('agents');
-      const agents = await agentsCollection.find({ status: { $in: ['active', 'operational'] } }).toArray();
+      const agents = await agentsCollection.find({ 
+        $or: [
+          { isActive: true },
+          { status: { $in: ['active', 'operational'] } }
+        ]
+      }).toArray();
       
       // 2. Get active sessions per agent from chatinteractions
       const chatCollection = mongoDb.collection('chatinteractions');
@@ -496,7 +502,7 @@ async function fetchRealStatusData() {
       
       // Get active session count per agent from chatinteractions
       const agentSessionCounts = await chatCollection.aggregate([
-        { $match: { startedAt: { $gte: oneDayAgo }, status: { $in: ['active', 'closed'] } } },
+        { $match: { createdAt: { $gte: oneDayAgo } } },
         { $group: { _id: '$agentId', count: { $sum: 1 } } }
       ]).toArray();
       
@@ -514,16 +520,17 @@ async function fetchRealStatusData() {
       
       // Map agents to status format with REAL data
       agentsData = agents.map(agent => ({
-        name: agent.name || agent.id || agent.slug || 'Unknown',
-        slug: agent.slug || agent.id,
-        status: agent.status === 'active' ? 'operational' : (agent.status === 'maintenance' ? 'degraded' : 'outage'),
-        responseTime: metrics.avgResponseMs + Math.floor(Math.random() * 50), // Slight variation
-        activeUsers: sessionMap.get(agent._id?.toString()) || 0,
+        name: agent.name || agent.agentId || agent.slug || 'Unknown',
+        slug: agent.slug || agent.agentId || agent._id?.toString(),
+        status: (agent.isActive === true || agent.status === 'active') ? 'operational' : 
+                (agent.status === 'maintenance' ? 'degraded' : 'outage'),
+        responseTime: metrics.avgResponseMs || 100,
+        activeUsers: sessionMap.get(agent.agentId) || sessionMap.get(agent._id?.toString()) || 0,
         totalUsers: agent.stats?.totalUsers || 0,
-        totalSessions: agent.stats?.totalSessions || 0,
+        totalSessions: agent.stats?.totalInteractions || agent.stats?.totalSessions || 0,
         averageRating: agent.stats?.averageRating || 0,
-        specialty: agent.specialty || agent.specialties?.[0] || '',
-        aiProvider: agent.aiProvider?.primary || 'openai'
+        category: agent.category || '',
+        aiProvider: agent.aiModel || 'gpt-4'
       }));
 
       // If no agents found in DB, use default minimal data
@@ -539,15 +546,32 @@ async function fetchRealStatusData() {
         }];
       }
 
-      // 3. Fetch REAL API usage data from apiusages collection
+      // 3. Fetch REAL API usage data - check multiple possible collections
       const apiUsageCollection = mongoDb.collection('apiusages');
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
-      // Get today's API requests count
-      realApiRequestsToday = await apiUsageCollection.countDocuments({
-        timestamp: { $gte: startOfDay }
-      });
+      // Try apiusages first
+      let apiUsagesCount = await apiUsageCollection.countDocuments({});
+      
+      if (apiUsagesCount === 0) {
+        // If apiusages is empty, estimate from chat interactions + sessions
+        const todayChats = await chatCollection.countDocuments({ createdAt: { $gte: startOfDay } });
+        const todaySessions = await sessionsCollection.countDocuments({ createdAt: { $gte: startOfDay } });
+        realApiRequestsToday = todayChats + todaySessions;
+        realErrorsToday = 0; // No error tracking without apiusages
+      } else {
+        // Get today's API requests count
+        realApiRequestsToday = await apiUsageCollection.countDocuments({
+          timestamp: { $gte: startOfDay }
+        });
+
+        // Get today's errors count
+        realErrorsToday = await apiUsageCollection.countDocuments({
+          timestamp: { $gte: startOfDay },
+          statusCode: { $gte: 500 }
+        });
+      }
 
       // Get today's errors count
       realErrorsToday = await apiUsageCollection.countDocuments({
@@ -573,7 +597,7 @@ async function fetchRealStatusData() {
         realConnectionPool = Math.max(1, activeSessions);
       }
 
-      // 5. Build REAL historical data from pageviews/apiusages (last 7 days)
+      // 5. Build REAL historical data from pageviews + chatinteractions/sessions (last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const pageViewCollection = mongoDb.collection('pageviews');
       
@@ -589,7 +613,30 @@ async function fetchRealStatusData() {
         { $sort: { _id: 1 } }
       ]).toArray();
 
-      // Also get API usage per day
+      // Get daily chat/API activity - use chatinteractions and sessions as proxy for API requests
+      const dailyChatStats = await chatCollection.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            chatCount: { $sum: 1 }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]).toArray();
+
+      const dailySessionStats = await sessionsCollection.aggregate([
+        { $match: { createdAt: { $gte: sevenDaysAgo } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            sessionCount: { $sum: 1 }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]).toArray();
+
+      // Also check apiusages if available
       const dailyApiStats = await apiUsageCollection.aggregate([
         { $match: { timestamp: { $gte: sevenDaysAgo } } },
         {
@@ -603,24 +650,53 @@ async function fetchRealStatusData() {
         { $sort: { _id: 1 } }
       ]).toArray();
 
-      // Merge into historical format
+      // Merge all stats into maps
       const apiStatsMap = new Map();
       dailyApiStats.forEach(d => apiStatsMap.set(d._id, d));
+      
+      const chatStatsMap = new Map();
+      dailyChatStats.forEach(d => chatStatsMap.set(d._id, d));
+      
+      const sessionStatsMap = new Map();
+      dailySessionStats.forEach(d => sessionStatsMap.set(d._id, d));
 
-      historical = dailyStats.map(day => {
-        const apiDay = apiStatsMap.get(day._id) || {};
+      // Build complete 7-day historical with all data sources
+      const allDates = new Set();
+      dailyStats.forEach(d => allDates.add(d._id));
+      dailyChatStats.forEach(d => allDates.add(d._id));
+      dailySessionStats.forEach(d => allDates.add(d._id));
+      dailyApiStats.forEach(d => allDates.add(d._id));
+      
+      // Ensure we have all 7 days
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        allDates.add(d.toISOString().split('T')[0]);
+      }
+
+      const sortedDates = Array.from(allDates).sort();
+      
+      historical = sortedDates.slice(-8).map(dateStr => {
+        const pageDay = dailyStats.find(d => d._id === dateStr) || {};
+        const apiDay = apiStatsMap.get(dateStr) || {};
+        const chatDay = chatStatsMap.get(dateStr) || {};
+        const sessionDay = sessionStatsMap.get(dateStr) || {};
+        
+        // Combine requests from apiusages + chats + sessions
+        const totalRequests = (apiDay.requests || 0) + (chatDay.chatCount || 0) + (sessionDay.sessionCount || 0);
+        
         return {
-          date: day._id,
-          pageViews: day.pageViews || 0,
-          avgTimeSpent: Math.round(day.avgTimeSpent || 0),
-          requests: apiDay.requests || 0,  // Frontend expects 'requests' not 'apiRequests'
+          date: dateStr,
+          pageViews: pageDay.pageViews || 0,
+          avgTimeSpent: Math.round(pageDay.avgTimeSpent || 0),
+          requests: totalRequests,
           apiErrors: apiDay.errors || 0,
-          avgResponseTime: Math.round(apiDay.avgResponseTime || 0),
+          avgResponseTime: Math.round(apiDay.avgResponseTime || realAvgResponseTime || 100),
           uptime: apiDay.errors > 0 ? 99.5 : 99.99
         };
       });
 
-      // If no historical data, generate placeholder for last 7 days
+      // If still no historical data, generate placeholder for last 7 days
       if (historical.length === 0) {
         for (let i = 6; i >= 0; i--) {
           const d = new Date();
