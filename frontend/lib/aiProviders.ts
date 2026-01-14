@@ -40,11 +40,11 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     label: 'Anthropic',
     models: [
       { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4 (Latest)' },
-      { value: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet' },
-      { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+      { value: 'claude-3-5-sonnet-latest', label: 'Claude 3.5 Sonnet (Latest)' },
+      { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet v2' },
       { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fast)' },
       {
-        value: 'claude-3-opus-20240229',
+        value: 'claude-3-opus-latest',
         label: 'Claude 3 Opus (Most Capable)',
       },
     ],

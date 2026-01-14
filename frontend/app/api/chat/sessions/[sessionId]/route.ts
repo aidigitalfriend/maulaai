@@ -221,10 +221,11 @@ export async function POST(
     });
 
     if (!role || !content) {
-      console.log('[chat/sessions/POST] 400 Error: Missing role or content', { role, content: content?.slice(0, 20) || 'EMPTY' });
+      // Return success but skip saving - this handles streaming errors gracefully
+      console.log('[chat/sessions/POST] Skipping save - empty content (likely streaming error)');
       return NextResponse.json(
-        { success: false, error: 'Role and content required' },
-        { status: 400 }
+        { success: true, skipped: true, reason: 'Empty content' },
+        { status: 200 }
       );
     }
 
