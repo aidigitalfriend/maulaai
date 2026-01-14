@@ -211,7 +211,17 @@ export async function POST(
     const body = await request.json();
     const { role, content, attachments, agentId } = body;
 
+    console.log('[chat/sessions/POST] Received:', { 
+      sessionId, 
+      role, 
+      contentLength: content?.length || 0, 
+      contentPreview: content?.slice(0, 50) || 'EMPTY',
+      agentId,
+      hasAttachments: !!attachments
+    });
+
     if (!role || !content) {
+      console.log('[chat/sessions/POST] 400 Error: Missing role or content', { role, content: content?.slice(0, 20) || 'EMPTY' });
       return NextResponse.json(
         { success: false, error: 'Role and content required' },
         { status: 400 }
