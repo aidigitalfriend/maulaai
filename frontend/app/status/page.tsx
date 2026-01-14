@@ -79,6 +79,7 @@ interface StatusData {
     duration: string;
     resolved: boolean;
   }>;
+  totalActiveUsers?: number;  // Active users in last 15 minutes
 }
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -635,7 +636,7 @@ export default function StatusPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">Active Users</h3>
             <div className="text-3xl font-bold text-purple-600 mb-2">
-              {data.agents.reduce((sum, a) => sum + (a.activeUsers ?? 0), 0)}
+              {data.totalActiveUsers ?? data.agents.reduce((sum, a) => sum + (a.activeUsers ?? 0), 0)}
             </div>
             <p className="text-sm text-neural-600">Across All Agents</p>
           </div>

@@ -485,6 +485,7 @@ async function fetchRealStatusData() {
   let realErrorsToday = 0;
   let realAvgResponseTime = metrics.avgResponseMs;
   let realConnectionPool = 0;
+  let realActiveUsers = 0;  // Total active users across all agents
   let historical = [];
   let toolsData = [];
 
@@ -561,6 +562,7 @@ async function fetchRealStatusData() {
         lastActivity: { $gte: fifteenMinAgo },
         isActive: true,
       });
+      realActiveUsers = activeSessions;  // Store for return object
 
       // Map agents to status format with REAL data, using proper display names
       // First deduplicate by slug
@@ -1023,6 +1025,7 @@ async function fetchRealStatusData() {
     tools: toolsData,
     historical: historical,
     incidents: [],
+    totalActiveUsers: realActiveUsers,  // Active users in last 15 minutes
   };
 }
 
