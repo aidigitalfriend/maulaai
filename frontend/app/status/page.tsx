@@ -843,17 +843,11 @@ export default function StatusPage() {
                     }`}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="grid grid-cols-1 gap-2 text-xs">
                   <div>
                     <p className="text-neural-600">Response</p>
                     <p className="font-bold text-brand-600">
                       {agent.responseTime}ms
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-neural-600">Users</p>
-                    <p className="font-bold text-purple-600">
-                      {agent.activeUsers}
                     </p>
                   </div>
                 </div>
