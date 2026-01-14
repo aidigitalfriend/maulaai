@@ -702,12 +702,33 @@ async function fetchRealStatusData() {
     ? +((realErrorsToday * 100) / realApiRequestsToday).toFixed(2) 
     : metrics.errorRate;
 
+  // Get REAL system stats (CPU, Memory)
+  const memTotal = os.totalmem();
+  const memFree = os.freemem();
+  const memUsed = memTotal - memFree;
+  const memoryPercent = +((memUsed / memTotal) * 100).toFixed(1);
+  const cpus = os.cpus();
+  const loadAvg = os.loadavg();
+  // Calculate CPU percentage from load average relative to number of cores
+  const cpuPercent = Math.min(100, +((loadAvg[0] / cpus.length) * 100).toFixed(1));
+
   return {
+    system: {
+      cpuPercent,
+      memoryPercent,
+      totalMem: Math.round(memTotal / (1024 * 1024 * 1024) * 10) / 10, // GB
+      freeMem: Math.round(memFree / (1024 * 1024 * 1024) * 10) / 10,   // GB
+      usedMem: Math.round(memUsed / (1024 * 1024 * 1024) * 10) / 10,   // GB
+      load1: +loadAvg[0].toFixed(2),
+      load5: +loadAvg[1].toFixed(2),
+      load15: +loadAvg[2].toFixed(2),
+      cores: cpus.length,
+    },
     platform: {
       status: platformStatus,
       uptime: platformStatus === 'operational' ? 99.99 : 98.5,
       lastUpdated: now.toISOString(),
-      version: process.env.APP_VERSION || '1.0.0',
+      version: process.env.APP_VERSION || '2.0.0',
     },
     api: {
       status: apiStatus,

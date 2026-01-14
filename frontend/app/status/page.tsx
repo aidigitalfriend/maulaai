@@ -517,8 +517,8 @@ export default function StatusPage() {
                 </h3>
                 <MiniLine series={memHistory} stroke="#22c55e" />
                 <div className="text-xs text-neural-600 mt-1">
-                  {(data.system.usedMem / 1024 ** 3).toFixed(1)} GB /{' '}
-                  {(data.system.totalMem / 1024 ** 3).toFixed(1)} GB
+                  {data.system.usedMem.toFixed(1)} GB /{' '}
+                  {data.system.totalMem.toFixed(1)} GB
                 </div>
               </div>
               <Gauge
