@@ -118,15 +118,15 @@ export default function QuickActionsPanel({
     ? 'bg-gray-900/80 border-cyan-500/20'
     : 'bg-white/90 border-gray-200';
 
-  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
+  const textPrimary = isNeural ? 'text-[#E5E7EB]' : 'text-gray-900';
+  const textSecondary = isNeural ? 'text-[#9CA3AF]' : 'text-gray-500';
 
   const buttonBase = isNeural
-    ? 'bg-gray-800/50 hover:bg-gray-700 border-gray-700/50 text-gray-200'
+    ? 'bg-gray-800/50 hover:bg-gray-700 border-gray-700/50 text-[#E5E7EB]'
     : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700';
 
   const buttonActive = isNeural
-    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+    ? 'bg-[#7C6CFF]/20 border-[#7C6CFF]/50 text-[#7C6CFF]'
     : 'bg-indigo-100 border-indigo-300 text-indigo-700';
 
   const categories = [...new Set(QUICK_ACTIONS.map((a) => a.category))];

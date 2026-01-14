@@ -568,12 +568,17 @@ async function fetchRealStatusData() {
       const subscriptionsCollection = mongoDb.collection('subscriptions');
       const agentActiveUsers = await subscriptionsCollection
         .aggregate([
-          { $match: { status: 'active', agentId: { $exists: true, $ne: null } } },
+          {
+            $match: { status: 'active', agentId: { $exists: true, $ne: null } },
+          },
           { $group: { _id: '$agentId', count: { $sum: 1 } } },
         ])
         .toArray();
 
-      console.log('DEBUG: agentActiveUsers from subscriptions:', agentActiveUsers);
+      console.log(
+        'DEBUG: agentActiveUsers from subscriptions:',
+        agentActiveUsers
+      );
 
       // Create a map of agent active users from subscriptions
       const activeUsersMap = new Map();
