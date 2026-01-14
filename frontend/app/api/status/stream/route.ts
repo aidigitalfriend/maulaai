@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       return new Response(
         JSON.stringify({ success: false, error: 'Backend SSE unavailable' }),
-        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+        {
+          status: response.status,
+          headers: { 'Content-Type': 'application/json' },
+        }
       );
     }
 
@@ -47,13 +50,16 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     });
   } catch (error) {
     console.error('Error proxying SSE stream:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Failed to connect to backend SSE' }),
+      JSON.stringify({
+        success: false,
+        error: 'Failed to connect to backend SSE',
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

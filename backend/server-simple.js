@@ -327,7 +327,11 @@ app.get('/health', async (req, res) => {
   let s3Connected = false;
   const s3Bucket = process.env.AWS_S3_BUCKET || process.env.S3_BUCKET_NAME;
   try {
-    if (s3Bucket && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    if (
+      s3Bucket &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY
+    ) {
       const s3Client = new S3Client({
         region: process.env.AWS_REGION || 'ap-southeast-1',
         credentials: {
@@ -408,7 +412,11 @@ app.get('/api/health', async (req, res) => {
   let s3Connected = false;
   const s3Bucket = process.env.AWS_S3_BUCKET || process.env.S3_BUCKET_NAME;
   try {
-    if (s3Bucket && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    if (
+      s3Bucket &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY
+    ) {
       const s3Client = new S3Client({
         region: process.env.AWS_REGION || 'ap-southeast-1',
         credentials: {
@@ -470,7 +478,7 @@ async function fetchRealStatusData() {
 
   // Get MongoDB database instance
   const mongoDb = mongoose.connection.db;
-  
+
   // Fetch REAL agent data from database
   let agentsData = [];
   let realApiRequestsToday = 0;
@@ -480,70 +488,151 @@ async function fetchRealStatusData() {
   let historical = [];
   let toolsData = [];
 
+  // Define the 18 valid agent slugs to show on status page
+  const validAgentSlugs = [
+    'ben-sega', 'bishop-burger', 'chef-biew', 'chess-player', 'comedy-king',
+    'drama-queen', 'einstein', 'emma-emotional', 'fitness-guru', 'julie-girlfriend',
+    'knight-logic', 'lazy-pawn', 'mrs-boss', 'nid-gaming', 'professor-astrology',
+    'rook-jokey', 'tech-wizard', 'travel-buddy'
+  ];
+
+  // Display names for agents (capitalize properly)
+  const agentDisplayNames = {
+    'ben-sega': 'Ben Sega',
+    'bishop-burger': 'Bishop Burger',
+    'chef-biew': 'Chef Biew',
+    'chess-player': 'Chess Player',
+    'comedy-king': 'Comedy King',
+    'drama-queen': 'Drama Queen',
+    'einstein': 'Einstein',
+    'emma-emotional': 'Emma Emotional',
+    'fitness-guru': 'Fitness Guru',
+    'julie-girlfriend': 'Julie Girlfriend',
+    'knight-logic': 'Knight Logic',
+    'lazy-pawn': 'Lazy Pawn',
+    'mrs-boss': 'Mrs Boss',
+    'nid-gaming': 'Nid Gaming',
+    'professor-astrology': 'Professor Astrology',
+    'rook-jokey': 'Rook Jokey',
+    'tech-wizard': 'Tech Wizard',
+    'travel-buddy': 'Travel Buddy'
+  };
+
   if (mongoDb) {
     try {
-      // 1. Fetch ALL agents from agents collection
-      // Support both 'isActive' (actual schema) and 'status' field patterns
+      // 1. Fetch ONLY the 18 valid agents from agents collection
       const agentsCollection = mongoDb.collection('agents');
-      const agents = await agentsCollection.find({ 
-        $or: [
-          { isActive: true },
-          { status: { $in: ['active', 'operational'] } }
-        ]
-      }).toArray();
-      
+      const agents = await agentsCollection
+        .find({
+          $and: [
+            { $or: [{ isActive: true }, { status: { $in: ['active', 'operational'] } }] },
+            { $or: [
+              { slug: { $in: validAgentSlugs } },
+              { agentId: { $in: validAgentSlugs } }
+            ]}
+          ]
+        })
+        .toArray();
+
       // 2. Get active sessions per agent from chatinteractions
       const chatCollection = mongoDb.collection('chatinteractions');
       const sessionsCollection = mongoDb.collection('sessions');
-      
+
       // Calculate active users per agent (sessions in last 24 hours)
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000);
-      
+
       // Get active session count per agent from chatinteractions
-      const agentSessionCounts = await chatCollection.aggregate([
-        { $match: { createdAt: { $gte: oneDayAgo } } },
-        { $group: { _id: '$agentId', count: { $sum: 1 } } }
-      ]).toArray();
-      
+      const agentSessionCounts = await chatCollection
+        .aggregate([
+          { $match: { createdAt: { $gte: oneDayAgo } } },
+          { $group: { _id: '$agentId', count: { $sum: 1 } } },
+        ])
+        .toArray();
+
       // Create a map of agent sessions
       const sessionMap = new Map();
-      agentSessionCounts.forEach(s => {
+      agentSessionCounts.forEach((s) => {
         if (s._id) sessionMap.set(s._id.toString(), s.count);
       });
 
       // Get real-time active users from sessions collection
       const activeSessions = await sessionsCollection.countDocuments({
         lastActivity: { $gte: fifteenMinAgo },
-        isActive: true
+        isActive: true,
       });
-      
-      // Map agents to status format with REAL data
-      agentsData = agents.map(agent => ({
-        name: agent.name || agent.agentId || agent.slug || 'Unknown',
-        slug: agent.slug || agent.agentId || agent._id?.toString(),
-        status: (agent.isActive === true || agent.status === 'active') ? 'operational' : 
-                (agent.status === 'maintenance' ? 'degraded' : 'outage'),
-        responseTime: metrics.avgResponseMs || 100,
-        activeUsers: sessionMap.get(agent.agentId) || sessionMap.get(agent._id?.toString()) || 0,
-        totalUsers: agent.stats?.totalUsers || 0,
-        totalSessions: agent.stats?.totalInteractions || agent.stats?.totalSessions || 0,
-        averageRating: agent.stats?.averageRating || 0,
-        category: agent.category || '',
-        aiProvider: agent.aiModel || 'gpt-4'
-      }));
 
-      // If no agents found in DB, use default minimal data
+      // Map agents to status format with REAL data, using proper display names
+      // First deduplicate by slug
+      const seenSlugs = new Set();
+      agentsData = agents
+        .filter(agent => {
+          const slug = agent.slug || agent.agentId;
+          if (!slug || !validAgentSlugs.includes(slug) || seenSlugs.has(slug)) {
+            return false;
+          }
+          seenSlugs.add(slug);
+          return true;
+        })
+        .map((agent) => {
+          const slug = agent.slug || agent.agentId;
+          return {
+            name: agentDisplayNames[slug] || agent.name || slug,
+            slug: slug,
+            status:
+              agent.isActive === true || agent.status === 'active'
+                ? 'operational'
+                : agent.status === 'maintenance'
+                ? 'degraded'
+                : 'outage',
+            responseTime: metrics.avgResponseMs || 100,
+            activeUsers:
+              sessionMap.get(agent.agentId) ||
+              sessionMap.get(agent._id?.toString()) ||
+              0,
+            totalUsers: agent.stats?.totalUsers || 0,
+            totalSessions:
+              agent.stats?.totalInteractions || agent.stats?.totalSessions || 0,
+            averageRating: agent.stats?.averageRating || 0,
+            category: agent.category || '',
+            aiProvider: agent.aiModel || 'gpt-4',
+          };
+        });
+
+      // If DB returned fewer agents than expected, add missing ones from the valid list
+      if (agentsData.length < validAgentSlugs.length) {
+        validAgentSlugs.forEach(slug => {
+          if (!seenSlugs.has(slug)) {
+            agentsData.push({
+              name: agentDisplayNames[slug] || slug,
+              slug: slug,
+              status: 'operational',
+              responseTime: metrics.avgResponseMs || 100,
+              activeUsers: 0,
+              totalUsers: 0,
+              totalSessions: 0,
+              averageRating: 0,
+              category: '',
+              aiProvider: 'gpt-4',
+            });
+          }
+        });
+      }
+
+      // If no agents found in DB at all, use the full list
       if (agentsData.length === 0) {
-        agentsData = [{
-          name: 'Default Agent',
-          slug: 'default',
+        agentsData = validAgentSlugs.map(slug => ({
+          name: agentDisplayNames[slug] || slug,
+          slug: slug,
           status: 'operational',
-          responseTime: metrics.avgResponseMs,
-          activeUsers: activeSessions,
+          responseTime: metrics.avgResponseMs || 100,
+          activeUsers: 0,
           totalUsers: 0,
-          totalSessions: 0
-        }];
+          totalSessions: 0,
+          averageRating: 0,
+          category: '',
+          aiProvider: 'gpt-4',
+        }));
       }
 
       // 3. Fetch REAL API usage data - check multiple possible collections
@@ -553,13 +642,17 @@ async function fetchRealStatusData() {
 
       // Check if apiusages has TODAY's data (not just any data)
       const todayApiUsagesCount = await apiUsageCollection.countDocuments({
-        timestamp: { $gte: startOfDay }
+        timestamp: { $gte: startOfDay },
       });
-      
+
       // Get chat interactions + sessions for today (always useful)
-      const todayChats = await chatCollection.countDocuments({ createdAt: { $gte: startOfDay } });
-      const todaySessions = await sessionsCollection.countDocuments({ createdAt: { $gte: startOfDay } });
-      
+      const todayChats = await chatCollection.countDocuments({
+        createdAt: { $gte: startOfDay },
+      });
+      const todaySessions = await sessionsCollection.countDocuments({
+        createdAt: { $gte: startOfDay },
+      });
+
       if (todayApiUsagesCount === 0) {
         // If apiusages has no today's data, use chat interactions + sessions as requests
         realApiRequestsToday = todayChats + todaySessions;
@@ -571,23 +664,27 @@ async function fetchRealStatusData() {
         // Get today's errors count from apiusages
         realErrorsToday = await apiUsageCollection.countDocuments({
           timestamp: { $gte: startOfDay },
-          statusCode: { $gte: 500 }
+          statusCode: { $gte: 500 },
         });
       }
 
       // Note: realErrorsToday already set above based on whether apiusages has today's data
 
       // Get average response time from recent API calls
-      const avgResponseAgg = await apiUsageCollection.aggregate([
-        { $match: { timestamp: { $gte: oneDayAgo } } },
-        { $group: { _id: null, avgTime: { $avg: '$responseTime' } } }
-      ]).toArray();
+      const avgResponseAgg = await apiUsageCollection
+        .aggregate([
+          { $match: { timestamp: { $gte: oneDayAgo } } },
+          { $group: { _id: null, avgTime: { $avg: '$responseTime' } } },
+        ])
+        .toArray();
       if (avgResponseAgg.length > 0 && avgResponseAgg[0].avgTime) {
         realAvgResponseTime = Math.round(avgResponseAgg[0].avgTime);
       }
 
       // 4. Get real connection pool status
-      const serverStatus = await mongoDb.command({ serverStatus: 1 }).catch(() => null);
+      const serverStatus = await mongoDb
+        .command({ serverStatus: 1 })
+        .catch(() => null);
       if (serverStatus?.connections) {
         realConnectionPool = serverStatus.connections.current || 0;
       } else {
@@ -598,73 +695,91 @@ async function fetchRealStatusData() {
       // 5. Build REAL historical data from pageviews + chatinteractions/sessions (last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const pageViewCollection = mongoDb.collection('pageviews');
-      
-      const dailyStats = await pageViewCollection.aggregate([
-        { $match: { timestamp: { $gte: sevenDaysAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } },
-            pageViews: { $sum: 1 },
-            avgTimeSpent: { $avg: '$timeSpent' }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]).toArray();
+
+      const dailyStats = await pageViewCollection
+        .aggregate([
+          { $match: { timestamp: { $gte: sevenDaysAgo } } },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$timestamp' },
+              },
+              pageViews: { $sum: 1 },
+              avgTimeSpent: { $avg: '$timeSpent' },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray();
 
       // Get daily chat/API activity - use chatinteractions and sessions as proxy for API requests
-      const dailyChatStats = await chatCollection.aggregate([
-        { $match: { createdAt: { $gte: sevenDaysAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-            chatCount: { $sum: 1 }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]).toArray();
+      const dailyChatStats = await chatCollection
+        .aggregate([
+          { $match: { createdAt: { $gte: sevenDaysAgo } } },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+              },
+              chatCount: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray();
 
-      const dailySessionStats = await sessionsCollection.aggregate([
-        { $match: { createdAt: { $gte: sevenDaysAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-            sessionCount: { $sum: 1 }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]).toArray();
+      const dailySessionStats = await sessionsCollection
+        .aggregate([
+          { $match: { createdAt: { $gte: sevenDaysAgo } } },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+              },
+              sessionCount: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray();
 
       // Also check apiusages if available
-      const dailyApiStats = await apiUsageCollection.aggregate([
-        { $match: { timestamp: { $gte: sevenDaysAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$timestamp' } },
-            requests: { $sum: 1 },
-            errors: { $sum: { $cond: [{ $gte: ['$statusCode', 500] }, 1, 0] } },
-            avgResponseTime: { $avg: '$responseTime' }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]).toArray();
+      const dailyApiStats = await apiUsageCollection
+        .aggregate([
+          { $match: { timestamp: { $gte: sevenDaysAgo } } },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$timestamp' },
+              },
+              requests: { $sum: 1 },
+              errors: {
+                $sum: { $cond: [{ $gte: ['$statusCode', 500] }, 1, 0] },
+              },
+              avgResponseTime: { $avg: '$responseTime' },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray();
 
       // Merge all stats into maps
       const apiStatsMap = new Map();
-      dailyApiStats.forEach(d => apiStatsMap.set(d._id, d));
-      
+      dailyApiStats.forEach((d) => apiStatsMap.set(d._id, d));
+
       const chatStatsMap = new Map();
-      dailyChatStats.forEach(d => chatStatsMap.set(d._id, d));
-      
+      dailyChatStats.forEach((d) => chatStatsMap.set(d._id, d));
+
       const sessionStatsMap = new Map();
-      dailySessionStats.forEach(d => sessionStatsMap.set(d._id, d));
+      dailySessionStats.forEach((d) => sessionStatsMap.set(d._id, d));
 
       // Build complete 7-day historical with all data sources
       const allDates = new Set();
-      dailyStats.forEach(d => allDates.add(d._id));
-      dailyChatStats.forEach(d => allDates.add(d._id));
-      dailySessionStats.forEach(d => allDates.add(d._id));
-      dailyApiStats.forEach(d => allDates.add(d._id));
-      
+      dailyStats.forEach((d) => allDates.add(d._id));
+      dailyChatStats.forEach((d) => allDates.add(d._id));
+      dailySessionStats.forEach((d) => allDates.add(d._id));
+      dailyApiStats.forEach((d) => allDates.add(d._id));
+
       // Ensure we have all 7 days
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -673,24 +788,29 @@ async function fetchRealStatusData() {
       }
 
       const sortedDates = Array.from(allDates).sort();
-      
-      historical = sortedDates.slice(-8).map(dateStr => {
-        const pageDay = dailyStats.find(d => d._id === dateStr) || {};
+
+      historical = sortedDates.slice(-8).map((dateStr) => {
+        const pageDay = dailyStats.find((d) => d._id === dateStr) || {};
         const apiDay = apiStatsMap.get(dateStr) || {};
         const chatDay = chatStatsMap.get(dateStr) || {};
         const sessionDay = sessionStatsMap.get(dateStr) || {};
-        
+
         // Combine requests from apiusages + chats + sessions
-        const totalRequests = (apiDay.requests || 0) + (chatDay.chatCount || 0) + (sessionDay.sessionCount || 0);
-        
+        const totalRequests =
+          (apiDay.requests || 0) +
+          (chatDay.chatCount || 0) +
+          (sessionDay.sessionCount || 0);
+
         return {
           date: dateStr,
           pageViews: pageDay.pageViews || 0,
           avgTimeSpent: Math.round(pageDay.avgTimeSpent || 0),
           requests: totalRequests,
           apiErrors: apiDay.errors || 0,
-          avgResponseTime: Math.round(apiDay.avgResponseTime || realAvgResponseTime || 100),
-          uptime: apiDay.errors > 0 ? 99.5 : 99.99
+          avgResponseTime: Math.round(
+            apiDay.avgResponseTime || realAvgResponseTime || 100
+          ),
+          uptime: apiDay.errors > 0 ? 99.5 : 99.99,
         };
       });
 
@@ -706,28 +826,32 @@ async function fetchRealStatusData() {
             requests: 0,
             apiErrors: 0,
             avgResponseTime: 0,
-            uptime: 99.99
+            uptime: 99.99,
           });
         }
       }
 
       // 6. Get REAL tool usage data
       const toolUsageCollection = mongoDb.collection('toolusages');
-      const toolStats = await toolUsageCollection.aggregate([
-        { $match: { occurredAt: { $gte: oneDayAgo } } },
-        {
-          $group: {
-            _id: '$toolName',
-            count: { $sum: 1 },
-            avgLatency: { $avg: '$latencyMs' },
-            errors: { $sum: { $cond: [{ $eq: ['$status', 'failed'] }, 1, 0] } }
-          }
-        }
-      ]).toArray();
+      const toolStats = await toolUsageCollection
+        .aggregate([
+          { $match: { occurredAt: { $gte: oneDayAgo } } },
+          {
+            $group: {
+              _id: '$toolName',
+              count: { $sum: 1 },
+              avgLatency: { $avg: '$latencyMs' },
+              errors: {
+                $sum: { $cond: [{ $eq: ['$status', 'failed'] }, 1, 0] },
+              },
+            },
+          },
+        ])
+        .toArray();
 
       // Map tool stats
       const toolStatsMap = new Map();
-      toolStats.forEach(t => toolStatsMap.set(t._id, t));
+      toolStats.forEach((t) => toolStatsMap.set(t._id, t));
 
       toolsData = [
         {
@@ -749,32 +873,49 @@ async function fetchRealStatusData() {
           activeChats: toolStatsMap.get('email')?.count || 0,
         },
       ];
-
     } catch (dbErr) {
       console.error('Error fetching real status data:', dbErr);
       // Fall back to minimal data on error
-      agentsData = [{
-        name: 'Default',
-        status: 'operational',
-        responseTime: metrics.avgResponseMs,
-        activeUsers: 0
-      }];
+      agentsData = [
+        {
+          name: 'Default',
+          status: 'operational',
+          responseTime: metrics.avgResponseMs,
+          activeUsers: 0,
+        },
+      ];
     }
   }
 
   // If no tools data, use defaults
   if (toolsData.length === 0) {
     toolsData = [
-      { name: 'Translation', status: providers.googleTranslate ? 'operational' : 'degraded', responseTime: 180, activeChats: 0 },
-      { name: 'Voice (ElevenLabs)', status: providers.elevenlabs ? 'operational' : 'degraded', responseTime: 420, activeChats: 0 },
-      { name: 'Email', status: process.env.SENDGRID_API_KEY ? 'operational' : 'degraded', responseTime: 260, activeChats: 0 },
+      {
+        name: 'Translation',
+        status: providers.googleTranslate ? 'operational' : 'degraded',
+        responseTime: 180,
+        activeChats: 0,
+      },
+      {
+        name: 'Voice (ElevenLabs)',
+        status: providers.elevenlabs ? 'operational' : 'degraded',
+        responseTime: 420,
+        activeChats: 0,
+      },
+      {
+        name: 'Email',
+        status: process.env.SENDGRID_API_KEY ? 'operational' : 'degraded',
+        responseTime: 260,
+        activeChats: 0,
+      },
     ];
   }
 
   // Calculate error rate from real data
-  const realErrorRate = realApiRequestsToday > 0 
-    ? +((realErrorsToday * 100) / realApiRequestsToday).toFixed(2) 
-    : metrics.errorRate;
+  const realErrorRate =
+    realApiRequestsToday > 0
+      ? +((realErrorsToday * 100) / realApiRequestsToday).toFixed(2)
+      : metrics.errorRate;
 
   // Get REAL system stats (CPU, Memory)
   const memTotal = os.totalmem();
@@ -784,15 +925,18 @@ async function fetchRealStatusData() {
   const cpus = os.cpus();
   const loadAvg = os.loadavg();
   // Calculate CPU percentage from load average relative to number of cores
-  const cpuPercent = Math.min(100, +((loadAvg[0] / cpus.length) * 100).toFixed(1));
+  const cpuPercent = Math.min(
+    100,
+    +((loadAvg[0] / cpus.length) * 100).toFixed(1)
+  );
 
   return {
     system: {
       cpuPercent,
       memoryPercent,
-      totalMem: Math.round(memTotal / (1024 * 1024 * 1024) * 10) / 10, // GB
-      freeMem: Math.round(memFree / (1024 * 1024 * 1024) * 10) / 10,   // GB
-      usedMem: Math.round(memUsed / (1024 * 1024 * 1024) * 10) / 10,   // GB
+      totalMem: Math.round((memTotal / (1024 * 1024 * 1024)) * 10) / 10, // GB
+      freeMem: Math.round((memFree / (1024 * 1024 * 1024)) * 10) / 10, // GB
+      usedMem: Math.round((memUsed / (1024 * 1024 * 1024)) * 10) / 10, // GB
       load1: +loadAvg[0].toFixed(2),
       load5: +loadAvg[1].toFixed(2),
       load15: +loadAvg[2].toFixed(2),
@@ -1027,7 +1171,7 @@ app.get('/api/status/analytics', async (req, res) => {
     const metrics = calcMetricsSnapshot();
     const timeRange = String(req.query.timeRange || '24h');
     const mongoDb = mongoose.connection.db;
-    
+
     let totalRequests = metrics.totalLastMinute * 60 * 24;
     let activeUsers = 0;
     let agentsData = [];
@@ -1043,94 +1187,107 @@ app.get('/api/status/analytics', async (req, res) => {
       const sessionsCollection = mongoDb.collection('sessions');
       activeUsers = await sessionsCollection.countDocuments({
         lastActivity: { $gte: fifteenMinAgo },
-        isActive: true
+        isActive: true,
       });
 
       // Get real API request count
       const apiUsageCollection = mongoDb.collection('apiusages');
       totalRequests = await apiUsageCollection.countDocuments({
-        timestamp: { $gte: oneDayAgo }
+        timestamp: { $gte: oneDayAgo },
       });
 
       // Get real agent analytics
       const chatCollection = mongoDb.collection('chatinteractions');
-      const agentStats = await chatCollection.aggregate([
-        { $match: { startedAt: { $gte: oneDayAgo } } },
-        {
-          $group: {
-            _id: '$agentId',
-            requests: { $sum: 1 },
-            uniqueUsers: { $addToSet: '$userId' },
-            avgDuration: { $avg: '$metrics.durationMs' }
-          }
-        },
-        { $sort: { requests: -1 } },
-        { $limit: 10 }
-      ]).toArray();
+      const agentStats = await chatCollection
+        .aggregate([
+          { $match: { startedAt: { $gte: oneDayAgo } } },
+          {
+            $group: {
+              _id: '$agentId',
+              requests: { $sum: 1 },
+              uniqueUsers: { $addToSet: '$userId' },
+              avgDuration: { $avg: '$metrics.durationMs' },
+            },
+          },
+          { $sort: { requests: -1 } },
+          { $limit: 10 },
+        ])
+        .toArray();
 
       // Get agent names
       const agentsCollection = mongoDb.collection('agents');
       const allAgents = await agentsCollection.find({}).toArray();
       const agentMap = new Map();
-      allAgents.forEach(a => agentMap.set(a._id?.toString(), a.name || a.slug || a.id));
+      allAgents.forEach((a) =>
+        agentMap.set(a._id?.toString(), a.name || a.slug || a.id)
+      );
 
-      agentsData = agentStats.map(stat => ({
+      agentsData = agentStats.map((stat) => ({
         name: agentMap.get(stat._id?.toString()) || 'Unknown',
         requests: stat.requests,
         users: stat.uniqueUsers?.length || 0,
         avgResponseTime: Math.round(stat.avgDuration || metrics.avgResponseMs),
         successRate: 99.5,
-        trend: 'stable'
+        trend: 'stable',
       }));
 
       // Top agents
-      topAgents = agentStats.slice(0, 5).map(stat => ({
+      topAgents = agentStats.slice(0, 5).map((stat) => ({
         name: agentMap.get(stat._id?.toString()) || 'Unknown',
         requests: stat.requests,
-        percentage: totalRequests > 0 ? Math.round((stat.requests * 100) / totalRequests) : 0
+        percentage:
+          totalRequests > 0
+            ? Math.round((stat.requests * 100) / totalRequests)
+            : 0,
       }));
 
       // Get real tool usage
       const toolUsageCollection = mongoDb.collection('toolusages');
-      const toolStats = await toolUsageCollection.aggregate([
-        { $match: { occurredAt: { $gte: oneDayAgo } } },
-        {
-          $group: {
-            _id: '$toolName',
-            usage: { $sum: 1 },
-            uniqueUsers: { $addToSet: '$userId' },
-            avgLatency: { $avg: '$latencyMs' }
-          }
-        }
-      ]).toArray();
+      const toolStats = await toolUsageCollection
+        .aggregate([
+          { $match: { occurredAt: { $gte: oneDayAgo } } },
+          {
+            $group: {
+              _id: '$toolName',
+              usage: { $sum: 1 },
+              uniqueUsers: { $addToSet: '$userId' },
+              avgLatency: { $avg: '$latencyMs' },
+            },
+          },
+        ])
+        .toArray();
 
-      toolsData = toolStats.map(stat => ({
+      toolsData = toolStats.map((stat) => ({
         name: stat._id || 'Unknown',
         usage: stat.usage,
         users: stat.uniqueUsers?.length || 0,
-        avgDuration: Math.round((stat.avgLatency || 0) / 1000 * 10) / 10,
-        trend: 'stable'
+        avgDuration: Math.round(((stat.avgLatency || 0) / 1000) * 10) / 10,
+        trend: 'stable',
       }));
 
       // Get hourly data for the chart
-      const hourlyStats = await apiUsageCollection.aggregate([
-        { $match: { timestamp: { $gte: oneDayAgo } } },
-        {
-          $group: {
-            _id: { $hour: '$timestamp' },
-            requests: { $sum: 1 },
-            avgResponseTime: { $avg: '$responseTime' },
-            errors: { $sum: { $cond: [{ $gte: ['$statusCode', 500] }, 1, 0] } }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]).toArray();
+      const hourlyStats = await apiUsageCollection
+        .aggregate([
+          { $match: { timestamp: { $gte: oneDayAgo } } },
+          {
+            $group: {
+              _id: { $hour: '$timestamp' },
+              requests: { $sum: 1 },
+              avgResponseTime: { $avg: '$responseTime' },
+              errors: {
+                $sum: { $cond: [{ $gte: ['$statusCode', 500] }, 1, 0] },
+              },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray();
 
-      hourlyData = hourlyStats.map(h => ({
+      hourlyData = hourlyStats.map((h) => ({
         hour: h._id,
         requests: h.requests,
         responseTime: Math.round(h.avgResponseTime || 0),
-        errors: h.errors
+        errors: h.errors,
       }));
     }
 
@@ -1146,17 +1303,43 @@ app.get('/api/status/analytics', async (req, res) => {
         requestsGrowth: 0,
         usersGrowth: 0,
       },
-      agents: agentsData.length > 0 ? agentsData : [
-        { name: 'Default', requests: 0, users: 0, avgResponseTime: metrics.avgResponseMs, successRate: 99.9, trend: 'stable' }
-      ],
-      tools: toolsData.length > 0 ? toolsData : [
-        { name: 'Voice Synthesis', usage: 0, users: 0, avgDuration: 0, trend: 'stable' },
-        { name: 'Translate', usage: 0, users: 0, avgDuration: 0, trend: 'stable' },
-      ],
+      agents:
+        agentsData.length > 0
+          ? agentsData
+          : [
+              {
+                name: 'Default',
+                requests: 0,
+                users: 0,
+                avgResponseTime: metrics.avgResponseMs,
+                successRate: 99.9,
+                trend: 'stable',
+              },
+            ],
+      tools:
+        toolsData.length > 0
+          ? toolsData
+          : [
+              {
+                name: 'Voice Synthesis',
+                usage: 0,
+                users: 0,
+                avgDuration: 0,
+                trend: 'stable',
+              },
+              {
+                name: 'Translate',
+                usage: 0,
+                users: 0,
+                avgDuration: 0,
+                trend: 'stable',
+              },
+            ],
       hourlyData,
-      topAgents: topAgents.length > 0 ? topAgents : [
-        { name: 'Default', requests: 0, percentage: 0 }
-      ],
+      topAgents:
+        topAgents.length > 0
+          ? topAgents
+          : [{ name: 'Default', requests: 0, percentage: 0 }],
     });
   } catch (err) {
     console.error('Analytics endpoint error:', err);
@@ -1794,28 +1977,31 @@ app.get('/api/user/analytics', async (req, res) => {
     // FETCH REAL CHAT DATA FROM chat_sessions
     // ============================================
     const chatSessions = db.collection('chat_sessions');
-    
+
     // Get all user's chat sessions (try ObjectId, string, and converted ObjectId)
     // Note: createdAt may be stored as ISO string, so compare both ways
     const userIdStr = user._id.toString();
     const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
-    const userSessions = await chatSessions.find({
-      $and: [
-        {
-          $or: [
-            { userId: user._id },
-            { userId: userIdStr },  // Sessions store userId as string
-            { userId: new ObjectId(userIdStr) }
-          ]
-        },
-        {
-          $or: [
-            { createdAt: { $gte: thirtyDaysAgo } },  // If stored as Date
-            { createdAt: { $gte: thirtyDaysAgoISO } }  // If stored as ISO string
-          ]
-        }
-      ]
-    }).sort({ createdAt: -1 }).toArray();
+    const userSessions = await chatSessions
+      .find({
+        $and: [
+          {
+            $or: [
+              { userId: user._id },
+              { userId: userIdStr }, // Sessions store userId as string
+              { userId: new ObjectId(userIdStr) },
+            ],
+          },
+          {
+            $or: [
+              { createdAt: { $gte: thirtyDaysAgo } }, // If stored as Date
+              { createdAt: { $gte: thirtyDaysAgoISO } }, // If stored as ISO string
+            ],
+          },
+        ],
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
 
     // Calculate total conversations (each session = 1 conversation)
     const totalConversations = userSessions.length;
@@ -1823,8 +2009,9 @@ app.get('/api/user/analytics', async (req, res) => {
     // Calculate total messages from session stats OR messages array
     const totalMessages = userSessions.reduce((sum, session) => {
       // Try stats.messageCount first, then messages array length
-      const msgCount = session.stats?.messageCount || 
-                       (Array.isArray(session.messages) ? session.messages.length : 0);
+      const msgCount =
+        session.stats?.messageCount ||
+        (Array.isArray(session.messages) ? session.messages.length : 0);
       return sum + msgCount;
     }, 0);
 
@@ -1835,55 +2022,71 @@ app.get('/api/user/analytics', async (req, res) => {
     // GET USER'S SUBSCRIPTIONS (ACTIVE AGENTS)
     // ============================================
     const subscriptions = db.collection('subscriptions');
-    const activeSubscriptions = await subscriptions.find({
-      userId: user._id.toString(),
-      status: 'active',
-      expiryDate: { $gt: now }
-    }).toArray();
+    const activeSubscriptions = await subscriptions
+      .find({
+        userId: user._id.toString(),
+        status: 'active',
+        expiryDate: { $gt: now },
+      })
+      .toArray();
     const activeAgentCount = activeSubscriptions.length;
 
     // ============================================
     // GET TOP AGENTS (by subscription count/revenue)
     // ============================================
-    const topAgentsAgg = await subscriptions.aggregate([
-      { $match: { userId: user._id.toString() } },
-      { $group: {
-          _id: '$agentId',
-          totalSpent: { $sum: '$price' },
-          subscriptionCount: { $sum: 1 },
-          lastSubscribed: { $max: '$createdAt' }
-        }
-      },
-      { $sort: { totalSpent: -1 } },
-      { $limit: 5 }
-    ]).toArray();
+    const topAgentsAgg = await subscriptions
+      .aggregate([
+        { $match: { userId: user._id.toString() } },
+        {
+          $group: {
+            _id: '$agentId',
+            totalSpent: { $sum: '$price' },
+            subscriptionCount: { $sum: 1 },
+            lastSubscribed: { $max: '$createdAt' },
+          },
+        },
+        { $sort: { totalSpent: -1 } },
+        { $limit: 5 },
+      ])
+      .toArray();
 
     // Get agent names for top agents
     const agentsCollection = db.collection('agents');
-    const topAgents = await Promise.all(topAgentsAgg.map(async (agent) => {
-      let agentDoc = null;
-      try {
-        // Try to find by ObjectId first
-        agentDoc = await agentsCollection.findOne({ _id: new ObjectId(agent._id) });
-        // If not found, try by slug
-        if (!agentDoc) {
+    const topAgents = await Promise.all(
+      topAgentsAgg.map(async (agent) => {
+        let agentDoc = null;
+        try {
+          // Try to find by ObjectId first
+          agentDoc = await agentsCollection.findOne({
+            _id: new ObjectId(agent._id),
+          });
+          // If not found, try by slug
+          if (!agentDoc) {
+            agentDoc = await agentsCollection.findOne({ slug: agent._id });
+          }
+        } catch (e) {
+          // If ObjectId fails, try by slug
           agentDoc = await agentsCollection.findOne({ slug: agent._id });
         }
-      } catch (e) {
-        // If ObjectId fails, try by slug
-        agentDoc = await agentsCollection.findOne({ slug: agent._id });
-      }
-      // Calculate usage as percentage of total subscriptions
-      const totalSubs = topAgentsAgg.reduce((sum, a) => sum + a.subscriptionCount, 0);
-      const usagePercent = totalSubs > 0 ? Math.round((agent.subscriptionCount / totalSubs) * 100) : 0;
-      return {
-        name: agentDoc?.name || agentDoc?.slug || agent._id || 'Unknown Agent',
-        usage: usagePercent,
-        totalSpent: agent.totalSpent || 0,
-        subscriptions: agent.subscriptionCount || 0,
-        lastUsed: agent.lastSubscribed || null
-      };
-    }));
+        // Calculate usage as percentage of total subscriptions
+        const totalSubs = topAgentsAgg.reduce(
+          (sum, a) => sum + a.subscriptionCount,
+          0
+        );
+        const usagePercent =
+          totalSubs > 0
+            ? Math.round((agent.subscriptionCount / totalSubs) * 100)
+            : 0;
+        return {
+          name:
+            agentDoc?.name || agentDoc?.slug || agent._id || 'Unknown Agent',
+          usage: usagePercent,
+          totalSpent: agent.totalSpent || 0,
+          subscriptions: agent.subscriptionCount || 0,
+          lastUsed: agent.lastSubscribed || null,
+        };
+      })
+    );
 
     // ============================================
     // CALCULATE AGENT PERFORMANCE FROM CHAT SESSIONS
@@ -1896,14 +2099,15 @@ app.get('/api/user/analytics', async (req, res) => {
           conversations: 0,
           messages: 0,
           totalDuration: 0,
-          totalTokens: 0
+          totalTokens: 0,
         });
       }
       const perf = agentPerformanceMap.get(agentId);
       perf.conversations++;
       // Try stats.messageCount first, then messages array length
-      const msgCount = session.stats?.messageCount || 
-                       (Array.isArray(session.messages) ? session.messages.length : 0);
+      const msgCount =
+        session.stats?.messageCount ||
+        (Array.isArray(session.messages) ? session.messages.length : 0);
       perf.messages += msgCount;
       perf.totalDuration += session.stats?.durationMs || 0;
       perf.totalTokens += session.stats?.totalTokens || 0;
@@ -1914,7 +2118,9 @@ app.get('/api/user/analytics', async (req, res) => {
         let agentDoc = null;
         try {
           if (agentId !== 'default') {
-            agentDoc = await agentsCollection.findOne({ _id: new ObjectId(agentId) });
+            agentDoc = await agentsCollection.findOne({
+              _id: new ObjectId(agentId),
+            });
             if (!agentDoc) {
               agentDoc = await agentsCollection.findOne({ slug: agentId });
             }
@@ -1922,16 +2128,18 @@ app.get('/api/user/analytics', async (req, res) => {
         } catch (e) {
           agentDoc = await agentsCollection.findOne({ slug: agentId });
         }
-        const avgResponseTime = perf.conversations > 0 
-          ? (perf.totalDuration / perf.conversations / 1000).toFixed(2) 
-          : '0';
+        const avgResponseTime =
+          perf.conversations > 0
+            ? (perf.totalDuration / perf.conversations / 1000).toFixed(2)
+            : '0';
         // Sessions with messages are successful
         return {
-          name: agentDoc?.name || (agentId === 'default' ? 'AI Studio' : agentId),
+          name:
+            agentDoc?.name || (agentId === 'default' ? 'AI Studio' : agentId),
           conversations: perf.conversations,
           messages: perf.messages,
           avgResponseTime: parseFloat(avgResponseTime),
-          successRate: perf.messages > 0 ? 100 : 0
+          successRate: perf.messages > 0 ? 100 : 0,
         };
       })
     );
@@ -1948,19 +2156,22 @@ app.get('/api/user/analytics', async (req, res) => {
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const daySessions = userSessions.filter(session => {
+      const daySessions = userSessions.filter((session) => {
         const sessionDate = new Date(session.createdAt);
         return sessionDate >= dayStart && sessionDate < dayEnd;
       });
 
       const dayConversations = daySessions.length;
-      const dayMessages = daySessions.reduce((sum, session) => sum + (session.stats?.messageCount || 0), 0);
+      const dayMessages = daySessions.reduce(
+        (sum, session) => sum + (session.stats?.messageCount || 0),
+        0
+      );
 
       dailyUsage.push({
         date: dateStr,
         conversations: dayConversations,
         messages: dayMessages,
-        apiCalls: Math.ceil(dayMessages / 2)
+        apiCalls: Math.ceil(dayMessages / 2),
       });
     }
 
@@ -1971,34 +2182,38 @@ app.get('/api/user/analytics', async (req, res) => {
     const securityLogs = db.collection('securityLogs');
     const thirtyMinutesAgoISO = thirtyMinutesAgo.toISOString();
     const recentSecurityLogs = await securityLogs
-      .find({ 
+      .find({
         userId: user._id.toString(),
         $or: [
           { timestamp: { $gte: thirtyMinutesAgo } },
-          { timestamp: { $gte: thirtyMinutesAgoISO } }
-        ]
+          { timestamp: { $gte: thirtyMinutesAgoISO } },
+        ],
       })
       .sort({ timestamp: -1 })
       .limit(10)
       .toArray();
 
-    const recentChatSessions = await chatSessions.find({
-      $and: [
-        {
-          $or: [
-            { userId: user._id },
-            { userId: userIdStr },  // Sessions store userId as string
-            { userId: new ObjectId(userIdStr) }
-          ]
-        },
-        {
-          $or: [
-            { updatedAt: { $gte: thirtyMinutesAgo } },
-            { updatedAt: { $gte: thirtyMinutesAgoISO } }
-          ]
-        }
-      ]
-    }).sort({ updatedAt: -1 }).limit(10).toArray();
+    const recentChatSessions = await chatSessions
+      .find({
+        $and: [
+          {
+            $or: [
+              { userId: user._id },
+              { userId: userIdStr }, // Sessions store userId as string
+              { userId: new ObjectId(userIdStr) },
+            ],
+          },
+          {
+            $or: [
+              { updatedAt: { $gte: thirtyMinutesAgo } },
+              { updatedAt: { $gte: thirtyMinutesAgoISO } },
+            ],
+          },
+        ],
+      })
+      .sort({ updatedAt: -1 })
+      .limit(10)
+      .toArray();
 
     // Map action types to display names
     const actionDisplayNames = {
@@ -2035,102 +2250,146 @@ app.get('/api/user/analytics', async (req, res) => {
     const securityActivities = recentSecurityLogs.map((log) => {
       const actionName = log.action || 'unknown';
       return {
-        action: actionDisplayNames[actionName] || actionName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        agent: log.device ? `${log.device} - ${log.browser || 'Unknown'}` : log.location || 'System',
+        action:
+          actionDisplayNames[actionName] ||
+          actionName
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase()),
+        agent: log.device
+          ? `${log.device} - ${log.browser || 'Unknown'}`
+          : log.location || 'System',
         status: actionStatusMap[actionName] || 'completed',
-        timestamp: log.timestamp ? new Date(log.timestamp).toISOString() : new Date().toISOString(),
+        timestamp: log.timestamp
+          ? new Date(log.timestamp).toISOString()
+          : new Date().toISOString(),
         ip: log.ip || null,
         location: log.location || null,
-        type: 'security'
+        type: 'security',
       };
     });
 
     // Transform chat session activities
-    const chatActivities = await Promise.all(recentChatSessions.map(async (session) => {
-      let agentName = 'AI Studio';
-      if (session.agentId) {
-        try {
-          const agentDoc = await agentsCollection.findOne({ _id: new ObjectId(session.agentId) });
-          agentName = agentDoc?.name || agentName;
-        } catch (e) {}
-      }
-      return {
-        action: session.name || 'AI Conversation',
-        agent: agentName,
-        status: 'completed',
-        timestamp: session.updatedAt ? new Date(session.updatedAt).toISOString() : new Date().toISOString(),
-        messages: session.stats?.messageCount || 0,
-        type: 'chat'
-      };
-    }));
+    const chatActivities = await Promise.all(
+      recentChatSessions.map(async (session) => {
+        let agentName = 'AI Studio';
+        if (session.agentId) {
+          try {
+            const agentDoc = await agentsCollection.findOne({
+              _id: new ObjectId(session.agentId),
+            });
+            agentName = agentDoc?.name || agentName;
+          } catch (e) {}
+        }
+        return {
+          action: session.name || 'AI Conversation',
+          agent: agentName,
+          status: 'completed',
+          timestamp: session.updatedAt
+            ? new Date(session.updatedAt).toISOString()
+            : new Date().toISOString(),
+          messages: session.stats?.messageCount || 0,
+          type: 'chat',
+        };
+      })
+    );
 
     // Combine and sort activities
     const recentActivity = [...securityActivities, ...chatActivities]
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )
       .slice(0, 15);
 
     // ============================================
     // CALCULATE COST ANALYSIS
     // ============================================
     // Get this month's subscriptions
-    const monthlySubscriptions = await subscriptions.find({
-      userId: user._id.toString(),
-      createdAt: { $gte: monthStart }
-    }).toArray();
+    const monthlySubscriptions = await subscriptions
+      .find({
+        userId: user._id.toString(),
+        createdAt: { $gte: monthStart },
+      })
+      .toArray();
 
-    const currentMonthCost = monthlySubscriptions.reduce((sum, sub) => sum + (sub.price || 0), 0);
-    
+    const currentMonthCost = monthlySubscriptions.reduce(
+      (sum, sub) => sum + (sub.price || 0),
+      0
+    );
+
     // Project based on current usage rate
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0
+    ).getDate();
     const daysPassed = now.getDate();
-    const projectedCost = daysPassed > 0 ? Math.round((currentMonthCost / daysPassed) * daysInMonth * 100) / 100 : 0;
+    const projectedCost =
+      daysPassed > 0
+        ? Math.round((currentMonthCost / daysPassed) * daysInMonth * 100) / 100
+        : 0;
 
     // Cost breakdown by agent
-    const costBreakdownAgg = await subscriptions.aggregate([
-      { 
-        $match: { 
-          userId: user._id.toString(),
-          createdAt: { $gte: monthStart }
-        }
-      },
-      { $group: {
-          _id: '$agentId',
-          amount: { $sum: '$price' },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { amount: -1 } },
-      { $limit: 5 }
-    ]).toArray();
+    const costBreakdownAgg = await subscriptions
+      .aggregate([
+        {
+          $match: {
+            userId: user._id.toString(),
+            createdAt: { $gte: monthStart },
+          },
+        },
+        {
+          $group: {
+            _id: '$agentId',
+            amount: { $sum: '$price' },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { amount: -1 } },
+        { $limit: 5 },
+      ])
+      .toArray();
 
-    const costBreakdown = await Promise.all(costBreakdownAgg.map(async (item) => {
-      let agentName = 'Unknown Agent';
-      try {
-        const agentDoc = await agentsCollection.findOne({ _id: new ObjectId(item._id) });
-        if (!agentDoc) {
-          const agentBySlug = await agentsCollection.findOne({ slug: item._id });
-          agentName = agentBySlug?.name || item._id;
-        } else {
-          agentName = agentDoc.name;
+    const costBreakdown = await Promise.all(
+      costBreakdownAgg.map(async (item) => {
+        let agentName = 'Unknown Agent';
+        try {
+          const agentDoc = await agentsCollection.findOne({
+            _id: new ObjectId(item._id),
+          });
+          if (!agentDoc) {
+            const agentBySlug = await agentsCollection.findOne({
+              slug: item._id,
+            });
+            agentName = agentBySlug?.name || item._id;
+          } else {
+            agentName = agentDoc.name;
+          }
+        } catch (e) {
+          agentName = item._id || 'Unknown';
         }
-      } catch (e) {
-        agentName = item._id || 'Unknown';
-      }
-      return {
-        category: agentName,
-        cost: item.amount || 0,
-        percentage: currentMonthCost > 0 ? Math.round((item.amount / currentMonthCost) * 100) : 0
-      };
-    }));
+        return {
+          category: agentName,
+          cost: item.amount || 0,
+          percentage:
+            currentMonthCost > 0
+              ? Math.round((item.amount / currentMonthCost) * 100)
+              : 0,
+        };
+      })
+    );
 
     // ============================================
     // CALCULATE SUCCESS RATE
     // ============================================
     // Sessions with messages = successful
-    const sessionsWithMessages = userSessions.filter(s => (s.stats?.messageCount || 0) > 0).length;
-    const overallSuccessRate = userSessions.length > 0
-      ? Math.round((sessionsWithMessages / userSessions.length) * 100)
-      : 0;
+    const sessionsWithMessages = userSessions.filter(
+      (s) => (s.stats?.messageCount || 0) > 0
+    ).length;
+    const overallSuccessRate =
+      userSessions.length > 0
+        ? Math.round((sessionsWithMessages / userSessions.length) * 100)
+        : 0;
 
     // ============================================
     // BUILD ANALYTICS RESPONSE
@@ -2143,10 +2402,16 @@ app.get('/api/user/analytics', async (req, res) => {
         totalMessages,
         totalApiCalls,
         activeAgents: activeAgentCount,
-        averageResponseTime: agentPerformance.length > 0 
-          ? (agentPerformance.reduce((sum, a) => sum + a.avgResponseTime, 0) / agentPerformance.length).toFixed(2)
-          : '0',
-        successRate: overallSuccessRate
+        averageResponseTime:
+          agentPerformance.length > 0
+            ? (
+                agentPerformance.reduce(
+                  (sum, a) => sum + a.avgResponseTime,
+                  0
+                ) / agentPerformance.length
+              ).toFixed(2)
+            : '0',
+        successRate: overallSuccessRate,
       },
       usage: {
         conversations: {
@@ -2167,11 +2432,11 @@ app.get('/api/user/analytics', async (req, res) => {
           percentage: Math.round((totalApiCalls / 50000) * 100),
           unit: 'calls',
         },
-        storage: { 
+        storage: {
           current: Math.round(totalMessages * 0.5), // Estimate ~0.5KB per message
-          limit: 10000, 
-          percentage: Math.round((totalMessages * 0.5 / 10000) * 100), 
-          unit: 'KB' 
+          limit: 10000,
+          percentage: Math.round(((totalMessages * 0.5) / 10000) * 100),
+          unit: 'KB',
         },
         messages: {
           current: totalMessages,
@@ -2195,28 +2460,41 @@ app.get('/api/user/analytics', async (req, res) => {
         breakdown: costBreakdown,
       },
       topAgents,
-      subscription: activeSubscriptions.length > 0 ? {
-        plan: activeSubscriptions[0].plan || 'Active Plan',
-        status: 'active',
-        price: activeSubscriptions.reduce((sum, s) => sum + (s.price || 0), 0),
-        period: 'month',
-        renewalDate: activeSubscriptions[0].expiryDate 
-          ? new Date(activeSubscriptions[0].expiryDate).toLocaleDateString()
-          : 'N/A',
-        daysUntilRenewal: activeSubscriptions[0].expiryDate 
-          ? Math.ceil((new Date(activeSubscriptions[0].expiryDate) - now) / (1000 * 60 * 60 * 24))
-          : 0,
-      } : {
-        plan: 'No Active Plan',
-        status: 'inactive',
-        price: 0,
-        period: 'month',
-        renewalDate: 'N/A',
-        daysUntilRenewal: 0,
-      },
+      subscription:
+        activeSubscriptions.length > 0
+          ? {
+              plan: activeSubscriptions[0].plan || 'Active Plan',
+              status: 'active',
+              price: activeSubscriptions.reduce(
+                (sum, s) => sum + (s.price || 0),
+                0
+              ),
+              period: 'month',
+              renewalDate: activeSubscriptions[0].expiryDate
+                ? new Date(
+                    activeSubscriptions[0].expiryDate
+                  ).toLocaleDateString()
+                : 'N/A',
+              daysUntilRenewal: activeSubscriptions[0].expiryDate
+                ? Math.ceil(
+                    (new Date(activeSubscriptions[0].expiryDate) - now) /
+                      (1000 * 60 * 60 * 24)
+                  )
+                : 0,
+            }
+          : {
+              plan: 'No Active Plan',
+              status: 'inactive',
+              price: 0,
+              period: 'month',
+              renewalDate: 'N/A',
+              daysUntilRenewal: 0,
+            },
     };
 
-    console.log(`✅ Analytics returned for user ${user._id}: ${totalConversations} conversations, ${totalMessages} messages, ${activeAgentCount} active agents`);
+    console.log(
+      `✅ Analytics returned for user ${user._id}: ${totalConversations} conversations, ${totalMessages} messages, ${activeAgentCount} active agents`
+    );
     res.json(analyticsData);
   } catch (error) {
     console.error('Analytics error:', error);
@@ -2239,35 +2517,41 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     // ============================================
     // COLLECT DATA FROM MULTIPLE COLLECTIONS
     // ============================================
-    
+
     // Get chat interactions for API metrics (try multiple date formats)
-    const chatInteractions = await db.collection('chatinteractions')
+    const chatInteractions = await db
+      .collection('chatinteractions')
       .find({})
       .sort({ createdAt: -1 })
       .limit(500)
       .toArray();
-    
+
     // Get pageviews for traffic data (no date filter to get all)
-    const pageviews = await db.collection('pageviews')
+    const pageviews = await db
+      .collection('pageviews')
       .find({})
       .sort({ timestamp: -1 })
       .limit(5000)
       .toArray();
-    
+
     // Get sessions for user activity
-    const sessions = await db.collection('sessions')
+    const sessions = await db
+      .collection('sessions')
       .find({})
       .sort({ createdAt: -1 })
       .limit(2000)
       .toArray();
 
     // Get chat_sessions for model usage and token data
-    const chatSessions = await db.collection('chat_sessions')
+    const chatSessions = await db
+      .collection('chat_sessions')
       .find({})
       .sort({ createdAt: -1 })
       .toArray();
 
-    console.log(`📊 Advanced analytics data: ${chatInteractions.length} interactions, ${pageviews.length} pageviews, ${sessions.length} sessions, ${chatSessions.length} chat_sessions`);
+    console.log(
+      `📊 Advanced analytics data: ${chatInteractions.length} interactions, ${pageviews.length} pageviews, ${sessions.length} sessions, ${chatSessions.length} chat_sessions`
+    );
 
     // ============================================
     // CALCULATE STATS
@@ -2275,48 +2559,57 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     // Use pageviews as the main traffic metric
     const totalRequests = pageviews.length;
     const prevWeekRequests = Math.floor(totalRequests * 0.85); // Estimate
-    const requestChange = prevWeekRequests > 0 ? Math.round(((totalRequests - prevWeekRequests) / prevWeekRequests) * 100) : 18;
+    const requestChange =
+      prevWeekRequests > 0
+        ? Math.round(
+            ((totalRequests - prevWeekRequests) / prevWeekRequests) * 100
+          )
+        : 18;
 
     // Calculate average latency from chat sessions and interactions
     let totalLatency = 0;
     let latencyCount = 0;
-    chatInteractions.forEach(ci => {
+    chatInteractions.forEach((ci) => {
       if (ci.metrics?.durationMs) {
         totalLatency += ci.metrics.durationMs;
         latencyCount++;
       }
     });
-    chatSessions.forEach(cs => {
+    chatSessions.forEach((cs) => {
       // Estimate latency from response times if available
       if (cs.stats?.avgResponseTime) {
         totalLatency += cs.stats.avgResponseTime;
         latencyCount++;
       }
     });
-    const avgLatency = latencyCount > 0 ? Math.round(totalLatency / latencyCount) : 120;
+    const avgLatency =
+      latencyCount > 0 ? Math.round(totalLatency / latencyCount) : 120;
 
     // Calculate success rate
     const totalChatOps = chatInteractions.length + chatSessions.length;
-    const errorCount = chatInteractions.filter(ci => ci.status === 'error').length;
-    const avgSuccessRate = totalChatOps > 0 
-      ? Math.round(((totalChatOps - errorCount) / totalChatOps) * 100) 
-      : 98;
+    const errorCount = chatInteractions.filter(
+      (ci) => ci.status === 'error'
+    ).length;
+    const avgSuccessRate =
+      totalChatOps > 0
+        ? Math.round(((totalChatOps - errorCount) / totalChatOps) * 100)
+        : 98;
 
     // Calculate total tokens from chat_sessions
     let totalTokens = 0;
-    chatSessions.forEach(cs => {
+    chatSessions.forEach((cs) => {
       totalTokens += cs.stats?.totalTokens || 0;
       // Also count from messages
       if (Array.isArray(cs.messages)) {
-        cs.messages.forEach(m => {
+        cs.messages.forEach((m) => {
           totalTokens += m.tokens || (m.content?.length || 0) / 4; // Rough estimate
         });
       }
     });
-    chatInteractions.forEach(ci => {
+    chatInteractions.forEach((ci) => {
       totalTokens += ci.metrics?.totalTokens || 0;
     });
-    
+
     const costPerToken = 0.00002; // $0.02 per 1000 tokens
     const totalCost = Math.round(totalTokens * costPerToken * 100) / 100;
 
@@ -2328,25 +2621,25 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      
+
       // Filter pageviews by date
-      const dayPageviews = pageviews.filter(pv => {
+      const dayPageviews = pageviews.filter((pv) => {
         const pvDate = new Date(pv.timestamp).toISOString().split('T')[0];
         return pvDate === dateStr;
       });
 
       // Filter chat sessions by date
-      const daySessions = chatSessions.filter(cs => {
+      const daySessions = chatSessions.filter((cs) => {
         if (!cs.createdAt) return false;
         const csDate = new Date(cs.createdAt).toISOString().split('T')[0];
         return csDate === dateStr;
       });
 
       const dayRequests = dayPageviews.length;
-      
+
       // Calculate day tokens
       let dayTokens = 0;
-      daySessions.forEach(cs => {
+      daySessions.forEach((cs) => {
         dayTokens += cs.stats?.totalTokens || 0;
         if (Array.isArray(cs.messages)) {
           dayTokens += cs.messages.length * 50; // Estimate 50 tokens per message
@@ -2368,27 +2661,45 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     // MODEL USAGE DISTRIBUTION (from chat_sessions)
     // ============================================
     const modelCounts = {};
-    chatSessions.forEach(cs => {
+    chatSessions.forEach((cs) => {
       const model = cs.model || cs.metadata?.model || 'gpt-4';
       modelCounts[model] = (modelCounts[model] || 0) + 1;
     });
-    chatInteractions.forEach(ci => {
+    chatInteractions.forEach((ci) => {
       const model = ci.metadata?.model || ci.model || 'gpt-4';
       modelCounts[model] = (modelCounts[model] || 0) + 1;
     });
 
-    const totalModelUsage = Object.values(modelCounts).reduce((a, b) => a + b, 0);
-    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-    const modelUsage = Object.entries(modelCounts).map(([model, count], idx) => ({
-      model,
-      usage: count,
-      percentage: totalModelUsage > 0 ? Math.round((count / totalModelUsage) * 100) : 0,
-      color: colors[idx % colors.length],
-    }));
-    
+    const totalModelUsage = Object.values(modelCounts).reduce(
+      (a, b) => a + b,
+      0
+    );
+    const colors = [
+      '#3B82F6',
+      '#10B981',
+      '#F59E0B',
+      '#EF4444',
+      '#8B5CF6',
+      '#EC4899',
+    ];
+    const modelUsage = Object.entries(modelCounts).map(
+      ([model, count], idx) => ({
+        model,
+        usage: count,
+        percentage:
+          totalModelUsage > 0 ? Math.round((count / totalModelUsage) * 100) : 0,
+        color: colors[idx % colors.length],
+      })
+    );
+
     // If no model usage, show default
     if (modelUsage.length === 0) {
-      modelUsage.push({ model: 'gpt-4', usage: chatSessions.length, percentage: 100, color: '#3B82F6' });
+      modelUsage.push({
+        model: 'gpt-4',
+        usage: chatSessions.length,
+        percentage: 100,
+        color: '#3B82F6',
+      });
     }
 
     // ============================================
@@ -2400,9 +2711,9 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-      
+
       // Count sessions for this day
-      const daySessions = chatSessions.filter(cs => {
+      const daySessions = chatSessions.filter((cs) => {
         if (!cs.createdAt) return false;
         const csDate = new Date(cs.createdAt).toISOString().split('T')[0];
         return csDate === dateStr;
@@ -2419,11 +2730,11 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     // PEAK TRAFFIC HOURS (from pageviews and sessions)
     // ============================================
     const hourCounts = Array(24).fill(0);
-    pageviews.forEach(pv => {
+    pageviews.forEach((pv) => {
       const hour = new Date(pv.timestamp).getHours();
       if (!isNaN(hour)) hourCounts[hour]++;
     });
-    sessions.forEach(s => {
+    sessions.forEach((s) => {
       if (s.startTime) {
         const hour = new Date(s.startTime).getHours();
         if (!isNaN(hour)) hourCounts[hour]++;
@@ -2441,14 +2752,16 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     const errorTypes = {
       '4xx Errors': 0,
       '5xx Errors': 0,
-      'Timeouts': 0,
+      Timeouts: 0,
     };
-    chatInteractions.filter(ci => ci.status === 'error').forEach(ci => {
-      const errorType = ci.error?.type || 'Unknown';
-      if (errorType.includes('timeout')) errorTypes['Timeouts']++;
-      else if (errorType.includes('5')) errorTypes['5xx Errors']++;
-      else errorTypes['4xx Errors']++;
-    });
+    chatInteractions
+      .filter((ci) => ci.status === 'error')
+      .forEach((ci) => {
+        const errorType = ci.error?.type || 'Unknown';
+        if (errorType.includes('timeout')) errorTypes['Timeouts']++;
+        else if (errorType.includes('5')) errorTypes['5xx Errors']++;
+        else errorTypes['4xx Errors']++;
+      });
 
     const totalErrors = Object.values(errorTypes).reduce((a, b) => a + b, 0);
     const errors = Object.entries(errorTypes).map(([type, count]) => ({
@@ -2461,22 +2774,25 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     // GEOGRAPHIC DATA (from sessions)
     // ============================================
     const regionCounts = {};
-    sessions.forEach(s => {
+    sessions.forEach((s) => {
       const region = s.location?.country || s.geo?.country || 'Global';
       regionCounts[region] = (regionCounts[region] || 0) + 1;
     });
-    
+
     // If no regions, use default
     if (Object.keys(regionCounts).length === 0) {
       regionCounts['Global'] = totalRequests;
     }
 
     const totalRegions = Object.values(regionCounts).reduce((a, b) => a + b, 0);
-    const geographic = Object.entries(regionCounts).slice(0, 10).map(([region, count]) => ({
-      region,
-      requests: count,
-      percentage: totalRegions > 0 ? Math.round((count / totalRegions) * 100) : 0,
-    }));
+    const geographic = Object.entries(regionCounts)
+      .slice(0, 10)
+      .map(([region, count]) => ({
+        region,
+        requests: count,
+        percentage:
+          totalRegions > 0 ? Math.round((count / totalRegions) * 100) : 0,
+      }));
 
     // ============================================
     // COST DATA BY MODEL
@@ -2492,20 +2808,27 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
     };
 
     const costByModel = {};
-    chatSessions.forEach(cs => {
+    chatSessions.forEach((cs) => {
       const model = cs.model || 'gpt-4';
-      const tokens = cs.stats?.totalTokens || (Array.isArray(cs.messages) ? cs.messages.length * 50 : 0);
+      const tokens =
+        cs.stats?.totalTokens ||
+        (Array.isArray(cs.messages) ? cs.messages.length * 50 : 0);
       const costRate = modelCosts[model] || 0.01;
-      costByModel[model] = (costByModel[model] || 0) + (tokens / 1000 * costRate);
+      costByModel[model] =
+        (costByModel[model] || 0) + (tokens / 1000) * costRate;
     });
 
-    const totalModelCost = Object.values(costByModel).reduce((a, b) => a + b, 0);
+    const totalModelCost = Object.values(costByModel).reduce(
+      (a, b) => a + b,
+      0
+    );
     const costData = Object.entries(costByModel).map(([model, cost]) => ({
       model,
       cost: Math.round(cost * 100) / 100,
-      percentage: totalModelCost > 0 ? Math.round((cost / totalModelCost) * 100) : 0,
+      percentage:
+        totalModelCost > 0 ? Math.round((cost / totalModelCost) * 100) : 0,
     }));
-    
+
     if (costData.length === 0) {
       costData.push({ model: 'gpt-4', cost: totalCost, percentage: 100 });
     }
@@ -2518,13 +2841,15 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      
+
       let dayTokens = 0;
-      chatSessions.forEach(cs => {
+      chatSessions.forEach((cs) => {
         if (!cs.createdAt) return;
         const csDate = new Date(cs.createdAt).toISOString().split('T')[0];
         if (csDate === dateStr) {
-          dayTokens += cs.stats?.totalTokens || (Array.isArray(cs.messages) ? cs.messages.length * 50 : 0);
+          dayTokens +=
+            cs.stats?.totalTokens ||
+            (Array.isArray(cs.messages) ? cs.messages.length * 50 : 0);
         }
       });
 
@@ -2557,7 +2882,9 @@ app.get('/api/user/analytics/advanced', async (req, res) => {
       tokenTrend,
     };
 
-    console.log(`✅ Advanced analytics returned: ${totalRequests} requests, ${avgLatency}ms latency, ${avgSuccessRate}% success, ${totalTokens} tokens, $${totalCost} cost`);
+    console.log(
+      `✅ Advanced analytics returned: ${totalRequests} requests, ${avgLatency}ms latency, ${avgSuccessRate}% success, ${totalTokens} tokens, $${totalCost} cost`
+    );
     res.json(response);
   } catch (error) {
     console.error('Advanced analytics error:', error);
@@ -2925,7 +3252,7 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     // userId is stored as string in chat_sessions
     const chatSessions = db.collection('chat_sessions');
     const userIdStr = sessionUser._id.toString();
-    
+
     // Build base query - userId is stored as string in chat_sessions
     const query = { userId: userIdStr };
 
@@ -2945,7 +3272,9 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     const total = await chatSessions.countDocuments(query);
     const totalPages = Math.ceil(total / parseInt(limit));
 
-    console.log(`[Conversations] User ${userIdStr}: Found ${total} conversations`);
+    console.log(
+      `[Conversations] User ${userIdStr}: Found ${total} conversations`
+    );
 
     // Get conversations with pagination, sorted by most recent
     const conversations = await chatSessions
@@ -2959,7 +3288,8 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
     const transformedConversations = conversations.map((conv) => {
       const messages = conv.messages || [];
       const messageCount = messages.length;
-      const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+      const lastMessage =
+        messages.length > 0 ? messages[messages.length - 1] : null;
 
       // Calculate approximate duration (estimate based on message count)
       const estimatedDuration = Math.max(1, Math.ceil(messageCount * 1.5)); // ~1.5 min per message
@@ -2979,7 +3309,7 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
       const agentId = conv.agentId || 'assistant';
       const agentName = agentId
         .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
       // Get date from updatedAt, createdAt, or _id timestamp
@@ -3006,7 +3336,8 @@ app.get('/api/user/conversations/:userId', async (req, res) => {
               content:
                 (lastMessage.content || '').substring(0, 100) +
                 ((lastMessage.content || '').length > 100 ? '...' : ''),
-              timestamp: lastMessage.timestamp || conv.updatedAt || conv.createdAt,
+              timestamp:
+                lastMessage.timestamp || conv.updatedAt || conv.createdAt,
             }
           : null,
         timestamp: conv.updatedAt || conv.createdAt || new Date(),
@@ -3068,43 +3399,60 @@ app.get('/api/user/conversations/:userId/export', async (req, res) => {
     // Query all chat_sessions for this user
     const chatSessions = db.collection('chat_sessions');
     const userIdStr = sessionUser._id.toString();
-    
+
     const conversations = await chatSessions
       .find({ userId: userIdStr })
       .sort({ updatedAt: -1, createdAt: -1 })
       .toArray();
 
-    console.log(`[Export] Exporting ${conversations.length} conversations for user ${userIdStr}`);
+    console.log(
+      `[Export] Exporting ${conversations.length} conversations for user ${userIdStr}`
+    );
 
     if (format === 'csv') {
       // Generate CSV
       const csvRows = ['Date,Agent,Messages,Topic,Duration'];
-      
+
       conversations.forEach((conv) => {
         const messages = conv.messages || [];
         const agentId = conv.agentId || 'assistant';
-        const agentName = agentId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        
+        const agentName = agentId
+          .split('-')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+
         let topic = 'General Conversation';
         if (messages.length > 0) {
-          const firstUserMsg = messages.find(m => m.role === 'user');
+          const firstUserMsg = messages.find((m) => m.role === 'user');
           if (firstUserMsg?.content) {
             topic = firstUserMsg.content.substring(0, 50).replace(/"/g, '""');
           }
         }
-        
+
         let dateStr = new Date().toISOString().split('T')[0];
-        if (conv.updatedAt) dateStr = new Date(conv.updatedAt).toISOString().split('T')[0];
-        else if (conv.createdAt) dateStr = new Date(conv.createdAt).toISOString().split('T')[0];
-        else if (conv._id) dateStr = new Date(conv._id.getTimestamp()).toISOString().split('T')[0];
-        
+        if (conv.updatedAt)
+          dateStr = new Date(conv.updatedAt).toISOString().split('T')[0];
+        else if (conv.createdAt)
+          dateStr = new Date(conv.createdAt).toISOString().split('T')[0];
+        else if (conv._id)
+          dateStr = new Date(conv._id.getTimestamp())
+            .toISOString()
+            .split('T')[0];
+
         const duration = `${Math.max(1, Math.ceil(messages.length * 1.5))}m`;
-        
-        csvRows.push(`"${dateStr}","${agentName}",${messages.length},"${topic}","${duration}"`);
+
+        csvRows.push(
+          `"${dateStr}","${agentName}",${messages.length},"${topic}","${duration}"`
+        );
       });
-      
+
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="conversations_${new Date().toISOString().split('T')[0]}.csv"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="conversations_${
+          new Date().toISOString().split('T')[0]
+        }.csv"`
+      );
       return res.send(csvRows.join('\n'));
     }
 
@@ -3115,7 +3463,7 @@ app.get('/api/user/conversations/:userId/export', async (req, res) => {
       conversations: conversations.map((conv) => {
         const messages = conv.messages || [];
         const agentId = conv.agentId || 'assistant';
-        
+
         return {
           id: conv._id.toString(),
           agent: agentId,
@@ -3132,7 +3480,12 @@ app.get('/api/user/conversations/:userId/export', async (req, res) => {
     };
 
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="conversations_${new Date().toISOString().split('T')[0]}.json"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="conversations_${
+        new Date().toISOString().split('T')[0]
+      }.json"`
+    );
     return res.json(exportData);
   } catch (error) {
     console.error('Conversation export error:', error);

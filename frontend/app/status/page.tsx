@@ -223,7 +223,7 @@ export default function StatusPage() {
     fetchStatus();
     // then start live stream
     startSSE();
-    
+
     // Also set up a 5-second refresh interval for reliable updates
     const refreshInterval = setInterval(fetchStatus, 5000);
 
@@ -657,9 +657,11 @@ export default function StatusPage() {
                     style={{ height: `${day.uptime ?? 0}%` }}
                   />
                   <span className="text-xs text-neural-600">
-                    {day.date ? new Date(day.date).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                    }) : '-'}
+                    {day.date
+                      ? new Date(day.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                        })
+                      : '-'}
                   </span>
                 </div>
               ))}
@@ -668,8 +670,10 @@ export default function StatusPage() {
               Average:{' '}
               {data.historical.length > 0
                 ? (
-                    data.historical.reduce((sum, d) => sum + (d.uptime ?? 0), 0) /
-                    data.historical.length
+                    data.historical.reduce(
+                      (sum, d) => sum + (d.uptime ?? 0),
+                      0
+                    ) / data.historical.length
                   ).toFixed(2)
                 : '0.00'}
               %
@@ -701,16 +705,19 @@ export default function StatusPage() {
                       </div>
                     </div>
                     <span className="text-xs text-neural-600">
-                      {day.date ? new Date(day.date).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                      }) : '-'}
+                      {day.date
+                        ? new Date(day.date).toLocaleDateString('en-US', {
+                            weekday: 'short',
+                          })
+                        : '-'}
                     </span>
                   </div>
                 );
               })}
             </div>
             <div className="mt-4 text-center text-sm text-neural-600">
-              Total Today: {(data.api.requestsToday ?? 0).toLocaleString()} requests
+              Total Today: {(data.api.requestsToday ?? 0).toLocaleString()}{' '}
+              requests
             </div>
           </div>
         </div>
@@ -723,7 +730,10 @@ export default function StatusPage() {
             </h3>
             {(() => {
               const items = data.agents
-                .map((a) => ({ name: a.name ?? 'Unknown', users: a.activeUsers ?? 0 }))
+                .map((a) => ({
+                  name: a.name ?? 'Unknown',
+                  users: a.activeUsers ?? 0,
+                }))
                 .sort((a, b) => b.users - a.users)
                 .slice(0, 5);
               const max = Math.max(...items.map((i) => i.users), 1);
