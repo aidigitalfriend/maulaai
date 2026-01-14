@@ -551,33 +551,31 @@ async function fetchRealStatusData() {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
-      // Try apiusages first
-      let apiUsagesCount = await apiUsageCollection.countDocuments({});
+      // Check if apiusages has TODAY's data (not just any data)
+      const todayApiUsagesCount = await apiUsageCollection.countDocuments({
+        timestamp: { $gte: startOfDay }
+      });
       
-      if (apiUsagesCount === 0) {
-        // If apiusages is empty, estimate from chat interactions + sessions
-        const todayChats = await chatCollection.countDocuments({ createdAt: { $gte: startOfDay } });
-        const todaySessions = await sessionsCollection.countDocuments({ createdAt: { $gte: startOfDay } });
+      // Get chat interactions + sessions for today (always useful)
+      const todayChats = await chatCollection.countDocuments({ createdAt: { $gte: startOfDay } });
+      const todaySessions = await sessionsCollection.countDocuments({ createdAt: { $gte: startOfDay } });
+      
+      if (todayApiUsagesCount === 0) {
+        // If apiusages has no today's data, use chat interactions + sessions as requests
         realApiRequestsToday = todayChats + todaySessions;
         realErrorsToday = 0; // No error tracking without apiusages
       } else {
-        // Get today's API requests count
-        realApiRequestsToday = await apiUsageCollection.countDocuments({
-          timestamp: { $gte: startOfDay }
-        });
+        // Use apiusages data + add chat/sessions
+        realApiRequestsToday = todayApiUsagesCount + todayChats + todaySessions;
 
-        // Get today's errors count
+        // Get today's errors count from apiusages
         realErrorsToday = await apiUsageCollection.countDocuments({
           timestamp: { $gte: startOfDay },
           statusCode: { $gte: 500 }
         });
       }
 
-      // Get today's errors count
-      realErrorsToday = await apiUsageCollection.countDocuments({
-        timestamp: { $gte: startOfDay },
-        statusCode: { $gte: 500 }
-      });
+      // Note: realErrorsToday already set above based on whether apiusages has today's data
 
       // Get average response time from recent API calls
       const avgResponseAgg = await apiUsageCollection.aggregate([

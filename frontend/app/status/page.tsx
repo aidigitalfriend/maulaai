@@ -210,12 +210,12 @@ export default function StatusPage() {
         es.onerror = (e) => {
           console.warn('SSE error, switching to polling...', e);
           es?.close();
-          // fallback to polling every 30s
-          pollTimer = setInterval(fetchStatus, 30000);
+          // fallback to polling every 5s for real-time updates
+          pollTimer = setInterval(fetchStatus, 5000);
         };
       } catch (e) {
         console.warn('SSE not available, using polling.', e);
-        pollTimer = setInterval(fetchStatus, 30000);
+        pollTimer = setInterval(fetchStatus, 5000);
       }
     };
 
@@ -223,10 +223,14 @@ export default function StatusPage() {
     fetchStatus();
     // then start live stream
     startSSE();
+    
+    // Also set up a 5-second refresh interval for reliable updates
+    const refreshInterval = setInterval(fetchStatus, 5000);
 
     return () => {
       es?.close();
       if (pollTimer) clearInterval(pollTimer);
+      clearInterval(refreshInterval);
     };
   }, []);
 
