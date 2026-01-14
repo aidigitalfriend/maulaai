@@ -693,6 +693,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       .replace(/^[•-]\s/gm, '')
       .replace(/>\s/g, '');
 
+    if (!cleanText.trim()) {
+      console.warn('No text to speak');
+      return;
+    }
+
     // Stop any currently playing audio
     if (ttsAudioRef.current) {
       ttsAudioRef.current.pause();
@@ -704,6 +709,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
     // Try ElevenLabs first, fall back to browser TTS
     try {
+      console.log('Attempting ElevenLabs TTS...');
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -711,6 +717,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       });
 
       if (response.ok) {
+        console.log('ElevenLabs TTS successful');
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
@@ -721,17 +728,33 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         };
         await audio.play();
         return;
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.warn('ElevenLabs TTS failed:', response.status, errorData);
       }
     } catch (err) {
-      console.warn('ElevenLabs TTS failed, using browser TTS:', err);
+      console.warn('ElevenLabs TTS error:', err);
     }
 
     // Fallback to browser speechSynthesis
+    console.log('Using browser TTS fallback');
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 0.9;
       utterance.pitch = 1;
+      utterance.lang = 'en-US';
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+      };
+      
+      utterance.onstart = () => {
+        console.log('Speech synthesis started');
+      };
+
       window.speechSynthesis.speak(utterance);
+    } else {
+      console.error('Speech synthesis not supported in this browser');
     }
   }, []);
 
