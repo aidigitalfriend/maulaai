@@ -1109,6 +1109,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       ))}
                     </div>
                   )}
+                  <div style={isNeural && message.role !== 'user' ? { color: '#E5E7EB', fontSize: '14px', lineHeight: '1.5' } : undefined}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeHighlight]}
@@ -1243,6 +1244,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             ></span>
                             <div
                               className={`flex-1 ${isNeural ? '!text-[#E5E7EB]' : 'text-gray-700'}`}
+                              style={isNeural ? { color: '#E5E7EB' } : undefined}
                             >
                               {children}
                             </div>
@@ -1254,6 +1256,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         return (
                           <strong
                             className={`font-bold ${isNeural ? '!text-[#7C6CFF]' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
+                            style={isNeural ? { color: '#7C6CFF' } : undefined}
                             {...props}
                           >
                             {children}
@@ -1265,6 +1268,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         return (
                           <p
                             className={`my-2 leading-relaxed ${isNeural ? '!text-[#E5E7EB]' : 'text-gray-700'}`}
+                            style={isNeural ? { color: '#E5E7EB' } : undefined}
                             {...props}
                           >
                             {children}
@@ -1276,6 +1280,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         return (
                           <h1
                             className={`text-xl font-bold my-3 ${isNeural ? '!text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
+                            style={isNeural ? { color: '#FFFFFF' } : undefined}
                             {...props}
                           >
                             {children}
@@ -1428,6 +1433,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   >
                     {message.content}
                   </ReactMarkdown>
+                  </div>
                   {/* Blinking cursor during streaming */}
                   {message.isStreaming && (
                     <span className="inline-block w-2 h-5 ml-1 bg-current animate-pulse rounded-sm" />
