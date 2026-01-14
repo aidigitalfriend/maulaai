@@ -678,3 +678,35 @@ textarea::placeholder {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Chat Message Color Hierarchy - Override global styles for optimal readability */
+/* Neural theme message text colors with proper contrast */
+.prose-invert.prose-sm {
+  /* Headings: Pure white for maximum contrast */
+  --tw-prose-headings: #FFFFFF;
+  --tw-prose-invert-headings: #FFFFFF;
+  
+  /* Main body text: Light gray for excellent readability */
+  --tw-prose-body: #E5E7EB;
+  --tw-prose-invert-body: #E5E7EB;
+  
+  /* Accent/Strong text: Purple for emphasis */
+  --tw-prose-bold: #7C6CFF;
+  --tw-prose-invert-bold: #7C6CFF;
+  
+  /* Links: Same purple accent */
+  --tw-prose-links: #7C6CFF;
+  --tw-prose-invert-links: #7C6CFF;
+  
+  /* Secondary/Italics: Medium gray */
+  --tw-prose-italic: #9CA3AF;
+  --tw-prose-invert-italic: #9CA3AF;
+  
+  /* List items: Same as body text */
+  --tw-prose-list: #E5E7EB;
+  --tw-prose-invert-list: #E5E7EB;
+  
+  /* Code: Light gray on dark background */
+  --tw-prose-code: #E5E7EB;
+  --tw-prose-invert-code: #E5E7EB;
+}

@@ -112,8 +112,8 @@ function EnhancedChatLayoutContent({
     ? 'bg-gray-900/80 border-cyan-500/20 backdrop-blur-xl'
     : 'bg-white/80 border-gray-200 backdrop-blur-xl';
 
-  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-600';
+  const textPrimary = isNeural ? '!text-[#E5E7EB]' : 'text-gray-900';
+  const textSecondary = isNeural ? '!text-[#9CA3AF]' : 'text-gray-600';
 
   return (
     <div

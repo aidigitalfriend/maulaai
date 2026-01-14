@@ -170,7 +170,7 @@ export default function ChatSettingsPanel({
 
   // Theme-based styles
   const panelStyles = isNeural
-    ? 'bg-gray-900/95 border-cyan-500/30 text-gray-100'
+    ? 'bg-gray-900/95 border-cyan-500/30 !text-[#E5E7EB]'
     : 'bg-white border-gray-200 text-gray-900';
 
   const headerStyles = isNeural
@@ -182,7 +182,7 @@ export default function ChatSettingsPanel({
     : 'bg-gray-50 border-gray-200 hover:border-indigo-300';
 
   const inputStyles = isNeural
-    ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-cyan-500 focus:ring-cyan-500/20'
+    ? 'bg-gray-800 border-gray-700 !text-[#E5E7EB] focus:border-cyan-500 focus:ring-cyan-500/20'
     : 'bg-white border-gray-300 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500';
 
   const sliderAccent = isNeural ? 'accent-cyan-500' : 'accent-indigo-600';
@@ -369,7 +369,7 @@ export default function ChatSettingsPanel({
             onClick={onResetSettings}
             className={`w-full py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center space-x-1 ${
               isNeural
-                ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700'
+                ? 'bg-gray-800 hover:bg-gray-700 !text-[#E5E7EB] border border-gray-700'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
             }`}
           >

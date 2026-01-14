@@ -127,9 +127,9 @@ export default function ChatSessionSidebar({
     ? 'bg-cyan-500/20 border-cyan-500/50 shadow-lg shadow-cyan-500/10'
     : 'bg-indigo-100 border-indigo-300 shadow-sm';
 
-  const textPrimary = isNeural ? 'text-gray-100' : 'text-gray-900';
-  const textSecondary = isNeural ? 'text-gray-400' : 'text-gray-500';
-  const textMuted = isNeural ? 'text-gray-500' : 'text-gray-400';
+  const textPrimary = isNeural ? '!text-[#E5E7EB]' : 'text-gray-900';
+  const textSecondary = isNeural ? '!text-[#9CA3AF]' : 'text-gray-500';
+  const textMuted = isNeural ? '!text-[#6B7280]' : 'text-gray-400';
 
   // Collapsed state
   if (isCollapsed) {

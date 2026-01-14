@@ -1067,7 +1067,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     message.role === 'user'
                       ? 'prose-invert prose-p:text-white prose-headings:text-white prose-strong:text-white prose-a:text-white/90 prose-li:text-white'
                       : isNeural
-                        ? 'prose-invert prose-p:text-[#E5E7EB] prose-headings:text-white prose-strong:text-[#7C6CFF] prose-strong:font-bold prose-a:text-[#7C6CFF] prose-li:text-[#E5E7EB]'
+                        ? 'prose-invert !text-[#E5E7EB] prose-p:!text-[#E5E7EB] prose-headings:!text-white prose-strong:!text-[#7C6CFF] prose-strong:!font-bold prose-a:!text-[#7C6CFF] prose-li:!text-[#E5E7EB] prose-em:!text-[#9CA3AF]'
                         : 'prose-p:text-gray-700 prose-headings:text-purple-600 prose-strong:text-indigo-600 prose-strong:font-bold prose-a:text-indigo-500 prose-li:text-gray-700'
                   }`}
                 >
@@ -1233,8 +1233,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             className="flex items-start gap-3 my-2"
                             {...props}
                           >
-                            <span className={`flex-shrink-0 w-2.5 h-2.5 mt-2 rounded-full bg-gradient-to-r ${isNeural ? 'from-[#7C6CFF] to-[#7C6CFF] shadow-sm shadow-purple-500/30' : 'from-indigo-500 to-purple-500'}`}></span>
-                            <div className={`flex-1 ${isNeural ? 'text-[#E5E7EB]' : 'text-gray-700'}`}>
+                            <span
+                              className={`flex-shrink-0 w-2.5 h-2.5 mt-2 rounded-full bg-gradient-to-r ${isNeural ? 'from-[#7C6CFF] to-[#7C6CFF] shadow-sm shadow-purple-500/30' : 'from-indigo-500 to-purple-500'}`}
+                            ></span>
+                            <div
+                              className={`flex-1 ${isNeural ? '!text-[#E5E7EB]' : 'text-gray-700'}`}
+                            >
                               {children}
                             </div>
                           </li>
@@ -1244,7 +1248,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       strong({ children, ...props }) {
                         return (
                           <strong
-                            className={`font-bold ${isNeural ? 'text-[#7C6CFF]' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
+                            className={`font-bold ${isNeural ? '!text-[#7C6CFF]' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1255,7 +1259,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       p({ children, ...props }) {
                         return (
                           <p
-                            className={`my-2 leading-relaxed ${isNeural ? 'text-[#E5E7EB]' : 'text-gray-700'}`}
+                            className={`my-2 leading-relaxed ${isNeural ? '!text-[#E5E7EB]' : 'text-gray-700'}`}
                             {...props}
                           >
                             {children}
@@ -1266,7 +1270,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       h1({ children, ...props }) {
                         return (
                           <h1
-                            className={`text-xl font-bold my-3 ${isNeural ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
+                            className={`text-xl font-bold my-3 ${isNeural ? '!text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1276,7 +1280,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       h2({ children, ...props }) {
                         return (
                           <h2
-                            className={`text-lg font-bold my-2.5 ${isNeural ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
+                            className={`text-lg font-bold my-2.5 ${isNeural ? '!text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1286,7 +1290,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       h3({ children, ...props }) {
                         return (
                           <h3
-                            className={`text-base font-semibold my-2 ${isNeural ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
+                            className={`text-base font-semibold my-2 ${isNeural ? '!text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'}`}
                             {...props}
                           >
                             {children}
@@ -1308,7 +1312,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         if (inline) {
                           return (
                             <code
-                              className={`px-1.5 py-0.5 rounded ${isNeural ? 'bg-gray-700 text-[#E5E7EB]' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'} ${className || ''}`}
+                              className={`px-1.5 py-0.5 rounded ${isNeural ? 'bg-gray-700 !text-[#E5E7EB]' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'} ${className || ''}`}
                               {...props}
                             >
                               {children}
