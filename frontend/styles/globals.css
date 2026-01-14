@@ -715,6 +715,11 @@ textarea::placeholder {
 }
 
 /* Direct element targeting for maximum specificity */
+.prose-invert.prose-sm,
+.prose-invert.prose-sm * {
+  color: #E5E7EB !important;
+}
+
 .prose-invert.prose-sm p,
 .prose-invert.prose-sm div,
 .prose-invert.prose-sm span:not(strong):not(em):not(code) {
@@ -751,4 +756,27 @@ textarea::placeholder {
 
 .prose-invert.prose-sm code {
   color: #E5E7EB !important;
+}
+
+/* Catch all text nodes in neural theme chat messages */
+[class*="bg-[#2B2B2B]"] * {
+  color: #E5E7EB !important;
+}
+
+[class*="bg-[#2B2B2B]"] strong,
+[class*="bg-[#2B2B2B]"] b {
+  color: #7C6CFF !important;
+}
+
+[class*="bg-[#2B2B2B]"] h1,
+[class*="bg-[#2B2B2B]"] h2,
+[class*="bg-[#2B2B2B]"] h3,
+[class*="bg-[#2B2B2B]"] h4,
+[class*="bg-[#2B2B2B]"] h5,
+[class*="bg-[#2B2B2B]"] h6 {
+  color: #FFFFFF !important;
+}
+
+[class*="bg-[#2B2B2B]"] a {
+  color: #7C6CFF !important;
 }

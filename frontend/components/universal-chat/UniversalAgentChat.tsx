@@ -1070,6 +1070,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         ? 'prose-invert !text-[#E5E7EB] prose-p:!text-[#E5E7EB] prose-headings:!text-white prose-strong:!text-[#7C6CFF] prose-strong:!font-bold prose-a:!text-[#7C6CFF] prose-li:!text-[#E5E7EB] prose-em:!text-[#9CA3AF]'
                         : 'prose-p:text-gray-700 prose-headings:text-purple-600 prose-strong:text-indigo-600 prose-strong:font-bold prose-a:text-indigo-500 prose-li:text-gray-700'
                   }`}
+                  style={
+                    message.role !== 'user' && isNeural
+                      ? { color: '#E5E7EB' }
+                      : undefined
+                  }
                 >
                   {/* Display attachments (images as thumbnails) */}
                   {message.attachments && message.attachments.length > 0 && (
