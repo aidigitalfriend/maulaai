@@ -980,6 +980,8 @@ export default function CanvasMode({
   const [historySearchQuery, setHistorySearchQuery] = useState('');
   const [showBuiltinTemplatesPanel, setShowBuiltinTemplatesPanel] = useState(false);
   const [builtinTemplateCategory, setBuiltinTemplateCategory] = useState<string>('All');
+  const [showRotatePrompt, setShowRotatePrompt] = useState(false);
+  const [isMobilePortrait, setIsMobilePortrait] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
   const [selectedModel, setSelectedModel] = useState<string>(
     'mistral-large-latest'
@@ -1066,6 +1068,37 @@ export default function CanvasMode({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Mobile orientation detection - show rotate prompt on portrait mobile
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return;
+
+    const checkOrientation = () => {
+      const isMobile = window.innerWidth < 768 || (window.innerWidth < 1024 && 'ontouchstart' in window);
+      const isPortrait = window.innerHeight > window.innerWidth;
+      
+      setIsMobilePortrait(isMobile && isPortrait);
+      
+      // Show rotate prompt only on first load in portrait mode on mobile
+      if (isMobile && isPortrait) {
+        setShowRotatePrompt(true);
+      } else {
+        setShowRotatePrompt(false);
+      }
+    };
+
+    // Check on mount
+    checkOrientation();
+
+    // Listen to orientation/resize changes
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, [isOpen]);
 
   // =============================================================================
   // BRAND THEME STYLES
@@ -1834,13 +1867,58 @@ export default function CanvasMode({
         />
       </div>
 
+      {/* =========== MOBILE ROTATE PROMPT =========== */}
+      {showRotatePrompt && isMobilePortrait && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-lg">
+          <div className="text-center p-8 max-w-sm">
+            {/* Rotate Phone Icon */}
+            <div className="mb-6 relative inline-block">
+              <div className="w-20 h-32 border-4 border-cyan-400 rounded-2xl relative mx-auto animate-pulse">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-6 h-1 bg-cyan-400/50 rounded-full" />
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 border-2 border-cyan-400/50 rounded-full" />
+              </div>
+              {/* Rotation Arrow */}
+              <div className="absolute -right-4 top-1/2 -translate-y-1/2">
+                <svg className="w-10 h-10 text-purple-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-white mb-3">Rotate Your Device</h2>
+            <p className="text-gray-400 mb-6">
+              For the best Canvas experience, please rotate your phone to <span className="text-cyan-400 font-semibold">landscape mode</span>.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setShowRotatePrompt(false)}
+                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90 transition"
+              >
+                Continue Anyway
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full py-3 px-6 rounded-xl border border-white/20 text-gray-300 font-medium hover:bg-white/5 transition"
+              >
+                Go Back
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-6">
+              📱 Canvas works best in landscape for full access to all features
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* =========== LEFT TOOLBAR =========== */}
       <div
-        className={`${showNavOverlay ? 'w-60 items-start' : 'w-14 items-center'} flex flex-col gap-2 py-4 ${brandColors.bgPanel} ${brandColors.border} border-r relative z-20 transition-all duration-300`}
+        className={`${showNavOverlay ? 'w-60 items-start' : 'w-14 items-center'} flex flex-col gap-2 py-4 ${brandColors.bgPanel} ${brandColors.border} border-r relative z-20 transition-all duration-300 overflow-y-auto overflow-x-hidden custom-scrollbar`}
       >
         <button
           onClick={() => setShowNavOverlay((v) => !v)}
-          className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-transform flex items-center gap-2`}
+          className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-transform flex items-center gap-2 flex-shrink-0`}
           title={showNavOverlay ? 'Close navigation' : 'Open navigation'}
         >
           <Image
@@ -1857,7 +1935,7 @@ export default function CanvasMode({
             </span>
           )}
         </button>
-        <div className="flex flex-col gap-2 w-full px-2 mt-2">
+        <div className="flex flex-col gap-2 w-full px-2 mt-2 flex-shrink-0">
           {/* New Conversation Button */}
           <button
             onClick={handleNewConversation}
