@@ -172,7 +172,7 @@ interface CanvasModeProps {
 }
 
 // =============================================================================
-// TEMPLATES
+// TEMPLATES (Quick prompts for AI generation)
 // =============================================================================
 
 const TEMPLATES = [
@@ -274,6 +274,648 @@ const TEMPLATES = [
   },
 ];
 
+// =============================================================================
+// BUILT-IN TEMPLATES (Ready-to-use HTML templates - no AI needed)
+// =============================================================================
+
+const BUILTIN_TEMPLATES = [
+  {
+    id: 'bt1',
+    name: 'Modern Landing Page',
+    category: 'Landing',
+    icon: '🚀',
+    description: 'A clean, modern landing page with hero, features, and CTA sections.',
+    thumbnail: '🌐',
+    code: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern Landing Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .glass { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Navigation -->
+  <nav class="fixed w-full z-50 glass border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Brand</div>
+      <div class="hidden md:flex gap-8">
+        <a href="#features" class="hover:text-purple-400 transition">Features</a>
+        <a href="#pricing" class="hover:text-purple-400 transition">Pricing</a>
+        <a href="#about" class="hover:text-purple-400 transition">About</a>
+        <a href="#contact" class="hover:text-purple-400 transition">Contact</a>
+      </div>
+      <button class="gradient-bg px-6 py-2 rounded-full font-medium hover:opacity-90 transition">Get Started</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="min-h-screen flex items-center justify-center pt-20 px-6">
+    <div class="max-w-4xl text-center">
+      <span class="inline-block px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium mb-6">✨ New Feature Released</span>
+      <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+        Build Amazing
+        <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"> Products</span>
+        Faster
+      </h1>
+      <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+        The all-in-one platform to design, develop, and deploy your next big idea. Start building today with our powerful tools.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <button class="gradient-bg px-8 py-4 rounded-full font-semibold text-lg hover:opacity-90 transition shadow-lg shadow-purple-500/25">
+          Start Free Trial
+        </button>
+        <button class="px-8 py-4 rounded-full font-semibold text-lg border border-white/20 hover:bg-white/5 transition">
+          Watch Demo →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-24 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Powerful Features</h2>
+        <p class="text-gray-400 text-lg">Everything you need to succeed</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition group">
+          <div class="w-14 h-14 rounded-xl gradient-bg flex items-center justify-center mb-6 text-2xl">⚡</div>
+          <h3 class="text-xl font-semibold mb-3">Lightning Fast</h3>
+          <p class="text-gray-400">Optimized performance for the best user experience. Load times under 100ms.</p>
+        </div>
+        <div class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition group">
+          <div class="w-14 h-14 rounded-xl gradient-bg flex items-center justify-center mb-6 text-2xl">🔒</div>
+          <h3 class="text-xl font-semibold mb-3">Secure by Default</h3>
+          <p class="text-gray-400">Enterprise-grade security with end-to-end encryption and compliance.</p>
+        </div>
+        <div class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition group">
+          <div class="w-14 h-14 rounded-xl gradient-bg flex items-center justify-center mb-6 text-2xl">🎨</div>
+          <h3 class="text-xl font-semibold mb-3">Beautiful Design</h3>
+          <p class="text-gray-400">Modern, responsive designs that look great on any device.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center gradient-bg rounded-3xl p-12">
+      <h2 class="text-4xl font-bold mb-4">Ready to Get Started?</h2>
+      <p class="text-white/80 text-lg mb-8">Join thousands of users already building amazing things.</p>
+      <button class="bg-white text-purple-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition">
+        Start Your Free Trial
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/10 py-12 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Brand</div>
+      <p class="text-gray-500">© 2024 Brand. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>`,
+  },
+  {
+    id: 'bt2',
+    name: 'Dashboard UI',
+    category: 'Dashboard',
+    icon: '📊',
+    description: 'Analytics dashboard with stats cards, charts placeholder, and sidebar.',
+    thumbnail: '📈',
+    code: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-card { background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 min-h-screen bg-gray-900 border-r border-gray-800 p-6 fixed">
+      <div class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-8">Dashboard</div>
+      <nav class="space-y-2">
+        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-indigo-500/20 text-indigo-400">
+          <span>📊</span> Overview
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400">
+          <span>📈</span> Analytics
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400">
+          <span>👥</span> Users
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400">
+          <span>💳</span> Billing
+        </a>
+        <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-gray-400">
+          <span>⚙️</span> Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 flex-1 p-8">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold">Welcome back, Alex!</h1>
+          <p class="text-gray-500 mt-1">Here's what's happening with your projects.</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <button class="p-3 rounded-lg bg-gray-800 hover:bg-gray-700">🔔</button>
+          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-4 gap-6 mb-8">
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+          <div class="flex justify-between items-start mb-4">
+            <span class="text-gray-500">Total Revenue</span>
+            <span class="text-green-400 text-sm">+12.5%</span>
+          </div>
+          <div class="text-3xl font-bold">$45,231</div>
+          <div class="text-gray-500 text-sm mt-1">vs last month</div>
+        </div>
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+          <div class="flex justify-between items-start mb-4">
+            <span class="text-gray-500">Active Users</span>
+            <span class="text-green-400 text-sm">+8.2%</span>
+          </div>
+          <div class="text-3xl font-bold">2,345</div>
+          <div class="text-gray-500 text-sm mt-1">vs last month</div>
+        </div>
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+          <div class="flex justify-between items-start mb-4">
+            <span class="text-gray-500">Conversion Rate</span>
+            <span class="text-red-400 text-sm">-2.1%</span>
+          </div>
+          <div class="text-3xl font-bold">3.42%</div>
+          <div class="text-gray-500 text-sm mt-1">vs last month</div>
+        </div>
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+          <div class="flex justify-between items-start mb-4">
+            <span class="text-gray-500">Avg. Session</span>
+            <span class="text-green-400 text-sm">+5.8%</span>
+          </div>
+          <div class="text-3xl font-bold">4m 32s</div>
+          <div class="text-gray-500 text-sm mt-1">vs last month</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-2 gap-6 mb-8">
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+          <h3 class="text-lg font-semibold mb-4">Revenue Overview</h3>
+          <div class="h-64 flex items-end justify-around gap-2">
+            <div class="w-12 bg-indigo-500/50 rounded-t" style="height: 40%"></div>
+            <div class="w-12 bg-indigo-500/50 rounded-t" style="height: 65%"></div>
+            <div class="w-12 bg-indigo-500/50 rounded-t" style="height: 45%"></div>
+            <div class="w-12 bg-indigo-500/50 rounded-t" style="height: 80%"></div>
+            <div class="w-12 bg-indigo-500/50 rounded-t" style="height: 55%"></div>
+            <div class="w-12 bg-indigo-500 rounded-t" style="height: 90%"></div>
+            <div class="w-12 bg-indigo-500/50 rounded-t" style="height: 70%"></div>
+          </div>
+          <div class="flex justify-around text-gray-500 text-sm mt-4">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+        </div>
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+          <h3 class="text-lg font-semibold mb-4">Traffic Sources</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-sm mb-2"><span>Direct</span><span class="text-gray-500">45%</span></div>
+              <div class="h-2 bg-gray-800 rounded-full"><div class="h-full w-[45%] bg-indigo-500 rounded-full"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-2"><span>Organic Search</span><span class="text-gray-500">32%</span></div>
+              <div class="h-2 bg-gray-800 rounded-full"><div class="h-full w-[32%] bg-purple-500 rounded-full"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-2"><span>Social Media</span><span class="text-gray-500">18%</span></div>
+              <div class="h-2 bg-gray-800 rounded-full"><div class="h-full w-[18%] bg-pink-500 rounded-full"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-2"><span>Referral</span><span class="text-gray-500">5%</span></div>
+              <div class="h-2 bg-gray-800 rounded-full"><div class="h-full w-[5%] bg-cyan-500 rounded-full"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+        <div class="space-y-4">
+          <div class="flex items-center gap-4 p-4 rounded-lg hover:bg-white/5">
+            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">💰</div>
+            <div class="flex-1">
+              <p class="font-medium">New sale completed</p>
+              <p class="text-sm text-gray-500">Order #12345 - $299.00</p>
+            </div>
+            <span class="text-gray-500 text-sm">2 min ago</span>
+          </div>
+          <div class="flex items-center gap-4 p-4 rounded-lg hover:bg-white/5">
+            <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">👤</div>
+            <div class="flex-1">
+              <p class="font-medium">New user registered</p>
+              <p class="text-sm text-gray-500">john.doe@example.com</p>
+            </div>
+            <span class="text-gray-500 text-sm">15 min ago</span>
+          </div>
+          <div class="flex items-center gap-4 p-4 rounded-lg hover:bg-white/5">
+            <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">📊</div>
+            <div class="flex-1">
+              <p class="font-medium">Report generated</p>
+              <p class="text-sm text-gray-500">Monthly analytics report</p>
+            </div>
+            <span class="text-gray-500 text-sm">1 hour ago</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>`,
+  },
+  {
+    id: 'bt3',
+    name: 'Portfolio Site',
+    category: 'Portfolio',
+    icon: '👨‍💼',
+    description: 'Creative portfolio with project gallery, about section, and contact form.',
+    thumbnail: '🎨',
+    code: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Space Grotesk', sans-serif; }
+    .gradient-text { background: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card-hover:hover { transform: translateY(-8px); }
+  </style>
+</head>
+<body class="bg-black text-white">
+  <!-- Navigation -->
+  <nav class="fixed w-full z-50 bg-black/80 backdrop-blur-lg border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="text-2xl font-bold gradient-text">JD.</div>
+      <div class="hidden md:flex gap-8">
+        <a href="#work" class="hover:text-orange-400 transition">Work</a>
+        <a href="#about" class="hover:text-orange-400 transition">About</a>
+        <a href="#skills" class="hover:text-orange-400 transition">Skills</a>
+        <a href="#contact" class="hover:text-orange-400 transition">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="min-h-screen flex items-center px-6 pt-20">
+    <div class="max-w-6xl mx-auto">
+      <p class="text-orange-400 text-lg mb-4">Hello, I'm</p>
+      <h1 class="text-6xl md:text-8xl font-bold mb-6">
+        John <span class="gradient-text">Designer</span>
+      </h1>
+      <p class="text-xl text-gray-400 max-w-xl mb-8">
+        A creative designer & developer crafting beautiful digital experiences that bring ideas to life.
+      </p>
+      <div class="flex gap-4">
+        <a href="#work" class="px-8 py-4 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition">View Work</a>
+        <a href="#contact" class="px-8 py-4 border border-white/30 rounded-full font-semibold hover:bg-white/10 transition">Get in Touch</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="work" class="py-24 px-6">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-4xl font-bold mb-12">Featured <span class="gradient-text">Work</span></h2>
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="group card-hover transition-all duration-300">
+          <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-white/10 overflow-hidden mb-4">
+            <div class="w-full h-full flex items-center justify-center text-6xl">🎨</div>
+          </div>
+          <h3 class="text-xl font-semibold group-hover:text-orange-400 transition">Brand Identity Design</h3>
+          <p class="text-gray-500">Branding, UI/UX</p>
+        </div>
+        <div class="group card-hover transition-all duration-300">
+          <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 overflow-hidden mb-4">
+            <div class="w-full h-full flex items-center justify-center text-6xl">📱</div>
+          </div>
+          <h3 class="text-xl font-semibold group-hover:text-orange-400 transition">Mobile App Design</h3>
+          <p class="text-gray-500">UI/UX, Prototyping</p>
+        </div>
+        <div class="group card-hover transition-all duration-300">
+          <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-cyan-500/20 to-green-500/20 border border-white/10 overflow-hidden mb-4">
+            <div class="w-full h-full flex items-center justify-center text-6xl">🌐</div>
+          </div>
+          <h3 class="text-xl font-semibold group-hover:text-orange-400 transition">E-commerce Website</h3>
+          <p class="text-gray-500">Web Design, Development</p>
+        </div>
+        <div class="group card-hover transition-all duration-300">
+          <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-pink-500/20 to-red-500/20 border border-white/10 overflow-hidden mb-4">
+            <div class="w-full h-full flex items-center justify-center text-6xl">📊</div>
+          </div>
+          <h3 class="text-xl font-semibold group-hover:text-orange-400 transition">Dashboard UI Kit</h3>
+          <p class="text-gray-500">UI Design, Components</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills" class="py-24 px-6 bg-white/5">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-4xl font-bold mb-12">My <span class="gradient-text">Skills</span></h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="p-6 rounded-2xl bg-black border border-white/10 text-center hover:border-orange-500/50 transition">
+          <div class="text-4xl mb-3">🎨</div>
+          <p class="font-medium">UI/UX Design</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-black border border-white/10 text-center hover:border-orange-500/50 transition">
+          <div class="text-4xl mb-3">⚛️</div>
+          <p class="font-medium">React</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-black border border-white/10 text-center hover:border-orange-500/50 transition">
+          <div class="text-4xl mb-3">🎭</div>
+          <p class="font-medium">Figma</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-black border border-white/10 text-center hover:border-orange-500/50 transition">
+          <div class="text-4xl mb-3">💻</div>
+          <p class="font-medium">TypeScript</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-24 px-6">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 class="text-4xl font-bold mb-4">Let's <span class="gradient-text">Connect</span></h2>
+      <p class="text-gray-400 mb-8">Have a project in mind? Let's create something amazing together.</p>
+      <form class="space-y-4">
+        <input type="text" placeholder="Your Name" class="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-orange-500 outline-none transition">
+        <input type="email" placeholder="Your Email" class="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-orange-500 outline-none transition">
+        <textarea placeholder="Your Message" rows="4" class="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-orange-500 outline-none transition resize-none"></textarea>
+        <button type="submit" class="w-full py-4 bg-gradient-to-r from-orange-500 to-pink-500 rounded-xl font-semibold hover:opacity-90 transition">Send Message</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 border-t border-white/10 text-center text-gray-500">
+    <p>© 2024 John Designer. Built with ❤️</p>
+  </footer>
+</body>
+</html>`,
+  },
+  {
+    id: 'bt4',
+    name: 'Pricing Page',
+    category: 'Components',
+    icon: '💎',
+    description: 'Beautiful pricing table with 3 tiers and feature comparison.',
+    thumbnail: '💰',
+    code: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing Plans</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .popular-glow { box-shadow: 0 0 60px rgba(99, 102, 241, 0.3); }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen py-20 px-6">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-16">
+      <span class="inline-block px-4 py-2 rounded-full bg-indigo-500/20 text-indigo-400 text-sm font-medium mb-4">Pricing</span>
+      <h1 class="text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
+      <p class="text-xl text-gray-400 max-w-2xl mx-auto">Choose the plan that fits your needs. All plans include a 14-day free trial.</p>
+      
+      <!-- Toggle -->
+      <div class="flex items-center justify-center gap-4 mt-8">
+        <span class="text-gray-400">Monthly</span>
+        <button class="w-14 h-8 bg-indigo-500 rounded-full relative">
+          <div class="w-6 h-6 bg-white rounded-full absolute right-1 top-1"></div>
+        </button>
+        <span class="text-white font-medium">Yearly <span class="text-green-400 text-sm">Save 20%</span></span>
+      </div>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- Starter -->
+      <div class="p-8 rounded-3xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition">
+        <div class="text-gray-400 font-medium mb-2">Starter</div>
+        <div class="flex items-baseline gap-2 mb-6">
+          <span class="text-5xl font-bold">$9</span>
+          <span class="text-gray-500">/month</span>
+        </div>
+        <p class="text-gray-400 mb-8">Perfect for individuals and small projects.</p>
+        <button class="w-full py-4 rounded-xl border border-gray-700 font-semibold hover:bg-white/5 transition">Get Started</button>
+        <div class="mt-8 space-y-4">
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> 5 Projects
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> 10GB Storage
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Basic Analytics
+          </div>
+          <div class="flex items-center gap-3 text-gray-500">
+            <span>✗</span> Priority Support
+          </div>
+          <div class="flex items-center gap-3 text-gray-500">
+            <span>✗</span> Custom Domain
+          </div>
+        </div>
+      </div>
+
+      <!-- Pro (Popular) -->
+      <div class="p-8 rounded-3xl bg-gradient-to-b from-indigo-900/50 to-gray-900 border-2 border-indigo-500 popular-glow relative transform scale-105">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-indigo-500 rounded-full text-sm font-medium">Most Popular</div>
+        <div class="text-indigo-400 font-medium mb-2">Pro</div>
+        <div class="flex items-baseline gap-2 mb-6">
+          <span class="text-5xl font-bold">$29</span>
+          <span class="text-gray-500">/month</span>
+        </div>
+        <p class="text-gray-400 mb-8">Best for growing teams and businesses.</p>
+        <button class="w-full py-4 rounded-xl bg-indigo-500 font-semibold hover:bg-indigo-400 transition">Get Started</button>
+        <div class="mt-8 space-y-4">
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Unlimited Projects
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> 100GB Storage
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Advanced Analytics
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Priority Support
+          </div>
+          <div class="flex items-center gap-3 text-gray-500">
+            <span>✗</span> Custom Domain
+          </div>
+        </div>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="p-8 rounded-3xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition">
+        <div class="text-gray-400 font-medium mb-2">Enterprise</div>
+        <div class="flex items-baseline gap-2 mb-6">
+          <span class="text-5xl font-bold">$99</span>
+          <span class="text-gray-500">/month</span>
+        </div>
+        <p class="text-gray-400 mb-8">For large teams with advanced needs.</p>
+        <button class="w-full py-4 rounded-xl border border-gray-700 font-semibold hover:bg-white/5 transition">Contact Sales</button>
+        <div class="mt-8 space-y-4">
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Unlimited Everything
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> 1TB Storage
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Custom Analytics
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> 24/7 Dedicated Support
+          </div>
+          <div class="flex items-center gap-3 text-gray-300">
+            <span class="text-green-400">✓</span> Custom Domain + SSL
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Teaser -->
+    <div class="mt-20 text-center">
+      <p class="text-gray-400">Have questions? <a href="#" class="text-indigo-400 hover:underline">Check our FAQ</a> or <a href="#" class="text-indigo-400 hover:underline">contact support</a></p>
+    </div>
+  </div>
+</body>
+</html>`,
+  },
+  {
+    id: 'bt5',
+    name: 'Login / Signup Form',
+    category: 'Components',
+    icon: '🔐',
+    description: 'Glassmorphism login form with social login options.',
+    thumbnail: '🔑',
+    code: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); }
+    .gradient-border { background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); padding: 1px; }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-950 flex items-center justify-center p-6 relative overflow-hidden">
+  <!-- Background Decoration -->
+  <div class="absolute top-0 left-0 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+  <div class="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
+  <!-- Login Card -->
+  <div class="gradient-border rounded-3xl">
+    <div class="glass rounded-3xl p-8 w-full max-w-md">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 mb-4">
+          <span class="text-3xl">✨</span>
+        </div>
+        <h1 class="text-2xl font-bold text-white">Welcome Back</h1>
+        <p class="text-gray-400 mt-2">Sign in to continue to your account</p>
+      </div>
+
+      <!-- Social Login -->
+      <div class="flex gap-4 mb-6">
+        <button class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-white">
+          <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Google
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-white">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-4 mb-6">
+        <div class="flex-1 h-px bg-white/10"></div>
+        <span class="text-gray-500 text-sm">or continue with email</span>
+        <div class="flex-1 h-px bg-white/10"></div>
+      </div>
+
+      <!-- Form -->
+      <form class="space-y-4">
+        <div>
+          <label class="text-sm text-gray-400 block mb-2">Email Address</label>
+          <input type="email" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-indigo-500 outline-none text-white placeholder-gray-500 transition">
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm text-gray-400">Password</label>
+            <a href="#" class="text-sm text-indigo-400 hover:text-indigo-300">Forgot password?</a>
+          </div>
+          <input type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-indigo-500 outline-none text-white placeholder-gray-500 transition">
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="remember" class="w-4 h-4 rounded bg-white/5 border-white/10 text-indigo-500 focus:ring-indigo-500">
+          <label for="remember" class="text-sm text-gray-400">Remember me for 30 days</label>
+        </div>
+        <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 font-semibold text-white hover:opacity-90 transition">
+          Sign In
+        </button>
+      </form>
+
+      <!-- Sign Up Link -->
+      <p class="text-center text-gray-400 mt-6">
+        Don't have an account? <a href="#" class="text-indigo-400 hover:text-indigo-300 font-medium">Sign up</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`,
+  },
+];
+
+const BUILTIN_TEMPLATE_CATEGORIES = ['All', ...Array.from(new Set(BUILTIN_TEMPLATES.map((t) => t.category)))];
+
 const FILE_ICONS: Record<string, string> = {
   html: '🌐',
   css: '🎨',
@@ -336,8 +978,8 @@ export default function CanvasMode({
   >('chat');
   const [splitView, setSplitView] = useState(false);
   const [historySearchQuery, setHistorySearchQuery] = useState('');
-
-  // AI Settings State
+  const [showBuiltinTemplatesPanel, setShowBuiltinTemplatesPanel] = useState(false);
+  const [builtinTemplateCategory, setBuiltinTemplateCategory] = useState<string>('All');
   const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
   const [selectedModel, setSelectedModel] = useState<string>(
     'mistral-large-latest'
@@ -1088,6 +1730,54 @@ export default function CanvasMode({
     setActivePane('chat');
   }, []);
 
+  // Load a built-in template directly (no AI interaction)
+  const handleLoadBuiltinTemplate = useCallback((template: typeof BUILTIN_TEMPLATES[0]) => {
+    // Set the code directly
+    const normalizedCode = normalizeCode(template.code);
+    setGeneratedCode(normalizedCode);
+    
+    // Extract files
+    const files = extractFiles(normalizedCode);
+    setGeneratedFiles(files);
+    if (files.length > 0) {
+      setSelectedFile(files[0]);
+    }
+    
+    // Update preview
+    updatePreview(normalizedCode);
+    
+    // Add a message to chat about the loaded template
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `✅ Loaded **${template.name}** template!\n\n${template.description}\n\nYou can now:\n- View and edit the code\n- See it in the preview\n- Ask me to customize it (change colors, add sections, etc.)\n\nWhat would you like to modify?`,
+        timestamp: new Date(),
+      },
+    ]);
+    
+    // Save to history
+    const historyEntry: HistoryEntry = {
+      id: Date.now().toString(),
+      name: template.name,
+      prompt: `Loaded template: ${template.name}`,
+      code: normalizedCode,
+      timestamp: Date.now(),
+    };
+    setHistoryEntries((prev) => [historyEntry, ...prev]);
+    
+    // Close the panel and switch to preview
+    setShowBuiltinTemplatesPanel(false);
+    setActivePane('preview');
+    setGenerationStatus('success');
+  }, [normalizeCode, extractFiles, updatePreview]);
+
+  // Filter built-in templates by category
+  const filteredBuiltinTemplates = builtinTemplateCategory === 'All'
+    ? BUILTIN_TEMPLATES
+    : BUILTIN_TEMPLATES.filter((t) => t.category === builtinTemplateCategory);
+
   // Filtered history entries based on search
   const filteredHistoryEntries = historySearchQuery.trim()
     ? historyEntries.filter(
@@ -1196,18 +1886,15 @@ export default function CanvasMode({
               <span className={`text-sm ${brandColors.text}`}>Chat</span>
             )}
           </button>
-          {/* Templates Button */}
+          {/* Templates Button - Opens Built-in Templates Panel */}
           <button
-            onClick={() => {
-              setActivePane('templates');
-              setShowTemplates(true);
-            }}
+            onClick={() => setShowBuiltinTemplatesPanel(true)}
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
-              activePane === 'templates'
+              showBuiltinTemplatesPanel
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
             }`}
-            title="Templates"
+            title="Built-in Templates"
           >
             <RectangleGroupIcon className="w-5 h-5" />
             {showNavOverlay && (
@@ -2322,6 +3009,94 @@ export default function CanvasMode({
           </span>
         </div>
       </div>
+
+      {/* =========== BUILT-IN TEMPLATES PANEL (Overlay) =========== */}
+      {showBuiltinTemplatesPanel && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className={`w-full max-w-5xl max-h-[85vh] ${brandColors.bgPanel} rounded-3xl border ${brandColors.border} shadow-2xl overflow-hidden flex flex-col`}>
+            {/* Panel Header */}
+            <div className={`flex items-center justify-between px-6 py-4 ${brandColors.border} border-b`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${brandColors.gradientPrimary}`}>
+                  <RectangleGroupIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className={`text-xl font-bold ${brandColors.gradientText}`}>Ready-Made Templates</h2>
+                  <p className={`text-sm ${brandColors.textSecondary}`}>Choose a template to start instantly - no AI generation needed!</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBuiltinTemplatesPanel(false)}
+                className={`p-2 rounded-lg ${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`}
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Category Tabs */}
+            <div className={`flex overflow-x-auto px-6 py-3 gap-2 ${brandColors.border} border-b`}>
+              {BUILTIN_TEMPLATE_CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setBuiltinTemplateCategory(cat)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                    builtinTemplateCategory === cat
+                      ? brandColors.btnPrimary
+                      : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Templates Grid */}
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredBuiltinTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => handleLoadBuiltinTemplate(template)}
+                    className={`group p-6 rounded-2xl text-left transition-all hover:scale-[1.02] ${brandColors.bgSecondary} border ${brandColors.border} hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10`}
+                  >
+                    {/* Template Preview Placeholder */}
+                    <div className={`aspect-video rounded-xl mb-4 flex items-center justify-center text-5xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border ${brandColors.border} group-hover:border-cyan-500/30 transition`}>
+                      {template.thumbnail}
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl group-hover:scale-110 transition-transform">{template.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`font-semibold ${brandColors.text} group-hover:text-cyan-400 transition`}>
+                          {template.name}
+                        </h3>
+                        <p className={`text-sm ${brandColors.textSecondary} mt-1 line-clamp-2`}>
+                          {template.description}
+                        </p>
+                        <span className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${brandColors.bgInput} ${brandColors.textMuted}`}>
+                          {template.category}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Panel Footer */}
+            <div className={`px-6 py-4 ${brandColors.border} border-t flex items-center justify-between`}>
+              <p className={`text-sm ${brandColors.textMuted}`}>
+                💡 Click a template to load it instantly. Then customize with AI chat!
+              </p>
+              <button
+                onClick={() => setShowBuiltinTemplatesPanel(false)}
+                className={`px-4 py-2 rounded-lg ${brandColors.btnSecondary} text-sm font-medium`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Custom scrollbar styles */}
       <style jsx global>{`
