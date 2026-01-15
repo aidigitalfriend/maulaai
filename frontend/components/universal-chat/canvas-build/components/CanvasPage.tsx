@@ -28,6 +28,10 @@ import {
   ClockIcon,
   EllipsisHorizontalIcon,
   Cog6ToothIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  Squares2X2Icon,
+  RectangleGroupIcon,
 } from '@heroicons/react/24/outline';
 
 // Lazy load Monaco Editor with proper error handling
@@ -330,6 +334,8 @@ export default function CanvasMode({
   const [activePane, setActivePane] = useState<
     'chat' | 'files' | 'preview' | 'templates' | 'code' | 'history' | 'settings'
   >('chat');
+  const [splitView, setSplitView] = useState(false);
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
 
   // AI Settings State
   const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
@@ -652,13 +658,13 @@ export default function CanvasMode({
   }, []);
 
   useEffect(() => {
-    if (viewMode !== 'preview') return;
+    if (viewMode !== 'preview' && !splitView) return;
     const htmlContent =
       selectedFile?.type === 'html' ? selectedFile.content : generatedCode;
     if (htmlContent) {
       updatePreview(htmlContent);
     }
-  }, [viewMode, selectedFile, generatedCode, updatePreview]);
+  }, [viewMode, selectedFile, generatedCode, updatePreview, splitView]);
 
   // Extract files from generated code
   const extractFiles = useCallback((code: string): GeneratedFile[] => {
@@ -1064,6 +1070,33 @@ export default function CanvasMode({
     }
   }, []);
 
+  // Start a new conversation - clears chat and code
+  const handleNewConversation = useCallback(() => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\n**🎨 Image-to-Code:** Upload a design screenshot and I'll recreate it as code!\n\nI'll ask a few questions to understand your needs, then we can start building!`,
+        timestamp: new Date(),
+      },
+    ]);
+    setGeneratedCode('');
+    setGeneratedFiles([]);
+    setSelectedFile(null);
+    setUploadedFiles([]);
+    setChatInput('');
+    setActivePane('chat');
+  }, []);
+
+  // Filtered history entries based on search
+  const filteredHistoryEntries = historySearchQuery.trim()
+    ? historyEntries.filter(
+        (entry) =>
+          entry.name?.toLowerCase().includes(historySearchQuery.toLowerCase()) ||
+          entry.prompt?.toLowerCase().includes(historySearchQuery.toLowerCase())
+      )
+    : historyEntries;
+
   const handleDownload = useCallback(() => {
     if (!generatedCode) return;
     const blob = new Blob([generatedCode], { type: 'text/html' });
@@ -1135,6 +1168,18 @@ export default function CanvasMode({
           )}
         </button>
         <div className="flex flex-col gap-2 w-full px-2 mt-2">
+          {/* New Conversation Button */}
+          <button
+            onClick={handleNewConversation}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${brandColors.btnPrimary} hover:scale-105`}
+            title="New conversation"
+          >
+            <PlusIcon className="w-5 h-5" />
+            {showNavOverlay && (
+              <span className={`text-sm ${brandColors.text}`}>New</span>
+            )}
+          </button>
+          <div className="h-px w-full bg-white/10 my-1" />
           <button
             onClick={() =>
               setActivePane((prev) => (prev === 'chat' ? 'preview' : 'chat'))
@@ -1151,6 +1196,24 @@ export default function CanvasMode({
               <span className={`text-sm ${brandColors.text}`}>Chat</span>
             )}
           </button>
+          {/* Templates Button */}
+          <button
+            onClick={() => {
+              setActivePane('templates');
+              setShowTemplates(true);
+            }}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+              activePane === 'templates'
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Templates"
+          >
+            <RectangleGroupIcon className="w-5 h-5" />
+            {showNavOverlay && (
+              <span className={`text-sm ${brandColors.text}`}>Templates</span>
+            )}
+          </button>
           <button
             onClick={() =>
               setActivePane((prev) => (prev === 'files' ? 'preview' : 'files'))
@@ -1165,6 +1228,7 @@ export default function CanvasMode({
             <FolderIcon className="w-5 h-5" />
             {showNavOverlay && (
               <span className={`text-sm ${brandColors.text}`}>Files</span>
+            )}
             )}
           </button>
           <button
@@ -1253,6 +1317,22 @@ export default function CanvasMode({
               <span className={`text-sm ${brandColors.text}`}>Code</span>
             )}
           </button>
+          {/* Split View Button */}
+          <button
+            onClick={() => setSplitView((prev) => !prev)}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+              splitView
+                ? brandColors.btnPrimary
+                : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+            }`}
+            title="Split view (Code + Preview)"
+          >
+            <Squares2X2Icon className="w-5 h-5" />
+            {showNavOverlay && (
+              <span className={`text-sm ${brandColors.text}`}>Split</span>
+            )}
+          </button>
+          <div className="h-px w-full bg-white/10 my-1" />
           <button
             onClick={() =>
               setActivePane((prev) =>
@@ -1791,17 +1871,40 @@ export default function CanvasMode({
             </div>
           </div>
         ) : activePane === 'history' && showHistoryPanel ? (
-          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-2">
-            {historyEntries.length === 0 ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* History Search Bar */}
+            <div className={`p-2 ${brandColors.border} border-b flex-shrink-0`}>
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${brandColors.bgInput} border ${brandColors.border}`}>
+                <MagnifyingGlassIcon className={`w-4 h-4 ${brandColors.textMuted}`} />
+                <input
+                  type="text"
+                  placeholder="Search history..."
+                  value={historySearchQuery}
+                  onChange={(e) => setHistorySearchQuery(e.target.value)}
+                  className={`flex-1 bg-transparent text-sm ${brandColors.text} placeholder:${brandColors.textMuted} outline-none`}
+                />
+                {historySearchQuery && (
+                  <button
+                    onClick={() => setHistorySearchQuery('')}
+                    className={`${brandColors.textSecondary} hover:${brandColors.text}`}
+                  >
+                    <XCircleIcon className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* History List */}
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-2">
+            {filteredHistoryEntries.length === 0 ? (
               <div className={`text-center py-8 ${brandColors.textSecondary}`}>
                 <ClockIcon className="w-8 h-8 opacity-50 mx-auto mb-2" />
-                <p className="text-xs">No history yet</p>
+                <p className="text-xs">{historySearchQuery ? 'No matching results' : 'No history yet'}</p>
                 <p className={`text-[10px] mt-1 ${brandColors.textMuted}`}>
-                  Generate something to see it here
+                  {historySearchQuery ? 'Try a different search term' : 'Generate something to see it here'}
                 </p>
               </div>
             ) : (
-              historyEntries.map((entry) => (
+              filteredHistoryEntries.map((entry) => (
                 <div
                   key={entry.id}
                   className={`border ${brandColors.border} rounded-lg p-2 ${brandColors.bgSecondary} ${brandColors.bgHover} transition-all relative`}
@@ -1880,6 +1983,7 @@ export default function CanvasMode({
                 </div>
               ))
             )}
+            </div>
           </div>
         ) : (
           showFilesPanel && (
@@ -1998,7 +2102,73 @@ export default function CanvasMode({
 
         {/* Content Area */}
         <div className={`flex-1 overflow-hidden ${brandColors.bgMain}`}>
-          {viewMode === 'preview' ? (
+          {splitView ? (
+            /* ===== SPLIT VIEW: Code + Preview Side by Side ===== */
+            <div className="flex w-full h-full">
+              {/* Left: Code Editor */}
+              <div className={`w-1/2 h-full border-r ${brandColors.border}`}>
+                {selectedFile || generatedCode ? (
+                  <div className="h-full">
+                    <MonacoEditor
+                      height="100%"
+                      defaultLanguage="html"
+                      language={
+                        selectedFile?.type === 'css'
+                          ? 'css'
+                          : selectedFile?.type === 'js'
+                            ? 'javascript'
+                            : selectedFile?.type === 'json'
+                              ? 'json'
+                              : selectedFile?.type === 'tsx'
+                                ? 'typescript'
+                                : 'html'
+                      }
+                      theme="vs-dark"
+                      value={selectedFile?.content || generatedCode}
+                      options={{
+                        readOnly: true,
+                        minimap: { enabled: false },
+                        lineNumbers: 'on',
+                        wordWrap: 'on',
+                        scrollBeyondLastLine: false,
+                        fontSize: 12,
+                        padding: { top: 8, bottom: 8 },
+                      }}
+                      loading={
+                        <div className={`flex flex-col items-center justify-center h-full ${brandColors.bgMain}`}>
+                          <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mb-2" />
+                          <p className={`text-xs ${brandColors.textSecondary}`}>Loading...</p>
+                        </div>
+                      }
+                    />
+                  </div>
+                ) : (
+                  <div className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}>
+                    <CodeBracketIcon className="w-10 h-10 opacity-30 mb-2" />
+                    <p className="text-xs">No code yet</p>
+                  </div>
+                )}
+              </div>
+              {/* Right: Preview */}
+              <div className="w-1/2 h-full p-2 overflow-auto">
+                {generatedCode ? (
+                  <div className="w-full h-full bg-white rounded-lg overflow-hidden">
+                    <iframe
+                      ref={previewRef}
+                      title="Preview"
+                      className="w-full h-full border-none"
+                      sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups"
+                    />
+                  </div>
+                ) : (
+                  <div className={`flex flex-col items-center justify-center h-full ${brandColors.textSecondary}`}>
+                    <EyeIcon className="w-10 h-10 opacity-30 mb-2" />
+                    <p className="text-xs">Preview here</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : viewMode === 'preview' ? (
             /* ===== PREVIEW VIEW ===== */
             <div className="w-full h-full p-4 overflow-auto">
               {generatedCode ? (
