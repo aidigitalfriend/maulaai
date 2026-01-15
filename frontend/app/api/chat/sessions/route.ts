@@ -154,8 +154,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const agentId = searchParams.get('agentId');
 
-    // Validate agent subscription if agentId is specified
-    if (agentId) {
+    // Skip subscription check for ai-studio (Canvas/Studio tool is free for authenticated users)
+    const freeAgentIds = ['ai-studio', 'studio', 'canvas'];
+    const requiresSubscription = agentId && !freeAgentIds.includes(agentId.toLowerCase());
+
+    // Validate agent subscription if agentId is specified (excluding free tools)
+    if (requiresSubscription) {
       const hasSubscription = await checkAgentSubscription(db, userId, agentId);
       if (!hasSubscription) {
         return NextResponse.json(
