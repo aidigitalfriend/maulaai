@@ -1913,7 +1913,7 @@ export default function CanvasMode({
               <div className="absolute inset-0 flex items-center justify-center">
                 <svg 
                   className="w-48 h-48 text-purple-500/40"
-                  style={{ animation: 'spin 4s linear infinite' }}
+                  style={{ animation: 'spinArrow 4s linear infinite' }}
                   viewBox="0 0 100 100"
                 >
                   {/* Circular arrow path */}
@@ -1939,32 +1939,6 @@ export default function CanvasMode({
             <p className="text-xl text-white font-medium mb-2">Rotate for best experience</p>
             <p className="text-gray-500 text-sm">📱 ➡️ 📱</p>
           </div>
-
-          {/* CSS Animation keyframes */}
-          <style jsx>{`
-            @keyframes phoneRotate {
-              0%, 100% {
-                transform: rotate(0deg);
-              }
-              25% {
-                transform: rotate(-15deg);
-              }
-              50% {
-                transform: rotate(-90deg) scale(1.1);
-              }
-              75% {
-                transform: rotate(-75deg);
-              }
-            }
-            @keyframes spin {
-              from {
-                transform: rotate(0deg);
-              }
-              to {
-                transform: rotate(360deg);
-              }
-            }
-          `}</style>
         </div>
       )}
 
@@ -3232,7 +3206,7 @@ export default function CanvasMode({
         </div>
       )}
 
-      {/* Custom scrollbar styles */}
+      {/* Custom scrollbar styles and animations */}
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
@@ -3247,6 +3221,28 @@ export default function CanvasMode({
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(34, 211, 238, 0.5);
+        }
+        @keyframes phoneRotate {
+          0%, 100% {
+            transform: rotate(0deg);
+          }
+          25% {
+            transform: rotate(-15deg);
+          }
+          50% {
+            transform: rotate(-90deg) scale(1.1);
+          }
+          75% {
+            transform: rotate(-75deg);
+          }
+        }
+        @keyframes spinArrow {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>
