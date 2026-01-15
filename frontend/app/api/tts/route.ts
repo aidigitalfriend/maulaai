@@ -6,6 +6,51 @@ export const dynamic = 'force-dynamic';
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // "Sarah" - clear female voice
 
+// Helper to delay execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper to call ElevenLabs with retry on rate limit
+async function callElevenLabsWithRetry(
+  text: string,
+  voiceId: string,
+  maxRetries: number = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': ELEVENLABS_API_KEY!,
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+          },
+        }),
+      }
+    );
+
+    // If rate limited (429), wait and retry
+    if (response.status === 429) {
+      console.log(`[TTS] Rate limited, attempt ${attempt + 1}/${maxRetries}, waiting...`);
+      await delay(1000 * (attempt + 1)); // Exponential backoff: 1s, 2s, 3s
+      continue;
+    }
+
+    return response;
+  }
+
+  throw new Error('Max retries exceeded for ElevenLabs API');
+}
+
 export async function POST(request: NextRequest) {
   if (!ELEVENLABS_API_KEY) {
     return NextResponse.json(
@@ -28,25 +73,7 @@ export async function POST(request: NextRequest) {
     const trimmedText = text.slice(0, 5000);
     const selectedVoice = voiceId || DEFAULT_VOICE_ID;
 
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}`,
-      {
-        method: 'POST',
-        headers: {
-          Accept: 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': ELEVENLABS_API_KEY,
-        },
-        body: JSON.stringify({
-          text: trimmedText,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
-        }),
-      }
-    );
+    const response = await callElevenLabsWithRetry(trimmedText, selectedVoice);
 
     if (!response.ok) {
       const errorText = await response.text();
