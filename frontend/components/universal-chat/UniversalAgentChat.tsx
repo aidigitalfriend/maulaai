@@ -136,6 +136,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   >({});
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
@@ -682,8 +683,30 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Ref to track playing audio for TTS
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleListenMessage = useCallback(async (content: string) => {
+  // Stop TTS function
+  const stopTTS = useCallback(() => {
+    if (ttsAudioRef.current) {
+      ttsAudioRef.current.pause();
+      ttsAudioRef.current.currentTime = 0;
+      ttsAudioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeakingMessageId(null);
+  }, []);
+
+  const handleListenMessage = useCallback(async (content: string, messageId: string) => {
     if (typeof window === 'undefined') return;
+
+    // If this message is already speaking, stop it (toggle off)
+    if (speakingMessageId === messageId) {
+      stopTTS();
+      return;
+    }
+
+    // Stop any other playing audio first
+    stopTTS();
 
     const cleanText = content
       .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -699,14 +722,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       return;
     }
 
-    // Stop any currently playing audio
-    if (ttsAudioRef.current) {
-      ttsAudioRef.current.pause();
-      ttsAudioRef.current = null;
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    // Set this message as speaking
+    setSpeakingMessageId(messageId);
 
     // Try ElevenLabs first, fall back to browser TTS
     try {
@@ -731,10 +748,15 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           console.error('Audio playback error:', e);
           URL.revokeObjectURL(audioUrl);
           ttsAudioRef.current = null;
+          setSpeakingMessageId(null);
           // Fallback to browser TTS on error
           if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.onend = () => setSpeakingMessageId(null);
+            utterance.onerror = () => setSpeakingMessageId(null);
             window.speechSynthesis.speak(utterance);
+          } else {
+            setSpeakingMessageId(null);
           }
         };
         
@@ -742,6 +764,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           console.log('Audio playback ended');
           URL.revokeObjectURL(audioUrl);
           ttsAudioRef.current = null;
+          setSpeakingMessageId(null);
         };
         
         audio.oncanplaythrough = () => {
@@ -755,15 +778,18 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         } catch (playError) {
           console.error('Audio play() failed:', playError);
           URL.revokeObjectURL(audioUrl);
+          ttsAudioRef.current = null;
           // This usually happens due to autoplay policy - need user interaction
           // Fallback to browser TTS which doesn't have this restriction
         }
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         console.warn('ElevenLabs TTS failed:', response.status, errorData);
+        setSpeakingMessageId(null);
       }
     } catch (err) {
       console.warn('ElevenLabs TTS error:', err);
+      setSpeakingMessageId(null);
     }
 
     // Fallback to browser speechSynthesis
@@ -776,17 +802,24 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       
       utterance.onerror = (event) => {
         console.error('Speech synthesis error:', event);
+        setSpeakingMessageId(null);
       };
       
       utterance.onstart = () => {
         console.log('Speech synthesis started');
       };
 
+      utterance.onend = () => {
+        console.log('Speech synthesis ended');
+        setSpeakingMessageId(null);
+      };
+
       window.speechSynthesis.speak(utterance);
     } else {
       console.error('Speech synthesis not supported in this browser');
+      setSpeakingMessageId(null);
     }
-  }, []);
+  }, [speakingMessageId, stopTTS]);
 
   const handleSendMessage = useCallback(async () => {
     if (
@@ -1589,11 +1622,15 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       <ShareIcon className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleListenMessage(message.content)}
-                      className={`p-1.5 rounded-lg transition-all ${isNeural ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
-                      title="Listen to message"
+                      onClick={() => handleListenMessage(message.content, message.id)}
+                      className={`p-1.5 rounded-lg transition-all ${speakingMessageId === message.id ? (isNeural ? 'bg-purple-600 text-white' : 'bg-indigo-500 text-white') : (isNeural ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600')}`}
+                      title={speakingMessageId === message.id ? "Stop speaking" : "Listen to message"}
                     >
-                      <SpeakerWaveIcon className="w-4 h-4" />
+                      {speakingMessageId === message.id ? (
+                        <StopIcon className="w-4 h-4" />
+                      ) : (
+                        <SpeakerWaveIcon className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 )}
