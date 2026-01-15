@@ -1,12 +1,110 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import dbConnect from '@/lib/mongodb';
 import { LabExperiment } from '@/lib/models/LabExperiment';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 interface DreamAnalysisRequest {
   dream: string;
+}
+
+// AI Provider helper for dream analysis
+async function analyzeWithAI(dream: string): Promise<{ analysis: any; tokens: number }> {
+  const systemPrompt = `You are an expert dream interpreter and psychologist. Analyze dreams and provide insights in JSON format with these fields:
+  {
+    "mainTheme": "brief theme description",
+    "emotions": ["emotion1", "emotion2", "emotion3"],
+    "symbols": [
+      {"name": "symbol name", "meaning": "detailed interpretation"}
+    ],
+    "interpretation": "comprehensive dream interpretation"
+  }`;
+
+  const userPrompt = `Analyze this dream: ${dream}`;
+
+  // Try Cerebras first (fastest)
+  if (process.env.CEREBRAS_API_KEY) {
+    try {
+      const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 800,
+          temperature: 0.8,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return { analysis: JSON.parse(jsonMatch[0]), tokens: data.usage?.total_tokens || 0 };
+        }
+      }
+    } catch (e) {
+      console.log('Cerebras failed, trying fallback...');
+    }
+  }
+
+  // Fallback to Groq
+  if (process.env.GROQ_API_KEY) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 800,
+          temperature: 0.8,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return { analysis: JSON.parse(jsonMatch[0]), tokens: data.usage?.total_tokens || 0 };
+        }
+      }
+    } catch (e) {
+      console.log('Groq failed, trying OpenAI...');
+    }
+  }
+
+  // Final fallback to OpenAI
+  const OpenAI = (await import('openai')).default;
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.8,
+    max_tokens: 800,
+    response_format: { type: 'json_object' },
+  });
+
+  return {
+    analysis: JSON.parse(completion.choices[0].message.content || '{}'),
+    tokens: completion.usage?.total_tokens || 0,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -39,34 +137,9 @@ export async function POST(req: NextRequest) {
     });
     await experiment.save();
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert dream interpreter and psychologist. Analyze dreams and provide insights in JSON format with these fields:
-          {
-            "mainTheme": "brief theme description",
-            "emotions": ["emotion1", "emotion2", "emotion3"],
-            "symbols": [
-              {"name": "symbol name", "meaning": "detailed interpretation"}
-            ],
-            "interpretation": "comprehensive dream interpretation"
-          }`,
-        },
-        {
-          role: 'user',
-          content: `Analyze this dream: ${dream}`,
-        },
-      ],
-      temperature: 0.8,
-      max_tokens: 800,
-      response_format: { type: 'json_object' },
-    });
-
-    const analysis = JSON.parse(completion.choices[0].message.content || '{}');
+    // Use AI provider with fallback chain: Cerebras → Groq → OpenAI
+    const { analysis, tokens } = await analyzeWithAI(dream);
     const processingTime = Date.now() - startTime;
-    const tokensUsed = completion.usage?.total_tokens || 0;
 
     // Update experiment with results
     await LabExperiment.findOneAndUpdate(
@@ -74,11 +147,11 @@ export async function POST(req: NextRequest) {
       {
         output: {
           result: analysis,
-          metadata: { tokensUsed, processingTime },
+          metadata: { tokensUsed: tokens, processingTime },
         },
         status: 'completed',
         processingTime,
-        tokensUsed,
+        tokensUsed: tokens,
         completedAt: new Date(),
       }
     );
@@ -86,7 +159,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       analysis,
-      tokens: tokensUsed,
+      tokens,
       experimentId,
     });
   } catch (error: any) {

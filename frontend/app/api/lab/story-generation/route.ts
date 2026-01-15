@@ -1,14 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import dbConnect from '@/lib/mongodb';
 import { LabExperiment } from '@/lib/models/LabExperiment';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 interface StoryRequest {
   story: string;
   genre: string;
   action: 'continue' | 'enhance' | 'complete';
+}
+
+// AI Provider helper with fallback chain
+async function generateWithAI(systemPrompt: string, userPrompt: string): Promise<{ text: string; tokens: number }> {
+  // Try Cerebras first (fastest)
+  if (process.env.CEREBRAS_API_KEY) {
+    try {
+      const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 800,
+          temperature: 0.9,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return { 
+          text: data.choices[0].message.content || '', 
+          tokens: data.usage?.total_tokens || 0 
+        };
+      }
+    } catch (e) {
+      console.log('Cerebras failed, trying fallback...');
+    }
+  }
+
+  // Fallback to Groq
+  if (process.env.GROQ_API_KEY) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 800,
+          temperature: 0.9,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return { 
+          text: data.choices[0].message.content || '', 
+          tokens: data.usage?.total_tokens || 0 
+        };
+      }
+    } catch (e) {
+      console.log('Groq failed, trying OpenAI...');
+    }
+  }
+
+  // Final fallback to OpenAI
+  const OpenAI = (await import('openai')).default;
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.9,
+    max_tokens: 800,
+  });
+
+  return {
+    text: completion.choices[0].message.content || '',
+    tokens: completion.usage?.total_tokens || 0,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -60,19 +143,9 @@ export async function POST(req: NextRequest) {
         break;
     }
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.9,
-      max_tokens: 800,
-    });
-
-    const generatedText = completion.choices[0].message.content || '';
+    // Use AI provider with fallback chain: Cerebras → Groq → OpenAI
+    const { text: generatedText, tokens: tokensUsed } = await generateWithAI(systemPrompt, userPrompt);
     const processingTime = Date.now() - startTime;
-    const tokensUsed = completion.usage?.total_tokens || 0;
 
     // Update experiment with results
     await LabExperiment.findOneAndUpdate(

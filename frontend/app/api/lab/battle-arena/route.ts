@@ -232,6 +232,80 @@ async function getModelResponse(model: string, prompt: string, round: number) {
         };
       }
 
+      case 'cerebras': {
+        // Cerebras - Ultra fast Llama 3.3 70B
+        const response = await fetch(
+          'https://api.cerebras.ai/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: 'llama-3.3-70b',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are participating in an AI Battle Arena (Round ${round}/3). Give your best, most impressive response to win the user's vote. Be creative, accurate, and engaging.`,
+                },
+                { role: 'user', content: prompt },
+              ],
+              max_tokens: 500,
+              temperature: 0.8,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Cerebras API error: ${response.statusText}`);
+        }
+
+        const cereData = await response.json();
+        return {
+          text: cereData.choices[0].message.content,
+          time: Date.now() - startTime,
+          tokens: cereData.usage?.total_tokens || 0,
+        };
+      }
+
+      case 'groq': {
+        // Groq - Fast Llama inference
+        const response = await fetch(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: 'llama-3.3-70b-versatile',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are participating in an AI Battle Arena (Round ${round}/3). Give your best, most impressive response to win the user's vote. Be creative, accurate, and engaging.`,
+                },
+                { role: 'user', content: prompt },
+              ],
+              max_tokens: 500,
+              temperature: 0.8,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Groq API error: ${response.statusText}`);
+        }
+
+        const groqData = await response.json();
+        return {
+          text: groqData.choices[0].message.content,
+          time: Date.now() - startTime,
+          tokens: groqData.usage?.total_tokens || 0,
+        };
+      }
+
       default:
         throw new Error(`Unsupported model: ${model}`);
     }
