@@ -538,26 +538,50 @@ Quick networking tip: Your IP address is like your home address for the internet
     }
   };
 
-  // Floating chat button
+  // Floating chat button - Slim badge style with bounce animation
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 group"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full px-5 py-3 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2 animate-bounce-gentle"
           title="Ask Doctor Network"
         >
           <div className="relative">
-            <MessageCircle className="w-6 h-6" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            <MessageCircle className="w-5 h-5" />
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-blue-600 animate-pulse"></div>
           </div>
+          <span className="font-semibold text-sm whitespace-nowrap">Dr. Network</span>
+          <span className="text-blue-200 text-xs">👨‍⚕️</span>
         </button>
         
-        {/* Tooltip */}
-        <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Ask Doctor Network
-          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-        </div>
+        {/* Animated glow effect */}
+        <div className="absolute inset-0 -z-10 bg-blue-500 rounded-full blur-xl opacity-30 animate-pulse-slow"></div>
+        
+        <style jsx>{`
+          @keyframes bounce-gentle {
+            0%, 100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-8px);
+            }
+          }
+          @keyframes pulse-slow {
+            0%, 100% {
+              opacity: 0.3;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+          .animate-bounce-gentle {
+            animation: bounce-gentle 2s ease-in-out infinite;
+          }
+          .animate-pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
+          }
+        `}</style>
       </div>
     );
   }

@@ -220,6 +220,44 @@ function getDoctorNetworkPrompt(language: string = 'en'): string {
 }
 
 class AIProvider {
+  // Cerebras - Ultra fast inference (free tier available)
+  static async callCerebras(messages: any[]): Promise<string> {
+    const apiKey = process.env.CEREBRAS_API_KEY;
+    if (!apiKey) throw new Error('Cerebras API key not configured');
+
+    const response = await fetch(
+      'https://api.cerebras.ai/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b',
+          messages: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cerebras API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return (
+      data.choices?.[0]?.message?.content ||
+      "I apologize, but I couldn't generate a response right now."
+    );
+  }
+
   static async callGemini(messages: any[]): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error('Gemini API key not configured');
@@ -370,14 +408,19 @@ class AIProvider {
 }
 
 async function getAIResponse(messages: any[]): Promise<string> {
-  // Try providers in order: Mistral (primary), OpenAI, Anthropic, Gemini
-  const providers = ['mistral', 'openai', 'anthropic', 'gemini'];
+  // Try providers in order: Cerebras (primary - fast & free), Mistral, OpenAI, Anthropic, Gemini
+  const providers = ['cerebras', 'mistral', 'openai', 'anthropic', 'gemini'];
 
   for (const provider of providers) {
     try {
       console.log(`[Doctor Network] Trying ${provider}...`);
 
       switch (provider) {
+        case 'cerebras':
+          if (process.env.CEREBRAS_API_KEY) {
+            return await AIProvider.callCerebras(messages);
+          }
+          break;
         case 'mistral':
           if (process.env.MISTRAL_API_KEY) {
             return await AIProvider.callMistral(messages);
