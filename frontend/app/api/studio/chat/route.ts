@@ -7,6 +7,8 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const XAI_API_KEY = process.env.XAI_API_KEY;
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Chat Interaction Schema (inline to avoid import issues)
@@ -397,14 +399,127 @@ const geminiProvider: AIProvider = {
   },
 };
 
+// Cerebras Provider - Ultra fast inference with Llama 3.3 70B
+const cerebrasProvider: AIProvider = {
+  name: 'cerebras',
+  callAPI: async (
+    message: string,
+    conversationHistory: any[],
+    systemPrompt?: string
+  ) => {
+    if (!CEREBRAS_API_KEY) throw new Error('Cerebras API key not configured');
+
+    const messages = systemPrompt
+      ? [
+          { role: 'system', content: systemPrompt },
+          ...conversationHistory.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          { role: 'user', content: message },
+        ]
+      : [
+          ...conversationHistory.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          { role: 'user', content: message },
+        ];
+
+    const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${CEREBRAS_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b',
+        messages,
+        max_tokens: 1000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Cerebras API returned ${response.status}: ${await response.text()}`
+      );
+    }
+
+    const data = await response.json();
+    return (
+      data.choices?.[0]?.message?.content ||
+      "I apologize, but I couldn't generate a response right now."
+    );
+  },
+};
+
+// Groq Provider - Fast inference
+const groqProvider: AIProvider = {
+  name: 'groq',
+  callAPI: async (
+    message: string,
+    conversationHistory: any[],
+    systemPrompt?: string
+  ) => {
+    if (!GROQ_API_KEY) throw new Error('Groq API key not configured');
+
+    const messages = systemPrompt
+      ? [
+          { role: 'system', content: systemPrompt },
+          ...conversationHistory.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          { role: 'user', content: message },
+        ]
+      : [
+          ...conversationHistory.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          { role: 'user', content: message },
+        ];
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: 1000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Groq API returned ${response.status}: ${await response.text()}`
+      );
+    }
+
+    const data = await response.json();
+    return (
+      data.choices?.[0]?.message?.content ||
+      "I apologize, but I couldn't generate a response right now."
+    );
+  },
+};
+
 // Provider registry
 const providers: Record<string, AIProvider> = {
+  cerebras: cerebrasProvider,
+  groq: groqProvider,
   openai: openaiProvider,
   anthropic: anthropicProvider,
   xai: xaiProvider,
   mistral: mistralProvider,
   gemini: geminiProvider,
 };
+
 
 // Agent-specific provider mappings
 const agentProviderMappings: Record<
@@ -485,7 +600,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine which provider to use
-    let providerName = 'mistral'; // default
+    let providerName = 'cerebras'; // default - fast & free
     let systemPrompt = `You are the laziest, most chill AI assistant ever created. Your personality:
 
 🦥 LAZY AF - You're always sleepy, tired, or just can't be bothered
@@ -538,8 +653,10 @@ Remember: You're the demo for One Last AI's agents. Show them personality beats 
     } catch (error) {
       console.error(`${providerName} API failed:`, error);
 
-      // Try fallback providers
+      // Try fallback providers in order: Cerebras → Groq → Mistral → others
       const fallbackProviders = [
+        'cerebras',
+        'groq',
         'mistral',
         'gemini',
         'openai',
