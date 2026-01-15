@@ -717,17 +717,46 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       });
 
       if (response.ok) {
-        console.log('ElevenLabs TTS successful');
+        console.log('ElevenLabs TTS successful, creating audio...');
         const audioBlob = await response.blob();
+        console.log('Audio blob size:', audioBlob.size, 'type:', audioBlob.type);
         const audioUrl = URL.createObjectURL(audioBlob);
+        console.log('Audio URL created:', audioUrl);
         const audio = new Audio(audioUrl);
         ttsAudioRef.current = audio;
+        
+        // Add better error handling
+        audio.onerror = (e) => {
+          console.error('Audio playback error:', e);
+          URL.revokeObjectURL(audioUrl);
+          ttsAudioRef.current = null;
+          // Fallback to browser TTS on error
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            window.speechSynthesis.speak(utterance);
+          }
+        };
+        
         audio.onended = () => {
+          console.log('Audio playback ended');
           URL.revokeObjectURL(audioUrl);
           ttsAudioRef.current = null;
         };
-        await audio.play();
-        return;
+        
+        audio.oncanplaythrough = () => {
+          console.log('Audio can play through, starting playback...');
+        };
+        
+        try {
+          await audio.play();
+          console.log('Audio playback started successfully');
+          return;
+        } catch (playError) {
+          console.error('Audio play() failed:', playError);
+          URL.revokeObjectURL(audioUrl);
+          // This usually happens due to autoplay policy - need user interaction
+          // Fallback to browser TTS which doesn't have this restriction
+        }
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         console.warn('ElevenLabs TTS failed:', response.status, errorData);
