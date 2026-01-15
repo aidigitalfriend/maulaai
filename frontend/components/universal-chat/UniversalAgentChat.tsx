@@ -197,6 +197,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     const SR = getSpeechRecognition();
     if (!SR) {
       setIsRecording(false);
+      console.log('[Speech] Speech recognition not available');
       return;
     }
     const recognition = new SR();
@@ -209,11 +210,21 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
+      console.log('[Speech] Transcript:', transcript);
       setInputValue((prev) => `${prev.trim()} ${transcript}`.trim());
     };
 
-    recognition.onerror = () => setIsRecording(false);
-    recognition.onend = () => setIsRecording(false);
+    recognition.onerror = (e: any) => {
+      console.error('[Speech] Error:', e.error);
+      setIsRecording(false);
+    };
+    recognition.onend = () => {
+      console.log('[Speech] Recognition ended');
+      setIsRecording(false);
+    };
+    recognition.onstart = () => {
+      console.log('[Speech] Recognition started');
+    };
 
     recognitionRef.current = recognition;
 
@@ -222,20 +233,44 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     };
   }, []);
 
-  useEffect(() => {
+  // Handle microphone toggle
+  const handleMicrophoneToggle = useCallback(() => {
+    if (!hasSpeechRecognition) {
+      alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+    
     const recognition = recognitionRef.current;
-    if (!recognition) return;
+    if (!recognition) {
+      alert('Speech recognition failed to initialize.');
+      return;
+    }
+    
     if (isRecording) {
+      console.log('[Speech] Stopping...');
+      recognition.stop();
+      setIsRecording(false);
+    } else {
+      console.log('[Speech] Starting...');
       try {
         recognition.start();
+        setIsRecording(true);
       } catch (err) {
-        console.error('Speech recognition start failed', err);
-        setIsRecording(false);
+        console.error('[Speech] Start failed:', err);
+        // May already be running, try to stop and restart
+        recognition.stop();
+        setTimeout(() => {
+          try {
+            recognition.start();
+            setIsRecording(true);
+          } catch (e) {
+            console.error('[Speech] Restart failed:', e);
+            alert('Failed to start speech recognition. Please try again.');
+          }
+        }, 100);
       }
-    } else {
-      recognition.stop();
     }
-  }, [isRecording]);
+  }, [isRecording, hasSpeechRecognition]);
 
   const isValidObjectId = useCallback(
     (value: string) => /^[0-9a-fA-F]{24}$/.test(value),
@@ -683,30 +718,38 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Ref to track playing audio for TTS
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Stop TTS function
+  // Stop TTS function - immediately stops all audio
   const stopTTS = useCallback(() => {
+    console.log('[TTS] Stopping all audio...');
+    // Stop HTML5 Audio
     if (ttsAudioRef.current) {
       ttsAudioRef.current.pause();
-      ttsAudioRef.current.currentTime = 0;
+      ttsAudioRef.current.src = '';
       ttsAudioRef.current = null;
     }
+    // Stop browser speech synthesis
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
     setSpeakingMessageId(null);
+    console.log('[TTS] Stopped');
   }, []);
 
   const handleListenMessage = useCallback(async (content: string, messageId: string) => {
     if (typeof window === 'undefined') return;
 
-    // If this message is already speaking, stop it (toggle off)
-    if (speakingMessageId === messageId) {
-      stopTTS();
-      return;
-    }
+    console.log('[TTS] handleListenMessage called, messageId:', messageId, 'currently speaking:', speakingMessageId);
 
-    // Stop any other playing audio first
-    stopTTS();
+    // If ANY audio is speaking, stop it first
+    if (speakingMessageId) {
+      console.log('[TTS] Stopping current audio');
+      stopTTS();
+      // If clicking the same message, just stop (don't restart)
+      if (speakingMessageId === messageId) {
+        console.log('[TTS] Same message - just stopping');
+        return;
+      }
+    }
 
     const cleanText = content
       .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -1734,22 +1777,27 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           >
             <button
               type="button"
-              onClick={() => setIsRecording(!isRecording)}
+              onClick={handleMicrophoneToggle}
               className={`p-2.5 rounded-xl transition-all ${
                 isRecording
-                  ? 'bg-red-500 text-white animate-pulse'
+                  ? 'bg-red-500 text-white animate-pulse ring-2 ring-red-300 ring-offset-2'
                   : isNeural
-                    ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300 cursor-pointer'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-pointer'
               }`}
-              disabled={!hasSpeechRecognition}
               title={
-                hasSpeechRecognition
-                  ? 'Speech to Text'
-                  : 'Speech recognition not available in this browser'
+                isRecording
+                  ? 'Click to stop recording'
+                  : hasSpeechRecognition
+                    ? 'Click to speak (Speech to Text)'
+                    : 'Speech recognition not available - Click to learn more'
               }
             >
-              <MicrophoneIcon className="w-5 h-5" />
+              {isRecording ? (
+                <StopIcon className="w-5 h-5" />
+              ) : (
+                <MicrophoneIcon className="w-5 h-5" />
+              )}
             </button>
 
             <button
