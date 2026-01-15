@@ -408,7 +408,7 @@ export default function CanvasMode({
       {
         id: '1',
         role: 'assistant',
-        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\nI'll ask a few questions to understand your needs, then we can start building!`,
+        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\n**🎨 Image-to-Code:** Upload a design screenshot and I'll recreate it as code!\n\nI'll ask a few questions to understand your needs, then we can start building!`,
         timestamp: new Date(),
       },
     ]);
@@ -793,6 +793,13 @@ export default function CanvasMode({
     setAbortController(controller);
 
     try {
+      // Check if we have image attachments for image-to-code
+      const imageAttachments = uploadedFiles.length > 0 
+        ? uploadedFiles
+            .filter(f => f.type.startsWith('image/'))
+            .map(f => ({ url: f.url, type: f.type, name: f.name }))
+        : undefined;
+
       const response = await fetch('/api/canvas/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -807,6 +814,7 @@ export default function CanvasMode({
           history: messages
             .filter((m) => !m.isStreaming)
             .map((m) => ({ role: m.role, text: m.content })),
+          imageAttachments, // Send images for image-to-code
         }),
       });
 
@@ -1439,22 +1447,47 @@ export default function CanvasMode({
           </div>
         )}
 
-        {/* Uploaded Files */}
+        {/* Uploaded Files - Image-to-Code indicator */}
         {uploadedFiles.length > 0 && showChatPanel && (
           <div className={`px-3 py-2 ${brandColors.border} border-t`}>
+            {/* Show Image-to-Code badge if images uploaded */}
+            {uploadedFiles.some(f => f.type.startsWith('image/')) && (
+              <div className="flex items-center gap-2 mb-2 px-2 py-1.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-lg border border-cyan-500/30">
+                <SparklesIcon className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs text-cyan-300 font-medium">
+                  🎨 Image-to-Code mode - I&apos;ll recreate this design!
+                </span>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               {uploadedFiles.map((file) => (
                 <div
                   key={file.id}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${brandColors.border}`}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg ${brandColors.bgSecondary} text-xs border ${file.type.startsWith('image/') ? 'border-cyan-500/50' : brandColors.border}`}
                 >
-                  <PhotoIcon className="w-3 h-3 text-cyan-400" />
-                  <span className={brandColors.text}>
-                    {file.name.slice(0, 12)}...
-                  </span>
+                  {file.type.startsWith('image/') ? (
+                    <>
+                      {/* Show image thumbnail */}
+                      <img 
+                        src={file.url} 
+                        alt={file.name}
+                        className="w-8 h-8 object-cover rounded"
+                      />
+                      <span className={brandColors.text}>
+                        {file.name.length > 15 ? file.name.slice(0, 12) + '...' : file.name}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <PhotoIcon className="w-3 h-3 text-cyan-400" />
+                      <span className={brandColors.text}>
+                        {file.name.slice(0, 12)}...
+                      </span>
+                    </>
+                  )}
                   <button
                     onClick={() => removeUploadedFile(file.id)}
-                    className="text-red-400 hover:text-red-300"
+                    className="text-red-400 hover:text-red-300 ml-1"
                   >
                     <XCircleIcon className="w-4 h-4" />
                   </button>
