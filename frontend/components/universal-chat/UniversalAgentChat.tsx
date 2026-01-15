@@ -234,7 +234,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   }, []);
 
   // Handle microphone toggle
-  const handleMicrophoneToggle = useCallback(() => {
+  const handleMicrophoneToggle = useCallback(async () => {
     if (!hasSpeechRecognition) {
       alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
       return;
@@ -251,23 +251,28 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       recognition.stop();
       setIsRecording(false);
     } else {
+      console.log('[Speech] Requesting microphone permission...');
+      
+      // Request microphone permission first
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Stop the stream immediately - we just needed to get permission
+        stream.getTracks().forEach(track => track.stop());
+        console.log('[Speech] Microphone permission granted');
+      } catch (permissionError) {
+        console.error('[Speech] Microphone permission denied:', permissionError);
+        alert('Microphone access denied. Please allow microphone access in your browser settings to use voice input.');
+        return;
+      }
+      
       console.log('[Speech] Starting...');
       try {
         recognition.start();
         setIsRecording(true);
       } catch (err) {
         console.error('[Speech] Start failed:', err);
-        // May already be running, try to stop and restart
-        recognition.stop();
-        setTimeout(() => {
-          try {
-            recognition.start();
-            setIsRecording(true);
-          } catch (e) {
-            console.error('[Speech] Restart failed:', e);
-            alert('Failed to start speech recognition. Please try again.');
-          }
-        }, 100);
+        alert('Failed to start speech recognition. Please try again.');
+        setIsRecording(false);
       }
     }
   }, [isRecording, hasSpeechRecognition]);
