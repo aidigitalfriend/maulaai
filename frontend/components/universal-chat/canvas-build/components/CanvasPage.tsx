@@ -1229,7 +1229,6 @@ export default function CanvasMode({
             {showNavOverlay && (
               <span className={`text-sm ${brandColors.text}`}>Files</span>
             )}
-            )}
           </button>
           <button
             onClick={() =>
