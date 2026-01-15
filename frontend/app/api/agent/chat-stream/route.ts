@@ -5,6 +5,7 @@ import { NextRequest } from 'next/server';
 function getApiKeys() {
   return {
     openai: process.env.OPENAI_API_KEY,
+    openaiBackup: process.env.OPENAI_API_KEY_BACKUP, // Backup key for failover
     anthropic: process.env.ANTHROPIC_API_KEY,
     mistral: process.env.MISTRAL_API_KEY,
     xai: process.env.XAI_API_KEY,
@@ -343,19 +344,50 @@ export async function POST(request: NextRequest) {
               'llama-3.3-70b'
             );
           } else if (provider === 'openai' && apiKeys.openai) {
-            // OpenAI
+            // OpenAI with automatic failover to backup key
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o'
+              'gpt-4o-mini'
             );
+            
+            // If primary key failed and we have a backup, try it
+            if (hadError && apiKeys.openaiBackup) {
+              console.log('[chat-stream] Primary OpenAI key failed, trying backup key...');
+              hadError = await streamOpenAICompatible(
+                'https://api.openai.com/v1/chat/completions',
+                apiKeys.openaiBackup,
+                'gpt-4o-mini'
+              );
+              if (!hadError) {
+                console.log('[chat-stream] ✅ Backup OpenAI key succeeded!');
+              }
+            }
           } else if (apiKeys.openai) {
             // Fallback to OpenAI if provider not available
             console.log(`[chat-stream] Provider ${provider} not available, falling back to OpenAI`);
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o'
+              'gpt-4o-mini'
+            );
+            
+            // If primary key failed and we have a backup, try it
+            if (hadError && apiKeys.openaiBackup) {
+              console.log('[chat-stream] Primary OpenAI key failed in fallback, trying backup...');
+              hadError = await streamOpenAICompatible(
+                'https://api.openai.com/v1/chat/completions',
+                apiKeys.openaiBackup,
+                'gpt-4o-mini'
+              );
+            }
+          } else if (apiKeys.openaiBackup) {
+            // Try backup OpenAI key if primary not set
+            console.log('[chat-stream] No primary OpenAI key, using backup key');
+            hadError = await streamOpenAICompatible(
+              'https://api.openai.com/v1/chat/completions',
+              apiKeys.openaiBackup,
+              'gpt-4o-mini'
             );
           } else if (apiKeys.mistral) {
             // Fallback to Mistral
