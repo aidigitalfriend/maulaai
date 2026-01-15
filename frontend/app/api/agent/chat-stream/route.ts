@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     // If it's an image request and we have OpenAI API key, generate image
     if (isImageRequest && apiKeys.openai) {
-      console.log('[chat-stream] Detected image generation request');
+      console.log('[chat-stream] Detected image generation request, prompt:', message);
       
       // Extract the image prompt from the message
       const imagePrompt = message
@@ -131,7 +131,14 @@ export async function POST(request: NextRequest) {
         .replace(/please/gi, '')
         .trim() || message;
 
+      console.log('[chat-stream] Extracted image prompt:', imagePrompt);
+
       try {
+        // Create abort controller with 60 second timeout for DALL-E
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+        console.log('[chat-stream] Calling DALL-E API...');
         // Call DALL-E API directly
         const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
@@ -147,7 +154,11 @@ export async function POST(request: NextRequest) {
             quality: 'standard',
             style: 'vivid',
           }),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
+        console.log('[chat-stream] DALL-E API response status:', imageResponse.status);
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
@@ -155,15 +166,16 @@ export async function POST(request: NextRequest) {
           const revisedPrompt = imageData.data?.[0]?.revised_prompt;
 
           if (imageUrl) {
-            // Return image in the response
+            console.log('[chat-stream] Image generated successfully, URL:', imageUrl.substring(0, 100) + '...');
+            // Return image in the response using the token format
             const encoder = new TextEncoder();
             const imageResultStream = new ReadableStream({
               start(controller) {
                 const resultMessage = `🎨 **Image Generated Successfully!**\n\n![Generated Image](${imageUrl})\n\n**Prompt Used:** ${revisedPrompt || imagePrompt}\n\n[Click here to view/download the image](${imageUrl})`;
                 
-                // Send as streaming chunks to match expected format
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: resultMessage })}\n\n`));
-                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                // Send as streaming chunks using token format (matches regular chat)
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
                 controller.close();
               }
             });
