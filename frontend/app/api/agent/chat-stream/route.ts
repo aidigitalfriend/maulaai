@@ -94,6 +94,99 @@ export async function POST(request: NextRequest) {
     console.log(`[chat-stream] Request provider: ${provider}, model: ${model}`);
     console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}, cerebras=${!!apiKeys.cerebras}`);
 
+    // Check if user is requesting image generation
+    const imageGenerationPatterns = [
+      /create\s+(an?\s+)?image/i,
+      /generate\s+(an?\s+)?image/i,
+      /make\s+(an?\s+)?image/i,
+      /draw\s+(an?\s+)?/i,
+      /create\s+(an?\s+)?picture/i,
+      /generate\s+(an?\s+)?picture/i,
+      /make\s+(an?\s+)?picture/i,
+      /create\s+(an?\s+)?photo/i,
+      /generate\s+(an?\s+)?photo/i,
+      /create\s+art(work)?/i,
+      /generate\s+art(work)?/i,
+      /design\s+(an?\s+)?image/i,
+      /visualize/i,
+      /illustration\s+of/i,
+      /create\s+.*\.(jpg|jpeg|png|gif)/i,
+      /generate\s+.*\.(jpg|jpeg|png|gif)/i,
+    ];
+
+    const isImageRequest = imageGenerationPatterns.some(pattern => pattern.test(message));
+
+    // If it's an image request and we have OpenAI API key, generate image
+    if (isImageRequest && apiKeys.openai) {
+      console.log('[chat-stream] Detected image generation request');
+      
+      // Extract the image prompt from the message
+      const imagePrompt = message
+        .replace(/create\s+(an?\s+)?image\s+(of\s+)?/i, '')
+        .replace(/generate\s+(an?\s+)?image\s+(of\s+)?/i, '')
+        .replace(/make\s+(an?\s+)?image\s+(of\s+)?/i, '')
+        .replace(/draw\s+(an?\s+)?/i, '')
+        .replace(/create\s+(an?\s+)?picture\s+(of\s+)?/i, '')
+        .replace(/generate\s+(an?\s+)?picture\s+(of\s+)?/i, '')
+        .replace(/please/gi, '')
+        .trim() || message;
+
+      try {
+        // Call DALL-E API directly
+        const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKeys.openai}`,
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: imagePrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'standard',
+            style: 'vivid',
+          }),
+        });
+
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          const imageUrl = imageData.data?.[0]?.url;
+          const revisedPrompt = imageData.data?.[0]?.revised_prompt;
+
+          if (imageUrl) {
+            // Return image in the response
+            const encoder = new TextEncoder();
+            const imageResultStream = new ReadableStream({
+              start(controller) {
+                const resultMessage = `🎨 **Image Generated Successfully!**\n\n![Generated Image](${imageUrl})\n\n**Prompt Used:** ${revisedPrompt || imagePrompt}\n\n[Click here to view/download the image](${imageUrl})`;
+                
+                // Send as streaming chunks to match expected format
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                controller.close();
+              }
+            });
+
+            return new Response(imageResultStream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+                'X-Accel-Buffering': 'no',
+              },
+            });
+          }
+        } else {
+          console.error('[chat-stream] DALL-E API error:', await imageResponse.text());
+          // Fall through to regular chat if image generation fails
+        }
+      } catch (imageError) {
+        console.error('[chat-stream] Image generation error:', imageError);
+        // Fall through to regular chat if image generation fails
+      }
+    }
+
     // Create streaming response
     const encoder = new TextEncoder();
 
@@ -103,8 +196,13 @@ export async function POST(request: NextRequest) {
           // Build messages array
           const messages: any[] = [];
 
-          if (systemPrompt) {
-            messages.push({ role: 'system', content: systemPrompt });
+          // Enhance system prompt with image generation capability
+          const enhancedSystemPrompt = systemPrompt 
+            ? `${systemPrompt}\n\n[IMPORTANT CAPABILITY] You have the ability to generate images! When a user asks you to create, generate, make, or draw an image, picture, or artwork, you CAN do it. Just acknowledge their request and describe what you're creating - the system will automatically generate the image using DALL-E. Do NOT say you cannot create images. Do NOT suggest using external tools like Canva, Photoshop, or other websites. You have built-in image generation capabilities.`
+            : `You are a helpful AI assistant with image generation capabilities. When a user asks you to create, generate, make, or draw an image, picture, or artwork, you CAN do it. Just acknowledge their request and describe what you're creating - the system will automatically generate the image using DALL-E.`;
+
+          if (enhancedSystemPrompt) {
+            messages.push({ role: 'system', content: enhancedSystemPrompt });
           }
 
           // Add conversation history
