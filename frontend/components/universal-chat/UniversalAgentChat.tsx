@@ -717,6 +717,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
   // Ref to track playing audio for TTS
   const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
+  // Use ref for immediate state tracking (avoids stale closure)
+  const speakingMessageIdRef = useRef<string | null>(null);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    speakingMessageIdRef.current = speakingMessageId;
+  }, [speakingMessageId]);
 
   // Stop TTS function - immediately stops all audio
   const stopTTS = useCallback(() => {
@@ -732,20 +739,23 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       window.speechSynthesis.cancel();
     }
     setSpeakingMessageId(null);
+    speakingMessageIdRef.current = null;
     console.log('[TTS] Stopped');
   }, []);
 
   const handleListenMessage = useCallback(async (content: string, messageId: string) => {
     if (typeof window === 'undefined') return;
 
-    console.log('[TTS] handleListenMessage called, messageId:', messageId, 'currently speaking:', speakingMessageId);
+    // Use ref for immediate state check (avoids stale closure)
+    const currentlySpeaking = speakingMessageIdRef.current;
+    console.log('[TTS] handleListenMessage called, messageId:', messageId, 'currently speaking:', currentlySpeaking);
 
     // If ANY audio is speaking, stop it first
-    if (speakingMessageId) {
+    if (currentlySpeaking) {
       console.log('[TTS] Stopping current audio');
       stopTTS();
       // If clicking the same message, just stop (don't restart)
-      if (speakingMessageId === messageId) {
+      if (currentlySpeaking === messageId) {
         console.log('[TTS] Same message - just stopping');
         return;
       }
@@ -765,8 +775,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       return;
     }
 
-    // Set this message as speaking
+    // Set this message as speaking (both state and ref)
     setSpeakingMessageId(messageId);
+    speakingMessageIdRef.current = messageId;
 
     // Try ElevenLabs first, fall back to browser TTS
     try {
@@ -792,14 +803,16 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           URL.revokeObjectURL(audioUrl);
           ttsAudioRef.current = null;
           setSpeakingMessageId(null);
+          speakingMessageIdRef.current = null;
           // Fallback to browser TTS on error
           if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.onend = () => setSpeakingMessageId(null);
-            utterance.onerror = () => setSpeakingMessageId(null);
+            utterance.onend = () => { setSpeakingMessageId(null); speakingMessageIdRef.current = null; };
+            utterance.onerror = () => { setSpeakingMessageId(null); speakingMessageIdRef.current = null; };
             window.speechSynthesis.speak(utterance);
           } else {
             setSpeakingMessageId(null);
+            speakingMessageIdRef.current = null;
           }
         };
         
@@ -808,6 +821,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           URL.revokeObjectURL(audioUrl);
           ttsAudioRef.current = null;
           setSpeakingMessageId(null);
+          speakingMessageIdRef.current = null;
         };
         
         audio.oncanplaythrough = () => {
@@ -829,10 +843,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         console.warn('ElevenLabs TTS failed:', response.status, errorData);
         setSpeakingMessageId(null);
+        speakingMessageIdRef.current = null;
       }
     } catch (err) {
       console.warn('ElevenLabs TTS error:', err);
       setSpeakingMessageId(null);
+      speakingMessageIdRef.current = null;
     }
 
     // Fallback to browser speechSynthesis
@@ -846,6 +862,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       utterance.onerror = (event) => {
         console.error('Speech synthesis error:', event);
         setSpeakingMessageId(null);
+        speakingMessageIdRef.current = null;
       };
       
       utterance.onstart = () => {
@@ -855,14 +872,16 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       utterance.onend = () => {
         console.log('Speech synthesis ended');
         setSpeakingMessageId(null);
+        speakingMessageIdRef.current = null;
       };
 
       window.speechSynthesis.speak(utterance);
     } else {
       console.error('Speech synthesis not supported in this browser');
       setSpeakingMessageId(null);
+      speakingMessageIdRef.current = null;
     }
-  }, [speakingMessageId, stopTTS]);
+  }, [stopTTS]); // Removed speakingMessageId - using ref instead
 
   const handleSendMessage = useCallback(async () => {
     if (

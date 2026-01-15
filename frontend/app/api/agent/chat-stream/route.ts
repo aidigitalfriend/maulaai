@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     console.log(`[chat-stream] Request provider: ${provider}, model: ${model}`);
     console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}, cerebras=${!!apiKeys.cerebras}`);
 
-    // Check if user is requesting image generation
+    // Check if user is requesting image generation - flexible patterns
     const imageGenerationPatterns = [
       /create\s+(an?\s+)?image/i,
       /generate\s+(an?\s+)?image/i,
@@ -112,6 +112,15 @@ export async function POST(request: NextRequest) {
       /illustration\s+of/i,
       /create\s+.*\.(jpg|jpeg|png|gif)/i,
       /generate\s+.*\.(jpg|jpeg|png|gif)/i,
+      // More flexible patterns for different word orders
+      /image\s+(create|generate|make)/i,
+      /picture\s+(create|generate|make)/i,
+      /photo\s+(create|generate|make)/i,
+      /(create|make|generate)\s+.{1,50}\s+(image|picture|photo)/i,
+      /\b(dawn|sunset|sunrise|landscape|portrait|city|nature|animal|car|house|person|scene)\s+.*\s*(image|picture|photo)\s*(create|generate|make)?/i,
+      /\b(image|picture|photo)\s+.{1,30}\s*(create|generate|make)/i,
+      // Catch "X image with Y" patterns
+      /\w+\s+image\s+(with|in|of|for|on)/i,
     ];
 
     // Patterns for image editing requests
