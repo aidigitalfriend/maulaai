@@ -1869,46 +1869,102 @@ export default function CanvasMode({
 
       {/* =========== MOBILE ROTATE PROMPT =========== */}
       {showRotatePrompt && isMobilePortrait && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-lg">
-          <div className="text-center p-8 max-w-sm">
-            {/* Rotate Phone Icon */}
-            <div className="mb-6 relative inline-block">
-              <div className="w-20 h-32 border-4 border-cyan-400 rounded-2xl relative mx-auto animate-pulse">
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-6 h-1 bg-cyan-400/50 rounded-full" />
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 border-2 border-cyan-400/50 rounded-full" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-lg">
+          {/* Small dismiss arrow at top right */}
+          <button
+            onClick={() => setShowRotatePrompt(false)}
+            className="absolute top-6 right-6 p-2 text-gray-500 hover:text-white transition"
+            aria-label="Dismiss"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div className="text-center p-4">
+            {/* Large Animated Rotating Phone */}
+            <div className="relative w-48 h-48 mx-auto mb-8">
+              {/* Phone that rotates */}
+              <div 
+                className="absolute inset-0 flex items-center justify-center"
+                style={{
+                  animation: 'phoneRotate 3s ease-in-out infinite',
+                }}
+              >
+                {/* Phone body */}
+                <div className="w-20 h-36 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl border-4 border-cyan-400 shadow-lg shadow-cyan-500/30 relative">
+                  {/* Screen */}
+                  <div className="absolute inset-2 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-2xl overflow-hidden">
+                    {/* Screen content lines */}
+                    <div className="mt-4 mx-2 space-y-2">
+                      <div className="h-2 bg-white/30 rounded w-3/4" />
+                      <div className="h-2 bg-white/20 rounded w-1/2" />
+                      <div className="h-2 bg-white/20 rounded w-2/3" />
+                    </div>
+                  </div>
+                  {/* Top notch/speaker */}
+                  <div className="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-gray-700 rounded-full" />
+                  {/* Home button/bar */}
+                  <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-600 rounded-full" />
+                </div>
               </div>
-              {/* Rotation Arrow */}
-              <div className="absolute -right-4 top-1/2 -translate-y-1/2">
-                <svg className="w-10 h-10 text-purple-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+
+              {/* Circular rotation arrows */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg 
+                  className="w-48 h-48 text-purple-500/40"
+                  style={{ animation: 'spin 4s linear infinite' }}
+                  viewBox="0 0 100 100"
+                >
+                  {/* Circular arrow path */}
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeDasharray="120 60"
+                    d="M 50 10 A 40 40 0 1 1 10 50"
+                  />
+                  {/* Arrow head */}
+                  <polygon
+                    fill="currentColor"
+                    points="8,42 18,50 8,58"
+                    style={{ transform: 'rotate(-20deg)', transformOrigin: '50% 50%' }}
+                  />
                 </svg>
               </div>
             </div>
-            
-            <h2 className="text-2xl font-bold text-white mb-3">Rotate Your Device</h2>
-            <p className="text-gray-400 mb-6">
-              For the best Canvas experience, please rotate your phone to <span className="text-cyan-400 font-semibold">landscape mode</span>.
-            </p>
-            
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => setShowRotatePrompt(false)}
-                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:opacity-90 transition"
-              >
-                Continue Anyway
-              </button>
-              <button
-                onClick={onClose}
-                className="w-full py-3 px-6 rounded-xl border border-white/20 text-gray-300 font-medium hover:bg-white/5 transition"
-              >
-                Go Back
-              </button>
-            </div>
-            
-            <p className="text-xs text-gray-500 mt-6">
-              📱 Canvas works best in landscape for full access to all features
-            </p>
+
+            {/* Simple text */}
+            <p className="text-xl text-white font-medium mb-2">Rotate for best experience</p>
+            <p className="text-gray-500 text-sm">📱 ➡️ 📱</p>
           </div>
+
+          {/* CSS Animation keyframes */}
+          <style jsx>{`
+            @keyframes phoneRotate {
+              0%, 100% {
+                transform: rotate(0deg);
+              }
+              25% {
+                transform: rotate(-15deg);
+              }
+              50% {
+                transform: rotate(-90deg) scale(1.1);
+              }
+              75% {
+                transform: rotate(-75deg);
+              }
+            }
+            @keyframes spin {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          `}</style>
         </div>
       )}
 
