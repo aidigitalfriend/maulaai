@@ -114,7 +114,136 @@ export async function POST(request: NextRequest) {
       /generate\s+.*\.(jpg|jpeg|png|gif)/i,
     ];
 
+    // Patterns for image editing requests
+    const imageEditPatterns = [
+      /edit\s+(this\s+)?(image|photo|picture)/i,
+      /change\s+(the\s+)?(background|color|style)/i,
+      /modify\s+(this\s+)?(image|photo|picture)/i,
+      /remove\s+(the\s+)?(background|object|person|text)/i,
+      /add\s+.+\s+to\s+(this\s+)?(image|photo|picture)/i,
+      /replace\s+.+\s+(in|on)\s+(this\s+)?(image|photo|picture)/i,
+      /make\s+(this|the)\s+(image|photo|picture|it)\s+/i,
+      /transform\s+(this\s+)?(image|photo|picture)/i,
+      /convert\s+(this\s+)?(image|photo|picture)/i,
+      /can\s+you\s+edit/i,
+      /edit\s+it/i,
+      /change\s+it/i,
+    ];
+
     const isImageRequest = imageGenerationPatterns.some(pattern => pattern.test(message));
+    const isImageEditRequest = imageEditPatterns.some(pattern => pattern.test(message));
+    const hasImageAttachment = attachments?.some((a: any) => a.type?.startsWith('image/'));
+
+    // Handle image editing - when user uploads an image and asks to edit it
+    if (isImageEditRequest && hasImageAttachment && apiKeys.openai) {
+      console.log('[chat-stream] Detected image edit request with attachment');
+      
+      // Get the image attachment
+      const imageAttachment = attachments.find((a: any) => a.type?.startsWith('image/'));
+      const imageUrl = imageAttachment?.url || imageAttachment?.data;
+      
+      if (imageUrl) {
+        try {
+          // Step 1: Use GPT-4 Vision to analyze the image
+          console.log('[chat-stream] Analyzing image with GPT-4 Vision...');
+          const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKeys.openai}`,
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    {
+                      type: 'text',
+                      text: `Describe this image in detail for image generation. Focus on the main subject, colors, composition, and style. Keep description under 200 words. The user wants to: ${message}`
+                    },
+                    {
+                      type: 'image_url',
+                      image_url: { url: imageUrl, detail: 'high' }
+                    }
+                  ]
+                }
+              ],
+              max_tokens: 500,
+            }),
+          });
+
+          if (!visionResponse.ok) {
+            console.error('[chat-stream] Vision API error:', await visionResponse.text());
+            throw new Error('Vision API failed');
+          }
+
+          const visionData = await visionResponse.json();
+          const imageDescription = visionData.choices?.[0]?.message?.content || '';
+          console.log('[chat-stream] Image description:', imageDescription.substring(0, 100) + '...');
+
+          // Step 2: Generate edited image with DALL-E using the description + edit request
+          const editPrompt = `Based on this image: ${imageDescription}\n\nApply this edit: ${message}\n\nCreate a new version of the image with the requested changes.`;
+          
+          console.log('[chat-stream] Generating edited image with DALL-E...');
+          const dalleResponse = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKeys.openai}`,
+            },
+            body: JSON.stringify({
+              model: 'dall-e-3',
+              prompt: editPrompt,
+              n: 1,
+              size: '1024x1024',
+              quality: 'standard',
+              style: 'vivid',
+            }),
+          });
+
+          if (dalleResponse.ok) {
+            const dalleData = await dalleResponse.json();
+            const newImageUrl = dalleData.data?.[0]?.url;
+            const revisedPrompt = dalleData.data?.[0]?.revised_prompt;
+
+            if (newImageUrl) {
+              console.log('[chat-stream] Edited image generated successfully');
+              const encoder = new TextEncoder();
+              const editResultStream = new ReadableStream({
+                start(controller) {
+                  const resultMessage = `✨ **Image Edited Successfully!**
+
+![edited-image-${Date.now()}.png](${newImageUrl})
+
+**What I did:** I analyzed your original image and created a new version with the requested changes: "${message}"
+
+**Note:** This is a newly generated image based on your original. Some details may differ from the original.`;
+                  
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                  controller.close();
+                }
+              });
+
+              return new Response(editResultStream, {
+                headers: {
+                  'Content-Type': 'text/event-stream',
+                  'Cache-Control': 'no-cache',
+                  Connection: 'keep-alive',
+                  'X-Accel-Buffering': 'no',
+                },
+              });
+            }
+          } else {
+            console.error('[chat-stream] DALL-E edit error:', await dalleResponse.text());
+          }
+        } catch (editError) {
+          console.error('[chat-stream] Image edit error:', editError);
+          // Fall through to regular chat
+        }
+      }
+    }
 
     // If it's an image request and we have OpenAI API key, generate image
     if (isImageRequest && apiKeys.openai) {
@@ -215,10 +344,13 @@ export async function POST(request: NextRequest) {
           // Build messages array
           const messages: any[] = [];
 
-          // Enhance system prompt with image generation capability
+          // Enhance system prompt with image generation and editing capabilities
           const enhancedSystemPrompt = systemPrompt 
-            ? `${systemPrompt}\n\n[IMPORTANT CAPABILITY] You have the ability to generate images! When a user asks you to create, generate, make, or draw an image, picture, or artwork, you CAN do it. Just acknowledge their request and describe what you're creating - the system will automatically generate the image using DALL-E. Do NOT say you cannot create images. Do NOT suggest using external tools like Canva, Photoshop, or other websites. You have built-in image generation capabilities.`
-            : `You are a helpful AI assistant with image generation capabilities. When a user asks you to create, generate, make, or draw an image, picture, or artwork, you CAN do it. Just acknowledge their request and describe what you're creating - the system will automatically generate the image using DALL-E.`;
+            ? `${systemPrompt}\n\n[IMPORTANT CAPABILITIES] You have the following image abilities:
+1. IMAGE GENERATION: You CAN create new images! When a user asks you to create, generate, make, or draw an image, picture, or artwork, acknowledge their request - the system will automatically generate the image using DALL-E.
+2. IMAGE EDITING: You CAN edit images! When a user uploads an image and asks to edit it (change background, modify colors, add/remove elements, etc.), acknowledge their request - the system will analyze the image and generate an edited version.
+Do NOT say you cannot create or edit images. Do NOT suggest using external tools like Canva, Photoshop, or other websites. You have built-in image generation and editing capabilities.`
+            : `You are a helpful AI assistant with image generation and editing capabilities. You CAN create new images and edit uploaded images. When asked, acknowledge the request - the system handles the actual generation/editing.`;
 
           if (enhancedSystemPrompt) {
             messages.push({ role: 'system', content: enhancedSystemPrompt });
