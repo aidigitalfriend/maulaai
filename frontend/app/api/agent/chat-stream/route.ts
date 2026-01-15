@@ -167,11 +167,18 @@ export async function POST(request: NextRequest) {
 
           if (imageUrl) {
             console.log('[chat-stream] Image generated successfully, URL:', imageUrl.substring(0, 100) + '...');
+            
             // Return image in the response using the token format
+            // Use markdown image format which frontend already handles with download button
             const encoder = new TextEncoder();
             const imageResultStream = new ReadableStream({
               start(controller) {
-                const resultMessage = `🎨 **Image Generated Successfully!**\n\n![Generated Image](${imageUrl})\n\n**Prompt Used:** ${revisedPrompt || imagePrompt}\n\n[Click here to view/download the image](${imageUrl})`;
+                // Use standard markdown image - frontend has custom img renderer with download button
+                const resultMessage = `🎨 **Image Generated Successfully!**
+
+![generated-image-${Date.now()}.png](${imageUrl})
+
+**Prompt Used:** ${revisedPrompt || imagePrompt}`;
                 
                 // Send as streaming chunks using token format (matches regular chat)
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));

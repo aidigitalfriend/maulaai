@@ -135,6 +135,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     Record<string, 'up' | 'down' | null>
   >({});
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
@@ -1164,7 +1165,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeHighlight]}
                     components={{
-                      // Custom image renderer with download button
+                      // Custom image renderer with download button and modal preview
                       img({ src, alt, ...props }) {
                         const handleDownload = async (e: React.MouseEvent) => {
                           e.preventDefault();
@@ -1206,7 +1207,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                               src={src}
                               alt={alt}
                               className="max-w-full rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
-                              onClick={() => window.open(src, '_blank')}
+                              onClick={() => setPreviewImage({ src: src || '', alt: alt || '' })}
                               {...props}
                             />
                             <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
@@ -1780,6 +1781,67 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           </div>
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img
+              src={previewImage.src}
+              alt={previewImage.alt}
+              className="max-w-full max-h-[85vh] rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const filename = previewImage.alt || `generated-image-${Date.now()}.png`;
+                  try {
+                    const proxyUrl = `/api/uploads/proxy-download?url=${encodeURIComponent(previewImage.src)}&filename=${encodeURIComponent(filename)}`;
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error('Proxy failed');
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);
+                    }, 100);
+                  } catch (error) {
+                    console.error('Download failed:', error);
+                  }
+                }}
+                className="bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg"
+                title="Download image"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download
+              </button>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="bg-white/90 hover:bg-white text-gray-800 p-2 rounded-lg shadow-lg"
+                title="Close preview"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-center text-white/70 text-sm mt-3">Click outside or press close to exit preview</p>
+          </div>
+        </div>
+      )}
     </EnhancedChatLayout>
   );
 }
