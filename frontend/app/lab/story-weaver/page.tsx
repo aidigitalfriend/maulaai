@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { BookOpen, Pen, Sparkles, Save, Share2, RefreshCw } from 'lucide-react'
 
@@ -10,6 +10,27 @@ export default function StoryWeaverPage() {
   const [genre, setGenre] = useState('fantasy')
   const [isGenerating, setIsGenerating] = useState(false)
   const [stats, setStats] = useState({ activeUsers: 0, totalCreated: 0 })
+
+  // Calculate story metrics in real-time
+  const storyMetrics = useMemo(() => {
+    const words = story.split(/\s+/).filter(w => w.length > 0).length
+    
+    // Estimate chapters: roughly 1 chapter per 500 words, minimum 0
+    const chapters = Math.max(0, Math.floor(words / 500) + (words > 100 ? 1 : 0))
+    
+    // Count unique capitalized names (potential characters)
+    const namePattern = /\b[A-Z][a-z]{2,}\b/g
+    const potentialNames = story.match(namePattern) || []
+    // Filter out common words that start with capital (beginning of sentences)
+    const commonWords = ['The', 'This', 'That', 'There', 'They', 'Then', 'When', 'What', 'Where', 'Which', 'While', 'After', 'Before', 'Maybe', 'Perhaps', 'Something', 'Someone', 'Suddenly', 'Finally', 'However']
+    const characters = new Set(potentialNames.filter(name => !commonWords.includes(name))).size
+    
+    // Calculate read time: average 200 words per minute
+    const readTimeMinutes = Math.max(0, Math.ceil(words / 200))
+    const readTime = readTimeMinutes < 1 ? '<1m' : `${readTimeMinutes}m`
+    
+    return { words, chapters, characters, readTime }
+  }, [story])
 
   // Fetch real-time stats
   useEffect(() => {
@@ -223,15 +244,15 @@ export default function StoryWeaverPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                <div className="text-2xl font-bold text-emerald-400">3</div>
+                <div className="text-2xl font-bold text-emerald-400">{storyMetrics.chapters}</div>
                 <div className="text-sm text-gray-400">Chapters</div>
               </div>
               <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                <div className="text-2xl font-bold text-cyan-400">5</div>
+                <div className="text-2xl font-bold text-cyan-400">{storyMetrics.characters}</div>
                 <div className="text-sm text-gray-400">Characters</div>
               </div>
               <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                <div className="text-2xl font-bold text-purple-400">12m</div>
+                <div className="text-2xl font-bold text-purple-400">{storyMetrics.readTime}</div>
                 <div className="text-sm text-gray-400">Read Time</div>
               </div>
             </div>
