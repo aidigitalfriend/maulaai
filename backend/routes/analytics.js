@@ -156,6 +156,192 @@ router.post('/track/lab', async (req, res) => {
 });
 
 // ============================================
+// GET LAB ANALYTICS STATS (Real-time)
+// ============================================
+router.get('/lab/stats', async (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+    // Get unique active sessions in last 5 minutes (active users)
+    const activeUsers = await LabExperiment.distinct('sessionId', {
+      createdAt: { $gte: fiveMinutesAgo }
+    });
+
+    // Get total tests today
+    const testsToday = await LabExperiment.countDocuments({
+      createdAt: { $gte: today }
+    });
+
+    // Get average session duration from recent experiments
+    const avgDurationResult = await LabExperiment.aggregate([
+      { $match: { createdAt: { $gte: twentyFourHoursAgo }, processingTime: { $gt: 0 } } },
+      { $group: { _id: '$sessionId', totalTime: { $sum: '$processingTime' } } },
+      { $group: { _id: null, avgDuration: { $avg: '$totalTime' } } }
+    ]);
+    const avgSessionMs = avgDurationResult[0]?.avgDuration || 0;
+    const avgMinutes = Math.floor(avgSessionMs / 60000);
+    const avgSeconds = Math.floor((avgSessionMs % 60000) / 1000);
+
+    // Experiment types mapping
+    const experimentTypes = [
+      { id: 'image-playground', name: 'AI Image Playground', color: 'from-pink-500 to-rose-500' },
+      { id: 'story-weaver', name: 'AI Story Weaver', color: 'from-green-500 to-emerald-500' },
+      { id: 'neural-art', name: 'Neural Art Studio', color: 'from-orange-500 to-amber-500' },
+      { id: 'voice-cloning', name: 'Voice Cloning Studio', color: 'from-purple-500 to-indigo-500' },
+      { id: 'emotion-visualizer', name: 'Emotion Visualizer', color: 'from-red-500 to-pink-500' },
+      { id: 'personality-mirror', name: 'Personality Mirror', color: 'from-teal-500 to-cyan-500' },
+      { id: 'music-generator', name: 'AI Music Generator', color: 'from-blue-500 to-cyan-500' },
+      { id: 'battle-arena', name: 'AI Battle Arena', color: 'from-yellow-500 to-orange-500' },
+      { id: 'dream-interpreter', name: 'Dream Interpreter', color: 'from-violet-500 to-purple-500' },
+      { id: 'future-predictor', name: 'Future Predictor', color: 'from-indigo-500 to-blue-500' }
+    ];
+
+    // Get stats for each experiment type
+    const experimentStats = await Promise.all(
+      experimentTypes.map(async (exp) => {
+        // Total tests all time
+        const totalTests = await LabExperiment.countDocuments({
+          experimentType: exp.id
+        });
+
+        // Active users (unique sessions in last 5 min)
+        const activeNow = await LabExperiment.distinct('sessionId', {
+          experimentType: exp.id,
+          createdAt: { $gte: fiveMinutesAgo }
+        });
+
+        // Average duration for this experiment
+        const durationResult = await LabExperiment.aggregate([
+          { $match: { experimentType: exp.id, processingTime: { $gt: 0 } } },
+          { $group: { _id: null, avg: { $avg: '$processingTime' } } }
+        ]);
+        const avgMs = durationResult[0]?.avg || 0;
+        const mins = Math.floor(avgMs / 60000);
+        const secs = Math.floor((avgMs % 60000) / 1000);
+
+        // 24h trend calculation
+        const last24h = await LabExperiment.countDocuments({
+          experimentType: exp.id,
+          createdAt: { $gte: twentyFourHoursAgo }
+        });
+        const prev24h = await LabExperiment.countDocuments({
+          experimentType: exp.id,
+          createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo }
+        });
+        
+        let trendValue = 0;
+        let trend = 'stable';
+        if (prev24h > 0) {
+          trendValue = ((last24h - prev24h) / prev24h) * 100;
+          trend = trendValue > 2 ? 'up' : trendValue < -2 ? 'down' : 'stable';
+        } else if (last24h > 0) {
+          trendValue = 100;
+          trend = 'up';
+        }
+
+        return {
+          id: exp.id,
+          name: exp.name,
+          tests: totalTests,
+          activeUsers: activeNow.length,
+          avgDuration: `${mins}m ${secs.toString().padStart(2, '0')}s`,
+          trend,
+          trendValue: parseFloat(trendValue.toFixed(1)),
+          color: exp.color
+        };
+      })
+    );
+
+    // Sort by total tests descending
+    experimentStats.sort((a, b) => b.tests - a.tests);
+
+    res.json({
+      success: true,
+      data: {
+        realtime: {
+          totalUsers: activeUsers.length,
+          activeExperiments: 10,
+          testsToday,
+          avgSessionTime: `${avgMinutes}m ${avgSeconds.toString().padStart(2, '0')}s`
+        },
+        experiments: experimentStats,
+        timestamp: now.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error getting lab stats:', error);
+    res.status(500).json({ error: 'Failed to get lab stats' });
+  }
+});
+
+// ============================================
+// GET RECENT LAB ACTIVITY (Live Feed)
+// ============================================
+router.get('/lab/activity', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    
+    // Get recent experiments
+    const recentExperiments = await LabExperiment.find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select('experimentType sessionId status createdAt completedAt')
+      .lean();
+
+    // Map experiment types to display names
+    const nameMap = {
+      'image-playground': { name: 'AI Image Playground', color: 'text-pink-400' },
+      'story-weaver': { name: 'Story Weaver', color: 'text-green-400' },
+      'neural-art': { name: 'Neural Art Studio', color: 'text-orange-400' },
+      'voice-cloning': { name: 'Voice Cloning Studio', color: 'text-purple-400' },
+      'emotion-visualizer': { name: 'Emotion Visualizer', color: 'text-red-400' },
+      'personality-mirror': { name: 'Personality Mirror', color: 'text-teal-400' },
+      'music-generator': { name: 'Music Generator', color: 'text-blue-400' },
+      'battle-arena': { name: 'AI Battle Arena', color: 'text-yellow-400' },
+      'debate-arena': { name: 'Debate Arena', color: 'text-yellow-400' },
+      'dream-interpreter': { name: 'Dream Interpreter', color: 'text-violet-400' },
+      'future-predictor': { name: 'Future Predictor', color: 'text-indigo-400' }
+    };
+
+    // Generate anonymous user numbers based on session ID
+    const activity = recentExperiments.map((exp, index) => {
+      const userNum = Math.abs(exp.sessionId?.hashCode?.() || parseInt(exp.sessionId?.slice(-4), 16) || (1000 + index));
+      const info = nameMap[exp.experimentType] || { name: exp.experimentType, color: 'text-gray-400' };
+      const action = exp.status === 'completed' ? 'completed' : exp.status === 'processing' ? 'started' : 'started';
+      
+      // Calculate time ago
+      const seconds = Math.floor((Date.now() - new Date(exp.createdAt).getTime()) / 1000);
+      let timeAgo;
+      if (seconds < 60) timeAgo = seconds === 0 ? 'Just now' : `${seconds}s ago`;
+      else if (seconds < 3600) timeAgo = `${Math.floor(seconds / 60)}m ago`;
+      else if (seconds < 86400) timeAgo = `${Math.floor(seconds / 3600)}h ago`;
+      else timeAgo = `${Math.floor(seconds / 86400)}d ago`;
+
+      return {
+        user: `User #${userNum % 10000}`,
+        action,
+        experiment: info.name,
+        time: timeAgo,
+        color: info.color
+      };
+    });
+
+    res.json({
+      success: true,
+      data: activity,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting lab activity:', error);
+    res.status(500).json({ error: 'Failed to get lab activity' });
+  }
+});
+
+// ============================================
 // TRACK CHAT INTERACTION
 // ============================================
 router.post('/track/chat', async (req, res) => {
