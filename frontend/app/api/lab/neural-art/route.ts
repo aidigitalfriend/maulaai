@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       input: {
         prompt: `Transform image with ${style} style`,
         settings: { style },
-        files: [{ url: imageUrl, type: 'image' }],
+        files: [imageUrl], // Schema expects array of strings
       },
       status: 'processing',
       startedAt: new Date(),
