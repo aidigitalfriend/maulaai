@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Replicate from 'replicate';
 import dbConnect from '@/lib/mongodb';
 import { LabExperiment } from '@/lib/models/LabExperiment';
-
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN!,
-});
 
 // Demo audio samples (royalty-free music URLs) for fallback
 const DEMO_AUDIO_SAMPLES: Record<string, string[]> = {
@@ -54,6 +49,40 @@ function getDemoAudio(genre?: string): string {
   return samples[Math.floor(Math.random() * samples.length)];
 }
 
+// Helper to poll HuggingFace for result (models can take time to load)
+async function pollHuggingFace(
+  url: string,
+  headers: Record<string, string>,
+  body: string,
+  maxAttempts = 10,
+  delayMs = 5000
+): Promise<ArrayBuffer> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+    });
+
+    if (response.ok) {
+      return await response.arrayBuffer();
+    }
+
+    // Check if model is loading (503) - wait and retry
+    if (response.status === 503) {
+      const errorData = await response.json().catch(() => ({}));
+      console.log(`HuggingFace model loading, attempt ${attempt + 1}/${maxAttempts}...`, errorData);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      continue;
+    }
+
+    // Other errors - throw
+    const errorText = await response.text();
+    throw new Error(`HuggingFace error ${response.status}: ${errorText}`);
+  }
+  throw new Error('HuggingFace model did not load in time');
+}
+
 interface MusicGenerationRequest {
   prompt: string;
   genre?: string;
@@ -74,7 +103,7 @@ export async function POST(req: NextRequest) {
       prompt,
       genre,
       mood,
-      duration = 30,
+      duration = 10, // HuggingFace free tier works better with shorter durations
     }: MusicGenerationRequest = await req.json();
 
     if (!prompt) {
@@ -104,34 +133,43 @@ export async function POST(req: NextRequest) {
 
     let output: string;
     let isDemo = false;
+    const provider = 'huggingface';
 
-    try {
-      // Using Replicate's MusicGen model
-      output = (await replicate.run(
-        'meta/musicgen:7be0f12c54a8d033a0fbd14418c9af98962da9a86f5ff7811f9b3423a1f0b7d7',
-        {
-          input: {
-            prompt: enhancedPrompt,
-            duration: duration,
-            model_version: 'stereo-large',
-            output_format: 'mp3',
-            normalization_strategy: 'peak',
+    const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+    
+    if (!HUGGINGFACE_API_KEY) {
+      console.log('HuggingFace API key not configured, using demo audio');
+      output = getDemoAudio(genre);
+      isDemo = true;
+    } else {
+      try {
+        // Using HuggingFace Inference API with MusicGen Small (faster loading)
+        const audioBuffer = await pollHuggingFace(
+          'https://api-inference.huggingface.co/models/facebook/musicgen-small',
+          {
+            'Authorization': `Bearer ${HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json',
           },
-        }
-      )) as string;
-    } catch (replicateError: any) {
-      // Check if it's a payment/credit error (402) or auth error
-      if (
-        replicateError.message?.includes('402') ||
-        replicateError.message?.includes('Payment') ||
-        replicateError.message?.includes('credit') ||
-        replicateError.message?.includes('Insufficient')
-      ) {
-        console.log('Replicate credits exhausted, using demo audio');
+          JSON.stringify({
+            inputs: enhancedPrompt,
+            parameters: {
+              max_new_tokens: Math.min(duration * 50, 500), // ~10 tokens per second of audio
+            },
+          }),
+          15, // max attempts
+          4000 // delay between attempts (4 seconds)
+        );
+
+        // Convert to base64 data URL
+        const base64Audio = Buffer.from(audioBuffer).toString('base64');
+        output = `data:audio/wav;base64,${base64Audio}`;
+        
+        console.log('HuggingFace MusicGen generation successful');
+      } catch (hfError: any) {
+        console.error('HuggingFace error:', hfError.message);
+        console.log('Falling back to demo audio');
         output = getDemoAudio(genre);
         isDemo = true;
-      } else {
-        throw replicateError;
       }
     }
 
@@ -144,7 +182,7 @@ export async function POST(req: NextRequest) {
         output: {
           result: output,
           fileUrl: output,
-          metadata: { prompt: enhancedPrompt, duration, processingTime, isDemo },
+          metadata: { prompt: enhancedPrompt, duration, processingTime, isDemo, provider: isDemo ? 'demo' : provider },
         },
         status: 'completed',
         processingTime,
@@ -159,6 +197,7 @@ export async function POST(req: NextRequest) {
       duration,
       experimentId,
       isDemo,
+      provider: isDemo ? 'demo' : provider,
       ...(isDemo && { 
         notice: 'Demo mode: Using sample audio. AI generation temporarily unavailable.' 
       }),
