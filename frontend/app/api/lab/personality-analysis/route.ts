@@ -9,6 +9,78 @@ interface PersonalityRequest {
   writingSample: string;
 }
 
+const systemPrompt = `You are an expert psychologist and personality analyst. Analyze writing samples to determine personality traits using the Big Five model. Return analysis in JSON format with:
+{
+  "personalityType": "MBTI-style code and name",
+  "traits": {
+    "openness": 0-100,
+    "conscientiousness": 0-100,
+    "extraversion": 0-100,
+    "agreeableness": 0-100,
+    "emotionalStability": 0-100
+  },
+  "communicationStyle": "description",
+  "strengths": ["strength1", "strength2", "strength3"],
+  "growthAreas": ["area1", "area2", "area3"],
+  "summary": "comprehensive personality summary"
+}`;
+
+// AI Provider helper with fallback chain
+async function analyzePersonality(writingSample: string): Promise<{ analysis: any; tokens: number }> {
+  const userPrompt = `Analyze this writing sample for personality traits:\n\n"${writingSample}"`;
+
+  // Try Cerebras first (fastest)
+  if (process.env.CEREBRAS_API_KEY) {
+    try {
+      const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices[0].message.content;
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return { analysis: JSON.parse(jsonMatch[0]), tokens: data.usage?.total_tokens || 0 };
+        }
+      }
+    } catch (e) {
+      console.log('Cerebras failed, trying Anthropic...');
+    }
+  }
+
+  // Fallback to Anthropic Claude
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    temperature: 0.7,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+  });
+
+  const content = message.content[0];
+  const analysisText = content.type === 'text' ? content.text : '';
+  const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+  
+  return {
+    analysis: jsonMatch ? JSON.parse(jsonMatch[0]) : {},
+    tokens: message.usage.input_tokens + message.usage.output_tokens,
+  };
+}
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   let experimentId = `exp_${Date.now()}_${Math.random()
@@ -39,49 +111,9 @@ export async function POST(req: NextRequest) {
     });
     await experiment.save();
 
-    const message = await anthropic.messages.create({
-      model: 'claude-3-opus-20240229',
-      max_tokens: 1000,
-      temperature: 0.7,
-      system: `You are an expert psychologist and personality analyst. Analyze writing samples to determine personality traits using the Big Five model. Return analysis in JSON format with:
-      {
-        "personalityType": "MBTI-style code and name",
-        "traits": {
-          "openness": 0-100,
-          "conscientiousness": 0-100,
-          "extraversion": 0-100,
-          "agreeableness": 0-100,
-          "emotionalStability": 0-100
-        },
-        "communicationStyle": "description",
-        "strengths": ["strength1", "strength2", "strength3"],
-        "growthAreas": ["area1", "area2", "area3"],
-        "summary": "comprehensive personality summary"
-      }`,
-      messages: [
-        {
-          role: 'user',
-          content: `Analyze this writing sample for personality traits:\n\n"${writingSample}"`,
-        },
-      ],
-    });
-
-    const content = message.content[0];
-    const analysisText = content.type === 'text' ? content.text : '';
-
-    // Parse JSON from the response
-    let analysis;
-    try {
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0]);
-      }
-    } catch (e) {
-      throw new Error('Failed to parse personality analysis');
-    }
-
+    // Use AI provider with fallback chain: Cerebras → Anthropic
+    const { analysis, tokens: tokensUsed } = await analyzePersonality(writingSample);
     const processingTime = Date.now() - startTime;
-    const tokensUsed = message.usage.input_tokens + message.usage.output_tokens;
 
     // Update experiment with results
     await LabExperiment.findOneAndUpdate(
