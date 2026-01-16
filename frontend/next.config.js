@@ -133,6 +133,7 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: '*.wikimedia.org' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
     unoptimized: false,
     // Fix CSP for Next.js images - allow inline scripts for Stripe, Cloudflare, Google Maps and other integrations

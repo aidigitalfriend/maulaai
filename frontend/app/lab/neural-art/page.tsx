@@ -45,19 +45,19 @@ export default function NeuralArtPage() {
     { 
       id: 'warhol', 
       name: 'Warhol', 
-      preview: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1f/Campbells_Soup_Cans_MOMA.jpg/220px-Campbells_Soup_Cans_MOMA.jpg',
+      preview: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=200&h=200&fit=crop',
       description: 'Pop art bold'
     },
     { 
       id: 'abstract', 
       name: 'Abstract', 
-      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Robert_Delaunay%2C_1913%2C_Premier_Disque%2C_134_cm%2C_52.7_inches%2C_Private_collection.jpg/250px-Robert_Delaunay%2C_1913%2C_Premier_Disque%2C_134_cm%2C_52.7_inches%2C_Private_collection.jpg',
+      preview: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=200&h=200&fit=crop',
       description: 'Modern shapes'
     },
     { 
       id: 'watercolor', 
       name: 'Watercolor', 
-      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat_03.jpg/220px-Cat_03.jpg',
+      preview: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=200&h=200&fit=crop',
       description: 'Soft flowing'
     }
   ]
