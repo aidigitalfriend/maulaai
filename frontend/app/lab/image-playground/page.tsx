@@ -12,14 +12,54 @@ export default function ImagePlaygroundPage() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
 
   const styles = [
-    { id: 'realistic', name: 'Realistic', color: 'bg-gradient-to-br from-blue-500 to-cyan-500' },
-    { id: 'artistic', name: 'Artistic', color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
-    { id: 'anime', name: 'Anime', color: 'bg-gradient-to-br from-pink-500 to-rose-500' },
-    { id: 'oil-painting', name: 'Oil Painting', color: 'bg-gradient-to-br from-orange-500 to-amber-500' },
-    { id: 'watercolor', name: 'Watercolor', color: 'bg-gradient-to-br from-cyan-500 to-blue-500' },
-    { id: 'digital-art', name: 'Digital Art', color: 'bg-gradient-to-br from-violet-500 to-purple-500' },
-    { id: '3d-render', name: '3D Render', color: 'bg-gradient-to-br from-indigo-500 to-blue-500' },
-    { id: 'pixel-art', name: 'Pixel Art', color: 'bg-gradient-to-br from-green-500 to-emerald-500' }
+    { 
+      id: 'realistic', 
+      name: 'Realistic', 
+      preview: 'bg-gradient-to-br from-sky-400 via-blue-300 to-green-400',
+      icon: '📷'
+    },
+    { 
+      id: 'artistic', 
+      name: 'Artistic', 
+      preview: 'bg-gradient-to-br from-purple-500 via-pink-400 to-yellow-300',
+      icon: '🎨'
+    },
+    { 
+      id: 'anime', 
+      name: 'Anime', 
+      preview: 'bg-gradient-to-br from-pink-400 via-purple-400 to-cyan-300',
+      icon: '✨'
+    },
+    { 
+      id: 'oil-painting', 
+      name: 'Oil Painting', 
+      preview: 'bg-gradient-to-br from-amber-600 via-orange-400 to-yellow-500',
+      icon: '🖼️'
+    },
+    { 
+      id: 'watercolor', 
+      name: 'Watercolor', 
+      preview: 'bg-gradient-to-br from-cyan-300 via-blue-200 to-pink-200',
+      icon: '💧'
+    },
+    { 
+      id: 'digital-art', 
+      name: 'Digital Art', 
+      preview: 'bg-gradient-to-br from-violet-600 via-fuchsia-500 to-cyan-400',
+      icon: '💻'
+    },
+    { 
+      id: '3d-render', 
+      name: '3D Render', 
+      preview: 'bg-gradient-to-br from-slate-600 via-indigo-500 to-blue-400',
+      icon: '🎮'
+    },
+    { 
+      id: 'pixel-art', 
+      name: 'Pixel Art', 
+      preview: 'bg-gradient-to-br from-green-500 via-lime-400 to-emerald-400',
+      icon: '👾'
+    }
   ]
 
   const examples = [
@@ -196,13 +236,15 @@ export default function ImagePlaygroundPage() {
                   <button
                     key={style.id}
                     onClick={() => setSelectedStyle(style.id)}
-                    className={`p-4 rounded-xl border-2 transition-all ${
+                    className={`p-3 rounded-xl border-2 transition-all ${
                       selectedStyle === style.id
-                        ? 'border-purple-500 bg-white/10'
+                        ? 'border-purple-500 bg-white/15 shadow-lg shadow-purple-500/20'
                         : 'border-white/20 hover:border-white/40 bg-white/5'
                     }`}
                   >
-                    <div className={`w-full h-12 rounded-lg ${style.color} mb-2`} />
+                    <div className={`w-full h-14 rounded-lg ${style.preview} mb-2 flex items-center justify-center text-2xl shadow-inner`}>
+                      {style.icon}
+                    </div>
                     <div className="text-sm font-medium text-center">{style.name}</div>
                   </button>
                 ))}
