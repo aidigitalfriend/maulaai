@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Heart, Smile, Frown, Meh, AlertCircle, RefreshCw } from 'lucide-react'
 
@@ -9,6 +9,29 @@ export default function EmotionVisualizerPage() {
   const [text, setText] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<any>(null)
+  const [stats, setStats] = useState({ activeUsers: 0, totalAnalyzed: 0 })
+
+  // Fetch real-time stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/lab/emotion-analysis?stats=true')
+        if (response.ok) {
+          const data = await response.json()
+          setStats({
+            activeUsers: data.activeUsers || 0,
+            totalAnalyzed: data.totalAnalyzed || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleAnalyze = async () => {
     if (!text.trim()) {
@@ -97,10 +120,10 @@ export default function EmotionVisualizerPage() {
           <div className="flex items-center gap-6 mt-6">
             <div className="flex items-center gap-2 text-sm">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">187 users active</span>
+              <span className="text-gray-300">{stats.activeUsers} users active</span>
             </div>
             <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">8,340 texts analyzed</div>
+            <div className="text-sm text-gray-300">{stats.totalAnalyzed.toLocaleString()} texts analyzed</div>
           </div>
         </motion.div>
 
