@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BookOpen, Pen, Sparkles, Save, Share2, RefreshCw } from 'lucide-react'
 
@@ -9,6 +9,29 @@ export default function StoryWeaverPage() {
   const [story, setStory] = useState('')
   const [genre, setGenre] = useState('fantasy')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [stats, setStats] = useState({ activeUsers: 0, totalCreated: 0 })
+
+  // Fetch real-time stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/lab/story-generation?stats=true')
+        if (response.ok) {
+          const data = await response.json()
+          setStats({
+            activeUsers: data.activeUsers || 0,
+            totalCreated: data.totalCreated || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const genres = [
     { id: 'fantasy', name: 'Fantasy', icon: '🧙‍♂️' },
@@ -91,10 +114,10 @@ export default function StoryWeaverPage() {
           <div className="flex items-center gap-6 mt-6">
             <div className="flex items-center gap-2 text-sm">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">289 users active</span>
+              <span className="text-gray-300">{stats.activeUsers.toLocaleString()} users active</span>
             </div>
             <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">11,200 stories created</div>
+            <div className="text-sm text-gray-300">{stats.totalCreated.toLocaleString()} stories created</div>
           </div>
         </motion.div>
 
