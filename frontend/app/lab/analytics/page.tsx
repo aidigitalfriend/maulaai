@@ -35,8 +35,10 @@ interface ExperimentStat {
 
 interface RealtimeData {
   totalUsers: number
+  labActiveUsers: number
   activeExperiments: number
   testsToday: number
+  totalTestsAllTime: number
   avgSessionTime: string
 }
 
@@ -51,8 +53,10 @@ interface ActivityItem {
 export default function AnalyticsPage() {
   const [realtimeData, setRealtimeData] = useState<RealtimeData>({
     totalUsers: 0,
+    labActiveUsers: 0,
     activeExperiments: 10,
     testsToday: 0,
+    totalTestsAllTime: 0,
     avgSessionTime: '0m 00s'
   })
   const [loading, setLoading] = useState(true)

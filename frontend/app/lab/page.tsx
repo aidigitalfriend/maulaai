@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Sparkles,
   Mic,
@@ -21,6 +22,8 @@ import {
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { LockedCard } from '@/components/LockedCard';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://onelastai.co';
+
 interface Experiment {
   id: string;
   name: string;
@@ -32,8 +35,59 @@ interface Experiment {
   testCount: number;
 }
 
+interface LabStats {
+  totalTestsAllTime: number;
+  labActiveUsers: number;
+  totalUsers: number;
+}
+
 export default function AILabPage() {
   const { hasActiveSubscription } = useSubscriptionStatus();
+  const [labStats, setLabStats] = useState<LabStats>({
+    totalTestsAllTime: 0,
+    labActiveUsers: 0,
+    totalUsers: 0
+  });
+  const [experimentTestCounts, setExperimentTestCounts] = useState<Record<string, number>>({});
+
+  // Fetch real stats from API
+  const fetchLabStats = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/analytics/lab/stats`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) return;
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setLabStats({
+          totalTestsAllTime: result.data.realtime.totalTestsAllTime || 0,
+          labActiveUsers: result.data.realtime.labActiveUsers || 0,
+          totalUsers: result.data.realtime.totalUsers || 0
+        });
+        
+        // Build test counts map from experiments
+        const counts: Record<string, number> = {};
+        result.data.experiments?.forEach((exp: any) => {
+          counts[exp.id] = exp.tests || 0;
+        });
+        setExperimentTestCounts(counts);
+      }
+    } catch (err) {
+      console.error('Error fetching lab stats:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLabStats();
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchLabStats, 10000);
+    return () => clearInterval(interval);
+  }, [fetchLabStats]);
+
   const experiments: Experiment[] = [
     {
       id: 'battle-arena',
@@ -158,7 +212,11 @@ export default function AILabPage() {
     },
   ];
 
-  const totalTests = experiments.reduce((sum, exp) => sum + exp.testCount, 0);
+  // Get test count for experiment from API data, fallback to 0
+  const getTestCount = (expId: string): number => {
+    return experimentTestCounts[expId] || 0;
+  };
+
   const liveExperiments = experiments.filter(
     (exp) => exp.status === 'live'
   ).length;
@@ -208,9 +266,14 @@ export default function AILabPage() {
               className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
             >
               <Users className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-green-400">
-                {totalTests.toLocaleString()}
-              </div>
+              <motion.div 
+                key={labStats.totalTestsAllTime}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                className="text-3xl font-bold text-green-400"
+              >
+                {labStats.totalTestsAllTime.toLocaleString()}
+              </motion.div>
               <div className="text-sm text-gray-300">Total Tests</div>
             </motion.div>
 
@@ -219,10 +282,15 @@ export default function AILabPage() {
               className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
             >
               <Sparkles className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-cyan-400">
-                {liveExperiments}
-              </div>
-              <div className="text-sm text-gray-300">Live Now</div>
+              <motion.div
+                key={labStats.labActiveUsers}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                className="text-3xl font-bold text-cyan-400"
+              >
+                {labStats.labActiveUsers}
+              </motion.div>
+              <div className="text-sm text-gray-300">Active Now</div>
             </motion.div>
 
             <Link href="/lab/analytics">
@@ -298,7 +366,7 @@ export default function AILabPage() {
                     {/* Stats */}
                     <div className="flex items-center gap-2 text-sm text-gray-400">
                       <Users className="w-4 h-4" />
-                      <span>{experiment.testCount.toLocaleString()} tests</span>
+                      <span>{getTestCount(experiment.id).toLocaleString()} tests</span>
                     </div>
 
                     {/* Hover Arrow */}

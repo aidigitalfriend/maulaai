@@ -22,6 +22,7 @@ import {
 } from '../lib/analytics-tracker.js';
 import { getTrackingData } from '../lib/tracking-middleware.js';
 import { LabExperiment } from '../models/LabExperiment.js';
+import { Session } from '../models/Analytics.js';
 
 const router = express.Router();
 
@@ -166,8 +167,14 @@ router.get('/lab/stats', async (req, res) => {
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-    // Get unique active sessions in last 5 minutes (active users)
-    const activeUsers = await LabExperiment.distinct('sessionId', {
+    // Get platform-wide active sessions in last 5 minutes
+    const platformActiveSessions = await Session.countDocuments({
+      isActive: true,
+      lastActivity: { $gte: fiveMinutesAgo }
+    });
+
+    // Get unique lab experiment sessions in last 5 minutes  
+    const labActiveUsers = await LabExperiment.distinct('sessionId', {
       createdAt: { $gte: fiveMinutesAgo }
     });
 
@@ -175,6 +182,9 @@ router.get('/lab/stats', async (req, res) => {
     const testsToday = await LabExperiment.countDocuments({
       createdAt: { $gte: today }
     });
+
+    // Get total tests all time
+    const totalTestsAllTime = await LabExperiment.countDocuments({});
 
     // Get average session duration from recent experiments
     const avgDurationResult = await LabExperiment.aggregate([
@@ -263,9 +273,11 @@ router.get('/lab/stats', async (req, res) => {
       success: true,
       data: {
         realtime: {
-          totalUsers: activeUsers.length,
+          totalUsers: platformActiveSessions, // Platform-wide active users
+          labActiveUsers: labActiveUsers.length, // Lab-specific active users
           activeExperiments: 10,
           testsToday,
+          totalTestsAllTime, // Total tests ever
           avgSessionTime: `${avgMinutes}m ${avgSeconds.toString().padStart(2, '0')}s`
         },
         experiments: experimentStats,
@@ -307,9 +319,10 @@ router.get('/lab/activity', async (req, res) => {
       'future-predictor': { name: 'Future Predictor', color: 'text-indigo-400' }
     };
 
-    // Generate anonymous user numbers based on session ID
+    // Generate user identifier from session ID (show shortened version)
     const activity = recentExperiments.map((exp, index) => {
-      const userNum = Math.abs(exp.sessionId?.hashCode?.() || parseInt(exp.sessionId?.slice(-4), 16) || (1000 + index));
+      // Use actual session ID (shortened for privacy) - format: SID-XXXX
+      const sessionShort = exp.sessionId ? `SID-${exp.sessionId.slice(-8).toUpperCase()}` : `Guest-${index + 1}`;
       const info = nameMap[exp.experimentType] || { name: exp.experimentType, color: 'text-gray-400' };
       const action = exp.status === 'completed' ? 'completed' : exp.status === 'processing' ? 'started' : 'started';
       
@@ -322,7 +335,7 @@ router.get('/lab/activity', async (req, res) => {
       else timeAgo = `${Math.floor(seconds / 86400)}d ago`;
 
       return {
-        user: `User #${userNum % 10000}`,
+        user: sessionShort,
         action,
         experiment: info.name,
         time: timeAgo,
