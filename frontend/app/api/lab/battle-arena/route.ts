@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import dbConnect from '@/lib/mongodb';
 import { LabExperiment } from '@/lib/models/LabExperiment';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 interface BattleRequest {
   prompt: string;
@@ -153,7 +151,7 @@ async function getModelResponse(model: string, prompt: string, round: number) {
 
       case 'claude-3': {
         const message = await anthropic.messages.create({
-          model: 'claude-3-opus-20240229',
+          model: 'claude-sonnet-4-20250514',
           max_tokens: 500,
           temperature: 0.8,
           system: `You are participating in an AI Battle Arena (Round ${round}/3). Give your best, most impressive response to win the user's vote. Be creative, accurate, and engaging.`,
@@ -169,29 +167,42 @@ async function getModelResponse(model: string, prompt: string, round: number) {
       }
 
       case 'gemini': {
-        const geminiModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const result = await geminiModel.generateContent({
-          contents: [
-            {
-              role: 'user',
-              parts: [
+        // Using Gemini REST API directly to avoid SDK referrer issues
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [
                 {
-                  text: `[AI Battle Arena - Round ${round}/3]\n\n${prompt}\n\nGive your best response to win the vote!`,
+                  parts: [
+                    {
+                      text: `[AI Battle Arena - Round ${round}/3]\n\n${prompt}\n\nGive your best response to win the vote!`,
+                    },
+                  ],
                 },
               ],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 500,
-            temperature: 0.8,
-          },
-        });
+              generationConfig: {
+                maxOutputTokens: 500,
+                temperature: 0.8,
+              },
+            }),
+          }
+        );
 
-        const response = await result.response;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+        }
+
+        const geminiData = await response.json();
         return {
-          text: response.text(),
+          text: geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '',
           time: Date.now() - startTime,
-          tokens: 0, // Gemini doesn't return token count easily
+          tokens: geminiData.usageMetadata?.totalTokenCount || 0,
         };
       }
 
