@@ -1,14 +1,40 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { MessageSquare, Users, Trophy, Plus, Play, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { MessageSquare, Users, Trophy, Plus, Play, ThumbsUp, Loader2, Zap } from 'lucide-react'
 
 export default function DebateArenaPage() {
   const [activeDebate, setActiveDebate] = useState<any>(null)
   const [isDebating, setIsDebating] = useState(false)
   const [newTopic, setNewTopic] = useState('')
+  const [debateStream, setDebateStream] = useState<any[]>([])
+  const [currentRound, setCurrentRound] = useState(1)
+  const [stats, setStats] = useState({ totalDebates: 6120, activeUsers: 132 })
+  const [providerInfo, setProviderInfo] = useState<string>('')
+
+  // Fetch real-time stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/lab/debate-arena?stats=true')
+        const data = await res.json()
+        if (data.success && data.stats) {
+          setStats({
+            totalDebates: data.stats.totalDebates,
+            activeUsers: data.stats.activeUsers,
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const liveDebates = [
     {
@@ -39,8 +65,48 @@ export default function DebateArenaPage() {
 
   const handleStartDebate = async (debate: any) => {
     setActiveDebate(debate)
+    setDebateStream([])
+    setCurrentRound(1)
     setIsDebating(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    setProviderInfo('')
+
+    try {
+      const res = await fetch('/api/lab/debate-arena', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: debate.topic,
+          agent1Position: debate.agent1.position,
+          agent2Position: debate.agent2.position,
+          round: 1,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.success) {
+        setProviderInfo(`⚡ Powered by ${data.agent1.provider}`)
+        setDebateStream([
+          {
+            agent: debate.agent1.name,
+            position: data.agent1.position,
+            text: data.agent1.response,
+            color: 'blue',
+            responseTime: data.agent1.responseTime,
+          },
+          {
+            agent: debate.agent2.name,
+            position: data.agent2.position,
+            text: data.agent2.response,
+            color: 'purple',
+            responseTime: data.agent2.responseTime,
+          },
+        ])
+      }
+    } catch (error) {
+      console.error('Debate error:', error)
+    }
+
     setIsDebating(false)
   }
 
@@ -74,10 +140,15 @@ export default function DebateArenaPage() {
           <div className="flex items-center gap-6 mt-6">
             <div className="flex items-center gap-2 text-sm">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">132 users active</span>
+              <span className="text-gray-300">{stats.activeUsers.toLocaleString()} users active</span>
             </div>
             <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">6,120 debates hosted</div>
+            <div className="text-sm text-gray-300">{stats.totalDebates.toLocaleString()} debates hosted</div>
+            <div className="text-sm text-gray-400">•</div>
+            <div className="flex items-center gap-1 text-sm text-cyan-400">
+              <Zap className="w-3 h-3" />
+              <span>Cerebras + Groq</span>
+            </div>
           </div>
         </motion.div>
 
@@ -168,10 +239,20 @@ export default function DebateArenaPage() {
 
                     <button
                       onClick={() => handleStartDebate(debate)}
-                      className="w-full py-4 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/50 transition-all flex items-center justify-center gap-3"
+                      disabled={isDebating}
+                      className="w-full py-4 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/50 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                     >
-                      <Play className="w-5 h-5" />
-                      Watch Debate
+                      {isDebating ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Starting Debate...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-5 h-5" />
+                          Watch Debate
+                        </>
+                      )}
                     </button>
                   </motion.div>
                 ))}
@@ -216,17 +297,39 @@ export default function DebateArenaPage() {
             </div>
 
             <div className="bg-white/5 border border-white/20 rounded-xl p-6 min-h-64">
-              <h3 className="text-xl font-bold mb-4">Debate Stream</h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-500/10 rounded-lg border-l-4 border-blue-500">
-                  <div className="font-semibold text-blue-400 mb-2">{activeDebate.agent1.name}:</div>
-                  <p className="text-gray-300">The benefits far outweigh the risks when we consider the potential...</p>
-                </div>
-                <div className="p-4 bg-purple-500/10 rounded-lg border-l-4 border-purple-500">
-                  <div className="font-semibold text-purple-400 mb-2">{activeDebate.agent2.name}:</div>
-                  <p className="text-gray-300">While I acknowledge those points, we must also consider the implications...</p>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">Debate Stream</h3>
+                {providerInfo && (
+                  <span className="text-xs text-cyan-400">{providerInfo}</span>
+                )}
               </div>
+              {isDebating ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-yellow-400" />
+                    <p className="text-gray-400">AI agents are preparing their arguments...</p>
+                  </div>
+                </div>
+              ) : debateStream.length > 0 ? (
+                <div className="space-y-4">
+                  {debateStream.map((entry, index) => (
+                    <div
+                      key={index}
+                      className={`p-4 ${entry.color === 'blue' ? 'bg-blue-500/10 border-l-4 border-blue-500' : 'bg-purple-500/10 border-l-4 border-purple-500'} rounded-lg`}
+                    >
+                      <div className={`font-semibold ${entry.color === 'blue' ? 'text-blue-400' : 'text-purple-400'} mb-2 flex items-center justify-between`}>
+                        <span>{entry.agent}:</span>
+                        <span className="text-xs text-gray-500">{entry.responseTime}ms</span>
+                      </div>
+                      <p className="text-gray-300 whitespace-pre-wrap">{entry.text}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-48 text-gray-500">
+                  <p>Click a debate topic to watch AI agents argue!</p>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
