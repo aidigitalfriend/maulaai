@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Brain, Moon, Sparkles, Eye, RefreshCw } from 'lucide-react'
 
@@ -9,6 +9,30 @@ export default function DreamInterpreterPage() {
   const [dream, setDream] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<any>(null)
+  const [stats, setStats] = useState({ activeUsers: 0, totalAnalyzed: 0 })
+
+  // Fetch real-time stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/lab/dream-analysis?stats=true')
+        if (response.ok) {
+          const data = await response.json()
+          setStats({
+            activeUsers: data.activeUsers || 0,
+            totalAnalyzed: data.totalAnalyzed || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+
+    fetchStats()
+    // Refresh stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleAnalyze = async () => {
     if (!dream.trim()) {
@@ -69,10 +93,10 @@ export default function DreamInterpreterPage() {
           <div className="flex items-center gap-6 mt-6">
             <div className="flex items-center gap-2 text-sm">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">98 users active</span>
+              <span className="text-gray-300">{stats.activeUsers.toLocaleString()} users active</span>
             </div>
             <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">5,420 dreams analyzed</div>
+            <div className="text-sm text-gray-300">{stats.totalAnalyzed.toLocaleString()} dreams analyzed</div>
           </div>
         </motion.div>
 
