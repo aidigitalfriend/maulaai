@@ -1,70 +1,24 @@
 import { NextResponse } from 'next/server';
-import Replicate from 'replicate';
 import dbConnect from '@/lib/mongodb';
 import { LabExperiment } from '@/lib/models/LabExperiment';
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN!,
-});
-
 // Map style names to artistic prompts
-const stylePrompts = {
+const stylePrompts: Record<string, string> = {
   'van-gogh':
-    'in the style of Vincent van Gogh, post-impressionism, swirling brushstrokes, vibrant colors',
+    'in the style of Vincent van Gogh, post-impressionism, swirling brushstrokes, vibrant colors, starry night aesthetic',
   picasso:
-    'in the style of Pablo Picasso, cubism, geometric shapes, fragmented perspective',
+    'in the style of Pablo Picasso, cubism, geometric shapes, fragmented perspective, bold lines',
   monet:
-    'in the style of Claude Monet, impressionism, soft brushwork, light and color',
+    'in the style of Claude Monet, impressionism, soft brushwork, light and color, water lilies aesthetic',
   kandinsky:
-    'in the style of Wassily Kandinsky, abstract expressionism, bold colors and shapes',
-  dali: 'in the style of Salvador Dalí, surrealism, dreamlike, melting forms',
+    'in the style of Wassily Kandinsky, abstract expressionism, bold colors and shapes, geometric',
+  dali: 'in the style of Salvador Dalí, surrealism, dreamlike, melting forms, bizarre imagery',
   warhol:
-    'in the style of Andy Warhol, pop art, bold colors, repeated patterns',
-  abstract: 'abstract art style, modern, geometric patterns, vibrant colors',
+    'in the style of Andy Warhol, pop art, bold colors, repeated patterns, screen print style',
+  abstract: 'abstract art style, modern, geometric patterns, vibrant colors, non-representational',
   watercolor:
-    'watercolor painting style, soft edges, translucent colors, flowing',
+    'watercolor painting style, soft edges, translucent colors, flowing, wet on wet technique',
 };
-
-// Demo styled images for fallback mode (art style examples from Unsplash)
-const DEMO_STYLED_IMAGES: Record<string, string[]> = {
-  'van-gogh': [
-    'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=800&q=80', // starry night style
-    'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=800&q=80',
-  ],
-  picasso: [
-    'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&q=80', // cubism style
-    'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&q=80',
-  ],
-  monet: [
-    'https://images.unsplash.com/photo-1549887534-1541e9326642?w=800&q=80', // impressionist
-    'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=800&q=80',
-  ],
-  kandinsky: [
-    'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&q=80', // abstract
-    'https://images.unsplash.com/photo-1573096108468-702f6014ef28?w=800&q=80',
-  ],
-  dali: [
-    'https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?w=800&q=80', // surreal
-    'https://images.unsplash.com/photo-1534759926787-89b3e0497549?w=800&q=80',
-  ],
-  warhol: [
-    'https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=800&q=80', // pop art style
-    'https://images.unsplash.com/photo-1569172122301-bc5008bc09c5?w=800&q=80',
-  ],
-  abstract: [
-    'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&q=80',
-    'https://images.unsplash.com/photo-1507908708918-778587c9e563?w=800&q=80',
-  ],
-  watercolor: [
-    'https://images.unsplash.com/photo-1579762593175-20226054cad0?w=800&q=80',
-    'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&q=80',
-  ],
-};
-
-function getDemoStyledImage(style: string): string {
-  const images = DEMO_STYLED_IMAGES[style] || DEMO_STYLED_IMAGES.abstract;
-  return images[Math.floor(Math.random() * images.length)];
-}
 
 export async function POST(req: Request) {
   const startTime = Date.now();
@@ -98,45 +52,66 @@ export async function POST(req: Request) {
     });
     await experiment.save();
 
-    let resultImage: string;
-    let isDemo = false;
-
-    try {
-      // Use Replicate's SDXL for style transfer
-      // This model accepts both an image and a text prompt to apply artistic styles
-      const output = await replicate.run(
-        'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
-        {
-          input: {
-            image: imageUrl,
-            prompt:
-              stylePrompts[style as keyof typeof stylePrompts] ||
-              stylePrompts['abstract'],
-            strength: 0.7, // How much to transform (0-1, higher = more transformation)
-            guidance_scale: 7.5,
-            num_inference_steps: 30,
-          },
-        }
-      );
-
-      // Replicate returns an array of image URLs
-      resultImage = Array.isArray(output) ? output[0] : (output as string);
-    } catch (replicateError: any) {
-      // Check if it's a payment/credit error (402) or auth error
-      if (
-        replicateError.message?.includes('402') ||
-        replicateError.message?.includes('Payment') ||
-        replicateError.message?.includes('credit') ||
-        replicateError.message?.includes('Insufficient')
-      ) {
-        console.log('Replicate credits exhausted, using demo styled image');
-        resultImage = getDemoStyledImage(style);
-        isDemo = true;
-      } else {
-        throw replicateError;
-      }
+    const stylePrompt = stylePrompts[style] || stylePrompts['abstract'];
+    
+    // Use Stability AI for image-to-image transformation
+    const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
+    
+    if (!STABILITY_API_KEY) {
+      throw new Error('Stability API key not configured');
     }
 
+    // Fetch the source image and convert to base64
+    const imageResponse = await fetch(imageUrl);
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    
+    // Use Stability AI's image-to-image endpoint
+    const response = await fetch(
+      'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${STABILITY_API_KEY}`,
+        },
+        body: JSON.stringify({
+          init_image: base64Image,
+          text_prompts: [
+            {
+              text: `Transform this image ${stylePrompt}, artistic masterpiece, high quality`,
+              weight: 1,
+            },
+            {
+              text: 'blurry, low quality, distorted, ugly, bad art',
+              weight: -1,
+            },
+          ],
+          cfg_scale: 7,
+          image_strength: 0.35, // Lower = more faithful to original, higher = more creative
+          steps: 30,
+          samples: 1,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Stability AI error:', response.status, errorData);
+      throw new Error(`Stability AI error: ${response.status} - ${errorData.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    
+    // Stability AI returns base64 encoded images
+    const generatedImage = data.artifacts?.[0]?.base64;
+    if (!generatedImage) {
+      throw new Error('No image generated from Stability AI');
+    }
+
+    // Convert to data URL
+    const resultImage = `data:image/png;base64,${generatedImage}`;
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
@@ -146,7 +121,7 @@ export async function POST(req: Request) {
         output: {
           result: resultImage,
           fileUrl: resultImage,
-          metadata: { style, processingTime, isDemo },
+          metadata: { style, processingTime, provider: 'stability-ai' },
         },
         status: 'completed',
         processingTime,
@@ -159,10 +134,7 @@ export async function POST(req: Request) {
       image: resultImage,
       style,
       experimentId,
-      isDemo,
-      ...(isDemo && {
-        notice: 'Demo mode: Showing example styled artwork. AI transformation temporarily unavailable.',
-      }),
+      provider: 'stability-ai',
     });
   } catch (error: any) {
     console.error('Neural art generation error:', error);
@@ -182,7 +154,11 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to generate neural art. Please try again.' },
+      { error: error.message || 'Failed to generate neural art. Please try again.' },
+      { status: 500 }
+    );
+  }
+}
       { status: 500 }
     );
   }
