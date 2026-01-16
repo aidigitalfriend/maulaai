@@ -3,13 +3,15 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { BookOpen, Pen, Sparkles, Save, Share2, RefreshCw } from 'lucide-react'
+import { BookOpen, Pen, Sparkles, Save, Share2, RefreshCw, Download, Check, Copy } from 'lucide-react'
 
 export default function StoryWeaverPage() {
   const [story, setStory] = useState('')
   const [genre, setGenre] = useState('fantasy')
   const [isGenerating, setIsGenerating] = useState(false)
   const [stats, setStats] = useState({ activeUsers: 0, totalCreated: 0 })
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle')
 
   // Calculate story metrics in real-time
   const storyMetrics = useMemo(() => {
@@ -102,6 +104,69 @@ export default function StoryWeaverPage() {
       alert('Story generation failed. Please try again.')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  // Save/Download story as text file
+  const handleSave = () => {
+    if (!story.trim()) {
+      alert('Please write something to save')
+      return
+    }
+    
+    setSaveStatus('saving')
+    
+    try {
+      const blob = new Blob([story], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `story-${genre}-${new Date().toISOString().split('T')[0]}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    } catch (error) {
+      console.error('Save error:', error)
+      alert('Failed to save story')
+      setSaveStatus('idle')
+    }
+  }
+
+  // Share story - copy to clipboard
+  const handleShare = async () => {
+    if (!story.trim()) {
+      alert('Please write something to share')
+      return
+    }
+    
+    try {
+      // Try native share API first (mobile)
+      if (navigator.share) {
+        await navigator.share({
+          title: `My ${genre.charAt(0).toUpperCase() + genre.slice(1)} Story`,
+          text: story.slice(0, 200) + (story.length > 200 ? '...' : ''),
+          url: window.location.href
+        })
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(story)
+        setShareStatus('copied')
+        setTimeout(() => setShareStatus('idle'), 2000)
+      }
+    } catch (error) {
+      // If share was cancelled or failed, try clipboard
+      try {
+        await navigator.clipboard.writeText(story)
+        setShareStatus('copied')
+        setTimeout(() => setShareStatus('idle'), 2000)
+      } catch (clipError) {
+        console.error('Share/Copy error:', clipError)
+        alert('Failed to share story')
+      }
     }
   }
 
@@ -230,14 +295,40 @@ export default function StoryWeaverPage() {
                   )}
                 </button>
 
-                <button className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center gap-2">
-                  <Save className="w-5 h-5" />
-                  Save
+                <button 
+                  onClick={handleSave}
+                  disabled={!story.trim() || saveStatus === 'saving'}
+                  className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saveStatus === 'saved' ? (
+                    <>
+                      <Check className="w-5 h-5 text-green-400" />
+                      <span className="text-green-400">Saved!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5" />
+                      Save
+                    </>
+                  )}
                 </button>
 
-                <button className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center gap-2">
-                  <Share2 className="w-5 h-5" />
-                  Share
+                <button 
+                  onClick={handleShare}
+                  disabled={!story.trim()}
+                  className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {shareStatus === 'copied' ? (
+                    <>
+                      <Check className="w-5 h-5 text-green-400" />
+                      <span className="text-green-400">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-5 h-5" />
+                      Share
+                    </>
+                  )}
                 </button>
               </div>
             </div>
