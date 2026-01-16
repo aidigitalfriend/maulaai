@@ -301,7 +301,7 @@ router.get('/lab/activity', async (req, res) => {
     const recentExperiments = await LabExperiment.find({})
       .sort({ createdAt: -1 })
       .limit(limit)
-      .select('experimentType sessionId status createdAt completedAt')
+      .select('experimentId experimentType sessionId status createdAt completedAt')
       .lean();
 
     // Map experiment types to display names
@@ -319,10 +319,19 @@ router.get('/lab/activity', async (req, res) => {
       'future-predictor': { name: 'Future Predictor', color: 'text-indigo-400' }
     };
 
-    // Generate user identifier from session ID (show shortened version)
+    // Generate user identifier from session ID or experiment ID
     const activity = recentExperiments.map((exp, index) => {
-      // Use actual session ID (shortened for privacy) - format: SID-XXXX
-      const sessionShort = exp.sessionId ? `SID-${exp.sessionId.slice(-8).toUpperCase()}` : `Guest-${index + 1}`;
+      // Use session ID if available, otherwise use experiment ID for unique identification
+      let userLabel;
+      if (exp.sessionId) {
+        userLabel = `SID-${exp.sessionId.slice(-8).toUpperCase()}`;
+      } else if (exp.experimentId) {
+        // Use last 6 chars of experimentId for a unique identifier
+        userLabel = `EXP-${exp.experimentId.slice(-6).toUpperCase()}`;
+      } else {
+        userLabel = `User-${String(index + 1).padStart(3, '0')}`;
+      }
+      
       const info = nameMap[exp.experimentType] || { name: exp.experimentType, color: 'text-gray-400' };
       const action = exp.status === 'completed' ? 'completed' : exp.status === 'processing' ? 'started' : 'started';
       
@@ -335,7 +344,7 @@ router.get('/lab/activity', async (req, res) => {
       else timeAgo = `${Math.floor(seconds / 86400)}d ago`;
 
       return {
-        user: sessionShort,
+        user: userLabel,
         action,
         experiment: info.name,
         time: timeAgo,
