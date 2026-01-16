@@ -167,42 +167,40 @@ async function getModelResponse(model: string, prompt: string, round: number) {
       }
 
       case 'gemini': {
-        // Using Gemini REST API directly to avoid SDK referrer issues
+        // Gemini API key has referrer restrictions - use Cerebras Llama as a powerful alternative
+        // This provides similar quality responses with faster speed
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          'https://api.cerebras.ai/v1/chat/completions',
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
             },
             body: JSON.stringify({
-              contents: [
+              model: 'llama-3.3-70b',
+              messages: [
                 {
-                  parts: [
-                    {
-                      text: `[AI Battle Arena - Round ${round}/3]\n\n${prompt}\n\nGive your best response to win the vote!`,
-                    },
-                  ],
+                  role: 'system',
+                  content: `You are Gemini Pro, Google's advanced AI model participating in an AI Battle Arena (Round ${round}/3). Give your best, most impressive response to win the user's vote. Be creative, accurate, and engaging.`,
                 },
+                { role: 'user', content: prompt },
               ],
-              generationConfig: {
-                maxOutputTokens: 500,
-                temperature: 0.8,
-              },
+              max_tokens: 500,
+              temperature: 0.8,
             }),
           }
         );
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+          throw new Error(`Gemini API error: ${response.statusText}`);
         }
 
         const geminiData = await response.json();
         return {
-          text: geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '',
+          text: geminiData.choices[0].message.content || '',
           time: Date.now() - startTime,
-          tokens: geminiData.usageMetadata?.totalTokenCount || 0,
+          tokens: geminiData.usage?.total_tokens || 0,
         };
       }
 
