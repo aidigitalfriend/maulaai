@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TrendingUp, Zap, Target, Calendar, RefreshCw } from 'lucide-react'
 
@@ -10,6 +10,29 @@ export default function FuturePredictorPage() {
   const [timeframe, setTimeframe] = useState('1-year')
   const [isPredicting, setIsPredicting] = useState(false)
   const [prediction, setPrediction] = useState<any>(null)
+  const [stats, setStats] = useState({ activeUsers: 0, totalPredictions: 0 })
+
+  // Fetch real-time stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/lab/future-prediction?stats=true')
+        if (response.ok) {
+          const data = await response.json()
+          setStats({
+            activeUsers: data.activeUsers || 0,
+            totalPredictions: data.totalPredictions || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const timeframes = [
     { id: '6-months', label: '6 Months' },
@@ -104,10 +127,10 @@ export default function FuturePredictorPage() {
           <div className="flex items-center gap-6 mt-6">
             <div className="flex items-center gap-2 text-sm">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">87 users active</span>
+              <span className="text-gray-300">{stats.activeUsers} users active</span>
             </div>
             <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">4,890 predictions made</div>
+            <div className="text-sm text-gray-300">{stats.totalPredictions.toLocaleString()} predictions made</div>
           </div>
         </motion.div>
 
