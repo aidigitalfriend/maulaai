@@ -7,6 +7,53 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 });
 
+// Demo audio samples (royalty-free music URLs) for fallback
+const DEMO_AUDIO_SAMPLES: Record<string, string[]> = {
+  electronic: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+  ],
+  rock: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+  ],
+  jazz: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+  ],
+  classical: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+  ],
+  'hip hop': [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
+  ],
+  ambient: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3',
+  ],
+  pop: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3',
+  ],
+  cinematic: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3',
+  ],
+  default: [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+  ],
+};
+
+function getDemoAudio(genre?: string): string {
+  const genreLower = genre?.toLowerCase() || 'default';
+  const samples = DEMO_AUDIO_SAMPLES[genreLower] || DEMO_AUDIO_SAMPLES.default;
+  return samples[Math.floor(Math.random() * samples.length)];
+}
+
 interface MusicGenerationRequest {
   prompt: string;
   genre?: string;
@@ -55,19 +102,38 @@ export async function POST(req: NextRequest) {
     });
     await experiment.save();
 
-    // Using Replicate's MusicGen model
-    const output = await replicate.run(
-      'meta/musicgen:7be0f12c54a8d033a0fbd14418c9af98962da9a86f5ff7811f9b3423a1f0b7d7',
-      {
-        input: {
-          prompt: enhancedPrompt,
-          duration: duration,
-          model_version: 'stereo-large',
-          output_format: 'mp3',
-          normalization_strategy: 'peak',
-        },
+    let output: string;
+    let isDemo = false;
+
+    try {
+      // Using Replicate's MusicGen model
+      output = (await replicate.run(
+        'meta/musicgen:7be0f12c54a8d033a0fbd14418c9af98962da9a86f5ff7811f9b3423a1f0b7d7',
+        {
+          input: {
+            prompt: enhancedPrompt,
+            duration: duration,
+            model_version: 'stereo-large',
+            output_format: 'mp3',
+            normalization_strategy: 'peak',
+          },
+        }
+      )) as string;
+    } catch (replicateError: any) {
+      // Check if it's a payment/credit error (402) or auth error
+      if (
+        replicateError.message?.includes('402') ||
+        replicateError.message?.includes('Payment') ||
+        replicateError.message?.includes('credit') ||
+        replicateError.message?.includes('Insufficient')
+      ) {
+        console.log('Replicate credits exhausted, using demo audio');
+        output = getDemoAudio(genre);
+        isDemo = true;
+      } else {
+        throw replicateError;
       }
-    );
+    }
 
     const processingTime = Date.now() - startTime;
 
@@ -78,7 +144,7 @@ export async function POST(req: NextRequest) {
         output: {
           result: output,
           fileUrl: output,
-          metadata: { prompt: enhancedPrompt, duration, processingTime },
+          metadata: { prompt: enhancedPrompt, duration, processingTime, isDemo },
         },
         status: 'completed',
         processingTime,
@@ -92,6 +158,10 @@ export async function POST(req: NextRequest) {
       prompt: enhancedPrompt,
       duration,
       experimentId,
+      isDemo,
+      ...(isDemo && { 
+        notice: 'Demo mode: Using sample audio. AI generation temporarily unavailable.' 
+      }),
     });
   } catch (error: any) {
     console.error('Music Generation Error:', error);
