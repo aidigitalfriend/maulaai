@@ -5,6 +5,144 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Swords, Trophy, Zap, Clock, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react'
 
+// Simple markdown renderer for AI responses
+function MarkdownRenderer({ content }: { content: string }) {
+  // Process markdown to HTML-like rendering
+  const renderMarkdown = (text: string) => {
+    if (!text) return null;
+    
+    // Split by lines for processing
+    const lines = text.split('\n');
+    const elements: JSX.Element[] = [];
+    let listItems: string[] = [];
+    let inList = false;
+    
+    const flushList = () => {
+      if (listItems.length > 0) {
+        elements.push(
+          <ul key={`list-${elements.length}`} className="list-disc list-inside my-2 space-y-1">
+            {listItems.map((item, i) => (
+              <li key={i} className="text-gray-200">{processInline(item)}</li>
+            ))}
+          </ul>
+        );
+        listItems = [];
+      }
+      inList = false;
+    };
+    
+    // Process inline markdown (bold, italic, code)
+    const processInline = (line: string): React.ReactNode => {
+      // Process bold (**text** or __text__)
+      let processed = line;
+      const parts: React.ReactNode[] = [];
+      let lastIndex = 0;
+      
+      // Match bold
+      const boldRegex = /\*\*(.+?)\*\*|__(.+?)__/g;
+      let match;
+      let tempText = processed;
+      
+      // Simple approach: replace markdown syntax with styled spans
+      tempText = tempText
+        .replace(/\*\*(.+?)\*\*/g, '⟦BOLD⟧$1⟦/BOLD⟧')
+        .replace(/__(.+?)__/g, '⟦BOLD⟧$1⟦/BOLD⟧')
+        .replace(/\*(.+?)\*/g, '⟦ITALIC⟧$1⟦/ITALIC⟧')
+        .replace(/_(.+?)_/g, '⟦ITALIC⟧$1⟦/ITALIC⟧')
+        .replace(/`(.+?)`/g, '⟦CODE⟧$1⟦/CODE⟧');
+      
+      // Now parse the markers
+      const segments = tempText.split(/(⟦BOLD⟧|⟦\/BOLD⟧|⟦ITALIC⟧|⟦\/ITALIC⟧|⟦CODE⟧|⟦\/CODE⟧)/);
+      const result: React.ReactNode[] = [];
+      let currentStyle: 'bold' | 'italic' | 'code' | null = null;
+      
+      segments.forEach((segment, i) => {
+        if (segment === '⟦BOLD⟧') { currentStyle = 'bold'; return; }
+        if (segment === '⟦/BOLD⟧') { currentStyle = null; return; }
+        if (segment === '⟦ITALIC⟧') { currentStyle = 'italic'; return; }
+        if (segment === '⟦/ITALIC⟧') { currentStyle = null; return; }
+        if (segment === '⟦CODE⟧') { currentStyle = 'code'; return; }
+        if (segment === '⟦/CODE⟧') { currentStyle = null; return; }
+        
+        if (segment) {
+          if (currentStyle === 'bold') {
+            result.push(<strong key={i} className="font-bold text-white">{segment}</strong>);
+          } else if (currentStyle === 'italic') {
+            result.push(<em key={i} className="italic">{segment}</em>);
+          } else if (currentStyle === 'code') {
+            result.push(<code key={i} className="bg-white/10 px-1 rounded text-cyan-400 font-mono text-sm">{segment}</code>);
+          } else {
+            result.push(<span key={i}>{segment}</span>);
+          }
+        }
+      });
+      
+      return result.length > 0 ? result : line;
+    };
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      // Headers
+      if (trimmedLine.startsWith('### ')) {
+        flushList();
+        elements.push(
+          <h3 key={index} className="text-lg font-bold text-white mt-3 mb-2">
+            {processInline(trimmedLine.substring(4))}
+          </h3>
+        );
+      } else if (trimmedLine.startsWith('## ')) {
+        flushList();
+        elements.push(
+          <h2 key={index} className="text-xl font-bold text-white mt-3 mb-2">
+            {processInline(trimmedLine.substring(3))}
+          </h2>
+        );
+      } else if (trimmedLine.startsWith('# ')) {
+        flushList();
+        elements.push(
+          <h1 key={index} className="text-2xl font-bold text-white mt-3 mb-2">
+            {processInline(trimmedLine.substring(2))}
+          </h1>
+        );
+      }
+      // List items
+      else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+        inList = true;
+        listItems.push(trimmedLine.substring(2));
+      }
+      // Numbered list
+      else if (/^\d+\.\s/.test(trimmedLine)) {
+        flushList();
+        elements.push(
+          <div key={index} className="text-gray-200 my-1">
+            {processInline(trimmedLine)}
+          </div>
+        );
+      }
+      // Empty line
+      else if (trimmedLine === '') {
+        flushList();
+        elements.push(<div key={index} className="h-2" />);
+      }
+      // Regular paragraph
+      else {
+        flushList();
+        elements.push(
+          <p key={index} className="text-gray-200 leading-relaxed my-1">
+            {processInline(trimmedLine)}
+          </p>
+        );
+      }
+    });
+    
+    flushList();
+    return elements;
+  };
+  
+  return <div className="prose prose-invert max-w-none">{renderMarkdown(content)}</div>;
+}
+
 interface ModelOption {
   id: string
   name: string
@@ -335,10 +473,8 @@ export default function BattleArenaPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4 mb-4 min-h-[200px]">
-                    <p className="text-gray-200 leading-relaxed">
-                      {battleHistory[currentRound - 1].model1Response.text}
-                    </p>
+                  <div className="bg-white/5 rounded-xl p-4 mb-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    <MarkdownRenderer content={battleHistory[currentRound - 1].model1Response.text} />
                   </div>
                   <button
                     onClick={() => handleVote(currentRound - 1, model1)}
@@ -366,10 +502,8 @@ export default function BattleArenaPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4 mb-4 min-h-[200px]">
-                    <p className="text-gray-200 leading-relaxed">
-                      {battleHistory[currentRound - 1].model2Response.text}
-                    </p>
+                  <div className="bg-white/5 rounded-xl p-4 mb-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    <MarkdownRenderer content={battleHistory[currentRound - 1].model2Response.text} />
                   </div>
                   <button
                     onClick={() => handleVote(currentRound - 1, model2)}
