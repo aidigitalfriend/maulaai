@@ -12,14 +12,54 @@ export default function NeuralArtPage() {
   const [resultImage, setResultImage] = useState<string | null>(null)
 
   const styles = [
-    { id: 'van-gogh', name: 'Van Gogh', gradient: 'from-yellow-500 to-orange-500' },
-    { id: 'picasso', name: 'Picasso', gradient: 'from-blue-500 to-purple-500' },
-    { id: 'monet', name: 'Monet', gradient: 'from-green-500 to-blue-500' },
-    { id: 'kandinsky', name: 'Kandinsky', gradient: 'from-red-500 to-pink-500' },
-    { id: 'dali', name: 'Dalí', gradient: 'from-purple-500 to-indigo-500' },
-    { id: 'warhol', name: 'Warhol', gradient: 'from-pink-500 to-yellow-500' },
-    { id: 'abstract', name: 'Abstract', gradient: 'from-cyan-500 to-purple-500' },
-    { id: 'watercolor', name: 'Watercolor', gradient: 'from-blue-400 to-cyan-400' }
+    { 
+      id: 'van-gogh', 
+      name: 'Van Gogh', 
+      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/300px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
+      description: 'Swirling brushstrokes'
+    },
+    { 
+      id: 'picasso', 
+      name: 'Picasso', 
+      preview: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1c/Pablo_Picasso%2C_1910%2C_Girl_with_a_Mandolin_%28Fanny_Tellier%29%2C_oil_on_canvas%2C_100.3_x_73.6_cm%2C_Museum_of_Modern_Art_New_York..jpg/220px-Pablo_Picasso%2C_1910%2C_Girl_with_a_Mandolin_%28Fanny_Tellier%29%2C_oil_on_canvas%2C_100.3_x_73.6_cm%2C_Museum_of_Modern_Art_New_York..jpg',
+      description: 'Cubist geometric'
+    },
+    { 
+      id: 'monet', 
+      name: 'Monet', 
+      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Claude_Monet_-_Water_Lilies_-_1906%2C_Ryerson.jpg/300px-Claude_Monet_-_Water_Lilies_-_1906%2C_Ryerson.jpg',
+      description: 'Soft impressionism'
+    },
+    { 
+      id: 'kandinsky', 
+      name: 'Kandinsky', 
+      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Vassily_Kandinsky%2C_1913_-_Composition_7.jpg/300px-Vassily_Kandinsky%2C_1913_-_Composition_7.jpg',
+      description: 'Bold abstract'
+    },
+    { 
+      id: 'dali', 
+      name: 'Dalí', 
+      preview: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/dd/The_Persistence_of_Memory.jpg/300px-The_Persistence_of_Memory.jpg',
+      description: 'Surreal dreamlike'
+    },
+    { 
+      id: 'warhol', 
+      name: 'Warhol', 
+      preview: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1f/Campbells_Soup_Cans_MOMA.jpg/220px-Campbells_Soup_Cans_MOMA.jpg',
+      description: 'Pop art bold'
+    },
+    { 
+      id: 'abstract', 
+      name: 'Abstract', 
+      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Robert_Delaunay%2C_1913%2C_Premier_Disque%2C_134_cm%2C_52.7_inches%2C_Private_collection.jpg/250px-Robert_Delaunay%2C_1913%2C_Premier_Disque%2C_134_cm%2C_52.7_inches%2C_Private_collection.jpg',
+      description: 'Modern shapes'
+    },
+    { 
+      id: 'watercolor', 
+      name: 'Watercolor', 
+      preview: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat_03.jpg/220px-Cat_03.jpg',
+      description: 'Soft flowing'
+    }
   ]
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,14 +247,28 @@ export default function NeuralArtPage() {
               <button
                 key={style.id}
                 onClick={() => setSelectedStyle(style.id)}
-                className={`p-4 rounded-xl border-2 transition-all ${
+                className={`p-3 rounded-xl border-2 transition-all group ${
                   selectedStyle === style.id
-                    ? 'border-orange-500 bg-white/10 scale-105'
-                    : 'border-white/20 hover:border-white/40 bg-white/5'
+                    ? 'border-orange-500 bg-white/10 scale-105 shadow-lg shadow-orange-500/30'
+                    : 'border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10'
                 }`}
               >
-                <div className={`w-full h-20 rounded-lg bg-gradient-to-br ${style.gradient} mb-2`} />
-                <div className="text-sm font-medium text-center">{style.name}</div>
+                <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 relative">
+                  <img 
+                    src={style.preview} 
+                    alt={style.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  {selectedStyle === style.id && (
+                    <div className="absolute inset-0 bg-orange-500/20 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm">✓</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="text-sm font-semibold text-center">{style.name}</div>
+                <div className="text-xs text-gray-400 text-center mt-1">{style.description}</div>
               </button>
             ))}
           </div>

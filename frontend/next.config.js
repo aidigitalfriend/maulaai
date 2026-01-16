@@ -131,6 +131,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'onelastai.co' },
       { protocol: 'https', hostname: 'www.onelastai.co' },
       { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'upload.wikimedia.org' },
+      { protocol: 'https', hostname: '*.wikimedia.org' },
     ],
     unoptimized: false,
     // Fix CSP for Next.js images - allow inline scripts for Stripe, Cloudflare, Google Maps and other integrations
