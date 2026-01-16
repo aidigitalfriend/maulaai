@@ -15,6 +15,7 @@ interface ModelOption {
 
 interface BattleResponse {
   text: string
+  response?: string  // API returns 'response', we normalize to 'text'
   responseTime: number
   tokens: number
 }
@@ -92,10 +93,19 @@ export default function BattleArenaPage() {
 
       const data = await response.json()
 
+      // Normalize API response: API returns 'response' but we use 'text' in the UI
       const roundResult: RoundResult = {
         round: currentRound,
-        model1Response: data.model1,
-        model2Response: data.model2,
+        model1Response: {
+          text: data.model1.response || data.model1.text || '',
+          responseTime: data.model1.responseTime,
+          tokens: data.model1.tokens
+        },
+        model2Response: {
+          text: data.model2.response || data.model2.text || '',
+          responseTime: data.model2.responseTime,
+          tokens: data.model2.tokens
+        },
         winner: null
       }
 
