@@ -20,6 +20,7 @@ export default function VoiceCloningPage() {
   const [text, setText] = useState('');
   const [clonedAudio, setClonedAudio] = useState<string | null>(null);
   const [selectedVoice, setSelectedVoice] = useState('21m00Tcm4TlvDq8ikWAM'); // Rachel default
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleRecord = () => {
     if (isRecording) {
@@ -62,6 +63,29 @@ export default function VoiceCloningPage() {
       alert('Voice generation failed. Please try again.');
     } finally {
       setIsCloning(false);
+    }
+  };
+
+  const handlePlayAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
+  };
+
+  const handleDownloadAudio = () => {
+    if (!clonedAudio) return;
+    
+    try {
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = clonedAudio;
+      link.download = `cloned-voice-${Date.now()}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download audio');
     }
   };
 
@@ -223,10 +247,13 @@ export default function VoiceCloningPage() {
                       Ready
                     </div>
                   </div>
-                  <audio controls className="w-full mb-4" src={clonedAudio}>
+                  <audio ref={audioRef} controls className="w-full mb-4" src={clonedAudio}>
                     Your browser does not support the audio element.
                   </audio>
-                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-all">
+                  <button 
+                    onClick={handleDownloadAudio}
+                    className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center gap-2 transition-all"
+                  >
                     <Download className="w-5 h-5" />
                     Download Audio
                   </button>
@@ -243,13 +270,19 @@ export default function VoiceCloningPage() {
                         Voice cloned successfully!
                       </span>
                     </div>
-                    <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
+                    <button 
+                      onClick={handlePlayAudio}
+                      className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all"
+                    >
                       <Play className="w-5 h-5" />
                       Play Cloned Voice
                     </button>
                   </div>
 
-                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all">
+                  <button 
+                    onClick={handleDownloadAudio}
+                    className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all"
+                  >
                     <Download className="w-5 h-5" />
                     Download Audio
                   </button>
