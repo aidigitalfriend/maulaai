@@ -15,15 +15,15 @@ export async function GET(req: NextRequest) {
     if (wantStats === 'true') {
       await dbConnect();
       
-      // Get total dream analyses count
+      // Get total dream analyses count (check both possible experimentType values)
       const totalAnalyzed = await LabExperiment.countDocuments({
-        experimentType: 'dream-analysis'
+        experimentType: { $in: ['dream-analysis', 'dream-interpreter'] }
       });
 
       // Get active users in the last 5 minutes (approximation based on recent experiments)
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const recentExperiments = await LabExperiment.distinct('userId', {
-        experimentType: 'dream-analysis',
+        experimentType: { $in: ['dream-analysis', 'dream-interpreter'] },
         createdAt: { $gte: fiveMinutesAgo }
       });
 
