@@ -61,10 +61,22 @@ export async function POST(req: Request) {
       throw new Error('Stability API key not configured');
     }
 
-    // Fetch the source image and convert to base64
+    // Fetch the source image
     const imageResponse = await fetch(imageUrl);
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString('base64');
+    const imageBlob = await imageResponse.blob();
+    
+    // Build FormData for multipart request
+    const formData = new FormData();
+    formData.append('init_image', imageBlob, 'image.png');
+    formData.append('init_image_mode', 'IMAGE_STRENGTH');
+    formData.append('image_strength', '0.35');
+    formData.append('text_prompts[0][text]', `Transform this image ${stylePrompt}, artistic masterpiece, high quality`);
+    formData.append('text_prompts[0][weight]', '1');
+    formData.append('text_prompts[1][text]', 'blurry, low quality, distorted, ugly, bad art');
+    formData.append('text_prompts[1][weight]', '-1');
+    formData.append('cfg_scale', '7');
+    formData.append('steps', '30');
+    formData.append('samples', '1');
     
     // Use Stability AI's image-to-image endpoint
     const response = await fetch(
@@ -72,27 +84,10 @@ export async function POST(req: Request) {
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Accept: 'application/json',
           Authorization: `Bearer ${STABILITY_API_KEY}`,
         },
-        body: JSON.stringify({
-          init_image: base64Image,
-          text_prompts: [
-            {
-              text: `Transform this image ${stylePrompt}, artistic masterpiece, high quality`,
-              weight: 1,
-            },
-            {
-              text: 'blurry, low quality, distorted, ugly, bad art',
-              weight: -1,
-            },
-          ],
-          cfg_scale: 7,
-          image_strength: 0.35, // Lower = more faithful to original, higher = more creative
-          steps: 30,
-          samples: 1,
-        }),
+        body: formData,
       }
     );
 
