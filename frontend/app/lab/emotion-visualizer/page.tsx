@@ -55,12 +55,25 @@ export default function EmotionVisualizerPage() {
       const data = await response.json()
       
       // Format the response to match our UI structure
-      const emotions = data.emotions
+      const emotions = data.emotions || {}
+      
+      // Generate sentiment keywords based on detected emotions
+      const keywords: { word: string; color: string }[] = []
+      if ((emotions.joy || 0) > 50) keywords.push({ word: 'Happy', color: 'text-yellow-400' })
+      if ((emotions.trust || 0) > 50) keywords.push({ word: 'Trusting', color: 'text-green-400' })
+      if ((emotions.anticipation || 0) > 50) keywords.push({ word: 'Excited', color: 'text-blue-400' })
+      if ((emotions.surprise || 0) > 50) keywords.push({ word: 'Surprised', color: 'text-purple-400' })
+      if ((emotions.sadness || 0) > 50) keywords.push({ word: 'Sad', color: 'text-indigo-400' })
+      if ((emotions.fear || 0) > 50) keywords.push({ word: 'Worried', color: 'text-gray-400' })
+      if ((emotions.anger || 0) > 50) keywords.push({ word: 'Frustrated', color: 'text-red-400' })
+      if ((emotions.disgust || 0) > 50) keywords.push({ word: 'Disgusted', color: 'text-emerald-400' })
+      if (keywords.length === 0) keywords.push({ word: 'Neutral', color: 'text-gray-400' })
+      
       const formattedAnalysis = {
         overall: {
-          sentiment: emotions.overall > 0 ? 'Positive' : emotions.overall < 0 ? 'Negative' : 'Neutral',
-          score: emotions.overall / 100,
-          emoji: emotions.overall > 0 ? '😊' : emotions.overall < 0 ? '😢' : '😐'
+          sentiment: (emotions.overall || 0) > 0 ? 'Positive' : (emotions.overall || 0) < 0 ? 'Negative' : 'Neutral',
+          score: (emotions.overall || 0) / 100,
+          emoji: (emotions.overall || 0) > 0 ? '😊' : (emotions.overall || 0) < 0 ? '😢' : '😐'
         },
         emotions: [
           { name: 'Joy', intensity: emotions.joy || 0, color: 'from-yellow-500 to-orange-500', emoji: '😄' },
@@ -71,7 +84,8 @@ export default function EmotionVisualizerPage() {
           { name: 'Fear', intensity: emotions.fear || 0, color: 'from-gray-500 to-slate-600', emoji: '😨' },
           { name: 'Anger', intensity: emotions.anger || 0, color: 'from-red-500 to-rose-500', emoji: '😠' },
           { name: 'Disgust', intensity: emotions.disgust || 0, color: 'from-green-700 to-emerald-800', emoji: '🤢' }
-        ]
+        ],
+        keywords
       }
       
       setAnalysis(formattedAnalysis)
