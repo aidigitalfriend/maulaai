@@ -11,8 +11,10 @@ export default function DebateArenaPage() {
   const [newTopic, setNewTopic] = useState('')
   const [debateStream, setDebateStream] = useState<any[]>([])
   const [currentRound, setCurrentRound] = useState(1)
-  const [stats, setStats] = useState({ totalDebates: 6120, activeUsers: 132 })
+  const [stats, setStats] = useState({ totalDebates: 0, activeUsers: 0 })
   const [providerInfo, setProviderInfo] = useState<string>('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [customDebates, setCustomDebates] = useState<any[]>([])
 
   // Fetch real-time stats
   useEffect(() => {
@@ -62,6 +64,29 @@ export default function DebateArenaPage() {
       status: 'live'
     }
   ]
+
+  const handleSubmitTopic = async () => {
+    if (!newTopic.trim() || isSubmitting) return
+    
+    setIsSubmitting(true)
+    
+    // Create a new debate from the topic
+    const newDebate = {
+      id: Date.now(),
+      topic: newTopic.trim(),
+      agent1: { name: 'Advocate AI', position: 'Pro', votes: 0, avatar: '✅' },
+      agent2: { name: 'Skeptic AI', position: 'Con', votes: 0, avatar: '❌' },
+      viewers: Math.floor(Math.random() * 100) + 50,
+      status: 'live'
+    }
+    
+    setCustomDebates(prev => [newDebate, ...prev])
+    setNewTopic('')
+    setIsSubmitting(false)
+    
+    // Automatically start this debate
+    handleStartDebate(newDebate)
+  }
 
   const handleStartDebate = async (debate: any) => {
     setActiveDebate(debate)
@@ -173,8 +198,16 @@ export default function DebateArenaPage() {
                   placeholder="Suggest a debate topic for AI agents..."
                   className="flex-1 bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
                 />
-                <button className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-yellow-500/50 transition-all">
-                  Submit
+                <button 
+                  onClick={handleSubmitTopic}
+                  disabled={isSubmitting || !newTopic.trim()}
+                  className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-yellow-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Starting...</>
+                  ) : (
+                    'Submit'
+                  )}
                 </button>
               </div>
             </motion.div>
@@ -191,7 +224,7 @@ export default function DebateArenaPage() {
               </h2>
 
               <div className="grid grid-cols-1 gap-6">
-                {liveDebates.map((debate, index) => (
+                {[...customDebates, ...liveDebates].map((debate, index) => (
                   <motion.div
                     key={debate.id}
                     initial={{ opacity: 0, x: -20 }}
