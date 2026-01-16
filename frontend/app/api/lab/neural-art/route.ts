@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import { LabExperiment } from '@/lib/models/LabExperiment';
+import sharp from 'sharp';
 
 // Map style names to artistic prompts
 const stylePrompts: Record<string, string> = {
@@ -63,7 +64,15 @@ export async function POST(req: Request) {
 
     // Fetch the source image
     const imageResponse = await fetch(imageUrl);
-    const imageBlob = await imageResponse.blob();
+    const imageBuffer = await imageResponse.arrayBuffer();
+    
+    // Resize image to 1024x1024 (required by Stability AI SDXL)
+    const resizedImageBuffer = await sharp(Buffer.from(imageBuffer))
+      .resize(1024, 1024, { fit: 'cover' })
+      .png()
+      .toBuffer();
+    
+    const imageBlob = new Blob([resizedImageBuffer], { type: 'image/png' });
     
     // Build FormData for multipart request
     const formData = new FormData();
