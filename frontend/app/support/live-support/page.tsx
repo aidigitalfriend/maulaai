@@ -135,6 +135,8 @@ export default function LiveSupportPage() {
   );
   const [ticketGenerated, setTicketGenerated] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [userContext, setUserContext] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -234,7 +236,7 @@ export default function LiveSupportPage() {
           userId: auth.state.user?.id,
           userEmail: auth.state.user?.email,
           userName: auth.state.user?.name,
-          userProfile: userProfile,
+          chatId: chatId,
           conversationHistory: messages,
         }),
       });
@@ -270,6 +272,14 @@ export default function LiveSupportPage() {
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6));
+                // Handle context message (includes chatId)
+                if (data.type === 'context' && data.chatId) {
+                  setChatId(data.chatId);
+                  if (data.userContext) {
+                    setUserContext(data.userContext);
+                  }
+                }
+                // Handle content chunks
                 if (data.content) {
                   fullResponse += data.content;
                   setMessages((prev) => {
@@ -280,6 +290,10 @@ export default function LiveSupportPage() {
                     };
                     return updated;
                   });
+                }
+                // Handle done message
+                if (data.type === 'done' && data.chatId) {
+                  setChatId(data.chatId);
                 }
                 scrollToBottom();
               } catch (e) {
@@ -321,39 +335,61 @@ export default function LiveSupportPage() {
 
   const generateTicket = async () => {
     try {
-      const ticketData: SupportTicket = {
-        id: `TICKET-${Date.now()}`,
-        userId: auth.state.user?.id || '',
-        userEmail: auth.state.user?.email || '',
-        userName: userProfile?.name || '',
-        subscription: userProfile?.subscription || 'Monthly',
-        issue: inputText,
-        status: 'escalated',
-        createdAt: new Date(),
-        messages: messages,
-      };
-
-      setSupportTicket(ticketData);
+      const issueDescription = messages
+        .filter(m => m.role === 'user')
+        .map(m => m.content)
+        .join('\n\n');
 
       // Send to backend
       const response = await fetch('/api/live-support/ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ticketData),
+        body: JSON.stringify({
+          chatId: chatId,
+          userId: auth.state.user?.id,
+          userEmail: auth.state.user?.email,
+          userName: userProfile?.name || auth.state.user?.name,
+          issue: issueDescription || 'Support request from live chat',
+          messages: messages,
+        }),
       });
 
       if (response.ok) {
+        const data = await response.json();
+        const ticket = data.ticket;
+        
+        setSupportTicket({
+          id: ticket.ticketId,
+          userId: auth.state.user?.id || '',
+          userEmail: auth.state.user?.email || '',
+          userName: userProfile?.name || '',
+          subscription: userProfile?.subscription || 'Monthly',
+          issue: issueDescription,
+          status: 'open',
+          createdAt: new Date(),
+          messages: messages,
+        });
+
         const ticketMessage: Message = {
           id: Date.now().toString(),
           role: 'system',
-          content: `✅ Support ticket created: ${ticketData.id}\n\nOur human support team will contact you at ${ticketData.userEmail} within 48 hours. Your ticket contains all conversation details.`,
+          content: `✅ Support ticket created!\n\n📋 Ticket Number: #${ticket.ticketNumber}\n📝 Ticket ID: ${ticket.ticketId}\n📊 Status: ${ticket.status}\n⏰ Expected Response: Within 48 hours\n\nOur human support team will review your case and contact you at ${auth.state.user?.email}. You can also view and track this ticket in your Dashboard > Support Tickets.`,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, ticketMessage]);
         setTicketGenerated(false);
+      } else {
+        throw new Error('Failed to create ticket');
       }
     } catch (error) {
       console.error('Error generating ticket:', error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        role: 'system',
+        content: '⚠️ Failed to create support ticket. Please try again or contact us directly at support@onelastai.com',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
@@ -606,9 +642,15 @@ export default function LiveSupportPage() {
               <p className="font-mono text-xs bg-black/30 p-2 rounded mb-3 break-all">
                 {supportTicket.id}
               </p>
-              <p className="text-xs text-green-300">
+              <p className="text-xs text-green-300 mb-3">
                 Our human support team will contact you within 48 hours.
               </p>
+              <Link
+                href="/dashboard/support-tickets"
+                className="block w-full text-center px-3 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium transition-colors"
+              >
+                View My Tickets
+              </Link>
             </div>
           )}
 
