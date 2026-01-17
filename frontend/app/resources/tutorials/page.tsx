@@ -224,12 +224,12 @@ export default function TutorialsPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center p-4 bg-brand-50 rounded-lg">
-                <div className="text-2xl font-bold text-brand-600">{agents.length}</div>
+                <div className="text-2xl font-bold text-brand-600">18</div>
                 <div className="text-xs text-neural-600">AI Agents</div>
               </div>
               <div className="text-center p-4 bg-accent-50 rounded-lg">
-                <div className="text-2xl font-bold text-accent-600">Free</div>
-                <div className="text-xs text-neural-600">To Try</div>
+                <div className="text-2xl font-bold text-accent-600">Pro</div>
+                <div className="text-xs text-neural-600">Quality</div>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">24/7</div>
