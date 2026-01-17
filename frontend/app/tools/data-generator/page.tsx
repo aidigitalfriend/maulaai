@@ -526,24 +526,24 @@ export default function DataGeneratorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="py-12 border-b border-neural-700">
+      <section className="py-12 border-b border-gray-200">
         <div className="container-custom">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/20">
               <Database className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-3xl font-bold text-gray-900">
                 AI Data Generator
               </h1>
-              <p className="text-neural-400">
+              <p className="text-gray-600">
                 Generate realistic test data in seconds
               </p>
             </div>
           </div>
-          <p className="text-neural-300 max-w-2xl">
+          <p className="text-gray-700 max-w-2xl">
             Choose a template, set the number of records, and generate realistic
             test data for your databases, APIs, and applications. Export as
             JSON, CSV, or SQL.
@@ -556,9 +556,9 @@ export default function DataGeneratorPage() {
           {/* Left Panel - Template Selection */}
           <div className="lg:col-span-1 space-y-6">
             {/* Templates */}
-            <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-yellow-400" />
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-yellow-500" />
                 Select Template
               </h2>
               <div className="grid grid-cols-2 gap-3">
@@ -574,11 +574,11 @@ export default function DataGeneratorPage() {
                           ? 'bg-gradient-to-br ' +
                             template.color +
                             ' text-white shadow-lg'
-                          : 'bg-neural-700/50 text-neural-300 hover:bg-neural-700'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                       }`}
                     >
                       <Icon
-                        className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-neural-400'}`}
+                        className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-gray-500'}`}
                       />
                       <div className="text-sm font-medium">{template.name}</div>
                     </button>
@@ -588,19 +588,19 @@ export default function DataGeneratorPage() {
             </div>
 
             {/* Configuration */}
-            <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Hash className="w-5 h-5 text-blue-400" />
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Hash className="w-5 h-5 text-blue-500" />
                 Configuration
               </h2>
 
               {/* Record Count Slider */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm text-neural-300">
+                  <label className="text-sm text-gray-600">
                     Number of Records
                   </label>
-                  <span className="text-sm font-mono text-green-400">
+                  <span className="text-sm font-mono text-green-600 font-semibold">
                     {recordCount}
                   </span>
                 </div>
@@ -610,9 +610,9 @@ export default function DataGeneratorPage() {
                   max="1000"
                   value={recordCount}
                   onChange={(e) => setRecordCount(parseInt(e.target.value))}
-                  className="w-full h-2 bg-neural-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
                 />
-                <div className="flex justify-between text-xs text-neural-500 mt-1">
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>1</span>
                   <span>500</span>
                   <span>1000</span>
@@ -628,7 +628,7 @@ export default function DataGeneratorPage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       recordCount === num
                         ? 'bg-green-500 text-white'
-                        : 'bg-neural-700 text-neural-300 hover:bg-neural-600'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
                     }`}
                   >
                     {num}
@@ -638,7 +638,7 @@ export default function DataGeneratorPage() {
 
               {/* Output Format */}
               <div className="mb-6">
-                <label className="text-sm text-neural-300 block mb-2">
+                <label className="text-sm text-gray-600 block mb-2">
                   Output Format
                 </label>
                 <div className="flex gap-2">
@@ -648,8 +648,8 @@ export default function DataGeneratorPage() {
                       onClick={() => setOutputFormat(format)}
                       className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium uppercase transition-all ${
                         outputFormat === format
-                          ? 'bg-brand-500 text-white'
-                          : 'bg-neural-700 text-neural-300 hover:bg-neural-600'
+                          ? 'bg-brand-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
                       }`}
                     >
                       {format}
@@ -660,7 +660,7 @@ export default function DataGeneratorPage() {
 
               {/* Seed Input (Optional) */}
               <div className="mb-6">
-                <label className="text-sm text-neural-300 block mb-2">
+                <label className="text-sm text-gray-600 block mb-2">
                   Seed (optional, for reproducible data)
                 </label>
                 <input
@@ -668,7 +668,7 @@ export default function DataGeneratorPage() {
                   value={seed}
                   onChange={(e) => setSeed(e.target.value)}
                   placeholder="Enter seed value..."
-                  className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
 
@@ -683,15 +683,15 @@ export default function DataGeneratorPage() {
             </div>
 
             {/* Selected Template Info */}
-            <div className="bg-neural-800/50 rounded-2xl p-6 border border-neural-700">
-              <h3 className="text-sm font-semibold text-neural-400 uppercase tracking-wider mb-3">
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 Template Fields
               </h3>
               <div className="flex flex-wrap gap-2">
                 {currentTemplate.fields.map((field) => (
                   <span
                     key={field}
-                    className="px-2 py-1 bg-neural-700 rounded text-xs text-neural-300 font-mono"
+                    className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs text-gray-700 font-mono"
                   >
                     {field}
                   </span>
@@ -702,9 +702,9 @@ export default function DataGeneratorPage() {
 
           {/* Right Panel - Terminal Output */}
           <div className="lg:col-span-2">
-            <div className="bg-[#1a1b26] rounded-xl border border-neural-700 overflow-hidden shadow-2xl shadow-black/50">
+            <div className="bg-[#1e1e2e] rounded-2xl border border-gray-300 overflow-hidden shadow-xl">
               {/* Terminal Title Bar */}
-              <div className="flex items-center justify-between px-4 py-3 bg-[#24283b] border-b border-neural-700/50">
+              <div className="flex items-center justify-between px-4 py-3 bg-[#313244] border-b border-[#45475a]">
                 <div className="flex items-center gap-3">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#ff5f56] shadow-inner"></div>
@@ -745,38 +745,38 @@ export default function DataGeneratorPage() {
               </div>
 
               {/* Terminal Content - Fixed Height with Scroll */}
-              <div className="h-[500px] overflow-y-auto bg-[#1a1b26] custom-scrollbar">
+              <div className="h-[500px] overflow-y-auto bg-[#1e1e2e] custom-scrollbar">
                 {generatedData.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                    <div className="w-16 h-16 rounded-full bg-neural-800 flex items-center justify-center mb-4">
-                      <Database className="w-8 h-8 text-neural-500" />
+                    <div className="w-16 h-16 rounded-full bg-[#313244] flex items-center justify-center mb-4">
+                      <Database className="w-8 h-8 text-[#6c7086]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-neural-400 mb-2">
+                    <h3 className="text-lg font-semibold text-[#cdd6f4] mb-2">
                       Ready to Generate
                     </h3>
-                    <p className="text-neural-500 text-sm max-w-sm">
+                    <p className="text-[#6c7086] text-sm max-w-sm">
                       Select a template and click Generate to create your test
                       data
                     </p>
-                    <div className="mt-4 flex items-center gap-2 text-neural-600 text-xs font-mono">
-                      <span className="text-green-500">$</span>
+                    <div className="mt-4 flex items-center gap-2 text-[#585b70] text-xs font-mono">
+                      <span className="text-[#a6e3a1]">$</span>
                       <span className="animate-pulse">awaiting command...</span>
                     </div>
                   </div>
                 ) : (
                   <div className="p-4">
                     {/* Terminal prompt line */}
-                    <div className="flex items-center gap-2 text-xs font-mono mb-3 text-neural-500">
-                      <span className="text-green-400">→</span>
-                      <span className="text-cyan-400">onelastai</span>
-                      <span className="text-neural-600">$</span>
-                      <span className="text-neural-400">
+                    <div className="flex items-center gap-2 text-xs font-mono mb-3 text-[#6c7086]">
+                      <span className="text-[#a6e3a1]">→</span>
+                      <span className="text-[#89dceb]">onelastai</span>
+                      <span className="text-[#585b70]">$</span>
+                      <span className="text-[#bac2de]">
                         generate --template {selectedTemplate} --count{' '}
                         {generatedData.length} --format {outputFormat}
                       </span>
                     </div>
                     {/* Output */}
-                    <pre className="text-sm font-mono text-neural-300 whitespace-pre leading-relaxed">
+                    <pre className="text-sm font-mono text-[#cdd6f4] whitespace-pre leading-relaxed">
                       <code className="block">{formattedOutput}</code>
                     </pre>
                   </div>
@@ -784,13 +784,13 @@ export default function DataGeneratorPage() {
               </div>
 
               {/* Terminal Status Bar */}
-              <div className="px-4 py-2 bg-[#24283b] border-t border-neural-700/50 flex items-center justify-between">
+              <div className="px-4 py-2 bg-[#313244] border-t border-[#45475a] flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] text-neural-500 font-mono uppercase tracking-wider">
+                  <span className="text-[10px] text-[#6c7086] font-mono uppercase tracking-wider">
                     {generatedData.length > 0 ? 'OUTPUT' : 'IDLE'}
                   </span>
                   {generatedData.length > 0 && (
-                    <span className="text-[10px] text-neural-500 font-mono">
+                    <span className="text-[10px] text-[#6c7086] font-mono">
                       {generatedData.length} records
                     </span>
                   )}
@@ -798,12 +798,12 @@ export default function DataGeneratorPage() {
                 <div className="flex items-center gap-4">
                   {generatedData.length > 0 && (
                     <>
-                      <span className="text-[10px] text-neural-500 font-mono">
+                      <span className="text-[10px] text-[#6c7086] font-mono">
                         {(new Blob([formattedOutput]).size / 1024).toFixed(2)}{' '}
                         KB
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] text-green-400 font-mono">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                      <span className="flex items-center gap-1 text-[10px] text-[#a6e3a1] font-mono">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#a6e3a1] animate-pulse"></span>
                         Ready
                       </span>
                     </>
@@ -816,9 +816,9 @@ export default function DataGeneratorPage() {
       </div>
 
       {/* Features Section */}
-      <section className="py-12 border-t border-neural-700">
+      <section className="py-12 border-t border-gray-200">
         <div className="container-custom">
-          <h2 className="text-2xl font-bold text-white text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
             Why Use Our Data Generator?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -844,13 +844,13 @@ export default function DataGeneratorPage() {
             ].map((feature, idx) => (
               <div
                 key={idx}
-                className="p-6 bg-neural-800/30 rounded-xl border border-neural-700"
+                className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="text-3xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-neural-400 text-sm">{feature.description}</p>
+                <p className="text-gray-600 text-sm">{feature.description}</p>
               </div>
             ))}
           </div>
