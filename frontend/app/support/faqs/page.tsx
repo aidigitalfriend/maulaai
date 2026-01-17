@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 export default function FAQsPage() {
   const faqs = [
     {
@@ -7,19 +9,56 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'What is One Last AI?',
-          a: 'One Last AI is an AI platform that provides access to 20+ specialized AI personalities for various business needs. Each agent specializes in different areas like creative writing, technical problem-solving, entertainment, fitness, and customer support.',
+          a: 'One Last AI is a comprehensive AI platform featuring 20+ specialized AI agents, an AI Studio for interactive conversations, Canvas for real-time code and content generation, and developer tools including APIs and SDKs. Each agent specializes in different areas like physics, programming, cooking, fitness, and entertainment.',
         },
         {
           q: 'How do I get started?',
-          a: 'Create your account, choose the AI agent you want, and purchase access for $1/day, $5/week, or $19/month. Each purchase unlocks the agent immediately for the selected period. No auto-renewal—you only pay for what you use.',
+          a: 'Create your account, browse our AI agents at /agents, and choose the one that fits your needs. Purchase access for $1/day, $5/week, or $19/month. Once purchased, access your agent through the Studio at /studio for interactive conversations or use Canvas for code generation.',
+        },
+        {
+          q: 'What is the AI Studio?',
+          a: 'The AI Studio (/studio) is your central hub for interacting with AI agents. It features a modern chat interface, conversation history, real-time streaming responses, and integration with Canvas for generating live code, applications, and content.',
+        },
+        {
+          q: 'What is Canvas?',
+          a: 'Canvas is our real-time code and content generation tool. When chatting with agents in Studio, you can open Canvas to generate live React applications, HTML pages, and interactive content. Canvas renders your creations instantly in a preview panel alongside your conversation.',
         },
         {
           q: 'Do I need technical skills?',
-          a: 'No! One Last AI is designed to be user-friendly. Anyone can use it without technical expertise. We also provide comprehensive documentation, tutorials, and support for those who want to explore advanced features.',
+          a: 'No! One Last AI is designed for everyone. Non-technical users can chat with agents naturally, while developers can leverage our APIs, SDKs, and Canvas for advanced integrations. We provide tutorials for all skill levels.',
         },
         {
           q: 'What agents are available?',
-          a: 'We offer 20+ AI agents including Einstein (Physics & Math), Tech Wizard (Programming), Chef Biew (Cooking), Fitness Guru (Health & Fitness), Travel Buddy (Travel), Comedy King (Entertainment), and many more specialized personalities.',
+          a: 'We offer 20+ AI agents including Einstein (Physics & Math), Tech Wizard (Programming), Chef Biew (Cooking), Fitness Guru (Health), Travel Buddy (Travel), Comedy King (Entertainment), Emma (Emotional Support), and specialized agents for business, education, and creativity.',
+        },
+      ],
+    },
+    {
+      category: 'Studio & Canvas',
+      questions: [
+        {
+          q: 'How do I access the Studio?',
+          a: 'Visit /studio after logging in. Select any agent you have access to and start chatting. The Studio provides a clean interface with your conversation on the left and optional Canvas panel on the right for code generation.',
+        },
+        {
+          q: 'How does Canvas code generation work?',
+          a: 'When chatting in Studio, ask an agent to create an app, webpage, or code snippet. Click the Canvas button to open the preview panel. The agent generates React/HTML code that renders live in Canvas, allowing you to see and interact with creations in real-time.',
+        },
+        {
+          q: 'What can Canvas generate?',
+          a: 'Canvas can generate React applications, HTML/CSS pages, interactive components, data visualizations, forms, dashboards, games, and more. The generated code is fully functional and can be exported for use in your projects.',
+        },
+        {
+          q: 'Can I export code from Canvas?',
+          a: 'Yes! You can copy the generated code directly from the Canvas panel. The code is production-ready React or HTML that you can use in your own projects. Premium users get additional export options and file downloads.',
+        },
+        {
+          q: 'Is conversation history saved?',
+          a: 'Yes. All your conversations are automatically saved and synced across devices. You can access previous conversations, continue where you left off, or start new chats at any time from the Studio.',
+        },
+        {
+          q: 'Can I use multiple agents in one session?',
+          a: 'Yes! You can switch between any agents you have access to within the Studio. Each agent maintains its own conversation context, and you can have multiple chat sessions open simultaneously.',
         },
       ],
     },
@@ -28,23 +67,27 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'What are the pricing plans?',
-          a: 'We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each one-time purchase gives you unlimited access to one AI agent of your choice for the selected period. No auto-renewal, no recurring charges—pay only when you want access.',
+          a: 'We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each one-time purchase gives you unlimited access to one AI agent including Studio chat, Canvas generation, and API access. No auto-renewal—pay only when you want access.',
         },
         {
-          q: "What does 'per agent' mean?",
-          a: "Each purchase gives you access to exactly one AI agent. If you want to use multiple agents, you need separate purchases for each one. This ensures focused, dedicated access to each agent's unique capabilities. You can buy multiple agents simultaneously or sequentially.",
+          q: "What does 'per agent' pricing mean?",
+          a: "Each purchase gives you full access to one AI agent. If you want multiple agents, purchase them separately. This lets you choose exactly what you need—pay for Einstein for a day of math help, or get monthly access to Tech Wizard for ongoing coding projects.",
+        },
+        {
+          q: 'What\'s included in each purchase?',
+          a: 'Every purchase includes: unlimited Studio chat sessions, Canvas code generation, conversation history sync, API access with generous rate limits, and all future updates to that agent during your access period.',
         },
         {
           q: 'Can I cancel anytime?',
-          a: "Yes! You can cancel your access at any time. Since there's no auto-renewal, you simply won't be charged again. If you cancel during your active period, you'll keep access until expiration, and you can re-purchase the same agent whenever you want.",
+          a: "Yes! There's no auto-renewal. Your access simply expires at the end of the period. You keep access until expiration and can repurchase whenever you want. No cancellation needed—just don't renew.",
         },
         {
           q: 'Do you offer refunds?',
-          a: "Yes. We offer full refunds within 30 days, 50% refunds between 30-60 days. After 60 days, no refunds are available but you can cancel anytime without further charges. Since there's no auto-renewal, you only pay once per purchase.",
+          a: 'Yes. Full refunds within 30 days, 50% refunds between 30-60 days. After 60 days, no refunds but you can always let your access expire naturally. Contact support for refund requests.',
         },
         {
           q: 'What payment methods do you accept?',
-          a: 'We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and bank transfers for enterprise customers.',
+          a: 'We accept all major credit cards (Visa, Mastercard, American Express) via Stripe, plus PayPal and bank transfers for enterprise customers. All payments are securely processed.',
         },
       ],
     },
@@ -53,27 +96,56 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'Is my data secure?',
-          a: 'Yes. We use enterprise-grade encryption (AES-256), SOC 2 Type II compliance, ISO 27001 certification, and regular security audits to protect your data. All communications are transmitted over HTTPS.',
-        },
-        {
-          q: 'Can I change my plan?',
-          a: "Yes. Since each purchase is one-time, you can simply choose a different plan (daily/weekly/monthly) for your next purchase. No need to 'upgrade' or 'downgrade'—just pick what works best for you each time. Your active access continues until expiration.",
+          a: 'Yes. We use enterprise-grade encryption (AES-256), SOC 2 Type II compliance, and regular security audits. All communications use HTTPS. Conversations are encrypted at rest and in transit.',
         },
         {
           q: 'How do I reset my password?',
-          a: "Use the 'Forgot Password' link on the login page. You'll receive an email with a secure link to reset your password. For security, this link expires after 24 hours.",
+          a: "Click 'Forgot Password' on the login page. You'll receive a secure reset link via email (expires in 24 hours). For account security, we recommend enabling two-factor authentication.",
         },
         {
           q: 'How do I enable two-factor authentication?',
-          a: 'You can enable 2FA in your account security settings. We support authenticator apps (Google Authenticator, Microsoft Authenticator) and SMS-based verification.',
+          a: 'Go to Account Settings → Security → Enable 2FA. We support authenticator apps (Google Authenticator, Authy, Microsoft Authenticator) for secure verification.',
         },
         {
           q: 'Can I export my conversation data?',
-          a: 'Yes. You can export your conversation history in JSON or CSV format from your account dashboard. Enterprise users also get additional export and compliance options.',
+          a: 'Yes. Export your conversation history in JSON or CSV format from Account Settings → Data → Export. This includes all chats, Canvas creations, and metadata.',
         },
         {
           q: 'What happens to my data if I delete my account?',
-          a: 'Your data is deleted within 30 days of account deletion. You can request immediate deletion of sensitive information. We retain minimal metadata for legal and compliance purposes as required by law.',
+          a: 'All personal data and conversations are permanently deleted within 30 days. You can request immediate deletion of specific data. We retain minimal anonymized metadata for legal compliance only.',
+        },
+        {
+          q: 'How do I delete specific conversations?',
+          a: 'In Studio, hover over any conversation in your history and click the delete icon. You can also bulk delete from Account Settings. Deleted conversations cannot be recovered.',
+        },
+      ],
+    },
+    {
+      category: 'API & Developer Tools',
+      questions: [
+        {
+          q: 'Do you have an API?',
+          a: 'Yes! We provide a comprehensive REST API at /docs/api. All agent purchases include API access. You get chat endpoints, streaming support, Canvas generation APIs, and webhooks for integrations.',
+        },
+        {
+          q: 'What SDKs are available?',
+          a: 'We offer official SDKs for JavaScript/Node.js, Python, Go, PHP, Ruby, and Java. Each SDK includes type definitions, async support, and examples. See /docs/sdks for installation and usage.',
+        },
+        {
+          q: "What's the API rate limit?",
+          a: 'Default: 1000 requests/hour per agent. Daily purchases: 500 calls/day. Weekly: 2,500/week. Monthly: 15,000/month. Enterprise users can request higher limits. Limits are generous for typical usage.',
+        },
+        {
+          q: 'Do you support streaming responses?',
+          a: 'Yes! Our API supports Server-Sent Events (SSE) for real-time streaming. Get responses token-by-token as they generate, just like in the Studio interface. See our streaming documentation for examples.',
+        },
+        {
+          q: 'Can I use webhooks?',
+          a: 'Yes. Configure webhooks to receive real-time notifications for events like message completion, canvas generation, or conversation updates. Available for all paid plans.',
+        },
+        {
+          q: 'How do I get my API key?',
+          a: 'Go to Account Settings → Developer → API Keys. Generate a new key and keep it secure. You can create multiple keys with different permissions and rotate them as needed.',
         },
       ],
     },
@@ -81,53 +153,57 @@ export default function FAQsPage() {
       category: 'Features & Usage',
       questions: [
         {
-          q: 'How many AI agents can I use simultaneously?',
-          a: 'You can purchase and use as many agents as you want simultaneously. Each agent is purchased separately based on your chosen plan. You can easily switch between agents or have multiple conversations at once with different agents.',
+          q: 'How many conversations can I have?',
+          a: 'Unlimited! Create as many chat sessions as you want with any agent you have access to. All conversations are saved automatically and searchable from your Studio dashboard.',
         },
         {
           q: "Can I customize an agent's behavior?",
-          a: 'Yes. Monthly access includes advanced personalization: fine-tune personality traits, set guardrails, and save custom prompts for each agent. Daily and weekly access includes basic personalization like conversation context and saved preferences.',
+          a: 'Yes. You can set custom system prompts, adjust response styles, and configure context preferences. Monthly subscribers get advanced customization including personality fine-tuning and saved prompt templates.',
         },
         {
           q: 'What integrations are available?',
-          a: 'We support integrations with Slack, Microsoft Teams, Discord, Zapier, Make.com, and more. You can also use our REST API and webhooks for custom integrations.',
+          a: 'We support Slack, Microsoft Teams, Discord, Zapier, Make.com, and direct API integration. Connect agents to your existing workflows or build custom integrations with our APIs.',
         },
         {
-          q: 'Can I create my own custom agent?',
-          a: 'Yes! Professional and Enterprise users can create custom agents with specialized knowledge bases and personality traits. Contact our sales team for details.',
+          q: 'Can I use One Last AI offline?',
+          a: 'One Last AI requires an internet connection as AI processing happens on our servers. However, you can export conversations for offline reference, and our mobile experience is optimized for varying connectivity.',
         },
         {
-          q: 'What are the usage limits?',
-          a: 'Daily: 500 API calls per day, Weekly: 2,500 API calls per week, Monthly: 15,000 API calls per month. Rate limits reset at the end of each access period and apply per agent purchase. These are generous limits designed for typical usage.',
+          q: 'Are there mobile apps?',
+          a: 'Our web app is fully responsive and works great on mobile browsers. Native iOS and Android apps are coming soon. You can also add the site to your home screen for an app-like experience.',
         },
         {
           q: 'Can I use One Last AI for commercial purposes?',
-          a: 'Yes! All paid plans (daily, weekly, monthly) include commercial usage rights for the purchased agent. Contact support if you need dedicated SLAs or multiple concurrent agents for a team. Each purchase includes full commercial rights.',
+          a: 'Yes! All paid plans include commercial usage rights. Use agent outputs in your products, services, or business operations. Enterprise plans include additional SLAs and licensing options.',
         },
       ],
     },
     {
-      category: 'API & Integration',
+      category: 'Agents & Personalities',
       questions: [
         {
-          q: 'Do you have an API?',
-          a: 'Yes! We provide a comprehensive REST API for integration with your applications. Professional and Enterprise plans include API access with documentation and SDKs for popular languages.',
+          q: 'How do agents differ from each other?',
+          a: 'Each agent is specialized: Einstein excels at physics and math, Tech Wizard at programming and debugging, Chef Biew at recipes and cooking techniques, Emma at emotional support, and so on. Choose the agent that matches your task.',
         },
         {
-          q: "What's the API rate limit?",
-          a: 'Standard rate limit is 1000 requests per hour. Enterprise users can request higher limits. Rate limits are applied per API key to prevent abuse.',
+          q: 'Can agents generate code?',
+          a: 'Yes! Many agents can generate code, especially Tech Wizard. Use Canvas for live code preview—generate React apps, HTML pages, algorithms, and more. The code renders in real-time so you can see it working.',
         },
         {
-          q: 'Do you support webhooks?',
-          a: 'Yes. Enterprise and Professional plans support webhooks for real-time event notifications. You can subscribe to events like message sent, conversation created, and more.',
+          q: 'Do agents remember previous conversations?',
+          a: 'Within a session, agents maintain full context. Across sessions, they can access your conversation history for continuity. For privacy, we don\'t use your data to train other users\' experiences.',
         },
         {
-          q: 'Is there SDK support?',
-          a: 'Yes! We provide official SDKs for JavaScript/Node.js, Python, and Go. Community-contributed SDKs for other languages are also available.',
+          q: 'Can I suggest new agents?',
+          a: 'Absolutely! We love community suggestions. Submit ideas through our feedback portal or contact support. Popular suggestions often become new agents in future releases.',
         },
         {
-          q: 'How do I get API documentation?',
-          a: "Complete API documentation is available in our Developer Portal at /docs. You'll find endpoint references, code examples, and interactive API explorer.",
+          q: 'How often are agents updated?',
+          a: 'Agents receive continuous improvements. Major updates ship monthly with new capabilities, knowledge updates, and performance enhancements based on user feedback and AI advances.',
+        },
+        {
+          q: 'Can I create my own agent?',
+          a: 'Enterprise customers can create custom agents with specialized knowledge bases and personalities. Contact our sales team at /support/contact-us to discuss custom agent development.',
         },
       ],
     },
@@ -136,23 +212,27 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'How do I get support?',
-          a: 'You can reach our support team through email, live chat (available for Pro+ plans), or our support portal. Response times vary by plan: Starter (24-48 hours), Professional (2-4 hours), Enterprise (1 hour).',
+          a: 'Visit /support for options: check this FAQ, browse our Help Center, create a support ticket, or use live chat (available for paid users). Enterprise customers get dedicated account managers.',
         },
         {
-          q: 'Is there priority support?',
-          a: 'Yes. Professional and Enterprise plans include priority support with faster response times. Enterprise plans also include a dedicated account manager.',
+          q: 'What are the support response times?',
+          a: 'Free accounts: 24-48 hours. Paid users: 2-4 hours. Enterprise: 1 hour with priority queue. Live chat provides immediate help during business hours.',
         },
         {
-          q: 'Do you have documentation?',
-          a: 'Yes! We have extensive documentation available at /docs including getting started guides, API reference, tutorials, and integration guides.',
+          q: 'Where can I find documentation?',
+          a: 'Visit /docs for complete documentation including: Getting Started guides, API reference, SDK tutorials, Canvas documentation, integration guides, and best practices.',
         },
         {
           q: 'Are there video tutorials?',
-          a: 'Yes! We offer comprehensive tutorials on our /resources/tutorials page showing how to use each agent, API integration, and advanced features.',
+          a: 'Yes! Check /resources/tutorials for step-by-step video guides on using agents, Studio, Canvas, APIs, and integrations. New tutorials are added regularly.',
         },
         {
-          q: 'Can I schedule a demo?',
-          a: 'Absolutely! You can schedule a demo with our team at /webinars/register-now or contact our sales team. We offer personalized demos for enterprise customers.',
+          q: 'Can I book a demo or consultation?',
+          a: 'Yes! Schedule a free consultation at /support/book-consultation. Enterprise customers can request personalized demos and technical deep-dives.',
+        },
+        {
+          q: 'How do I report a bug?',
+          a: 'Report bugs through /support/create-ticket with details about what happened, steps to reproduce, and any error messages. Our team investigates all reports promptly.',
         },
       ],
     },
@@ -161,44 +241,19 @@ export default function FAQsPage() {
       questions: [
         {
           q: "What's your uptime guarantee?",
-          a: 'We maintain 99.9% uptime SLA for Professional and Enterprise plans. Our infrastructure is distributed across multiple data centers with automatic failover.',
+          a: 'We maintain 99.9% uptime with infrastructure across multiple data centers and automatic failover. Check real-time status at /status. Enterprise plans include custom SLAs.',
         },
         {
-          q: 'How fast is the response time?',
-          a: 'Most responses are generated within 2-5 seconds. Response time depends on the complexity of your query and current system load. Enterprise users get priority queue placement.',
+          q: 'How fast are responses?',
+          a: 'Most responses begin streaming within 1-2 seconds. Full responses typically complete in 2-8 seconds depending on length and complexity. Canvas generation adds 1-3 seconds for rendering.',
         },
         {
-          q: 'Can I scale to handle high volume?',
-          a: 'Yes! Our infrastructure automatically scales to handle your needs. For extreme high-volume use cases, contact our sales team to discuss dedicated infrastructure options.',
+          q: 'What AI models power the agents?',
+          a: 'We use state-of-the-art models including GPT-4, Claude, and Gemini, selected and fine-tuned for each agent\'s specialty. We continuously update to the latest model versions.',
         },
         {
-          q: 'Do you monitor system performance?',
-          a: 'Yes. We continuously monitor system performance and provide status updates at status.One Last AI.io. Enterprise users get real-time monitoring and custom alerts.',
-        },
-      ],
-    },
-    {
-      category: 'Agents & Personalities',
-      questions: [
-        {
-          q: 'How are agents created?',
-          a: 'Each agent is built using advanced AI models fine-tuned with specialized knowledge and personality traits. Our team continuously trains and improves agents based on user feedback.',
-        },
-        {
-          q: 'Can I suggest a new agent?',
-          a: 'Absolutely! We love suggestions from our community. Visit our feedback portal or contact support with your ideas. Popular suggestions become new agents.',
-        },
-        {
-          q: 'Do agents learn from conversations?',
-          a: "Agents don't retain specific conversation data between sessions for privacy. However, we use aggregated, anonymized feedback to continuously improve agent performance.",
-        },
-        {
-          q: 'How often are agents updated?',
-          a: 'Agents receive regular updates and improvements. Major updates are released monthly with new knowledge, improved responses, and new features based on user feedback.',
-        },
-        {
-          q: "What's the difference between agents?",
-          a: 'Each agent specializes in different domains: Einstein excels at physics/math, Tech Wizard at programming, Chef Biew at cooking, etc. You can use different agents for different tasks.',
+          q: 'Can the platform handle high volume?',
+          a: 'Yes! Our infrastructure auto-scales to handle demand. Enterprise customers can request dedicated capacity for consistent performance during peak usage.',
         },
       ],
     },
@@ -207,83 +262,84 @@ export default function FAQsPage() {
       questions: [
         {
           q: 'Is One Last AI GDPR compliant?',
-          a: 'Yes! We are fully GDPR compliant. We support data subject rights, DPA agreements, and provide tools for GDPR compliance. See our security page for details.',
+          a: 'Yes! We\'re fully GDPR compliant with data subject rights, DPA agreements, and compliance tools. EU users can request EU data residency. See /security for details.',
         },
         {
           q: 'Do you comply with HIPAA?',
-          a: 'Yes. Enterprise customers can enable HIPAA-compliant infrastructure. We also support HIPAA BAAs (Business Associate Agreements) for healthcare providers.',
+          a: 'Enterprise customers can enable HIPAA-compliant infrastructure with BAA agreements. Contact sales for healthcare compliance options.',
         },
         {
-          q: 'Is there a service level agreement (SLA)?',
-          a: 'Yes. Professional and Enterprise plans include SLAs with uptime guarantees and incident response times. Enterprise customers get custom SLAs tailored to their needs.',
+          q: 'How is my data used?',
+          a: 'Your data is used only to provide the service. We don\'t sell data or train on individual conversations. Aggregated, anonymized usage helps improve the platform. See our privacy policy for full details.',
         },
         {
-          q: 'How do you handle data residency?',
-          a: 'By default, data is stored in secure US data centers. Enterprise customers can request EU or other regional data residency options.',
+          q: 'Can I get compliance documentation?',
+          a: 'Yes. SOC 2 Type II reports and compliance certifications are available under NDA for Enterprise and Professional customers. Contact support to request documentation.',
         },
         {
-          q: 'Can I get SOC 2 compliance documentation?',
-          a: 'Yes. We have completed SOC 2 Type II audits. Enterprise and Professional customers can request compliance documentation under NDA.',
-        },
-      ],
-    },
-    {
-      category: 'Community & Resources',
-      questions: [
-        {
-          q: 'Is there a community forum?',
-          a: 'Yes! Join our community at /community to connect with other users, share tips, and discuss best practices. Community members help each other solve problems and share ideas.',
-        },
-        {
-          q: 'Are there webinars?',
-          a: "Yes! We host regular webinars on topics like 'Getting Started', 'Advanced Customization', 'Enterprise Solutions', and more. Register at /resources/webinars.",
-        },
-        {
-          q: 'Can I find best practices?',
-          a: 'Absolutely! Check out our /resources section for documentation, tutorials, case studies, and best practices guides. We also share tips regularly in our newsletter.',
-        },
-        {
-          q: 'How can I contribute to the community?',
-          a: 'Share your use cases, create tutorials, contribute SDKs, or help other users in the community forum. Contributors get recognition and exclusive benefits!',
+          q: 'What are the terms of service?',
+          a: 'Our terms of service at /legal/terms-of-service cover usage rights, acceptable use, liability, and your responsibilities. The privacy policy at /legal/privacy-policy details data handling.',
         },
       ],
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-16">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Frequently Asked Questions
           </h1>
-          <p className="text-xl opacity-90">
-            Find answers to common questions about One Last AI
+          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+            Find answers to common questions about One Last AI, our agents, Studio, Canvas, and more
           </p>
         </div>
       </section>
 
-      <section className="section-padding">
+      {/* Quick Links */}
+      <section className="py-8 border-b border-gray-200 bg-white">
+        <div className="container-custom max-w-4xl">
+          <div className="flex flex-wrap justify-center gap-3">
+            {faqs.map((category, idx) => (
+              <a
+                key={idx}
+                href={`#${category.category.toLowerCase().replace(/\s+/g, '-')}`}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-blue-100 hover:text-blue-600 rounded-full transition-colors"
+              >
+                {category.category}
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Content */}
+      <section className="py-16">
         <div className="container-custom max-w-4xl">
           <div className="space-y-12">
             {faqs.map((category, catIdx) => (
-              <div key={catIdx}>
-                <h2 className="text-2xl font-bold mb-6 pb-2 border-b-2 border-brand-200">
+              <div key={catIdx} id={category.category.toLowerCase().replace(/\s+/g, '-')}>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-blue-200 flex items-center gap-3">
+                  <span className="w-2 h-8 bg-blue-600 rounded-full"></span>
                   {category.category}
                 </h2>
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {category.questions.map((item, qIdx) => (
                     <details
                       key={qIdx}
-                      className="group border border-neural-200 rounded-lg p-4 hover:border-brand-300 hover:shadow-md transition-all cursor-pointer"
+                      className="group bg-white rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
                     >
-                      <summary className="font-semibold text-neural-900 flex items-center justify-between group-open:text-brand-600">
-                        {item.q}
-                        <span className="transition-transform group-open:rotate-180">
-                          ▼
+                      <summary className="font-semibold text-gray-900 p-5 flex items-center justify-between cursor-pointer group-open:text-blue-600 group-open:border-b group-open:border-gray-100">
+                        <span className="pr-4">{item.q}</span>
+                        <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-blue-100 group-open:bg-blue-600 group-open:text-white transition-all">
+                          <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </span>
                       </summary>
-                      <p className="text-neural-600 mt-4 pt-4 border-t border-neural-100">
+                      <p className="text-gray-600 p-5 pt-4 leading-relaxed">
                         {item.a}
                       </p>
                     </details>
@@ -295,23 +351,35 @@ export default function FAQsPage() {
         </div>
       </section>
 
-      <section
-        className="section-padding"
-        style={{ backgroundColor: '#E0F2FE' }}
-      >
+      {/* CTA Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700">
         <div className="container-custom max-w-3xl text-center">
-          <h2 className="text-3xl font-bold mb-4 text-neural-900">
+          <h2 className="text-3xl font-bold text-white mb-4">
             Can't find your answer?
           </h2>
-          <p className="text-lg text-neural-700 mb-8">
+          <p className="text-lg text-blue-100 mb-8">
             Our support team is here to help. Reach out to us anytime.
           </p>
-          <a
-            href="/support/contact-us"
-            className="inline-block px-8 py-3 bg-blue-400 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors"
-          >
-            Contact Support
-          </a>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/support/contact-us"
+              className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Contact Support
+            </Link>
+            <Link
+              href="/support/create-ticket"
+              className="border border-white/30 text-white hover:bg-white/10 px-8 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Create Ticket
+            </Link>
+            <Link
+              href="/docs"
+              className="border border-white/30 text-white hover:bg-white/10 px-8 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Browse Docs
+            </Link>
+          </div>
         </div>
       </section>
     </div>
