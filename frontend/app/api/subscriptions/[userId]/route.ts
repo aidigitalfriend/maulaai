@@ -1,48 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import {
   verifyRequest,
   unauthorizedResponse,
 } from '../../../../lib/validateAuth';
-
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || '';
-
-let cachedConnection: typeof mongoose | null = null;
-
-async function connectDatabase() {
-  if (cachedConnection && mongoose.connection.readyState === 1) {
-    return cachedConnection;
-  }
-  
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI not configured');
-  }
-  
-  cachedConnection = await mongoose.connect(MONGODB_URI, {
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
-  });
-  
-  return cachedConnection;
-}
-
-// Schema matching the 'subscriptions' collection structure (not agentsubscriptions)
-const subscriptionSchema = new mongoose.Schema({
-  userId: { type: String, index: true },  // Stored as string
-  agentId: { type: String },
-  plan: { type: String, enum: ['daily', 'weekly', 'monthly'] },
-  price: { type: Number },
-  status: { type: String, enum: ['active', 'expired', 'cancelled'] },
-  startDate: { type: Date },
-  expiryDate: { type: Date },
-  autoRenew: { type: Boolean, default: false },
-  stripeSubscriptionId: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, { collection: 'subscriptions' });  // Real data is in 'subscriptions' collection
-
-const Subscription = mongoose.models.UserSubscription || mongoose.model('UserSubscription', subscriptionSchema);
+import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
+import { connectToDatabase } from '../../../../lib/mongodb-client';
 
 export async function GET(
   request: NextRequest,
@@ -55,12 +17,18 @@ export async function GET(
     const authResult = verifyRequest(request);
     if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
-    await connectDatabase();
+    // Connect to database
+    await connectToDatabase();
+    
+    // Get the AgentSubscription model (uses 'subscriptions' collection)
+    const AgentSubscription = await getAgentSubscriptionModel();
 
     // Query subscriptions collection directly (userId is stored as string)
-    const subscriptions = await Subscription.find({ 
+    const subscriptions = await AgentSubscription.find({ 
       userId: userId 
     }).sort({ createdAt: -1 }).lean();
+
+    console.log(`[/api/subscriptions/${userId}] Found ${subscriptions.length} subscriptions`);
 
     return NextResponse.json({
       success: true,
@@ -78,4 +46,5 @@ export async function GET(
       { status: 500 }
     );
   }
+}
 }
