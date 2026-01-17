@@ -93,20 +93,42 @@ const developerUtils = [
 export default function DeveloperUtilsPage() {
   const { hasActiveSubscription } = useSubscriptionStatus();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-      {/* Hero Section */}
-      <section className="container-custom py-20">
-        <div className="text-center mb-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="container-custom section-padding-lg">
+        {/* Header */}
+        <div className="text-center max-w-4xl mx-auto mb-16">
           <div className="flex items-center justify-center mb-6">
-            <Code2 className="w-16 h-16 text-brand-400" />
+            <div className="w-20 h-20 bg-brand-100 rounded-2xl flex items-center justify-center">
+              <Code2 className="w-10 h-10 text-brand-600" />
+            </div>
           </div>
-          <h1 className="text-5xl font-bold mb-4">
-            Developer <span className="text-gradient">Utils</span>
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+            Developer Utils
           </h1>
-          <p className="text-xl text-neural-300 max-w-3xl mx-auto">
+          <p className="text-xl text-neural-600 leading-relaxed">
             Essential utilities and converters for developers to boost
             productivity and streamline workflows
           </p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-brand-50 rounded-lg">
+                <div className="text-2xl font-bold text-brand-600">8+</div>
+                <div className="text-xs text-neural-600">Developer Tools</div>
+              </div>
+              <div className="text-center p-4 bg-accent-50 rounded-lg">
+                <div className="text-2xl font-bold text-accent-600">Fast</div>
+                <div className="text-xs text-neural-600">Instant Results</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">Free</div>
+                <div className="text-xs text-neural-600">No Registration</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tools Grid */}
@@ -119,31 +141,31 @@ export default function DeveloperUtilsPage() {
             >
               <Link
                 href={tool.href}
-                className={`group relative bg-neural-800/50 rounded-2xl p-6 border border-neural-700 hover:border-brand-500 transition-all duration-300 hover:scale-105 ${
+                className={`group bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300 block h-full ${
                   tool.comingSoon ? 'cursor-not-allowed opacity-75' : ''
                 }`}
                 onClick={(e) => tool.comingSoon && e.preventDefault()}
               >
                 {tool.comingSoon && (
-                  <div className="absolute top-4 right-4 px-2 py-1 bg-brand-600 text-xs font-semibold rounded-full">
+                  <div className="absolute top-4 right-4 px-2 py-1 bg-brand-600 text-white text-xs font-semibold rounded-full">
                     Coming Soon
                   </div>
                 )}
 
                 <div
-                  className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
                 >
-                  <tool.icon className="w-7 h-7 text-white" />
+                  <tool.icon className="w-6 h-6 text-white" />
                 </div>
 
-                <h3 className="text-xl font-bold mb-2 group-hover:text-brand-400 transition-colors">
+                <h3 className="text-lg font-bold text-neural-800 mb-2 group-hover:text-brand-600 transition-colors">
                   {tool.name}
                 </h3>
 
-                <p className="text-sm text-neural-400">{tool.description}</p>
+                <p className="text-sm text-neural-600 leading-relaxed mb-4">{tool.description}</p>
 
                 {!tool.comingSoon && (
-                  <div className="mt-4 flex items-center text-brand-400 text-sm font-semibold group-hover:translate-x-2 transition-transform">
+                  <div className="flex items-center text-brand-600 text-sm font-semibold group-hover:translate-x-2 transition-transform">
                     Launch Tool →
                   </div>
                 )}
@@ -151,25 +173,25 @@ export default function DeveloperUtilsPage() {
             </LockedCard>
           ))}
         </div>
-      </section>
 
-      {/* Info Section */}
-      <section className="container-custom py-16 border-t border-neural-700">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="text-4xl font-bold text-brand-400 mb-2">8+</div>
-            <div className="text-neural-300">Developer Tools</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-brand-400 mb-2">Fast</div>
-            <div className="text-neural-300">Instant Results</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-brand-400 mb-2">Free</div>
-            <div className="text-neural-300">No Registration</div>
+        {/* CTA Section */}
+        <div className="max-w-4xl mx-auto mt-16">
+          <div className="bg-gradient-to-r from-brand-600 to-accent-500 rounded-2xl p-8 md:p-12 text-center text-white">
+            <h2 className="text-3xl font-bold mb-4">Need Network Tools?</h2>
+            <p className="text-lg opacity-90 mb-8">
+              Check out our powerful network utilities including DNS lookup, port scanner, and more.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/tools/network-tools" className="btn-primary bg-white text-brand-600 hover:bg-neural-50">
+                Network Tools
+              </Link>
+              <Link href="/agents" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-brand-600">
+                Explore AI Agents
+              </Link>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
