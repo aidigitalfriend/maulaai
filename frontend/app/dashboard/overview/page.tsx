@@ -188,10 +188,10 @@ export default function DashboardOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-600 mx-auto mb-4"></div>
-          <p className="text-lg text-neural-600">Loading your dashboard...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -218,21 +218,36 @@ export default function DashboardOverviewPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section with Dashboard Overview */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-16">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#grid)" />
+          </svg>
+        </div>
+        
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <UserIcon className="w-8 h-8 text-white" />
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Dashboard Overview
           </h1>
-          <p className="text-xl opacity-90 mb-8">
+          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
             Get started with your analytics and insights
           </p>
 
           {/* Go to Dashboard button in hero section */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-lg font-semibold hover:bg-neural-50 transition-colors"
+            className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg shadow-blue-900/25"
           >
             Go to Dashboard
           </Link>
@@ -240,10 +255,10 @@ export default function DashboardOverviewPage() {
       </section>
 
       {/* Main Dashboard Sections */}
-      <section className="section-padding">
-        <div className="container-custom max-w-6xl">
+      <section className="py-16 px-6">
+        <div className="container mx-auto max-w-6xl">
           {error && (
-            <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
               <div>
                 <p className="font-semibold text-red-800">
                   Unable to refresh some account data
@@ -252,7 +267,7 @@ export default function DashboardOverviewPage() {
               </div>
               <button
                 onClick={loadUserData}
-                className="btn-secondary self-start md:self-auto"
+                className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium transition-colors self-start md:self-auto"
                 disabled={isLoading}
               >
                 {isLoading ? 'Refreshing...' : 'Retry'}
@@ -262,16 +277,16 @@ export default function DashboardOverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* User Profile Section */}
             <Link href="/dashboard/profile" className="group">
-              <div className="p-8 border-2 border-neural-200 rounded-lg hover:border-brand-300 hover:shadow-lg transition-all">
+              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-blue-300 transition-all">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-brand-100 rounded-lg flex items-center justify-center mr-4 group-hover:bg-brand-200 transition-colors">
-                    <UserIcon className="w-6 h-6 text-brand-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-blue-500/25">
+                    <UserIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-neural-900">
+                    <h3 className="text-xl font-bold text-gray-900">
                       User Profile
                     </h3>
-                    <p className="text-neural-600">
+                    <p className="text-gray-600">
                       Manage your personal information
                     </p>
                   </div>
@@ -280,19 +295,19 @@ export default function DashboardOverviewPage() {
                 {userProfile && (
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-brand-500 rounded-full flex items-center justify-center text-white font-semibold">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold shadow-lg shadow-blue-500/25">
                         {userProfile.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-neural-900">
+                        <p className="font-medium text-gray-900">
                           {userProfile.name}
                         </p>
-                        <p className="text-sm text-neural-600">
+                        <p className="text-sm text-gray-600">
                           {userProfile.email}
                         </p>
                       </div>
                     </div>
-                    <div className="text-sm text-neural-700 space-y-1">
+                    <div className="text-sm text-gray-700 space-y-1">
                       <p>📍 {userProfile.location}</p>
                       <p>
                         💼 {userProfile.profession} at {userProfile.company}
@@ -305,7 +320,7 @@ export default function DashboardOverviewPage() {
                   </div>
                 )}
 
-                <div className="mt-4 text-sm text-brand-600 group-hover:text-brand-700">
+                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-indigo-700">
                   View and edit profile →
                 </div>
               </div>
@@ -313,16 +328,16 @@ export default function DashboardOverviewPage() {
 
             {/* Security Settings Section */}
             <Link href="/dashboard/security" className="group">
-              <div className="p-8 border-2 border-neural-200 rounded-lg hover:border-brand-300 hover:shadow-lg transition-all">
+              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-green-300 transition-all">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
-                    <ShieldCheckIcon className="w-6 h-6 text-green-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-green-500/25">
+                    <ShieldCheckIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-neural-900">
+                    <h3 className="text-xl font-bold text-gray-900">
                       Security Settings
                     </h3>
-                    <p className="text-neural-600">
+                    <p className="text-gray-600">
                       Password, 2FA, and security options
                     </p>
                   </div>
@@ -331,11 +346,11 @@ export default function DashboardOverviewPage() {
                 {securitySettings && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-neural-700">
+                      <span className="text-sm text-gray-700">
                         Two-Factor Authentication
                       </span>
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
+                        className={`px-2 py-1 rounded-lg text-xs font-medium ${
                           securitySettings.twoFactorEnabled
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
@@ -346,7 +361,7 @@ export default function DashboardOverviewPage() {
                           : 'Disabled'}
                       </span>
                     </div>
-                    <div className="text-sm text-neural-700">
+                    <div className="text-sm text-gray-700">
                       <p>
                         🔐 Password last changed:{' '}
                         {new Date(
@@ -361,7 +376,7 @@ export default function DashboardOverviewPage() {
                   </div>
                 )}
 
-                <div className="mt-4 text-sm text-brand-600 group-hover:text-brand-700">
+                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent group-hover:from-green-700 group-hover:to-emerald-700">
                   Manage security settings →
                 </div>
               </div>
@@ -369,16 +384,16 @@ export default function DashboardOverviewPage() {
 
             {/* Preferences Section */}
             <Link href="/dashboard/preferences" className="group">
-              <div className="p-8 border-2 border-neural-200 rounded-lg hover:border-brand-300 hover:shadow-lg transition-all">
+              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-purple-300 transition-all">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4 group-hover:bg-purple-200 transition-colors">
-                    <CogIcon className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-purple-500/25">
+                    <CogIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-neural-900">
+                    <h3 className="text-xl font-bold text-gray-900">
                       Preferences
                     </h3>
-                    <p className="text-neural-600">
+                    <p className="text-gray-600">
                       Themes, languages, and settings
                     </p>
                   </div>
@@ -388,26 +403,26 @@ export default function DashboardOverviewPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-neural-600">Theme</p>
-                        <p className="font-medium capitalize">
+                        <p className="text-gray-500">Theme</p>
+                        <p className="font-medium text-gray-900 capitalize">
                           {preferences.theme}
                         </p>
                       </div>
                       <div>
-                        <p className="text-neural-600">Language</p>
-                        <p className="font-medium">
+                        <p className="text-gray-500">Language</p>
+                        <p className="font-medium text-gray-900">
                           {formatLanguagePreference(preferences.language)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-sm text-neural-700">
+                    <div className="text-sm text-gray-700">
                       <p>🌍 {preferences.timezone}</p>
                       <p>💰 Currency: {preferences.currency}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 text-sm text-brand-600 group-hover:text-brand-700">
+                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:to-pink-700">
                   Customize preferences →
                 </div>
               </div>
@@ -415,18 +430,18 @@ export default function DashboardOverviewPage() {
 
             {/* Rewards Center Section */}
             <Link href="/dashboard/rewards" className="group">
-              <div className="p-8 border-2 border-neural-200 rounded-lg hover:border-brand-300 hover:shadow-lg transition-all relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-bl-3xl opacity-10"></div>
+              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-yellow-300 transition-all relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-bl-[4rem] opacity-10"></div>
 
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4 group-hover:bg-yellow-200 transition-colors">
-                    <GiftIcon className="w-6 h-6 text-yellow-600" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-yellow-500/25">
+                    <GiftIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-neural-900">
+                    <h3 className="text-xl font-bold text-gray-900">
                       Rewards Center
                     </h3>
-                    <p className="text-neural-600">
+                    <p className="text-gray-600">
                       Points, badges, and achievements
                     </p>
                   </div>
@@ -436,19 +451,19 @@ export default function DashboardOverviewPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-2xl font-bold text-brand-600">
+                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                           {rewards?.totalPoints?.toLocaleString() || '0'}
                         </p>
-                        <p className="text-sm text-neural-600">Total Points</p>
+                        <p className="text-sm text-gray-600">Total Points</p>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center space-x-1">
                           <StarIcon className="w-5 h-5 text-yellow-500" />
-                          <span className="text-lg font-semibold">
+                          <span className="text-lg font-semibold text-gray-900">
                             Level {rewards?.currentLevel || 1}
                           </span>
                         </div>
-                        <p className="text-xs text-neural-600">
+                        <p className="text-xs text-gray-600">
                           {rewards?.pointsToNextLevel || 0} to next level
                         </p>
                       </div>
@@ -458,16 +473,16 @@ export default function DashboardOverviewPage() {
                       {rewards?.badges
                         ?.slice(0, 3)
                         .map((badge: any, idx: number) => (
-                          <div key={idx} className="text-center">
+                          <div key={idx} className="text-center p-2 bg-gray-50 rounded-xl">
                             <div className="text-2xl mb-1">
                               {badge.icon || '🎖️'}
                             </div>
-                            <p className="text-xs text-neural-600 truncate">
+                            <p className="text-xs text-gray-600 truncate">
                               {badge.name}
                             </p>
                           </div>
                         )) || (
-                        <div className="col-span-3 text-center text-neural-500">
+                        <div className="col-span-3 text-center text-gray-500 p-3 bg-gray-50 rounded-xl">
                           <div className="text-2xl mb-1">🎖️</div>
                           <p className="text-xs">No badges yet</p>
                         </div>
@@ -475,17 +490,17 @@ export default function DashboardOverviewPage() {
                     </div>
 
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-neural-700">
+                      <span className="text-gray-700">
                         🔥 {rewards?.streaks?.current || 0} day streak
                       </span>
-                      <span className="text-neural-700">
+                      <span className="text-gray-700">
                         🏆 {rewards?.badges?.length || 0} badges earned
                       </span>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 text-sm text-brand-600 group-hover:text-brand-700">
+                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent group-hover:from-yellow-700 group-hover:to-orange-700">
                   Explore rewards →
                 </div>
               </div>
@@ -495,13 +510,13 @@ export default function DashboardOverviewPage() {
       </section>
 
       {/* Quick Stats Section */}
-      <section className="section-padding bg-neural-50">
-        <div className="container-custom max-w-4xl">
+      <section className="py-16 px-6 bg-white/50">
+        <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neural-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Your Activity Overview
             </h2>
-            <p className="text-lg text-neural-600">
+            <p className="text-lg text-gray-600">
               Track your progress and engagement
             </p>
           </div>
@@ -510,15 +525,15 @@ export default function DashboardOverviewPage() {
             {quickStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="bg-white p-6 rounded-lg shadow-sm border border-neural-200 text-center"
+                className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 text-center hover:shadow-xl transition-shadow"
               >
-                <div className="text-3xl font-bold text-neural-900 mb-2">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
                   {typeof stat.value === 'number'
                     ? stat.value.toLocaleString()
                     : stat.value}{' '}
                   {stat.suffix || ''}
                 </div>
-                <div className="text-sm text-neural-600">{stat.label}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
               </div>
             ))}
           </div>
