@@ -329,14 +329,28 @@ export default function CommunityPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">
+      <section className="py-20 md:py-28 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="community-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#community-pattern)" />
+          </svg>
+        </div>
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <Users className="w-8 h-8" />
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
             One Last AI Community
           </h1>
-          <p className="text-xl opacity-90">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Join real-time discussions with thousands of developers, AI
             enthusiasts, and innovators
           </p>
@@ -344,19 +358,19 @@ export default function CommunityPage() {
       </section>
 
       {/* Community Stats */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, idx) => (
               <div
                 key={idx}
-                className="text-center p-6 bg-neural-800 rounded-lg border border-neural-700 hover:border-brand-500 transition-colors"
+                className="text-center p-6 bg-white rounded-2xl shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all"
               >
                 <div className="text-4xl mb-3">{stat.icon}</div>
-                <div className="text-3xl font-bold text-brand-400 mb-1">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
                   {stat.number}
                 </div>
-                <div className="text-neural-300 text-sm">{stat.label}</div>
+                <div className="text-gray-600 text-sm">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -364,59 +378,65 @@ export default function CommunityPage() {
       </section>
 
       {/* Main Community Section */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom">
           <div className="grid lg:grid-cols-4 gap-8">
             {/* Sidebar - Categories & Top Members */}
             <div className="lg:col-span-1 space-y-8">
               {/* Category Navigation */}
-              <div className="bg-neural-800 rounded-lg border border-neural-700 p-6">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <Filter size={20} /> Categories
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                    <Filter size={16} className="text-white" />
+                  </div>
+                  Categories
                 </h3>
                 <div className="space-y-3">
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCategory(cat.id as any)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
                         selectedCategory === cat.id
-                          ? `bg-gradient-to-r ${cat.color} text-white`
-                          : 'bg-neural-700 text-neural-300 hover:bg-neural-600'
+                          ? `bg-gradient-to-r ${cat.color} text-white shadow-lg`
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                       }`}
                     >
                       <span className="text-lg mr-2">{cat.icon}</span>
-                      <span className="text-sm">{cat.label}</span>
+                      <span className="text-sm font-medium">{cat.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Top Members */}
-              <div className="bg-neural-800 rounded-lg border border-neural-700 p-6">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <Users size={20} /> Top Members
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Users size={16} className="text-white" />
+                  </div>
+                  Top Members
                 </h3>
                 <div className="space-y-4">
                   {topMembers.length === 0 ? (
-                    <div className="text-center py-4 text-neural-400 text-sm">
+                    <div className="text-center py-4 text-gray-500 text-sm">
                       No members yet
                     </div>
                   ) : (
                     topMembers.map((member) => (
                       <div
                         key={member.id}
-                        className="flex items-center gap-3 p-3 bg-neural-700 rounded-lg hover:bg-neural-600 transition-colors cursor-pointer"
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer"
                       >
                         <div className="text-2xl">{member.avatar}</div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm">
+                          <div className="font-semibold text-sm text-gray-900">
                             {member.name}
                           </div>
-                          <div className="text-xs text-neural-400">
+                          <div className="text-xs text-gray-500">
                             {member.title}
                           </div>
-                          <div className="text-xs text-neural-500">
+                          <div className="text-xs text-gray-400">
                             Joined{' '}
                             {new Date(member.joinedDate).toLocaleDateString()}
                           </div>
@@ -434,7 +454,7 @@ export default function CommunityPage() {
               <div className="mb-6">
                 <div className="relative">
                   <Search
-                    className="absolute left-4 top-3 text-neural-400"
+                    className="absolute left-4 top-3 text-gray-400"
                     size={20}
                   />
                   <input
@@ -442,17 +462,17 @@ export default function CommunityPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search discussions..."
-                    className="w-full bg-neural-800 border border-neural-700 rounded-lg pl-12 pr-4 py-3 text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg"
                   />
                 </div>
               </div>
 
               {/* Messages Feed */}
-              <div className="space-y-4 max-h-96 overflow-y-auto mb-8 pr-4 bg-neural-800/30 p-6 rounded-lg border border-neural-700">
+              <div className="space-y-4 max-h-96 overflow-y-auto mb-8 pr-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-lg">
                 {filteredMessages.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="text-4xl mb-4">💭</div>
-                    <p className="text-neural-400">
+                    <p className="text-gray-500">
                       {loadingPosts
                         ? 'Loading discussions…'
                         : 'No discussions found. Be the first to start one!'}
@@ -462,25 +482,25 @@ export default function CommunityPage() {
                   filteredMessages.map((message) => (
                     <div
                       key={message.id}
-                      className={`p-5 rounded-lg border transition-all ${
+                      className={`p-5 rounded-xl border transition-all ${
                         message.isPinned
-                          ? 'bg-brand-900/30 border-brand-500/50 ring-2 ring-brand-500/20'
-                          : 'bg-neural-700/50 border-neural-600 hover:border-brand-500/50'
+                          ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
+                          : 'bg-gray-50 border-gray-200 hover:border-blue-300 hover:shadow-md'
                       }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className="text-3xl">{message.avatar}</div>
                           <div>
-                            <div className="font-bold flex items-center gap-2">
+                            <div className="font-bold text-gray-900 flex items-center gap-2">
                               {message.author}
                               {message.isPinned && (
-                                <span className="text-xs bg-brand-600 px-2 py-1 rounded-full">
+                                <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
                                   📌 Pinned
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-neural-400">
+                            <div className="text-xs text-gray-500">
                               {Math.round(
                                 (Date.now() - message.timestamp.getTime()) /
                                   60000
@@ -489,7 +509,7 @@ export default function CommunityPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="px-3 py-1 bg-neural-600 rounded-full text-xs font-medium text-neural-200">
+                        <div className="px-3 py-1 bg-gray-200 rounded-full text-xs font-medium text-gray-700">
                           {
                             categories.find((c) => c.id === message.category)
                               ?.icon
@@ -497,16 +517,16 @@ export default function CommunityPage() {
                           {message.category}
                         </div>
                       </div>
-                      <p className="text-neural-100 mb-4 whitespace-pre-wrap">
+                      <p className="text-gray-700 mb-4 whitespace-pre-wrap">
                         {message.content}
                       </p>
-                      <div className="flex gap-6 text-sm text-neural-400">
+                      <div className="flex gap-6 text-sm text-gray-500">
                         <button
                           onClick={() => handleLike(message.id)}
                           className={`flex items-center gap-2 transition-colors ${
                             likedMessages.has(message.id)
-                              ? 'text-brand-400'
-                              : 'hover:text-brand-400'
+                              ? 'text-pink-500'
+                              : 'hover:text-pink-500'
                           }`}
                         >
                           <Heart
@@ -519,7 +539,7 @@ export default function CommunityPage() {
                           />{' '}
                           {message.likes}
                         </button>
-                        <button className="flex items-center gap-2 hover:text-brand-400 transition-colors">
+                        <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
                           <MessageCircle size={16} /> {message.replies}
                         </button>
                       </div>
@@ -532,10 +552,10 @@ export default function CommunityPage() {
               {/* Message Input */}
               <form
                 onSubmit={handleSendMessage}
-                className="bg-neural-800 p-6 rounded-lg border border-neural-700"
+                className="bg-white p-6 rounded-2xl border border-gray-200 shadow-lg"
               >
                 <div className="mb-4">
-                  <label className="text-sm text-neural-300 mb-2 block">
+                  <label className="text-sm text-gray-600 mb-2 block font-medium">
                     Select Category
                   </label>
                   <div className="relative">
@@ -550,7 +570,7 @@ export default function CommunityPage() {
                             | 'help'
                         )
                       }
-                      className="w-full bg-neural-700 border border-neural-600 rounded-lg px-4 py-3 text-white appearance-none cursor-pointer focus:outline-none focus:border-brand-500 pr-10"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 appearance-none cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-10"
                     >
                       <option value="general">🌍 General</option>
                       <option value="agents">🤖 Agents & Features</option>
@@ -558,7 +578,7 @@ export default function CommunityPage() {
                       <option value="help">❓ Help & Support</option>
                     </select>
                     <ChevronDown
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neural-400 pointer-events-none"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                       size={20}
                     />
                   </div>
@@ -569,11 +589,11 @@ export default function CommunityPage() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Share your thoughts, ask questions, or join the discussion..."
-                    className="flex-1 bg-neural-700 border border-neural-600 rounded-lg px-4 py-3 text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-brand-600 hover:bg-brand-700 rounded-lg font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl font-medium transition-all flex items-center gap-2 whitespace-nowrap text-white shadow-lg shadow-blue-500/25"
                   >
                     <Send size={18} /> Post
                   </button>
@@ -585,41 +605,43 @@ export default function CommunityPage() {
       </section>
 
       {/* Community Guidelines Section */}
-      <section className="section-padding border-t border-neural-700 bg-neural-900">
+      <section className="py-16 md:py-20 bg-white/50">
         <div className="container-custom">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Community Guidelines
-          </h2>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Community Guidelines
+            </h2>
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
-              <div className="text-3xl mb-3">🤝</div>
-              <h3 className="font-bold mb-2">Be Respectful</h3>
-              <p className="text-neural-400 text-sm">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🤝</div>
+              <h3 className="font-bold text-gray-900 mb-2">Be Respectful</h3>
+              <p className="text-gray-600 text-sm">
                 Harassment, hate speech, doxxing, and threats are strictly
                 prohibited. Disagreements are fine—keep them civil and on-topic.
               </p>
             </div>
-            <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
-              <div className="text-3xl mb-3">💡</div>
-              <h3 className="font-bold mb-2">Share Knowledge</h3>
-              <p className="text-neural-400 text-sm">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-amber-300 transition-all">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 text-2xl">💡</div>
+              <h3 className="font-bold text-gray-900 mb-2">Share Knowledge</h3>
+              <p className="text-gray-600 text-sm">
                 Provide constructive, good-faith contributions. Don't post spam,
                 scams, or misleading content.
               </p>
             </div>
-            <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
-              <div className="text-3xl mb-3">🎯</div>
-              <h3 className="font-bold mb-2">Stay On Topic</h3>
-              <p className="text-neural-400 text-sm">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-green-300 transition-all">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🎯</div>
+              <h3 className="font-bold text-gray-900 mb-2">Stay On Topic</h3>
+              <p className="text-gray-600 text-sm">
                 Keep discussions relevant to One Last AI and applicable law.
                 Don't share illegal content or proprietary data without
                 permission.
               </p>
             </div>
-            <div className="bg-neural-800 p-6 rounded-lg border border-neural-700">
-              <div className="text-3xl mb-3">✨</div>
-              <h3 className="font-bold mb-2">Be Authentic</h3>
-              <p className="text-neural-400 text-sm">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-purple-300 transition-all">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 text-2xl">✨</div>
+              <h3 className="font-bold text-gray-900 mb-2">Be Authentic</h3>
+              <p className="text-gray-600 text-sm">
                 Protect your account. Don't impersonate others. By
                 participating, you agree to our Terms and applicable policies.
               </p>
@@ -629,37 +651,39 @@ export default function CommunityPage() {
       </section>
 
       {/* Activity Stats Section */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Community Activity
-          </h2>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Community Activity
+            </h2>
+          </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-neural-800 rounded-lg border border-neural-700">
-              <div className="text-5xl font-bold text-brand-400 mb-2">
+            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
                 {metrics?.postsThisWeek ?? '—'}
               </div>
-              <p className="text-neural-300">Posts This Week</p>
-              <div className="mt-4 h-1 bg-neural-700 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-600 to-accent-600 w-3/4"></div>
+              <p className="text-gray-600">Posts This Week</p>
+              <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 w-3/4 rounded-full"></div>
               </div>
             </div>
-            <div className="text-center p-8 bg-neural-800 rounded-lg border border-neural-700">
-              <div className="text-5xl font-bold text-brand-400 mb-2">
+            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+              <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                 {metrics?.activeReplies ?? '—'}
               </div>
-              <p className="text-neural-300">Active Replies</p>
-              <div className="mt-4 h-1 bg-neural-700 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-600 to-accent-600 w-4/5"></div>
+              <p className="text-gray-600">Active Replies</p>
+              <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 w-4/5 rounded-full"></div>
               </div>
             </div>
-            <div className="text-center p-8 bg-neural-800 rounded-lg border border-neural-700">
-              <div className="text-5xl font-bold text-brand-400 mb-2">
+            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+              <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
                 {metrics?.newMembersWeek ?? '—'}
               </div>
-              <p className="text-neural-300">New Members</p>
-              <div className="mt-4 h-1 bg-neural-700 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-600 to-accent-600 w-2/3"></div>
+              <p className="text-gray-600">New Members</p>
+              <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-green-600 to-emerald-600 w-2/3 rounded-full"></div>
               </div>
             </div>
           </div>
