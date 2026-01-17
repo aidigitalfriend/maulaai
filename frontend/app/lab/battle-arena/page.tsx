@@ -22,7 +22,7 @@ function MarkdownRenderer({ content }: { content: string }) {
         elements.push(
           <ul key={`list-${elements.length}`} className="list-disc list-inside my-2 space-y-1">
             {listItems.map((item, i) => (
-              <li key={i} className="text-gray-200">{processInline(item)}</li>
+              <li key={i} className="text-gray-700">{processInline(item)}</li>
             ))}
           </ul>
         );
@@ -66,11 +66,11 @@ function MarkdownRenderer({ content }: { content: string }) {
         
         if (segment) {
           if (currentStyle === 'bold') {
-            result.push(<strong key={i} className="font-bold text-white">{segment}</strong>);
+            result.push(<strong key={i} className="font-bold text-gray-900">{segment}</strong>);
           } else if (currentStyle === 'italic') {
             result.push(<em key={i} className="italic">{segment}</em>);
           } else if (currentStyle === 'code') {
-            result.push(<code key={i} className="bg-white/10 px-1 rounded text-cyan-400 font-mono text-sm">{segment}</code>);
+            result.push(<code key={i} className="bg-gray-100 px-1 rounded text-indigo-600 font-mono text-sm">{segment}</code>);
           } else {
             result.push(<span key={i}>{segment}</span>);
           }
@@ -87,21 +87,21 @@ function MarkdownRenderer({ content }: { content: string }) {
       if (trimmedLine.startsWith('### ')) {
         flushList();
         elements.push(
-          <h3 key={index} className="text-lg font-bold text-white mt-3 mb-2">
+          <h3 key={index} className="text-lg font-bold text-gray-900 mt-3 mb-2">
             {processInline(trimmedLine.substring(4))}
           </h3>
         );
       } else if (trimmedLine.startsWith('## ')) {
         flushList();
         elements.push(
-          <h2 key={index} className="text-xl font-bold text-white mt-3 mb-2">
+          <h2 key={index} className="text-xl font-bold text-gray-900 mt-3 mb-2">
             {processInline(trimmedLine.substring(3))}
           </h2>
         );
       } else if (trimmedLine.startsWith('# ')) {
         flushList();
         elements.push(
-          <h1 key={index} className="text-2xl font-bold text-white mt-3 mb-2">
+          <h1 key={index} className="text-2xl font-bold text-gray-900 mt-3 mb-2">
             {processInline(trimmedLine.substring(2))}
           </h1>
         );
@@ -115,7 +115,7 @@ function MarkdownRenderer({ content }: { content: string }) {
       else if (/^\d+\.\s/.test(trimmedLine)) {
         flushList();
         elements.push(
-          <div key={index} className="text-gray-200 my-1">
+          <div key={index} className="text-gray-700 my-1">
             {processInline(trimmedLine)}
           </div>
         );
@@ -129,7 +129,7 @@ function MarkdownRenderer({ content }: { content: string }) {
       else {
         flushList();
         elements.push(
-          <p key={index} className="text-gray-200 leading-relaxed my-1">
+          <p key={index} className="text-gray-700 leading-relaxed my-1">
             {processInline(trimmedLine)}
           </p>
         );
@@ -292,57 +292,65 @@ export default function BattleArenaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <Link href="/lab" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6">
-            <span>←</span> Back to AI Lab
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        </div>
+        <div className="container mx-auto px-4 py-16 relative">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
+              <span>←</span> Back to AI Lab
+            </Link>
 
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500">
-              <Swords className="w-12 h-12" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 shadow-lg shadow-red-500/25">
+                <Swords className="w-12 h-12 text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold text-white">
+                  AI Battle Arena
+                </h1>
+                <p className="text-xl text-blue-100 mt-2">
+                  Pit the world's best AI models against each other in 3 epic rounds!
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
-                AI Battle Arena
-              </h1>
-              <p className="text-xl text-gray-300 mt-2">
-                Pit the world's best AI models against each other in 3 epic rounds!
-              </p>
-            </div>
-          </div>
 
-          {/* Round Indicator */}
-          <div className="flex items-center gap-6 mt-6">
-            <div className="flex items-center gap-3">
-              {[1, 2, 3].map((round) => (
-                <div
-                  key={round}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center font-bold border-2 ${
-                    round < currentRound
-                      ? 'bg-green-500 border-green-400'
-                      : round === currentRound
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 border-yellow-400 animate-pulse'
-                      : 'bg-white/10 border-white/20'
-                  }`}
-                >
-                  {round < currentRound ? '✓' : round}
-                </div>
-              ))}
+            {/* Round Indicator */}
+            <div className="flex items-center gap-6 mt-6">
+              <div className="flex items-center gap-3">
+                {[1, 2, 3].map((round) => (
+                  <div
+                    key={round}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold border-2 ${
+                      round < currentRound
+                        ? 'bg-green-500 border-green-400 text-white'
+                        : round === currentRound
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 border-yellow-400 animate-pulse text-white'
+                        : 'bg-white/20 border-white/30 text-white'
+                    }`}
+                  >
+                    {round < currentRound ? '✓' : round}
+                  </div>
+                ))}
+              </div>
+              <div className="text-lg text-white">
+                <span className="text-blue-200">Round</span>{' '}
+                <span className="font-bold text-2xl">{currentRound}</span>
+                <span className="text-blue-200">/3</span>
+              </div>
             </div>
-            <div className="text-lg">
-              <span className="text-gray-400">Round</span>{' '}
-              <span className="font-bold text-2xl">{currentRound}</span>
-              <span className="text-gray-400">/3</span>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
 
         {/* Model Selection */}
         {!showResults && (
@@ -352,9 +360,9 @@ export default function BattleArenaPage() {
             className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
           >
             {/* Player 1 */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-yellow-400" />
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-900">
+                <Trophy className="w-6 h-6 text-yellow-500" />
                 Player 1 - Choose Your Champion
               </h3>
               <div className="grid grid-cols-2 gap-3">
@@ -365,24 +373,24 @@ export default function BattleArenaPage() {
                     disabled={model2 === model.id}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       model1 === model.id
-                        ? 'border-green-500 bg-white/20 scale-105'
+                        ? 'border-green-500 bg-green-50 scale-105'
                         : model2 === model.id
-                        ? 'border-red-500 bg-red-500/10 opacity-50 cursor-not-allowed'
-                        : 'border-white/20 hover:border-white/40 bg-white/5'
+                        ? 'border-red-300 bg-red-50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                   >
                     <div className={`text-4xl mb-2`}>{model.icon}</div>
-                    <div className="font-bold">{model.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">{model.description}</div>
+                    <div className="font-bold text-gray-900">{model.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{model.description}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Player 2 */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-blue-400" />
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-900">
+                <Trophy className="w-6 h-6 text-blue-500" />
                 Player 2 - Choose Your Champion
               </h3>
               <div className="grid grid-cols-2 gap-3">
@@ -393,15 +401,15 @@ export default function BattleArenaPage() {
                     disabled={model1 === model.id}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       model2 === model.id
-                        ? 'border-blue-500 bg-white/20 scale-105'
+                        ? 'border-blue-500 bg-blue-50 scale-105'
                         : model1 === model.id
-                        ? 'border-red-500 bg-red-500/10 opacity-50 cursor-not-allowed'
-                        : 'border-white/20 hover:border-white/40 bg-white/5'
+                        ? 'border-red-300 bg-red-50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                   >
                     <div className="text-4xl mb-2">{model.icon}</div>
-                    <div className="font-bold">{model.name}</div>
-                    <div className="text-xs text-gray-400 mt-1">{model.description}</div>
+                    <div className="font-bold text-gray-900">{model.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{model.description}</div>
                   </button>
                 ))}
               </div>
@@ -414,17 +422,17 @@ export default function BattleArenaPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-8"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-8"
           >
-            <label className="flex items-center gap-2 text-lg font-semibold mb-4">
-              <MessageSquare className="w-5 h-5 text-purple-400" />
+            <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
+              <MessageSquare className="w-5 h-5 text-purple-500" />
               Battle Prompt (Round {currentRound})
             </label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Enter your challenge... (e.g., 'Explain quantum computing', 'Write a haiku about AI', 'Solve this riddle...')"
-              className="w-full h-32 bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+              className="w-full h-32 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
             />
 
             <motion.button
@@ -432,7 +440,7 @@ export default function BattleArenaPage() {
               whileTap={{ scale: 0.98 }}
               onClick={handleStartBattle}
               disabled={!prompt || !model1 || !model2 || isLoading}
-              className="w-full mt-4 py-4 bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-orange-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="w-full mt-4 py-4 bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
               {isLoading ? (
                 <>
@@ -459,27 +467,27 @@ export default function BattleArenaPage() {
               className="grid grid-cols-1 lg:grid-cols-2 gap-8"
             >
               {/* Model 1 Response */}
-              <div className={`bg-gradient-to-br ${getModelColor(model1)} p-[2px] rounded-2xl`}>
-                <div className="bg-gray-900 rounded-2xl p-6 h-full">
+              <div className={`bg-gradient-to-br ${getModelColor(model1)} p-[2px] rounded-2xl shadow-lg`}>
+                <div className="bg-white rounded-2xl p-6 h-full">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <span className="text-4xl">{getModelIcon(model1)}</span>
                       <div>
-                        <h3 className="text-2xl font-bold">{getModelName(model1)}</h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <h3 className="text-2xl font-bold text-gray-900">{getModelName(model1)}</h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Clock className="w-4 h-4" />
                           {battleHistory[currentRound - 1].model1Response.responseTime}ms
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4 mb-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                  <div className="bg-gray-50 rounded-xl p-4 mb-4 min-h-[200px] max-h-[400px] overflow-y-auto border border-gray-200">
                     <MarkdownRenderer content={battleHistory[currentRound - 1].model1Response.text} />
                   </div>
                   <button
                     onClick={() => handleVote(currentRound - 1, model1)}
                     disabled={battleHistory[currentRound - 1].winner !== null}
-                    className="w-full py-3 bg-green-600 hover:bg-green-700 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-green-500/25"
                   >
                     <ThumbsUp className="w-5 h-5" />
                     Vote for {getModelName(model1)}
@@ -488,27 +496,27 @@ export default function BattleArenaPage() {
               </div>
 
               {/* Model 2 Response */}
-              <div className={`bg-gradient-to-br ${getModelColor(model2)} p-[2px] rounded-2xl`}>
-                <div className="bg-gray-900 rounded-2xl p-6 h-full">
+              <div className={`bg-gradient-to-br ${getModelColor(model2)} p-[2px] rounded-2xl shadow-lg`}>
+                <div className="bg-white rounded-2xl p-6 h-full">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <span className="text-4xl">{getModelIcon(model2)}</span>
                       <div>
-                        <h3 className="text-2xl font-bold">{getModelName(model2)}</h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <h3 className="text-2xl font-bold text-gray-900">{getModelName(model2)}</h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Clock className="w-4 h-4" />
                           {battleHistory[currentRound - 1].model2Response.responseTime}ms
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4 mb-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                  <div className="bg-gray-50 rounded-xl p-4 mb-4 min-h-[200px] max-h-[400px] overflow-y-auto border border-gray-200">
                     <MarkdownRenderer content={battleHistory[currentRound - 1].model2Response.text} />
                   </div>
                   <button
                     onClick={() => handleVote(currentRound - 1, model2)}
                     disabled={battleHistory[currentRound - 1].winner !== null}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-blue-500/25"
                   >
                     <ThumbsUp className="w-5 h-5" />
                     Vote for {getModelName(model2)}
@@ -524,16 +532,16 @@ export default function BattleArenaPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-12 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="mt-12 bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
-            <h3 className="text-2xl font-bold mb-4">Battle History</h3>
+            <h3 className="text-2xl font-bold mb-4 text-gray-900">Battle History</h3>
             <div className="space-y-4">
               {battleHistory.map((round, index) => (
-                <div key={index} className="bg-white/5 rounded-xl p-4">
+                <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold">Round {round.round}</span>
+                    <span className="font-bold text-gray-900">Round {round.round}</span>
                     {round.winner && (
-                      <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm font-semibold">
+                      <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold border border-yellow-200">
                         Winner: {getModelName(round.winner)}
                       </span>
                     )}

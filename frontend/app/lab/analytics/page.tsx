@@ -143,56 +143,63 @@ export default function AnalyticsPage() {
   const maxTests = Math.max(...experimentStats.map(s => s.tests), 1)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <Link href="/lab" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6">
-            <span>←</span> Back to AI Lab
-          </Link>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <BarChart3 className="w-12 h-12 text-cyan-400" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Real-time Analytics
-            </h1>
-          </div>
-          <p className="text-xl text-gray-300">
-            Live statistics and usage data for all AI Lab experiments
-          </p>
-          
-          {/* Live Indicator */}
-          <div className="flex items-center gap-4 mt-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full border border-green-500/50">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-green-400 text-sm font-semibold">LIVE</span>
-              <span className="text-gray-300 text-sm">Updates every 3 seconds</span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        </div>
+        <div className="container mx-auto px-4 py-16 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
+              <span>←</span> Back to AI Lab
+            </Link>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <BarChart3 className="w-12 h-12 text-white" />
+              <h1 className="text-5xl font-bold text-white">
+                Real-time Analytics
+              </h1>
             </div>
-            {lastUpdated && (
-              <span className="text-xs text-gray-500">
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-          </div>
-        </motion.div>
+            <p className="text-xl text-blue-100">
+              Live statistics and usage data for all AI Lab experiments
+            </p>
+            
+            {/* Live Indicator */}
+            <div className="flex items-center gap-4 mt-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full border border-white/30">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-green-300 text-sm font-semibold">LIVE</span>
+                <span className="text-blue-100 text-sm">Updates every 3 seconds</span>
+              </div>
+              {lastUpdated && (
+                <span className="text-xs text-blue-200">
+                  Last updated: {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
 
         {/* Error State */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl flex items-center gap-3"
+            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
           >
-            <AlertCircle className="w-5 h-5 text-red-400" />
-            <span className="text-red-300">{error}</span>
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <span className="text-red-700">{error}</span>
             <button
               onClick={fetchStats}
-              className="ml-auto px-3 py-1 bg-red-500/30 hover:bg-red-500/50 rounded-lg text-sm transition-colors"
+              className="ml-auto px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm transition-colors"
             >
               Retry
             </button>
@@ -205,15 +212,15 @@ export default function AnalyticsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
-              <Users className="w-8 h-8 text-cyan-400" />
+              <Users className="w-8 h-8 text-cyan-500" />
               <motion.div
                 key={realtimeData.totalUsers}
                 initial={{ scale: 1.2 }}
                 animate={{ scale: 1 }}
-                className="text-xs text-cyan-400 font-semibold"
+                className="text-xs text-cyan-500 font-semibold"
               >
                 LIVE
               </motion.div>
@@ -221,65 +228,65 @@ export default function AnalyticsPage() {
             <motion.div
               key={realtimeData.totalUsers}
               initial={{ scale: 1.1, color: '#22d3ee' }}
-              animate={{ scale: 1, color: '#ffffff' }}
+              animate={{ scale: 1, color: '#111827' }}
               transition={{ duration: 0.3 }}
-              className="text-4xl font-bold mb-2"
+              className="text-4xl font-bold mb-2 text-gray-900"
             >
               {realtimeData.totalUsers.toLocaleString()}
             </motion.div>
-            <div className="text-sm text-gray-300">Active Users Now</div>
+            <div className="text-sm text-gray-600">Active Users Now</div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
-              <Zap className="w-8 h-8 text-yellow-400" />
-              <div className="text-xs text-green-400 font-semibold flex items-center gap-1">
+              <Zap className="w-8 h-8 text-yellow-500" />
+              <div className="text-xs text-green-500 font-semibold flex items-center gap-1">
                 <ArrowUp className="w-3 h-3" /> 12%
               </div>
             </div>
             <motion.div
               key={realtimeData.testsToday}
               initial={{ scale: 1.1, color: '#facc15' }}
-              animate={{ scale: 1, color: '#ffffff' }}
+              animate={{ scale: 1, color: '#111827' }}
               transition={{ duration: 0.3 }}
-              className="text-4xl font-bold mb-2"
+              className="text-4xl font-bold mb-2 text-gray-900"
             >
               {realtimeData.testsToday.toLocaleString()}
             </motion.div>
-            <div className="text-sm text-gray-300">Tests Today</div>
+            <div className="text-sm text-gray-600">Tests Today</div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
-              <Activity className="w-8 h-8 text-purple-400" />
-              <div className="text-xs text-purple-400 font-semibold">ALL</div>
+              <Activity className="w-8 h-8 text-purple-500" />
+              <div className="text-xs text-purple-500 font-semibold">ALL</div>
             </div>
-            <div className="text-4xl font-bold mb-2">{realtimeData.activeExperiments}</div>
-            <div className="text-sm text-gray-300">Active Experiments</div>
+            <div className="text-4xl font-bold mb-2 text-gray-900">{realtimeData.activeExperiments}</div>
+            <div className="text-sm text-gray-600">Active Experiments</div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
             <div className="flex items-center justify-between mb-4">
-              <Clock className="w-8 h-8 text-pink-400" />
-              <div className="text-xs text-gray-400 font-semibold">AVG</div>
+              <Clock className="w-8 h-8 text-pink-500" />
+              <div className="text-xs text-gray-500 font-semibold">AVG</div>
             </div>
-            <div className="text-4xl font-bold mb-2">{realtimeData.avgSessionTime}</div>
-            <div className="text-sm text-gray-300">Session Duration</div>
+            <div className="text-4xl font-bold mb-2 text-gray-900">{realtimeData.avgSessionTime}</div>
+            <div className="text-sm text-gray-600">Session Duration</div>
           </motion.div>
         </div>
 
@@ -291,26 +298,26 @@ export default function AnalyticsPage() {
           className="mb-12"
         >
           <div className="flex items-center gap-3 mb-6">
-            <Star className="w-6 h-6 text-yellow-400" />
-            <h2 className="text-3xl font-bold">Most Popular Experiments</h2>
+            <Star className="w-6 h-6 text-yellow-500" />
+            <h2 className="text-3xl font-bold text-gray-900">Most Popular Experiments</h2>
           </div>
 
           <div className="space-y-4">
             {loading && experimentStats.length === 0 ? (
               // Loading skeleton
               [...Array(5)].map((_, i) => (
-                <div key={i} className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 animate-pulse">
+                <div key={i} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg animate-pulse">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-white/20" />
+                    <div className="w-12 h-12 rounded-full bg-gray-200" />
                     <div className="flex-1">
-                      <div className="h-5 bg-white/20 rounded w-48 mb-2" />
-                      <div className="h-3 bg-white/10 rounded w-32" />
+                      <div className="h-5 bg-gray-200 rounded w-48 mb-2" />
+                      <div className="h-3 bg-gray-100 rounded w-32" />
                     </div>
                   </div>
                 </div>
               ))
             ) : experimentStats.length === 0 ? (
-              <div className="text-center text-gray-400 py-12 bg-white/5 rounded-2xl border border-white/10">
+              <div className="text-center text-gray-500 py-12 bg-white rounded-2xl border border-gray-200 shadow-lg">
                 <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg">No experiments tracked yet</p>
                 <p className="text-sm mt-2">Run some AI Lab experiments to see analytics here!</p>
@@ -322,17 +329,17 @@ export default function AnalyticsPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.6 + index * 0.05 }}
-                className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all"
+                className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg hover:border-gray-300 transition-all"
               >
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   {/* Rank & Name */}
                   <div className="flex items-center gap-4 flex-1 min-w-[250px]">
-                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl font-bold`}>
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl font-bold text-white`}>
                       {index + 1}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold">{stat.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <h3 className="text-xl font-bold text-gray-900">{stat.name}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
                         <span>{stat.tests.toLocaleString()} total tests</span>
                       </div>
                     </div>
@@ -343,27 +350,27 @@ export default function AnalyticsPage() {
                     {/* Active Users */}
                     <div className="text-center">
                       <div className="flex items-center gap-2 mb-1">
-                        <Users className="w-4 h-4 text-cyan-400" />
+                        <Users className="w-4 h-4 text-cyan-500" />
                         <motion.span
                           key={stat.activeUsers}
                           initial={{ scale: 1.2, color: '#22d3ee' }}
-                          animate={{ scale: 1, color: '#ffffff' }}
+                          animate={{ scale: 1, color: '#111827' }}
                           transition={{ duration: 0.3 }}
-                          className="text-2xl font-bold"
+                          className="text-2xl font-bold text-gray-900"
                         >
                           {stat.activeUsers}
                         </motion.span>
                       </div>
-                      <div className="text-xs text-gray-400">Active Now</div>
+                      <div className="text-xs text-gray-500">Active Now</div>
                     </div>
 
                     {/* Avg Duration */}
                     <div className="text-center">
                       <div className="flex items-center gap-2 mb-1">
-                        <Clock className="w-4 h-4 text-purple-400" />
-                        <span className="text-2xl font-bold">{stat.avgDuration}</span>
+                        <Clock className="w-4 h-4 text-purple-500" />
+                        <span className="text-2xl font-bold text-gray-900">{stat.avgDuration}</span>
                       </div>
-                      <div className="text-xs text-gray-400">Avg Duration</div>
+                      <div className="text-xs text-gray-500">Avg Duration</div>
                     </div>
 
                     {/* Trend */}
@@ -372,14 +379,14 @@ export default function AnalyticsPage() {
                         {getTrendIcon(stat.trend)}
                         <span className="text-2xl font-bold">{Math.abs(stat.trendValue)}%</span>
                       </div>
-                      <div className="text-xs text-gray-400">24h Trend</div>
+                      <div className="text-xs text-gray-500">24h Trend</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mt-4">
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${(stat.tests / maxTests) * 100}%` }}
@@ -399,12 +406,12 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1 }}
-          className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/20"
+          className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg"
         >
           <div className="flex items-center gap-3 mb-6">
-            <Activity className="w-6 h-6 text-green-400" />
-            <h2 className="text-3xl font-bold">Live Activity Stream</h2>
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse ml-2" />
+            <Activity className="w-6 h-6 text-green-500" />
+            <h2 className="text-3xl font-bold text-gray-900">Live Activity Stream</h2>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2" />
           </div>
 
           <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -415,11 +422,11 @@ export default function AnalyticsPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="bg-white/5 rounded-xl p-4 border border-white/10 flex items-center justify-between"
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${activity.action === 'started' ? 'bg-green-400' : 'bg-blue-400'} animate-pulse`} />
-                    <span className="text-gray-300">{activity.user}</span>
+                    <div className={`w-2 h-2 rounded-full ${activity.action === 'started' ? 'bg-green-500' : 'bg-blue-500'} animate-pulse`} />
+                    <span className="text-gray-700">{activity.user}</span>
                     <span className="text-gray-500">{activity.action}</span>
                     <span className={`font-semibold ${activity.color}`}>{activity.experiment}</span>
                   </div>
@@ -427,7 +434,7 @@ export default function AnalyticsPage() {
                 </motion.div>
               ))
             ) : (
-              <div className="text-center text-gray-400 py-8">
+              <div className="text-center text-gray-500 py-8">
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
                     <RefreshCw className="w-5 h-5 animate-spin" />

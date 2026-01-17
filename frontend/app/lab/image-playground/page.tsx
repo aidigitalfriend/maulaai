@@ -150,43 +150,49 @@ export default function ImagePlaygroundPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <Link href="/lab" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6">
-            <span>←</span> Back to AI Lab
-          </Link>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500">
-              <Sparkles className="w-12 h-12" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        </div>
+        <div className="container mx-auto px-4 py-16 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
+              <span>←</span> Back to AI Lab
+            </Link>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg shadow-pink-500/25">
+                <Sparkles className="w-12 h-12 text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold text-white">
+                  AI Image Playground
+                </h1>
+                <p className="text-xl text-blue-100 mt-2">
+                  Generate stunning images from text descriptions with AI
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                AI Image Playground
-              </h1>
-              <p className="text-xl text-gray-300 mt-2">
-                Generate stunning images from text descriptions with AI
-              </p>
-            </div>
-          </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-6 mt-6">
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">342 users active</span>
+            <div className="flex items-center gap-6 mt-6">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-blue-100">342 users active</span>
+              </div>
+              <div className="text-sm text-blue-200">•</div>
+              <div className="text-sm text-blue-100">12,450 images generated</div>
             </div>
-            <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">12,450 images generated</div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Panel - Controls */}
@@ -196,27 +202,27 @@ export default function ImagePlaygroundPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             {/* Prompt Input */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
-              <label className="flex items-center gap-2 text-lg font-semibold mb-4">
-                <Wand2 className="w-5 h-5 text-purple-400" />
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-6">
+              <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
+                <Wand2 className="w-5 h-5 text-purple-500" />
                 Your Prompt
               </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe the image you want to create..."
-                className="w-full h-32 bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                className="w-full h-32 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors resize-none"
               />
               
               {/* Example Prompts */}
               <div className="mt-4">
-                <div className="text-sm text-gray-400 mb-2">Try these examples:</div>
+                <div className="text-sm text-gray-500 mb-2">Try these examples:</div>
                 <div className="flex flex-wrap gap-2">
                   {examples.map((example, index) => (
                     <button
                       key={index}
                       onClick={() => setPrompt(example)}
-                      className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/20 hover:border-purple-500/50 transition-all"
+                      className="text-xs px-3 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-full border border-gray-200 hover:border-purple-300 transition-all text-gray-700"
                     >
                       {example}
                     </button>
@@ -226,9 +232,9 @@ export default function ImagePlaygroundPage() {
             </div>
 
             {/* Style Selection */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
-              <label className="flex items-center gap-2 text-lg font-semibold mb-4">
-                <Palette className="w-5 h-5 text-pink-400" />
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-6">
+              <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
+                <Palette className="w-5 h-5 text-pink-500" />
                 Art Style
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -238,14 +244,14 @@ export default function ImagePlaygroundPage() {
                     onClick={() => setSelectedStyle(style.id)}
                     className={`p-3 rounded-xl border-2 transition-all ${
                       selectedStyle === style.id
-                        ? 'border-purple-500 bg-white/15 shadow-lg shadow-purple-500/20'
-                        : 'border-white/20 hover:border-white/40 bg-white/5'
+                        ? 'border-purple-500 bg-purple-50 shadow-lg shadow-purple-500/20'
+                        : 'border-gray-200 hover:border-gray-300 bg-gray-50'
                     }`}
                   >
                     <div className={`w-full h-14 rounded-lg ${style.preview} mb-2 flex items-center justify-center text-2xl shadow-inner`}>
                       {style.icon}
                     </div>
-                    <div className="text-sm font-medium text-center">{style.name}</div>
+                    <div className="text-sm font-medium text-center text-gray-900">{style.name}</div>
                   </button>
                 ))}
               </div>
@@ -257,7 +263,7 @@ export default function ImagePlaygroundPage() {
               whileTap={{ scale: 0.98 }}
               onClick={handleGenerate}
               disabled={!prompt.trim() || isGenerating}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
               {isGenerating ? (
                 <>
@@ -278,20 +284,20 @@ export default function ImagePlaygroundPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
-            <label className="flex items-center gap-2 text-lg font-semibold mb-4">
-              <ImageIcon className="w-5 h-5 text-cyan-400" />
+            <label className="flex items-center gap-2 text-lg font-semibold mb-4 text-gray-900">
+              <ImageIcon className="w-5 h-5 text-cyan-500" />
               Generated Image
             </label>
 
             {/* Preview Area */}
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/20 mb-4">
+            <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-200 mb-4">
               {isGenerating ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <RefreshCw className="w-16 h-16 text-purple-400 animate-spin mb-4" />
-                  <div className="text-lg font-semibold">Creating your masterpiece...</div>
-                  <div className="text-sm text-gray-400 mt-2">This may take a few seconds</div>
+                  <RefreshCw className="w-16 h-16 text-purple-500 animate-spin mb-4" />
+                  <div className="text-lg font-semibold text-gray-900">Creating your masterpiece...</div>
+                  <div className="text-sm text-gray-500 mt-2">This may take a few seconds</div>
                 </div>
               ) : generatedImage ? (
                 <motion.img
@@ -321,14 +327,14 @@ export default function ImagePlaygroundPage() {
               >
                 <button 
                   onClick={handleDownload}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all"
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all text-gray-700"
                 >
                   <Download className="w-5 h-5" />
                   Download
                 </button>
                 <button 
                   onClick={handleShare}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all"
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all text-gray-700"
                 >
                   <Share2 className="w-5 h-5" />
                   Share
@@ -337,8 +343,8 @@ export default function ImagePlaygroundPage() {
             )}
 
             {/* Info */}
-            <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-              <div className="text-sm text-blue-300">
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="text-sm text-blue-700">
                 <strong>💡 Pro Tip:</strong> Be specific in your prompts! Include details about lighting, mood, colors, and composition for better results.
               </div>
             </div>

@@ -171,42 +171,49 @@ export default function StoryWeaverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <Link href="/lab" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6">
-            <span>←</span> Back to AI Lab
-          </Link>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500">
-              <BookOpen className="w-12 h-12" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        </div>
+        <div className="container mx-auto px-4 py-16 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
+              <span>←</span> Back to AI Lab
+            </Link>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg shadow-green-500/25">
+                <BookOpen className="w-12 h-12 text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold text-white">
+                  AI Story Weaver
+                </h1>
+                <p className="text-xl text-blue-100 mt-2">
+                  Collaborate with AI to write compelling stories
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                AI Story Weaver
-              </h1>
-              <p className="text-xl text-gray-300 mt-2">
-                Collaborate with AI to write compelling stories
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-6 mt-6">
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">{stats.activeUsers.toLocaleString()} users active</span>
+            <div className="flex items-center gap-6 mt-6">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-blue-100">{stats.activeUsers.toLocaleString()} users active</span>
+              </div>
+              <div className="text-sm text-blue-200">•</div>
+              <div className="text-sm text-blue-100">{stats.totalCreated.toLocaleString()} stories created</div>
             </div>
-            <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">{stats.totalCreated.toLocaleString()} stories created</div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <motion.div
@@ -215,8 +222,8 @@ export default function StoryWeaverPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-1 space-y-6"
           >
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h3 className="text-lg font-semibold mb-4">Genre</h3>
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Genre</h3>
               <div className="space-y-2">
                 {genres.map((g) => (
                   <button
@@ -224,8 +231,8 @@ export default function StoryWeaverPage() {
                     onClick={() => setGenre(g.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                       genre === g.id
-                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 border border-green-500'
-                        : 'bg-white/5 border border-white/20 hover:border-white/40'
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 border border-green-500 text-white'
+                        : 'bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
                     <span className="text-2xl">{g.icon}</span>
@@ -235,14 +242,14 @@ export default function StoryWeaverPage() {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h3 className="text-lg font-semibold mb-4">Story Starters</h3>
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Story Starters</h3>
               <div className="space-y-2">
                 {prompts.map((prompt, i) => (
                   <button
                     key={i}
                     onClick={() => setStory(prompt + '...\n\n')}
-                    className="w-full text-left px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/20 hover:border-emerald-500/50 transition-all text-sm"
+                    className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-emerald-300 transition-all text-sm text-gray-700"
                   >
                     {prompt}
                   </button>
@@ -258,13 +265,13 @@ export default function StoryWeaverPage() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="lg:col-span-3 space-y-6"
           >
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
               <div className="flex items-center justify-between mb-4">
-                <label className="text-2xl font-bold flex items-center gap-2">
-                  <Pen className="w-6 h-6 text-emerald-400" />
+                <label className="text-2xl font-bold flex items-center gap-2 text-gray-900">
+                  <Pen className="w-6 h-6 text-emerald-500" />
                   Your Story
                 </label>
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-gray-500">
                   {story.split(' ').filter(w => w).length} words
                 </div>
               </div>
@@ -273,14 +280,14 @@ export default function StoryWeaverPage() {
                 value={story}
                 onChange={(e) => setStory(e.target.value)}
                 placeholder="Start typing your story or choose a story starter... The AI will help you continue!"
-                className="w-full h-96 bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors resize-none font-serif text-lg leading-relaxed"
+                className="w-full h-96 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors resize-none font-serif text-lg leading-relaxed"
               />
 
               <div className="flex gap-4 mt-6">
                 <button
                   onClick={handleContinue}
                   disabled={!story.trim() || isGenerating}
-                  className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  className="flex-1 py-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-green-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
                   {isGenerating ? (
                     <>
@@ -298,12 +305,12 @@ export default function StoryWeaverPage() {
                 <button 
                   onClick={handleSave}
                   disabled={!story.trim() || saveStatus === 'saving'}
-                  className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
                 >
                   {saveStatus === 'saved' ? (
                     <>
-                      <Check className="w-5 h-5 text-green-400" />
-                      <span className="text-green-400">Saved!</span>
+                      <Check className="w-5 h-5 text-green-500" />
+                      <span className="text-green-600">Saved!</span>
                     </>
                   ) : (
                     <>
@@ -316,12 +323,12 @@ export default function StoryWeaverPage() {
                 <button 
                   onClick={handleShare}
                   disabled={!story.trim()}
-                  className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 hover:border-white/40 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-gray-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
                 >
                   {shareStatus === 'copied' ? (
                     <>
-                      <Check className="w-5 h-5 text-green-400" />
-                      <span className="text-green-400">Copied!</span>
+                      <Check className="w-5 h-5 text-green-500" />
+                      <span className="text-green-600">Copied!</span>
                     </>
                   ) : (
                     <>
@@ -334,17 +341,17 @@ export default function StoryWeaverPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                <div className="text-2xl font-bold text-emerald-400">{storyMetrics.chapters}</div>
-                <div className="text-sm text-gray-400">Chapters</div>
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg text-center">
+                <div className="text-2xl font-bold text-emerald-500">{storyMetrics.chapters}</div>
+                <div className="text-sm text-gray-500">Chapters</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                <div className="text-2xl font-bold text-cyan-400">{storyMetrics.characters}</div>
-                <div className="text-sm text-gray-400">Characters</div>
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg text-center">
+                <div className="text-2xl font-bold text-cyan-500">{storyMetrics.characters}</div>
+                <div className="text-sm text-gray-500">Characters</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                <div className="text-2xl font-bold text-purple-400">{storyMetrics.readTime}</div>
-                <div className="text-sm text-gray-400">Read Time</div>
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-lg text-center">
+                <div className="text-2xl font-bold text-purple-500">{storyMetrics.readTime}</div>
+                <div className="text-sm text-gray-500">Read Time</div>
               </div>
             </div>
           </motion.div>

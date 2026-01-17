@@ -109,52 +109,59 @@ export default function NeuralArtPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <Link href="/lab" className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6">
-            <span>←</span> Back to AI Lab
-          </Link>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500">
-              <Palette className="w-12 h-12" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        </div>
+        <div className="container mx-auto px-4 py-16 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Link href="/lab" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6">
+              <span>←</span> Back to AI Lab
+            </Link>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/25">
+                <Palette className="w-12 h-12 text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold text-white">
+                  Neural Art Studio
+                </h1>
+                <p className="text-xl text-blue-100 mt-2">
+                  Transform photos into masterpieces with AI style transfer
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent">
-                Neural Art Studio
-              </h1>
-              <p className="text-xl text-gray-300 mt-2">
-                Transform photos into masterpieces with AI style transfer
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-6 mt-6">
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-gray-300">256 users active</span>
+            <div className="flex items-center gap-6 mt-6">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-blue-100">256 users active</span>
+              </div>
+              <div className="text-sm text-blue-200">•</div>
+              <div className="text-sm text-blue-100">9,840 artworks created</div>
             </div>
-            <div className="text-sm text-gray-400">•</div>
-            <div className="text-sm text-gray-300">9,840 artworks created</div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Upload & Original */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Upload className="w-6 h-6 text-orange-400" />
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900">
+              <Upload className="w-6 h-6 text-orange-500" />
               Original Image
             </h2>
 
@@ -163,7 +170,7 @@ export default function NeuralArtPage() {
                 <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-cover" />
               </div>
             ) : (
-              <label className="aspect-square rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-gray-400 mb-6 cursor-pointer hover:border-orange-500/50 hover:bg-white/10 transition-all">
+              <label className="aspect-square rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 mb-6 cursor-pointer hover:border-orange-300 hover:bg-orange-50 transition-all">
                 <input
                   type="file"
                   accept="image/*"
@@ -179,7 +186,7 @@ export default function NeuralArtPage() {
             {uploadedImage && (
               <button
                 onClick={() => setUploadedImage(null)}
-                className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl font-semibold transition-all"
+                className="w-full py-3 bg-gray-50 hover:bg-gray-100 rounded-xl font-semibold transition-all text-gray-700 border border-gray-200"
               >
                 Upload Different Image
               </button>
@@ -191,18 +198,18 @@ export default function NeuralArtPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+            className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg"
           >
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-amber-400" />
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-900">
+              <Sparkles className="w-6 h-6 text-amber-500" />
               Stylized Result
             </h2>
 
             {isProcessing ? (
-              <div className="aspect-square rounded-xl bg-white/5 border border-white/20 flex flex-col items-center justify-center">
-                <RefreshCw className="w-16 h-16 text-orange-400 animate-spin mb-4" />
-                <p className="text-lg font-semibold">Applying neural style...</p>
-                <p className="text-sm text-gray-400 mt-2">This may take a moment</p>
+              <div className="aspect-square rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center">
+                <RefreshCw className="w-16 h-16 text-orange-500 animate-spin mb-4" />
+                <p className="text-lg font-semibold text-gray-900">Applying neural style...</p>
+                <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
               </div>
             ) : resultImage ? (
               <motion.div
@@ -216,14 +223,14 @@ export default function NeuralArtPage() {
                 <a
                   href={resultImage}
                   download="neural-art.png"
-                  className="block w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg border border-white/20 flex items-center justify-center gap-2 transition-all"
+                  className="block w-full py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center gap-2 transition-all text-gray-700"
                 >
                   <Download className="w-5 h-5" />
                   Download Artwork
                 </a>
               </motion.div>
             ) : (
-              <div className="aspect-square rounded-xl bg-white/5 border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-gray-400">
+              <div className="aspect-square rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
                 <Palette className="w-16 h-16 mb-4 opacity-50" />
                 <p className="text-center px-4">Your stylized artwork will appear here</p>
               </div>
@@ -236,10 +243,10 @@ export default function NeuralArtPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-8"
+          className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg mb-8"
         >
-          <label className="text-2xl font-bold mb-6 block flex items-center gap-2">
-            <Wand2 className="w-6 h-6 text-purple-400" />
+          <label className="text-2xl font-bold mb-6 block flex items-center gap-2 text-gray-900">
+            <Wand2 className="w-6 h-6 text-purple-500" />
             Choose Art Style
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
@@ -249,8 +256,8 @@ export default function NeuralArtPage() {
                 onClick={() => setSelectedStyle(style.id)}
                 className={`p-3 rounded-xl border-2 transition-all group ${
                   selectedStyle === style.id
-                    ? 'border-orange-500 bg-white/10 scale-105 shadow-lg shadow-orange-500/30'
-                    : 'border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10'
+                    ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg shadow-orange-500/30'
+                    : 'border-gray-200 hover:border-gray-300 bg-gray-50 hover:bg-gray-100'
                 }`}
               >
                 <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 relative">
@@ -267,8 +274,8 @@ export default function NeuralArtPage() {
                     </div>
                   )}
                 </div>
-                <div className="text-sm font-semibold text-center">{style.name}</div>
-                <div className="text-xs text-gray-400 text-center mt-1">{style.description}</div>
+                <div className="text-sm font-semibold text-center text-gray-900">{style.name}</div>
+                <div className="text-xs text-gray-500 text-center mt-1">{style.description}</div>
               </button>
             ))}
           </div>
@@ -276,7 +283,7 @@ export default function NeuralArtPage() {
           <button
             onClick={handleTransform}
             disabled={isProcessing || !uploadedImage}
-            className="w-full mt-6 py-4 bg-gradient-to-r from-orange-600 to-amber-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-orange-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            className="w-full mt-6 py-4 bg-gradient-to-r from-orange-600 to-amber-600 rounded-xl font-semibold text-lg text-white hover:shadow-lg shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
           >
             {isProcessing ? (
               <>

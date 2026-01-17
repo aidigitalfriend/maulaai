@@ -225,23 +225,38 @@ export default function AILabPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center gap-3 mb-6">
-            <Beaker className="w-16 h-16 text-cyan-400" />
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              AI Lab
-            </h1>
-          </div>
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 relative overflow-hidden">
+        {/* Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="lab-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#lab-grid)" />
+          </svg>
+        </div>
 
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+        <div className="container mx-auto px-4 py-16 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <div className="inline-flex items-center gap-3 mb-6">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                <Beaker className="w-12 h-12 text-white" />
+              </div>
+              <h1 className="text-6xl font-bold text-white">
+                AI Lab
+              </h1>
+            </div>
+
+            <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
             Explore cutting-edge AI experiments, play with experimental
             features, and push the boundaries of artificial intelligence. All
             experiments are free to use and designed for entertainment and
@@ -252,61 +267,63 @@ export default function AILabPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+              className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30"
             >
-              <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-              <div className="text-3xl font-bold text-yellow-400">
+              <Zap className="w-8 h-8 text-yellow-300 mx-auto mb-2" />
+              <div className="text-3xl font-bold text-white">
                 {experiments.length}
               </div>
-              <div className="text-sm text-gray-300">Experiments</div>
+              <div className="text-sm text-blue-100">Experiments</div>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+              className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30"
             >
-              <Users className="w-8 h-8 text-green-400 mx-auto mb-2" />
+              <Users className="w-8 h-8 text-green-300 mx-auto mb-2" />
               <motion.div 
                 key={labStats.totalTestsAllTime}
                 initial={{ scale: 1.1 }}
                 animate={{ scale: 1 }}
-                className="text-3xl font-bold text-green-400"
+                className="text-3xl font-bold text-white"
               >
                 {labStats.totalTestsAllTime.toLocaleString()}
               </motion.div>
-              <div className="text-sm text-gray-300">Total Tests</div>
+              <div className="text-sm text-blue-100">Total Tests</div>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20"
+              className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 border border-white/30"
             >
-              <Sparkles className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+              <Sparkles className="w-8 h-8 text-cyan-300 mx-auto mb-2" />
               <motion.div
                 key={labStats.labActiveUsers}
                 initial={{ scale: 1.1 }}
                 animate={{ scale: 1 }}
-                className="text-3xl font-bold text-cyan-400"
+                className="text-3xl font-bold text-white"
               >
                 {labStats.labActiveUsers}
               </motion.div>
-              <div className="text-sm text-gray-300">Active Now</div>
+              <div className="text-sm text-blue-100">Active Now</div>
             </motion.div>
 
             <Link href="/lab/analytics">
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 border border-white/20 cursor-pointer"
+                className="bg-white/30 backdrop-blur-lg rounded-2xl p-6 border border-white/40 cursor-pointer"
               >
                 <BarChart3 className="w-8 h-8 text-white mx-auto mb-2" />
                 <div className="text-3xl font-bold text-white">Live</div>
-                <div className="text-sm text-white/90">Analytics →</div>
+                <div className="text-sm text-white">Analytics →</div>
               </motion.div>
             </Link>
           </div>
         </motion.div>
+      </div>
 
-        {/* Experiments Grid */}
+      {/* Experiments Grid */}
+      <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {experiments.map((experiment, index) => (
             <motion.div
@@ -321,28 +338,28 @@ export default function AILabPage() {
               >
                 <Link href={experiment.href}>
                   <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:border-white/40 transition-all cursor-pointer h-full relative overflow-hidden group"
+                    whileHover={{ scale: 1.03, y: -5 }}
+                    className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl hover:border-gray-300 transition-all cursor-pointer h-full relative overflow-hidden group"
                   >
                     {/* Background Gradient Effect */}
                     <div
-                      className={`absolute inset-0 bg-gradient-to-br ${experiment.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                      className={`absolute inset-0 bg-gradient-to-br ${experiment.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
                     />
 
                     {/* Status Badge */}
                     <div className="absolute top-4 right-4">
                       {experiment.status === 'live' && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400 border border-green-500/50">
+                        <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 border border-green-200 font-medium">
                           LIVE
                         </span>
                       )}
                       {experiment.status === 'beta' && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/50">
+                        <span className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 border border-yellow-200 font-medium">
                           BETA
                         </span>
                       )}
                       {experiment.status === 'coming-soon' && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-gray-500/20 text-gray-400 border border-gray-500/50">
+                        <span className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-600 border border-gray-200 font-medium">
                           SOON
                         </span>
                       )}
@@ -350,21 +367,21 @@ export default function AILabPage() {
 
                     {/* Icon */}
                     <div
-                      className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${experiment.color} mb-6`}
+                      className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${experiment.color} mb-6 shadow-lg text-white`}
                     >
                       {experiment.icon}
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-2xl font-bold mb-3">
+                    <h3 className="text-2xl font-bold mb-3 text-gray-900">
                       {experiment.name}
                     </h3>
-                    <p className="text-gray-300 mb-6 line-clamp-3">
+                    <p className="text-gray-600 mb-6 line-clamp-3">
                       {experiment.description}
                     </p>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Users className="w-4 h-4" />
                       <span>{getTestCount(experiment.id).toLocaleString()} tests</span>
                     </div>
@@ -372,7 +389,7 @@ export default function AILabPage() {
                     {/* Hover Arrow */}
                     <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div
-                        className={`w-10 h-10 rounded-full bg-gradient-to-br ${experiment.color} flex items-center justify-center`}
+                        className={`w-10 h-10 rounded-full bg-gradient-to-br ${experiment.color} flex items-center justify-center shadow-lg`}
                       >
                         <span className="text-white text-xl">→</span>
                       </div>
@@ -391,12 +408,14 @@ export default function AILabPage() {
           transition={{ duration: 0.6, delay: 1 }}
           className="text-center mt-16"
         >
-          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/20 max-w-2xl mx-auto">
-            <Beaker className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-3">
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-8 max-w-2xl mx-auto shadow-xl shadow-blue-500/20">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Beaker className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-white">
               More Experiments Coming Soon
             </h2>
-            <p className="text-gray-300 mb-6">
+            <p className="text-blue-100 mb-6">
               We're constantly developing new AI experiments and features. Check
               back regularly to discover the latest innovations!
             </p>
@@ -404,7 +423,7 @@ export default function AILabPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                className="px-8 py-3 bg-white text-indigo-700 rounded-full font-semibold hover:shadow-lg hover:shadow-white/30 transition-all"
               >
                 View Real-time Analytics
               </motion.button>
