@@ -561,17 +561,34 @@ export default function NewsPage() {
 
               {/* Getting Started */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Get Started</h3>
-                <ol className="list-decimal list-inside text-gray-600 space-y-1">
-                  <li>Open the agent and try a conversation using the Launch button.</li>
-                  <li>Create an account or sign in when prompted.</li>
-                  <li>Choose a subscription to unlock full features. You can manage or cancel anytime.</li>
-                </ol>
-                <div className="mt-3 flex gap-3">
-                  <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25">View Plans</Link>
-                  <Link href={selectedAgent.path} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-sm text-gray-700">Launch Agent</Link>
-                </div>
-                <p className="text-amber-600 text-sm mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">💡 Pro tip: Our lowest subscription is just $1 — test an agent before committing to a larger plan.</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {selectedAgent.path ? 'How to Get Started' : 'Coming Soon'}
+                </h3>
+                {selectedAgent.path ? (
+                  <>
+                    <ol className="list-decimal list-inside text-gray-600 space-y-1">
+                      <li>Open the agent and try a conversation using the Launch button.</li>
+                      <li>Create an account or sign in when prompted.</li>
+                      <li>Choose a subscription to unlock full features. You can manage or cancel anytime.</li>
+                    </ol>
+                    <div className="mt-3 flex gap-3">
+                      <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25">View Plans</Link>
+                      <Link href={selectedAgent.path} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-sm text-gray-700">Launch Agent</Link>
+                    </div>
+                    <p className="text-amber-600 text-sm mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">💡 Pro tip: Our lowest subscription is just $1 — test an agent before committing to a larger plan.</p>
+                  </>
+                ) : (
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                    <p className="text-purple-700 mb-3">
+                      This agent is currently in development and will be available soon! Stay tuned for updates.
+                    </p>
+                    <div className="flex gap-3">
+                      <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-purple-500/25">View Current Plans</Link>
+                      <Link href="/agents" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-sm text-gray-700">Browse Available Agents</Link>
+                    </div>
+                    <p className="text-purple-600 text-sm mt-3">🔔 Sign up for our newsletter to be notified when new agents launch!</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
