@@ -64,22 +64,22 @@ export default function DocsSDKs() {
   ]
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-600/20 via-accent-500/10 to-brand-700/20 border-b border-brand-500/20">
+      <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 border-b border-brand-500/20">
         <div className="container-custom section-padding-lg">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-400 via-accent-400 to-blue-400 bg-clip-text text-transparent mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               SDKs & Libraries
             </h1>
-            <p className="text-xl text-neutral-300 mb-6 leading-relaxed">
+            <p className="text-xl text-white/80 mb-6 leading-relaxed">
               Official SDKs for popular programming languages. Simplify your integration with our well-documented, production-ready libraries.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#quickstart" className="btn-primary">
+              <a href="#quickstart" className="bg-white text-brand-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                 Quick Start
               </a>
-              <a href="#available" className="btn-secondary">
+              <a href="#available" className="border-2 border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
                 View All SDKs
               </a>
             </div>
@@ -93,24 +93,24 @@ export default function DocsSDKs() {
         {/* SDK Overview */}
         <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card-dark p-6 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
               <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-lg font-bold mb-2">Easy to Use</h3>
-              <p className="text-neutral-400 text-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Easy to Use</h3>
+              <p className="text-gray-600 text-sm">
                 Simple APIs that make it easy to integrate One Last AI into your apps
               </p>
             </div>
-            <div className="card-dark p-6 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
               <div className="text-4xl mb-4">📦</div>
-              <h3 className="text-lg font-bold mb-2">Well-Maintained</h3>
-              <p className="text-neutral-400 text-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Well-Maintained</h3>
+              <p className="text-gray-600 text-sm">
                 Regularly updated with bug fixes and new features
               </p>
             </div>
-            <div className="card-dark p-6 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
               <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-lg font-bold mb-2">Fully Documented</h3>
-              <p className="text-neutral-400 text-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Fully Documented</h3>
+              <p className="text-gray-600 text-sm">
                 Comprehensive documentation with examples for every feature
               </p>
             </div>
@@ -119,23 +119,23 @@ export default function DocsSDKs() {
 
         {/* Available SDKs */}
         <div id="available" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Available SDKs</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Available SDKs</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sdks.map((sdk, index) => (
-              <a key={index} href={sdk.href} className="group card-dark p-6 hover:card-dark-hover transition-all duration-300 cursor-pointer">
+              <a key={index} href={sdk.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-brand-300 transition-all duration-300 cursor-pointer">
                 <div className="flex items-start justify-between mb-4">
                   <div className="text-3xl">{sdk.icon}</div>
-                  <span className="text-xs font-bold text-brand-400 bg-brand-900/50 px-2 py-1 rounded">
+                  <span className="text-xs font-bold text-brand-600 bg-brand-100 px-2 py-1 rounded">
                     v{sdk.version}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-brand-400 transition-colors">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
                   {sdk.name}
                 </h3>
-                <p className="text-neutral-400 text-sm mb-4 flex-grow">
+                <p className="text-gray-600 text-sm mb-4 flex-grow">
                   {sdk.description}
                 </p>
-                <span className="text-brand-400 hover:text-brand-300 text-sm font-medium transition-colors">
+                <span className="text-brand-600 hover:text-brand-700 text-sm font-medium transition-colors">
                   Learn more →
                 </span>
               </a>
@@ -145,30 +145,30 @@ export default function DocsSDKs() {
 
         {/* Installation Guide */}
         <div id="quickstart" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Installation Guide</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Installation Guide</h2>
 
           {/* JavaScript */}
-          <div id="javascript" className="card-dark p-8 mb-8">
+          <div id="javascript" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">📘</div>
-              <h3 className="text-2xl font-bold">JavaScript/TypeScript</h3>
+              <h3 className="text-2xl font-bold text-gray-900">JavaScript/TypeScript</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Installation</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg mb-4">
-                <code className="text-neutral-200 text-sm">npm install @One Last AI/sdk</code>
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <div className="bg-gray-900 p-4 rounded-lg mb-4">
+                <code className="text-gray-200 text-sm">npm install @One Last AI/sdk</code>
               </div>
-              <p className="text-neutral-400 text-sm">or with yarn:</p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">yarn add @One Last AI/sdk</code>
+              <p className="text-gray-600 text-sm">or with yarn:</p>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">yarn add @One Last AI/sdk</code>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`import { One Last AI } from '@One Last AI/sdk';
 
 const client = new One Last AI({
@@ -190,9 +190,9 @@ console.log(response.reply);`}
             </div>
 
             <div>
-              <h4 className="text-lg font-bold mb-3">Creating an Agent</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Creating an Agent</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`const newAgent = await client.agents.create({
   name: 'My Bot',
   personality: 'helpful',
@@ -207,23 +207,23 @@ console.log(newAgent.id);`}
           </div>
 
           {/* Python */}
-          <div id="python" className="card-dark p-8 mb-8">
+          <div id="python" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">🐍</div>
-              <h3 className="text-2xl font-bold">Python</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Python</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Installation</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">pip install One Last AI-sdk</code>
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">pip install One Last AI-sdk</code>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`from One Last AI import One Last AI
 
 client = One Last AI(api_key='YOUR_API_KEY')
@@ -243,9 +243,9 @@ print(response['reply'])`}
             </div>
 
             <div>
-              <h4 className="text-lg font-bold mb-3">Async Support</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Async Support</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`import asyncio
 from One Last AI import AsyncOne Last AI
 
@@ -266,23 +266,23 @@ asyncio.run(main())`}
           </div>
 
           {/* Go */}
-          <div id="go" className="card-dark p-8 mb-8">
+          <div id="go" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">🐹</div>
-              <h3 className="text-2xl font-bold">Go</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Go</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Installation</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">go get github.com/One Last AI/sdk-go</code>
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">go get github.com/One Last AI/sdk-go</code>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`package main
 
 import (
@@ -313,23 +313,23 @@ func main() {
           </div>
 
           {/* PHP */}
-          <div id="php" className="card-dark p-8 mb-8">
+          <div id="php" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">🚀</div>
-              <h3 className="text-2xl font-bold">PHP</h3>
+              <h3 className="text-2xl font-bold text-gray-900">PHP</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Installation</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">composer require One Last AI/sdk-php</code>
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">composer require One Last AI/sdk-php</code>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`<?php
 require 'vendor/autoload.php';
 
@@ -356,23 +356,23 @@ echo $response['reply'];
           </div>
 
           {/* Ruby */}
-          <div id="ruby" className="card-dark p-8 mb-8">
+          <div id="ruby" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">💎</div>
-              <h3 className="text-2xl font-bold">Ruby</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Ruby</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Installation</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">gem install One Last AI-sdk</code>
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">gem install One Last AI-sdk</code>
               </div>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`require 'One Last AI'
 
 client = One Last AI::Client.new(api_key: ENV['One Last AI_API_KEY'])
@@ -393,17 +393,17 @@ puts response['reply']`}
           </div>
 
           {/* Java */}
-          <div id="java" className="card-dark p-8">
+          <div id="java" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">☕</div>
-              <h3 className="text-2xl font-bold">Java</h3>
+              <h3 className="text-2xl font-bold text-gray-900">Java</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold mb-3">Installation</h4>
-              <p className="text-neutral-400 mb-3">Add to your pom.xml:</p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <p className="text-gray-600 mb-3">Add to your pom.xml:</p>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`<dependency>
   <groupId>com.One Last AI</groupId>
   <artifactId>sdk-java</artifactId>
@@ -414,9 +414,9 @@ puts response['reply']`}
             </div>
 
             <div>
-              <h4 className="text-lg font-bold mb-3">Basic Usage</h4>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`import com.One Last AI.sdk.One Last AI;
 import com.One Last AI.sdk.models.Agent;
 
@@ -442,50 +442,52 @@ public class Main {
 
         {/* Feature Comparison */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">SDK Feature Comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-700">
-                  <th className="text-left py-4 px-4 font-bold">Feature</th>
-                  <th className="text-center py-4 px-4 font-bold">JavaScript</th>
-                  <th className="text-center py-4 px-4 font-bold">Python</th>
-                  <th className="text-center py-4 px-4 font-bold">Go</th>
-                  <th className="text-center py-4 px-4 font-bold">PHP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {featureComparison.map((row, index) => (
-                  <tr key={index} className="border-b border-neutral-800 hover:bg-neutral-900/50">
-                    <td className="py-4 px-4">{row.feature}</td>
-                    <td className="text-center py-4 px-4">
-                      {row.js ? <span className="text-green-400">✓</span> : <span className="text-neutral-500">✗</span>}
-                    </td>
-                    <td className="text-center py-4 px-4">
-                      {row.py ? <span className="text-green-400">✓</span> : <span className="text-neutral-500">✗</span>}
-                    </td>
-                    <td className="text-center py-4 px-4">
-                      {row.go ? <span className="text-green-400">✓</span> : <span className="text-neutral-500">✗</span>}
-                    </td>
-                    <td className="text-center py-4 px-4">
-                      {row.php ? <span className="text-green-400">✓</span> : <span className="text-neutral-500">✗</span>}
-                    </td>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">SDK Feature Comparison</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left py-4 px-4 font-bold text-gray-900">Feature</th>
+                    <th className="text-center py-4 px-4 font-bold text-gray-900">JavaScript</th>
+                    <th className="text-center py-4 px-4 font-bold text-gray-900">Python</th>
+                    <th className="text-center py-4 px-4 font-bold text-gray-900">Go</th>
+                    <th className="text-center py-4 px-4 font-bold text-gray-900">PHP</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {featureComparison.map((row, index) => (
+                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-4 px-4 text-gray-700">{row.feature}</td>
+                      <td className="text-center py-4 px-4">
+                        {row.js ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
+                      </td>
+                      <td className="text-center py-4 px-4">
+                        {row.py ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
+                      </td>
+                      <td className="text-center py-4 px-4">
+                        {row.go ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
+                      </td>
+                      <td className="text-center py-4 px-4">
+                        {row.php ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
         {/* Common Patterns */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Common Patterns</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Common Patterns</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Error Handling</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-xs">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Error Handling</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-xs">
                   {`try {
   const response = await client
     .conversations.send({...});
@@ -502,10 +504,10 @@ public class Main {
               </div>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Retry Logic</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-xs">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Retry Logic</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-xs">
                   {`const maxRetries = 3;
 let attempt = 0;
 
@@ -523,10 +525,10 @@ while (attempt < maxRetries) {
               </div>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Pagination</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-xs">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Pagination</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-xs">
                   {`const agents = [];
 let page = 1;
 
@@ -546,10 +548,10 @@ while (true) {
               </div>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Streaming Responses</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-xs">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Streaming Responses</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-xs">
                   {`const stream = await client
   .conversations.stream({
     agentId: 'agent_123',
@@ -568,19 +570,19 @@ for await (const chunk of stream) {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-brand-600/20 via-accent-500/10 to-brand-700/20 border border-brand-500/30 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Start Coding?</h2>
-          <p className="text-lg text-neutral-300 mb-8 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-brand-600 via-brand-700 to-indigo-800 rounded-2xl p-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Start Coding?</h2>
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
             Choose your SDK, follow the installation guide, and start building powerful AI agent applications today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/tutorials" className="btn-primary">
+            <Link href="/docs/tutorials" className="bg-white text-brand-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
               View Tutorials
             </Link>
-            <Link href="/docs/api" className="btn-secondary">
+            <Link href="/docs/api" className="border-2 border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
               API Reference
             </Link>
-            <Link href="/support/contact-us" className="btn-outline">
+            <Link href="/support/contact-us" className="border-2 border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
               Get Help
             </Link>
           </div>
