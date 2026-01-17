@@ -62,22 +62,22 @@ export default function DocsTutorials() {
   ]
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-600/20 via-accent-500/10 to-brand-700/20 border-b border-brand-500/20">
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 border-b border-blue-500/20">
         <div className="container-custom section-padding-lg">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-400 via-accent-400 to-blue-400 bg-clip-text text-transparent mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               Tutorials & Guides
             </h1>
-            <p className="text-xl text-neutral-300 mb-6 leading-relaxed">
+            <p className="text-xl text-blue-100 mb-6 leading-relaxed">
               Learn how to build, configure, and deploy AI agents. From beginner guides to advanced techniques, find the knowledge you need.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#getting-started" className="btn-primary">
+              <a href="#getting-started" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
                 Start Learning
               </a>
-              <a href="#browse" className="btn-secondary">
+              <a href="#browse" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
                 Browse All Tutorials
               </a>
             </div>
@@ -91,42 +91,42 @@ export default function DocsTutorials() {
         {/* Quick Stats */}
         <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card-dark p-6 text-center">
-              <div className="text-3xl font-bold text-brand-400 mb-2">50+</div>
-              <p className="text-neutral-300">Tutorials & Guides</p>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-2">50+</div>
+              <p className="text-gray-700">Tutorials & Guides</p>
             </div>
-            <div className="card-dark p-6 text-center">
-              <div className="text-3xl font-bold text-brand-400 mb-2">100+</div>
-              <p className="text-neutral-300">Code Examples</p>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-2">100+</div>
+              <p className="text-gray-700">Code Examples</p>
             </div>
-            <div className="card-dark p-6 text-center">
-              <div className="text-3xl font-bold text-brand-400 mb-2">10+ hrs</div>
-              <p className="text-neutral-300">Learning Content</p>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-2">10+ hrs</div>
+              <p className="text-gray-700">Learning Content</p>
             </div>
           </div>
         </div>
 
         {/* Browse Tutorials */}
         <div id="browse" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Browse Tutorials</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Browse Tutorials</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tutorials.map((tutorial, index) => (
-              <a key={index} href={tutorial.href} className="group card-dark p-6 hover:card-dark-hover transition-all duration-300 cursor-pointer">
+              <a key={index} href={tutorial.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-300 cursor-pointer">
                 <div className="text-3xl mb-4">{tutorial.icon}</div>
                 <div className="mb-4">
-                  <span className="text-xs font-medium text-brand-400 bg-brand-900/30 px-3 py-1 rounded-full">
+                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
                     {tutorial.category}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold mb-3 group-hover:text-brand-400 transition-colors">
+                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                   {tutorial.title}
                 </h3>
-                <p className="text-neutral-400 text-sm mb-4 flex-grow">
+                <p className="text-gray-600 text-sm mb-4 flex-grow">
                   {tutorial.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-500">⏱️ {tutorial.readTime}</span>
-                  <span className="text-brand-400 hover:text-brand-300 text-sm font-medium transition-colors">
+                  <span className="text-xs text-gray-500">⏱️ {tutorial.readTime}</span>
+                  <span className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
                     →
                   </span>
                 </div>
@@ -137,62 +137,62 @@ export default function DocsTutorials() {
 
         {/* Getting Started */}
         <div id="getting-started" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Getting Started</h2>
-          <div className="card-dark p-8">
-            <p className="text-neutral-300 mb-6 text-lg">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Getting Started</h2>
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <p className="text-gray-700 mb-6 text-lg">
               Welcome to One Last AI! This guide will help you create your first AI agent in just a few minutes.
             </p>
 
             <div className="mb-8">
-              <h3 className="text-2xl font-bold mb-6">Step 1: Sign Up & Get API Key</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Step 1: Sign Up & Get API Key</h3>
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
                   <div>
-                    <p className="font-semibold">Create an account on One Last AI</p>
-                    <p className="text-neutral-400 text-sm">Visit the dashboard and sign up with your email</p>
+                    <p className="font-semibold text-gray-900">Create an account on One Last AI</p>
+                    <p className="text-gray-600 text-sm">Visit the dashboard and sign up with your email</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
                   <div>
-                    <p className="font-semibold">Navigate to API Settings</p>
-                    <p className="text-neutral-400 text-sm">Go to Settings → Developer → API Keys</p>
+                    <p className="font-semibold text-gray-900">Navigate to API Settings</p>
+                    <p className="text-gray-600 text-sm">Go to Settings → Developer → API Keys</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
+                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
                   <div>
-                    <p className="font-semibold">Generate your API key</p>
-                    <p className="text-neutral-400 text-sm">Click "Create New Key" and keep it secure</p>
+                    <p className="font-semibold text-gray-900">Generate your API key</p>
+                    <p className="text-gray-600 text-sm">Click "Create New Key" and keep it secure</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="mb-8">
-              <h3 className="text-2xl font-bold mb-6">Step 2: Choose Your SDK</h3>
-              <p className="text-neutral-300 mb-4">Install the SDK for your programming language:</p>
-              <div className="bg-neutral-900 p-4 rounded-lg space-y-3">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Step 2: Choose Your SDK</h3>
+              <p className="text-gray-700 mb-4">Install the SDK for your programming language:</p>
+              <div className="bg-gray-900 p-4 rounded-lg space-y-3">
                 <div>
-                  <p className="text-neutral-400 text-sm mb-1">JavaScript:</p>
-                  <code className="text-neutral-200">npm install @One Last AI/sdk</code>
+                  <p className="text-gray-400 text-sm mb-1">JavaScript:</p>
+                  <code className="text-gray-200">npm install @One Last AI/sdk</code>
                 </div>
                 <div>
-                  <p className="text-neutral-400 text-sm mb-1">Python:</p>
-                  <code className="text-neutral-200">pip install One Last AI-sdk</code>
+                  <p className="text-gray-400 text-sm mb-1">Python:</p>
+                  <code className="text-gray-200">pip install One Last AI-sdk</code>
                 </div>
                 <div>
-                  <p className="text-neutral-400 text-sm mb-1">Go:</p>
-                  <code className="text-neutral-200">go get github.com/One Last AI/sdk-go</code>
+                  <p className="text-gray-400 text-sm mb-1">Go:</p>
+                  <code className="text-gray-200">go get github.com/One Last AI/sdk-go</code>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold mb-6">Step 3: Create Your First Agent</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Step 3: Create Your First Agent</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`import { One Last AI } from '@One Last AI/sdk';
 
 // Initialize client
@@ -217,37 +217,37 @@ console.log('Agent created:', agent.id);`}
 
         {/* Creating Your First Bot */}
         <div id="first-bot" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Creating Your First Bot</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Creating Your First Bot</h2>
           <div className="space-y-8">
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Overview</h3>
-              <p className="text-neutral-300 mb-6">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Overview</h3>
+              <p className="text-gray-700 mb-6">
                 In this tutorial, we'll create a helpful customer support bot that can:
               </p>
-              <ul className="space-y-3 text-neutral-300">
+              <ul className="space-y-3 text-gray-700">
                 <li className="flex gap-3">
-                  <span className="text-brand-400">✓</span>
+                  <span className="text-blue-600">✓</span>
                   <span>Answer frequently asked questions</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">✓</span>
+                  <span className="text-blue-600">✓</span>
                   <span>Collect customer information</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">✓</span>
+                  <span className="text-blue-600">✓</span>
                   <span>Escalate complex issues to humans</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">✓</span>
+                  <span className="text-blue-600">✓</span>
                   <span>Maintain conversation context</span>
                 </li>
               </ul>
             </div>
 
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Complete Example</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Complete Example</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`import { One Last AI } from '@One Last AI/sdk';
 
 const client = new One Last AI({
@@ -292,24 +292,24 @@ console.log('Bot response:', conversation.reply);`}
               </div>
             </div>
 
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Key Configuration Options</h3>
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Key Configuration Options</h3>
               <div className="space-y-4">
-                <div className="border-l-4 border-brand-500 pl-4">
-                  <h4 className="font-bold mb-2">name</h4>
-                  <p className="text-neutral-400">A unique name for your agent</p>
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h4 className="font-bold text-gray-900 mb-2">name</h4>
+                  <p className="text-gray-600">A unique name for your agent</p>
                 </div>
-                <div className="border-l-4 border-brand-500 pl-4">
-                  <h4 className="font-bold mb-2">personality</h4>
-                  <p className="text-neutral-400">The persona of your agent (e.g., "professional", "friendly", "expert")</p>
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h4 className="font-bold text-gray-900 mb-2">personality</h4>
+                  <p className="text-gray-600">The persona of your agent (e.g., "professional", "friendly", "expert")</p>
                 </div>
-                <div className="border-l-4 border-brand-500 pl-4">
-                  <h4 className="font-bold mb-2">model</h4>
-                  <p className="text-neutral-400">AI model to use (gpt-4, gpt-3.5-turbo, etc.)</p>
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h4 className="font-bold text-gray-900 mb-2">model</h4>
+                  <p className="text-gray-600">AI model to use (gpt-4, gpt-3.5-turbo, etc.)</p>
                 </div>
-                <div className="border-l-4 border-brand-500 pl-4">
-                  <h4 className="font-bold mb-2">systemPrompt</h4>
-                  <p className="text-neutral-400">Instructions that define the agent's behavior</p>
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h4 className="font-bold text-gray-900 mb-2">systemPrompt</h4>
+                  <p className="text-gray-600">Instructions that define the agent's behavior</p>
                 </div>
               </div>
             </div>
@@ -318,16 +318,16 @@ console.log('Bot response:', conversation.reply);`}
 
         {/* Advanced Features */}
         <div id="advanced" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Advanced Features</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Advanced Features</h2>
           
           <div className="space-y-8">
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Context & Memory</h3>
-              <p className="text-neutral-300 mb-4">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Context & Memory</h3>
+              <p className="text-gray-700 mb-4">
                 Keep track of conversation context across multiple messages:
               </p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`// Start a conversation with context
 const conversation = await client.conversations.create({
   agent_id: bot.id,
@@ -354,13 +354,13 @@ const response2 = await client.conversations.send({
               </div>
             </div>
 
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Custom Actions</h3>
-              <p className="text-neutral-300 mb-4">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Custom Actions</h3>
+              <p className="text-gray-700 mb-4">
                 Let your agent take actions like creating tickets or updating data:
               </p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`// Define custom actions
 const bot = await client.agents.create({
   name: 'Advanced Bot',
@@ -400,13 +400,13 @@ if (response.actions.length > 0) {
               </div>
             </div>
 
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Streaming Responses</h3>
-              <p className="text-neutral-300 mb-4">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Streaming Responses</h3>
+              <p className="text-gray-700 mb-4">
                 Get real-time streaming for long responses:
               </p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`// Stream response in real-time
 const stream = await client.conversations.stream({
   agent_id: bot.id,
@@ -428,16 +428,16 @@ console.log('\\n✓ Complete');`}
 
         {/* Workflows */}
         <div id="workflows" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Building Workflows</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Building Workflows</h2>
           
-          <div className="card-dark p-8">
-            <h3 className="text-2xl font-bold mb-6">Multi-Step Workflows</h3>
-            <p className="text-neutral-300 mb-6">
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Multi-Step Workflows</h3>
+            <p className="text-gray-700 mb-6">
               Create complex conversations with multiple steps and conditions:
             </p>
 
-            <div className="bg-neutral-900 p-4 rounded-lg mb-6">
-              <code className="text-neutral-200 text-sm">
+            <div className="bg-gray-900 p-4 rounded-lg mb-6">
+              <code className="text-gray-200 text-sm">
                 {`// Define a workflow
 const workflow = {
   name: 'Support Workflow',
@@ -481,7 +481,7 @@ const bot = await client.agents.create({
               </code>
             </div>
 
-            <p className="text-neutral-300">
+            <p className="text-gray-700">
               This creates a natural, multi-step conversation flow that guides both the agent and user through a complete support interaction.
             </p>
           </div>
@@ -489,12 +489,12 @@ const bot = await client.agents.create({
 
         {/* Real-World Use Cases */}
         <div id="usecases" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Real-World Use Cases</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Real-World Use Cases</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-3">E-Commerce</h3>
-              <ul className="space-y-2 text-neutral-300 text-sm">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">E-Commerce</h3>
+              <ul className="space-y-2 text-gray-700 text-sm">
                 <li>✓ Product recommendations</li>
                 <li>✓ Order tracking</li>
                 <li>✓ Return processing</li>
@@ -502,9 +502,9 @@ const bot = await client.agents.create({
               </ul>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-3">Healthcare</h3>
-              <ul className="space-y-2 text-neutral-300 text-sm">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Healthcare</h3>
+              <ul className="space-y-2 text-gray-700 text-sm">
                 <li>✓ Appointment scheduling</li>
                 <li>✓ Symptom checking</li>
                 <li>✓ Medication reminders</li>
@@ -512,9 +512,9 @@ const bot = await client.agents.create({
               </ul>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-3">Banking</h3>
-              <ul className="space-y-2 text-neutral-300 text-sm">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Banking</h3>
+              <ul className="space-y-2 text-gray-700 text-sm">
                 <li>✓ Account inquiries</li>
                 <li>✓ Fraud detection</li>
                 <li>✓ Loan applications</li>
@@ -522,9 +522,9 @@ const bot = await client.agents.create({
               </ul>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-3">Education</h3>
-              <ul className="space-y-2 text-neutral-300 text-sm">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Education</h3>
+              <ul className="space-y-2 text-gray-700 text-sm">
                 <li>✓ Tutoring & mentoring</li>
                 <li>✓ Course information</li>
                 <li>✓ Student support</li>
@@ -536,43 +536,43 @@ const bot = await client.agents.create({
 
         {/* Deployment */}
         <div id="deployment" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Deployment Guide</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Deployment Guide</h2>
           
           <div className="space-y-6">
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Pre-Deployment Checklist</h3>
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Pre-Deployment Checklist</h3>
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <span className="text-brand-400">□</span>
-                  <span>All agent configurations are finalized</span>
+                  <span className="text-blue-600">□</span>
+                  <span className="text-gray-700">All agent configurations are finalized</span>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-brand-400">□</span>
-                  <span>Thoroughly tested all conversation flows</span>
+                  <span className="text-blue-600">□</span>
+                  <span className="text-gray-700">Thoroughly tested all conversation flows</span>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-brand-400">□</span>
-                  <span>API keys are secure and not hardcoded</span>
+                  <span className="text-blue-600">□</span>
+                  <span className="text-gray-700">API keys are secure and not hardcoded</span>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-brand-400">□</span>
-                  <span>Error handling is implemented</span>
+                  <span className="text-blue-600">□</span>
+                  <span className="text-gray-700">Error handling is implemented</span>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-brand-400">□</span>
-                  <span>Monitoring and logging are in place</span>
+                  <span className="text-blue-600">□</span>
+                  <span className="text-gray-700">Monitoring and logging are in place</span>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-brand-400">□</span>
-                  <span>Rate limits are understood</span>
+                  <span className="text-blue-600">□</span>
+                  <span className="text-gray-700">Rate limits are understood</span>
                 </div>
               </div>
             </div>
 
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Environment Setup</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Environment Setup</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`# .env.production
 One Last AI_API_KEY=your-production-key
 One Last AI_ENV=production
@@ -586,10 +586,10 @@ DATADOG_API_KEY=your-datadog-key`}
               </div>
             </div>
 
-            <div className="card-dark p-8">
-              <h3 className="text-2xl font-bold mb-6">Monitoring & Logging</h3>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <code className="text-neutral-200 text-sm">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Monitoring & Logging</h3>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <code className="text-gray-200 text-sm">
                   {`// Set up logging
 const client = new One Last AI({
   apiKey: process.env.One Last AI_API_KEY,
@@ -613,45 +613,45 @@ const client = new One Last AI({
 
         {/* Learning Path */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Recommended Learning Path</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Recommended Learning Path</h2>
           
           <div className="space-y-4">
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
                 <div className="flex-grow">
-                  <h4 className="font-bold mb-2">Beginner (Week 1-2)</h4>
-                  <p className="text-neutral-400 text-sm">Start with Getting Started guide, create first bot, explore basic features</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Beginner (Week 1-2)</h4>
+                  <p className="text-gray-600 text-sm">Start with Getting Started guide, create first bot, explore basic features</p>
                 </div>
               </div>
             </div>
 
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
                 <div className="flex-grow">
-                  <h4 className="font-bold mb-2">Intermediate (Week 3-4)</h4>
-                  <p className="text-neutral-400 text-sm">Learn integrations, SDKs, and build your first real application</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Intermediate (Week 3-4)</h4>
+                  <p className="text-gray-600 text-sm">Learn integrations, SDKs, and build your first real application</p>
                 </div>
               </div>
             </div>
 
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
                 <div className="flex-grow">
-                  <h4 className="font-bold mb-2">Advanced (Week 5-6)</h4>
-                  <p className="text-neutral-400 text-sm">Master workflows, custom actions, and deployment strategies</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Advanced (Week 5-6)</h4>
+                  <p className="text-gray-600 text-sm">Master workflows, custom actions, and deployment strategies</p>
                 </div>
               </div>
             </div>
 
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
                 <div className="flex-grow">
-                  <h4 className="font-bold mb-2">Production (Week 7+)</h4>
-                  <p className="text-neutral-400 text-sm">Deploy to production, monitor performance, and optimize</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Production (Week 7+)</h4>
+                  <p className="text-gray-600 text-sm">Deploy to production, monitor performance, and optimize</p>
                 </div>
               </div>
             </div>
@@ -659,19 +659,19 @@ const client = new One Last AI({
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-brand-600/20 via-accent-500/10 to-brand-700/20 border border-brand-500/30 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Build?</h2>
-          <p className="text-lg text-neutral-300 mb-8 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Build?</h2>
+          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
             Start with the Getting Started guide and create your first AI agent today. Our team is here to help every step of the way.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/sdks" className="btn-primary">
+            <Link href="/docs/sdks" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
               Choose Your SDK
             </Link>
-            <Link href="/docs/api" className="btn-secondary">
+            <Link href="/docs/api" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
               API Reference
             </Link>
-            <Link href="/support/contact-us" className="btn-outline">
+            <Link href="/support/contact-us" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
               Get Support
             </Link>
           </div>
