@@ -472,7 +472,7 @@ export default function TutorialsPage() {
                   Try Canvas Builder
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>
-                <Link href="/canvas-app" className="btn-secondary text-white border-white/20 hover:bg-white/10">
+                <Link href="/docs/canvas" className="btn-secondary text-white border-white/20 hover:bg-white/10">
                   View Documentation
                 </Link>
               </div>
@@ -513,7 +513,7 @@ export default function TutorialsPage() {
                   Try Data Generator
                   <ArrowRight className="w-5 h-5 ml-2 inline" />
                 </Link>
-                <Link href="/tools/data-generator" className="btn-secondary">
+                <Link href="/docs/data-generator" className="btn-secondary">
                   View Documentation
                 </Link>
               </div>
