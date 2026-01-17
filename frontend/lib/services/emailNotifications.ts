@@ -601,3 +601,143 @@ export async function notifyAdminNewUser(data: {
   
   return sendSupportEmail(ADMIN_EMAIL, template);
 }
+
+/**
+ * Send a welcome email to new users
+ */
+export async function sendWelcomeEmail(data: {
+  email: string;
+  name: string;
+}) {
+  const template = {
+    subject: `🎉 Welcome to One Last AI, ${data.name}!`,
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to One Last AI</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px 30px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 32px; margin: 0 0 10px; }
+    .header p { color: rgba(255,255,255,0.9); font-size: 18px; margin: 0; }
+    .content { padding: 40px 30px; }
+    .greeting { font-size: 24px; color: #764ba2; font-weight: 600; margin: 0 0 20px; }
+    .message { font-size: 16px; line-height: 1.8; color: #555; margin-bottom: 30px; }
+    .features { margin: 30px 0; }
+    .feature { display: flex; align-items: flex-start; margin: 15px 0; }
+    .feature-icon { font-size: 24px; margin-right: 15px; }
+    .feature-text { font-size: 15px; color: #555; }
+    .feature-title { font-weight: 600; color: #333; margin-bottom: 3px; }
+    .btn-container { text-align: center; margin: 40px 0; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; text-decoration: none; padding: 16px 50px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+    .footer { background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef; }
+    .footer-text { color: #6c757d; font-size: 12px; margin: 0; }
+    .social { margin: 20px 0; }
+    .social a { margin: 0 10px; text-decoration: none; font-size: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌟 Welcome to One Last AI!</h1>
+      <p>Your journey to smarter AI assistants starts here</p>
+    </div>
+    <div class="content">
+      <p class="greeting">Hi ${data.name}! 👋</p>
+      <p class="message">
+        Thank you for joining One Last AI! We're thrilled to have you as part of our community. 
+        You now have access to powerful AI agents designed to help you work smarter, not harder.
+      </p>
+      
+      <div class="features">
+        <div class="feature">
+          <span class="feature-icon">🤖</span>
+          <div>
+            <div class="feature-title">AI Agents Marketplace</div>
+            <div class="feature-text">Discover and deploy specialized AI agents for any task</div>
+          </div>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">💬</span>
+          <div>
+            <div class="feature-title">Universal Chat</div>
+            <div class="feature-text">Chat with multiple AI models in one unified interface</div>
+          </div>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">🎨</span>
+          <div>
+            <div class="feature-title">Canvas Builder</div>
+            <div class="feature-text">Create stunning visuals and apps with AI assistance</div>
+          </div>
+        </div>
+        <div class="feature">
+          <span class="feature-icon">📊</span>
+          <div>
+            <div class="feature-title">Personal Dashboard</div>
+            <div class="feature-text">Track your usage, manage subscriptions, and more</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="btn-container">
+        <a href="https://onelastai.co/dashboard" class="btn">Go to Dashboard →</a>
+      </div>
+      
+      <p class="message" style="margin-top: 30px;">
+        If you have any questions, feel free to reach out to our support team. We're here to help! 💕
+      </p>
+    </div>
+    <div class="footer">
+      <div class="social">
+        <span>Follow us:</span>
+      </div>
+      <p class="footer-text">
+        You received this email because you signed up for One Last AI.<br>
+        © ${new Date().getFullYear()} One Last AI. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `Welcome to One Last AI, ${data.name}!
+
+Thank you for joining us! You now have access to:
+
+🤖 AI Agents Marketplace - Discover and deploy specialized AI agents
+💬 Universal Chat - Chat with multiple AI models in one interface
+🎨 Canvas Builder - Create stunning visuals with AI assistance
+📊 Personal Dashboard - Track usage and manage subscriptions
+
+Get started: https://onelastai.co/dashboard
+
+If you have any questions, our support team is here to help!
+
+© ${new Date().getFullYear()} One Last AI. All rights reserved.`
+  };
+  
+  const transport = getTransporter();
+  if (!transport) {
+    console.log('[EMAIL] SMTP not configured, skipping welcome email');
+    return { success: false, message: 'SMTP not configured' };
+  }
+
+  try {
+    await transport.sendMail({
+      from: EMAIL_CONFIG.from,
+      to: data.email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+    console.log(`✅ Welcome email sent to ${data.email}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('❌ Failed to send welcome email:', error.message);
+    return { success: false, message: error.message };
+  }
+}

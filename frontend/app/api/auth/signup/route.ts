@@ -4,7 +4,7 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { checkEnvironmentVariables } from '@/lib/environment-checker';
-import { notifyAdminNewUser } from '@/lib/services/emailNotifications';
+import { notifyAdminNewUser, sendWelcomeEmail } from '@/lib/services/emailNotifications';
 
 /**
  * POST /api/auth/signup
@@ -90,6 +90,12 @@ export async function POST(request: NextRequest) {
       email: newUser.email,
       name: newUser.name,
     }).catch((err) => console.error('Failed to send admin notification:', err));
+
+    // Send welcome email to user (async, don't block response)
+    sendWelcomeEmail({
+      email: newUser.email,
+      name: newUser.name,
+    }).catch((err) => console.error('Failed to send welcome email:', err));
 
     // Create response without token in JSON (security improvement)
     const response = NextResponse.json(
