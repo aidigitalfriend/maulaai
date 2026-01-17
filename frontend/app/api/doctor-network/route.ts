@@ -405,7 +405,6 @@ class AIProvider {
       );
     }
   }
-}
 
   // Groq - Ultra fast inference with LPU
   static async callGroq(messages: any[]): Promise<string> {
