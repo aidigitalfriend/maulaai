@@ -106,22 +106,22 @@ console.log(result.reply);`
   ]
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-600/20 via-accent-500/10 to-brand-700/20 border-b border-brand-500/20">
+      <div className="bg-gradient-to-br from-brand-600 via-brand-500 to-indigo-600 border-b border-brand-500/20">
         <div className="container-custom section-padding-lg">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-400 via-accent-400 to-blue-400 bg-clip-text text-transparent mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               API Reference
             </h1>
-            <p className="text-xl text-neutral-300 mb-6 leading-relaxed">
+            <p className="text-xl text-white/90 mb-6 leading-relaxed">
               Build powerful integrations with our comprehensive REST API. Access real-time agent management, conversation tracking, and webhook capabilities with simple, well-documented endpoints.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#quick-start" className="btn-primary">
+              <a href="#quick-start" className="px-6 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition">
                 Quick Start
               </a>
-              <a href="#authentication" className="btn-secondary">
+              <a href="#authentication" className="px-6 py-3 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-brand-600 transition">
                 View Endpoints
               </a>
             </div>
@@ -134,32 +134,32 @@ console.log(result.reply);`
         
         {/* API Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          <div className="card-dark p-6">
-            <h3 className="text-xl font-bold mb-4 flex items-center">
-              <span className="w-10 h-10 bg-brand-600/30 rounded-lg flex items-center justify-center mr-3 text-brand-400">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <span className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center mr-3 text-brand-600">
                 📡
               </span>
               Base URL
             </h3>
-            <code className="block bg-neutral-900 p-4 rounded-lg text-neutral-200 text-sm">
+            <code className="block bg-gray-900 p-4 rounded-lg text-gray-200 text-sm">
               https://api.One Last AI.com/v1
             </code>
-            <p className="text-neutral-400 text-sm mt-3">
+            <p className="text-gray-600 text-sm mt-3">
               All API requests should be made to this base URL with proper versioning.
             </p>
           </div>
 
-          <div className="card-dark p-6">
-            <h3 className="text-xl font-bold mb-4 flex items-center">
-              <span className="w-10 h-10 bg-brand-600/30 rounded-lg flex items-center justify-center mr-3 text-brand-400">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <span className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center mr-3 text-brand-600">
                 🔑
               </span>
               Authentication
             </h3>
-            <code className="block bg-neutral-900 p-4 rounded-lg text-neutral-200 text-sm">
+            <code className="block bg-gray-900 p-4 rounded-lg text-gray-200 text-sm">
               Authorization: Bearer YOUR_API_KEY
             </code>
-            <p className="text-neutral-400 text-sm mt-3">
+            <p className="text-gray-600 text-sm mt-3">
               Include your API key in the Authorization header for all requests.
             </p>
           </div>
@@ -167,22 +167,22 @@ console.log(result.reply);`
 
         {/* Quick Reference */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">API Reference</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">API Reference</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {apiEndpoints.map((endpoint, index) => (
-              <div key={index} className="group card-dark p-6 hover:card-dark-hover transition-all duration-300">
+              <div key={index} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300">
                 <div className="mb-4">
-                  <span className="text-xs font-medium text-brand-400 bg-brand-900/30 px-3 py-1 rounded-full">
+                  <span className="text-xs font-medium text-brand-600 bg-brand-100 px-3 py-1 rounded-full">
                     {endpoint.category}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold mb-3 group-hover:text-brand-400 transition-colors">
+                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-brand-600 transition-colors">
                   {endpoint.title}
                 </h3>
-                <p className="text-neutral-400 mb-4 leading-relaxed">
+                <p className="text-gray-600 mb-4 leading-relaxed">
                   {endpoint.description}
                 </p>
-                <a href={endpoint.href} className="text-brand-400 hover:text-brand-300 text-sm font-medium transition-colors">
+                <a href={endpoint.href} className="text-brand-600 hover:text-brand-700 text-sm font-medium transition-colors">
                   Learn more →
                 </a>
               </div>
@@ -192,35 +192,35 @@ console.log(result.reply);`
 
         {/* Authentication Section */}
         <div id="authentication" className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Authentication</h2>
-          <div className="card-dark p-8">
-            <h3 className="text-xl font-bold mb-4">Getting Your API Key</h3>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Authentication</h2>
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Getting Your API Key</h3>
             <ol className="space-y-4 mb-6">
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
                 <div>
-                  <p className="font-semibold">Sign in to your account</p>
-                  <p className="text-neutral-400 text-sm">Log in to the One Last AI dashboard</p>
+                  <p className="font-semibold text-gray-900">Sign in to your account</p>
+                  <p className="text-gray-600 text-sm">Log in to the One Last AI dashboard</p>
                 </div>
               </li>
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
                 <div>
-                  <p className="font-semibold">Navigate to API Settings</p>
-                  <p className="text-neutral-400 text-sm">Go to Settings → Developer → API Keys</p>
+                  <p className="font-semibold text-gray-900">Navigate to API Settings</p>
+                  <p className="text-gray-600 text-sm">Go to Settings → Developer → API Keys</p>
                 </div>
               </li>
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
                 <div>
-                  <p className="font-semibold">Generate a new API key</p>
-                  <p className="text-neutral-400 text-sm">Click "Create New Key" and copy your key</p>
+                  <p className="font-semibold text-gray-900">Generate a new API key</p>
+                  <p className="text-gray-600 text-sm">Click "Create New Key" and copy your key</p>
                 </div>
               </li>
             </ol>
 
-            <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-4 mb-6">
-              <p className="text-yellow-300 text-sm">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
                 <strong>⚠️ Security Note:</strong> Keep your API keys confidential. Never commit them to version control or share publicly.
               </p>
             </div>
@@ -229,19 +229,19 @@ console.log(result.reply);`
 
         {/* Agents Endpoints */}
         <div id="agents" className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Agents Endpoints</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Agents Endpoints</h2>
           
           <div className="space-y-6">
             {/* GET Agents */}
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-4">
-                <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded font-mono text-sm">GET</span>
-                <code className="text-neutral-300">/agents</code>
+                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-mono text-sm font-semibold">GET</span>
+                <code className="text-gray-700">/agents</code>
               </div>
-              <p className="text-neutral-400 mb-4">Retrieve a list of all your agents</p>
-              <div className="bg-neutral-900 p-4 rounded-lg mb-4">
-                <p className="text-neutral-500 text-xs mb-2">Response:</p>
-                <code className="text-neutral-200 text-sm">
+              <p className="text-gray-600 mb-4">Retrieve a list of all your agents</p>
+              <div className="bg-gray-900 p-4 rounded-lg mb-4">
+                <p className="text-gray-500 text-xs mb-2">Response:</p>
+                <code className="text-gray-200 text-sm">
                   {`{
   "data": [
     {
@@ -258,15 +258,15 @@ console.log(result.reply);`
             </div>
 
             {/* POST Create Agent */}
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-4">
-                <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded font-mono text-sm">POST</span>
-                <code className="text-neutral-300">/agents</code>
+                <span className="bg-green-100 text-green-600 px-3 py-1 rounded font-mono text-sm font-semibold">POST</span>
+                <code className="text-gray-700">/agents</code>
               </div>
-              <p className="text-neutral-400 mb-4">Create a new AI agent</p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <p className="text-neutral-500 text-xs mb-2">Request:</p>
-                <code className="text-neutral-200 text-sm">
+              <p className="text-gray-600 mb-4">Create a new AI agent</p>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <p className="text-gray-500 text-xs mb-2">Request:</p>
+                <code className="text-gray-200 text-sm">
                   {`{
   "name": "New Agent",
   "personality": "friendly",
@@ -278,31 +278,31 @@ console.log(result.reply);`
             </div>
 
             {/* GET Agent by ID */}
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-4">
-                <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded font-mono text-sm">GET</span>
-                <code className="text-neutral-300">/agents/[agent_id]</code>
+                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-mono text-sm font-semibold">GET</span>
+                <code className="text-gray-700">/agents/[agent_id]</code>
               </div>
-              <p className="text-neutral-400 mb-4">Retrieve details of a specific agent</p>
+              <p className="text-gray-600 mb-4">Retrieve details of a specific agent</p>
             </div>
           </div>
         </div>
 
         {/* Conversations API */}
         <div id="conversations" className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Conversations API</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Conversations API</h2>
           
           <div className="space-y-6">
             {/* POST Send Message */}
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-4">
-                <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded font-mono text-sm">POST</span>
-                <code className="text-neutral-300">/conversations</code>
+                <span className="bg-green-100 text-green-600 px-3 py-1 rounded font-mono text-sm font-semibold">POST</span>
+                <code className="text-gray-700">/conversations</code>
               </div>
-              <p className="text-neutral-400 mb-4">Send a message to an agent and get a response</p>
-              <div className="bg-neutral-900 p-4 rounded-lg">
-                <p className="text-neutral-500 text-xs mb-2">Request:</p>
-                <code className="text-neutral-200 text-sm">
+              <p className="text-gray-600 mb-4">Send a message to an agent and get a response</p>
+              <div className="bg-gray-900 p-4 rounded-lg">
+                <p className="text-gray-500 text-xs mb-2">Request:</p>
+                <code className="text-gray-200 text-sm">
                   {`{
   "agent_id": "agent_123",
   "message": "How do I create an agent?",
@@ -313,51 +313,51 @@ console.log(result.reply);`
             </div>
 
             {/* GET Conversation History */}
-            <div className="card-dark p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-4">
-                <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded font-mono text-sm">GET</span>
-                <code className="text-neutral-300">/conversations/[conversation_id]</code>
+                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-mono text-sm font-semibold">GET</span>
+                <code className="text-gray-700">/conversations/[conversation_id]</code>
               </div>
-              <p className="text-neutral-400 mb-4">Retrieve the full conversation history</p>
+              <p className="text-gray-600 mb-4">Retrieve the full conversation history</p>
             </div>
           </div>
         </div>
 
         {/* Rate Limits */}
         <div id="rate-limits" className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Rate Limits</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Rate Limits</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Standard Plan</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Standard Plan</h3>
               <ul className="space-y-3">
                 <li className="flex justify-between">
-                  <span className="text-neutral-400">Requests/minute:</span>
-                  <span className="font-bold text-brand-400">100</span>
+                  <span className="text-gray-600">Requests/minute:</span>
+                  <span className="font-bold text-brand-600">100</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-neutral-400">Daily limit:</span>
-                  <span className="font-bold text-brand-400">100,000</span>
+                  <span className="text-gray-600">Daily limit:</span>
+                  <span className="font-bold text-brand-600">100,000</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-neutral-400">Concurrent requests:</span>
-                  <span className="font-bold text-brand-400">10</span>
+                  <span className="text-gray-600">Concurrent requests:</span>
+                  <span className="font-bold text-brand-600">10</span>
                 </li>
               </ul>
             </div>
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Pro Plan</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Pro Plan</h3>
               <ul className="space-y-3">
                 <li className="flex justify-between">
-                  <span className="text-neutral-400">Requests/minute:</span>
-                  <span className="font-bold text-brand-400">500</span>
+                  <span className="text-gray-600">Requests/minute:</span>
+                  <span className="font-bold text-brand-600">500</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-neutral-400">Daily limit:</span>
-                  <span className="font-bold text-brand-400">1,000,000</span>
+                  <span className="text-gray-600">Daily limit:</span>
+                  <span className="font-bold text-brand-600">1,000,000</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-neutral-400">Concurrent requests:</span>
-                  <span className="font-bold text-brand-400">50</span>
+                  <span className="text-gray-600">Concurrent requests:</span>
+                  <span className="font-bold text-brand-600">50</span>
                 </li>
               </ul>
             </div>
@@ -366,18 +366,18 @@ console.log(result.reply);`
 
         {/* Code Examples */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Code Examples</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Code Examples</h2>
           <div className="grid grid-cols-1 gap-6">
             {codeExamples.map((example, index) => (
-              <div key={index} className="card-dark p-6">
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-bold">{example.title}</h3>
-                  <span className="text-xs font-medium text-brand-400 bg-brand-900/30 px-3 py-1 rounded-full">
+                  <h3 className="text-lg font-bold text-gray-900">{example.title}</h3>
+                  <span className="text-xs font-medium text-brand-600 bg-brand-100 px-3 py-1 rounded-full">
                     {example.language}
                   </span>
                 </div>
-                <div className="bg-neutral-900 p-4 rounded-lg overflow-x-auto">
-                  <pre className="text-neutral-200 text-sm">
+                <div className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
+                  <pre className="text-gray-200 text-sm">
                     <code>{example.code}</code>
                   </pre>
                 </div>
@@ -388,13 +388,13 @@ console.log(result.reply);`
 
         {/* Error Handling */}
         <div id="errors" className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Error Handling</h2>
-          <div className="card-dark p-6">
-            <p className="text-neutral-300 mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Error Handling</h2>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <p className="text-gray-700 mb-6">
               All API errors follow a standard format. Handle errors gracefully in your applications:
             </p>
-            <div className="bg-neutral-900 p-4 rounded-lg mb-6">
-              <code className="text-neutral-200 text-sm">
+            <div className="bg-gray-900 p-4 rounded-lg mb-6">
+              <code className="text-gray-200 text-sm">
                 {`{
   "error": {
     "code": "INVALID_API_KEY",
@@ -407,31 +407,31 @@ console.log(result.reply);`
             
             <div className="space-y-4">
               <div className="flex gap-4">
-                <span className="flex-shrink-0 w-12 h-12 bg-red-900/30 rounded-lg flex items-center justify-center text-red-400 font-bold">400</span>
+                <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">400</span>
                 <div>
-                  <p className="font-semibold">Bad Request</p>
-                  <p className="text-neutral-400 text-sm">Invalid parameters or missing required fields</p>
+                  <p className="font-semibold text-gray-900">Bad Request</p>
+                  <p className="text-gray-600 text-sm">Invalid parameters or missing required fields</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <span className="flex-shrink-0 w-12 h-12 bg-red-900/30 rounded-lg flex items-center justify-center text-red-400 font-bold">401</span>
+                <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">401</span>
                 <div>
-                  <p className="font-semibold">Unauthorized</p>
-                  <p className="text-neutral-400 text-sm">API key is missing or invalid</p>
+                  <p className="font-semibold text-gray-900">Unauthorized</p>
+                  <p className="text-gray-600 text-sm">API key is missing or invalid</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <span className="flex-shrink-0 w-12 h-12 bg-red-900/30 rounded-lg flex items-center justify-center text-red-400 font-bold">429</span>
+                <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">429</span>
                 <div>
-                  <p className="font-semibold">Rate Limit Exceeded</p>
-                  <p className="text-neutral-400 text-sm">You've exceeded the rate limit for your plan</p>
+                  <p className="font-semibold text-gray-900">Rate Limit Exceeded</p>
+                  <p className="text-gray-600 text-sm">You've exceeded the rate limit for your plan</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <span className="flex-shrink-0 w-12 h-12 bg-red-900/30 rounded-lg flex items-center justify-center text-red-400 font-bold">500</span>
+                <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">500</span>
                 <div>
-                  <p className="font-semibold">Server Error</p>
-                  <p className="text-neutral-400 text-sm">Internal server error - try again later</p>
+                  <p className="font-semibold text-gray-900">Server Error</p>
+                  <p className="text-gray-600 text-sm">Internal server error - try again later</p>
                 </div>
               </div>
             </div>
@@ -440,47 +440,47 @@ console.log(result.reply);`
 
         {/* Webhooks */}
         <div id="webhooks" className="mb-16">
-          <h2 className="text-3xl font-bold mb-6">Webhooks</h2>
-          <div className="card-dark p-6 mb-6">
-            <p className="text-neutral-300 mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Webhooks</h2>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
+            <p className="text-gray-700 mb-6">
               Subscribe to real-time events from your agents. Webhooks are triggered when specific events occur:
             </p>
             
             <div className="space-y-4">
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold mb-2">agent.created</h3>
-                <p className="text-neutral-400 text-sm">Triggered when a new agent is created</p>
+                <h3 className="font-bold text-gray-900 mb-2">agent.created</h3>
+                <p className="text-gray-600 text-sm">Triggered when a new agent is created</p>
               </div>
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold mb-2">agent.updated</h3>
-                <p className="text-neutral-400 text-sm">Triggered when an agent is updated</p>
+                <h3 className="font-bold text-gray-900 mb-2">agent.updated</h3>
+                <p className="text-gray-600 text-sm">Triggered when an agent is updated</p>
               </div>
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold mb-2">message.received</h3>
-                <p className="text-neutral-400 text-sm">Triggered when an agent receives a message</p>
+                <h3 className="font-bold text-gray-900 mb-2">message.received</h3>
+                <p className="text-gray-600 text-sm">Triggered when an agent receives a message</p>
               </div>
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold mb-2">conversation.completed</h3>
-                <p className="text-neutral-400 text-sm">Triggered when a conversation ends</p>
+                <h3 className="font-bold text-gray-900 mb-2">conversation.completed</h3>
+                <p className="text-gray-600 text-sm">Triggered when a conversation ends</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-brand-600/20 via-accent-500/10 to-brand-700/20 border border-brand-500/30 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Build?</h2>
-          <p className="text-lg text-neutral-300 mb-8 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-2xl p-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Build?</h2>
+          <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
             Start integrating with our API today. Check out our tutorials and SDKs for different programming languages.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/sdks" className="btn-primary">
+            <Link href="/docs/sdks" className="px-6 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition">
               View SDKs
             </Link>
-            <Link href="/docs/tutorials" className="btn-secondary">
+            <Link href="/docs/tutorials" className="px-6 py-3 border-2 border-white text-white font-semibold rounded-xl hover:bg-white hover:text-brand-600 transition">
               See Tutorials
             </Link>
-            <Link href="/support/contact-us" className="btn-outline">
+            <Link href="/support/contact-us" className="px-6 py-3 border-2 border-white/50 text-white font-semibold rounded-xl hover:bg-white hover:text-brand-600 transition">
               Get Support
             </Link>
           </div>
