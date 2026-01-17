@@ -45,12 +45,11 @@ const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
 const SupportButton = ({ icon: Icon, label, href, onClick }: any) => (
   <button
     onClick={onClick}
-    className="w-full flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all duration-300 text-gray-700 group"
+    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 text-gray-700 group"
   >
-    <Icon
-      size={20}
-      className="text-blue-600 group-hover:text-purple-600 transition-colors"
-    />
+    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+      <Icon size={16} className="text-white" />
+    </div>
     <span className="text-sm font-medium">{label}</span>
   </button>
 );
@@ -477,7 +476,7 @@ export default function LiveSupportPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-xl">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
               <Phone size={32} className="text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Live Support</h1>
@@ -489,7 +488,7 @@ export default function LiveSupportPage() {
             <div className="space-y-3">
               <Link
                 href="/auth/login"
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:opacity-90 transition shadow-lg shadow-blue-500/25"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <AlertCircle size={18} />
                 Sign In Now
@@ -516,22 +515,25 @@ export default function LiveSupportPage() {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <MessageCircle size={20} className="text-white" />
+              </div>
               <div>
                 <h1 className="font-bold text-lg text-gray-900">Live Support</h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   AI-Powered Support Agent
                 </p>
               </div>
             </div>
 
             {userProfile && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl">
                 <span className="text-sm text-gray-700">
                   <span className="text-gray-500">Account:</span>{' '}
-                  {userProfile.name}
+                  <span className="font-medium">{userProfile.name}</span>
                 </span>
               </div>
             )}
@@ -540,7 +542,7 @@ export default function LiveSupportPage() {
           {/* Messages Container */}
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+            className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-white/50"
           >
             {messages.map((message) => (
               <div
@@ -550,12 +552,12 @@ export default function LiveSupportPage() {
                 }`}
               >
                 <div
-                  className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-xl ${
+                  className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-2xl shadow-sm ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none shadow-lg shadow-blue-500/20'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-sm'
                       : message.role === 'system'
                       ? 'bg-amber-50 border border-amber-200 text-amber-800'
-                      : 'bg-white text-gray-800 rounded-bl-none border border-gray-200 shadow-md'
+                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm'
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap break-words">
@@ -570,11 +572,11 @@ export default function LiveSupportPage() {
 
             {isStreamingResponse && (
               <div className="flex justify-start">
-                <div className="bg-white rounded-xl rounded-bl-none px-4 py-3 border border-gray-200 shadow-md">
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                   <div className="flex gap-2">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-200"></div>
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
                   </div>
                 </div>
               </div>
@@ -584,11 +586,13 @@ export default function LiveSupportPage() {
           </div>
 
           {/* Input Area */}
-          <div className="bg-white/80 backdrop-blur border-t border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl border-t border-gray-200 p-6">
             {ticketGenerated && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AlertCircle size={20} className="text-blue-600" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <AlertCircle size={18} className="text-blue-600" />
+                  </div>
                   <span className="text-sm text-blue-800">
                     Your issue needs escalation. Our team will create a support
                     ticket.
@@ -596,7 +600,7 @@ export default function LiveSupportPage() {
                 </div>
                 <button
                   onClick={generateTicket}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
                 >
                   Create Ticket
                 </button>
@@ -610,12 +614,12 @@ export default function LiveSupportPage() {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Describe your issue or ask a question..."
                 disabled={isLoading}
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
-                className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-500/25"
+                className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
               >
                 {isLoading ? (
                   <Loader size={18} className="animate-spin" />
@@ -629,14 +633,14 @@ export default function LiveSupportPage() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <button
                 onClick={downloadChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors border border-gray-200"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
               >
                 <DownloadCloud size={16} />
                 Download
               </button>
               <button
                 onClick={copyChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors border border-gray-200"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
               >
                 <Copy size={16} />
                 Copy
@@ -646,7 +650,7 @@ export default function LiveSupportPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden lg:block shadow-lg">
+        <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden lg:block">
           {/* User Profile Section */}
           {userProfile && (
             <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
@@ -693,7 +697,7 @@ export default function LiveSupportPage() {
                   <div className="pt-2 mt-2 border-t border-gray-200">
                     <Link
                       href="/pricing"
-                      className="block w-full text-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition shadow-lg shadow-blue-500/25"
+                      className="block w-full text-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
                     >
                       Browse Agents
                     </Link>
@@ -707,21 +711,23 @@ export default function LiveSupportPage() {
           {supportTicket && (
             <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl">
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle size={18} className="text-green-600" />
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle size={16} className="text-green-600" />
+                </div>
                 <h3 className="font-bold text-sm uppercase text-green-800">
                   Ticket Generated
                 </h3>
               </div>
               <p className="text-sm text-green-700 mb-2">Ticket ID:</p>
-              <p className="font-mono text-xs bg-green-100 p-2 rounded mb-3 break-all text-green-800">
+              <p className="font-mono text-xs bg-white border border-green-200 p-2 rounded-lg mb-3 break-all text-gray-800">
                 {supportTicket.id}
               </p>
-              <p className="text-xs text-green-700 mb-3">
+              <p className="text-xs text-green-600 mb-3">
                 Our human support team will contact you within 48 hours.
               </p>
               <Link
                 href="/dashboard/support-tickets"
-                className="block w-full text-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                className="block w-full text-center px-3 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-green-500/25"
               >
                 View My Tickets
               </Link>
@@ -780,9 +786,11 @@ export default function LiveSupportPage() {
           </div>
 
           {/* Support Hours */}
-          <div className="mt-8 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+          <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
-              <Clock size={16} className="text-blue-600" />
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Clock size={16} className="text-blue-600" />
+              </div>
               <h3 className="font-bold text-sm text-gray-900">Support Hours</h3>
             </div>
             <p className="text-xs text-gray-600">
