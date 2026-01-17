@@ -192,12 +192,11 @@ export default function LiveSupportPage() {
   };
 
   const initializeChat = () => {
+    const userName = auth.state.user?.name || 'lovely';
     const welcomeMessage: Message = {
       id: '0',
       role: 'assistant',
-      content: `👋 Hello ${
-        auth.state.user?.name || 'there'
-      }! Welcome to Live Support. I'm your AI support assistant. How can I help you today? Whether it's technical issues, account problems, or general questions, I'm here to assist!`,
+      content: `Hey there, ${userName}! 🌙💕\n\nI'm Luna, your personal support companion here at One Last AI! It's so wonderful to have you here, darling!\n\nI know everything about your account, our amazing agents, billing, and all our platform features. Whether you need help with something or just want to chat about what we offer, I'm here for you, sweetheart! ✨\n\nHow can I make your day better today? 🥰`,
       timestamp: new Date(),
     };
     setMessages([welcomeMessage]);
