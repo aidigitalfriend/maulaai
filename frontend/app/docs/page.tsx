@@ -15,7 +15,7 @@ export default function Docs() {
       title: "Canvas Builder",
       description: "Build complete web applications with AI-powered generation",
       icon: "🎨",
-      href: "/canvas-app",
+      href: "/docs/canvas",
       topics: ["Text to App", "Live Preview", "Export Code", "Components"],
       color: "from-purple-500 to-fuchsia-500"
     },
@@ -23,7 +23,7 @@ export default function Docs() {
       title: "Data Generator",
       description: "Generate realistic test data for your applications",
       icon: "📊",
-      href: "/tools/data-generator",
+      href: "/docs/data-generator",
       topics: ["Users & Profiles", "Products", "Analytics", "Custom Data"],
       color: "from-blue-500 to-indigo-500"
     },
