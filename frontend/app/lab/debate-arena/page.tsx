@@ -220,7 +220,7 @@ export default function DebateArenaPage() {
             <div className="text-sm text-gray-400">•</div>
             <div className="flex items-center gap-1 text-sm text-cyan-400">
               <Zap className="w-3 h-3" />
-              <span>Cerebras + Groq</span>
+              <span>Nova vs Blaze</span>
             </div>
             <button
               onClick={loadDebates}
@@ -388,7 +388,7 @@ export default function DebateArenaPage() {
                   }`}
                 >
                   <ThumbsUp className="w-5 h-5" />
-                  {hasVotedOnDebate(activeDebate.debateId) ? 'Already Voted' : 'Vote for Cerebras'}
+                  {hasVotedOnDebate(activeDebate.debateId) ? 'Already Voted' : 'Vote for Nova'}
                 </button>
               </div>
 
@@ -408,7 +408,7 @@ export default function DebateArenaPage() {
                   }`}
                 >
                   <ThumbsUp className="w-5 h-5" />
-                  {hasVotedOnDebate(activeDebate.debateId) ? 'Already Voted' : 'Vote for Groq'}
+                  {hasVotedOnDebate(activeDebate.debateId) ? 'Already Voted' : 'Vote for Blaze'}
                 </button>
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function DebateArenaPage() {
             <div className="bg-white/5 border border-white/20 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold">Debate Arguments</h3>
-                <span className="text-xs text-cyan-400">⚡ Cerebras vs 🚀 Groq - Real-time AI Debate</span>
+                <span className="text-xs text-cyan-400">⚡ Nova vs 🔥 Blaze - Real-time AI Debate</span>
               </div>
               <div className="space-y-4">
                 <div className="p-4 bg-blue-500/10 border-l-4 border-blue-500 rounded-lg">

@@ -75,7 +75,7 @@ async function generateCerebrasResponse(
 ): Promise<{ text: string; provider: string; responseTime: number }> {
   const startTime = Date.now();
 
-  const systemPrompt = `You are "Cerebras AI", a brilliant debater powered by Cerebras hardware. You argue the "${position}" position on: "${topic}".
+  const systemPrompt = `You are "Nova", a brilliant AI debater known for logical precision and articulate arguments. You argue the "${position}" position on: "${topic}".
 Give a compelling opening statement. Be logical, articulate, and convincing. Keep response to 2-3 paragraphs.`;
 
   const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
@@ -114,7 +114,7 @@ async function generateGroqResponse(
 ): Promise<{ text: string; provider: string; responseTime: number }> {
   const startTime = Date.now();
 
-  const systemPrompt = `You are "Groq AI", a sharp debater powered by Groq LPU technology. You argue the "${position}" position on: "${topic}".
+  const systemPrompt = `You are "Blaze", a sharp AI debater known for fiery persuasion and engaging rhetoric. You argue the "${position}" position on: "${topic}".
 Give a compelling opening statement. Be analytical, persuasive, and engaging. Keep response to 2-3 paragraphs.`;
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -212,19 +212,19 @@ export async function POST(req: NextRequest) {
       topic,
       status: 'active',
       agent1: {
-        name: 'Cerebras AI',
+        name: 'Nova',
         position: agent1Position || 'Pro',
         avatar: '⚡',
-        provider: 'Cerebras',
+        provider: 'Nova',
         response: agent1Response.text,
         responseTime: agent1Response.responseTime,
         votes: 0,
       },
       agent2: {
-        name: 'Groq AI',
+        name: 'Blaze',
         position: agent2Position || 'Con',
-        avatar: '🚀',
-        provider: 'Groq',
+        avatar: '🔥',
+        provider: 'Blaze',
         response: agent2Response.text,
         responseTime: agent2Response.responseTime,
         votes: 0,
