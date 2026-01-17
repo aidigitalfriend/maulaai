@@ -164,30 +164,77 @@ export default function LiveSupportPage() {
 
   const fetchUserProfile = async () => {
     try {
+      const userId = auth.state.user?.id;
+      if (!userId) {
+        console.error('No user ID available');
+        return;
+      }
+
       // Fetch real user profile from backend
-      const response = await fetch(`/api/user/profile`, {
+      const profileResponse = await fetch(`/api/user/profile`, {
         headers: {
           Authorization: `Bearer ${auth.state.token}`,
         },
       });
 
-      if (!response.ok) {
+      // Fetch real subscription data
+      const subscriptionResponse = await fetch(`/api/subscriptions/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${auth.state.token}`,
+        },
+      });
+
+      let subscriptionText = 'Free';
+      let activeSubCount = 0;
+
+      if (subscriptionResponse.ok) {
+        const subData = await subscriptionResponse.json();
+        if (subData.subscriptions && subData.subscriptions.length > 0) {
+          // Find active subscriptions
+          const activeSubs = subData.subscriptions.filter(
+            (s: any) => s.status === 'active' && new Date(s.expiryDate) > new Date()
+          );
+          activeSubCount = activeSubs.length;
+          
+          if (activeSubCount > 0) {
+            // Determine subscription tier based on active subs
+            if (activeSubCount >= 5) {
+              subscriptionText = 'Enterprise';
+            } else if (activeSubCount >= 3) {
+              subscriptionText = 'Pro';
+            } else {
+              subscriptionText = 'Basic';
+            }
+          }
+        }
+      }
+
+      if (!profileResponse.ok) {
         throw new Error('Failed to fetch user profile');
       }
 
-      const data = await response.json();
+      const data = await profileResponse.json();
       if (data.success && data.profile) {
         setUserProfile({
           name: data.profile.name || auth.state.user?.name || 'User',
           email: data.profile.email || auth.state.user?.email,
-          subscription: 'Pro', // Should come from subscription API
+          subscription: subscriptionText,
+          activeAgents: activeSubCount,
           joinedDate: data.profile.createdAt || auth.state.user?.createdAt,
-          supportTickets: 0, // Should query from support tickets collection
+          supportTickets: 0,
         });
       }
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
-      // Don't set mock data - leave userProfile as null to show error state
+      // Set minimal profile with Free status on error
+      setUserProfile({
+        name: auth.state.user?.name || 'User',
+        email: auth.state.user?.email,
+        subscription: 'Free',
+        activeAgents: 0,
+        joinedDate: auth.state.user?.createdAt,
+        supportTickets: 0,
+      });
     }
   };
 
@@ -614,8 +661,17 @@ export default function LiveSupportPage() {
                 <div>
                   <span className="text-neural-400">Plan:</span>
                   <p className="text-white font-medium flex items-center gap-2">
-                    <Zap size={16} className="text-yellow-400" />
+                    {userProfile.subscription === 'Free' ? (
+                      <span className="text-neural-400">🆓</span>
+                    ) : (
+                      <Zap size={16} className="text-yellow-400" />
+                    )}
                     {userProfile.subscription}
+                    {userProfile.activeAgents > 0 && (
+                      <span className="text-xs text-neural-400">
+                        ({userProfile.activeAgents} agent{userProfile.activeAgents > 1 ? 's' : ''})
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div>
@@ -624,6 +680,16 @@ export default function LiveSupportPage() {
                     {new Date(userProfile.joinedDate).toLocaleDateString()}
                   </p>
                 </div>
+                {userProfile.subscription === 'Free' && (
+                  <div className="pt-2 mt-2 border-t border-neural-600">
+                    <Link
+                      href="/pricing"
+                      className="block w-full text-center px-3 py-2 bg-brand-600 hover:bg-brand-700 rounded text-sm font-medium transition-colors"
+                    >
+                      Upgrade Plan
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}
