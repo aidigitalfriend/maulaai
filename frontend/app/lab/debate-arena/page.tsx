@@ -1,152 +1,187 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { MessageSquare, Users, Trophy, Plus, Play, ThumbsUp, Loader2, Zap } from 'lucide-react'
+import { MessageSquare, Users, Trophy, Plus, Play, ThumbsUp, Loader2, Zap, RefreshCw } from 'lucide-react'
+
+// Helper to get visitor ID from localStorage
+const getVisitorId = () => {
+  if (typeof window === 'undefined') return 'anonymous'
+  let visitorId = localStorage.getItem('debateVisitorId')
+  if (!visitorId) {
+    visitorId = `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    localStorage.setItem('debateVisitorId', visitorId)
+  }
+  return visitorId
+}
+
+interface Debate {
+  debateId: string
+  topic: string
+  status: string
+  agent1: {
+    name: string
+    position: string
+    avatar: string
+    provider: string
+    response: string
+    responseTime: number
+    votes: number
+  }
+  agent2: {
+    name: string
+    position: string
+    avatar: string
+    provider: string
+    response: string
+    responseTime: number
+    votes: number
+  }
+  totalVotes: number
+  viewers: number
+  votedUsers: string[]
+  createdAt: string
+}
 
 export default function DebateArenaPage() {
-  const [activeDebate, setActiveDebate] = useState<any>(null)
+  const [debates, setDebates] = useState<Debate[]>([])
+  const [activeDebate, setActiveDebate] = useState<Debate | null>(null)
   const [isDebating, setIsDebating] = useState(false)
   const [newTopic, setNewTopic] = useState('')
-  const [debateStream, setDebateStream] = useState<any[]>([])
-  const [currentRound, setCurrentRound] = useState(1)
   const [stats, setStats] = useState({ totalDebates: 0, activeUsers: 0 })
-  const [providerInfo, setProviderInfo] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [customDebates, setCustomDebates] = useState<any[]>([])
-  const [votes, setVotes] = useState({ agent1: 0, agent2: 0 })
-  const [hasVoted, setHasVoted] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [votedDebates, setVotedDebates] = useState<Set<string>>(new Set())
 
-  // Handle voting
-  const handleVote = (agent: 'agent1' | 'agent2') => {
-    if (hasVoted) return
-    setVotes(prev => ({ ...prev, [agent]: prev[agent] + 1 }))
-    setHasVoted(agent)
-  }
-
-  // Fetch real-time stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch('/api/lab/debate-arena?stats=true')
-        const data = await res.json()
-        if (data.success && data.stats) {
+  // Load debates from database
+  const loadDebates = useCallback(async () => {
+    try {
+      const res = await fetch('/api/lab/debate-arena')
+      const data = await res.json()
+      if (data.success) {
+        setDebates(data.debates || [])
+        if (data.stats) {
           setStats({
             totalDebates: data.stats.totalDebates,
             activeUsers: data.stats.activeUsers,
           })
         }
-      } catch (error) {
-        console.error('Failed to fetch stats:', error)
+        // Check which debates we've voted on
+        const visitorId = getVisitorId()
+        const voted = new Set<string>()
+        for (const debate of data.debates || []) {
+          if (debate.votedUsers?.includes(visitorId)) {
+            voted.add(debate.debateId)
+          }
+        }
+        setVotedDebates(voted)
       }
+    } catch (error) {
+      console.error('Failed to fetch debates:', error)
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchStats()
-    const interval = setInterval(fetchStats, 30000)
-    return () => clearInterval(interval)
   }, [])
 
-  const liveDebates = [
-    {
-      id: 1,
-      topic: 'Is AI a threat or opportunity for humanity?',
-      agent1: { name: 'Cerebras AI', position: 'Opportunity', votes: 245, avatar: '⚡' },
-      agent2: { name: 'Groq AI', position: 'Balanced Threat', votes: 198, avatar: '🚀' },
-      viewers: 342,
-      status: 'live'
-    },
-    {
-      id: 2,
-      topic: 'Should social media be regulated by governments?',
-      agent1: { name: 'Cerebras AI', position: 'No Regulation', votes: 187, avatar: '⚡' },
-      agent2: { name: 'Groq AI', position: 'Yes, Regulate', votes: 223, avatar: '🚀' },
-      viewers: 289,
-      status: 'live'
-    },
-    {
-      id: 3,
-      topic: 'Is remote work better than office work?',
-      agent1: { name: 'Cerebras AI', position: 'Remote Wins', votes: 312, avatar: '⚡' },
-      agent2: { name: 'Groq AI', position: 'Office Better', votes: 156, avatar: '🚀' },
-      viewers: 234,
-      status: 'live'
-    }
-  ]
+  // Load debates on mount and refresh periodically
+  useEffect(() => {
+    loadDebates()
+    const interval = setInterval(loadDebates, 15000) // Refresh every 15 seconds
+    return () => clearInterval(interval)
+  }, [loadDebates])
 
-  const handleSubmitTopic = async () => {
-    if (!newTopic.trim() || isSubmitting) return
-    
-    setIsSubmitting(true)
-    
-    // Create a new debate from the topic
-    const newDebate = {
-      id: Date.now(),
-      topic: newTopic.trim(),
-      agent1: { name: 'Cerebras AI', position: 'Pro', votes: 0, avatar: '⚡' },
-      agent2: { name: 'Groq AI', position: 'Con', votes: 0, avatar: '🚀' },
-      viewers: Math.floor(Math.random() * 100) + 50,
-      status: 'live'
-    }
-    
-    setCustomDebates(prev => [newDebate, ...prev])
-    setNewTopic('')
-    setIsSubmitting(false)
-    
-    // Automatically start this debate
-    handleStartDebate(newDebate)
-  }
+  // Handle voting - persisted to database
+  const handleVote = async (debateId: string, vote: 'agent1' | 'agent2') => {
+    if (votedDebates.has(debateId)) return
 
-  const handleStartDebate = async (debate: any) => {
-    setActiveDebate(debate)
-    setDebateStream([])
-    setCurrentRound(1)
-    setIsDebating(true)
-    setProviderInfo('')
-    setVotes({ agent1: 0, agent2: 0 })
-    setHasVoted(null)
+    const visitorId = getVisitorId()
 
     try {
       const res = await fetch('/api/lab/debate-arena', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic: debate.topic,
-          agent1Position: debate.agent1.position,
-          agent2Position: debate.agent2.position,
-          round: 1,
+          action: 'vote',
+          debateId,
+          vote,
+          visitorId,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        // Update local state
+        setVotedDebates(prev => new Set([...prev, debateId]))
+        
+        // Update debate in list
+        setDebates(prev => prev.map(d => {
+          if (d.debateId === debateId) {
+            return {
+              ...d,
+              agent1: { ...d.agent1, votes: data.votes.agent1 },
+              agent2: { ...d.agent2, votes: data.votes.agent2 },
+              totalVotes: data.votes.total,
+              votedUsers: [...d.votedUsers, visitorId],
+            }
+          }
+          return d
+        }))
+
+        // Update active debate if it's the one being voted on
+        if (activeDebate?.debateId === debateId) {
+          setActiveDebate(prev => prev ? {
+            ...prev,
+            agent1: { ...prev.agent1, votes: data.votes.agent1 },
+            agent2: { ...prev.agent2, votes: data.votes.agent2 },
+            totalVotes: data.votes.total,
+            votedUsers: [...prev.votedUsers, visitorId],
+          } : null)
+        }
+      }
+    } catch (error) {
+      console.error('Vote error:', error)
+    }
+  }
+
+  // Submit new debate topic
+  const handleSubmitTopic = async () => {
+    if (!newTopic.trim() || isSubmitting) return
+    
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch('/api/lab/debate-arena', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: newTopic.trim(),
+          agent1Position: 'Pro',
+          agent2Position: 'Con',
         }),
       })
 
       const data = await res.json()
 
-      if (data.success) {
-        setProviderInfo(`⚡ Cerebras vs 🚀 Groq - Real-time AI Debate`)
-        setDebateStream([
-          {
-            agent: 'Cerebras AI',
-            position: data.agent1.position,
-            text: data.agent1.response,
-            color: 'blue',
-            responseTime: data.agent1.responseTime,
-            provider: 'Cerebras',
-          },
-          {
-            agent: 'Groq AI',
-            position: data.agent2.position,
-            text: data.agent2.response,
-            color: 'purple',
-            responseTime: data.agent2.responseTime,
-            provider: 'Groq',
-          },
-        ])
+      if (data.success && data.debate) {
+        // Add new debate to list and set it as active
+        setDebates(prev => [data.debate, ...prev])
+        setNewTopic('')
+        setActiveDebate(data.debate)
       }
     } catch (error) {
-      console.error('Debate error:', error)
+      console.error('Failed to create debate:', error)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsDebating(false)
   }
+
+  // View an existing debate
+  const handleViewDebate = (debate: Debate) => {
+    setActiveDebate(debate)
+  }
+
+  const hasVotedOnDebate = (debateId: string) => votedDebates.has(debateId)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
@@ -187,6 +222,13 @@ export default function DebateArenaPage() {
               <Zap className="w-3 h-3" />
               <span>Cerebras + Groq</span>
             </div>
+            <button
+              onClick={loadDebates}
+              className="ml-auto flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh
+            </button>
           </div>
         </motion.div>
 
@@ -210,6 +252,7 @@ export default function DebateArenaPage() {
                   onChange={(e) => setNewTopic(e.target.value)}
                   placeholder="Suggest a debate topic for AI agents..."
                   className="flex-1 bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmitTopic()}
                 />
                 <button 
                   onClick={handleSubmitTopic}
@@ -217,9 +260,9 @@ export default function DebateArenaPage() {
                   className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-yellow-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isSubmitting ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Starting...</>
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
                   ) : (
-                    'Submit'
+                    'Start Debate'
                   )}
                 </button>
               </div>
@@ -233,76 +276,84 @@ export default function DebateArenaPage() {
             >
               <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
                 <Trophy className="w-8 h-8 text-yellow-400" />
-                Live Debates
+                Live Debates ({debates.length})
               </h2>
 
-              <div className="grid grid-cols-1 gap-6">
-                {[...customDebates, ...liveDebates].map((debate, index) => (
-                  <motion.div
-                    key={debate.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-                    className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all"
-                  >
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-xs text-red-400 flex items-center gap-2">
-                            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
-                            LIVE
-                          </span>
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <Users className="w-4 h-4" />
-                            {debate.viewers} watching
+              {isLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <Loader2 className="w-8 h-8 animate-spin text-yellow-400" />
+                </div>
+              ) : debates.length === 0 ? (
+                <div className="text-center py-12 bg-white/5 rounded-2xl border border-white/10">
+                  <MessageSquare className="w-16 h-16 mx-auto text-gray-500 mb-4" />
+                  <p className="text-xl text-gray-400">No debates yet</p>
+                  <p className="text-gray-500 mt-2">Be the first to start a debate!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6">
+                  {debates.map((debate, index) => (
+                    <motion.div
+                      key={debate.debateId}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-xs text-red-400 flex items-center gap-2">
+                              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                              LIVE
+                            </span>
+                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                              <Users className="w-4 h-4" />
+                              {debate.viewers || Math.floor(Math.random() * 100) + 50} watching
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-green-400">
+                              <ThumbsUp className="w-4 h-4" />
+                              {debate.totalVotes} total votes
+                            </div>
+                          </div>
+                          <h3 className="text-2xl font-bold mb-4">{debate.topic}</h3>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-6 mb-6">
+                        <div className="p-4 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/50 rounded-xl">
+                          <div className="text-4xl mb-2 text-center">{debate.agent1.avatar}</div>
+                          <div className="text-lg font-bold text-center mb-1">{debate.agent1.name}</div>
+                          <div className="text-xs text-center text-cyan-400 mb-1">Powered by {debate.agent1.provider}</div>
+                          <div className="text-sm text-center text-gray-300 mb-3">{debate.agent1.position}</div>
+                          <div className="flex items-center justify-center gap-2">
+                            <ThumbsUp className="w-4 h-4 text-green-400" />
+                            <span className="text-xl font-bold text-green-400">{debate.agent1.votes}</span>
                           </div>
                         </div>
-                        <h3 className="text-2xl font-bold mb-4">{debate.topic}</h3>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-6 mb-6">
-                      <div className="p-4 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/50 rounded-xl">
-                        <div className="text-4xl mb-2 text-center">{debate.agent1.avatar}</div>
-                        <div className="text-lg font-bold text-center mb-1">{debate.agent1.name}</div>
-                        <div className="text-sm text-center text-gray-300 mb-3">{debate.agent1.position}</div>
-                        <div className="flex items-center justify-center gap-2">
-                          <ThumbsUp className="w-4 h-4 text-green-400" />
-                          <span className="text-xl font-bold text-green-400">{debate.agent1.votes}</span>
+                        <div className="p-4 bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/50 rounded-xl">
+                          <div className="text-4xl mb-2 text-center">{debate.agent2.avatar}</div>
+                          <div className="text-lg font-bold text-center mb-1">{debate.agent2.name}</div>
+                          <div className="text-xs text-center text-purple-400 mb-1">Powered by {debate.agent2.provider}</div>
+                          <div className="text-sm text-center text-gray-300 mb-3">{debate.agent2.position}</div>
+                          <div className="flex items-center justify-center gap-2">
+                            <ThumbsUp className="w-4 h-4 text-green-400" />
+                            <span className="text-xl font-bold text-green-400">{debate.agent2.votes}</span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="p-4 bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/50 rounded-xl">
-                        <div className="text-4xl mb-2 text-center">{debate.agent2.avatar}</div>
-                        <div className="text-lg font-bold text-center mb-1">{debate.agent2.name}</div>
-                        <div className="text-sm text-center text-gray-300 mb-3">{debate.agent2.position}</div>
-                        <div className="flex items-center justify-center gap-2">
-                          <ThumbsUp className="w-4 h-4 text-green-400" />
-                          <span className="text-xl font-bold text-green-400">{debate.agent2.votes}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleStartDebate(debate)}
-                      disabled={isDebating}
-                      className="w-full py-4 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/50 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                      {isDebating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Starting Debate...
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-5 h-5" />
-                          Watch Debate
-                        </>
-                      )}
-                    </button>
-                  </motion.div>
-                ))}
-              </div>
+                      <button
+                        onClick={() => handleViewDebate(debate)}
+                        className="w-full py-4 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl font-semibold text-lg hover:shadow-lg hover:shadow-yellow-500/50 transition-all flex items-center justify-center gap-3"
+                      >
+                        <Play className="w-5 h-5" />
+                        View Debate & Vote
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         ) : (
@@ -322,87 +373,73 @@ export default function DebateArenaPage() {
 
             <div className="grid grid-cols-2 gap-8 mb-8">
               <div className="text-center p-6 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/50 rounded-2xl">
-                <div className="text-6xl mb-4">⚡</div>
-                <div className="text-2xl font-bold mb-1">Cerebras AI</div>
-                <div className="text-xs text-cyan-400 mb-2">Powered by Cerebras</div>
+                <div className="text-6xl mb-4">{activeDebate.agent1.avatar}</div>
+                <div className="text-2xl font-bold mb-1">{activeDebate.agent1.name}</div>
+                <div className="text-xs text-cyan-400 mb-2">Powered by {activeDebate.agent1.provider}</div>
                 <div className="text-gray-300 mb-4">{activeDebate.agent1.position}</div>
-                <div className="text-2xl font-bold text-green-400 mb-3">{votes.agent1} votes</div>
+                <div className="text-2xl font-bold text-green-400 mb-3">{activeDebate.agent1.votes} votes</div>
                 <button 
-                  onClick={() => handleVote('agent1')}
-                  disabled={hasVoted !== null}
+                  onClick={() => handleVote(activeDebate.debateId, 'agent1')}
+                  disabled={hasVotedOnDebate(activeDebate.debateId)}
                   className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                    hasVoted === 'agent1' 
-                      ? 'bg-green-600 text-white' 
-                      : hasVoted 
-                        ? 'bg-gray-600 opacity-50 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-lg hover:shadow-blue-500/50'
+                    hasVotedOnDebate(activeDebate.debateId)
+                      ? 'bg-gray-600 opacity-50 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-lg hover:shadow-blue-500/50'
                   }`}
                 >
                   <ThumbsUp className="w-5 h-5" />
-                  {hasVoted === 'agent1' ? 'Voted!' : 'Vote for Cerebras'}
+                  {hasVotedOnDebate(activeDebate.debateId) ? 'Already Voted' : 'Vote for Cerebras'}
                 </button>
               </div>
 
               <div className="text-center p-6 bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/50 rounded-2xl">
-                <div className="text-6xl mb-4">🚀</div>
-                <div className="text-2xl font-bold mb-1">Groq AI</div>
-                <div className="text-xs text-purple-400 mb-2">Powered by Groq LPU</div>
+                <div className="text-6xl mb-4">{activeDebate.agent2.avatar}</div>
+                <div className="text-2xl font-bold mb-1">{activeDebate.agent2.name}</div>
+                <div className="text-xs text-purple-400 mb-2">Powered by {activeDebate.agent2.provider}</div>
                 <div className="text-gray-300 mb-4">{activeDebate.agent2.position}</div>
-                <div className="text-2xl font-bold text-green-400 mb-3">{votes.agent2} votes</div>
+                <div className="text-2xl font-bold text-green-400 mb-3">{activeDebate.agent2.votes} votes</div>
                 <button 
-                  onClick={() => handleVote('agent2')}
-                  disabled={hasVoted !== null}
+                  onClick={() => handleVote(activeDebate.debateId, 'agent2')}
+                  disabled={hasVotedOnDebate(activeDebate.debateId)}
                   className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                    hasVoted === 'agent2' 
-                      ? 'bg-green-600 text-white' 
-                      : hasVoted 
-                        ? 'bg-gray-600 opacity-50 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/50'
+                    hasVotedOnDebate(activeDebate.debateId)
+                      ? 'bg-gray-600 opacity-50 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/50'
                   }`}
                 >
                   <ThumbsUp className="w-5 h-5" />
-                  {hasVoted === 'agent2' ? 'Voted!' : 'Vote for Groq'}
+                  {hasVotedOnDebate(activeDebate.debateId) ? 'Already Voted' : 'Vote for Groq'}
                 </button>
               </div>
             </div>
 
-            <div className="bg-white/5 border border-white/20 rounded-xl p-6 min-h-64">
+            <div className="bg-white/5 border border-white/20 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold">Debate Stream</h3>
-                {providerInfo && (
-                  <span className="text-xs text-cyan-400">{providerInfo}</span>
-                )}
+                <h3 className="text-xl font-bold">Debate Arguments</h3>
+                <span className="text-xs text-cyan-400">⚡ Cerebras vs 🚀 Groq - Real-time AI Debate</span>
               </div>
-              {isDebating ? (
-                <div className="flex items-center justify-center h-48">
-                  <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-yellow-400" />
-                    <p className="text-gray-400">AI agents are preparing their arguments...</p>
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-500/10 border-l-4 border-blue-500 rounded-lg">
+                  <div className="font-semibold text-blue-400 mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      ⚡ {activeDebate.agent1.name}
+                      <span className="text-xs px-2 py-0.5 bg-white/10 rounded">{activeDebate.agent1.provider}</span>
+                    </span>
+                    <span className="text-xs text-gray-500">{activeDebate.agent1.responseTime}ms</span>
                   </div>
+                  <p className="text-gray-300 whitespace-pre-wrap">{activeDebate.agent1.response}</p>
                 </div>
-              ) : debateStream.length > 0 ? (
-                <div className="space-y-4">
-                  {debateStream.map((entry, index) => (
-                    <div
-                      key={index}
-                      className={`p-4 ${entry.color === 'blue' ? 'bg-blue-500/10 border-l-4 border-blue-500' : 'bg-purple-500/10 border-l-4 border-purple-500'} rounded-lg`}
-                    >
-                      <div className={`font-semibold ${entry.color === 'blue' ? 'text-blue-400' : 'text-purple-400'} mb-2 flex items-center justify-between`}>
-                        <span className="flex items-center gap-2">
-                          {entry.color === 'blue' ? '⚡' : '🚀'} {entry.agent}
-                          <span className="text-xs px-2 py-0.5 bg-white/10 rounded">{entry.provider}</span>
-                        </span>
-                        <span className="text-xs text-gray-500">{entry.responseTime}ms</span>
-                      </div>
-                      <p className="text-gray-300 whitespace-pre-wrap">{entry.text}</p>
-                    </div>
-                  ))}
+                <div className="p-4 bg-purple-500/10 border-l-4 border-purple-500 rounded-lg">
+                  <div className="font-semibold text-purple-400 mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      🚀 {activeDebate.agent2.name}
+                      <span className="text-xs px-2 py-0.5 bg-white/10 rounded">{activeDebate.agent2.provider}</span>
+                    </span>
+                    <span className="text-xs text-gray-500">{activeDebate.agent2.responseTime}ms</span>
+                  </div>
+                  <p className="text-gray-300 whitespace-pre-wrap">{activeDebate.agent2.response}</p>
                 </div>
-              ) : (
-                <div className="flex items-center justify-center h-48 text-gray-500">
-                  <p>Click a debate topic to watch AI agents argue!</p>
-                </div>
-              )}
+              </div>
             </div>
           </motion.div>
         )}
