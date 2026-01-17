@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Heart, MessageCircle, Users, TrendingUp, Award, Zap, BookOpen, Share2, CheckCircle, ArrowRight } from 'lucide-react'
+import { Heart, MessageCircle, Users, TrendingUp, Award, Zap, BookOpen, Share2, CheckCircle, ArrowRight, Star } from 'lucide-react'
 
 export default function ContributingPage() {
   const [likedContributions, setLikedContributions] = useState<Set<string>>(new Set())
@@ -99,60 +99,79 @@ export default function ContributingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neural-900 via-neural-800 to-neural-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header Section */}
-      <section className="section-padding-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container-custom text-center">
+      <section className="py-20 md:py-28 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="contrib-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#contrib-pattern)" />
+          </svg>
+        </div>
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <Heart className="w-8 h-8" />
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contributing to One Last AI</h1>
-          <p className="text-xl opacity-90 mb-4">Help us build a thriving community of AI enthusiasts and innovators</p>
-          <p className="text-lg opacity-75">Every contribution matters. Help shape the future of One Last AI.</p>
+          <p className="text-xl text-white/90 mb-4">Help us build a thriving community of AI enthusiasts and innovators</p>
+          <p className="text-lg text-white/75">Every contribution matters. Help shape the future of One Last AI.</p>
         </div>
       </section>
 
       {/* Quick Stats */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom max-w-5xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-blue-400 mb-2">15K+</div>
-              <p className="text-neural-300">Active Contributors</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-2">15K+</div>
+              <p className="text-gray-600">Active Contributors</p>
             </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-purple-400 mb-2">2.5K+</div>
-              <p className="text-neutral-300">Discussions</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-2">2.5K+</div>
+              <p className="text-gray-600">Discussions</p>
             </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">5.2K+</div>
-              <p className="text-neutral-300">Posts This Month</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-2">5.2K+</div>
+              <p className="text-gray-600">Posts This Month</p>
             </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <div className="text-3xl font-bold text-pink-400 mb-2">89%</div>
-              <p className="text-neutral-300">Community Satisfaction</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+              <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent mb-2">89%</div>
+              <p className="text-gray-600">Community Satisfaction</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Contribution Types */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom max-w-5xl">
-          <h2 className="text-3xl font-bold text-white mb-2">Ways to Contribute</h2>
-          <p className="text-neutral-300 mb-10">Choose how you'd like to contribute to One Last AI</p>
+          <div className="mb-10">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl mb-3">
+              <Star className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Ways to Contribute</h2>
+            <p className="text-gray-600">Choose how you'd like to contribute to One Last AI</p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {contributionTypes.map((contribution) => (
               <div
                 key={contribution.id}
-                className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 hover:border-neural-600 transition-all group"
+                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all group"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">{contribution.title}</h3>
-                    <p className="text-neutral-300 text-sm">{contribution.description}</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{contribution.title}</h3>
+                    <p className="text-gray-600 text-sm">{contribution.description}</p>
                   </div>
                   <button
                     onClick={() => toggleLike(contribution.id)}
-                    className="text-neutral-400 hover:text-pink-400 transition-colors"
+                    className="text-gray-400 hover:text-pink-500 transition-colors"
                   >
                     <Heart
                       className="w-5 h-5"
@@ -163,21 +182,21 @@ export default function ContributingPage() {
 
                 <div className="space-y-2 mb-4">
                   {contribution.details.map((detail, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-neutral-300 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    <div key={idx} className="flex items-center gap-2 text-gray-600 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                       <span>{detail}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-neural-700">
-                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-neural-700/50 rounded-full text-xs text-neutral-300">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full text-xs text-blue-700 font-medium">
                     <Zap className="w-3 h-3" />
                     Impact: {contribution.impact}
                   </span>
                   <Link
                     href="/community"
-                    className="text-blue-400 hover:text-blue-300 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all"
+                    className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all"
                   >
                     Go to Community <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -189,72 +208,78 @@ export default function ContributingPage() {
       </section>
 
       {/* Guidelines */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8">Community Contribution Guidelines</h2>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">Community Contribution Guidelines</h2>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-green-900/20 border border-green-600/30 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-green-300 mb-4 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" />
+            <div className="bg-white rounded-2xl p-8 border border-green-200 shadow-lg">
+              <h3 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </span>
                 Do's
               </h3>
-              <ul className="space-y-3 text-neutral-200">
+              <ul className="space-y-3 text-gray-700">
                 <li className="flex gap-2">
-                  <span className="text-green-400 font-bold">✓</span>
+                  <span className="text-green-500 font-bold">✓</span>
                   <span>Be respectful and constructive in all interactions</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-400 font-bold">✓</span>
+                  <span className="text-green-500 font-bold">✓</span>
                   <span>Search existing discussions before posting</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-400 font-bold">✓</span>
+                  <span className="text-green-500 font-bold">✓</span>
                   <span>Provide clear, detailed information</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-400 font-bold">✓</span>
+                  <span className="text-green-500 font-bold">✓</span>
                   <span>Give credit and link to original sources</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-400 font-bold">✓</span>
+                  <span className="text-green-500 font-bold">✓</span>
                   <span>Use appropriate category for your post</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-green-400 font-bold">✓</span>
+                  <span className="text-green-500 font-bold">✓</span>
                   <span>Engage positively with different viewpoints</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-red-300 mb-4 flex items-center gap-2">
-                <Heart className="w-5 h-5" />
+            <div className="bg-white rounded-2xl p-8 border border-red-200 shadow-lg">
+              <h3 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-red-600" />
+                </span>
                 Don'ts
               </h3>
-              <ul className="space-y-3 text-neutral-200">
+              <ul className="space-y-3 text-gray-700">
                 <li className="flex gap-2">
-                  <span className="text-red-400 font-bold">✗</span>
+                  <span className="text-red-500 font-bold">✗</span>
                   <span>Post spam or promotional content</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-red-400 font-bold">✗</span>
+                  <span className="text-red-500 font-bold">✗</span>
                   <span>Share personal information or credentials</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-red-400 font-bold">✗</span>
+                  <span className="text-red-500 font-bold">✗</span>
                   <span>Engage in harassment or bullying</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-red-400 font-bold">✗</span>
+                  <span className="text-red-500 font-bold">✗</span>
                   <span>Cross-post the same content multiple times</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-red-400 font-bold">✗</span>
+                  <span className="text-red-500 font-bold">✗</span>
                   <span>Use offensive language or hate speech</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-red-400 font-bold">✗</span>
+                  <span className="text-red-500 font-bold">✗</span>
                   <span>Violate intellectual property rights</span>
                 </li>
               </ul>
@@ -264,96 +289,112 @@ export default function ContributingPage() {
       </section>
 
       {/* Contributor Recognition */}
-      <section className="section-padding bg-neural-800/50">
+      <section className="py-16 md:py-20 bg-white/50">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Contributor Recognition</h2>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">Contributor Recognition</h2>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6 text-center">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl hover:border-amber-300 transition-all">
               <div className="text-5xl mb-3">🌟</div>
-              <h3 className="text-xl font-bold text-white mb-2">Featured Contributor</h3>
-              <p className="text-neutral-300 text-sm mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Featured Contributor</h3>
+              <p className="text-gray-600 text-sm mb-4">
                 Top contributors are featured on our community page and recognized monthly.
               </p>
-              <div className="text-xs text-neutral-400">Awarded after 10+ impactful contributions</div>
+              <div className="text-xs text-gray-500 bg-amber-50 rounded-full px-3 py-1 inline-block">Awarded after 10+ impactful contributions</div>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6 text-center">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl hover:border-purple-300 transition-all">
               <div className="text-5xl mb-3">🎖️</div>
-              <h3 className="text-xl font-bold text-white mb-2">Community Badge</h3>
-              <p className="text-neutral-300 text-sm mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Community Badge</h3>
+              <p className="text-gray-600 text-sm mb-4">
                 Earn special badges in your profile for contributions to specific areas.
               </p>
-              <div className="text-xs text-neutral-400">Badges include Helper, Innovator, Mentor</div>
+              <div className="text-xs text-gray-500 bg-purple-50 rounded-full px-3 py-1 inline-block">Badges include Helper, Innovator, Mentor</div>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6 text-center">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl hover:border-blue-300 transition-all">
               <div className="text-5xl mb-3">🏆</div>
-              <h3 className="text-xl font-bold text-white mb-2">Top Contributors</h3>
-              <p className="text-neutral-300 text-sm mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Top Contributors</h3>
+              <p className="text-gray-600 text-sm mb-4">
                 Top community members get perks like early access and special features.
               </p>
-              <div className="text-xs text-neutral-400">Exclusive to top 1% of contributors</div>
+              <div className="text-xs text-gray-500 bg-blue-50 rounded-full px-3 py-1 inline-block">Exclusive to top 1% of contributors</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Top Categories */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8">Where to Contribute</h2>
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">Where to Contribute</h2>
+          </div>
 
           <div className="space-y-4">
             <Link
               href="/community?category=ideas"
-              className="block bg-neural-800/50 border border-neural-700 hover:border-blue-500 rounded-lg p-6 transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">💡 Ideas & Suggestions</h3>
-                  <p className="text-neutral-300">Share feature ideas and vote on platform improvements</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">💡</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Ideas & Suggestions</h3>
+                    <p className="text-gray-600">Share feature ideas and vote on platform improvements</p>
+                  </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 text-blue-500 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
 
             <Link
               href="/community?category=help"
-              className="block bg-neural-800/50 border border-neural-700 hover:border-green-500 rounded-lg p-6 transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">❓ Help & Support</h3>
-                  <p className="text-neutral-300">Answer questions and help community members solve problems</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl">❓</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Help & Support</h3>
+                    <p className="text-gray-600">Answer questions and help community members solve problems</p>
+                  </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 text-green-500 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
 
             <Link
               href="/community?category=agents"
-              className="block bg-neural-800/50 border border-neural-700 hover:border-purple-500 rounded-lg p-6 transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">🤖 Agents & Features</h3>
-                  <p className="text-neutral-300">Share success stories and discuss agent implementations</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl">🤖</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Agents & Features</h3>
+                    <p className="text-gray-600">Share success stories and discuss agent implementations</p>
+                  </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-purple-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
 
             <Link
               href="/community"
-              className="block bg-neural-800/50 border border-neural-700 hover:border-pink-500 rounded-lg p-6 transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-pink-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">🌍 General Discussion</h3>
-                  <p className="text-neutral-300">Chat about AI, technology trends, and industry insights</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center text-2xl">🌍</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">General Discussion</h3>
+                    <p className="text-gray-600">Chat about AI, technology trends, and industry insights</p>
+                  </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-pink-400 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 text-pink-500 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
           </div>
@@ -361,15 +402,29 @@ export default function ContributingPage() {
       </section>
 
       {/* Getting Started */}
-      <section className="section-padding bg-gradient-to-r from-blue-600/10 to-purple-600/10 border-t border-neural-700">
-        <div className="container-custom max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
-          <p className="text-neutral-300 mb-8 text-lg">
+      <section className="py-20 md:py-28 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="start-pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#start-pattern)" />
+          </svg>
+        </div>
+        <div className="container-custom max-w-4xl text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <Users className="w-8 h-8" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
+          <p className="text-white/90 mb-8 text-lg max-w-xl mx-auto">
             Join our community and start making an impact today. Your contributions help everyone in the One Last AI ecosystem.
           </p>
           <Link
             href="/community"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all transform hover:scale-105"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl"
           >
             <Users className="w-5 h-5" />
             Visit Community Page
@@ -379,46 +434,48 @@ export default function ContributingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="section-padding">
+      <section className="py-16 md:py-20">
         <div className="container-custom max-w-3xl">
-          <h2 className="text-3xl font-bold text-white mb-8">Frequently Asked Questions</h2>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
+          </div>
 
           <div className="space-y-4">
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Q: Do I need special skills to contribute?</h3>
-              <p className="text-neutral-300">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: Do I need special skills to contribute?</h3>
+              <p className="text-gray-600">
                 No! Everyone can contribute. Whether you're a beginner or expert, there are ways to help. Share your experiences,
                 ask questions, or help others learn.
               </p>
             </div>
 
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Q: How often should I post?</h3>
-              <p className="text-neutral-300">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: How often should I post?</h3>
+              <p className="text-gray-600">
                 Contribute at your own pace. Quality matters more than quantity. Post meaningful contributions whenever you have
                 something valuable to share.
               </p>
             </div>
 
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Q: Can I get rewarded for contributions?</h3>
-              <p className="text-neutral-300">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: Can I get rewarded for contributions?</h3>
+              <p className="text-gray-600">
                 Yes! Active contributors earn badges, get featured on our page, and may qualify for perks like early access to new
                 features or premium benefits.
               </p>
             </div>
 
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Q: What if I disagree with someone?</h3>
-              <p className="text-neutral-300">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: What if I disagree with someone?</h3>
+              <p className="text-gray-600">
                 Respectful disagreement is encouraged! We value diverse perspectives. Engage constructively, focus on ideas rather
                 than people, and maintain professionalism.
               </p>
             </div>
 
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-2">Q: How do I report inappropriate content?</h3>
-              <p className="text-neutral-300">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: How do I report inappropriate content?</h3>
+              <p className="text-gray-600">
                 Use the report feature on any post or contact our moderation team through the Support page. We take community
                 safety seriously and respond to reports quickly.
               </p>
