@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { notifyTicketCreated } from '@/lib/services/emailNotifications';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -264,6 +265,16 @@ export async function POST(req: NextRequest) {
     });
     
     await ticket.save();
+    
+    // Send email notification to customer
+    await notifyTicketCreated({
+      ticketNumber: ticket.ticketNumber,
+      ticketId: ticket.ticketId,
+      subject: ticket.subject,
+      userName: userName || 'Customer',
+      userEmail,
+      priority: ticket.priority
+    });
     
     // Update the chat session to link to ticket
     if (chatId) {

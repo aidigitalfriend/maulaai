@@ -25,6 +25,8 @@ interface SupportTicket {
   category: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   status: 'open' | 'in-progress' | 'waiting-customer' | 'waiting-internal' | 'resolved' | 'closed';
+  assignedTo?: string;
+  assignedName?: string;
   createdAt: string;
   updatedAt: string;
   lastActivityAt: string;
@@ -450,6 +452,12 @@ export default function SupportTicketsPage() {
                     <div className="mt-2 text-xs text-red-400 flex items-center gap-1">
                       <ExclamationCircleIcon className="w-4 h-4" />
                       SLA Breached
+                    </div>
+                  )}
+                  {ticket.assignedName && (
+                    <div className="mt-2 text-xs text-primary-400 flex items-center gap-1">
+                      <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                      {ticket.assignedName}
                     </div>
                   )}
                 </button>
