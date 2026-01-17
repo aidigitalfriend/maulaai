@@ -177,11 +177,10 @@ export default function LiveSupportPage() {
         },
       });
 
-      // Fetch real subscription data
+      // Fetch real subscription data (include credentials for session cookie)
+      console.log('[Live Support] Fetching subscriptions for userId:', userId);
       const subscriptionResponse = await fetch(`/api/subscriptions/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${auth.state.token}`,
-        },
+        credentials: 'include',  // Required to send session_id cookie
       });
 
       let subscriptionStatus = 'Inactive';  // Default: no active subscriptions
