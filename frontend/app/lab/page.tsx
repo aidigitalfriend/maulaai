@@ -320,6 +320,7 @@ export default function AILabPage() {
             </Link>
           </div>
         </motion.div>
+        </div>
       </div>
 
       {/* Experiments Grid */}
