@@ -76,22 +76,22 @@ export default function DocsIntegrations() {
   ]
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-600/20 via-accent-500/10 to-brand-700/20 border-b border-brand-500/20">
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 border-b border-blue-500/20">
         <div className="container-custom section-padding-lg">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-400 via-accent-400 to-blue-400 bg-clip-text text-transparent mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               Integrations
             </h1>
-            <p className="text-xl text-neutral-300 mb-6 leading-relaxed">
+            <p className="text-xl text-blue-100 mb-6 leading-relaxed">
               Connect your AI agents to the tools and platforms you already use. From Slack and Discord to enterprise solutions, integrate seamlessly with our ecosystem.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#setup" className="btn-primary">
+              <a href="#setup" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
                 Get Started
               </a>
-              <a href="#available" className="btn-secondary">
+              <a href="#available" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
                 Browse Integrations
               </a>
             </div>
@@ -105,24 +105,24 @@ export default function DocsIntegrations() {
         {/* Integration Overview */}
         <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card-dark p-6 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
               <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-lg font-bold mb-2">Easy Setup</h3>
-              <p className="text-neutral-400 text-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Easy Setup</h3>
+              <p className="text-gray-600 text-sm">
                 Most integrations can be set up in minutes with step-by-step guides
               </p>
             </div>
-            <div className="card-dark p-6 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
               <div className="text-4xl mb-4">🔄</div>
-              <h3 className="text-lg font-bold mb-2">Real-time Sync</h3>
-              <p className="text-neutral-400 text-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Real-time Sync</h3>
+              <p className="text-gray-600 text-sm">
                 Keep your data synchronized across all platforms instantly
               </p>
             </div>
-            <div className="card-dark p-6 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
               <div className="text-4xl mb-4">🛡️</div>
-              <h3 className="text-lg font-bold mb-2">Secure</h3>
-              <p className="text-neutral-400 text-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Secure</h3>
+              <p className="text-gray-600 text-sm">
                 Enterprise-grade security with encrypted credentials and tokens
               </p>
             </div>
@@ -131,23 +131,23 @@ export default function DocsIntegrations() {
 
         {/* Available Integrations */}
         <div id="available" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Available Integrations</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Available Integrations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {integrations.map((integration, index) => (
-              <div key={index} className="group card-dark p-6 hover:card-dark-hover transition-all duration-300">
+              <div key={index} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-300">
                 <div className="text-3xl mb-4">{integration.icon}</div>
                 <div className="mb-4">
-                  <span className="text-xs font-medium text-brand-400 bg-brand-900/30 px-3 py-1 rounded-full">
+                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
                     {integration.category}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold mb-3 group-hover:text-brand-400 transition-colors">
+                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                   {integration.title}
                 </h3>
-                <p className="text-neutral-400 mb-4 text-sm leading-relaxed">
+                <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                   {integration.description}
                 </p>
-                <a href={integration.href} className="text-brand-400 hover:text-brand-300 text-sm font-medium transition-colors">
+                <a href={integration.href} className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
                   Learn more →
                 </a>
               </div>
@@ -157,22 +157,22 @@ export default function DocsIntegrations() {
 
         {/* Featured Integrations */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Featured Integrations</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Integrations</h2>
 
           {/* Slack Section */}
           <div id="slack" className="mb-12">
-            <div className="card-dark p-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">💬</div>
                 <div>
-                  <h3 className="text-2xl font-bold">Slack</h3>
-                  <p className="text-neutral-400">Connect agents directly to Slack channels and DMs</p>
+                  <h3 className="text-2xl font-bold text-gray-900">Slack</h3>
+                  <p className="text-gray-600">Connect agents directly to Slack channels and DMs</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-6">
-                <h4 className="text-lg font-bold mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-neutral-300">
+              <div className="prose max-w-none mb-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-gray-700">
                   <li>✓ Respond to channel messages automatically</li>
                   <li>✓ Handle direct messages from team members</li>
                   <li>✓ Create slash commands for quick agent access</li>
@@ -181,9 +181,9 @@ export default function DocsIntegrations() {
                 </ul>
               </div>
 
-              <div className="bg-neutral-900 p-6 rounded-lg mb-6">
-                <h4 className="font-bold mb-3">Example: Slack Command</h4>
-                <code className="text-neutral-200 text-sm">
+              <div className="bg-gray-900 p-6 rounded-lg mb-6">
+                <h4 className="font-bold text-white mb-3">Example: Slack Command</h4>
+                <code className="text-gray-200 text-sm">
                   {`/agent ask Help me debug this error in my code`}
                 </code>
               </div>
@@ -192,18 +192,18 @@ export default function DocsIntegrations() {
 
           {/* Discord Section */}
           <div id="discord" className="mb-12">
-            <div className="card-dark p-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">🎮</div>
                 <div>
-                  <h3 className="text-2xl font-bold">Discord</h3>
-                  <p className="text-neutral-400">Deploy AI agents as Discord bots for your community</p>
+                  <h3 className="text-2xl font-bold text-gray-900">Discord</h3>
+                  <p className="text-gray-600">Deploy AI agents as Discord bots for your community</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-6">
-                <h4 className="text-lg font-bold mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-neutral-300">
+              <div className="prose max-w-none mb-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-gray-700">
                   <li>✓ Create interactive Discord bots</li>
                   <li>✓ Respond to messages in channels and DMs</li>
                   <li>✓ Use slash commands for quick interactions</li>
@@ -212,9 +212,9 @@ export default function DocsIntegrations() {
                 </ul>
               </div>
 
-              <div className="bg-neutral-900 p-6 rounded-lg mb-6">
-                <h4 className="font-bold mb-3">Example: Discord Slash Command</h4>
-                <code className="text-neutral-200 text-sm">
+              <div className="bg-gray-900 p-6 rounded-lg mb-6">
+                <h4 className="font-bold text-white mb-3">Example: Discord Slash Command</h4>
+                <code className="text-gray-200 text-sm">
                   {`/help [topic]\n/agent ask [question]\n/support ticket [issue]`}
                 </code>
               </div>
@@ -223,18 +223,18 @@ export default function DocsIntegrations() {
 
           {/* Teams Section */}
           <div id="teams" className="mb-12">
-            <div className="card-dark p-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">💼</div>
                 <div>
-                  <h3 className="text-2xl font-bold">Microsoft Teams</h3>
-                  <p className="text-neutral-400">Enterprise-ready AI agents for Microsoft Teams</p>
+                  <h3 className="text-2xl font-bold text-gray-900">Microsoft Teams</h3>
+                  <p className="text-gray-600">Enterprise-ready AI agents for Microsoft Teams</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-6">
-                <h4 className="text-lg font-bold mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-neutral-300">
+              <div className="prose max-w-none mb-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-gray-700">
                   <li>✓ Deploy agents as Teams apps</li>
                   <li>✓ Integrate with enterprise directory</li>
                   <li>✓ Support for Teams channels and group chats</li>
@@ -247,18 +247,18 @@ export default function DocsIntegrations() {
 
           {/* Webhooks Section */}
           <div id="webhooks" className="mb-12">
-            <div className="card-dark p-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">🔗</div>
                 <div>
-                  <h3 className="text-2xl font-bold">Webhooks</h3>
-                  <p className="text-neutral-400">Trigger custom actions with real-time webhooks</p>
+                  <h3 className="text-2xl font-bold text-gray-900">Webhooks</h3>
+                  <p className="text-gray-600">Trigger custom actions with real-time webhooks</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-6">
-                <h4 className="text-lg font-bold mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-neutral-300">
+              <div className="prose max-w-none mb-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-gray-700">
                   <li>✓ Send events to custom endpoints</li>
                   <li>✓ Trigger workflows and automation</li>
                   <li>✓ Log conversations and analytics</li>
@@ -267,9 +267,9 @@ export default function DocsIntegrations() {
                 </ul>
               </div>
 
-              <div className="bg-neutral-900 p-6 rounded-lg">
-                <h4 className="font-bold mb-3">Example: Webhook Payload</h4>
-                <code className="text-neutral-200 text-sm">
+              <div className="bg-gray-900 p-6 rounded-lg">
+                <h4 className="font-bold text-white mb-3">Example: Webhook Payload</h4>
+                <code className="text-gray-200 text-sm">
                   {`{
   "event": "message.received",
   "agent_id": "agent_123",
@@ -284,18 +284,18 @@ export default function DocsIntegrations() {
 
           {/* Email Section */}
           <div id="email" className="mb-12">
-            <div className="card-dark p-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">📧</div>
                 <div>
-                  <h3 className="text-2xl font-bold">Email</h3>
-                  <p className="text-neutral-400">Respond to incoming emails automatically with AI agents</p>
+                  <h3 className="text-2xl font-bold text-gray-900">Email</h3>
+                  <p className="text-gray-600">Respond to incoming emails automatically with AI agents</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-6">
-                <h4 className="text-lg font-bold mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-neutral-300">
+              <div className="prose max-w-none mb-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-gray-700">
                   <li>✓ Auto-respond to incoming emails</li>
                   <li>✓ Categorize and route emails</li>
                   <li>✓ Draft intelligent replies</li>
@@ -308,18 +308,18 @@ export default function DocsIntegrations() {
 
           {/* Custom APIs Section */}
           <div id="custom" className="mb-12">
-            <div className="card-dark p-8">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">⚙️</div>
                 <div>
-                  <h3 className="text-2xl font-bold">Custom Integrations</h3>
-                  <p className="text-neutral-400">Build custom integrations with any third-party service</p>
+                  <h3 className="text-2xl font-bold text-gray-900">Custom Integrations</h3>
+                  <p className="text-gray-600">Build custom integrations with any third-party service</p>
                 </div>
               </div>
 
-              <div className="prose prose-invert max-w-none mb-6">
-                <h4 className="text-lg font-bold mb-3">Popular Services:</h4>
-                <ul className="space-y-2 text-neutral-300">
+              <div className="prose max-w-none mb-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-3">Popular Services:</h4>
+                <ul className="space-y-2 text-gray-700">
                   <li>✓ CRM Systems (Salesforce, HubSpot)</li>
                   <li>✓ Project Management (Jira, Asana)</li>
                   <li>✓ Analytics Platforms (Google Analytics, Mixpanel)</li>
@@ -333,18 +333,18 @@ export default function DocsIntegrations() {
 
         {/* Setup Guides */}
         <div id="setup" className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Setup Guides</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Setup Guides</h2>
           
           {setupSteps.map((guide, index) => (
-            <div key={index} className="card-dark p-8 mb-6">
-              <h3 className="text-2xl font-bold mb-6">Setting up {guide.platform}</h3>
+            <div key={index} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Setting up {guide.platform}</h3>
               <ol className="space-y-4">
                 {guide.steps.map((step, stepIndex) => (
                   <li key={stepIndex} className="flex gap-4">
-                    <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {stepIndex + 1}
                     </span>
-                    <span className="pt-1">{step}</span>
+                    <span className="pt-1 text-gray-700">{step}</span>
                   </li>
                 ))}
               </ol>
@@ -354,93 +354,93 @@ export default function DocsIntegrations() {
 
         {/* Best Practices */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold mb-8">Integration Best Practices</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Integration Best Practices</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Security</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Security</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🔐</span>
-                  <span className="text-neutral-300">Keep API keys and tokens secure</span>
+                  <span className="text-blue-600">🔐</span>
+                  <span className="text-gray-700">Keep API keys and tokens secure</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">✓</span>
-                  <span className="text-neutral-300">Use environment variables for secrets</span>
+                  <span className="text-blue-600">✓</span>
+                  <span className="text-gray-700">Use environment variables for secrets</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🛡️</span>
-                  <span className="text-neutral-300">Rotate credentials regularly</span>
+                  <span className="text-blue-600">🛡️</span>
+                  <span className="text-gray-700">Rotate credentials regularly</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">📋</span>
-                  <span className="text-neutral-300">Audit integration logs frequently</span>
+                  <span className="text-blue-600">📋</span>
+                  <span className="text-gray-700">Audit integration logs frequently</span>
                 </li>
               </ul>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Performance</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Performance</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="text-brand-400">⚡</span>
-                  <span className="text-neutral-300">Implement rate limiting</span>
+                  <span className="text-blue-600">⚡</span>
+                  <span className="text-gray-700">Implement rate limiting</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🔄</span>
-                  <span className="text-neutral-300">Use webhooks instead of polling</span>
+                  <span className="text-blue-600">🔄</span>
+                  <span className="text-gray-700">Use webhooks instead of polling</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">💾</span>
-                  <span className="text-neutral-300">Cache responses when possible</span>
+                  <span className="text-blue-600">💾</span>
+                  <span className="text-gray-700">Cache responses when possible</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">📊</span>
-                  <span className="text-neutral-300">Monitor integration metrics</span>
+                  <span className="text-blue-600">📊</span>
+                  <span className="text-gray-700">Monitor integration metrics</span>
                 </li>
               </ul>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Reliability</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Reliability</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🔁</span>
-                  <span className="text-neutral-300">Implement retry logic</span>
+                  <span className="text-blue-600">🔁</span>
+                  <span className="text-gray-700">Implement retry logic</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">⚠️</span>
-                  <span className="text-neutral-300">Handle errors gracefully</span>
+                  <span className="text-blue-600">⚠️</span>
+                  <span className="text-gray-700">Handle errors gracefully</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">📝</span>
-                  <span className="text-neutral-300">Log all integration events</span>
+                  <span className="text-blue-600">📝</span>
+                  <span className="text-gray-700">Log all integration events</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🧪</span>
-                  <span className="text-neutral-300">Test integrations thoroughly</span>
+                  <span className="text-blue-600">🧪</span>
+                  <span className="text-gray-700">Test integrations thoroughly</span>
                 </li>
               </ul>
             </div>
 
-            <div className="card-dark p-6">
-              <h3 className="text-lg font-bold mb-4">Maintenance</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Maintenance</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🔄</span>
-                  <span className="text-neutral-300">Keep dependencies updated</span>
+                  <span className="text-blue-600">🔄</span>
+                  <span className="text-gray-700">Keep dependencies updated</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">📚</span>
-                  <span className="text-neutral-300">Document integration setup</span>
+                  <span className="text-blue-600">📚</span>
+                  <span className="text-gray-700">Document integration setup</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">👥</span>
-                  <span className="text-neutral-300">Train team on integration usage</span>
+                  <span className="text-blue-600">👥</span>
+                  <span className="text-gray-700">Train team on integration usage</span>
                 </li>
                 <li className="flex gap-3">
-                  <span className="text-brand-400">🎯</span>
-                  <span className="text-neutral-300">Regular integration audits</span>
+                  <span className="text-blue-600">🎯</span>
+                  <span className="text-gray-700">Regular integration audits</span>
                 </li>
               </ul>
             </div>
@@ -448,19 +448,19 @@ export default function DocsIntegrations() {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-brand-600/20 via-accent-500/10 to-brand-700/20 border border-brand-500/30 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Need More Integrations?</h2>
-          <p className="text-lg text-neutral-300 mb-8 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Need More Integrations?</h2>
+          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
             Our team is constantly adding new integrations. Can't find what you need? Build a custom integration with our API.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/api" className="btn-primary">
+            <Link href="/docs/api" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
               View API Docs
             </Link>
-            <Link href="/docs/tutorials" className="btn-secondary">
+            <Link href="/docs/tutorials" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
               Build Custom Integration
             </Link>
-            <Link href="/support/contact-us" className="btn-outline">
+            <Link href="/support/contact-us" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
               Request Integration
             </Link>
           </div>
