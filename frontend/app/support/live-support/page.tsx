@@ -184,27 +184,23 @@ export default function LiveSupportPage() {
         },
       });
 
-      let subscriptionText = 'Free';
+      let subscriptionStatus = 'Inactive';  // Default: no active subscriptions
       let activeSubCount = 0;
+      let subscriptionDetails: any[] = [];
 
       if (subscriptionResponse.ok) {
         const subData = await subscriptionResponse.json();
         if (subData.subscriptions && subData.subscriptions.length > 0) {
-          // Find active subscriptions
+          // Find active subscriptions (status active AND not expired)
           const activeSubs = subData.subscriptions.filter(
             (s: any) => s.status === 'active' && new Date(s.expiryDate) > new Date()
           );
           activeSubCount = activeSubs.length;
+          subscriptionDetails = activeSubs;
           
+          // If any plan purchased and active, status is Active
           if (activeSubCount > 0) {
-            // Determine subscription tier based on active subs
-            if (activeSubCount >= 5) {
-              subscriptionText = 'Enterprise';
-            } else if (activeSubCount >= 3) {
-              subscriptionText = 'Pro';
-            } else {
-              subscriptionText = 'Basic';
-            }
+            subscriptionStatus = 'Active';
           }
         }
       }
@@ -218,20 +214,22 @@ export default function LiveSupportPage() {
         setUserProfile({
           name: data.profile.name || auth.state.user?.name || 'User',
           email: data.profile.email || auth.state.user?.email,
-          subscription: subscriptionText,
+          subscription: subscriptionStatus,
           activeAgents: activeSubCount,
+          subscriptionDetails: subscriptionDetails,
           joinedDate: data.profile.createdAt || auth.state.user?.createdAt,
           supportTickets: 0,
         });
       }
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
-      // Set minimal profile with Free status on error
+      // Set minimal profile with Inactive status on error
       setUserProfile({
         name: auth.state.user?.name || 'User',
         email: auth.state.user?.email,
-        subscription: 'Free',
+        subscription: 'Inactive',
         activeAgents: 0,
+        subscriptionDetails: [],
         joinedDate: auth.state.user?.createdAt,
         supportTickets: 0,
       });
@@ -659,14 +657,19 @@ export default function LiveSupportPage() {
                   <p className="text-white font-medium">{userProfile.email}</p>
                 </div>
                 <div>
-                  <span className="text-neural-400">Plan:</span>
+                  <span className="text-neural-400">Status:</span>
                   <p className="text-white font-medium flex items-center gap-2">
-                    {userProfile.subscription === 'Free' ? (
-                      <span className="text-neural-400">🆓</span>
+                    {userProfile.subscription === 'Active' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                        Active
+                      </span>
                     ) : (
-                      <Zap size={16} className="text-yellow-400" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neural-600/50 text-neural-400 text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neural-500"></span>
+                        Inactive
+                      </span>
                     )}
-                    {userProfile.subscription}
                     {userProfile.activeAgents > 0 && (
                       <span className="text-xs text-neural-400">
                         ({userProfile.activeAgents} agent{userProfile.activeAgents > 1 ? 's' : ''})
@@ -680,13 +683,13 @@ export default function LiveSupportPage() {
                     {new Date(userProfile.joinedDate).toLocaleDateString()}
                   </p>
                 </div>
-                {userProfile.subscription === 'Free' && (
+                {userProfile.subscription === 'Inactive' && (
                   <div className="pt-2 mt-2 border-t border-neural-600">
                     <Link
                       href="/pricing"
                       className="block w-full text-center px-3 py-2 bg-brand-600 hover:bg-brand-700 rounded text-sm font-medium transition-colors"
                     >
-                      Upgrade Plan
+                      Browse Agents
                     </Link>
                   </div>
                 )}

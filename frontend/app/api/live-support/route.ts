@@ -250,14 +250,19 @@ async function connectToDatabase() {
 // Mongoose Schemas (inline)
 // =====================================================
 const agentSubscriptionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
-  agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent' },
+  userId: { type: String, index: true },  // Stored as string in DB
+  agentId: { type: String },
   agentName: { type: String },
   plan: { type: String, enum: ['daily', 'weekly', 'monthly'] },
+  price: { type: Number },
   status: { type: String, enum: ['active', 'expired', 'cancelled'] },
+  startDate: { type: Date },
   expiryDate: { type: Date },
-  createdAt: { type: Date, default: Date.now }
-}, { collection: 'agentsubscriptions' });
+  autoRenew: { type: Boolean, default: false },
+  stripeSubscriptionId: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, { collection: 'subscriptions' });  // Real data is in 'subscriptions' collection
 
 const transactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
@@ -313,11 +318,13 @@ const SupportChat = mongoose.models.SupportChat || mongoose.model('SupportChat',
 // =====================================================
 async function fetchUserContext(userId: string) {
   try {
+    // userId is stored as string in subscriptions collection, not ObjectId
+    const userIdStr = userId.toString();
     const userObjectId = new mongoose.Types.ObjectId(userId);
     
-    // Fetch subscriptions
+    // Fetch subscriptions - userId is stored as string in this collection
     const subscriptions = await AgentSubscription.find({ 
-      userId: userObjectId,
+      userId: userIdStr,
       status: { $in: ['active', 'expired'] }
     }).sort({ createdAt: -1 }).limit(10).lean();
     
@@ -340,9 +347,11 @@ async function fetchUserContext(userId: string) {
     return {
       subscriptions: subscriptions.map((s: any) => ({
         agentId: s.agentId?.toString() || 'unknown',
-        agentName: s.agentName || 'Unknown Agent',
+        agentName: s.agentName || s.agentId || 'Unknown Agent',
         plan: s.plan || 'unknown',
+        price: s.price || 0,
         status: s.status || 'unknown',
+        startDate: s.startDate,
         expiryDate: s.expiryDate
       })),
       totalSpent,

@@ -1,11 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import {
   verifyRequest,
   unauthorizedResponse,
 } from '../../../../lib/validateAuth';
 
-// Use internal backend URL for server-to-server communication
-const BACKEND_BASE = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
+// MongoDB connection
+const MONGODB_URI = process.env.MONGODB_URI || '';
+
+let cachedConnection: typeof mongoose | null = null;
+
+async function connectDatabase() {
+  if (cachedConnection && mongoose.connection.readyState === 1) {
+    return cachedConnection;
+  }
+  
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI not configured');
+  }
+  
+  cachedConnection = await mongoose.connect(MONGODB_URI, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+  });
+  
+  return cachedConnection;
+}
+
+// Schema matching the 'subscriptions' collection structure (not agentsubscriptions)
+const subscriptionSchema = new mongoose.Schema({
+  userId: { type: String, index: true },  // Stored as string
+  agentId: { type: String },
+  plan: { type: String, enum: ['daily', 'weekly', 'monthly'] },
+  price: { type: Number },
+  status: { type: String, enum: ['active', 'expired', 'cancelled'] },
+  startDate: { type: Date },
+  expiryDate: { type: Date },
+  autoRenew: { type: Boolean, default: false },
+  stripeSubscriptionId: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, { collection: 'subscriptions' });  // Real data is in 'subscriptions' collection
+
+const Subscription = mongoose.models.UserSubscription || mongoose.model('UserSubscription', subscriptionSchema);
 
 export async function GET(
   request: NextRequest,
@@ -18,20 +55,18 @@ export async function GET(
     const authResult = verifyRequest(request);
     if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
-    // Build backend URL
-    const backendUrl = `${BACKEND_BASE}/api/agent/subscriptions/user/${userId}`;
+    await connectDatabase();
 
-    const res = await fetch(backendUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
+    // Query subscriptions collection directly (userId is stored as string)
+    const subscriptions = await Subscription.find({ 
+      userId: userId 
+    }).sort({ createdAt: -1 }).lean();
+
+    return NextResponse.json({
+      success: true,
+      count: subscriptions.length,
+      subscriptions: subscriptions
     });
-
-    const data = await res.json();
-
-    return NextResponse.json(data, { status: res.status });
   } catch (err: any) {
     console.error('[/api/subscriptions/[userId]] Error:', err);
     return NextResponse.json(
