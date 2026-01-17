@@ -333,9 +333,16 @@ export async function sendSupportEmail(
 // Convenience Functions
 // =====================================================
 
+// Admin email for notifications
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'onelastai2.0@gmail.com';
+
 export async function notifyTicketCreated(data: TicketEmailData) {
   const template = getTicketCreatedEmail(data);
-  return sendSupportEmail(data.userEmail, template);
+  // Send to customer
+  await sendSupportEmail(data.userEmail, template);
+  // Also notify admin
+  await notifyAdminNewTicket(data);
+  return { success: true };
 }
 
 export async function notifyNewReply(data: TicketEmailData) {
@@ -348,7 +355,253 @@ export async function notifyStatusChange(data: TicketEmailData) {
   return sendSupportEmail(data.userEmail, template);
 }
 
-export async function notifySlaBreach(data: TicketEmailData, adminEmail: string = 'support@onelastai.co') {
+export async function notifySlaBreach(data: TicketEmailData, adminEmail: string = ADMIN_EMAIL) {
   const template = getSlaBreachEmail(data);
   return sendSupportEmail(adminEmail, template);
+}
+
+// =====================================================
+// Admin Notification Functions
+// =====================================================
+
+export async function notifyAdminNewTicket(data: TicketEmailData) {
+  const template = {
+    subject: `🎫 New Support Ticket #${data.ticketNumber}: ${data.subject}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎫 New Support Ticket</h1>
+    </div>
+    <div class="content">
+      <div class="label">Ticket Number</div>
+      <div class="value">#${data.ticketNumber}</div>
+      
+      <div class="label">Subject</div>
+      <div class="value">${data.subject}</div>
+      
+      <div class="label">Customer</div>
+      <div class="value">${data.userName} (${data.userEmail})</div>
+      
+      <div class="label">Status</div>
+      <div class="value">${data.status || 'Open'}</div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="https://onelastai.co/admin/support" class="btn">View in Admin Panel</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `New Support Ticket #${data.ticketNumber}\n\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\n\nView: https://onelastai.co/admin/support`
+  };
+  
+  return sendSupportEmail(ADMIN_EMAIL, template);
+}
+
+export async function notifyAdminContactForm(data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  const template = {
+    subject: `📬 New Contact Form: ${data.subject}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .message-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #11998e; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📬 New Contact Message</h1>
+    </div>
+    <div class="content">
+      <div class="label">From</div>
+      <div class="value">${data.name}</div>
+      
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:${data.email}">${data.email}</a></div>
+      
+      <div class="label">Subject</div>
+      <div class="value">${data.subject}</div>
+      
+      <div class="label">Message</div>
+      <div class="message-box">${data.message.replace(/\n/g, '<br>')}</div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject)}" class="btn">Reply to ${data.name}</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `New Contact Form Submission\n\nFrom: ${data.name}\nEmail: ${data.email}\nSubject: ${data.subject}\n\nMessage:\n${data.message}`
+  };
+  
+  return sendSupportEmail(ADMIN_EMAIL, template);
+}
+
+export async function notifyAdminJobApplication(data: {
+  name: string;
+  email: string;
+  position: string;
+  phone?: string;
+  resumeUrl?: string;
+  coverLetter?: string;
+}) {
+  const template = {
+    subject: `💼 New Job Application: ${data.position} - ${data.name}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .cover-letter { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #f5576c; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; margin: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💼 New Job Application</h1>
+    </div>
+    <div class="content">
+      <div class="label">Position</div>
+      <div class="value" style="font-size: 20px; font-weight: 600; color: #f5576c;">${data.position}</div>
+      
+      <div class="label">Applicant Name</div>
+      <div class="value">${data.name}</div>
+      
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:${data.email}">${data.email}</a></div>
+      
+      ${data.phone ? `<div class="label">Phone</div><div class="value">${data.phone}</div>` : ''}
+      
+      ${data.coverLetter ? `<div class="label">Cover Letter</div><div class="cover-letter">${data.coverLetter.replace(/\n/g, '<br>')}</div>` : ''}
+      
+      <div style="text-align: center; margin-top: 30px;">
+        ${data.resumeUrl ? `<a href="${data.resumeUrl}" class="btn">📄 View Resume</a>` : ''}
+        <a href="mailto:${data.email}?subject=Re: Your Application for ${encodeURIComponent(data.position)}" class="btn">Reply</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `New Job Application\n\nPosition: ${data.position}\nName: ${data.name}\nEmail: ${data.email}${data.phone ? `\nPhone: ${data.phone}` : ''}${data.coverLetter ? `\n\nCover Letter:\n${data.coverLetter}` : ''}`
+  };
+  
+  return sendSupportEmail(ADMIN_EMAIL, template);
+}
+
+export async function notifyAdminEarlyAccess(data: {
+  email: string;
+  name?: string;
+  source?: string;
+}) {
+  const template = {
+    subject: `🚀 New Early Access Signup: ${data.email}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; text-align: center; }
+    .email { font-size: 24px; color: #4facfe; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 New Early Access Signup!</h1>
+    </div>
+    <div class="content">
+      <p style="color: #666;">Someone just signed up for early access!</p>
+      <div class="email">${data.email}</div>
+      ${data.name ? `<p style="color: #333; margin-top: 10px;">Name: ${data.name}</p>` : ''}
+      ${data.source ? `<p style="color: #666; font-size: 14px;">Source: ${data.source}</p>` : ''}
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `New Early Access Signup!\n\nEmail: ${data.email}${data.name ? `\nName: ${data.name}` : ''}${data.source ? `\nSource: ${data.source}` : ''}`
+  };
+  
+  return sendSupportEmail(ADMIN_EMAIL, template);
+}
+
+export async function notifyAdminNewUser(data: {
+  email: string;
+  name: string;
+}) {
+  const template = {
+    subject: `👋 New User Registered: ${data.name}`,
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; text-align: center; }
+    .name { font-size: 24px; color: #667eea; font-weight: 600; }
+    .email { color: #666; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>👋 New User Registered!</h1>
+    </div>
+    <div class="content">
+      <div class="name">${data.name}</div>
+      <div class="email">${data.email}</div>
+      <p style="color: #888; margin-top: 20px; font-size: 14px;">A new user just joined One Last AI!</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    text: `New User Registered!\n\nName: ${data.name}\nEmail: ${data.email}`
+  };
+  
+  return sendSupportEmail(ADMIN_EMAIL, template);
 }

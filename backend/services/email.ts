@@ -1,9 +1,65 @@
 import sgMail from '@sendgrid/mail'
+import nodemailer from 'nodemailer'
 
 // Initialize SendGrid with API key
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY)
+}
+
+// Admin notification email
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'onelastai2.0@gmail.com'
+
+// SMTP Configuration for admin notifications (fallback if no SendGrid)
+const SMTP_CONFIG = {
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+  },
+  from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'onelastai2.0@gmail.com',
+}
+
+// Create SMTP transporter for admin notifications
+let smtpTransporter: nodemailer.Transporter | null = null
+function getSmtpTransporter() {
+  if (!smtpTransporter && SMTP_CONFIG.auth.user && SMTP_CONFIG.auth.pass) {
+    smtpTransporter = nodemailer.createTransport({
+      host: SMTP_CONFIG.host,
+      port: SMTP_CONFIG.port,
+      secure: SMTP_CONFIG.secure,
+      auth: SMTP_CONFIG.auth,
+    })
+  }
+  return smtpTransporter
+}
+
+/**
+ * Send email to admin via SMTP (for notifications)
+ */
+async function sendAdminEmail(subject: string, html: string, text: string): Promise<void> {
+  const transporter = getSmtpTransporter()
+  
+  if (!transporter) {
+    console.log('[ADMIN EMAIL] SMTP not configured. Would send:', subject)
+    console.log('[ADMIN EMAIL] To:', ADMIN_EMAIL)
+    return
+  }
+  
+  try {
+    await transporter.sendMail({
+      from: SMTP_CONFIG.from,
+      to: ADMIN_EMAIL,
+      subject,
+      html,
+      text,
+    })
+    console.log(`[ADMIN EMAIL] Sent: ${subject}`)
+  } catch (error: any) {
+    console.error('[ADMIN EMAIL] Failed:', error.message)
+  }
 }
 
 /**
@@ -661,4 +717,301 @@ export async function sendPasswordResetEmail(
     console.error('❌ Failed to send password reset email:', error.response?.body || error.message)
     throw error
   }
+}
+
+// =====================================================
+// ADMIN NOTIFICATION FUNCTIONS
+// =====================================================
+
+/**
+ * Notify admin of new contact form submission
+ */
+export async function notifyAdminContactForm(data: {
+  name: string
+  email: string
+  subject: string
+  message: string
+  ticketId?: string
+}): Promise<void> {
+  const subject = `📬 New Contact Form: ${data.subject}`
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .message-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #11998e; white-space: pre-wrap; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📬 New Contact Message</h1>
+    </div>
+    <div class="content">
+      <div class="label">From</div>
+      <div class="value">${data.name}</div>
+      
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:${data.email}">${data.email}</a></div>
+      
+      <div class="label">Subject</div>
+      <div class="value">${data.subject}</div>
+      
+      ${data.ticketId ? `<div class="label">Ticket ID</div><div class="value">${data.ticketId}</div>` : ''}
+      
+      <div class="label">Message</div>
+      <div class="message-box">${data.message}</div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject)}" class="btn">Reply to ${data.name}</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+  const text = `New Contact Form\n\nFrom: ${data.name}\nEmail: ${data.email}\nSubject: ${data.subject}\n\nMessage:\n${data.message}`
+  
+  await sendAdminEmail(subject, html, text)
+}
+
+/**
+ * Notify admin of new job application
+ */
+export async function notifyAdminJobApplication(data: {
+  position: string
+  applicantName: string
+  applicantEmail: string
+  phone?: string
+  applicationId: string
+  applicationNumber: number
+}): Promise<void> {
+  const subject = `💼 New Job Application: ${data.position} - ${data.applicantName}`
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .position { font-size: 20px; font-weight: 600; color: #f5576c; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💼 New Job Application</h1>
+    </div>
+    <div class="content">
+      <div class="label">Position</div>
+      <div class="value position">${data.position}</div>
+      
+      <div class="label">Application #</div>
+      <div class="value">${data.applicationNumber}</div>
+      
+      <div class="label">Applicant</div>
+      <div class="value">${data.applicantName}</div>
+      
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:${data.applicantEmail}">${data.applicantEmail}</a></div>
+      
+      ${data.phone ? `<div class="label">Phone</div><div class="value">${data.phone}</div>` : ''}
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="mailto:${data.applicantEmail}?subject=Re: Your Application for ${encodeURIComponent(data.position)}" class="btn">Contact Applicant</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+  const text = `New Job Application\n\nPosition: ${data.position}\nApplication #: ${data.applicationNumber}\nName: ${data.applicantName}\nEmail: ${data.applicantEmail}${data.phone ? `\nPhone: ${data.phone}` : ''}`
+  
+  await sendAdminEmail(subject, html, text)
+}
+
+/**
+ * Notify admin of new support ticket
+ */
+export async function notifyAdminSupportTicket(data: {
+  ticketId: string
+  ticketNumber: number
+  subject: string
+  userName: string
+  userEmail: string
+  category: string
+  priority: string
+}): Promise<void> {
+  const priorityColors: Record<string, string> = {
+    low: '#28a745',
+    medium: '#ffc107',
+    high: '#fd7e14',
+    urgent: '#dc3545',
+  }
+  const color = priorityColors[data.priority] || '#667eea'
+  
+  const subject = `🎫 New Support Ticket #${data.ticketNumber}: ${data.subject}`
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .priority { display: inline-block; padding: 4px 12px; border-radius: 4px; background: ${color}; color: white; font-weight: 600; text-transform: uppercase; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎫 New Support Ticket</h1>
+    </div>
+    <div class="content">
+      <div class="label">Ticket Number</div>
+      <div class="value">#${data.ticketNumber}</div>
+      
+      <div class="label">Subject</div>
+      <div class="value">${data.subject}</div>
+      
+      <div class="label">Customer</div>
+      <div class="value">${data.userName} (<a href="mailto:${data.userEmail}">${data.userEmail}</a>)</div>
+      
+      <div class="label">Category</div>
+      <div class="value">${data.category}</div>
+      
+      <div class="label">Priority</div>
+      <div class="value"><span class="priority">${data.priority}</span></div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="https://onelastai.co/admin/support" class="btn">View in Admin Panel</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://onelastai.co/admin/support`
+  
+  await sendAdminEmail(subject, html, text)
+}
+
+/**
+ * Notify admin of new consultation request
+ */
+export async function notifyAdminConsultation(data: {
+  consultationId: string
+  consultationNumber: number
+  userName: string
+  userEmail: string
+  userPhone?: string
+  consultationType: string
+  projectDescription: string
+}): Promise<void> {
+  const subject = `📅 New Consultation Request: ${data.consultationType} - ${data.userName}`
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; }
+    .label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+    .value { font-size: 16px; color: #333; margin-bottom: 20px; }
+    .project { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #4facfe; white-space: pre-wrap; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📅 New Consultation Request</h1>
+    </div>
+    <div class="content">
+      <div class="label">Consultation Type</div>
+      <div class="value" style="font-size: 20px; font-weight: 600; color: #4facfe;">${data.consultationType}</div>
+      
+      <div class="label">Reference #</div>
+      <div class="value">${data.consultationNumber}</div>
+      
+      <div class="label">Name</div>
+      <div class="value">${data.userName}</div>
+      
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:${data.userEmail}">${data.userEmail}</a></div>
+      
+      ${data.userPhone ? `<div class="label">Phone</div><div class="value">${data.userPhone}</div>` : ''}
+      
+      <div class="label">Project Description</div>
+      <div class="project">${data.projectDescription}</div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="mailto:${data.userEmail}?subject=Re: ${encodeURIComponent(data.consultationType)} Consultation Request" class="btn">Schedule Call</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+  const text = `New Consultation Request\n\nType: ${data.consultationType}\nRef #: ${data.consultationNumber}\nName: ${data.userName}\nEmail: ${data.userEmail}${data.userPhone ? `\nPhone: ${data.userPhone}` : ''}\n\nProject:\n${data.projectDescription}`
+  
+  await sendAdminEmail(subject, html, text)
+}
+
+/**
+ * Notify admin of new user registration
+ */
+export async function notifyAdminNewUser(data: {
+  name: string
+  email: string
+}): Promise<void> {
+  const subject = `👋 New User Registered: ${data.name}`
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .content { padding: 30px; text-align: center; }
+    .name { font-size: 24px; color: #667eea; font-weight: 600; }
+    .email { color: #666; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>👋 New User Registered!</h1>
+    </div>
+    <div class="content">
+      <div class="name">${data.name}</div>
+      <div class="email">${data.email}</div>
+      <p style="color: #888; margin-top: 20px; font-size: 14px;">A new user just joined One Last AI!</p>
+    </div>
+  </div>
+</body>
+</html>`
+  const text = `New User Registered!\n\nName: ${data.name}\nEmail: ${data.email}`
+  
+  await sendAdminEmail(subject, html, text)
 }

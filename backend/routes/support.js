@@ -8,6 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { SupportTicket } from '../models/SupportTicket.js';
 import { Consultation } from '../models/Consultation.js';
 import { ContactMessage } from '../models/ContactMessage.js';
+import {
+  notifyAdminContactForm,
+  notifyAdminSupportTicket,
+  notifyAdminConsultation,
+} from '../services/email.ts';
 
 const router = express.Router();
 
@@ -60,6 +65,17 @@ router.post('/tickets', async (req, res) => {
     });
 
     await ticket.save();
+
+    // Send admin notification email
+    notifyAdminSupportTicket({
+      ticketId: ticket.ticketId,
+      ticketNumber: ticket.ticketNumber,
+      subject,
+      userName: userName || 'Unknown',
+      userEmail,
+      category,
+      priority: priority || 'medium',
+    }).catch((err) => console.error('Failed to send admin notification:', err));
 
     res.json({
       success: true,
@@ -247,6 +263,17 @@ router.post('/consultations', async (req, res) => {
 
     await consultation.save();
 
+    // Send admin notification email
+    notifyAdminConsultation({
+      consultationId: consultation.consultationId,
+      consultationNumber: consultation.consultationNumber || 0,
+      userName,
+      userEmail,
+      userPhone,
+      consultationType,
+      projectDescription: project?.description || '',
+    }).catch((err) => console.error('Failed to send admin notification:', err));
+
     res.json({
       success: true,
       consultation: {
@@ -367,6 +394,15 @@ router.post('/contact', async (req, res) => {
     });
 
     await contactMessage.save();
+
+    // Send admin notification email
+    notifyAdminContactForm({
+      name,
+      email,
+      subject,
+      message,
+      ticketId: contactMessage.ticketId,
+    }).catch((err) => console.error('Failed to send admin notification:', err));
 
     res.json({
       success: true,
