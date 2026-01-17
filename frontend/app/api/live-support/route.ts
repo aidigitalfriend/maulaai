@@ -627,8 +627,17 @@ export async function POST(req: NextRequest) {
                   if (content) {
                     fullResponse += content;
                     
-                    // Add small delay for slower, more human-like typing feel 💕
-                    await new Promise(resolve => setTimeout(resolve, 15));
+                    // 💕 Slow, romantic typing effect - like Luna is thoughtfully typing each word
+                    // Base delay of 50-80ms per chunk with occasional pauses
+                    const baseDelay = 50 + Math.random() * 30; // 50-80ms base
+                    
+                    // Add extra pause after punctuation (like thinking/breathing)
+                    const hasPunctuation = /[.!?,:;]$/.test(content.trim());
+                    const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(content);
+                    const pauseDelay = hasPunctuation ? 150 : (hasEmoji ? 200 : 0);
+                    
+                    // Total delay: makes Luna feel like she's typing with care 🥰
+                    await new Promise(resolve => setTimeout(resolve, baseDelay + pauseDelay));
                     
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
                       type: 'chunk', 
