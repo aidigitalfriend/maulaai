@@ -48,9 +48,8 @@ interface DebateRequest {
   agent2Position: string;
 }
 
-// Helper function to call AI providers with fallback chain: Cerebras → Groq → OpenAI
-async function generateDebateResponse(
-  agentName: string,
+// Generate response using CEREBRAS (Agent 1 - Pro side)
+async function generateCerebrasResponse(
   position: string,
   topic: string,
   previousArguments: string[],
@@ -58,93 +57,85 @@ async function generateDebateResponse(
 ): Promise<{ text: string; provider: string; responseTime: number }> {
   const startTime = Date.now();
 
-  const systemPrompt = `You are ${agentName}, an AI debater arguing the "${position}" position on the topic: "${topic}".
-${isOpening ? 'This is your opening statement.' : 'Respond to the previous arguments and make your counter-points.'}
-Be persuasive, logical, and engaging. Keep your response to 2-3 paragraphs.`;
+  const systemPrompt = `You are "Cerebras AI", a brilliant debater powered by Cerebras hardware. You argue the "${position}" position on: "${topic}".
+${isOpening ? 'This is your opening statement. Make it compelling!' : 'Counter the previous arguments persuasively.'}
+Be logical, articulate, and convincing. Keep response to 2-3 paragraphs.`;
 
   const userPrompt = isOpening
-    ? `Give your opening statement for the debate topic: "${topic}". You are arguing: ${position}`
-    : `Previous arguments:\n${previousArguments.join('\n\n')}\n\nNow give your response arguing for: ${position}`;
+    ? `Opening statement for "${topic}". Argue: ${position}`
+    : `Previous arguments:\n${previousArguments.join('\n\n')}\n\nYour response arguing: ${position}`;
 
-  // Try Cerebras first (fastest)
-  try {
-    const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 500,
-        temperature: 0.8,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        text: data.choices[0].message.content,
-        provider: 'Cerebras',
-        responseTime: Date.now() - startTime,
-      };
-    }
-  } catch (error) {
-    console.log('Cerebras failed, trying Groq...');
-  }
-
-  // Try Groq second
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 500,
-        temperature: 0.8,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        text: data.choices[0].message.content,
-        provider: 'Groq',
-        responseTime: Date.now() - startTime,
-      };
-    }
-  } catch (error) {
-    console.log('Groq failed, trying OpenAI...');
-  }
-
-  // Fallback to OpenAI
-  const OpenAI = (await import('openai')).default;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    max_tokens: 500,
-    temperature: 0.8,
+  const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 600,
+      temperature: 0.85,
+    }),
   });
 
+  if (!response.ok) {
+    throw new Error(`Cerebras API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
   return {
-    text: completion.choices[0].message.content || '',
-    provider: 'OpenAI',
+    text: data.choices[0].message.content,
+    provider: 'Cerebras',
+    responseTime: Date.now() - startTime,
+  };
+}
+
+// Generate response using GROQ (Agent 2 - Con side)
+async function generateGroqResponse(
+  position: string,
+  topic: string,
+  previousArguments: string[],
+  isOpening: boolean
+): Promise<{ text: string; provider: string; responseTime: number }> {
+  const startTime = Date.now();
+
+  const systemPrompt = `You are "Groq AI", a sharp debater powered by Groq LPU technology. You argue the "${position}" position on: "${topic}".
+${isOpening ? 'This is your opening statement. Be impactful!' : 'Respond to and counter the previous arguments.'}
+Be analytical, persuasive, and engaging. Keep response to 2-3 paragraphs.`;
+
+  const userPrompt = isOpening
+    ? `Opening statement for "${topic}". Argue: ${position}`
+    : `Previous arguments:\n${previousArguments.join('\n\n')}\n\nYour response arguing: ${position}`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 600,
+      temperature: 0.85,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Groq API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    text: data.choices[0].message.content,
+    provider: 'Groq',
     responseTime: Date.now() - startTime,
   };
 }
@@ -178,10 +169,10 @@ export async function POST(req: NextRequest) {
 
     const isOpening = round === 1 && previousArguments.length === 0;
 
-    // Generate responses from both agents in parallel
+    // Generate responses: Cerebras for Agent 1, Groq for Agent 2 (in parallel)
     const [agent1Response, agent2Response] = await Promise.all([
-      generateDebateResponse('Optimist AI', agent1Position || 'Pro', topic, previousArguments, isOpening),
-      generateDebateResponse('Realist AI', agent2Position || 'Con', topic, previousArguments, isOpening),
+      generateCerebrasResponse(agent1Position || 'Pro', topic, previousArguments, isOpening),
+      generateGroqResponse(agent2Position || 'Con', topic, previousArguments, isOpening),
     ]);
 
     const responseTime = Date.now() - startTime;
@@ -189,14 +180,14 @@ export async function POST(req: NextRequest) {
     const result = {
       round,
       agent1: {
-        name: 'Optimist AI',
+        name: 'Cerebras AI',
         position: agent1Position || 'Pro',
         response: agent1Response.text,
         provider: agent1Response.provider,
         responseTime: agent1Response.responseTime,
       },
       agent2: {
-        name: 'Realist AI',
+        name: 'Groq AI',
         position: agent2Position || 'Con',
         response: agent2Response.text,
         provider: agent2Response.provider,

@@ -15,6 +15,15 @@ export default function DebateArenaPage() {
   const [providerInfo, setProviderInfo] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [customDebates, setCustomDebates] = useState<any[]>([])
+  const [votes, setVotes] = useState({ agent1: 0, agent2: 0 })
+  const [hasVoted, setHasVoted] = useState<string | null>(null)
+
+  // Handle voting
+  const handleVote = (agent: 'agent1' | 'agent2') => {
+    if (hasVoted) return
+    setVotes(prev => ({ ...prev, [agent]: prev[agent] + 1 }))
+    setHasVoted(agent)
+  }
 
   // Fetch real-time stats
   useEffect(() => {
@@ -42,24 +51,24 @@ export default function DebateArenaPage() {
     {
       id: 1,
       topic: 'Is AI a threat or opportunity for humanity?',
-      agent1: { name: 'Optimist AI', position: 'Opportunity', votes: 245, avatar: '🤖' },
-      agent2: { name: 'Realist AI', position: 'Balanced Threat', votes: 198, avatar: '🧠' },
+      agent1: { name: 'Cerebras AI', position: 'Opportunity', votes: 245, avatar: '⚡' },
+      agent2: { name: 'Groq AI', position: 'Balanced Threat', votes: 198, avatar: '🚀' },
       viewers: 342,
       status: 'live'
     },
     {
       id: 2,
       topic: 'Should social media be regulated by governments?',
-      agent1: { name: 'Liberty Bot', position: 'No Regulation', votes: 187, avatar: '🗽' },
-      agent2: { name: 'Guardian AI', position: 'Yes, Regulate', votes: 223, avatar: '🛡️' },
+      agent1: { name: 'Cerebras AI', position: 'No Regulation', votes: 187, avatar: '⚡' },
+      agent2: { name: 'Groq AI', position: 'Yes, Regulate', votes: 223, avatar: '🚀' },
       viewers: 289,
       status: 'live'
     },
     {
       id: 3,
       topic: 'Is remote work better than office work?',
-      agent1: { name: 'Flex AI', position: 'Remote Wins', votes: 312, avatar: '🏠' },
-      agent2: { name: 'Office Pro', position: 'Office Better', votes: 156, avatar: '🏢' },
+      agent1: { name: 'Cerebras AI', position: 'Remote Wins', votes: 312, avatar: '⚡' },
+      agent2: { name: 'Groq AI', position: 'Office Better', votes: 156, avatar: '🚀' },
       viewers: 234,
       status: 'live'
     }
@@ -74,8 +83,8 @@ export default function DebateArenaPage() {
     const newDebate = {
       id: Date.now(),
       topic: newTopic.trim(),
-      agent1: { name: 'Advocate AI', position: 'Pro', votes: 0, avatar: '✅' },
-      agent2: { name: 'Skeptic AI', position: 'Con', votes: 0, avatar: '❌' },
+      agent1: { name: 'Cerebras AI', position: 'Pro', votes: 0, avatar: '⚡' },
+      agent2: { name: 'Groq AI', position: 'Con', votes: 0, avatar: '🚀' },
       viewers: Math.floor(Math.random() * 100) + 50,
       status: 'live'
     }
@@ -94,6 +103,8 @@ export default function DebateArenaPage() {
     setCurrentRound(1)
     setIsDebating(true)
     setProviderInfo('')
+    setVotes({ agent1: 0, agent2: 0 })
+    setHasVoted(null)
 
     try {
       const res = await fetch('/api/lab/debate-arena', {
@@ -110,21 +121,23 @@ export default function DebateArenaPage() {
       const data = await res.json()
 
       if (data.success) {
-        setProviderInfo(`⚡ Powered by ${data.agent1.provider}`)
+        setProviderInfo(`⚡ Cerebras vs 🚀 Groq - Real-time AI Debate`)
         setDebateStream([
           {
-            agent: debate.agent1.name,
+            agent: 'Cerebras AI',
             position: data.agent1.position,
             text: data.agent1.response,
             color: 'blue',
             responseTime: data.agent1.responseTime,
+            provider: 'Cerebras',
           },
           {
-            agent: debate.agent2.name,
+            agent: 'Groq AI',
             position: data.agent2.position,
             text: data.agent2.response,
             color: 'purple',
             responseTime: data.agent2.responseTime,
+            provider: 'Groq',
           },
         ])
       }
@@ -309,22 +322,46 @@ export default function DebateArenaPage() {
 
             <div className="grid grid-cols-2 gap-8 mb-8">
               <div className="text-center p-6 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/50 rounded-2xl">
-                <div className="text-6xl mb-4">{activeDebate.agent1.avatar}</div>
-                <div className="text-2xl font-bold mb-2">{activeDebate.agent1.name}</div>
+                <div className="text-6xl mb-4">⚡</div>
+                <div className="text-2xl font-bold mb-1">Cerebras AI</div>
+                <div className="text-xs text-cyan-400 mb-2">Powered by Cerebras</div>
                 <div className="text-gray-300 mb-4">{activeDebate.agent1.position}</div>
-                <button className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2">
+                <div className="text-2xl font-bold text-green-400 mb-3">{votes.agent1} votes</div>
+                <button 
+                  onClick={() => handleVote('agent1')}
+                  disabled={hasVoted !== null}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                    hasVoted === 'agent1' 
+                      ? 'bg-green-600 text-white' 
+                      : hasVoted 
+                        ? 'bg-gray-600 opacity-50 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-lg hover:shadow-blue-500/50'
+                  }`}
+                >
                   <ThumbsUp className="w-5 h-5" />
-                  Vote for {activeDebate.agent1.name}
+                  {hasVoted === 'agent1' ? 'Voted!' : 'Vote for Cerebras'}
                 </button>
               </div>
 
               <div className="text-center p-6 bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/50 rounded-2xl">
-                <div className="text-6xl mb-4">{activeDebate.agent2.avatar}</div>
-                <div className="text-2xl font-bold mb-2">{activeDebate.agent2.name}</div>
+                <div className="text-6xl mb-4">🚀</div>
+                <div className="text-2xl font-bold mb-1">Groq AI</div>
+                <div className="text-xs text-purple-400 mb-2">Powered by Groq LPU</div>
                 <div className="text-gray-300 mb-4">{activeDebate.agent2.position}</div>
-                <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2">
+                <div className="text-2xl font-bold text-green-400 mb-3">{votes.agent2} votes</div>
+                <button 
+                  onClick={() => handleVote('agent2')}
+                  disabled={hasVoted !== null}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                    hasVoted === 'agent2' 
+                      ? 'bg-green-600 text-white' 
+                      : hasVoted 
+                        ? 'bg-gray-600 opacity-50 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/50'
+                  }`}
+                >
                   <ThumbsUp className="w-5 h-5" />
-                  Vote for {activeDebate.agent2.name}
+                  {hasVoted === 'agent2' ? 'Voted!' : 'Vote for Groq'}
                 </button>
               </div>
             </div>
@@ -351,7 +388,10 @@ export default function DebateArenaPage() {
                       className={`p-4 ${entry.color === 'blue' ? 'bg-blue-500/10 border-l-4 border-blue-500' : 'bg-purple-500/10 border-l-4 border-purple-500'} rounded-lg`}
                     >
                       <div className={`font-semibold ${entry.color === 'blue' ? 'text-blue-400' : 'text-purple-400'} mb-2 flex items-center justify-between`}>
-                        <span>{entry.agent}:</span>
+                        <span className="flex items-center gap-2">
+                          {entry.color === 'blue' ? '⚡' : '🚀'} {entry.agent}
+                          <span className="text-xs px-2 py-0.5 bg-white/10 rounded">{entry.provider}</span>
+                        </span>
                         <span className="text-xs text-gray-500">{entry.responseTime}ms</span>
                       </div>
                       <p className="text-gray-300 whitespace-pre-wrap">{entry.text}</p>
