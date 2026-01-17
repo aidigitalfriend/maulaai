@@ -12,12 +12,28 @@ export default function Docs() {
       color: "from-blue-500 to-cyan-500"
     },
     {
+      title: "Canvas Builder",
+      description: "Build complete web applications with AI-powered generation",
+      icon: "🎨",
+      href: "/docs/canvas",
+      topics: ["Text to App", "Live Preview", "Export Code", "Components"],
+      color: "from-purple-500 to-fuchsia-500"
+    },
+    {
+      title: "Data Generator",
+      description: "Generate realistic test data for your applications",
+      icon: "📊",
+      href: "/docs/data-generator",
+      topics: ["Users & Profiles", "Products", "Analytics", "Custom Data"],
+      color: "from-blue-500 to-indigo-500"
+    },
+    {
       title: "API Reference",
       description: "Complete API documentation for all endpoints and methods",
       icon: "📚",
       href: "/docs/api",
       topics: ["Authentication", "Endpoints", "Rate Limits", "Error Codes"],
-      color: "from-purple-500 to-pink-500"
+      color: "from-orange-500 to-red-500"
     },
     {
       title: "Integration Guides",
@@ -33,7 +49,7 @@ export default function Docs() {
       icon: "💻",
       href: "/docs/sdks",
       topics: ["JavaScript", "Python", "Go", "PHP"],
-      color: "from-orange-500 to-red-500"
+      color: "from-teal-500 to-cyan-500"
     },
     {
       title: "Tutorials",
@@ -49,7 +65,7 @@ export default function Docs() {
       icon: "🛠️",
       href: "/support",
       topics: ["FAQ", "Contact Support", "Community", "Bug Reports"],
-      color: "from-teal-500 to-green-500"
+      color: "from-rose-500 to-pink-500"
     }
   ]
 
@@ -74,9 +90,9 @@ export default function Docs() {
         {/* Quick Stats */}
         <div className="max-w-4xl mx-auto mb-12">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="text-center p-4 bg-brand-50 rounded-lg">
-                <div className="text-2xl font-bold text-brand-600">20+</div>
+                <div className="text-2xl font-bold text-brand-600">18</div>
                 <div className="text-xs text-neural-600">AI Agents</div>
               </div>
               <div className="text-center p-4 bg-accent-50 rounded-lg">
@@ -86,6 +102,10 @@ export default function Docs() {
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">4</div>
                 <div className="text-xs text-neural-600">SDK Languages</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">2</div>
+                <div className="text-xs text-neural-600">App Builders</div>
               </div>
             </div>
           </div>

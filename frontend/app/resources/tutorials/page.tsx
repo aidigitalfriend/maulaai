@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { BookOpen, ArrowRight, Sparkles, Target, Lightbulb, MessageSquare } from 'lucide-react'
+import { BookOpen, ArrowRight, Sparkles, Target, Lightbulb, MessageSquare, Layout, Code, Database } from 'lucide-react'
 
 export default function TutorialsPage() {
   const [selectedAgent, setSelectedAgent] = useState('einstein')
@@ -196,6 +196,76 @@ export default function TutorialsPage() {
         useCases: ['Entertainment and fun', 'Joke exchange', 'Humor appreciation', 'Lighthearted chat'],
         example: 'Ask: "Tell me something funny" or "Make me laugh"'
       }
+    },
+    {
+      id: 'nid-gaming',
+      name: 'Nid Gaming',
+      avatar: '🎮',
+      description: 'Modern Gaming & Esports',
+      color: 'from-green-500 to-teal-500',
+      tutorial: {
+        features: ['Current game tips and strategies', 'Esports news and insights', 'Gaming hardware advice', 'Build recommendations'],
+        specialties: ['Video Games', 'Esports', 'Gaming Hardware', 'Game Strategy'],
+        howItWorks: 'Nid Gaming is your expert guide to modern gaming. Get tips, strategies, hardware recommendations, and stay updated on the latest esports news and competitive gaming scene.',
+        useCases: ['Game strategy improvement', 'Esports updates', 'Gaming hardware selection', 'Build optimization'],
+        example: 'Ask: "What\'s the best gaming setup for 2024?" or "How do I improve at competitive gaming?"'
+      }
+    },
+    {
+      id: 'drama-queen',
+      name: 'Drama Queen',
+      avatar: '👑',
+      description: 'Theatre & Performing Arts',
+      color: 'from-pink-500 to-fuchsia-500',
+      tutorial: {
+        features: ['Acting techniques and tips', 'Theatre history and classics', 'Performance coaching', 'Script analysis and writing'],
+        specialties: ['Theatre', 'Acting', 'Playwriting', 'Performance Arts'],
+        howItWorks: 'Drama Queen brings theatrical passion to every conversation. Learn about acting techniques, explore theatre history from Shakespeare to Broadway, and get guidance on performance and creative writing.',
+        useCases: ['Acting skill development', 'Theatre education', 'Script writing help', 'Performance preparation'],
+        example: 'Ask: "How do I deliver a powerful monologue?" or "Tell me about Shakespeare\'s influence"'
+      }
+    },
+    {
+      id: 'chess-player',
+      name: 'Chess Master',
+      avatar: '♟️',
+      description: 'Chess Strategy & Analysis',
+      color: 'from-slate-600 to-slate-800',
+      tutorial: {
+        features: ['Opening repertoire guidance', 'Middlegame strategies', 'Endgame techniques', 'Position analysis'],
+        specialties: ['Chess Strategy', 'Tactical Patterns', 'Opening Theory', 'Game Analysis'],
+        howItWorks: 'Chess Master is your expert teacher for the royal game. Get strategic insights, learn tactical patterns, analyze positions, and improve your chess at any skill level.',
+        useCases: ['Chess improvement training', 'Opening preparation', 'Game analysis', 'Learning from grandmasters'],
+        example: 'Ask: "What\'s the best opening for beginners?" or "Analyze this chess position"'
+      }
+    },
+    {
+      id: 'knight-logic',
+      name: 'Knight Logic',
+      avatar: '⚔️',
+      description: 'Logic & Problem Solving',
+      color: 'from-amber-500 to-orange-600',
+      tutorial: {
+        features: ['Logic puzzle solving', 'Critical thinking development', 'Strategic reasoning', 'Brain teasers and riddles'],
+        specialties: ['Logic Puzzles', 'Strategic Thinking', 'Problem Solving', 'Critical Analysis'],
+        howItWorks: 'Knight Logic sharpens your mind with logical challenges. Get help solving puzzles, develop critical thinking skills, and tackle complex problems with systematic approaches.',
+        useCases: ['Logic puzzle practice', 'Critical thinking training', 'Problem-solving skills', 'Brain exercise'],
+        example: 'Ask: "Give me a logic puzzle" or "How do I approach complex problems?"'
+      }
+    },
+    {
+      id: 'lazy-pawn',
+      name: 'Lazy Pawn',
+      avatar: '🐢',
+      description: 'Relaxed Chill Companion',
+      color: 'from-emerald-400 to-teal-500',
+      tutorial: {
+        features: ['Relaxed conversations', 'Stress-free advice', 'Laid-back perspective', 'Low-pressure interaction'],
+        specialties: ['Relaxation', 'Stress Relief', 'Casual Chat', 'Life Advice'],
+        howItWorks: 'Lazy Pawn is your chill companion for relaxed conversations. No rush, no pressure - just easygoing chat and a laid-back perspective on life\'s challenges.',
+        useCases: ['Stress relief', 'Casual conversation', 'Relaxed advice', 'Chill vibes'],
+        example: 'Ask: "Just want to chat about nothing" or "Help me chill out"'
+      }
     }
   ]
 
@@ -357,6 +427,96 @@ export default function TutorialsPage() {
                 Start Using {selectedAgentData.name}
                 <ArrowRight className="w-5 h-5" />
               </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Canvas Builder Section */}
+        <div className="max-w-6xl mx-auto mt-16 mb-12">
+          <div className="bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 rounded-2xl p-8 md:p-12 text-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-500/10 rounded-full blur-2xl"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-accent-500 rounded-xl flex items-center justify-center">
+                  <Layout className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold">Canvas Builder</h2>
+                  <p className="text-neural-300">AI-Powered App Generator</p>
+                </div>
+              </div>
+              <p className="text-lg text-neural-300 mb-8 max-w-2xl">
+                Build complete web applications with just a text description. Our AI Canvas Builder generates 
+                functional React components, complete with styling and interactivity.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                  <Code className="w-8 h-8 text-brand-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">Instant Generation</h3>
+                  <p className="text-sm text-neural-400">Describe your app and watch it come to life in seconds</p>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                  <Sparkles className="w-8 h-8 text-accent-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">Live Preview</h3>
+                  <p className="text-sm text-neural-400">See your app running in real-time as it's generated</p>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
+                  <Target className="w-8 h-8 text-green-400 mb-3" />
+                  <h3 className="font-bold text-white mb-2">Export Code</h3>
+                  <p className="text-sm text-neural-400">Download clean, production-ready React code</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/studio" className="btn-primary bg-gradient-to-r from-brand-500 to-accent-500 hover:opacity-90">
+                  Try Canvas Builder
+                  <ArrowRight className="w-5 h-5 ml-2 inline" />
+                </Link>
+                <Link href="/docs/canvas" className="btn-secondary text-white border-white/20 hover:bg-white/10">
+                  View Documentation
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Generator Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-neural-100 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full blur-3xl opacity-50"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                  <Database className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-neural-800">AI Data Generator</h2>
+                  <p className="text-neural-500">Generate Test Data in Seconds</p>
+                </div>
+              </div>
+              <p className="text-lg text-neural-600 mb-8 max-w-2xl">
+                Need realistic test data? Our AI Data Generator creates users, products, posts, analytics, 
+                and more with intelligent context-aware generation.
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                {['Users', 'Products', 'Posts', 'Analytics', 'Comments', 'Emails'].map((type, idx) => (
+                  <div key={idx} className="bg-neural-50 rounded-xl p-4 text-center border border-neural-100 hover:border-brand-200 transition">
+                    <div className="text-2xl mb-2">
+                      {type === 'Users' ? '👤' : type === 'Products' ? '📦' : type === 'Posts' ? '📝' : type === 'Analytics' ? '📊' : type === 'Comments' ? '💬' : '✉️'}
+                    </div>
+                    <p className="text-sm font-medium text-neural-700">{type}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/studio" className="btn-primary bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white">
+                  Try Data Generator
+                  <ArrowRight className="w-5 h-5 ml-2 inline" />
+                </Link>
+                <Link href="/docs/data-generator" className="btn-secondary">
+                  View Documentation
+                </Link>
+              </div>
             </div>
           </div>
         </div>
