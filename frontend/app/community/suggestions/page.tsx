@@ -107,152 +107,168 @@ export default function SuggestionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-      {/* Header */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Lightbulb className="w-10 h-10" />
-            <h1 className="text-4xl md:text-5xl font-bold">Share Your Ideas</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Header */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6bTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6bTIwIDBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <Lightbulb className="w-5 h-5" />
+            Community Ideas
           </div>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Share Your Ideas</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Help shape the future of One Last AI. Submit your feature requests, improvements, and ideas to make our platform even better.
           </p>
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="section-padding">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-neural-800 border border-neural-700 rounded-lg p-6 text-center">
-              <MessageSquare className="w-12 h-12 text-brand-400 mx-auto mb-4" />
-              <h3 className="text-lg font-bold mb-2">Your Voice Matters</h3>
-              <p className="text-neural-300 text-sm">Every suggestion is reviewed by our team and helps prioritize future development.</p>
+      <section className="py-12 -mt-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 text-center hover:shadow-xl transition">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <MessageSquare className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Your Voice Matters</h3>
+              <p className="text-gray-600 text-sm">Every suggestion is reviewed by our team and helps prioritize future development.</p>
             </div>
-            <div className="bg-neural-800 border border-neural-700 rounded-lg p-6 text-center">
-              <Users className="w-12 h-12 text-accent-400 mx-auto mb-4" />
-              <h3 className="text-lg font-bold mb-2">Community Driven</h3>
-              <p className="text-neural-300 text-sm">Vote on and discuss ideas with other community members to show your support.</p>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 text-center hover:shadow-xl transition">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Users className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Community Driven</h3>
+              <p className="text-gray-600 text-sm">Vote on and discuss ideas with other community members to show your support.</p>
             </div>
-            <div className="bg-neural-800 border border-neural-700 rounded-lg p-6 text-center">
-              <Zap className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-lg font-bold mb-2">Quick Updates</h3>
-              <p className="text-neural-300 text-sm">Receive notifications when your suggested feature is implemented or discussed.</p>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 text-center hover:shadow-xl transition">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Zap className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Quick Updates</h3>
+              <p className="text-gray-600 text-sm">Receive notifications when your suggested feature is implemented or discussed.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="section-padding">
-        <div className="container-custom max-w-4xl">
+      <section className="py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {submitted ? (
-            <div className="bg-green-900 bg-opacity-20 border border-green-600 rounded-lg p-8 mb-8">
-              <div className="text-center">
-                <div className="text-6xl mb-4">✓</div>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+              {/* Success Header */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-white text-center">
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-12 h-12" />
+                </div>
                 <h2 className="text-3xl font-bold mb-2">Thank You for Your Suggestion!</h2>
-                <p className="text-neural-300 mb-6 text-lg">
+                <p className="text-white/90 text-lg">
                   Your idea has been submitted successfully. Our team will review it and get back to you soon.
                 </p>
               </div>
 
-              {/* Suggestion Details Card */}
-              <div className="bg-neural-800 border border-neural-700 rounded-lg p-6 mb-6">
-                <h3 className="text-xl font-bold mb-4">Your Suggestion Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600">
-                    <p className="text-neural-400 text-sm mb-1">Suggestion ID</p>
-                    <p className="text-xl font-mono font-bold text-brand-400">{suggestionId}</p>
-                    <p className="text-xs text-neural-400 mt-2">Save this for reference</p>
-                  </div>
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600">
-                    <p className="text-neural-400 text-sm mb-1">Category</p>
-                    <p className="text-lg font-semibold capitalize">
-                      {categories.find(c => c.value === formData.category)?.label}
-                    </p>
-                  </div>
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600">
-                    <p className="text-neural-400 text-sm mb-1">Title</p>
-                    <p className="text-lg font-semibold">{formData.title}</p>
-                  </div>
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600">
-                    <p className="text-neural-400 text-sm mb-1">Priority</p>
-                    <p className="text-lg font-semibold capitalize">{formData.priority}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* What Happens Next */}
-              <div className="bg-neural-800 border border-neural-700 rounded-lg p-6 mb-6">
-                <h3 className="text-xl font-bold mb-4">What Happens Next?</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-brand-600 rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                    <div>
-                      <p className="font-semibold">Review & Assessment</p>
-                      <p className="text-neural-300 text-sm">Our team evaluates your suggestion for feasibility and alignment with our roadmap.</p>
+              <div className="p-8">
+                {/* Suggestion Details Card */}
+                <div className="bg-gray-50 rounded-xl border border-gray-200 p-6 mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Your Suggestion Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                      <p className="text-gray-500 text-sm mb-1">Suggestion ID</p>
+                      <p className="text-xl font-mono font-bold text-blue-600">{suggestionId}</p>
+                      <p className="text-xs text-gray-400 mt-2">Save this for reference</p>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-brand-600 rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                    <div>
-                      <p className="font-semibold">Community Voting</p>
-                      <p className="text-neural-300 text-sm">The idea appears in our community board where members can vote and discuss it.</p>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                      <p className="text-gray-500 text-sm mb-1">Category</p>
+                      <p className="text-lg font-semibold text-gray-900 capitalize">
+                        {categories.find(c => c.value === formData.category)?.label}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-brand-600 rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                    <div>
-                      <p className="font-semibold">Roadmap Integration</p>
-                      <p className="text-neural-300 text-sm">Popular ideas get added to our product roadmap and you receive updates on progress.</p>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                      <p className="text-gray-500 text-sm mb-1">Title</p>
+                      <p className="text-lg font-semibold text-gray-900">{formData.title}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                      <p className="text-gray-500 text-sm mb-1">Priority</p>
+                      <p className="text-lg font-semibold text-gray-900 capitalize">{formData.priority}</p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/community/roadmap" className="flex-1 px-6 py-3 bg-neural-700 hover:bg-neural-600 text-white rounded-lg font-semibold transition text-center">
-                  View Roadmap
-                </Link>
-                <button onClick={handleSubmitAnother} className="flex-1 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold transition">
-                  Submit Another
-                </button>
-                <Link href="/community" className="flex-1 px-6 py-3 bg-accent-600 hover:bg-accent-700 text-white rounded-lg font-semibold transition text-center">
-                  Explore Community
-                </Link>
+                {/* What Happens Next */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6 mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">What Happens Next?</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">1</div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Review & Assessment</p>
+                        <p className="text-gray-600 text-sm">Our team evaluates your suggestion for feasibility and alignment with our roadmap.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">2</div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Community Voting</p>
+                        <p className="text-gray-600 text-sm">The idea appears in our community board where members can vote and discuss it.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">3</div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Roadmap Integration</p>
+                        <p className="text-gray-600 text-sm">Popular ideas get added to our product roadmap and you receive updates on progress.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/community/roadmap" className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition text-center">
+                    View Roadmap
+                  </Link>
+                  <button onClick={handleSubmitAnother} className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">
+                    Submit Another
+                  </button>
+                  <Link href="/community" className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition text-center shadow-lg">
+                    Explore Community
+                  </Link>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="bg-neural-800 border border-neural-700 rounded-lg p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-8">
+              <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Contact Information Section */}
                 <div>
-                  <h3 className="text-2xl font-bold mb-4 pb-2 border-b border-neural-700">About You</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">👤</span>
+                    About You
+                  </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-2">First Name *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
                       <input
                         type="text"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         placeholder="John"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Last Name *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
                       <input
                         type="text"
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         placeholder="Doe"
                       />
                     </div>
@@ -260,25 +276,25 @@ export default function SuggestionsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Email Address *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         placeholder="john@example.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Company</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Company</label>
                       <input
                         type="text"
                         name="company"
                         value={formData.company}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         placeholder="Your Company"
                       />
                     </div>
@@ -287,16 +303,19 @@ export default function SuggestionsPage() {
 
                 {/* Suggestion Details Section */}
                 <div>
-                  <h3 className="text-2xl font-bold mb-4 pb-2 border-b border-neural-700">Your Suggestion</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">💡</span>
+                    Your Suggestion
+                  </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Category *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
                       <select
                         name="category"
                         value={formData.category}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white focus:outline-none focus:border-brand-500"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       >
                         {categories.map((cat) => (
                           <option key={cat.value} value={cat.value}>
@@ -306,12 +325,12 @@ export default function SuggestionsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Priority *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Priority *</label>
                       <select
                         name="priority"
                         value={formData.priority}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white focus:outline-none focus:border-brand-500"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       >
                         {priorityLevels.map((level) => (
                           <option key={level.value} value={level.value}>
@@ -323,7 +342,7 @@ export default function SuggestionsPage() {
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-2">Title *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
                     <input
                       type="text"
                       name="title"
@@ -331,14 +350,14 @@ export default function SuggestionsPage() {
                       onChange={handleInputChange}
                       required
                       maxLength={100}
-                      className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="Brief title of your idea"
                     />
-                    <p className="text-xs text-neural-400 mt-1">{formData.title.length}/100</p>
+                    <p className="text-xs text-gray-400 mt-1">{formData.title.length}/100</p>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-semibold mb-2">Description *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
                     <textarea
                       name="description"
                       value={formData.description}
@@ -346,18 +365,21 @@ export default function SuggestionsPage() {
                       required
                       maxLength={2000}
                       rows={6}
-                      className="w-full px-4 py-2 bg-neural-700 border border-neural-600 rounded-lg text-white placeholder-neural-400 focus:outline-none focus:border-brand-500 resize-none"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
                       placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve One Last AI?"
                     />
-                    <p className="text-xs text-neural-400 mt-1">{formData.description.length}/2000</p>
+                    <p className="text-xs text-gray-400 mt-1">{formData.description.length}/2000</p>
                   </div>
                 </div>
 
                 {/* Attachments Section */}
                 <div>
-                  <h3 className="text-2xl font-bold mb-4 pb-2 border-b border-neural-700">Attachments (Optional)</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">📎</span>
+                    Attachments (Optional)
+                  </h3>
 
-                  <div className="bg-neural-700 border-2 border-dashed border-neural-600 rounded-lg p-6 text-center cursor-pointer hover:border-brand-500 transition">
+                  <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition">
                     <label className="cursor-pointer">
                       <input
                         type="file"
@@ -367,9 +389,11 @@ export default function SuggestionsPage() {
                         accept=".pdf,.png,.jpg,.jpeg,.gif,.sketch,.fig,.xd"
                       />
                       <div>
-                        <p className="text-2xl mb-2">🎨</p>
-                        <p className="font-semibold mb-1">Click to upload mockups or screenshots</p>
-                        <p className="text-sm text-neural-400">PNG, JPG, PDF, Sketch, Figma up to 10MB</p>
+                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-3xl">🎨</span>
+                        </div>
+                        <p className="font-semibold text-gray-900 mb-1">Click to upload mockups or screenshots</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, PDF, Sketch, Figma up to 10MB</p>
                       </div>
                     </label>
                   </div>
@@ -377,10 +401,10 @@ export default function SuggestionsPage() {
                   {/* Upload Progress */}
                   {uploadProgress > 0 && uploadProgress < 100 && (
                     <div className="mt-4">
-                      <p className="text-sm font-semibold mb-2">Uploading... {uploadProgress}%</p>
-                      <div className="w-full bg-neural-700 rounded-full h-2">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Uploading... {uploadProgress}%</p>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-brand-600 h-2 rounded-full transition-all"
+                          className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all"
                           style={{ width: `${uploadProgress}%` }}
                         ></div>
                       </div>
@@ -390,21 +414,21 @@ export default function SuggestionsPage() {
                   {/* Attached Files List */}
                   {formData.attachments.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-sm font-semibold mb-2">Attached Files ({formData.attachments.length}):</p>
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Attached Files ({formData.attachments.length}):</p>
                       <div className="space-y-2">
                         {formData.attachments.map((file, idx) => (
-                          <div key={idx} className="bg-neural-700 p-3 rounded border border-neural-600 flex items-center justify-between">
-                            <div className="flex items-center gap-2 flex-1">
+                          <div key={idx} className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1">
                               <span className="text-lg">📎</span>
                               <div className="flex-1">
-                                <p className="font-semibold text-sm">{file.name}</p>
-                                <p className="text-xs text-neural-400">{(file.size / 1024).toFixed(2)} KB</p>
+                                <p className="font-semibold text-sm text-gray-900">{file.name}</p>
+                                <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
                               </div>
                             </div>
                             <button
                               type="button"
                               onClick={() => removeAttachment(idx)}
-                              className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition"
+                              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-sm transition font-medium"
                             >
                               Remove
                             </button>
@@ -416,11 +440,11 @@ export default function SuggestionsPage() {
                 </div>
 
                 {/* Suggestion Guidelines */}
-                <div className="bg-neural-700 p-4 rounded-lg border border-neural-600">
-                  <p className="text-sm text-neural-300 mb-2">
-                    <span className="font-semibold">💡 Pro Tips:</span>
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 p-5 rounded-xl border border-amber-200">
+                  <p className="text-sm text-gray-700 mb-2 font-semibold flex items-center gap-2">
+                    <span>💡</span> Pro Tips:
                   </p>
-                  <ul className="text-sm text-neural-300 space-y-1 ml-4">
+                  <ul className="text-sm text-gray-600 space-y-1.5 ml-6">
                     <li>• Be specific about the problem and your proposed solution</li>
                     <li>• Include examples of how this would improve your workflow</li>
                     <li>• Attach mockups or screenshots if they help explain your idea</li>
@@ -429,16 +453,19 @@ export default function SuggestionsPage() {
                 </div>
 
                 {/* Terms & Submit */}
-                <div className="bg-neural-700 p-4 rounded-lg border border-neural-600">
-                  <p className="text-sm text-neural-300">
-                    ✓ By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve One Last AI.
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <p className="text-sm text-gray-600 flex items-start gap-2">
+                    <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve One Last AI.
                   </p>
                 </div>
 
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full px-6 py-3 bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-700 hover:to-accent-700 text-white rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
                 >
                   <Send className="w-5 h-5" />
                   Submit Your Suggestion
@@ -446,23 +473,29 @@ export default function SuggestionsPage() {
               </form>
 
               {/* Additional Info */}
-              <div className="mt-8 pt-8 border-t border-neural-700">
-                <h3 className="text-xl font-bold mb-4">What Happens with Your Suggestion?</h3>
+              <div className="mt-10 pt-8 border-t border-gray-200">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">What Happens with Your Suggestion?</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600 text-center">
-                    <p className="text-3xl mb-2">📋</p>
-                    <p className="font-semibold">Review</p>
-                    <p className="text-sm text-neural-400 mt-2">Our team reviews and evaluates your suggestion</p>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 text-center">
+                    <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">📋</span>
+                    </div>
+                    <p className="font-semibold text-gray-900">Review</p>
+                    <p className="text-sm text-gray-600 mt-2">Our team reviews and evaluates your suggestion</p>
                   </div>
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600 text-center">
-                    <p className="text-3xl mb-2">🗳️</p>
-                    <p className="font-semibold">Vote</p>
-                    <p className="text-sm text-neural-400 mt-2">Community members can vote on ideas</p>
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-100 text-center">
+                    <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">🗳️</span>
+                    </div>
+                    <p className="font-semibold text-gray-900">Vote</p>
+                    <p className="text-sm text-gray-600 mt-2">Community members can vote on ideas</p>
                   </div>
-                  <div className="bg-neural-700 p-4 rounded border border-neural-600 text-center">
-                    <p className="text-3xl mb-2">🚀</p>
-                    <p className="font-semibold">Build</p>
-                    <p className="text-sm text-neural-400 mt-2">Popular ideas make it to our roadmap</p>
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-100 text-center">
+                    <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                    <p className="font-semibold text-gray-900">Build</p>
+                    <p className="text-sm text-gray-600 mt-2">Popular ideas make it to our roadmap</p>
                   </div>
                 </div>
               </div>
