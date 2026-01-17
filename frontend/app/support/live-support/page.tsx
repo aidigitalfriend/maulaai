@@ -45,11 +45,11 @@ const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
 const SupportButton = ({ icon: Icon, label, href, onClick }: any) => (
   <button
     onClick={onClick}
-    className="w-full flex items-center gap-3 p-3 rounded-lg bg-neural-800 hover:bg-neural-700 transition-all duration-300 text-white group"
+    className="w-full flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all duration-300 text-gray-700 group"
   >
     <Icon
       size={20}
-      className="text-brand-400 group-hover:text-accent-400 transition-colors"
+      className="text-blue-600 group-hover:text-purple-600 transition-colors"
     />
     <span className="text-sm font-medium">{label}</span>
   </button>
@@ -474,14 +474,14 @@ export default function LiveSupportPage() {
 
   if (showLoginPrompt && !auth.state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-neural-800 rounded-2xl p-8 border border-neural-700">
-            <div className="bg-gradient-to-br from-brand-600 to-accent-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-xl">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
               <Phone size={32} className="text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Live Support</h1>
-            <p className="text-neural-400 mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Live Support</h1>
+            <p className="text-gray-600 mb-8">
               Please log in to access our real-time AI support agent with
               personalized assistance based on your account.
             </p>
@@ -489,16 +489,16 @@ export default function LiveSupportPage() {
             <div className="space-y-3">
               <Link
                 href="/auth/login"
-                className="w-full btn-primary flex items-center justify-center gap-2"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:opacity-90 transition shadow-lg shadow-blue-500/25"
               >
                 <AlertCircle size={18} />
                 Sign In Now
               </Link>
-              <p className="text-sm text-neural-500">
+              <p className="text-sm text-gray-500">
                 Don't have an account?{' '}
                 <Link
                   href="/auth/signup"
-                  className="text-brand-400 hover:text-brand-300"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Sign up here
                 </Link>
@@ -511,26 +511,26 @@ export default function LiveSupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="flex h-screen overflow-hidden">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="bg-neural-800/50 backdrop-blur border-b border-neural-700 px-6 py-4 flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
               <div>
-                <h1 className="font-bold text-lg">Live Support</h1>
-                <p className="text-sm text-neural-400">
+                <h1 className="font-bold text-lg text-gray-900">Live Support</h1>
+                <p className="text-sm text-gray-500">
                   AI-Powered Support Agent
                 </p>
               </div>
             </div>
 
             {userProfile && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-neural-700 rounded-lg">
-                <span className="text-sm">
-                  <span className="text-neural-400">Account:</span>{' '}
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span className="text-sm text-gray-700">
+                  <span className="text-gray-500">Account:</span>{' '}
                   {userProfile.name}
                 </span>
               </div>
@@ -540,7 +540,7 @@ export default function LiveSupportPage() {
           {/* Messages Container */}
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-neural-700 scrollbar-track-neural-800"
+            className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
           >
             {messages.map((message) => (
               <div
@@ -552,16 +552,16 @@ export default function LiveSupportPage() {
                 <div
                   className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-xl ${
                     message.role === 'user'
-                      ? 'bg-brand-600 text-white rounded-br-none'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none shadow-lg shadow-blue-500/20'
                       : message.role === 'system'
-                      ? 'bg-yellow-900/30 border border-yellow-700/50 text-yellow-200'
-                      : 'bg-neural-700 text-neural-100 rounded-bl-none'
+                      ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                      : 'bg-white text-gray-800 rounded-bl-none border border-gray-200 shadow-md'
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap break-words">
                     {message.content}
                   </p>
-                  <p className="text-xs mt-2 opacity-70">
+                  <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
                     {message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
@@ -570,11 +570,11 @@ export default function LiveSupportPage() {
 
             {isStreamingResponse && (
               <div className="flex justify-start">
-                <div className="bg-neural-700 rounded-xl rounded-bl-none px-4 py-3">
+                <div className="bg-white rounded-xl rounded-bl-none px-4 py-3 border border-gray-200 shadow-md">
                   <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-neural-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-neural-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-neural-400 rounded-full animate-bounce delay-200"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-100"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-200"></div>
                   </div>
                 </div>
               </div>
@@ -584,19 +584,19 @@ export default function LiveSupportPage() {
           </div>
 
           {/* Input Area */}
-          <div className="bg-neural-800/50 backdrop-blur border-t border-neural-700 p-6">
+          <div className="bg-white/80 backdrop-blur border-t border-gray-200 p-6">
             {ticketGenerated && (
-              <div className="mb-4 p-4 bg-blue-900/30 border border-blue-700/50 rounded-lg flex items-center justify-between">
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AlertCircle size={20} className="text-blue-400" />
-                  <span className="text-sm">
+                  <AlertCircle size={20} className="text-blue-600" />
+                  <span className="text-sm text-blue-800">
                     Your issue needs escalation. Our team will create a support
                     ticket.
                   </span>
                 </div>
                 <button
                   onClick={generateTicket}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-colors"
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors"
                 >
                   Create Ticket
                 </button>
@@ -610,12 +610,12 @@ export default function LiveSupportPage() {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Describe your issue or ask a question..."
                 disabled={isLoading}
-                className="flex-1 bg-neural-700 border border-neural-600 rounded-lg px-4 py-3 text-white placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50 transition-all"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
-                className="px-4 py-3 bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-500/25"
               >
                 {isLoading ? (
                   <Loader size={18} className="animate-spin" />
@@ -629,14 +629,14 @@ export default function LiveSupportPage() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <button
                 onClick={downloadChat}
-                className="flex items-center gap-2 px-3 py-2 bg-neural-700 hover:bg-neural-600 rounded text-sm transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors border border-gray-200"
               >
                 <DownloadCloud size={16} />
                 Download
               </button>
               <button
                 onClick={copyChat}
-                className="flex items-center gap-2 px-3 py-2 bg-neural-700 hover:bg-neural-600 rounded text-sm transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors border border-gray-200"
               >
                 <Copy size={16} />
                 Copy
@@ -646,54 +646,54 @@ export default function LiveSupportPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-neural-800 border-l border-neural-700 p-6 overflow-y-auto hidden lg:block">
+        <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden lg:block shadow-lg">
           {/* User Profile Section */}
           {userProfile && (
-            <div className="mb-8 p-4 bg-neural-700 rounded-lg border border-neural-600">
-              <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">
+            <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
                 Your Profile
               </h3>
               <div className="space-y-2 text-sm">
                 <div>
-                  <span className="text-neural-400">Name:</span>
-                  <p className="text-white font-medium">{userProfile.name}</p>
+                  <span className="text-gray-500">Name:</span>
+                  <p className="text-gray-900 font-medium">{userProfile.name}</p>
                 </div>
                 <div>
-                  <span className="text-neural-400">Email:</span>
-                  <p className="text-white font-medium">{userProfile.email}</p>
+                  <span className="text-gray-500">Email:</span>
+                  <p className="text-gray-900 font-medium">{userProfile.email}</p>
                 </div>
                 <div>
-                  <span className="text-neural-400">Status:</span>
-                  <p className="text-white font-medium flex items-center gap-2">
+                  <span className="text-gray-500">Status:</span>
+                  <p className="text-gray-900 font-medium flex items-center gap-2">
                     {userProfile.subscription === 'Active' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neural-600/50 text-neural-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-neural-500"></span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                         Inactive
                       </span>
                     )}
                     {userProfile.activeAgents > 0 && (
-                      <span className="text-xs text-neural-400">
+                      <span className="text-xs text-gray-500">
                         ({userProfile.activeAgents} agent{userProfile.activeAgents > 1 ? 's' : ''})
                       </span>
                     )}
                   </p>
                 </div>
                 <div>
-                  <span className="text-neural-400">Member Since:</span>
-                  <p className="text-white font-medium">
+                  <span className="text-gray-500">Member Since:</span>
+                  <p className="text-gray-900 font-medium">
                     {new Date(userProfile.joinedDate).toLocaleDateString()}
                   </p>
                 </div>
                 {userProfile.subscription === 'Inactive' && (
-                  <div className="pt-2 mt-2 border-t border-neural-600">
+                  <div className="pt-2 mt-2 border-t border-gray-200">
                     <Link
                       href="/pricing"
-                      className="block w-full text-center px-3 py-2 bg-brand-600 hover:bg-brand-700 rounded text-sm font-medium transition-colors"
+                      className="block w-full text-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:opacity-90 transition shadow-lg shadow-blue-500/25"
                     >
                       Browse Agents
                     </Link>
@@ -705,23 +705,23 @@ export default function LiveSupportPage() {
 
           {/* Support Ticket Info */}
           {supportTicket && (
-            <div className="mb-8 p-4 bg-green-900/20 border border-green-700/50 rounded-lg">
+            <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl">
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle size={18} className="text-green-400" />
-                <h3 className="font-bold text-sm uppercase">
+                <CheckCircle size={18} className="text-green-600" />
+                <h3 className="font-bold text-sm uppercase text-green-800">
                   Ticket Generated
                 </h3>
               </div>
-              <p className="text-sm text-green-200 mb-2">Ticket ID:</p>
-              <p className="font-mono text-xs bg-black/30 p-2 rounded mb-3 break-all">
+              <p className="text-sm text-green-700 mb-2">Ticket ID:</p>
+              <p className="font-mono text-xs bg-green-100 p-2 rounded mb-3 break-all text-green-800">
                 {supportTicket.id}
               </p>
-              <p className="text-xs text-green-300 mb-3">
+              <p className="text-xs text-green-700 mb-3">
                 Our human support team will contact you within 48 hours.
               </p>
               <Link
                 href="/dashboard/support-tickets"
-                className="block w-full text-center px-3 py-2 bg-green-600 hover:bg-green-700 rounded text-sm font-medium transition-colors"
+                className="block w-full text-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 View My Tickets
               </Link>
@@ -730,7 +730,7 @@ export default function LiveSupportPage() {
 
           {/* Quick Actions */}
           <div className="mb-8">
-            <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">
+            <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
               Quick Actions
             </h3>
             <div className="space-y-2">
@@ -763,7 +763,7 @@ export default function LiveSupportPage() {
 
           {/* Social Media */}
           <div>
-            <h3 className="font-bold mb-3 text-sm uppercase text-neural-300">
+            <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
               Follow Us
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -780,12 +780,12 @@ export default function LiveSupportPage() {
           </div>
 
           {/* Support Hours */}
-          <div className="mt-8 p-4 bg-neural-700 rounded-lg border border-neural-600">
+          <div className="mt-8 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
             <div className="flex items-center gap-2 mb-2">
-              <Clock size={16} className="text-blue-400" />
-              <h3 className="font-bold text-sm">Support Hours</h3>
+              <Clock size={16} className="text-blue-600" />
+              <h3 className="font-bold text-sm text-gray-900">Support Hours</h3>
             </div>
-            <p className="text-xs text-neural-400">
+            <p className="text-xs text-gray-600">
               24/7 AI Support • Human team Monday-Friday, 9AM-6PM EST
             </p>
           </div>
