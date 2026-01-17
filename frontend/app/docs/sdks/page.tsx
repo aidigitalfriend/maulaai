@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import CodeBlock from '@/components/ui/CodeBlock'
 
 export default function DocsSDKs() {
   const sdks = [
@@ -62,6 +65,210 @@ export default function DocsSDKs() {
     { feature: "WebSocket Support", js: true, py: true, go: true, php: false },
     { feature: "Rate Limiting", js: true, py: true, go: true, php: true }
   ]
+
+  // Code snippets
+  const jsInstallNpm = `npm install @onelastai/sdk`
+  const jsInstallYarn = `yarn add @onelastai/sdk`
+  
+  const jsBasicUsage = `import { OnelastAI } from '@onelastai/sdk';
+
+const client = new OnelastAI({
+  apiKey: process.env.ONELASTAI_API_KEY
+});
+
+// Get all agents
+const agents = await client.agents.list();
+
+// Send a message to an agent
+const response = await client.conversations.send({
+  agentId: 'agent_123',
+  message: 'Hello, how are you?'
+});
+
+console.log(response.reply);`
+
+  const jsCreateAgent = `const newAgent = await client.agents.create({
+  name: 'My Bot',
+  personality: 'helpful',
+  model: 'gpt-4',
+  systemPrompt: 'You are a helpful assistant'
+});
+
+console.log(newAgent.id);`
+
+  const pyInstall = `pip install onelastai-sdk`
+  
+  const pyBasicUsage = `from onelastai import OnelastAI
+
+client = OnelastAI(api_key='YOUR_API_KEY')
+
+# Get all agents
+agents = client.agents.list()
+
+# Send a message
+response = client.conversations.send(
+  agent_id='agent_123',
+  message='Hello, how are you?'
+)
+
+print(response['reply'])`
+
+  const pyAsyncUsage = `import asyncio
+from onelastai import AsyncOnelastAI
+
+async def main():
+  client = AsyncOnelastAI(api_key='YOUR_API_KEY')
+  
+  response = await client.conversations.send(
+    agent_id='agent_123',
+    message='Hello!'
+  )
+  
+  print(response['reply'])
+
+asyncio.run(main())`
+
+  const goInstall = `go get github.com/onelastai/sdk-go`
+  
+  const goBasicUsage = `package main
+
+import (
+  "fmt"
+  "github.com/onelastai/sdk-go"
+)
+
+func main() {
+  client := onelastai.NewClient("YOUR_API_KEY")
+  
+  // List agents
+  agents, err := client.Agents.List()
+  if err != nil {
+    panic(err)
+  }
+  
+  // Send message
+  response, err := client.Conversations.Send(&onelastai.Message{
+    AgentID: "agent_123",
+    Text:    "Hello!",
+  })
+  
+  fmt.Println(response.Reply)
+}`
+
+  const phpInstall = `composer require onelastai/sdk-php`
+  
+  const phpBasicUsage = `<?php
+require 'vendor/autoload.php';
+
+use OnelastAI\\Client;
+
+$client = new Client([
+  'api_key' => 'YOUR_API_KEY'
+]);
+
+// List agents
+$agents = $client->agents->list();
+
+// Send message
+$response = $client->conversations->send([
+  'agent_id' => 'agent_123',
+  'message' => 'Hello!'
+]);
+
+echo $response['reply'];
+?>`
+
+  const rubyInstall = `gem install onelastai-sdk`
+  
+  const rubyBasicUsage = `require 'onelastai'
+
+client = OnelastAI::Client.new(api_key: ENV['ONELASTAI_API_KEY'])
+
+# List agents
+agents = client.agents.list
+
+# Send message
+response = client.conversations.send(
+  agent_id: 'agent_123',
+  message: 'Hello!'
+)
+
+puts response['reply']`
+
+  const javaInstall = `<dependency>
+  <groupId>com.onelastai</groupId>
+  <artifactId>sdk-java</artifactId>
+  <version>2.2.0</version>
+</dependency>`
+  
+  const javaBasicUsage = `import com.onelastai.sdk.OnelastAI;
+import com.onelastai.sdk.models.Agent;
+
+public class Main {
+  public static void main(String[] args) {
+    OnelastAI client = new OnelastAI("YOUR_API_KEY");
+    
+    // List agents
+    List<Agent> agents = client.agents().list();
+    
+    // Send message
+    String response = client.conversations()
+      .send("agent_123", "Hello!");
+    
+    System.out.println(response);
+  }
+}`
+
+  const errorHandling = `try {
+  const response = await client
+    .conversations.send({...});
+} catch (error) {
+  if (error.code === 'RATE_LIMITED') {
+    // Handle rate limit
+  } else if (error.code === 'AUTH_ERROR') {
+    // Handle auth error
+  } else {
+    // Handle other errors
+  }
+}`
+
+  const retryLogic = `const maxRetries = 3;
+let attempt = 0;
+
+while (attempt < maxRetries) {
+  try {
+    return await client.agents.list();
+  } catch (error) {
+    attempt++;
+    await sleep(Math.pow(2, attempt) * 1000);
+  }
+}`
+
+  const pagination = `const agents = [];
+let page = 1;
+
+while (true) {
+  const result = await client
+    .agents.list({
+      page: page,
+      limit: 50
+    });
+  
+  agents.push(...result.data);
+  
+  if (!result.hasMore) break;
+  page++;
+}`
+
+  const streaming = `const stream = await client
+  .conversations.stream({
+    agentId: 'agent_123',
+    message: 'Write a poem'
+  });
+
+for await (const chunk of stream) {
+  process.stdout.write(chunk.data);
+}`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -156,53 +363,19 @@ export default function DocsSDKs() {
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
-              <div className="bg-gray-900 p-4 rounded-lg mb-4">
-                <code className="text-gray-200 text-sm">npm install @One Last AI/sdk</code>
-              </div>
-              <p className="text-gray-600 text-sm">or with yarn:</p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">yarn add @One Last AI/sdk</code>
-              </div>
+              <CodeBlock code={jsInstallNpm} language="bash" title="npm" />
+              <p className="text-gray-600 text-sm my-3">or with yarn:</p>
+              <CodeBlock code={jsInstallYarn} language="bash" title="yarn" />
             </div>
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import { One Last AI } from '@One Last AI/sdk';
-
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY
-});
-
-// Get all agents
-const agents = await client.agents.list();
-
-// Send a message to an agent
-const response = await client.conversations.send({
-  agentId: 'agent_123',
-  message: 'Hello, how are you?'
-});
-
-console.log(response.reply);`}
-                </code>
-              </div>
+              <CodeBlock code={jsBasicUsage} language="javascript" showLineNumbers />
             </div>
 
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-3">Creating an Agent</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`const newAgent = await client.agents.create({
-  name: 'My Bot',
-  personality: 'helpful',
-  model: 'gpt-4',
-  systemPrompt: 'You are a helpful assistant'
-});
-
-console.log(newAgent.id);`}
-                </code>
-              </div>
+              <CodeBlock code={jsCreateAgent} language="javascript" showLineNumbers />
             </div>
           </div>
 
@@ -215,53 +388,17 @@ console.log(newAgent.id);`}
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">pip install One Last AI-sdk</code>
-              </div>
+              <CodeBlock code={pyInstall} language="bash" title="pip" />
             </div>
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`from One Last AI import One Last AI
-
-client = One Last AI(api_key='YOUR_API_KEY')
-
-# Get all agents
-agents = client.agents.list()
-
-# Send a message
-response = client.conversations.send(
-  agent_id='agent_123',
-  message='Hello, how are you?'
-)
-
-print(response['reply'])`}
-                </code>
-              </div>
+              <CodeBlock code={pyBasicUsage} language="python" showLineNumbers />
             </div>
 
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-3">Async Support</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import asyncio
-from One Last AI import AsyncOne Last AI
-
-async def main():
-  client = AsyncOne Last AI(api_key='YOUR_API_KEY')
-  
-  response = await client.conversations.send(
-    agent_id='agent_123',
-    message='Hello!'
-  )
-  
-  print(response['reply'])
-
-asyncio.run(main())`}
-                </code>
-              </div>
+              <CodeBlock code={pyAsyncUsage} language="python" showLineNumbers />
             </div>
           </div>
 
@@ -274,41 +411,12 @@ asyncio.run(main())`}
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">go get github.com/One Last AI/sdk-go</code>
-              </div>
+              <CodeBlock code={goInstall} language="bash" title="go get" />
             </div>
 
-            <div className="mb-6">
+            <div>
               <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`package main
-
-import (
-  "fmt"
-  "github.com/One Last AI/sdk-go"
-)
-
-func main() {
-  client := One Last AI.NewClient("YOUR_API_KEY")
-  
-  // List agents
-  agents, err := client.Agents.List()
-  if err != nil {
-    panic(err)
-  }
-  
-  // Send message
-  response, err := client.Conversations.Send(&One Last AI.Message{
-    AgentID: "agent_123",
-    Text:    "Hello!",
-  })
-  
-  fmt.Println(response.Reply)
-}`}
-                </code>
-              </div>
+              <CodeBlock code={goBasicUsage} language="go" showLineNumbers />
             </div>
           </div>
 
@@ -321,37 +429,12 @@ func main() {
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">composer require One Last AI/sdk-php</code>
-              </div>
+              <CodeBlock code={phpInstall} language="bash" title="composer" />
             </div>
 
-            <div className="mb-6">
+            <div>
               <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`<?php
-require 'vendor/autoload.php';
-
-use One Last AI\\Client;
-
-$client = new Client([
-  'api_key' => 'YOUR_API_KEY'
-]);
-
-// List agents
-$agents = $client->agents->list();
-
-// Send message
-$response = $client->conversations->send([
-  'agent_id' => 'agent_123',
-  'message' => 'Hello!'
-]);
-
-echo $response['reply'];
-?>`}
-                </code>
-              </div>
+              <CodeBlock code={phpBasicUsage} language="php" showLineNumbers />
             </div>
           </div>
 
@@ -364,31 +447,12 @@ echo $response['reply'];
 
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">gem install One Last AI-sdk</code>
-              </div>
+              <CodeBlock code={rubyInstall} language="bash" title="gem" />
             </div>
 
-            <div className="mb-6">
+            <div>
               <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`require 'One Last AI'
-
-client = One Last AI::Client.new(api_key: ENV['One Last AI_API_KEY'])
-
-# List agents
-agents = client.agents.list
-
-# Send message
-response = client.conversations.send(
-  agent_id: 'agent_123',
-  message: 'Hello!'
-)
-
-puts response['reply']`}
-                </code>
-              </div>
+              <CodeBlock code={rubyBasicUsage} language="ruby" showLineNumbers />
             </div>
           </div>
 
@@ -402,40 +466,12 @@ puts response['reply']`}
             <div className="mb-6">
               <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
               <p className="text-gray-600 mb-3">Add to your pom.xml:</p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`<dependency>
-  <groupId>com.One Last AI</groupId>
-  <artifactId>sdk-java</artifactId>
-  <version>2.2.0</version>
-</dependency>`}
-                </code>
-              </div>
+              <CodeBlock code={javaInstall} language="xml" title="pom.xml" />
             </div>
 
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import com.One Last AI.sdk.One Last AI;
-import com.One Last AI.sdk.models.Agent;
-
-public class Main {
-  public static void main(String[] args) {
-    One Last AI client = new One Last AI("YOUR_API_KEY");
-    
-    // List agents
-    List<Agent> agents = client.agents().list();
-    
-    // Send message
-    String response = client.conversations()
-      .send("agent_123", "Hello!");
-    
-    System.out.println(response);
-  }
-}`}
-                </code>
-              </div>
+              <CodeBlock code={javaBasicUsage} language="java" showLineNumbers />
             </div>
           </div>
         </div>
@@ -486,85 +522,22 @@ public class Main {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Error Handling</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-xs">
-                  {`try {
-  const response = await client
-    .conversations.send({...});
-} catch (error) {
-  if (error.code === 'RATE_LIMITED') {
-    // Handle rate limit
-  } else if (error.code === 'AUTH_ERROR') {
-    // Handle auth error
-  } else {
-    // Handle other errors
-  }
-}`}
-                </code>
-              </div>
+              <CodeBlock code={errorHandling} language="javascript" />
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Retry Logic</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-xs">
-                  {`const maxRetries = 3;
-let attempt = 0;
-
-while (attempt < maxRetries) {
-  try {
-    return await client.agents.list();
-  } catch (error) {
-    attempt++;
-    await sleep(
-      Math.pow(2, attempt) * 1000
-    );
-  }
-}`}
-                </code>
-              </div>
+              <CodeBlock code={retryLogic} language="javascript" />
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Pagination</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-xs">
-                  {`const agents = [];
-let page = 1;
-
-while (true) {
-  const result = await client
-    .agents.list({
-      page: page,
-      limit: 50
-    });
-  
-  agents.push(...result.data);
-  
-  if (!result.hasMore) break;
-  page++;
-}`}
-                </code>
-              </div>
+              <CodeBlock code={pagination} language="javascript" />
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Streaming Responses</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-xs">
-                  {`const stream = await client
-  .conversations.stream({
-    agentId: 'agent_123',
-    message: 'Write a poem'
-  });
-
-for await (const chunk of stream) {
-  process.stdout.write(
-    chunk.data
-  );
-}`}
-                </code>
-              </div>
+              <CodeBlock code={streaming} language="javascript" />
             </div>
           </div>
         </div>
