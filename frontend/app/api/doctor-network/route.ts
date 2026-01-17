@@ -407,15 +407,59 @@ class AIProvider {
   }
 }
 
+  // Groq - Ultra fast inference with LPU
+  static async callGroq(messages: any[]): Promise<string> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) throw new Error('Groq API key not configured');
+
+    const response = await fetch(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return (
+      data.choices?.[0]?.message?.content ||
+      "I apologize, but I couldn't generate a response right now."
+    );
+  }
+}
+
 async function getAIResponse(messages: any[]): Promise<string> {
-  // Try providers in order: Cerebras (primary - fast & free), Mistral, OpenAI, Anthropic, Gemini
-  const providers = ['cerebras', 'mistral', 'openai', 'anthropic', 'gemini'];
+  // Try providers in order: Groq (primary - fastest), Cerebras (fast & free), Mistral, OpenAI, Anthropic, Gemini
+  const providers = ['groq', 'cerebras', 'mistral', 'openai', 'anthropic', 'gemini'];
 
   for (const provider of providers) {
     try {
       console.log(`[Doctor Network] Trying ${provider}...`);
 
       switch (provider) {
+        case 'groq':
+          if (process.env.GROQ_API_KEY) {
+            return await AIProvider.callGroq(messages);
+          }
+          break;
         case 'cerebras':
           if (process.env.CEREBRAS_API_KEY) {
             return await AIProvider.callCerebras(messages);
