@@ -188,13 +188,18 @@ export default function LiveSupportPage() {
       let activeSubCount = 0;
       let subscriptionDetails: any[] = [];
 
+      console.log('[Live Support] Subscription API response status:', subscriptionResponse.status);
+      
       if (subscriptionResponse.ok) {
         const subData = await subscriptionResponse.json();
+        console.log('[Live Support] Subscription data:', subData);
+        
         if (subData.subscriptions && subData.subscriptions.length > 0) {
           // Find active subscriptions (status active AND not expired)
           const activeSubs = subData.subscriptions.filter(
             (s: any) => s.status === 'active' && new Date(s.expiryDate) > new Date()
           );
+          console.log('[Live Support] Active subs after filter:', activeSubs.length);
           activeSubCount = activeSubs.length;
           subscriptionDetails = activeSubs;
           
@@ -203,6 +208,8 @@ export default function LiveSupportPage() {
             subscriptionStatus = 'Active';
           }
         }
+      } else {
+        console.error('[Live Support] Subscription API error:', await subscriptionResponse.text());
       }
 
       if (!profileResponse.ok) {
