@@ -1,28 +1,21 @@
-import sgMail from '@sendgrid/mail'
 import nodemailer from 'nodemailer'
 
-// Initialize SendGrid with API key
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY)
-}
-
 // Admin notification email
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'onelastai2.0@gmail.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.co'
 
-// SMTP Configuration for admin notifications (fallback if no SendGrid)
+// Namecheap Private Email SMTP Configuration
 const SMTP_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || 'mail.privateemail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
+  secure: false, // Use STARTTLS
   auth: {
-    user: process.env.SMTP_USER || '',
+    user: process.env.SMTP_USER || 'noreply@onelastai.co',
     pass: process.env.SMTP_PASS || '',
   },
-  from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'onelastai2.0@gmail.com',
+  from: process.env.SMTP_FROM || 'One Last AI <noreply@onelastai.co>',
 }
 
-// Create SMTP transporter for admin notifications
+// Create SMTP transporter
 let smtpTransporter: nodemailer.Transporter | null = null
 function getSmtpTransporter() {
   if (!smtpTransporter && SMTP_CONFIG.auth.user && SMTP_CONFIG.auth.pass) {
@@ -662,27 +655,23 @@ export function getPasswordResetEmailTemplate(userName: string, resetUrl: string
  * Called after successful user signup
  */
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
-  if (!SENDGRID_API_KEY) {
-    console.error('SendGrid API key not configured')
-    throw new Error('Email service not configured')
-  }
-
-  const msg = {
-    to: email,
-    from: {
-      email: 'welcome@onelastai.co',
-      name: 'One Last AI'
-    },
-    subject: '🎉 Welcome to One Last AI - Let\'s Get Started!',
-    html: getWelcomeEmailTemplate(name),
+  const transporter = getSmtpTransporter()
+  
+  if (!transporter) {
+    console.log('[WELCOME EMAIL] SMTP not configured. Would send to:', email)
+    return
   }
 
   try {
-    await sgMail.send(msg)
+    await transporter.sendMail({
+      from: 'One Last AI <noreply@onelastai.co>',
+      to: email,
+      subject: '🎉 Welcome to One Last AI - Let\'s Get Started!',
+      html: getWelcomeEmailTemplate(name),
+    })
     console.log(`✅ Welcome email sent to ${email}`)
   } catch (error: any) {
-    console.error('❌ Failed to send welcome email:', error.response?.body || error.message)
-    throw error
+    console.error('❌ Failed to send welcome email:', error.message)
   }
 }
 
@@ -695,27 +684,23 @@ export async function sendPasswordResetEmail(
   name: string,
   resetUrl: string
 ): Promise<void> {
-  if (!SENDGRID_API_KEY) {
-    console.error('SendGrid API key not configured')
-    throw new Error('Email service not configured')
-  }
-
-  const msg = {
-    to: email,
-    from: {
-      email: 'reset-password@onelastai.co',
-      name: 'One Last AI Security'
-    },
-    subject: '🔐 Reset Your Password - One Last AI',
-    html: getPasswordResetEmailTemplate(name, resetUrl),
+  const transporter = getSmtpTransporter()
+  
+  if (!transporter) {
+    console.log('[PASSWORD RESET EMAIL] SMTP not configured. Would send to:', email)
+    return
   }
 
   try {
-    await sgMail.send(msg)
+    await transporter.sendMail({
+      from: 'One Last AI Security <noreply@onelastai.co>',
+      to: email,
+      subject: '🔐 Reset Your Password - One Last AI',
+      html: getPasswordResetEmailTemplate(name, resetUrl),
+    })
     console.log(`✅ Password reset email sent to ${email}`)
   } catch (error: any) {
-    console.error('❌ Failed to send password reset email:', error.response?.body || error.message)
-    throw error
+    console.error('❌ Failed to send password reset email:', error.message)
   }
 }
 

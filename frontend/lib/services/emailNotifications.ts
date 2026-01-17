@@ -1,26 +1,25 @@
 /**
  * Email Notification Service for Support Tickets
  * 
- * Uses Nodemailer with SMTP or can be configured for:
- * - SendGrid
- * - AWS SES
- * - Resend
- * - Mailgun
+ * Uses Nodemailer with Namecheap Private Email SMTP
  */
 
 import nodemailer from 'nodemailer';
 
-// Email configuration from environment
+// Email configuration from environment (Namecheap Private Email)
 const EMAIL_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || 'mail.privateemail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
+  secure: false, // Use STARTTLS
   auth: {
-    user: process.env.SMTP_USER || '',
+    user: process.env.SMTP_USER || 'noreply@onelastai.co',
     pass: process.env.SMTP_PASS || '',
   },
-  from: process.env.SMTP_FROM || 'One Last AI Support <support@onelastai.co>',
+  from: process.env.SMTP_FROM || 'One Last AI <noreply@onelastai.co>',
 };
+
+// Admin email for notifications
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.co';
 
 // Create transporter
 let transporter: nodemailer.Transporter | null = null;
@@ -332,9 +331,6 @@ export async function sendSupportEmail(
 // =====================================================
 // Convenience Functions
 // =====================================================
-
-// Admin email for notifications
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'onelastai2.0@gmail.com';
 
 export async function notifyTicketCreated(data: TicketEmailData) {
   const template = getTicketCreatedEmail(data);
