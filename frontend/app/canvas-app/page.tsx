@@ -477,7 +477,7 @@ const ChatBox: React.FC<{
               I&apos;ll help you build your app. Tell me what you&apos;d like to create and I&apos;ll ask clarifying questions before we start building.
             </p>
           </div>
-        )}}
+        )}
 
         {messages.map((msg, i) => (
           <div
