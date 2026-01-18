@@ -1268,10 +1268,12 @@ function CanvasAppInner() {
         <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center shrink-0 border-r border-gray-700 relative">
           {/* Micro Logo at Top */}
           <div className="pt-3 pb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+            <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
+              <img 
+                src="/images/logos/company-logo.png" 
+                alt="OneLast.AI" 
+                className="w-9 h-9 object-contain"
+              />
             </div>
           </div>
           
