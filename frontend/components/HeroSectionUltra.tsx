@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Product screenshots - just images, no overlays needed
+// Product screenshots that will fly around
 const productScreenshots = [
   { id: 'canvas', image: '/images/products/canvas.jpeg' },
   { id: 'api-tester', image: '/images/products/api-tester.jpeg' },
@@ -20,48 +20,101 @@ const productScreenshots = [
   { id: 'neural-art', image: '/images/products/neural-art.jpeg' },
 ];
 
-// Full screen card animation configs - one at a time, covering screen
-const fullscreenConfigs = [
-  { delay: 0, duration: 8 },
-  { delay: 8, duration: 8 },
-  { delay: 16, duration: 8 },
-  { delay: 24, duration: 8 },
-  { delay: 32, duration: 8 },
-  { delay: 40, duration: 8 },
-  { delay: 48, duration: 8 },
-  { delay: 56, duration: 8 },
-  { delay: 64, duration: 8 },
-  { delay: 72, duration: 8 },
-  { delay: 80, duration: 8 },
-  { delay: 88, duration: 8 },
+// Duplicate for 30 cards
+const expandedProducts = [
+  ...productScreenshots,
+  ...productScreenshots.map((p, i) => ({ ...p, id: `${p.id}-alt1` })),
+  ...productScreenshots.slice(0, 6).map((p, i) => ({ ...p, id: `${p.id}-alt2` })),
 ];
 
-// Full screen product card - just the image, no overlays
-function FullScreenCard({ 
+// 30 animation configurations - mix of directions with ENHANCED zoom pass
+const animationConfigs = [
+  { direction: 'zoom-pass', duration: 12, delay: 0, startY: '15%', size: 'large' },
+  { direction: 'left-to-right', duration: 22, delay: 1, startY: '8%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 14, delay: 2, startY: '35%', size: 'large' },
+  { direction: 'right-to-left', duration: 18, delay: 0.5, startY: '20%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 11, delay: 3, startY: '55%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 26, delay: 1.5, startX: '12%', size: 'small' },
+  { direction: 'zoom-pass', duration: 13, delay: 4, startY: '75%', size: 'large' },
+  { direction: 'bottom-to-top', duration: 20, delay: 2, startX: '85%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 15, delay: 5, startY: '45%', size: 'large' },
+  { direction: 'left-to-right', duration: 24, delay: 3, startY: '65%', size: 'small' },
+  { direction: 'zoom-pass', duration: 10, delay: 6, startY: '25%', size: 'large' },
+  { direction: 'right-to-left', duration: 16, delay: 4, startY: '88%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 12, delay: 7, startY: '5%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 30, delay: 5, startX: '72%', size: 'small' },
+  { direction: 'zoom-pass', duration: 14, delay: 8, startY: '60%', size: 'large' },
+  { direction: 'bottom-to-top', duration: 21, delay: 6, startX: '28%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 11, delay: 9, startY: '80%', size: 'large' },
+  { direction: 'left-to-right', duration: 28, delay: 7, startY: '40%', size: 'small' },
+  { direction: 'zoom-pass', duration: 13, delay: 10, startY: '10%', size: 'large' },
+  { direction: 'right-to-left', duration: 23, delay: 8, startY: '50%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 15, delay: 11, startY: '70%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 19, delay: 9, startX: '45%', size: 'small' },
+  { direction: 'zoom-pass', duration: 12, delay: 12, startY: '30%', size: 'large' },
+  { direction: 'bottom-to-top', duration: 25, delay: 10, startX: '62%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 14, delay: 13, startY: '85%', size: 'large' },
+  { direction: 'left-to-right', duration: 17, delay: 11, startY: '18%', size: 'small' },
+  { direction: 'zoom-pass', duration: 11, delay: 14, startY: '48%', size: 'large' },
+  { direction: 'right-to-left', duration: 27, delay: 12, startY: '72%', size: 'medium' },
+  { direction: 'zoom-pass', duration: 13, delay: 15, startY: '92%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 22, delay: 13, startX: '35%', size: 'small' },
+];
+
+// Product Card Component - flying screenshots (no terminal header overlay)
+function ProductCard({ 
   product, 
   config, 
   index 
 }: { 
-  product: typeof productScreenshots[0]; 
-  config: typeof fullscreenConfigs[0];
+  product: typeof expandedProducts[0]; 
+  config: typeof animationConfigs[0];
   index: number;
 }) {
+  const sizeClasses = {
+    small: 'w-32 h-24 md:w-44 md:h-32',
+    medium: 'w-44 h-32 md:w-56 md:h-40',
+    large: 'w-56 h-40 md:w-72 md:h-52',
+  };
+
+  const getAnimationClass = () => {
+    switch (config.direction) {
+      case 'left-to-right': return 'animate-float-right';
+      case 'right-to-left': return 'animate-float-left';
+      case 'top-to-bottom': return 'animate-float-down';
+      case 'bottom-to-top': return 'animate-float-up';
+      case 'zoom-pass': return 'animate-zoom-pass-close';
+      default: return 'animate-float-right';
+    }
+  };
+
+  const getPositionStyle = () => {
+    const style: React.CSSProperties = {
+      animationDuration: `${config.duration}s`,
+      animationDelay: `${config.delay}s`,
+      zIndex: config.direction === 'zoom-pass' ? 20 : config.size === 'large' ? 10 : config.size === 'medium' ? 5 : 1,
+    };
+    if (config.direction === 'left-to-right' || config.direction === 'right-to-left' || config.direction === 'zoom-pass') {
+      style.top = config.startY;
+    }
+    if (config.direction === 'top-to-bottom' || config.direction === 'bottom-to-top') {
+      style.left = config.startX;
+    }
+    return style;
+  };
+
   return (
     <div
-      className="absolute inset-0 w-full h-full animate-fullscreen-pass"
-      style={{
-        animationDuration: `${config.duration}s`,
-        animationDelay: `${config.delay}s`,
-        zIndex: index,
-      }}
+      className={`absolute ${sizeClasses[config.size as keyof typeof sizeClasses]} ${getAnimationClass()}`}
+      style={getPositionStyle()}
     >
-      <div className="w-full h-full relative">
+      <div className="w-full h-full rounded-xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-sm relative">
         <Image
           src={product.image}
           alt={`Product ${index + 1}`}
           fill
           className="object-cover"
-          priority={index < 3}
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
         />
       </div>
     </div>
@@ -162,14 +215,14 @@ export default function HeroSectionUltra() {
         </div>
       )}
 
-      {/* FULL SCREEN flying product cards - one at a time, covering entire screen */}
+      {/* Flying product cards - 30 cards with zoom-pass effect coming CLOSE to screen */}
       {mounted && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {productScreenshots.map((product, index) => (
-            <FullScreenCard
+          {expandedProducts.map((product, index) => (
+            <ProductCard
               key={product.id}
               product={product}
-              config={fullscreenConfigs[index]}
+              config={animationConfigs[index % animationConfigs.length]}
               index={index}
             />
           ))}
