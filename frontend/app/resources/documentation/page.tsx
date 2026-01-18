@@ -32,6 +32,7 @@ export default function DocumentationPage() {
     { id: 'emma-emotional', name: 'Emma Emotional', description: 'Emotional Intelligence & Support - Empathetic listening and emotional guidance', avatar: '🤗', color: 'from-pink-500 to-rose-600' },
     { id: 'mrs-boss', name: 'Mrs Boss', description: 'Business & Management Expert - Leadership, strategy, and professional growth', avatar: '📊', color: 'from-slate-600 to-zinc-700' },
     { id: 'ben-sega', name: 'Ben Sega', description: 'Gaming & Retro Entertainment - Video games, retro classics, and gaming culture', avatar: '🎮', color: 'from-blue-500 to-indigo-600' },
+    { id: 'nid-gaming', name: 'Nid Gaming', description: 'Gaming Expert & Streamer - Game tips, streaming advice, and esports strategies', avatar: '🕹️', color: 'from-purple-500 to-pink-600' },
   ]
 
   const sections = {
@@ -43,14 +44,14 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to One Last AI</h3>
             <p className="text-gray-600 leading-relaxed">
-              One Last AI is a powerful platform that lets you interact with specialized AI agents for various purposes. Whether you need help with physics, cooking advice, emotional support, or entertainment, our 17 unique AI personalities are ready to assist you.
+              One Last AI is a powerful platform that lets you interact with specialized AI agents for various purposes. Whether you need help with physics, cooking advice, emotional support, or entertainment, our 18 unique AI personalities are ready to assist you.
             </p>
           </div>
 
           <div>
             <h4 className="text-xl font-bold text-gray-900 mb-3">Getting Your First Agent Running</h4>
             <ol className="space-y-3 list-decimal list-inside text-gray-600">
-              <li>Browse our library of 17 specialized AI agents</li>
+              <li>Browse our library of 18 specialized AI agents</li>
               <li>Choose an agent that matches your needs</li>
               <li>Start a conversation directly or use our API</li>
               <li>Use Studio for enhanced features and Canvas for code generation</li>
@@ -64,7 +65,7 @@ export default function DocumentationPage() {
                 <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 text-sm">🤖</span>
                 </span>
-                <div><strong className="text-gray-900">Agents:</strong> 17 pre-built AI personalities with specialized knowledge</div>
+                <div><strong className="text-gray-900">Agents:</strong> 18 pre-built AI personalities with specialized knowledge</div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -419,7 +420,7 @@ export default function DocumentationPage() {
             Developer Resources
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Documentation & Agents</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn everything about One Last AI and explore our 17 specialized AI agents</p>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn everything about One Last AI and explore our 18 specialized AI agents</p>
         </div>
       </section>
 
@@ -508,7 +509,7 @@ export default function DocumentationPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Browse our collection of 17 specialized AI agents or dive into our API documentation to start building.
+            Browse our collection of 18 specialized AI agents or dive into our API documentation to start building.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/agents" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">
