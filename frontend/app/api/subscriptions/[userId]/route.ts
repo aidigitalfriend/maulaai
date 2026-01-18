@@ -12,9 +12,11 @@ export async function GET(
 ) {
   try {
     const { userId } = await params;
+    console.log(`[/api/subscriptions/${userId}] Request received`);
 
     // Require authentication for subscription endpoints
     const authResult = verifyRequest(request);
+    console.log(`[/api/subscriptions/${userId}] Auth result:`, authResult.ok ? 'OK' : authResult.error);
     if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
     // Connect to database
@@ -29,6 +31,10 @@ export async function GET(
     }).sort({ createdAt: -1 }).lean();
 
     console.log(`[/api/subscriptions/${userId}] Found ${subscriptions.length} subscriptions`);
+    
+    // Log active ones for debugging
+    const activeSubs = subscriptions.filter((s: any) => s.status === 'active' && new Date(s.expiryDate) > new Date());
+    console.log(`[/api/subscriptions/${userId}] Active subscriptions: ${activeSubs.length}`);
 
     return NextResponse.json({
       success: true,
