@@ -653,7 +653,7 @@ const SubscriptionGate: React.FC<{ children: React.ReactNode }> = ({ children })
             Please sign in to access Canvas Builder.
           </p>
           <Link
-            href="/auth/signin"
+            href="/auth/login"
             className="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
           >
             Sign In

@@ -77,7 +77,7 @@ export default function Navigation() {
           {/* Right: Theme Toggle + Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            <Link href="/auth/signin" className="btn-ghost">
+            <Link href="/auth/login" className="btn-ghost">
               Sign In
             </Link>
             <Link href="/auth/signup" className="btn-primary">
@@ -130,7 +130,7 @@ export default function Navigation() {
             {/* Mobile Auth Section */}
             <div className="pt-4 border-t border-neural-200 mt-4">
               <Link
-                href="/auth/signin"
+                href="/auth/login"
                 className="nav-mobile-link flex items-center space-x-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
