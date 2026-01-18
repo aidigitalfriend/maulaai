@@ -39,7 +39,7 @@ export default function DiscordPage() {
               Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow One Last AI users worldwide.
             </p>
             <a
-              href="https://discord.gg/onelastai"
+              href="https://discord.gg/EXH6w9CH"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-purple-500/25"
@@ -290,7 +290,7 @@ export default function DiscordPage() {
             Don't miss out! Join our Discord server now and connect with thousands of AI enthusiasts and developers.
           </p>
           <a
-            href="https://discord.gg/onelastai"
+            href="https://discord.gg/EXH6w9CH"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-10 py-4 bg-white text-indigo-600 font-bold rounded-xl transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl"

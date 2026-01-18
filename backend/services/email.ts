@@ -324,7 +324,7 @@ export function getWelcomeEmailTemplate(userName: string): string {
         <a href="https://twitter.com/onelastai" class="social-link" title="Twitter">🐦</a>
         <a href="https://linkedin.com/company/onelastai" class="social-link" title="LinkedIn">💼</a>
         <a href="https://github.com/onelastai" class="social-link" title="GitHub">💻</a>
-        <a href="https://discord.gg/onelastai" class="social-link" title="Discord">💬</a>
+        <a href="https://discord.gg/EXH6w9CH" class="social-link" title="Discord">💬</a>
       </div>
 
       <div class="signature">
@@ -625,7 +625,7 @@ export function getPasswordResetEmailTemplate(userName: string, resetUrl: string
         <a href="https://twitter.com/onelastai" class="social-link" title="Twitter">🐦</a>
         <a href="https://linkedin.com/company/onelastai" class="social-link" title="LinkedIn">💼</a>
         <a href="https://github.com/onelastai" class="social-link" title="GitHub">💻</a>
-        <a href="https://discord.gg/onelastai" class="social-link" title="Discord">💬</a>
+        <a href="https://discord.gg/EXH6w9CH" class="social-link" title="Discord">💬</a>
       </div>
 
       <div class="signature">

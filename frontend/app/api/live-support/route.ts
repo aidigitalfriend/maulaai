@@ -167,7 +167,7 @@ const KNOWLEDGE_BASE = `
 - Twitter/X: @onelastai
 - Facebook: /onelastai
 - Instagram: @onelastai
-- Discord: discord.gg/onelastai
+- Discord: discord.gg/EXH6w9CH
 
 ## ❓ COMMON QUESTIONS
 
