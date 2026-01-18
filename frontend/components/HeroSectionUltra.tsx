@@ -139,6 +139,7 @@ function Snowflake({ style }: { style: React.CSSProperties }) {
 
 export default function HeroSectionUltra() {
   const [mounted, setMounted] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Generate snowflakes
   const snowflakes = useMemo(() => {
@@ -168,6 +169,14 @@ export default function HeroSectionUltra() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Change sticky image every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % productScreenshots.length);
+    }, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -235,10 +244,35 @@ export default function HeroSectionUltra() {
         </div>
       )}
 
-      {/* Center content - just buttons, no text */}
-      <div className="relative z-40 flex items-center justify-center min-h-screen px-4">
+      {/* Center content - sticky image above, buttons below */}
+      <div className="relative z-40 flex items-end justify-center min-h-screen px-4 pb-32">
         <div className="text-center">
-          {/* CTA Buttons - centered, no text above */}
+          {/* Sticky image that changes every 2 seconds - ABOVE buttons */}
+          <div className="mb-8 flex justify-center">
+            <div className="w-[500px] h-[320px] md:w-[700px] md:h-[450px] lg:w-[900px] lg:h-[550px] rounded-2xl overflow-hidden shadow-[0_30px_80px_-15px_rgba(0,0,0,0.9),0_15px_40px_-10px_rgba(0,0,0,0.7)] relative">
+              {productScreenshots.map((product, index) => (
+                <div
+                  key={product.id}
+                  className={`absolute inset-0 transition-opacity duration-500 ${
+                    index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <Image
+                    src={product.image}
+                    alt={`Product ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    priority={index < 3}
+                  />
+                </div>
+              ))}
+              {/* Dark overlay on edges */}
+              <div className="absolute inset-0 shadow-[inset_0_0_50px_20px_rgba(0,0,0,0.6)]"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/60 to-transparent"></div>
+            </div>
+          </div>
+
+          {/* CTA Buttons - moved DOWN */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/canvas-app"
