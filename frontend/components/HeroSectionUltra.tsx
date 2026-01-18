@@ -188,18 +188,28 @@ export default function HeroSectionUltra() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
       </div>
 
-      {/* Corner darkness vignette - all 4 corners - EXTRA DARK */}
+      {/* Corner darkness vignette - softer so cards are visible */}
       <div className="absolute inset-0 pointer-events-none z-30">
-        {/* Top-left corner */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
-        {/* Top-right corner */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
-        {/* Bottom-left corner */}
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
-        {/* Bottom-right corner */}
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
-        {/* Extra edge darkness */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.5)_100%)]"></div>
+        {/* Top-left corner - softer */}
+        <div className="absolute top-0 left-0 w-[350px] h-[350px] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-black/70 via-black/40 to-transparent"></div>
+        {/* Top-right corner - softer */}
+        <div className="absolute top-0 right-0 w-[350px] h-[350px] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-black/70 via-black/40 to-transparent"></div>
+        {/* Bottom-left corner - softer */}
+        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-black/60 via-black/30 to-transparent"></div>
+        {/* Bottom-right corner - softer */}
+        <div className="absolute bottom-0 right-0 w-[350px] h-[350px] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-black/60 via-black/30 to-transparent"></div>
+        {/* Subtle edge vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(0,0,0,0.3)_100%)]"></div>
+      </div>
+
+      {/* Torch lights from bottom corners - subtle glow */}
+      <div className="absolute inset-0 pointer-events-none z-25">
+        {/* Bottom-left torch light */}
+        <div className="absolute bottom-0 left-0 w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-500/15 via-purple-500/8 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[300px] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-400/12 via-transparent to-transparent"></div>
+        {/* Bottom-right torch light */}
+        <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-purple-500/15 via-indigo-500/8 to-transparent"></div>
+        <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-violet-400/12 via-transparent to-transparent"></div>
       </div>
 
       {/* Aurora/cosmic rays effect near logo (top-left) */}
