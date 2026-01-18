@@ -169,11 +169,9 @@ export default function LiveSupportPage() {
         return;
       }
 
-      // Fetch real user profile from backend
+      // Fetch real user profile from backend - cookie auth
       const profileResponse = await fetch(`/api/user/profile`, {
-        headers: {
-          Authorization: `Bearer ${auth.state.token}`,
-        },
+        credentials: 'include',  // Required to send session_id cookie for auth
       });
 
       // Fetch real subscription data - cookie auth via credentials: include
