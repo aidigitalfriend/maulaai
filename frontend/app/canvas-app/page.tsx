@@ -780,6 +780,9 @@ const SubscriptionGate: React.FC<{ children: React.ReactNode }> = ({ children })
 
 // Main Canvas App Component (Inner)
 function CanvasAppInner() {
+  const { state: authState } = useAuth();
+  const { subscriptions } = useSubscriptions();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState<ModelOption>(MODELS[0]);
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.PREVIEW);
@@ -1161,8 +1164,22 @@ function CanvasAppInner() {
     }
   };
 
+  // Check if user has required subscription
+  const hasRequiredSubscription = subscriptions.some(
+    (sub: AgentSubscription) =>
+      sub.status === 'active' &&
+      (sub.plan === 'weekly' || sub.plan === 'monthly') &&
+      new Date(sub.expiryDate) > new Date()
+  );
+
   // Main generate handler
   const handleGenerate = (instruction: string, isInitial: boolean = false) => {
+    // Check subscription before generating
+    if (!hasRequiredSubscription) {
+      setShowSubscriptionModal(true);
+      return;
+    }
+    
     if (useStreaming) {
       handleGenerateStream(instruction, isInitial);
     } else {
@@ -2336,6 +2353,50 @@ function CanvasAppInner() {
         </div>
       )}
 
+      {/* Subscription Required Modal */}
+      {showSubscriptionModal && (
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`rounded-3xl shadow-2xl max-w-md w-full overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Subscription Required</h2>
+              <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                AI-Powered App Generator
+              </p>
+              <div className={`rounded-xl p-4 mb-6 ${darkMode ? 'bg-amber-900/30 border border-amber-800' : 'bg-amber-50 border border-amber-200'}`}>
+                <p className={`text-sm ${darkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                  <strong>Weekly or Monthly subscription required.</strong><br />
+                  Subscribe to any AI Agent with a weekly or monthly plan to unlock Canvas Builder.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSubscriptionModal(false)}
+                  className={`flex-1 px-4 py-3 text-sm font-medium rounded-xl transition-colors ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                >
+                  Maybe Later
+                </button>
+                <Link
+                  href="/agents"
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors text-center"
+                >
+                  Browse AI Agents
+                </Link>
+              </div>
+              {!authState.isAuthenticated && (
+                <p className={`mt-4 text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Already subscribed? <Link href="/auth/login" className="text-indigo-500 hover:underline">Sign in</Link>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Error Toast */}
       {genState.error && (
         <div className={`fixed bottom-6 right-6 z-[100] max-w-sm p-4 border rounded-3xl shadow-2xl flex gap-4 items-start border-l-4 border-l-red-500 animate-slide-up ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-red-100'}`}>
@@ -2402,7 +2463,7 @@ function CanvasAppInner() {
   );
 }
 
-// Main Export with Subscription Gate and Suspense
+// Main Export - No auth gate, anyone can explore
 export default function CanvasAppPage() {
   return (
     <Suspense fallback={
@@ -2413,9 +2474,7 @@ export default function CanvasAppPage() {
         </div>
       </div>
     }>
-      <SubscriptionGate>
-        <CanvasAppInner />
-      </SubscriptionGate>
+      <CanvasAppInner />
     </Suspense>
   );
 }
