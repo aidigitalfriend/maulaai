@@ -219,24 +219,24 @@ export default function ApiTesterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neural-900 text-neutral-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <header className="bg-neural-800 border-b border-neural-700">
+      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
         <div className="container-custom py-6">
           <Link 
             href="/tools/network-tools"
-            className="inline-flex items-center gap-2 text-neutral-400 hover:text-neutral-100 mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-4 transition-colors"
           >
             <span></span>
             <span>Back to Network Tools</span>
           </Link>
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center">
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
               <Send className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold mb-2">API Tester</h1>
-              <p className="text-neural-300">Professional API testing with presets and advanced options</p>
+              <h1 className="text-3xl font-bold text-white mb-2">API Tester</h1>
+              <p className="text-blue-100">Professional API testing with presets and advanced options</p>
             </div>
           </div>
         </div>
@@ -373,7 +373,7 @@ export default function ApiTesterPage() {
               </div>
               <div className="space-y-2">
                 {queryParams.length === 0 ? (
-                  <p className="text-neural-400 text-sm">No query parameters</p>
+                  <p className="text-gray-500 text-sm">No query parameters</p>
                 ) : (
                   queryParams.map((param) => (
                     <div key={param.id} className="flex items-center gap-2">
@@ -423,7 +423,7 @@ export default function ApiTesterPage() {
               </div>
               <div className="space-y-2">
                 {headers.length === 0 ? (
-                  <p className="text-neural-400 text-sm">No custom headers</p>
+                  <p className="text-gray-500 text-sm">No custom headers</p>
                 ) : (
                   headers.map((header) => (
                     <div key={header.id} className="flex items-center gap-2">
@@ -555,7 +555,7 @@ export default function ApiTesterPage() {
                       {response.status} {response.statusText}
                     </span>
                     {response.time !== undefined && (
-                      <div className="flex items-center gap-1 text-sm text-neural-400">
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
                         <Clock className="w-4 h-4" />
                         {response.time}ms
                       </div>
@@ -564,31 +564,31 @@ export default function ApiTesterPage() {
 
                   {/* Response Body */}
                   <div>
-                    <h3 className="text-sm font-medium mb-2 text-neural-300">Body</h3>
-                    <pre className="bg-neural-800 rounded-lg p-4 overflow-auto max-h-96 text-sm">
+                    <h3 className="text-sm font-medium mb-2 text-gray-600">Body</h3>
+                    <pre className="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96 text-sm border border-gray-200">
                       <code>{JSON.stringify(response.data, null, 2)}</code>
                     </pre>
                   </div>
 
                   {/* Response Headers */}
                   <div>
-                    <h3 className="text-sm font-medium mb-2 text-neural-300">Headers</h3>
-                    <div className="bg-neural-800 rounded-lg p-4 space-y-1 text-sm max-h-48 overflow-auto">
+                    <h3 className="text-sm font-medium mb-2 text-gray-600">Headers</h3>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-1 text-sm max-h-48 overflow-auto border border-gray-200">
                       {response.headers && Object.keys(response.headers).length > 0 ? (
                         Object.entries(response.headers).map(([key, value]) => (
                           <div key={key} className="flex gap-2">
-                            <span className="text-violet-400 font-mono">{key}:</span>
-                            <span className="text-neural-300 font-mono break-all">{value}</span>
+                            <span className="text-violet-600 font-mono">{key}:</span>
+                            <span className="text-gray-600 font-mono break-all">{value}</span>
                           </div>
                         ))
                       ) : (
-                        <div className="text-neural-400 text-sm">No headers returned</div>
+                        <div className="text-gray-500 text-sm">No headers returned</div>
                       )}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12 text-neural-400">
+                <div className="text-center py-12 text-gray-500">
                   <Send className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Send a request to see the response</p>
                 </div>

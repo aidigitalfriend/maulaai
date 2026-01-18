@@ -54,15 +54,15 @@ export default function HashGeneratorPage(){
   }
 
   return (
-    <div className="min-h-screen bg-neural-900 text-white">
-      <header className="bg-neural-800 border-b border-neural-700">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
         <div className="container-custom py-6">
-          <Link href="/tools/developer-utils" className="text-neural-300 hover:text-white">← Back to Developer Utils</Link>
+          <Link href="/tools/developer-utils" className="text-blue-100 hover:text-white">← Back to Developer Utils</Link>
           <div className="mt-3 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center"><Hash className="w-6 h-6"/></div>
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Hash className="w-6 h-6 text-white"/></div>
             <div>
-              <h1 className="text-2xl font-bold">Hash Generator</h1>
-              <p className="text-neural-300">Generate MD5, SHA-1, SHA-256, SHA-512 and optional HMAC (SHA-256)</p>
+              <h1 className="text-2xl font-bold text-white">Hash Generator</h1>
+              <p className="text-blue-100">Generate MD5, SHA-1, SHA-256, SHA-512 and optional HMAC (SHA-256)</p>
             </div>
           </div>
         </div>
@@ -70,27 +70,27 @@ export default function HashGeneratorPage(){
 
       <main className="container-custom py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="card-modern p-4 lg:col-span-1">
-            <h2 className="font-semibold mb-2">Input</h2>
-            <textarea className="input-modern w-full h-40 font-mono text-sm" value={text} onChange={(e)=>setText(e.target.value)} placeholder="Type or paste text"/>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 lg:col-span-1">
+            <h2 className="font-semibold text-gray-900 mb-2">Input</h2>
+            <textarea className="w-full h-40 font-mono text-sm bg-white border border-gray-300 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={text} onChange={(e)=>setText(e.target.value)} placeholder="Type or paste text"/>
             <div className="mt-3 flex items-center gap-3">
-              <label className="btn-secondary cursor-pointer"><Upload className="w-4 h-4 mr-1"/> Choose File<input type="file" className="hidden" onChange={(e)=> setFile(e.target.files?.[0] || null) }/></label>
-              {file && <span className="text-neural-300 text-sm">{file.name} ({Math.round(file.size/1024)} KB)</span>}
+              <label className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center cursor-pointer"><Upload className="w-4 h-4 mr-1"/> Choose File<input type="file" className="hidden" onChange={(e)=> setFile(e.target.files?.[0] || null) }/></label>
+              {file && <span className="text-gray-600 text-sm">{file.name} ({Math.round(file.size/1024)} KB)</span>}
             </div>
             <div className="mt-4">
-              <label className="text-sm text-neural-300">HMAC Key (optional)</label>
-              <input className="input-modern w-full" value={key} onChange={(e)=>setKey(e.target.value)} placeholder="Enter key for HMAC (SHA-256)"/>
+              <label className="text-sm text-gray-600">HMAC Key (optional)</label>
+              <input className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={key} onChange={(e)=>setKey(e.target.value)} placeholder="Enter key for HMAC (SHA-256)"/>
             </div>
           </div>
 
           <div className="lg:col-span-2 space-y-3">
             {['MD5','SHA-1','SHA-256','SHA-512','HMAC-SHA256'].map(lbl => (
-              <div key={lbl} className="card-modern p-4 flex items-center justify-between">
+              <div key={lbl} className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-neural-400">{lbl}</div>
-                  <div className="font-mono break-all">{results[lbl] || (loading ? 'Calculating…' : '—')}</div>
+                  <div className="text-sm text-gray-500">{lbl}</div>
+                  <div className="font-mono text-gray-900 break-all">{results[lbl] || (loading ? 'Calculating…' : '—')}</div>
                 </div>
-                <button className="btn-secondary" disabled={!results[lbl]} onClick={()=>copy(lbl, results[lbl])}>
+                <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center disabled:opacity-50" disabled={!results[lbl]} onClick={()=>copy(lbl, results[lbl])}>
                   {copiedField===lbl ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy
                 </button>
               </div>

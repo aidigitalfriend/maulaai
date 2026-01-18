@@ -61,45 +61,45 @@ export default function Base64ToolPage(){
   const copy = async () => { await navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),1200) }
 
   return (
-    <div className="min-h-screen bg-neural-900 text-white">
-      <header className="bg-neural-800 border-b border-neural-700">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
         <div className="container-custom py-6">
-          <Link href="/tools/developer-utils" className="text-neural-300 hover:text-white">← Back to Developer Utils</Link>
+          <Link href="/tools/developer-utils" className="text-blue-100 hover:text-white">← Back to Developer Utils</Link>
           <div className="mt-3 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"><Binary className="w-6 h-6"/></div>
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Binary className="w-6 h-6 text-white"/></div>
             <div>
-              <h1 className="text-2xl font-bold">Base64 Encoder / Decoder</h1>
-              <p className="text-neural-300">Convert text and files to and from Base64 with URL-safe and padding options</p>
+              <h1 className="text-2xl font-bold text-white">Base64 Encoder / Decoder</h1>
+              <p className="text-blue-100">Convert text and files to and from Base64 with URL-safe and padding options</p>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container-custom py-8">
-        <div className="card-modern p-4 mb-4 flex items-center gap-3 flex-wrap">
-          <select className="input-modern" value={mode} onChange={(e)=>{setMode(e.target.value as any); setOutput('');}}>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 mb-4 flex items-center gap-3 flex-wrap">
+          <select className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={mode} onChange={(e)=>{setMode(e.target.value as any); setOutput('');}}>
             <option value="encode">Encode</option>
             <option value="decode">Decode</option>
           </select>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={urlSafe} onChange={e=>{setUrlSafe(e.target.checked); process(input)}}/> URL Safe</label>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={noPadding} onChange={e=>{setNoPadding(e.target.checked); process(input)}}/> No padding</label>
-          <button className="btn-secondary" onClick={()=>{setInput(''); setOutput('')}}><RefreshCw className="w-4 h-4 mr-1"/>Reset</button>
-          <label className="btn-secondary cursor-pointer"><Upload className="w-4 h-4 mr-1"/> Choose File<input type="file" className="hidden" onChange={(e)=> e.target.files && onFile(e.target.files[0])}/></label>
+          <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={urlSafe} onChange={e=>{setUrlSafe(e.target.checked); process(input)}}/> URL Safe</label>
+          <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={noPadding} onChange={e=>{setNoPadding(e.target.checked); process(input)}}/> No padding</label>
+          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center" onClick={()=>{setInput(''); setOutput('')}}><RefreshCw className="w-4 h-4 mr-1"/>Reset</button>
+          <label className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center cursor-pointer"><Upload className="w-4 h-4 mr-1"/> Choose File<input type="file" className="hidden" onChange={(e)=> e.target.files && onFile(e.target.files[0])}/></label>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card-modern p-4">
-            <h2 className="font-semibold mb-2">Input</h2>
-            <textarea className="input-modern w-full h-72 font-mono text-sm" value={input} onChange={(e)=>{setInput(e.target.value); process(e.target.value)}} placeholder={mode==='encode' ? 'Type or paste text to encode' : 'Paste Base64 to decode'}/>
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
+            <h2 className="font-semibold text-gray-900 mb-2">Input</h2>
+            <textarea className="w-full h-72 font-mono text-sm bg-white border border-gray-300 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={input} onChange={(e)=>{setInput(e.target.value); process(e.target.value)}} placeholder={mode==='encode' ? 'Type or paste text to encode' : 'Paste Base64 to decode'}/>
           </div>
-          <div className="card-modern p-4 lg:sticky lg:top-6 lg:h-fit">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 lg:sticky lg:top-6 lg:h-fit">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="font-semibold">Output</h2>
-              <button className="btn-secondary" disabled={!output} onClick={copy}>{copied ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy</button>
+              <h2 className="font-semibold text-gray-900">Output</h2>
+              <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center disabled:opacity-50" disabled={!output} onClick={copy}>{copied ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy</button>
             </div>
-            <textarea className="input-modern w-full h-72 font-mono text-sm" value={output} readOnly/>
+            <textarea className="w-full h-72 font-mono text-sm bg-gray-50 border border-gray-300 rounded-lg p-3 text-gray-900" value={output} readOnly/>
             {mode==='decode' && output && !output.startsWith('Error:') && (
-              <button className="btn-primary mt-3" onClick={()=>onFile(new File([], 'decoded.bin'))}><Download className="w-4 h-4 mr-1"/>Download decoded</button>
+              <button className="mt-3 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-lg shadow-blue-500/25 transition-all flex items-center" onClick={()=>onFile(new File([], 'decoded.bin'))}><Download className="w-4 h-4 mr-1"/>Download decoded</button>
             )}
           </div>
         </div>

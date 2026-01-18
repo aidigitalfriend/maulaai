@@ -43,51 +43,51 @@ export default function RegexTesterPage(){
   const copy = async ()=> { await navigator.clipboard.writeText(matches.map(m=>m[0]).join('\n')); setCopied(true); setTimeout(()=>setCopied(false), 1200) }
 
   return (
-    <div className="min-h-screen bg-neural-900 text-white">
-      <header className="bg-neural-800 border-b border-neural-700">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
         <div className="container-custom py-6">
-          <Link href="/tools/developer-utils" className="text-neural-300 hover:text-white">← Back to Developer Utils</Link>
+          <Link href="/tools/developer-utils" className="text-blue-100 hover:text-white">← Back to Developer Utils</Link>
           <div className="mt-3 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-green-500 flex items-center justify-center"><Code2 className="w-6 h-6"/></div>
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Code2 className="w-6 h-6 text-white"/></div>
             <div>
-              <h1 className="text-2xl font-bold">Regex Tester</h1>
-              <p className="text-neural-300">Test and debug regular expressions with live matches, groups, and replace preview</p>
+              <h1 className="text-2xl font-bold text-white">Regex Tester</h1>
+              <p className="text-blue-100">Test and debug regular expressions with live matches, groups, and replace preview</p>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container-custom py-8">
-        <div className="card-modern p-4 mb-4 flex items-center gap-3 flex-wrap">
-          <input className="input-modern flex-1" value={pattern} onChange={(e)=>setPattern(e.target.value)} placeholder="Pattern e.g. foo(.*)bar"/>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 mb-4 flex items-center gap-3 flex-wrap">
+          <input className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={pattern} onChange={(e)=>setPattern(e.target.value)} placeholder="Pattern e.g. foo(.*)bar"/>
           {(['g','i','m','s','u'] as const).map(f => (
-            <label key={f} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={(flags as any)[f]} onChange={(e)=>setFlags({...flags, [f]: e.target.checked})}/> {f}</label>
+            <label key={f} className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={(flags as any)[f]} onChange={(e)=>setFlags({...flags, [f]: e.target.checked})}/> {f}</label>
           ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card-modern p-4">
-            <h2 className="font-semibold mb-2">Test Text</h2>
-            <textarea className="input-modern w-full h-72 font-mono text-sm" value={text} onChange={(e)=>setText(e.target.value)} />
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
+            <h2 className="font-semibold text-gray-900 mb-2">Test Text</h2>
+            <textarea className="w-full h-72 font-mono text-sm bg-white border border-gray-300 rounded-lg p-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={text} onChange={(e)=>setText(e.target.value)} />
           </div>
           <div className="space-y-4">
-            <div className="card-modern p-4">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-semibold">Matches ({matches.length})</h2>
-                <button className="btn-secondary" disabled={!matches.length} onClick={copy}>{copied ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy</button>
+                <h2 className="font-semibold text-gray-900">Matches ({matches.length})</h2>
+                <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center disabled:opacity-50" disabled={!matches.length} onClick={copy}>{copied ? <Check className="w-4 h-4 mr-1"/> : <Copy className="w-4 h-4 mr-1"/>}Copy</button>
               </div>
-              <div className="prose prose-invert max-w-none">
-                <pre className="whitespace-pre-wrap break-words">{regex ? highlight(text, regex) : text}</pre>
+              <div className="prose max-w-none">
+                <pre className="whitespace-pre-wrap break-words bg-gray-50 rounded-lg p-3 text-gray-900">{regex ? highlight(text, regex) : text}</pre>
               </div>
             </div>
-            <div className="card-modern p-4">
-              <h2 className="font-semibold mb-2">Groups</h2>
-              {!matches.length ? <div className="text-neural-400 text-sm">No groups</div> : (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
+              <h2 className="font-semibold text-gray-900 mb-2">Groups</h2>
+              {!matches.length ? <div className="text-gray-500 text-sm">No groups</div> : (
                 <div className="space-y-2">
                   {matches.map((m, idx)=> (
-                    <div key={idx} className="bg-neural-800 rounded p-2 text-sm font-mono overflow-auto">
+                    <div key={idx} className="bg-gray-50 border border-gray-200 rounded p-2 text-sm font-mono overflow-auto">
                       {Array.from(m).map((g,i)=> (
-                        <div key={i}><span className="text-violet-400">${'{'}{i}{'}'}</span>: {g ?? '—'}</div>
+                        <div key={i} className="text-gray-900"><span className="text-blue-600">${'{'}{i}{'}'}</span>: {g ?? '—'}</div>
                       ))}
                     </div>
                   ))}

@@ -56,57 +56,61 @@ export default function TraceroutePage() {
   }
 
   const getRttColor = (rtt?: number) => {
-    if (!rtt) return 'text-neural-400'
-    if (rtt < 50) return 'text-green-400'
-    if (rtt < 100) return 'text-yellow-400'
-    if (rtt < 200) return 'text-orange-400'
-    return 'text-red-400'
+    if (!rtt) return 'text-gray-400'
+    if (rtt < 50) return 'text-green-600'
+    if (rtt < 100) return 'text-yellow-600'
+    if (rtt < 200) return 'text-orange-600'
+    return 'text-red-600'
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-      <div className="container-custom py-12">
-        {/* Back Button */}
-        <Link 
-          href="/tools/network-tools"
-          className="inline-flex items-center gap-2 text-neural-300 hover:text-white mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Network Tools
-        </Link>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header */}
+      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+        <div className="container-custom py-8">
+          <Link 
+            href="/tools/network-tools"
+            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Network Tools
+          </Link>
 
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
-              <RouteIcon className="w-10 h-10 text-white" />
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <RouteIcon className="w-10 h-10 text-white" />
+              </div>
             </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+              <span className="text-yellow-200">Traceroute</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              Trace the network path to a destination
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-gradient bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent">Traceroute</span>
-          </h1>
-          <p className="text-xl text-neural-300 max-w-2xl mx-auto">
-            Trace the network path to a destination
-          </p>
         </div>
+      </header>
+
+      <main className="container-custom py-12">
 
         {/* Traceroute Form */}
         <div className="max-w-3xl mx-auto mb-12">
           <form onSubmit={handleTraceroute} className="relative">
             <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neural-400" />
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 value={host}
                 onChange={(e) => setHost(e.target.value)}
                 placeholder="Enter hostname or IP address (e.g., google.com)"
-                className="w-full pl-12 pr-32 py-4 bg-neural-800 border-2 border-neural-700 rounded-xl text-white placeholder-neural-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 transition-all outline-none"
+                className="w-full pl-12 pr-32 py-4 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all outline-none shadow-lg"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading || !host.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 disabled:from-neural-700 disabled:to-neural-700 rounded-lg font-semibold transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-300 rounded-lg font-semibold text-white transition-all flex items-center gap-2 disabled:cursor-not-allowed shadow-lg shadow-yellow-500/25"
               >
                 {loading ? (
                   <>
@@ -124,9 +128,9 @@ export default function TraceroutePage() {
           </form>
 
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-200">{error}</p>
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-red-700">{error}</p>
             </div>
           )}
         </div>
@@ -135,20 +139,20 @@ export default function TraceroutePage() {
         {result && (
           <div className="max-w-5xl mx-auto space-y-6">
             {/* Destination Card */}
-            <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 rounded-2xl p-6 border border-yellow-500/20">
+            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-2">Destination</h2>
-                  <p className="text-2xl font-mono text-white">{result.destination}</p>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Destination</h2>
+                  <p className="text-2xl font-mono text-gray-900">{result.destination}</p>
                 </div>
                 <div className="flex gap-4">
-                  <div className="text-center px-6 py-3 bg-yellow-500/20 rounded-xl">
-                    <p className="text-sm text-neural-300 mb-1">Total Hops</p>
-                    <p className="text-2xl font-bold text-yellow-400">{result.hops.length}</p>
+                  <div className="text-center px-6 py-3 bg-yellow-100 rounded-xl">
+                    <p className="text-sm text-gray-600 mb-1">Total Hops</p>
+                    <p className="text-2xl font-bold text-yellow-600">{result.hops.length}</p>
                   </div>
-                  <div className={`text-center px-6 py-3 ${result.completed ? 'bg-green-500/20' : 'bg-red-500/20'} rounded-xl`}>
-                    <p className="text-sm text-neural-300 mb-1">Status</p>
-                    <p className={`text-sm font-bold ${result.completed ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className={`text-center px-6 py-3 ${result.completed ? 'bg-green-100' : 'bg-red-100'} rounded-xl`}>
+                    <p className="text-sm text-gray-600 mb-1">Status</p>
+                    <p className={`text-sm font-bold ${result.completed ? 'text-green-600' : 'text-red-600'}`}>
                       {result.completed ? 'Completed' : 'Incomplete'}
                     </p>
                   </div>
@@ -157,26 +161,26 @@ export default function TraceroutePage() {
             </div>
 
             {/* Hops */}
-            <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">
-              <h3 className="text-lg font-semibold text-white mb-6">Route Hops</h3>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Route Hops</h3>
               <div className="space-y-3">
                 {result.hops.map((hop, idx) => (
-                  <div key={idx} className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/50">
+                  <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="flex-shrink-0 w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                          <span className="text-yellow-400 font-bold">{hop.hop}</span>
+                        <div className="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                          <span className="text-yellow-600 font-bold">{hop.hop}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           {hop.ip ? (
                             <>
-                              <p className="text-white font-mono text-sm truncate">{hop.ip}</p>
+                              <p className="text-gray-900 font-mono text-sm truncate">{hop.ip}</p>
                               {hop.hostname && hop.hostname !== hop.ip && (
-                                <p className="text-neural-400 text-xs mt-1 truncate">{hop.hostname}</p>
+                                <p className="text-gray-500 text-xs mt-1 truncate">{hop.hostname}</p>
                               )}
                             </>
                           ) : (
-                            <p className="text-neural-500 text-sm">* * * Request timed out</p>
+                            <p className="text-gray-400 text-sm">* * * Request timed out</p>
                           )}
                         </div>
                       </div>
@@ -184,7 +188,7 @@ export default function TraceroutePage() {
                       {hop.avgRtt && (
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-xs text-neural-400 mb-1">Round Trip Time</p>
+                            <p className="text-xs text-gray-500 mb-1">Round Trip Time</p>
                             <div className="flex gap-2">
                               {hop.rtt1 && (
                                 <span className={`text-sm font-mono ${getRttColor(hop.rtt1)}`}>
@@ -203,8 +207,8 @@ export default function TraceroutePage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex-shrink-0 text-center px-4 py-2 bg-neural-800 rounded-lg">
-                            <p className="text-xs text-neural-400 mb-1">Avg</p>
+                          <div className="flex-shrink-0 text-center px-4 py-2 bg-white border border-gray-200 rounded-lg">
+                            <p className="text-xs text-gray-500 mb-1">Avg</p>
                             <p className={`text-lg font-bold ${getRttColor(hop.avgRtt)}`}>
                               {hop.avgRtt.toFixed(1)}ms
                             </p>
@@ -222,9 +226,9 @@ export default function TraceroutePage() {
         {/* Info Section */}
         {!result && !loading && (
           <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">
-              <h3 className="text-lg font-semibold text-white mb-4">About Traceroute</h3>
-              <div className="space-y-3 text-neural-300">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">About Traceroute</h3>
+              <div className="space-y-3 text-gray-600">
                 <p>Traceroute shows the path network packets take to reach a destination. This tool helps you:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Identify the route to a destination</li>
@@ -233,8 +237,8 @@ export default function TraceroutePage() {
                   <li>Measure latency at each hop</li>
                   <li>Identify routing problems</li>
                 </ul>
-                <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                  <p className="text-sm text-yellow-200">
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-700">
                     <strong>Note:</strong> Some routers may not respond to traceroute requests, resulting in timeouts (*).
                   </p>
                 </div>
@@ -242,7 +246,7 @@ export default function TraceroutePage() {
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

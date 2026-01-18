@@ -63,29 +63,29 @@ export default function DnsLookupPage() {
     if (!records || records.length === 0) return null
 
     return (
-      <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-green-400" />
+      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 text-green-500" />
           {title} Records
         </h3>
         <div className="space-y-3">
           {records.map((record, idx) => (
-            <div key={idx} className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/50">
+            <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-neural-400 mb-1">Value</p>
-                  <p className="text-white font-mono text-sm break-all">{record.value}</p>
+                  <p className="text-sm text-gray-500 mb-1">Value</p>
+                  <p className="text-gray-900 font-mono text-sm break-all">{record.value}</p>
                 </div>
                 {record.ttl && (
                   <div className="flex-shrink-0">
-                    <p className="text-sm text-neural-400 mb-1">TTL</p>
-                    <p className="text-brand-400 font-semibold">{record.ttl}s</p>
+                    <p className="text-sm text-gray-500 mb-1">TTL</p>
+                    <p className="text-blue-600 font-semibold">{record.ttl}s</p>
                   </div>
                 )}
                 {record.priority !== undefined && (
                   <div className="flex-shrink-0">
-                    <p className="text-sm text-neural-400 mb-1">Priority</p>
-                    <p className="text-brand-400 font-semibold">{record.priority}</p>
+                    <p className="text-sm text-gray-500 mb-1">Priority</p>
+                    <p className="text-blue-600 font-semibold">{record.priority}</p>
                   </div>
                 )}
               </div>
@@ -97,49 +97,54 @@ export default function DnsLookupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-      <div className="container-custom py-12">
-        {/* Back Button */}
-        <Link 
-          href="/tools/network-tools"
-          className="inline-flex items-center gap-2 text-neural-300 hover:text-white mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Network Tools
-        </Link>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-12">
+        <div className="container-custom">
+          <Link 
+            href="/tools/network-tools"
+            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Network Tools
+          </Link>
 
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <Globe className="w-10 h-10 text-white" />
+          {/* Header */}
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <Globe className="w-10 h-10 text-white" />
+              </div>
             </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+              DNS <span className="text-blue-100">Lookup</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              Perform DNS queries and check domain name system records
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            DNS <span className="text-gradient bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Lookup</span>
-          </h1>
-          <p className="text-xl text-neural-300 max-w-2xl mx-auto">
-            Perform DNS queries and check domain name system records
-          </p>
         </div>
+      </div>
+
+      <div className="container-custom py-12">
 
         {/* Search Form */}
         <div className="max-w-3xl mx-auto mb-12">
           <form onSubmit={handleLookup} className="relative">
-            <div className="relative">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neural-400" />
+            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+              <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
                 placeholder="Enter domain name (e.g., example.com)"
-                className="w-full pl-12 pr-32 py-4 bg-neural-800 border-2 border-neural-700 rounded-xl text-white placeholder-neural-500 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20 transition-all outline-none"
+                className="w-full pl-12 pr-32 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading || !domain.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-neural-700 disabled:to-neural-700 rounded-lg font-semibold transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -157,9 +162,9 @@ export default function DnsLookupPage() {
           </form>
 
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-200">{error}</p>
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-red-700">{error}</p>
             </div>
           )}
         </div>
@@ -168,12 +173,12 @@ export default function DnsLookupPage() {
         {result && (
           <div className="max-w-5xl mx-auto space-y-6">
             {/* Domain Info */}
-            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/20">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
               <div className="flex items-center gap-3 mb-2">
-                <Info className="w-5 h-5 text-purple-400" />
-                <h2 className="text-xl font-bold text-white">Domain Information</h2>
+                <Info className="w-5 h-5 text-blue-600" />
+                <h2 className="text-xl font-bold text-gray-900">Domain Information</h2>
               </div>
-              <p className="text-2xl font-mono text-white">{result.domain}</p>
+              <p className="text-2xl font-mono text-gray-900">{result.domain}</p>
             </div>
 
             {/* DNS Records */}
@@ -186,16 +191,16 @@ export default function DnsLookupPage() {
 
             {/* SOA Record */}
             {result.records.SOA && (
-              <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" />
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                   SOA (Start of Authority) Record
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Object.entries(result.records.SOA).map(([key, value]) => (
-                    <div key={key} className="bg-neural-900/50 rounded-lg p-4 border border-neural-700/50">
-                      <p className="text-sm text-neural-400 mb-1">{key}</p>
-                      <p className="text-white font-mono text-sm">{String(value)}</p>
+                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <p className="text-sm text-gray-500 mb-1">{key}</p>
+                      <p className="text-gray-900 font-mono text-sm">{String(value)}</p>
                     </div>
                   ))}
                 </div>
@@ -207,9 +212,9 @@ export default function DnsLookupPage() {
         {/* Info Section */}
         {!result && !loading && (
           <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-neural-800/50 rounded-xl p-6 border border-neural-700">
-              <h3 className="text-lg font-semibold text-white mb-4">About DNS Lookup</h3>
-              <div className="space-y-3 text-neural-300">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">About DNS Lookup</h3>
+              <div className="space-y-3 text-gray-600">
                 <p>DNS (Domain Name System) translates human-readable domain names into IP addresses. This tool helps you:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Query A, AAAA, MX, NS, TXT, and CNAME records</li>

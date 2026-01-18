@@ -53,15 +53,15 @@ export default function ColorPickerPage(){
   const copy = async (text:string, label:string)=>{ await navigator.clipboard.writeText(text); setCopied(label); setTimeout(()=>setCopied(''),1200)}
 
   return (
-    <div className="min-h-screen bg-neural-900 text-white">
-      <header className="bg-neural-800 border-b border-neural-700">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
         <div className="container-custom py-6">
-          <Link href="/tools/developer-utils" className="text-neural-300 hover:text-white">← Back to Developer Utils</Link>
+          <Link href="/tools/developer-utils" className="text-blue-100 hover:text-white">← Back to Developer Utils</Link>
           <div className="mt-3 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center"><Palette className="w-6 h-6"/></div>
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Palette className="w-6 h-6 text-white"/></div>
             <div>
-              <h1 className="text-2xl font-bold">Color Picker</h1>
-              <p className="text-neural-300">Pick colors and convert between HEX, RGB, and HSL</p>
+              <h1 className="text-2xl font-bold text-white">Color Picker</h1>
+              <p className="text-blue-100">Pick colors and convert between HEX, RGB, and HSL</p>
             </div>
           </div>
         </div>
@@ -69,37 +69,37 @@ export default function ColorPickerPage(){
 
       <main className="container-custom py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="card-modern p-4">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4">
             <div className="flex items-center gap-4">
               <input type="color" value={hex} onChange={(e)=>setHex(e.target.value)} className="w-16 h-16 rounded-md bg-transparent"/>
               <div>
-                <div className="text-sm text-neural-300">Preview</div>
+                <div className="text-sm text-gray-600">Preview</div>
                 <div className="w-40 h-8 rounded-md" style={{background: hex}}/>
               </div>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div className="card-modern p-4 flex items-center gap-3">
-              <div className="w-20 text-sm text-neural-300">HEX</div>
-              <input className="input-modern flex-1" value={hex} onChange={(e)=>setHex(e.target.value)} />
-              <button className="btn-secondary" onClick={()=>copy(hex,'hex')}>{copied==='hex'?<Check className="w-4 h-4 mr-1"/>:<Copy className="w-4 h-4 mr-1"/>}Copy</button>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 flex items-center gap-3">
+              <div className="w-20 text-sm text-gray-600">HEX</div>
+              <input className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={hex} onChange={(e)=>setHex(e.target.value)} />
+              <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center" onClick={()=>copy(hex,'hex')}>{copied==='hex'?<Check className="w-4 h-4 mr-1"/>:<Copy className="w-4 h-4 mr-1"/>}Copy</button>
             </div>
 
-            <div className="card-modern p-4 flex items-center gap-3 flex-wrap">
-              <div className="w-20 text-sm text-neural-300">RGB</div>
-              <input className="input-modern w-24" value={rgb.r} onChange={(e)=>setFromRgb(parseInt(e.target.value||'0'), rgb.g, rgb.b)} />
-              <input className="input-modern w-24" value={rgb.g} onChange={(e)=>setFromRgb(rgb.r, parseInt(e.target.value||'0'), rgb.b)} />
-              <input className="input-modern w-24" value={rgb.b} onChange={(e)=>setFromRgb(rgb.r, rgb.g, parseInt(e.target.value||'0'))} />
-              <button className="btn-secondary" onClick={()=>copy(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,'rgb')}>{copied==='rgb'?<Check className="w-4 h-4 mr-1"/>:<Copy className="w-4 h-4 mr-1"/>}Copy</button>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 flex items-center gap-3 flex-wrap">
+              <div className="w-20 text-sm text-gray-600">RGB</div>
+              <input className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={rgb.r} onChange={(e)=>setFromRgb(parseInt(e.target.value||'0'), rgb.g, rgb.b)} />
+              <input className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={rgb.g} onChange={(e)=>setFromRgb(rgb.r, parseInt(e.target.value||'0'), rgb.b)} />
+              <input className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={rgb.b} onChange={(e)=>setFromRgb(rgb.r, rgb.g, parseInt(e.target.value||'0'))} />
+              <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center" onClick={()=>copy(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,'rgb')}>{copied==='rgb'?<Check className="w-4 h-4 mr-1"/>:<Copy className="w-4 h-4 mr-1"/>}Copy</button>
             </div>
 
-            <div className="card-modern p-4 flex items-center gap-3 flex-wrap">
-              <div className="w-20 text-sm text-neural-300">HSL</div>
-              <input className="input-modern w-24" value={hsl.h} onChange={(e)=>setFromHsl(parseInt(e.target.value||'0'), hsl.s, hsl.l)} />
-              <input className="input-modern w-24" value={hsl.s} onChange={(e)=>setFromHsl(hsl.h, parseInt(e.target.value||'0'), hsl.l)} />
-              <input className="input-modern w-24" value={hsl.l} onChange={(e)=>setFromHsl(hsl.h, hsl.s, parseInt(e.target.value||'0'))} />
-              <button className="btn-secondary" onClick={()=>copy(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`,'hsl')}>{copied==='hsl'?<Check className="w-4 h-4 mr-1"/>:<Copy className="w-4 h-4 mr-1"/>}Copy</button>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-4 flex items-center gap-3 flex-wrap">
+              <div className="w-20 text-sm text-gray-600">HSL</div>
+              <input className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={hsl.h} onChange={(e)=>setFromHsl(parseInt(e.target.value||'0'), hsl.s, hsl.l)} />
+              <input className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={hsl.s} onChange={(e)=>setFromHsl(hsl.h, parseInt(e.target.value||'0'), hsl.l)} />
+              <input className="w-24 bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={hsl.l} onChange={(e)=>setFromHsl(hsl.h, hsl.s, parseInt(e.target.value||'0'))} />
+              <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center" onClick={()=>copy(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`,'hsl')}>{copied==='hsl'?<Check className="w-4 h-4 mr-1"/>:<Copy className="w-4 h-4 mr-1"/>}Copy</button>
             </div>
           </div>
         </div>
