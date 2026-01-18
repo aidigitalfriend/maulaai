@@ -782,6 +782,7 @@ function CanvasAppInner() {
   const [history, setHistory] = useState<GeneratedApp[]>([]);
   const [activePanel, setActivePanel] = useState<ActivePanel>('workspace');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [useStreaming, setUseStreaming] = useState(true);
   const [conversationPhase, setConversationPhase] = useState<ConversationPhase>('initial');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -801,10 +802,14 @@ function CanvasAppInner() {
       if (!target.closest('.model-dropdown')) {
         setIsModelDropdownOpen(false);
       }
+      // Close history menu dropdown when clicking outside
+      if (openMenuId && !target.closest('.history-menu')) {
+        setOpenMenuId(null);
+      }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
+  }, [openMenuId]);
 
   useEffect(() => {
     const saved = localStorage.getItem('canvas_builder_history');
@@ -1190,14 +1195,53 @@ function CanvasAppInner() {
     alert('Code copied to clipboard! You can paste it anywhere.');
   };
 
+  // Delete project from history
+  const deleteProject = (projectId: string) => {
+    if (confirm('Delete this project from history?')) {
+      const newHistory = history.filter(app => app.id !== projectId);
+      saveHistory(newHistory);
+      if (currentApp?.id === projectId) {
+        setCurrentApp(null);
+        setChatMessages([]);
+        setConversationPhase('initial');
+      }
+      setOpenMenuId(null);
+    }
+  };
+
+  // Duplicate project (start from existing)
+  const duplicateProject = (app: GeneratedApp) => {
+    const duplicatedApp = {
+      ...app,
+      id: Date.now().toString(),
+      name: `${app.name} (Copy)`,
+      timestamp: Date.now(),
+      history: [],
+    };
+    setCurrentApp(duplicatedApp);
+    setChatMessages([]);
+    setConversationPhase('editing');
+    setOpenMenuId(null);
+  };
+
+  // Share project
+  const shareProject = async (app: GeneratedApp) => {
+    if (!app.code) return;
+    await navigator.clipboard.writeText(app.code);
+    alert('Code copied to clipboard!');
+    setOpenMenuId(null);
+  };
+
   // Reset / New Project
   const resetProject = () => {
-    if (confirm('Start a new project? Current work will be saved in history.')) {
-      setCurrentApp(null);
-      setPrompt('');
-      setChatMessages([]);
-      setConversationPhase('initial');
-      setGatheredRequirements([]);
+    if (currentApp && !confirm('Start a new project? Current work will be saved in history.')) {
+      return;
+    }
+    setCurrentApp(null);
+    setPrompt('');
+    setChatMessages([]);
+    setConversationPhase('initial');
+    setGatheredRequirements([]);
       setViewMode(ViewMode.PREVIEW);
     }
   };
@@ -1625,40 +1669,126 @@ function CanvasAppInner() {
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">History</h3>
-                    <button onClick={() => setActivePanel(null)} className="text-gray-400 hover:text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {/* New Project Button */}
+                      <button
+                        onClick={resetProject}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-colors"
+                        title="Start New Project"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>New</span>
+                      </button>
+                      <button onClick={() => setActivePanel(null)} className="text-gray-400 hover:text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   {history.length > 0 ? (
                     <div className="space-y-2">
                       {history.map((app) => (
-                        <button
-                          key={app.id}
-                          onClick={() => {
-                            // Regenerate files from code if not present
-                            const appWithFiles = app.files?.length ? app : {
-                              ...app,
-                              files: app.code ? createFilesFromCode(app.code, app.name) : []
-                            };
-                            setCurrentApp(appWithFiles);
-                            setChatMessages(app.history || []);
-                            setConversationPhase('editing');
-                          }}
-                          className={`w-full text-left px-4 py-3 text-xs rounded-xl transition-all truncate border ${
-                            currentApp?.id === app.id
-                              ? 'bg-indigo-50 border-indigo-100 text-indigo-700 shadow-sm'
-                              : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
-                          }`}
-                        >
-                          <div className="font-bold mb-1 truncate">{app.name}</div>
-                          <div className="text-[10px] opacity-60">{new Date(app.timestamp).toLocaleString()}</div>
-                        </button>
+                        <div key={app.id} className="relative group">
+                          <button
+                            onClick={() => {
+                              // Regenerate files from code if not present
+                              const appWithFiles = app.files?.length ? app : {
+                                ...app,
+                                files: app.code ? createFilesFromCode(app.code, app.name) : []
+                              };
+                              setCurrentApp(appWithFiles);
+                              setChatMessages(app.history || []);
+                              setConversationPhase('editing');
+                            }}
+                            className={`w-full text-left px-4 py-3 pr-12 text-xs rounded-xl transition-all truncate border ${
+                              currentApp?.id === app.id
+                                ? 'bg-indigo-50 border-indigo-100 text-indigo-700 shadow-sm'
+                                : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
+                            }`}
+                          >
+                            <div className="font-bold mb-1 truncate">{app.name}</div>
+                            <div className="text-[10px] opacity-60">{new Date(app.timestamp).toLocaleString()}</div>
+                          </button>
+                          
+                          {/* Hamburger Menu */}
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 history-menu">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(openMenuId === app.id ? null : app.id);
+                              }}
+                              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Options"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+                                <circle cx="2" cy="8" r="1.5"/>
+                                <circle cx="8" cy="8" r="1.5"/>
+                                <circle cx="14" cy="8" r="1.5"/>
+                              </svg>
+                            </button>
+                            
+                            {/* Dropdown Menu */}
+                            {openMenuId === app.id && (
+                              <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    duplicateProject(app);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                  </svg>
+                                  Duplicate
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    shareProject(app);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                  </svg>
+                                  Share
+                                </button>
+                                <div className="border-t border-gray-100 my-1"></div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteProject(app.id);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-gray-400 italic text-xs">No project history yet.</div>
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 italic text-xs mb-4">No project history yet.</p>
+                      <button
+                        onClick={resetProject}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Start Your First Project
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
