@@ -12,7 +12,7 @@ const productScreenshots = [
     gradient: 'from-indigo-500 to-purple-600',
     icon: '🎨',
     mockContent: 'AI App Generator',
-    image: '/images/products/canvas.png',
+    image: '/images/products/canvas.jpeg',
   },
   {
     id: 'api-tester',
@@ -20,7 +20,7 @@ const productScreenshots = [
     gradient: 'from-green-500 to-emerald-600',
     icon: '🔌',
     mockContent: 'Test Endpoints',
-    image: '/images/products/api-tester.png',
+    image: '/images/products/api-tester.jpeg',
   },
   {
     id: 'dns-lookup',
@@ -28,7 +28,7 @@ const productScreenshots = [
     gradient: 'from-blue-500 to-cyan-600',
     icon: '🌐',
     mockContent: 'Domain Analysis',
-    image: '/images/products/dns-lookup.png',
+    image: '/images/products/dns-lookup.jpeg',
   },
   {
     id: 'hash-generator',
@@ -36,7 +36,7 @@ const productScreenshots = [
     gradient: 'from-orange-500 to-red-600',
     icon: '🔐',
     mockContent: 'Secure Hashing',
-    image: '/images/products/hash-generator.png',
+    image: '/images/products/hash-generator.jpeg',
   },
   {
     id: 'dream-interpreter',
@@ -44,7 +44,7 @@ const productScreenshots = [
     gradient: 'from-violet-500 to-fuchsia-600',
     icon: '🌙',
     mockContent: 'AI Dream Analysis',
-    image: '/images/products/dream-interpreter.png',
+    image: '/images/products/dream-interpreter.jpeg',
   },
   {
     id: 'battle-arena',
@@ -52,7 +52,7 @@ const productScreenshots = [
     gradient: 'from-red-500 to-orange-600',
     icon: '⚔️',
     mockContent: 'AI vs AI Combat',
-    image: '/images/products/battle-arena.png',
+    image: '/images/products/battle-arena.jpeg',
   },
   {
     id: 'emotion-visualizer',
@@ -60,7 +60,7 @@ const productScreenshots = [
     gradient: 'from-pink-500 to-rose-600',
     icon: '💖',
     mockContent: 'Sentiment Analysis',
-    image: '/images/products/emotion-visualizer.png',
+    image: '/images/products/emotion-visualizer.jpeg',
   },
   {
     id: 'json-formatter',
@@ -68,7 +68,7 @@ const productScreenshots = [
     gradient: 'from-yellow-500 to-amber-600',
     icon: '📋',
     mockContent: 'Format & Validate',
-    image: '/images/products/json-formatter.png',
+    image: '/images/products/json-formatter.jpeg',
   },
   {
     id: 'ssl-checker',
@@ -76,7 +76,7 @@ const productScreenshots = [
     gradient: 'from-teal-500 to-green-600',
     icon: '🛡️',
     mockContent: 'Security Audit',
-    image: '/images/products/ssl-checker.png',
+    image: '/images/products/ssl-checker.jpeg',
   },
   {
     id: 'port-scanner',
@@ -84,7 +84,7 @@ const productScreenshots = [
     gradient: 'from-slate-500 to-gray-600',
     icon: '🔍',
     mockContent: 'Network Analysis',
-    image: '/images/products/port-scanner.png',
+    image: '/images/products/port-scanner.jpeg',
   },
   {
     id: 'story-weaver',
@@ -92,7 +92,7 @@ const productScreenshots = [
     gradient: 'from-amber-500 to-yellow-600',
     icon: '📖',
     mockContent: 'AI Storytelling',
-    image: '/images/products/story-weaver.png',
+    image: '/images/products/story-weaver.jpeg',
   },
   {
     id: 'neural-art',
@@ -100,7 +100,7 @@ const productScreenshots = [
     gradient: 'from-fuchsia-500 to-pink-600',
     icon: '🎭',
     mockContent: 'AI Art Generator',
-    image: '/images/products/neural-art.png',
+    image: '/images/products/neural-art.jpeg',
   },
 ];
 
