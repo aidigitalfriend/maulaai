@@ -22,8 +22,6 @@ export default function Footer() {
       links: [
         { name: 'All Agents', href: '/agents' },
         { name: 'Rewards Center', href: '/rewards', highlight: true },
-        { name: 'Solutions', href: '/solutions/overview' },
-        { name: 'Industries', href: '/industries/overview' },
         { name: 'Pricing', href: '/pricing/overview' },
         { name: 'Per-Agent Pricing', href: '/pricing/per-agent' },
         { name: 'Dashboard', href: '/dashboard/overview' }
@@ -64,37 +62,6 @@ export default function Footer() {
       ]
     },
     {
-      title: 'Solutions',
-      links: [
-        { name: 'Overview', href: '/solutions/overview' },
-        { name: 'Enterprise AI', href: '/solutions/enterprise-ai' },
-        { name: 'Process Automation', href: '/solutions/process-automation' },
-        { name: 'Smart Analytics', href: '/solutions/smart-analytics' },
-        { name: 'AI Security', href: '/solutions/ai-security' }
-      ]
-    },
-    {
-      title: 'Support',
-      links: [
-        { name: 'Help Center', href: '/support/help-center' },
-        { name: 'Contact Us', href: '/support/contact-us' },
-        { name: 'Book Consultation', href: '/support/book-consultation' },
-        { name: 'Live Support', href: '/support/live-support' },
-        { name: 'Status Page', href: '/status' },
-        { name: 'FAQs', href: '/support/faqs' }
-      ]
-    },
-    {
-      title: 'Company',
-      links: [
-        { name: 'About Us', href: '/about/overview' },
-        { name: 'Meet the Team', href: '/about/team' },
-        { name: 'Partnerships', href: '/about/partnerships' },
-        { name: 'Community', href: '/community/overview' },
-        { name: 'Open Roadmap', href: '/community/roadmap' }
-      ]
-    },
-    {
       title: 'Tools',
       links: [
         { name: 'AI Lab', href: '/lab', highlight: true },
@@ -103,16 +70,6 @@ export default function Footer() {
         { name: 'Network Tools', href: '/tools/network-tools' },
         { name: 'Developer Utils', href: '/tools/developer-utils' },
         { name: 'API Tester', href: '/tools/api-tester' }
-      ]
-    },
-    {
-      title: 'Legal',
-      links: [
-        { name: 'Privacy Policy', href: '/legal/privacy-policy' },
-        { name: 'Terms of Service', href: '/legal/terms-of-service' },
-        { name: 'Cookie Policy', href: '/legal/cookie-policy' },
-        { name: 'Payments & Refunds', href: '/legal/payments-refunds' },
-        { name: 'Reports', href: '/legal/reports' }
       ]
     }
   ]
@@ -291,17 +248,17 @@ export default function Footer() {
               © {currentYear} One Last AI. All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm">
-              <Link href="/legal/privacy-policy" className="text-neural-400 hover:text-white transition-colors">
-                Privacy
+              <Link href="/support" className="text-neural-400 hover:text-white transition-colors">
+                Support
               </Link>
-              <Link href="/legal/terms-of-service" className="text-neural-400 hover:text-white transition-colors">
-                Terms
+              <Link href="/about" className="text-neural-400 hover:text-white transition-colors">
+                About
               </Link>
-              <Link href="/legal/cookie-policy" className="text-neural-400 hover:text-white transition-colors">
-                Cookies
+              <Link href="/community/roadmap" className="text-neural-400 hover:text-white transition-colors">
+                Roadmap
               </Link>
-              <Link href="/support/contact-us" className="text-neural-400 hover:text-white transition-colors">
-                Contact
+              <Link href="/legal" className="text-neural-400 hover:text-white transition-colors">
+                Legal
               </Link>
             </div>
           </div>
