@@ -786,6 +786,7 @@ function CanvasAppInner() {
   const [useStreaming, setUseStreaming] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1506,6 +1507,108 @@ function CanvasAppInner() {
             </svg>
           </button>
 
+          <div className="w-8 h-px bg-gray-600 my-1"></div>
+
+          {/* Share Icon */}
+          <button
+            onClick={() => {
+              if (currentApp?.code) {
+                navigator.clipboard.writeText(currentApp.code);
+                alert('Code copied to clipboard!');
+              } else {
+                alert('No project to share yet. Generate an app first!');
+              }
+            }}
+            className={`p-2 rounded-lg transition-all ${currentApp ? 'text-gray-500 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            title="Share - Copy Code"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+
+          {/* Download Icon */}
+          <button
+            onClick={() => {
+              if (currentApp?.code) {
+                const blob = new Blob([currentApp.code], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentApp.name || 'app'}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } else {
+                alert('No project to download yet. Generate an app first!');
+              }
+            }}
+            className={`p-2 rounded-lg transition-all ${currentApp ? 'text-gray-500 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            title="Download HTML"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
+
+          {/* Open External Icon */}
+          <button
+            onClick={() => {
+              if (currentApp?.code) {
+                const blob = new Blob([currentApp.code], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+              } else {
+                alert('No project to open yet. Generate an app first!');
+              }
+            }}
+            className={`p-2 rounded-lg transition-all ${currentApp ? 'text-gray-500 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            title="Open in New Tab"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </button>
+
+          {/* Delete Icon */}
+          <button
+            onClick={() => {
+              if (currentApp) {
+                if (confirm('Delete this project from history?')) {
+                  const newHistory = history.filter((h) => h.id !== currentApp.id);
+                  localStorage.setItem('canvas_builder_history', JSON.stringify(newHistory));
+                  setHistory(newHistory);
+                  setCurrentApp(null);
+                  setChatMessages([]);
+                  setConversationPhase('initial');
+                  setGatheredRequirements([]);
+                }
+              } else {
+                alert('No project to delete.');
+              }
+            }}
+            className={`p-2 rounded-lg transition-all ${currentApp ? 'text-gray-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-700 cursor-not-allowed'}`}
+            title="Delete Project"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+
+          <div className="w-8 h-px bg-gray-600 my-1"></div>
+
+          {/* Templates Icon */}
+          <button
+            onClick={() => setTemplatesOpen(true)}
+            className="p-2 rounded-lg transition-all text-gray-500 hover:text-indigo-400 hover:bg-indigo-500/10"
+            title="Templates - Start from Template"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+          </button>
+
           {/* Status indicator at bottom */}
           <div className="mt-auto pb-2">
             <div className={`w-2 h-2 rounded-full mx-auto ${genState.isGenerating ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
@@ -2039,6 +2142,150 @@ function CanvasAppInner() {
           <p className="mt-4 text-white/60 text-sm">
             Point camera at what you want to capture, then tap the button
           </p>
+        </div>
+      )}
+
+      {/* Templates Modal */}
+      {templatesOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Start from Template</h2>
+                <p className="text-sm text-gray-500 mt-1">Choose a template to get started quickly</p>
+              </div>
+              <button
+                onClick={() => setTemplatesOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Templates Grid */}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[60vh]">
+              {/* Template 1: Landing Page */}
+              <button
+                onClick={() => {
+                  const templatePrompt = "Create a modern landing page with a hero section, features grid, testimonials, and a call-to-action footer. Use a clean design with gradients.";
+                  setPrompt(templatePrompt);
+                  setTemplatesOpen(false);
+                  setActivePanel('workspace');
+                  // Add to chat
+                  const newMessage: ChatMessage = {
+                    id: Date.now().toString(),
+                    role: 'user',
+                    content: `🎨 Starting from template: **Landing Page**\n\n${templatePrompt}`,
+                    timestamp: Date.now(),
+                  };
+                  setChatMessages(prev => [...prev, newMessage]);
+                }}
+                className="group p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all text-left"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-gray-800 mb-1">Landing Page</h3>
+                <p className="text-xs text-gray-500">Modern hero, features, testimonials & CTA</p>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-medium">Hero</span>
+                  <span className="px-2 py-0.5 bg-purple-100 text-purple-600 rounded text-[10px] font-medium">Features</span>
+                  <span className="px-2 py-0.5 bg-pink-100 text-pink-600 rounded text-[10px] font-medium">CTA</span>
+                </div>
+              </button>
+
+              {/* Template 2: Dashboard */}
+              <button
+                onClick={() => {
+                  const templatePrompt = "Create a dashboard UI with a sidebar navigation, stats cards at the top, a main chart area, and a recent activity list. Use a dark theme with accent colors.";
+                  setPrompt(templatePrompt);
+                  setTemplatesOpen(false);
+                  setActivePanel('workspace');
+                  const newMessage: ChatMessage = {
+                    id: Date.now().toString(),
+                    role: 'user',
+                    content: `🎨 Starting from template: **Dashboard**\n\n${templatePrompt}`,
+                    timestamp: Date.now(),
+                  };
+                  setChatMessages(prev => [...prev, newMessage]);
+                }}
+                className="group p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all text-left"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-gray-800 mb-1">Dashboard</h3>
+                <p className="text-xs text-gray-500">Sidebar, stats cards, charts & activity</p>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  <span className="px-2 py-0.5 bg-cyan-100 text-cyan-600 rounded text-[10px] font-medium">Charts</span>
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px] font-medium">Stats</span>
+                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-medium">Dark</span>
+                </div>
+              </button>
+
+              {/* Template 3: Todo App */}
+              <button
+                onClick={() => {
+                  const templatePrompt = "Create a todo list app with the ability to add, complete, and delete tasks. Include categories, a progress bar, and a clean minimal design.";
+                  setPrompt(templatePrompt);
+                  setTemplatesOpen(false);
+                  setActivePanel('workspace');
+                  const newMessage: ChatMessage = {
+                    id: Date.now().toString(),
+                    role: 'user',
+                    content: `🎨 Starting from template: **Todo App**\n\n${templatePrompt}`,
+                    timestamp: Date.now(),
+                  };
+                  setChatMessages(prev => [...prev, newMessage]);
+                }}
+                className="group p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all text-left"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+                <h3 className="font-bold text-gray-800 mb-1">Todo App</h3>
+                <p className="text-xs text-gray-500">Task management with categories & progress</p>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  <span className="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-medium">Tasks</span>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded text-[10px] font-medium">Progress</span>
+                  <span className="px-2 py-0.5 bg-teal-100 text-teal-600 rounded text-[10px] font-medium">Minimal</span>
+                </div>
+              </button>
+
+              {/* More templates coming soon placeholder */}
+              <div className="p-4 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <h3 className="font-medium text-gray-500 text-sm">More Coming Soon</h3>
+                <p className="text-xs text-gray-400 mt-1">E-commerce, Blog, Portfolio...</p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <p className="text-xs text-gray-500">
+                💡 Tip: You can also describe any custom app idea in the chat
+              </p>
+              <button
+                onClick={() => setTemplatesOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
