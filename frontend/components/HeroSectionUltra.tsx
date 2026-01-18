@@ -239,18 +239,18 @@ export default function HeroSectionUltra() {
       {/* Center content - heading and text */}
       <div className="relative z-40 flex items-center justify-center min-h-screen px-4">
         <div className="text-center max-w-4xl">
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent">
+          {/* Main Heading - Sky blue gradient like footer */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-400 bg-clip-text text-transparent drop-shadow-lg">
             Build Intelligence
           </h1>
           
           {/* Subheading */}
-          <p className="text-xl md:text-2xl lg:text-3xl text-white/80 mb-8 font-light">
+          <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-8 font-light">
             Create powerful AI agents with our visual canvas builder
           </p>
           
           {/* Description */}
-          <p className="text-base md:text-lg text-white/60 mb-12 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-white/70 mb-12 max-w-2xl mx-auto">
             No code required. Drag, drop, and deploy intelligent agents that solve real problems.
           </p>
 
