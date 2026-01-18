@@ -1637,7 +1637,12 @@ function CanvasAppInner() {
                         <button
                           key={app.id}
                           onClick={() => {
-                            setCurrentApp(app);
+                            // Regenerate files from code if not present
+                            const appWithFiles = app.files?.length ? app : {
+                              ...app,
+                              files: app.code ? createFilesFromCode(app.code, app.name) : []
+                            };
+                            setCurrentApp(appWithFiles);
                             setChatMessages(app.history || []);
                             setConversationPhase('editing');
                           }}
