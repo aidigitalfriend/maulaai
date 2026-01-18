@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import { Lock, Crown, Loader2 } from 'lucide-react';
@@ -33,16 +33,39 @@ export function AgentSubscriptionGuard({
   agentName,
 }: AgentSubscriptionGuardProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { state: authState } = useAuth();
   const {
     hasActiveSubscription,
     getSubscription,
     getDaysRemaining,
     loading: subscriptionLoading,
+    refreshSubscriptions,
   } = useSubscriptions();
+  
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasRefreshed, setHasRefreshed] = useState(false);
+
+  // Check if coming from successful checkout (fresh=1 parameter)
+  useEffect(() => {
+    const isFresh = searchParams.get('fresh') === '1';
+    if (isFresh && !hasRefreshed && authState.isAuthenticated) {
+      setIsRefreshing(true);
+      setHasRefreshed(true);
+      
+      // Force refresh subscriptions after successful checkout
+      refreshSubscriptions().finally(() => {
+        setIsRefreshing(false);
+        // Clean up the URL by removing the fresh parameter
+        const url = new URL(window.location.href);
+        url.searchParams.delete('fresh');
+        window.history.replaceState({}, '', url.toString());
+      });
+    }
+  }, [searchParams, hasRefreshed, authState.isAuthenticated, refreshSubscriptions]);
 
   // Combined loading state
-  const isLoading = authState.isLoading || subscriptionLoading;
+  const isLoading = authState.isLoading || subscriptionLoading || isRefreshing;
 
   // Show loading spinner while checking
   if (isLoading) {

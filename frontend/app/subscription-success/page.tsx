@@ -117,7 +117,8 @@ function SubscriptionSuccessContent() {
 
   const handleAgentRedirect = () => {
     if (agentSlug) {
-      router.push(`/agents/${agentSlug}`);
+      // Add fresh=1 to trigger subscription refresh on agent page
+      router.push(`/agents/${agentSlug}?fresh=1`);
     }
   };
 
