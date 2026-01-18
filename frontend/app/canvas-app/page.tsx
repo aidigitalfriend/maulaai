@@ -1196,7 +1196,7 @@ function CanvasAppInner() {
   };
 
   // Delete project from history
-  const deleteProject = (projectId: string) => {
+  const deleteProjectFromHistory = (projectId: string) => {
     if (confirm('Delete this project from history?')) {
       const newHistory = history.filter(app => app.id !== projectId);
       saveHistory(newHistory);
@@ -1242,12 +1242,11 @@ function CanvasAppInner() {
     setChatMessages([]);
     setConversationPhase('initial');
     setGatheredRequirements([]);
-      setViewMode(ViewMode.PREVIEW);
-    }
+    setViewMode(ViewMode.PREVIEW);
   };
 
   // Delete current project
-  const deleteProject = () => {
+  const deleteCurrentProject = () => {
     if (currentApp && confirm('Delete this project from history?')) {
       const newHistory = history.filter((h) => h.id !== currentApp.id);
       saveHistory(newHistory);
@@ -1761,7 +1760,7 @@ function CanvasAppInner() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    deleteProject(app.id);
+                                    deleteProjectFromHistory(app.id);
                                   }}
                                   className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
                                 >
