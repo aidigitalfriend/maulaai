@@ -1219,20 +1219,6 @@ function CanvasAppInner() {
               </div>
             )}
 
-            {/* Streaming Toggle */}
-            <button
-              onClick={() => setUseStreaming(!useStreaming)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                useStreaming
-                  ? 'bg-green-50 border-green-200 text-green-700'
-                  : 'bg-gray-50 border-gray-200 text-gray-600'
-              }`}
-              title={useStreaming ? 'Real-time streaming enabled' : 'Standard mode'}
-            >
-              <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
-              {useStreaming ? 'Stream' : 'Standard'}
-            </button>
-
             {/* Model Selector */}
             <div className="relative model-dropdown">
               <button
@@ -1294,34 +1280,6 @@ function CanvasAppInner() {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* View Toggle */}
-            <div className="flex bg-gray-100 p-0.5 rounded-xl border border-gray-200/50">
-              <button
-                onClick={() => setViewMode(ViewMode.PREVIEW)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  viewMode === ViewMode.PREVIEW ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'
-                }`}
-              >
-                PREVIEW
-              </button>
-              <button
-                onClick={() => setViewMode(ViewMode.SPLIT)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  viewMode === ViewMode.SPLIT ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'
-                }`}
-              >
-                SPLIT
-              </button>
-              <button
-                onClick={() => setViewMode(ViewMode.CODE)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  viewMode === ViewMode.CODE ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'
-                }`}
-              >
-                CODE
-              </button>
             </div>
           </div>
         </div>
@@ -1392,6 +1350,40 @@ function CanvasAppInner() {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+
+          <div className="w-8 h-px bg-gray-600 my-1"></div>
+
+          {/* View Mode Buttons */}
+          <button
+            onClick={() => setViewMode(ViewMode.PREVIEW)}
+            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.PREVIEW ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            title="Preview Only"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => setViewMode(ViewMode.SPLIT)}
+            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.SPLIT ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            title="Split View"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => setViewMode(ViewMode.CODE)}
+            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.CODE ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            title="Code Only"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
           </button>
 
