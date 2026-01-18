@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Backend API base URL for memory operations
+const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:5000';
+
 // Initialize API keys from environment (NEVER expose these to frontend)
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -41,6 +44,115 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
     remaining: RATE_LIMIT_MAX_MESSAGES - userLimit.count,
   };
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// AGENT MEMORY & TOOLS INTEGRATION
+// ═══════════════════════════════════════════════════════════════════
+
+// Tool call pattern: [TOOL:tool_name]{"param": "value"}
+const TOOL_CALL_REGEX = /\[TOOL:(\w+)\](\{[^}]+\})/g;
+
+// Parse tool calls from AI response
+function parseToolCalls(response: string): Array<{ tool: string; params: any }> {
+  const calls: Array<{ tool: string; params: any }> = [];
+  let match;
+  while ((match = TOOL_CALL_REGEX.exec(response)) !== null) {
+    try {
+      const [, tool, paramsStr] = match;
+      const params = JSON.parse(paramsStr);
+      calls.push({ tool, params });
+    } catch {
+      // Skip malformed tool calls
+    }
+  }
+  return calls;
+}
+
+// Execute tool via backend API
+async function executeTool(tool: string, params: any): Promise<any> {
+  try {
+    const response = await fetch(`${BACKEND_API_URL}/api/agents/tools/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool, params }),
+    });
+    if (!response.ok) throw new Error(`Tool execution failed: ${response.status}`);
+    const data = await response.json();
+    return data.success ? data.data : { error: data.error };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Tool execution failed' };
+  }
+}
+
+// Get enhanced system prompt with memory context
+async function getEnhancedSystemPrompt(
+  userId: string | undefined,
+  agentId: string,
+  basePrompt: string
+): Promise<string> {
+  if (!userId) return basePrompt;
+
+  try {
+    const response = await fetch(
+      `${BACKEND_API_URL}/api/agents/memory/${userId}/${agentId}/context?basePrompt=${encodeURIComponent(basePrompt)}`,
+      { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+    );
+    if (!response.ok) return basePrompt;
+    const data = await response.json();
+    return data.success ? data.data.enhancedPrompt : basePrompt;
+  } catch {
+    return basePrompt;
+  }
+}
+
+// Process conversation for learnings
+async function processConversationLearnings(
+  userId: string | undefined,
+  agentId: string,
+  messages: Array<{ role: string; content: string }>,
+  conversationId?: string
+): Promise<void> {
+  if (!userId) return;
+
+  try {
+    await fetch(`${BACKEND_API_URL}/api/agents/memory/${userId}/${agentId}/learn`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, conversationId }),
+    });
+  } catch (error) {
+    console.error('Failed to process learnings:', error);
+  }
+}
+
+// Tool descriptions for system prompt
+const TOOL_DESCRIPTIONS = `
+## AVAILABLE TOOLS
+
+You have access to powerful tools. When you need to use a tool, include the tool call in your response using this exact format:
+[TOOL:tool_name]{"param": "value"}
+
+**Available Tools:**
+
+1. **web_search** - Search the web for current information
+   [TOOL:web_search]{"query": "search query here"}
+
+2. **fetch_url** - Read content from a URL/webpage
+   [TOOL:fetch_url]{"url": "https://example.com"}
+
+3. **get_current_time** - Get current date and time
+   [TOOL:get_current_time]{"timezone": "America/New_York"}
+
+4. **calculate** - Perform mathematical calculations
+   [TOOL:calculate]{"expression": "2 + 2 * 5"}
+
+**IMPORTANT GUIDELINES:**
+- Use tools when you need real-time information, to verify facts, or perform calculations
+- After using a tool, incorporate the results naturally into your response
+- If a tool fails, acknowledge it gracefully and provide the best response you can
+- Don't use tools for information you already know with certainty
+- Be transparent when you're searching for or calculating something
+`;
 
 // Attachment interface for files/images
 interface Attachment {
@@ -811,6 +923,10 @@ export async function POST(request: NextRequest) {
       maxTokens: requestedMaxTokens,
       systemPrompt: requestedSystemPrompt,
       attachments = [],
+      userId, // For memory features
+      conversationId, // For tracking conversations
+      enableMemory = true, // Enable/disable memory features
+      enableTools = true, // Enable/disable tool usage
     } = await request.json();
 
     if (!message || typeof message !== 'string' || !agentId) {
@@ -833,7 +949,20 @@ export async function POST(request: NextRequest) {
       typeof requestedTemperature === 'number'
         ? requestedTemperature
         : agentConfig.temperature;
-    const systemPrompt = requestedSystemPrompt || agentConfig.systemPrompt;
+    
+    // Build enhanced system prompt with memory context and tool instructions
+    let systemPrompt = requestedSystemPrompt || agentConfig.systemPrompt;
+    
+    // Add tool descriptions if tools are enabled
+    if (enableTools) {
+      systemPrompt = `${systemPrompt}\n\n${TOOL_DESCRIPTIONS}`;
+    }
+    
+    // Enhance with memory context if user is identified and memory is enabled
+    if (enableMemory && userId) {
+      systemPrompt = await getEnhancedSystemPrompt(userId, agentId, systemPrompt);
+    }
+    
     const maxTokens =
       typeof requestedMaxTokens === 'number' ? requestedMaxTokens : 1200;
     const model =
@@ -997,11 +1126,88 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // TOOL EXECUTION LOOP
+    // ═══════════════════════════════════════════════════════════════════
+    let toolsUsed: string[] = [];
+    
+    if (enableTools) {
+      // Check for tool calls in the response
+      const toolCalls = parseToolCalls(responseMessage);
+      
+      if (toolCalls.length > 0) {
+        console.log(`Agent ${agentId} requested ${toolCalls.length} tool(s)`);
+        
+        // Execute each tool and collect results
+        const toolResults: Array<{ tool: string; result: any }> = [];
+        for (const call of toolCalls) {
+          const result = await executeTool(call.tool, call.params);
+          toolResults.push({ tool: call.tool, result });
+          toolsUsed.push(call.tool);
+        }
+        
+        // Build context with tool results
+        const toolContext = toolResults
+          .map(({ tool, result }) => {
+            const resultStr = typeof result === 'object' 
+              ? JSON.stringify(result, null, 2)
+              : String(result);
+            return `[TOOL_RESULT:${tool}]\n${resultStr}`;
+          })
+          .join('\n\n');
+        
+        // Build follow-up message
+        const followUpMessage = `You previously requested these tools. Here are the results:\n\n${toolContext}\n\nNow provide your complete response to the user, naturally incorporating this information. Do not mention the tool calls explicitly - just use the information naturally.`;
+        
+        // Call the API again with tool results
+        try {
+          const followUpHistory = [
+            ...conversationHistory,
+            { role: 'user', content: message },
+            { role: 'assistant', content: responseMessage },
+          ];
+          
+          responseMessage = await providers[providerName].callAPI(
+            followUpMessage,
+            followUpHistory,
+            systemPrompt,
+            temperature,
+            maxTokens,
+            model,
+            undefined // No attachments for follow-up
+          );
+          
+          console.log(`Agent ${agentId} incorporated tool results`);
+        } catch (toolFollowUpError) {
+          console.error('Tool follow-up failed:', toolFollowUpError);
+          // Keep the original response with tool calls visible
+        }
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LEARNING EXTRACTION (async, non-blocking)
+    // ═══════════════════════════════════════════════════════════════════
+    if (enableMemory && userId) {
+      // Process in background - don't wait for it
+      const messagesForLearning = [
+        ...conversationHistory,
+        { role: 'user', content: message },
+        { role: 'assistant', content: responseMessage },
+      ];
+      
+      // Fire and forget - learning happens asynchronously
+      processConversationLearnings(userId, agentId, messagesForLearning, conversationId)
+        .catch(err => console.error('Learning extraction failed:', err));
+    }
+
     return NextResponse.json({
       message: responseMessage,
       provider: providerName,
       agentId,
       remaining: rateLimit.remaining,
+      toolsUsed: toolsUsed.length > 0 ? toolsUsed : undefined,
+      memoryEnabled: enableMemory && !!userId,
     });
   } catch (error) {
     console.error('Agent chat API error:', error);

@@ -25,6 +25,9 @@ import favoritesRouter from './favorites.js';
 import suggestionsRouter from './suggestions.js';
 import chatRouter from './chat.js';
 
+// Import Agent Memory & Tools routes
+import agentMemoryRouter from './agent-memory-routes.js';
+
 const router = express.Router();
 
 // ============================================
@@ -163,6 +166,10 @@ router.use('/users', userRouter);
 
 router.use('/agents', apiLimiter);
 router.use('/agents', agentsRouter);
+
+// Agent Memory & Tools (learning, web search, etc.)
+router.use('/agents', apiLimiter);
+router.use('/agents', agentMemoryRouter);
 
 // Agent subscriptions
 router.use('/agent/subscriptions', apiLimiter);
