@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Product screenshots that will fly around
 const productScreenshots = [
@@ -11,6 +12,7 @@ const productScreenshots = [
     gradient: 'from-indigo-500 to-purple-600',
     icon: '🎨',
     mockContent: 'AI App Generator',
+    image: '/images/products/canvas.png',
   },
   {
     id: 'api-tester',
@@ -18,6 +20,7 @@ const productScreenshots = [
     gradient: 'from-green-500 to-emerald-600',
     icon: '🔌',
     mockContent: 'Test Endpoints',
+    image: '/images/products/api-tester.png',
   },
   {
     id: 'dns-lookup',
@@ -25,6 +28,7 @@ const productScreenshots = [
     gradient: 'from-blue-500 to-cyan-600',
     icon: '🌐',
     mockContent: 'Domain Analysis',
+    image: '/images/products/dns-lookup.png',
   },
   {
     id: 'hash-generator',
@@ -32,6 +36,7 @@ const productScreenshots = [
     gradient: 'from-orange-500 to-red-600',
     icon: '🔐',
     mockContent: 'Secure Hashing',
+    image: '/images/products/hash-generator.png',
   },
   {
     id: 'dream-interpreter',
@@ -39,6 +44,7 @@ const productScreenshots = [
     gradient: 'from-violet-500 to-fuchsia-600',
     icon: '🌙',
     mockContent: 'AI Dream Analysis',
+    image: '/images/products/dream-interpreter.png',
   },
   {
     id: 'battle-arena',
@@ -46,6 +52,7 @@ const productScreenshots = [
     gradient: 'from-red-500 to-orange-600',
     icon: '⚔️',
     mockContent: 'AI vs AI Combat',
+    image: '/images/products/battle-arena.png',
   },
   {
     id: 'emotion-visualizer',
@@ -53,6 +60,7 @@ const productScreenshots = [
     gradient: 'from-pink-500 to-rose-600',
     icon: '💖',
     mockContent: 'Sentiment Analysis',
+    image: '/images/products/emotion-visualizer.png',
   },
   {
     id: 'json-formatter',
@@ -60,6 +68,7 @@ const productScreenshots = [
     gradient: 'from-yellow-500 to-amber-600',
     icon: '📋',
     mockContent: 'Format & Validate',
+    image: '/images/products/json-formatter.png',
   },
   {
     id: 'ssl-checker',
@@ -67,6 +76,7 @@ const productScreenshots = [
     gradient: 'from-teal-500 to-green-600',
     icon: '🛡️',
     mockContent: 'Security Audit',
+    image: '/images/products/ssl-checker.png',
   },
   {
     id: 'port-scanner',
@@ -74,6 +84,7 @@ const productScreenshots = [
     gradient: 'from-slate-500 to-gray-600',
     icon: '🔍',
     mockContent: 'Network Analysis',
+    image: '/images/products/port-scanner.png',
   },
   {
     id: 'story-weaver',
@@ -81,6 +92,7 @@ const productScreenshots = [
     gradient: 'from-amber-500 to-yellow-600',
     icon: '📖',
     mockContent: 'AI Storytelling',
+    image: '/images/products/story-weaver.png',
   },
   {
     id: 'neural-art',
@@ -88,6 +100,7 @@ const productScreenshots = [
     gradient: 'from-fuchsia-500 to-pink-600',
     icon: '🎭',
     mockContent: 'AI Art Generator',
+    image: '/images/products/neural-art.png',
   },
 ];
 
@@ -162,19 +175,28 @@ function ProductCard({
       className={`absolute ${sizeClasses[config.size as keyof typeof sizeClasses]} ${getAnimationClass()} ${config.blur ? 'blur-[1px]' : ''}`}
       style={getPositionStyle()}
     >
-      <div className={`w-full h-full rounded-xl bg-gradient-to-br ${product.gradient} shadow-2xl overflow-hidden transform hover:scale-110 transition-transform duration-300 border border-white/20 backdrop-blur-sm`}>
-        {/* Mini window header */}
-        <div className="flex items-center gap-1 px-2 py-1.5 bg-black/20">
+      <div className={`w-full h-full rounded-xl shadow-2xl overflow-hidden transform hover:scale-110 transition-transform duration-300 border border-white/20 backdrop-blur-sm relative`}>
+        {/* Real screenshot image with gradient fallback */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${product.gradient}`}></div>
+        <Image
+          src={product.image}
+          alt={product.title}
+          fill
+          className="object-cover"
+          onError={(e) => {
+            // Hide image on error, show gradient fallback
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+        {/* Mini window header overlay */}
+        <div className="absolute top-0 left-0 right-0 flex items-center gap-1 px-2 py-1.5 bg-black/40 backdrop-blur-sm z-10">
           <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
           <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
           <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-          <span className="ml-1 text-[8px] md:text-[10px] text-white/70 truncate">{product.title}</span>
+          <span className="ml-1 text-[8px] md:text-[10px] text-white/90 truncate font-medium">{product.title}</span>
         </div>
-        {/* Card content */}
-        <div className="p-2 md:p-3 flex flex-col items-center justify-center h-[calc(100%-24px)]">
-          <span className="text-xl md:text-3xl mb-1">{product.icon}</span>
-          <span className="text-[10px] md:text-xs text-white/90 font-medium text-center">{product.mockContent}</span>
-        </div>
+        {/* Gradient overlay at bottom for text readability */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent"></div>
       </div>
     </div>
   );
