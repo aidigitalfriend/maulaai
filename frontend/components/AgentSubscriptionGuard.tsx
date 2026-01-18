@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
@@ -27,7 +27,9 @@ interface AgentSubscriptionGuardProps {
  * }
  * ```
  */
-export function AgentSubscriptionGuard({
+
+// Inner component that uses useSearchParams (must be wrapped in Suspense)
+function AgentSubscriptionGuardInner({
   children,
   agentId,
   agentName,
@@ -187,6 +189,24 @@ export function AgentSubscriptionGuard({
 
   // Has active subscription for this agent - render the chat
   return <>{children}</>;
+}
+
+// Wrapper component with Suspense boundary for useSearchParams
+export function AgentSubscriptionGuard(props: AgentSubscriptionGuardProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-brand-400 animate-spin mx-auto mb-4" />
+            <p className="text-neural-300">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <AgentSubscriptionGuardInner {...props} />
+    </Suspense>
+  );
 }
 
 export default AgentSubscriptionGuard;
