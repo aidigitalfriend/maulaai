@@ -260,7 +260,7 @@ const Preview: React.FC<{ code: string; deviceMode: DeviceMode }> = ({ code, dev
 
   if (!code) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl m-4">
+      <div className="flex flex-col items-center justify-center h-full w-full text-gray-400 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-16 w-16 mb-4 opacity-20"
@@ -331,7 +331,7 @@ const CodeView: React.FC<{ code: string }> = ({ code }) => {
 
   if (!code) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-400 bg-gray-900 border-2 border-dashed border-gray-700 rounded-xl m-4">
+      <div className="flex flex-col items-center justify-center h-full w-full text-gray-400 bg-gray-900 border-2 border-dashed border-gray-700 rounded-xl">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-16 w-16 mb-4 opacity-20"
@@ -1547,10 +1547,14 @@ function CanvasAppInner() {
             {/* View Content */}
             <div className="h-full w-full flex">
               {viewMode === ViewMode.PREVIEW && (
-                <Preview code={genState.streamingCode || currentApp?.code || ''} deviceMode={deviceMode} />
+                <div className="w-full h-full">
+                  <Preview code={genState.streamingCode || currentApp?.code || ''} deviceMode={deviceMode} />
+                </div>
               )}
               {viewMode === ViewMode.CODE && (
-                <CodeView code={genState.streamingCode || currentApp?.code || ''} />
+                <div className="w-full h-full">
+                  <CodeView code={genState.streamingCode || currentApp?.code || ''} />
+                </div>
               )}
               {viewMode === ViewMode.SPLIT && (
                 <>
