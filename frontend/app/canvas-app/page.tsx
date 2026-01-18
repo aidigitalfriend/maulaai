@@ -407,7 +407,8 @@ const ChatBox: React.FC<{
   isGenerating: boolean;
   conversationPhase: ConversationPhase;
   hasApp: boolean;
-}> = ({ messages, onSendMessage, isGenerating, conversationPhase, hasApp }) => {
+  darkMode?: boolean;
+}> = ({ messages, onSendMessage, isGenerating, conversationPhase, hasApp, darkMode = false }) => {
   const [input, setInput] = useState('');
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -446,14 +447,14 @@ const ChatBox: React.FC<{
   };
 
   return (
-    <div className="flex flex-col h-full bg-white w-full overflow-hidden">
+    <div className={`flex flex-col h-full w-full overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
       >
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
-            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mb-4">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-indigo-500 mb-4 ${darkMode ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -469,14 +470,14 @@ const ChatBox: React.FC<{
                 />
               </svg>
             </div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+            <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
               AI Assistant
             </p>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
               I&apos;ll help you build your app. Tell me what you&apos;d like to create and I&apos;ll ask clarifying questions before we start building.
             </p>
           </div>
-        )}
+        )}}
 
         {messages.map((msg, i) => (
           <div
@@ -490,13 +491,17 @@ const ChatBox: React.FC<{
                 msg.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-100'
                   : msg.isSystemMessage
-                  ? 'bg-amber-50 text-amber-800 rounded-tl-none border border-amber-200'
-                  : 'bg-gray-100 text-gray-800 rounded-tl-none border border-gray-100'
+                  ? darkMode 
+                    ? 'bg-amber-900/30 text-amber-300 rounded-tl-none border border-amber-800'
+                    : 'bg-amber-50 text-amber-800 rounded-tl-none border border-amber-200'
+                  : darkMode 
+                    ? 'bg-gray-800 text-gray-200 rounded-tl-none border border-gray-700'
+                    : 'bg-gray-100 text-gray-800 rounded-tl-none border border-gray-100'
               }`}
             >
               {msg.text}
             </div>
-            <span className="text-[10px] text-gray-400 mt-1 px-1">
+            <span className={`text-[10px] mt-1 px-1 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
               {new Date(msg.timestamp).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -521,7 +526,7 @@ const ChatBox: React.FC<{
 
       <form
         onSubmit={handleSubmit}
-        className="p-4 border-t border-gray-100 bg-gray-50/50"
+        className={`p-4 border-t ${darkMode ? 'border-gray-800 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}
       >
         <div className="flex gap-2">
           <input
@@ -529,7 +534,7 @@ const ChatBox: React.FC<{
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={getPlaceholderText()}
-            className="flex-1 px-4 py-2 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+            className={`flex-1 px-4 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'}`}
             disabled={isGenerating}
           />
           <button
@@ -551,7 +556,8 @@ const FilesPanel: React.FC<{
   onClose: () => void;
   onFileClick?: (file: FileNode) => void;
   hasCode: boolean;
-}> = ({ files, onClose, onFileClick, hasCode }) => {
+  darkMode?: boolean;
+}> = ({ files, onClose, onFileClick, hasCode, darkMode = false }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['project']));
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
@@ -589,12 +595,12 @@ const FilesPanel: React.FC<{
         <div key={node.path}>
           <button
             onClick={() => toggleFolder(node.path)}
-            className="w-full flex items-center gap-2 py-2 px-3 text-xs text-gray-700 hover:bg-indigo-50 transition-colors"
+            className={`w-full flex items-center gap-2 py-2 px-3 text-xs transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-indigo-50'}`}
             style={{ paddingLeft }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`h-3 w-3 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+              className={`h-3 w-3 transition-transform ${darkMode ? 'text-gray-500' : 'text-gray-400'} ${isExpanded ? 'rotate-90' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -602,7 +608,7 @@ const FilesPanel: React.FC<{
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
             <span className="text-base">📁</span>
-            <span className="font-semibold text-gray-800">{node.name}</span>
+            <span className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{node.name}</span>
           </button>
           {isExpanded && node.children?.map((child) => renderNode(child, depth + 1))}
         </div>
@@ -618,10 +624,10 @@ const FilesPanel: React.FC<{
         onClick={() => handleFileClick(node)}
         className={`w-full flex items-center gap-2 py-2 px-3 text-xs transition-colors text-left ${
           isSelected 
-            ? 'bg-indigo-100 text-indigo-700' 
+            ? darkMode ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-100 text-indigo-700' 
             : isClickable 
-              ? 'text-gray-700 hover:bg-indigo-50 cursor-pointer' 
-              : 'text-gray-400 cursor-default'
+              ? darkMode ? 'text-gray-300 hover:bg-gray-700 cursor-pointer' : 'text-gray-700 hover:bg-indigo-50 cursor-pointer' 
+              : darkMode ? 'text-gray-500 cursor-default' : 'text-gray-400 cursor-default'
         }`}
         style={{ paddingLeft }}
         title={isClickable ? 'Click to view code' : node.name}
@@ -629,7 +635,7 @@ const FilesPanel: React.FC<{
         <span className="text-sm">{fileStyle.icon}</span>
         <span className={isClickable ? 'font-medium' : 'italic'}>{node.name}</span>
         {node.name === 'index.html' && (
-          <span className="ml-auto text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">main</span>
+          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'}`}>main</span>
         )}
       </button>
     );
@@ -650,12 +656,12 @@ const FilesPanel: React.FC<{
   return (
     <div className="flex-1 flex flex-col p-4 overflow-y-auto custom-scrollbar">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+        <h3 className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
           Files
         </h3>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600"
+          className={`${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -673,11 +679,11 @@ const FilesPanel: React.FC<{
           </svg>
         </button>
       </div>
-      <div className="flex-1 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+      <div className={`flex-1 rounded-xl border overflow-hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
         {displayFiles.map((node) => renderNode(node))}
       </div>
       {!hasCode && (
-        <p className="text-xs text-gray-400 text-center mt-3 italic">
+        <p className={`text-xs text-center mt-3 italic ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
           Generate an app to see project files
         </p>
       )}
@@ -787,6 +793,13 @@ function CanvasAppInner() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('canvas_dark_mode');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -826,6 +839,11 @@ function CanvasAppInner() {
         console.error(e);
       }
   }, []);
+
+  // Save dark mode preference
+  useEffect(() => {
+    localStorage.setItem('canvas_dark_mode', JSON.stringify(darkMode));
+  }, [darkMode]);
 
   const saveHistory = (newHistory: GeneratedApp[]) => {
     setHistory(newHistory);
@@ -1268,9 +1286,9 @@ function CanvasAppInner() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden flex">
+    <div className={`h-screen overflow-hidden flex transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Left Vertical Nav Bar */}
-        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center shrink-0 border-r border-gray-700 relative">
+        <nav className={`w-16 flex flex-col items-center shrink-0 border-r relative transition-colors duration-300 ${darkMode ? 'bg-[#0d0d14] border-gray-800' : 'bg-[#1e1e2e] border-gray-700'}`}>
           {/* Micro Logo at Top */}
           <div className="pt-3 pb-2">
             <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
@@ -1609,6 +1627,29 @@ function CanvasAppInner() {
             </svg>
           </button>
 
+          <div className="w-8 h-px bg-gray-600 my-1"></div>
+
+          {/* Dark/Light Mode Toggle */}
+          <button
+            onClick={() => {
+              const newMode = !darkMode;
+              setDarkMode(newMode);
+              localStorage.setItem('canvas_dark_mode', JSON.stringify(newMode));
+            }}
+            className={`p-2 rounded-lg transition-all ${darkMode ? 'bg-yellow-500/20 text-yellow-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {darkMode ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+
           {/* Status indicator at bottom */}
           <div className="mt-auto pb-2">
             <div className={`w-2 h-2 rounded-full mx-auto ${genState.isGenerating ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
@@ -1619,9 +1660,9 @@ function CanvasAppInner() {
         {/* Main Content Area */}
         <main className="flex-1 relative flex overflow-hidden">
           {/* Preview/Code Area */}
-          <div className={`relative overflow-hidden bg-gray-50/30 transition-all duration-300 ease-in-out ${activePanel ? 'flex-1' : 'w-full'}`}>
+          <div className={`relative overflow-hidden transition-all duration-300 ease-in-out ${activePanel ? 'flex-1' : 'w-full'} ${darkMode ? 'bg-gray-800/30' : 'bg-gray-50/30'}`}>
             {genState.isGenerating && (
-              <div className="absolute inset-0 z-40 bg-white/80 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in">
+              <div className={`absolute inset-0 z-40 backdrop-blur-md flex flex-col items-center justify-center animate-fade-in ${darkMode ? 'bg-gray-900/80' : 'bg-white/80'}`}>
                 <div className="relative mb-6">
                   <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -1629,21 +1670,21 @@ function CanvasAppInner() {
                   </div>
                 </div>
                 <div className="text-center max-w-md px-6">
-                  <p className="text-lg font-bold text-gray-800 tracking-tight">{genState.progressMessage}</p>
+                  <p className={`text-lg font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-800'}`}>{genState.progressMessage}</p>
                   <p className="text-sm text-gray-500 mt-1">Using {selectedModel.name} • {selectedModel.provider}</p>
                   {genState.streamingCode && (
                     <div className="mt-4 text-left">
                       <p className="text-[10px] text-indigo-600 font-bold uppercase mb-2">
                         Generating {genState.streamingCode.length.toLocaleString()} characters...
                       </p>
-                      <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                      <div className={`h-1 rounded-full overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                         <div className="h-full bg-indigo-600 rounded-full animate-pulse" style={{ width: '60%' }}></div>
                       </div>
                     </div>
                   )}
                   <button
                     onClick={cancelGeneration}
-                    className="mt-4 px-4 py-2 text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    className={`mt-4 px-4 py-2 text-xs font-medium rounded-lg transition-all ${darkMode ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-600 hover:text-red-600 hover:bg-red-50'}`}
                   >
                     Cancel
                   </button>
@@ -1665,7 +1706,7 @@ function CanvasAppInner() {
               )}
               {viewMode === ViewMode.SPLIT && (
                 <>
-                  <div className="w-1/2 h-full border-r border-gray-200">
+                  <div className={`w-1/2 h-full border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                     <Preview code={genState.streamingCode || currentApp?.code || ''} deviceMode={deviceMode} />
                   </div>
                   <div className="w-1/2 h-full">
@@ -1677,27 +1718,27 @@ function CanvasAppInner() {
           </div>
 
           {/* Right Panels */}
-          <div className={`h-full bg-white transition-all duration-300 ease-in-out overflow-hidden ${activePanel ? 'w-80 border-l border-gray-100 shadow-2xl' : 'w-0'}`}>
+          <div className={`h-full transition-all duration-300 ease-in-out overflow-hidden ${activePanel ? 'w-80 border-l shadow-2xl' : 'w-0'} ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'}`}>
             <div className={`w-80 flex flex-col h-full ${activePanel ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}>
               
               {/* Workspace Panel */}
               {activePanel === 'workspace' && (
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Workspace</h3>
-                    <button onClick={() => setActivePanel(null)} className="text-gray-400 hover:text-gray-600">
+                    <h3 className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Workspace</h3>
+                    <button onClick={() => setActivePanel(null)} className={`${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
                   <div className="mb-6">
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">New App Concept</label>
+                    <label className={`block text-[10px] font-bold uppercase mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>New App Concept</label>
                     <textarea
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="Ex: Landing page for a SaaS..."
-                      className="w-full p-4 text-xs border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50/50 min-h-[120px] resize-none transition-all"
+                      className={`w-full p-4 text-xs border rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] resize-none transition-all ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50/50 border-gray-200 text-gray-800'}`}
                     />
                     <button
                       onClick={() => {
@@ -1708,19 +1749,19 @@ function CanvasAppInner() {
                         }
                       }}
                       disabled={genState.isGenerating || !prompt.trim()}
-                      className="w-full mt-3 py-3 bg-indigo-600 text-white text-xs font-bold rounded-2xl hover:bg-indigo-700 disabled:bg-indigo-300 flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-100"
+                      className={`w-full mt-3 py-3 text-white text-xs font-bold rounded-2xl disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-md ${darkMode ? 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-900/30' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'}`}
                     >
                       {genState.isGenerating ? 'BUILDING...' : 'START BUILDING'}
                     </button>
                   </div>
                   <div>
-                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Starter Templates</h3>
+                    <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Starter Templates</h3>
                     <div className="space-y-2">
                       {PRESET_TEMPLATES.map((tpl) => (
                         <button
                           key={tpl.name}
                           onClick={() => setPrompt(tpl.prompt)}
-                          className="w-full text-left px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-white hover:text-indigo-600 rounded-xl border border-transparent hover:border-gray-200 transition-all flex items-center gap-3 group"
+                          className={`w-full text-left px-4 py-3 text-xs rounded-xl border border-transparent transition-all flex items-center gap-3 group ${darkMode ? 'text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-indigo-400 hover:border-gray-600' : 'text-gray-700 bg-gray-50 hover:bg-white hover:text-indigo-600 hover:border-gray-200'}`}
                         >
                           <span className="text-lg">{tpl.icon}</span>
                           <span className="flex-1">{tpl.name}</span>
@@ -1737,10 +1778,10 @@ function CanvasAppInner() {
               {/* Assistant Panel */}
               {activePanel === 'assistant' && (
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+                  <div className={`px-6 py-4 border-b flex items-center justify-between ${darkMode ? 'border-gray-800 bg-gray-800/50' : 'border-gray-50 bg-gray-50/50'}`}>
                     <div>
-                      <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">AI Assistant</h3>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
+                      <h3 className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>AI Assistant</h3>
+                      <p className={`text-[10px] mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                         {conversationPhase === 'initial' && 'Tell me what to build'}
                         {conversationPhase === 'gathering' && 'Gathering requirements'}
                         {conversationPhase === 'confirming' && 'Ready to build'}
@@ -1748,7 +1789,7 @@ function CanvasAppInner() {
                         {conversationPhase === 'editing' && 'Ask for changes'}
                       </p>
                     </div>
-                    <button onClick={() => setActivePanel(null)} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setActivePanel(null)} className={`${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -1760,6 +1801,7 @@ function CanvasAppInner() {
                     isGenerating={genState.isGenerating}
                     conversationPhase={conversationPhase}
                     hasApp={!!currentApp}
+                    darkMode={darkMode}
                   />
                 </div>
               )}
@@ -1771,6 +1813,7 @@ function CanvasAppInner() {
                   onClose={() => setActivePanel(null)} 
                   onFileClick={() => setViewMode(ViewMode.CODE)}
                   hasCode={!!currentApp?.code}
+                  darkMode={darkMode}
                 />
               )}
 
@@ -1778,12 +1821,12 @@ function CanvasAppInner() {
               {activePanel === 'history' && (
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">History</h3>
+                    <h3 className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>History</h3>
                     <div className="flex items-center gap-3">
                       {/* New Project Button */}
                       <button
                         onClick={resetProject}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-colors"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-lg transition-colors ${darkMode ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-indigo-500 hover:bg-indigo-600'}`}
                         title="Start New Project"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1791,7 +1834,7 @@ function CanvasAppInner() {
                         </svg>
                         <span>New</span>
                       </button>
-                      <button onClick={() => setActivePanel(null)} className="text-gray-400 hover:text-gray-600">
+                      <button onClick={() => setActivePanel(null)} className={`${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -1815,8 +1858,12 @@ function CanvasAppInner() {
                             }}
                             className={`w-full text-left px-4 py-3 pr-12 text-xs rounded-xl transition-all truncate border ${
                               currentApp?.id === app.id
-                                ? 'bg-indigo-50 border-indigo-100 text-indigo-700 shadow-sm'
-                                : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
+                                ? darkMode 
+                                  ? 'bg-indigo-900/30 border-indigo-800 text-indigo-300 shadow-sm'
+                                  : 'bg-indigo-50 border-indigo-100 text-indigo-700 shadow-sm'
+                                : darkMode
+                                  ? 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-600'
+                                  : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
                             }`}
                           >
                             <div className="font-bold mb-1 truncate">{app.name}</div>
@@ -1830,7 +1877,7 @@ function CanvasAppInner() {
                                 e.stopPropagation();
                                 setOpenMenuId(openMenuId === app.id ? null : app.id);
                               }}
-                              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              className={`p-2 rounded-lg transition-colors ${darkMode ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                               title="Options"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
@@ -1842,13 +1889,13 @@ function CanvasAppInner() {
                             
                             {/* Dropdown Menu */}
                             {openMenuId === app.id && (
-                              <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                              <div className={`absolute right-0 top-full mt-1 w-40 rounded-lg shadow-xl border py-1 z-50 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     duplicateProject(app);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                  className={`w-full text-left px-4 py-2 text-xs flex items-center gap-2 ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}`}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1860,20 +1907,20 @@ function CanvasAppInner() {
                                     e.stopPropagation();
                                     shareProject(app);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                  className={`w-full text-left px-4 py-2 text-xs flex items-center gap-2 ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}`}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                                   </svg>
                                   Share
                                 </button>
-                                <div className="border-t border-gray-100 my-1"></div>
+                                <div className={`border-t my-1 ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}></div>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     deleteProjectFromHistory(app.id);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                  className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-red-900/20 flex items-center gap-2"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1888,7 +1935,7 @@ function CanvasAppInner() {
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <p className="text-gray-400 italic text-xs mb-4">No project history yet.</p>
+                      <p className={`italic text-xs mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>No project history yet.</p>
                       <button
                         onClick={resetProject}
                         className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg transition-colors"
@@ -1907,8 +1954,8 @@ function CanvasAppInner() {
               {activePanel === 'tools' && (
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tools & Actions</h3>
-                    <button onClick={() => setActivePanel(null)} className="text-gray-400 hover:text-gray-600">
+                    <h3 className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Tools & Actions</h3>
+                    <button onClick={() => setActivePanel(null)} className={`${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -1917,14 +1964,14 @@ function CanvasAppInner() {
 
                   {/* Quick Actions */}
                   <div className="mb-6">
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Quick Enhancements</h4>
+                    <h4 className={`text-[10px] font-bold uppercase mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Quick Enhancements</h4>
                     <div className="grid grid-cols-2 gap-2">
                       {QUICK_ACTIONS.map((action) => (
                         <button
                           key={action.label}
                           onClick={() => handleQuickAction(action.label)}
                           disabled={!currentApp || genState.isGenerating}
-                          className="flex items-center gap-2 px-3 py-2 text-[10px] font-medium text-gray-600 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className={`flex items-center gap-2 px-3 py-2 text-[10px] font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'text-gray-300 bg-gray-800 hover:bg-gray-700 hover:text-indigo-400' : 'text-gray-600 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600'}`}
                         >
                           <span>{action.icon}</span>
                           <span className="truncate">{action.label}</span>
@@ -1935,27 +1982,27 @@ function CanvasAppInner() {
 
                   {/* Provider & Model Selection */}
                   <div className="mb-6">
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Provider & Model</h4>
+                    <h4 className={`text-[10px] font-bold uppercase mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Provider & Model</h4>
                     
                     {/* Current Selection */}
-                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 mb-3">
+                    <div className={`p-4 rounded-xl border mb-3 ${darkMode ? 'bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border-indigo-800' : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100'}`}>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">{selectedModel.icon}</span>
-                        <span className="text-sm font-bold text-gray-800">{selectedModel.name}</span>
+                        <span className={`text-sm font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedModel.name}</span>
                       </div>
-                      <p className="text-[10px] text-gray-600">{selectedModel.description}</p>
+                      <p className={`text-[10px] ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedModel.description}</p>
                       <div className="mt-2 flex items-center gap-2">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          selectedModel.provider === 'Anthropic' ? 'bg-purple-100 text-purple-700' :
-                          selectedModel.provider === 'OpenAI' ? 'bg-emerald-100 text-emerald-700' :
-                          selectedModel.provider === 'Gemini' ? 'bg-green-100 text-green-700' :
-                          selectedModel.provider === 'xAI' ? 'bg-blue-100 text-blue-700' :
-                          'bg-orange-100 text-orange-700'
+                          selectedModel.provider === 'Anthropic' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
+                          selectedModel.provider === 'OpenAI' ? darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700' :
+                          selectedModel.provider === 'Gemini' ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700' :
+                          selectedModel.provider === 'xAI' ? darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700' :
+                          darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'
                         }`}>
                           {selectedModel.provider}
                         </span>
                         {selectedModel.isThinking && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Thinking Mode</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>Thinking Mode</span>
                         )}
                       </div>
                     </div>
@@ -1971,12 +2018,12 @@ function CanvasAppInner() {
                           }}
                           className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${
                             selectedModel.provider === provider
-                              ? provider === 'Anthropic' ? 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
-                                provider === 'OpenAI' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
-                                provider === 'Gemini' ? 'bg-green-100 text-green-700 ring-1 ring-green-300' :
-                                provider === 'xAI' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
-                                'bg-orange-100 text-orange-700 ring-1 ring-orange-300'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              ? provider === 'Anthropic' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
+                                provider === 'OpenAI' ? darkMode ? 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-700' : 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
+                                provider === 'Gemini' ? darkMode ? 'bg-green-900/50 text-green-300 ring-1 ring-green-700' : 'bg-green-100 text-green-700 ring-1 ring-green-300' :
+                                provider === 'xAI' ? darkMode ? 'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
+                                darkMode ? 'bg-orange-900/50 text-orange-300 ring-1 ring-orange-700' : 'bg-orange-100 text-orange-700 ring-1 ring-orange-300'
+                              : darkMode ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
                           {provider}
@@ -1992,18 +2039,18 @@ function CanvasAppInner() {
                           onClick={() => setSelectedModel(m)}
                           className={`w-full text-left p-3 rounded-xl transition-all ${
                             selectedModel.id === m.id 
-                              ? 'bg-indigo-50 ring-1 ring-indigo-200' 
-                              : 'bg-gray-50 hover:bg-gray-100'
+                              ? darkMode ? 'bg-indigo-900/30 ring-1 ring-indigo-700' : 'bg-indigo-50 ring-1 ring-indigo-200' 
+                              : darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
                           }`}
                         >
                           <div className="flex items-center gap-2">
                             <span className="text-sm">{m.icon}</span>
-                            <span className="text-xs font-bold text-gray-800">{m.name}</span>
+                            <span className={`text-xs font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{m.name}</span>
                             {m.isThinking && (
-                              <span className="text-[8px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">THINKING</span>
+                              <span className={`text-[8px] px-1.5 py-0.5 rounded ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>THINKING</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-gray-500 mt-1 ml-6">{m.description}</p>
+                          <p className={`text-[10px] mt-1 ml-6 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>{m.description}</p>
                         </button>
                       ))}
                     </div>
@@ -2011,12 +2058,12 @@ function CanvasAppInner() {
 
                   {/* Settings */}
                   <div>
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Settings</h4>
+                    <h4 className={`text-[10px] font-bold uppercase mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Settings</h4>
                     <div className="space-y-3">
-                      <label className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-all">
+                      <label className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all ${darkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}>
                         <div className="flex items-center gap-3">
                           <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                          <span className="text-xs font-medium text-gray-700">Real-time Streaming</span>
+                          <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Real-time Streaming</span>
                         </div>
                         <input
                           type="checkbox"
@@ -2148,18 +2195,18 @@ function CanvasAppInner() {
       {/* Templates Modal */}
       {templatesOpen && (
         <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-hidden">
+          <div className={`rounded-3xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Start from Template</h2>
-                <p className="text-sm text-gray-500 mt-1">Choose a template to get started quickly</p>
+                <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Start from Template</h2>
+                <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Choose a template to get started quickly</p>
               </div>
               <button
                 onClick={() => setTemplatesOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className={`p-2 rounded-full transition-colors ${darkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -2183,19 +2230,19 @@ function CanvasAppInner() {
                   };
                   setChatMessages(prev => [...prev, newMessage]);
                 }}
-                className="group p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all text-left"
+                className={`group p-4 border-2 rounded-2xl transition-all text-left ${darkMode ? 'border-gray-700 hover:border-indigo-500 hover:bg-indigo-900/20' : 'border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50'}`}
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-gray-800 mb-1">Landing Page</h3>
-                <p className="text-xs text-gray-500">Modern hero, features, testimonials & CTA</p>
+                <h3 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Landing Page</h3>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Modern hero, features, testimonials & CTA</p>
                 <div className="mt-3 flex flex-wrap gap-1">
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-medium">Hero</span>
-                  <span className="px-2 py-0.5 bg-purple-100 text-purple-600 rounded text-[10px] font-medium">Features</span>
-                  <span className="px-2 py-0.5 bg-pink-100 text-pink-600 rounded text-[10px] font-medium">CTA</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-600'}`}>Hero</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-600'}`}>Features</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-pink-900/50 text-pink-300' : 'bg-pink-100 text-pink-600'}`}>CTA</span>
                 </div>
               </button>
 
@@ -2214,19 +2261,19 @@ function CanvasAppInner() {
                   };
                   setChatMessages(prev => [...prev, newMessage]);
                 }}
-                className="group p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all text-left"
+                className={`group p-4 border-2 rounded-2xl transition-all text-left ${darkMode ? 'border-gray-700 hover:border-indigo-500 hover:bg-indigo-900/20' : 'border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50'}`}
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-gray-800 mb-1">Dashboard</h3>
-                <p className="text-xs text-gray-500">Sidebar, stats cards, charts & activity</p>
+                <h3 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Dashboard</h3>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Sidebar, stats cards, charts & activity</p>
                 <div className="mt-3 flex flex-wrap gap-1">
-                  <span className="px-2 py-0.5 bg-cyan-100 text-cyan-600 rounded text-[10px] font-medium">Charts</span>
-                  <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px] font-medium">Stats</span>
-                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] font-medium">Dark</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-cyan-900/50 text-cyan-300' : 'bg-cyan-100 text-cyan-600'}`}>Charts</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-600'}`}>Stats</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-600'}`}>Dark</span>
                 </div>
               </button>
 
@@ -2245,42 +2292,42 @@ function CanvasAppInner() {
                   };
                   setChatMessages(prev => [...prev, newMessage]);
                 }}
-                className="group p-4 border-2 border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all text-left"
+                className={`group p-4 border-2 rounded-2xl transition-all text-left ${darkMode ? 'border-gray-700 hover:border-indigo-500 hover:bg-indigo-900/20' : 'border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50'}`}
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-gray-800 mb-1">Todo App</h3>
-                <p className="text-xs text-gray-500">Task management with categories & progress</p>
+                <h3 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Todo App</h3>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Task management with categories & progress</p>
                 <div className="mt-3 flex flex-wrap gap-1">
-                  <span className="px-2 py-0.5 bg-green-100 text-green-600 rounded text-[10px] font-medium">Tasks</span>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded text-[10px] font-medium">Progress</span>
-                  <span className="px-2 py-0.5 bg-teal-100 text-teal-600 rounded text-[10px] font-medium">Minimal</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-600'}`}>Tasks</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-600'}`}>Progress</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${darkMode ? 'bg-teal-900/50 text-teal-300' : 'bg-teal-100 text-teal-600'}`}>Minimal</span>
                 </div>
               </button>
 
               {/* More templates coming soon placeholder */}
-              <div className="p-4 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className={`p-4 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center opacity-60 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                <h3 className="font-medium text-gray-500 text-sm">More Coming Soon</h3>
-                <p className="text-xs text-gray-400 mt-1">E-commerce, Blog, Portfolio...</p>
+                <h3 className={`font-medium text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>More Coming Soon</h3>
+                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>E-commerce, Blog, Portfolio...</p>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-              <p className="text-xs text-gray-500">
+            <div className={`px-6 py-4 border-t flex items-center justify-between ${darkMode ? 'border-gray-800 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}>
+              <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                 💡 Tip: You can also describe any custom app idea in the chat
               </p>
               <button
                 onClick={() => setTemplatesOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                className={`px-4 py-2 text-sm font-medium transition-colors ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 Cancel
               </button>
@@ -2291,7 +2338,7 @@ function CanvasAppInner() {
 
       {/* Error Toast */}
       {genState.error && (
-        <div className="fixed bottom-6 right-6 z-[100] max-w-sm p-4 bg-white border border-red-100 rounded-3xl shadow-2xl flex gap-4 items-start border-l-4 border-l-red-500 animate-slide-up">
+        <div className={`fixed bottom-6 right-6 z-[100] max-w-sm p-4 border rounded-3xl shadow-2xl flex gap-4 items-start border-l-4 border-l-red-500 animate-slide-up ${darkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-red-100'}`}>
           <div className="p-2 bg-red-50 text-red-500 rounded-xl">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
