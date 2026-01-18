@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Product screenshots that will fly around
+// Product screenshots that will fly around smoothly
 const productScreenshots = [
   { id: 'canvas', image: '/images/products/canvas.jpeg' },
   { id: 'api-tester', image: '/images/products/api-tester.jpeg' },
@@ -20,48 +20,48 @@ const productScreenshots = [
   { id: 'neural-art', image: '/images/products/neural-art.jpeg' },
 ];
 
-// Duplicate for 30 cards
+// Duplicate for 30 cards with variety
 const expandedProducts = [
   ...productScreenshots,
-  ...productScreenshots.map((p, i) => ({ ...p, id: `${p.id}-alt1` })),
-  ...productScreenshots.slice(0, 6).map((p, i) => ({ ...p, id: `${p.id}-alt2` })),
+  ...productScreenshots.map((p) => ({ ...p, id: `${p.id}-alt1` })),
+  ...productScreenshots.slice(0, 6).map((p) => ({ ...p, id: `${p.id}-alt2` })),
 ];
 
-// 30 animation configurations - mix of directions with ENHANCED zoom pass
+// 30 smooth animation configurations - left, right, up, down only (no zoom)
 const animationConfigs = [
-  { direction: 'zoom-pass', duration: 12, delay: 0, startY: '15%', size: 'large' },
-  { direction: 'left-to-right', duration: 22, delay: 1, startY: '8%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 14, delay: 2, startY: '35%', size: 'large' },
-  { direction: 'right-to-left', duration: 18, delay: 0.5, startY: '20%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 11, delay: 3, startY: '55%', size: 'large' },
-  { direction: 'top-to-bottom', duration: 26, delay: 1.5, startX: '12%', size: 'small' },
-  { direction: 'zoom-pass', duration: 13, delay: 4, startY: '75%', size: 'large' },
-  { direction: 'bottom-to-top', duration: 20, delay: 2, startX: '85%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 15, delay: 5, startY: '45%', size: 'large' },
-  { direction: 'left-to-right', duration: 24, delay: 3, startY: '65%', size: 'small' },
-  { direction: 'zoom-pass', duration: 10, delay: 6, startY: '25%', size: 'large' },
-  { direction: 'right-to-left', duration: 16, delay: 4, startY: '88%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 12, delay: 7, startY: '5%', size: 'large' },
-  { direction: 'top-to-bottom', duration: 30, delay: 5, startX: '72%', size: 'small' },
-  { direction: 'zoom-pass', duration: 14, delay: 8, startY: '60%', size: 'large' },
-  { direction: 'bottom-to-top', duration: 21, delay: 6, startX: '28%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 11, delay: 9, startY: '80%', size: 'large' },
-  { direction: 'left-to-right', duration: 28, delay: 7, startY: '40%', size: 'small' },
-  { direction: 'zoom-pass', duration: 13, delay: 10, startY: '10%', size: 'large' },
-  { direction: 'right-to-left', duration: 23, delay: 8, startY: '50%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 15, delay: 11, startY: '70%', size: 'large' },
-  { direction: 'top-to-bottom', duration: 19, delay: 9, startX: '45%', size: 'small' },
-  { direction: 'zoom-pass', duration: 12, delay: 12, startY: '30%', size: 'large' },
-  { direction: 'bottom-to-top', duration: 25, delay: 10, startX: '62%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 14, delay: 13, startY: '85%', size: 'large' },
-  { direction: 'left-to-right', duration: 17, delay: 11, startY: '18%', size: 'small' },
-  { direction: 'zoom-pass', duration: 11, delay: 14, startY: '48%', size: 'large' },
-  { direction: 'right-to-left', duration: 27, delay: 12, startY: '72%', size: 'medium' },
-  { direction: 'zoom-pass', duration: 13, delay: 15, startY: '92%', size: 'large' },
-  { direction: 'top-to-bottom', duration: 22, delay: 13, startX: '35%', size: 'small' },
+  { direction: 'left-to-right', duration: 25, delay: 0, startY: '5%', size: 'large' },
+  { direction: 'right-to-left', duration: 22, delay: 1, startY: '15%', size: 'medium' },
+  { direction: 'top-to-bottom', duration: 28, delay: 2, startX: '10%', size: 'small' },
+  { direction: 'bottom-to-top', duration: 24, delay: 0.5, startX: '85%', size: 'medium' },
+  { direction: 'left-to-right', duration: 30, delay: 3, startY: '35%', size: 'large' },
+  { direction: 'right-to-left', duration: 20, delay: 1.5, startY: '25%', size: 'small' },
+  { direction: 'top-to-bottom', duration: 26, delay: 4, startX: '70%', size: 'medium' },
+  { direction: 'bottom-to-top', duration: 23, delay: 2.5, startX: '30%', size: 'large' },
+  { direction: 'left-to-right', duration: 27, delay: 5, startY: '55%', size: 'small' },
+  { direction: 'right-to-left', duration: 21, delay: 3.5, startY: '45%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 29, delay: 6, startX: '50%', size: 'medium' },
+  { direction: 'bottom-to-top', duration: 25, delay: 4.5, startX: '15%', size: 'small' },
+  { direction: 'left-to-right', duration: 24, delay: 7, startY: '75%', size: 'medium' },
+  { direction: 'right-to-left', duration: 28, delay: 5.5, startY: '65%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 22, delay: 8, startX: '90%', size: 'small' },
+  { direction: 'bottom-to-top', duration: 26, delay: 6.5, startX: '60%', size: 'medium' },
+  { direction: 'left-to-right', duration: 30, delay: 9, startY: '85%', size: 'large' },
+  { direction: 'right-to-left', duration: 23, delay: 7.5, startY: '8%', size: 'small' },
+  { direction: 'top-to-bottom', duration: 27, delay: 10, startX: '40%', size: 'medium' },
+  { direction: 'bottom-to-top', duration: 21, delay: 8.5, startX: '75%', size: 'large' },
+  { direction: 'left-to-right', duration: 25, delay: 11, startY: '92%', size: 'small' },
+  { direction: 'right-to-left', duration: 29, delay: 9.5, startY: '38%', size: 'medium' },
+  { direction: 'top-to-bottom', duration: 24, delay: 12, startX: '25%', size: 'large' },
+  { direction: 'bottom-to-top', duration: 28, delay: 10.5, startX: '55%', size: 'small' },
+  { direction: 'left-to-right', duration: 22, delay: 13, startY: '48%', size: 'medium' },
+  { direction: 'right-to-left', duration: 26, delay: 11.5, startY: '72%', size: 'large' },
+  { direction: 'top-to-bottom', duration: 30, delay: 14, startX: '5%', size: 'small' },
+  { direction: 'bottom-to-top', duration: 23, delay: 12.5, startX: '45%', size: 'medium' },
+  { direction: 'left-to-right', duration: 27, delay: 15, startY: '18%', size: 'large' },
+  { direction: 'right-to-left', duration: 25, delay: 13.5, startY: '58%', size: 'small' },
 ];
 
-// Product Card Component - flying screenshots (no terminal header overlay)
+// Product Card Component - smooth flying with dark shadows
 function ProductCard({ 
   product, 
   config, 
@@ -72,9 +72,9 @@ function ProductCard({
   index: number;
 }) {
   const sizeClasses = {
-    small: 'w-32 h-24 md:w-44 md:h-32',
-    medium: 'w-44 h-32 md:w-56 md:h-40',
-    large: 'w-56 h-40 md:w-72 md:h-52',
+    small: 'w-36 h-28 md:w-48 md:h-36',
+    medium: 'w-48 h-36 md:w-64 md:h-48',
+    large: 'w-64 h-48 md:w-80 md:h-60',
   };
 
   const getAnimationClass = () => {
@@ -83,7 +83,6 @@ function ProductCard({
       case 'right-to-left': return 'animate-float-left';
       case 'top-to-bottom': return 'animate-float-down';
       case 'bottom-to-top': return 'animate-float-up';
-      case 'zoom-pass': return 'animate-zoom-pass-close';
       default: return 'animate-float-right';
     }
   };
@@ -92,9 +91,9 @@ function ProductCard({
     const style: React.CSSProperties = {
       animationDuration: `${config.duration}s`,
       animationDelay: `${config.delay}s`,
-      zIndex: config.direction === 'zoom-pass' ? 20 : config.size === 'large' ? 10 : config.size === 'medium' ? 5 : 1,
+      zIndex: config.size === 'large' ? 10 : config.size === 'medium' ? 5 : 1,
     };
-    if (config.direction === 'left-to-right' || config.direction === 'right-to-left' || config.direction === 'zoom-pass') {
+    if (config.direction === 'left-to-right' || config.direction === 'right-to-left') {
       style.top = config.startY;
     }
     if (config.direction === 'top-to-bottom' || config.direction === 'bottom-to-top') {
@@ -108,7 +107,8 @@ function ProductCard({
       className={`absolute ${sizeClasses[config.size as keyof typeof sizeClasses]} ${getAnimationClass()}`}
       style={getPositionStyle()}
     >
-      <div className="w-full h-full rounded-xl shadow-2xl overflow-hidden border border-white/20 backdrop-blur-sm relative">
+      {/* Card with heavy dark shadow */}
+      <div className="w-full h-full rounded-xl overflow-hidden relative shadow-[0_20px_60px_-10px_rgba(0,0,0,0.8),0_10px_30px_-5px_rgba(0,0,0,0.6)]">
         <Image
           src={product.image}
           alt={`Product ${index + 1}`}
@@ -116,6 +116,12 @@ function ProductCard({
           className="object-cover"
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
         />
+        {/* Dark overlay on image edges */}
+        <div className="absolute inset-0 shadow-[inset_0_0_30px_10px_rgba(0,0,0,0.5)]"></div>
+        {/* Bottom dark gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent"></div>
+        {/* Top dark gradient */}
+        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-black/40 to-transparent"></div>
       </div>
     </div>
   );
