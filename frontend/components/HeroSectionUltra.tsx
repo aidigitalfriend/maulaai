@@ -249,7 +249,7 @@ export default function HeroSectionUltra() {
         <div className="text-center">
           {/* Sticky image that changes every 2 seconds - ABOVE buttons */}
           <div className="mb-8 flex justify-center">
-            <div className="w-[500px] h-[320px] md:w-[700px] md:h-[450px] lg:w-[900px] lg:h-[550px] rounded-2xl overflow-hidden shadow-[0_30px_80px_-15px_rgba(0,0,0,0.9),0_15px_40px_-10px_rgba(0,0,0,0.7)] relative">
+            <div className="w-[320px] h-[200px] md:w-[450px] md:h-[280px] lg:w-[550px] lg:h-[340px] rounded-2xl overflow-hidden shadow-[0_30px_80px_-15px_rgba(0,0,0,0.9),0_15px_40px_-10px_rgba(0,0,0,0.7)] relative">
               {productScreenshots.map((product, index) => (
                 <div
                   key={product.id}
