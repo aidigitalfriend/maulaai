@@ -22,32 +22,30 @@ const KNOWLEDGE_BASE = `
 - Daily Access: $1/day - Perfect for trying out an agent
 - Weekly Access: $5/week - Great for short projects  
 - Monthly Access: $19/month - Best value for regular users
-- NO auto-renewal - all purchases are one-time payments
+- ALL purchases are ONE-TIME payments - NO auto-renewal, NO recurring charges
 - Each purchase gives UNLIMITED conversations with ONE agent for the selected period
+- After expiry, simply repurchase if you want to continue using the agent
 - You can purchase multiple agents simultaneously
 - Prices are in USD
 
 ### Payment Methods:
 - Credit/Debit Cards (Visa, Mastercard, Amex)
 - Stripe secure payments
-- No PayPal currently
 
-## 💳 BILLING & REFUNDS
-- Full refund within 30 days of purchase (no questions asked!)
-- 50% refund between 30-60 days
-- No refund after 60 days
-- Refunds processed within 5-7 business days
-- Contact: support@onelastai.co for billing issues
+## 💳 BILLING POLICY
+- **NO REFUNDS** - All purchases are final
+- One-time payments only, no subscriptions
+- Plans expire after the purchased period (1 day, 1 week, or 1 month)
+- To continue using an agent after expiry, simply purchase again
+- View purchase history at /dashboard/billing
+- Contact: support@onelastai.co for billing questions
 
-## 🤖 ALL AVAILABLE AGENTS (20+ Specialized AI Friends)
+## 🤖 ALL AVAILABLE AGENTS (18 Specialized AI Friends)
 
 ### Productivity & Work:
 - **Einstein** - Physics, Math, Science genius
 - **Tech Wizard** - Programming, coding, debugging expert
-- **Business Mentor** - Strategy, planning, entrepreneurship
-- **Marketing Maven** - Marketing strategies, content creation
-- **Legal Eagle** - Legal questions, contracts, compliance
-- **Career Coach** - Resume, interviews, career growth
+- **Mrs Boss** - Leadership, management advice
 
 ### Lifestyle & Entertainment:
 - **Chef Biew** - Cooking, recipes, meal planning
@@ -57,21 +55,20 @@ const KNOWLEDGE_BASE = `
 - **Drama Queen** - Stories, roleplay, creative writing
 
 ### Personal & Wellness:
-- **Dr. Wellness** - Health tips, mental wellness
-- **Emma Emotional** - Emotional support, listening
+- **Emma Emotional** - Emotional support, listening, empathy
 - **Julie Girlfriend** - Friendly companion, casual chat
-- **Language Tutor** - Learn new languages
 
 ### Gaming & Tech:
 - **Nid Gaming** - Gaming tips, strategies
 - **Ben Sega** - Retro gaming, game recommendations
 - **Chess Player** - Chess strategies and games
 - **Knight Logic** - Logic puzzles, problem solving
+- **Lazy Pawn** - Relaxed gaming companion
+- **Rook Jokey** - Humor and pranks
+- **Bishop Burger** - Food gaming hybrid
 
 ### Specialized:
 - **Professor Astrology** - Astrology, zodiac readings
-- **Mrs Boss** - Leadership, management advice
-- **Rook Jokey** - Humor and pranks
 
 ## 📄 PLATFORM PAGES & NAVIGATION
 
@@ -147,57 +144,29 @@ const KNOWLEDGE_BASE = `
 - Studio: /studio (Advanced AI workspace)
 
 ## 🔒 ACCOUNT & SECURITY
-- Enterprise-grade encryption (AES-256)
-- SOC 2 Type II compliant
-- ISO 27001 certified
-- Two-factor authentication (2FA) available
-- Data export available in JSON/CSV
 - Secure password requirements
 - Session management in /dashboard/security
 - Login history tracking
-- Device management
-
-## 📊 USAGE LIMITS
-- Daily Plan: 500 API calls per day
-- Weekly Plan: 2,500 API calls per week
-- Monthly Plan: 15,000 API calls per month
-- Unlimited text conversations within limits
-
-## 🔌 INTEGRATIONS & API
-- Slack integration
-- Microsoft Teams integration
-- Discord bot
-- Zapier connector
-- Make.com (Integromat)
-- REST API with SDKs (JavaScript, Python, Go)
-- Webhooks for real-time events
-- OAuth 2.0 authentication
 
 ## 📞 SUPPORT CHANNELS
 - 24/7 AI Support: /support/live-support (That's me, darling! 💕)
-- Human Support: Monday-Friday 9AM-6PM EST
 - Email: support@onelastai.co
 - Ticket Response: Within 24-48 hours
-- Book Consultation: /support/book-consultation
 
 ## 🎮 GAMIFICATION & REWARDS
 - Earn points for using agents
 - Unlock achievements and badges
 - Daily login streaks
-- Referral bonuses
 - View rewards at /dashboard/rewards
 
 ## 📈 SYSTEM STATUS
 - Status Page: /status
-- API Status: /status/api-status
-- Analytics: /status/analytics
 - 99.9% uptime guarantee
 
 ## 🔗 SOCIAL MEDIA
 - Twitter/X: @onelastai
 - Facebook: /onelastai
 - Instagram: @onelastai
-- GitHub: github.com/onelastai
 - Discord: discord.gg/onelastai
 
 ## ❓ COMMON QUESTIONS
@@ -205,11 +174,14 @@ const KNOWLEDGE_BASE = `
 Q: How do I get started?
 A: Sign up at /auth/signup, then browse agents at /agents and purchase access!
 
-Q: Can I try before buying?
-A: Some agents have free trials! Check individual agent pages.
+Q: Can I get a refund?
+A: No, all purchases are final. We have a NO REFUND policy.
 
 Q: How do I cancel?
-A: No need to cancel - purchases are one-time, no auto-renewal!
+A: No need to cancel - purchases are one-time, no auto-renewal! Just don't repurchase after expiry.
+
+Q: What happens when my plan expires?
+A: You simply lose access to the agent. If you want to continue, just purchase again!
 
 Q: Where's my purchase history?
 A: Go to /dashboard/billing to see all your transactions.
