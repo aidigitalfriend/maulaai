@@ -1219,67 +1219,16 @@ function CanvasAppInner() {
               </div>
             )}
 
-            {/* Model Selector */}
-            <div className="relative model-dropdown">
-              <button
-                onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:border-indigo-300 transition-colors"
-              >
-                <span className={`w-2 h-2 rounded-full ${
-                  selectedModel.provider === 'Gemini' ? 'bg-green-500' :
-                  selectedModel.provider === 'OpenAI' ? 'bg-emerald-500' :
-                  selectedModel.provider === 'Anthropic' ? 'bg-purple-500' :
-                  selectedModel.provider === 'xAI' ? 'bg-blue-500' :
-                  'bg-orange-500'
-                }`}></span>
-                {selectedModel.name}
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-3 w-3 text-gray-400 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {isModelDropdownOpen && (
-                <div className="absolute top-full right-0 mt-1 w-80 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-2 max-h-[70vh] overflow-y-auto">
-                  <p className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Select AI Model
-                  </p>
-                  {['Anthropic', 'OpenAI', 'Gemini', 'xAI', 'Groq'].map((provider) => (
-                    <div key={provider} className="mb-2">
-                      <p className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                        provider === 'Anthropic' ? 'text-purple-600' :
-                        provider === 'OpenAI' ? 'text-emerald-600' :
-                        provider === 'Gemini' ? 'text-green-600' :
-                        provider === 'xAI' ? 'text-blue-600' :
-                        'text-orange-600'
-                      }`}>
-                        {provider}
-                      </p>
-                      {MODELS.filter((m) => m.provider === provider).map((m) => (
-                        <button
-                          key={m.id}
-                          onClick={() => {
-                            setSelectedModel(m);
-                            setIsModelDropdownOpen(false);
-                          }}
-                          className={`w-full text-left p-3 rounded-xl hover:bg-gray-50 transition-colors ${
-                            selectedModel.id === m.id ? 'bg-indigo-50 ring-1 ring-indigo-200' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-bold text-gray-800 flex items-center gap-2">
-                              <span>{m.icon}</span>
-                              {m.name}
-                              {m.isThinking && (
-                                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">THINKING</span>
-                              )}
-                            </p>
-                          </div>
-                          <p className="text-[10px] text-gray-500 mt-1 ml-6">{m.description}</p>
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
+            {/* Model Info Badge - Click settings for full selector */}
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl">
+              <span className={`w-2 h-2 rounded-full ${
+                selectedModel.provider === 'Gemini' ? 'bg-green-500' :
+                selectedModel.provider === 'OpenAI' ? 'bg-emerald-500' :
+                selectedModel.provider === 'Anthropic' ? 'bg-purple-500' :
+                selectedModel.provider === 'xAI' ? 'bg-blue-500' :
+                'bg-orange-500'
+              }`}></span>
+              <span className="text-xs font-semibold text-gray-700">{selectedModel.name}</span>
             </div>
           </div>
         </div>
@@ -1287,7 +1236,17 @@ function CanvasAppInner() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Vertical Nav Bar */}
-        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center py-4 gap-2 shrink-0 border-r border-gray-700">
+        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center shrink-0 border-r border-gray-700 relative">
+          {/* Scroll Up Indicator */}
+          <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#1e1e2e] to-transparent z-10 pointer-events-none flex items-start justify-center pt-1 opacity-50 animate-bounce">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            </svg>
+          </div>
+          
+          {/* Scrollable Content */}
+          <div className="flex-1 w-full overflow-y-auto scrollbar-hide py-4 flex flex-col items-center gap-2"
+               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {/* Home Icon */}
           <Link
             href="/"
@@ -1421,8 +1380,16 @@ function CanvasAppInner() {
           </button>
 
           {/* Status indicator at bottom */}
-          <div className="mt-auto">
+          <div className="mt-auto pb-2">
             <div className={`w-2 h-2 rounded-full mx-auto ${genState.isGenerating ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
+          </div>
+          </div>
+          
+          {/* Scroll Down Indicator */}
+          <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#1e1e2e] to-transparent z-10 pointer-events-none flex items-end justify-center pb-1 opacity-50">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
         </nav>
 
@@ -1680,10 +1647,12 @@ function CanvasAppInner() {
                     </div>
                   </div>
 
-                  {/* Model Info */}
+                  {/* Provider & Model Selection */}
                   <div className="mb-6">
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Current Model</h4>
-                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Provider & Model</h4>
+                    
+                    {/* Current Selection */}
+                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 mb-3">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">{selectedModel.icon}</span>
                         <span className="text-sm font-bold text-gray-800">{selectedModel.name}</span>
@@ -1703,6 +1672,54 @@ function CanvasAppInner() {
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Thinking Mode</span>
                         )}
                       </div>
+                    </div>
+                    
+                    {/* Provider Tabs */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {(['Anthropic', 'OpenAI', 'Gemini', 'xAI', 'Groq'] as ModelProvider[]).map((provider) => (
+                        <button
+                          key={provider}
+                          onClick={() => {
+                            const firstModel = MODELS.find(m => m.provider === provider);
+                            if (firstModel) setSelectedModel(firstModel);
+                          }}
+                          className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${
+                            selectedModel.provider === provider
+                              ? provider === 'Anthropic' ? 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
+                                provider === 'OpenAI' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
+                                provider === 'Gemini' ? 'bg-green-100 text-green-700 ring-1 ring-green-300' :
+                                provider === 'xAI' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
+                                'bg-orange-100 text-orange-700 ring-1 ring-orange-300'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {provider}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {/* Model List for Selected Provider */}
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {MODELS.filter(m => m.provider === selectedModel.provider).map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => setSelectedModel(m)}
+                          className={`w-full text-left p-3 rounded-xl transition-all ${
+                            selectedModel.id === m.id 
+                              ? 'bg-indigo-50 ring-1 ring-indigo-200' 
+                              : 'bg-gray-50 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{m.icon}</span>
+                            <span className="text-xs font-bold text-gray-800">{m.name}</span>
+                            {m.isThinking && (
+                              <span className="text-[8px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">THINKING</span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-1 ml-6">{m.description}</p>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
