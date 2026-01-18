@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Shield, Loader2, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Shield, Loader2, XCircle, AlertTriangle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface ThreatData {
@@ -59,87 +59,72 @@ export default function ThreatIntelligencePage() {
   }
 
   const getRiskColor = (score: number) => {
-    if (score >= 70) return 'text-red-400 border-red-500/50 bg-red-500/10'
-    if (score >= 40) return 'text-yellow-400 border-yellow-500/50 bg-yellow-500/10'
-    return 'text-green-400 border-green-500/50 bg-green-500/10'
+    if (score >= 70) return 'text-red-700 border-red-300 bg-red-50'
+    if (score >= 40) return 'text-yellow-700 border-yellow-300 bg-yellow-50'
+    return 'text-green-700 border-green-300 bg-green-50'
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link 
-            href="/tools/network-tools" 
-            className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-12">
+        <div className="container-custom">
+          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
             Back to Network Tools
           </Link>
-          
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl">
-              <Shield className="w-8 h-8 text-white" />
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <Shield className="w-10 h-10 text-white" />
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                Threat Intelligence Scanner
-              </h1>
-              <p className="text-gray-400 mt-1">
-                Scan domains and IPs for security threats and malicious activity
-              </p>
-            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+              Threat <span className="text-blue-100">Intelligence</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              Scan domains and IPs for security threats and malicious activity
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl mb-6">
-          <form onSubmit={handleScan} className="space-y-4">
-            <div>
-              <label htmlFor="domain" className="block text-sm font-medium text-gray-300 mb-2">
-                Domain or IP Address
-              </label>
+      <div className="container-custom py-12">
+        {/* Search Form */}
+        <div className="max-w-3xl mx-auto mb-12">
+          <form onSubmit={handleScan} className="relative">
+            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+              <Shield className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                id="domain"
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
-                placeholder="e.g., example.com or 8.8.8.8"
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-white placeholder-gray-500"
+                placeholder="Enter domain or IP (e.g., example.com)"
+                className="w-full pl-12 pr-36 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
+                disabled={loading}
               />
+              <button
+                type="submit"
+                disabled={loading || !domain.trim()}
+                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+              >
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Scanning...</> : <><Shield className="w-4 h-4" />Scan</>}
+              </button>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-medium transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Scanning for threats...
-                </>
-              ) : (
-                <>
-                  <Shield className="w-5 h-5" />
-                  Scan for Threats
-                </>
-              )}
-            </button>
           </form>
-
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="text-red-300">{error}</div>
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-red-700">{error}</p>
             </div>
           )}
         </div>
 
+        {/* Results */}
         {data && (
-          <div className="space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6">
             {/* Risk Score */}
-            <div className={`rounded-2xl p-6 border ${getRiskColor(data.riskScore)}`}>
+            <div className={`rounded-2xl p-6 border shadow-lg ${getRiskColor(data.riskScore)}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Risk Score</h3>
@@ -152,46 +137,46 @@ export default function ThreatIntelligencePage() {
             </div>
 
             {/* Threat Details */}
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              <h3 className="text-xl font-semibold mb-4 text-cyan-400">Threat Analysis</h3>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Threat Analysis</h3>
               <div className="grid grid-cols-2 gap-4">
-                <div className={`p-4 rounded-lg border ${data.details.phishing ? 'bg-red-500/10 border-red-500/30' : 'bg-gray-900/50 border-gray-700'}`}>
+                <div className={`p-4 rounded-lg border ${data.details.phishing ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="flex items-center gap-2">
-                    {data.details.phishing ? <AlertTriangle className="w-5 h-5 text-red-400" /> : <CheckCircle className="w-5 h-5 text-green-400" />}
-                    <span className="font-medium">Phishing</span>
+                    {data.details.phishing ? <AlertTriangle className="w-5 h-5 text-red-500" /> : <CheckCircle className="w-5 h-5 text-green-500" />}
+                    <span className="font-medium text-gray-900">Phishing</span>
                   </div>
-                  <p className="text-sm mt-1 opacity-70">{data.details.phishing ? 'Detected' : 'Not detected'}</p>
+                  <p className="text-sm mt-1 text-gray-600">{data.details.phishing ? 'Detected' : 'Not detected'}</p>
                 </div>
-                <div className={`p-4 rounded-lg border ${data.details.malware ? 'bg-red-500/10 border-red-500/30' : 'bg-gray-900/50 border-gray-700'}`}>
+                <div className={`p-4 rounded-lg border ${data.details.malware ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="flex items-center gap-2">
-                    {data.details.malware ? <AlertTriangle className="w-5 h-5 text-red-400" /> : <CheckCircle className="w-5 h-5 text-green-400" />}
-                    <span className="font-medium">Malware</span>
+                    {data.details.malware ? <AlertTriangle className="w-5 h-5 text-red-500" /> : <CheckCircle className="w-5 h-5 text-green-500" />}
+                    <span className="font-medium text-gray-900">Malware</span>
                   </div>
-                  <p className="text-sm mt-1 opacity-70">{data.details.malware ? 'Detected' : 'Not detected'}</p>
+                  <p className="text-sm mt-1 text-gray-600">{data.details.malware ? 'Detected' : 'Not detected'}</p>
                 </div>
-                <div className={`p-4 rounded-lg border ${data.details.spam ? 'bg-red-500/10 border-red-500/30' : 'bg-gray-900/50 border-gray-700'}`}>
+                <div className={`p-4 rounded-lg border ${data.details.spam ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="flex items-center gap-2">
-                    {data.details.spam ? <AlertTriangle className="w-5 h-5 text-red-400" /> : <CheckCircle className="w-5 h-5 text-green-400" />}
-                    <span className="font-medium">Spam</span>
+                    {data.details.spam ? <AlertTriangle className="w-5 h-5 text-red-500" /> : <CheckCircle className="w-5 h-5 text-green-500" />}
+                    <span className="font-medium text-gray-900">Spam</span>
                   </div>
-                  <p className="text-sm mt-1 opacity-70">{data.details.spam ? 'Detected' : 'Not detected'}</p>
+                  <p className="text-sm mt-1 text-gray-600">{data.details.spam ? 'Detected' : 'Not detected'}</p>
                 </div>
-                <div className={`p-4 rounded-lg border ${data.details.suspicious ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-gray-900/50 border-gray-700'}`}>
+                <div className={`p-4 rounded-lg border ${data.details.suspicious ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="flex items-center gap-2">
-                    {data.details.suspicious ? <AlertTriangle className="w-5 h-5 text-yellow-400" /> : <CheckCircle className="w-5 h-5 text-green-400" />}
-                    <span className="font-medium">Suspicious Activity</span>
+                    {data.details.suspicious ? <AlertTriangle className="w-5 h-5 text-yellow-500" /> : <CheckCircle className="w-5 h-5 text-green-500" />}
+                    <span className="font-medium text-gray-900">Suspicious Activity</span>
                   </div>
-                  <p className="text-sm mt-1 opacity-70">{data.details.suspicious ? 'Detected' : 'Not detected'}</p>
+                  <p className="text-sm mt-1 text-gray-600">{data.details.suspicious ? 'Detected' : 'Not detected'}</p>
                 </div>
               </div>
             </div>
 
             {data.threatTypes.length > 0 && (
-              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-                <h3 className="text-xl font-semibold mb-4 text-cyan-400">Identified Threats</h3>
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Identified Threats</h3>
                 <div className="flex flex-wrap gap-2">
                   {data.threatTypes.map((threat, index) => (
-                    <span key={index} className="px-3 py-1 bg-red-500/20 border border-red-500/30 rounded-full text-sm text-red-300">
+                    <span key={index} className="px-3 py-1 bg-red-100 border border-red-200 rounded-full text-sm text-red-700">
                       {threat}
                     </span>
                   ))}
@@ -201,13 +186,23 @@ export default function ThreatIntelligencePage() {
           </div>
         )}
 
-        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-          <h3 className="font-semibold text-blue-400 mb-2">About Threat Intelligence</h3>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            This tool uses the WHOIS XML API Threat Intelligence service to analyze domains and IP addresses for 
-            security threats including phishing, malware, spam, and suspicious activity. 🛡️
-          </p>
-        </div>
+        {/* Info Card */}
+        {!data && !loading && (
+          <div className="max-w-3xl mx-auto mt-12">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">About Threat Intelligence</h3>
+              <div className="space-y-3 text-gray-600">
+                <p>Analyze domains and IP addresses for security threats. Perfect for:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Detecting phishing and malware sites</li>
+                  <li>Identifying spam sources</li>
+                  <li>Analyzing suspicious activity</li>
+                  <li>Security research and threat hunting</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

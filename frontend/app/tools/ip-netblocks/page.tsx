@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Network, Loader2, AlertCircle, Globe, Building2, Calendar, Server, MapPin, Hash } from 'lucide-react'
+import { ArrowLeft, Network, Loader2, XCircle, Globe, Building2, Calendar, Server, MapPin, Hash } from 'lucide-react'
 import Link from 'next/link'
 
 interface NetblockData {
@@ -97,75 +97,79 @@ export default function IPNetblocksPage() {
   }
 
   const InfoCard = ({ icon: Icon, label, value, highlight = false }: { icon: any; label: string; value: string | number; highlight?: boolean }) => (
-    <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
         <Icon className="w-4 h-4" />
         {label}
       </div>
-      <div className={`text-lg ${highlight ? 'font-mono text-cyan-400' : 'text-white'}`}>
+      <div className={`text-lg ${highlight ? 'font-mono text-blue-600' : 'text-gray-900'}`}>
         {value || 'N/A'}
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/tools/network-tools" className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-12">
+        <div className="container-custom">
+          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
             Back to Network Tools
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl">
-              <Network className="w-8 h-8 text-white" />
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <Network className="w-10 h-10 text-white" />
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                IP Netblocks Lookup
-              </h1>
-              <p className="text-gray-400 mt-1">Get IP range, network block, and organization information</p>
-            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+              IP <span className="text-blue-100">Netblocks</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              Get IP range, network block, and organization information
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl mb-6">
-          <form onSubmit={handleLookup} className="space-y-4">
-            <div>
-              <label htmlFor="ip" className="block text-sm font-medium text-gray-300 mb-2">IP Address</label>
+      <div className="container-custom py-12">
+        {/* Search Form */}
+        <div className="max-w-3xl mx-auto mb-12">
+          <form onSubmit={handleLookup} className="relative">
+            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+              <Network className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                id="ip"
                 value={ip}
                 onChange={(e) => setIp(e.target.value)}
-                placeholder="e.g., 8.8.8.8"
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-white placeholder-gray-500"
+                placeholder="Enter IP address (e.g., 8.8.8.8)"
+                className="w-full pl-12 pr-36 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
+                disabled={loading}
               />
+              <button
+                type="submit"
+                disabled={loading || !ip.trim()}
+                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+              >
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Looking...</> : <><Network className="w-4 h-4" />Lookup</>}
+              </button>
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-medium transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-            >
-              {loading ? <><Loader2 className="w-5 h-5 animate-spin" />Looking up...</> : <><Network className="w-5 h-5" />Lookup Netblocks</>}
-            </button>
           </form>
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="text-red-300">{error}</div>
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-red-700">{error}</p>
             </div>
           )}
         </div>
 
         {data && (
-          <div className="space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6">
             {/* Main Netblock Info */}
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              <h3 className="text-xl font-semibold mb-4 text-cyan-400 flex items-center gap-2">
-                <Network className="w-5 h-5" />
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Network className="w-5 h-5 text-blue-600" />
                 Netblock Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,9 +185,9 @@ export default function IPNetblocksPage() {
             </div>
 
             {/* Organization Info */}
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              <h3 className="text-xl font-semibold mb-4 text-purple-400 flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-purple-500" />
                 Organization
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -193,18 +197,18 @@ export default function IPNetblocksPage() {
                 <InfoCard icon={Server} label="Source" value={data.source} />
               </div>
               {data.description && data.description !== 'N/A' && (
-                <div className="mt-4 bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Description</div>
-                  <div className="text-white">{data.description}</div>
+                <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Description</div>
+                  <div className="text-gray-900">{data.description}</div>
                 </div>
               )}
             </div>
 
             {/* ASN Info */}
             {data.as && data.as.asn !== 'N/A' && (
-              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-                <h3 className="text-xl font-semibold mb-4 text-green-400 flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-green-500" />
                   ASN Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,9 +223,9 @@ export default function IPNetblocksPage() {
 
             {/* Abuse Contact */}
             {data.abuseContact && (
-              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-                <h3 className="text-xl font-semibold mb-4 text-red-400 flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <XCircle className="w-5 h-5 text-red-500" />
                   Abuse Contact
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -233,9 +237,9 @@ export default function IPNetblocksPage() {
             )}
 
             {/* Dates */}
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              <h3 className="text-xl font-semibold mb-4 text-amber-400 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-amber-500" />
                 Registration Dates
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -246,48 +250,48 @@ export default function IPNetblocksPage() {
 
             {/* All Netblocks */}
             {data.allNetblocks && data.allNetblocks.length > 1 && (
-              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-                <h3 className="text-xl font-semibold mb-4 text-blue-400 flex items-center gap-2">
-                  <Network className="w-5 h-5" />
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Network className="w-5 h-5 text-blue-500" />
                   Related Netblocks ({data.totalNetblocks} total)
                 </h3>
                 <div className="space-y-3">
                   {data.allNetblocks.map((nb, idx) => (
-                    <div key={idx} className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                    <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div>
-                          <span className="text-sm text-gray-400 block">Range</span>
-                          <span className="font-mono text-cyan-400">{nb.range || 'N/A'}</span>
+                          <span className="text-sm text-gray-500 block">Range</span>
+                          <span className="font-mono text-blue-600">{nb.range || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-400 block">CIDR</span>
-                          <span className="font-mono text-white">{nb.cidr || 'N/A'}</span>
+                          <span className="text-sm text-gray-500 block">CIDR</span>
+                          <span className="font-mono text-gray-900">{nb.cidr || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-400 block">Name</span>
-                          <span className="text-white">{nb.netname || 'N/A'}</span>
+                          <span className="text-sm text-gray-500 block">Name</span>
+                          <span className="text-gray-900">{nb.netname || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-400 block">Size</span>
-                          <span className="text-white">{formatSize(nb.size)}</span>
+                          <span className="text-sm text-gray-500 block">Size</span>
+                          <span className="text-gray-900">{formatSize(nb.size)}</span>
                         </div>
                         {nb.asn && nb.asn !== 'N/A' && (
                           <div>
-                            <span className="text-sm text-gray-400 block">ASN</span>
-                            <span className="text-green-400">{nb.asn}</span>
+                            <span className="text-sm text-gray-500 block">ASN</span>
+                            <span className="text-green-600">{nb.asn}</span>
                           </div>
                         )}
                         {nb.asnName && nb.asnName !== 'N/A' && (
                           <div>
-                            <span className="text-sm text-gray-400 block">ASN Name</span>
-                            <span className="text-white">{nb.asnName}</span>
+                            <span className="text-sm text-gray-500 block">ASN Name</span>
+                            <span className="text-gray-900">{nb.asnName}</span>
                           </div>
                         )}
                       </div>
                       {nb.organization && nb.organization !== 'N/A' && (
-                        <div className="mt-2 pt-2 border-t border-gray-700">
-                          <span className="text-sm text-gray-400">Organization: </span>
-                          <span className="text-white">{nb.organization}</span>
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-sm text-gray-500">Organization: </span>
+                          <span className="text-gray-900">{nb.organization}</span>
                         </div>
                       )}
                     </div>
@@ -298,14 +302,23 @@ export default function IPNetblocksPage() {
           </div>
         )}
 
-        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-          <h3 className="font-semibold text-blue-400 mb-2">About IP Netblocks</h3>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            IP Netblocks lookup provides comprehensive information about IP address ranges, including network names, 
-            organizations, CIDR notations, and ASN details. This is useful for network administrators, security 
-            researchers, and anyone needing to understand IP address allocation. 🔍
-          </p>
-        </div>
+        {/* Info Card */}
+        {!data && !loading && (
+          <div className="max-w-3xl mx-auto mt-12">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">About IP Netblocks</h3>
+              <div className="space-y-3 text-gray-600">
+                <p>Get comprehensive information about IP address ranges. Perfect for:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Network administration and planning</li>
+                  <li>Security research and threat analysis</li>
+                  <li>Understanding IP address allocation</li>
+                  <li>Identifying network ownership</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

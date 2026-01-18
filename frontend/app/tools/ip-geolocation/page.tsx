@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Globe, MapPin, Loader2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Globe, MapPin, Loader2, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface GeolocationData {
@@ -82,128 +82,113 @@ export default function IPGeolocationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-      {/* Header */}
-      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link 
-            href="/tools" 
-            className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Header */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-12">
+        <div className="container-custom">
+          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
             Back to Network Tools
           </Link>
-          
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl">
-              <Globe className="w-8 h-8 text-white" />
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <Globe className="w-10 h-10 text-white" />
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                IP Geolocation API
-              </h1>
-              <p className="text-gray-400 mt-1">
-                Get detailed location and ISP information for any IP address
-              </p>
-            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+              IP <span className="text-blue-100">Geolocation</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              Get detailed location and ISP information for any IP address
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Input Form */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl mb-6">
-          <form onSubmit={handleLookup} className="space-y-4">
-            <div>
-              <label htmlFor="ip" className="block text-sm font-medium text-gray-300 mb-2">
-                IP Address
-              </label>
+      <div className="container-custom py-12">
+        {/* Search Form */}
+        <div className="max-w-3xl mx-auto mb-12">
+          <form onSubmit={handleLookup} className="relative">
+            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+              <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                id="ip"
                 value={ipAddress}
                 onChange={(e) => setIpAddress(e.target.value)}
-                placeholder="e.g., 8.8.8.8"
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-white placeholder-gray-500"
+                placeholder="Enter IP address (e.g., 8.8.8.8)"
+                className="w-full pl-12 pr-48 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
+                disabled={loading}
               />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 rounded-lg font-medium transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Looking up...
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-5 h-5" />
-                    Lookup Location
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleGetMyIP}
-                disabled={loading}
-                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Use My IP
-              </button>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleGetMyIP}
+                  disabled={loading}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  My IP
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || !ipAddress.trim()}
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+                >
+                  {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Looking...</> : <><MapPin className="w-4 h-4" />Lookup</>}
+                </button>
+              </div>
             </div>
           </form>
-
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="text-red-300">{error}</div>
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-red-700">{error}</p>
             </div>
           )}
         </div>
 
         {/* Results */}
         {data && (
-          <div className="space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Header Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
+              <div className="flex items-center gap-3 mb-2">
+                <Globe className="w-5 h-5 text-blue-600" />
+                <h2 className="text-xl font-bold text-gray-900">IP Address</h2>
+              </div>
+              <p className="text-2xl font-mono text-gray-900">{data.ip}</p>
+            </div>
+
             {/* Location Card */}
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-cyan-400">
-                <MapPin className="w-5 h-5" />
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-blue-500" />
                 Location Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">IP Address</div>
-                  <div className="text-lg font-mono text-white">{data.ip}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Country</div>
+                  <div className="text-lg text-gray-900">{data.location.country}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Country</div>
-                  <div className="text-lg text-white">{data.location.country}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Region</div>
+                  <div className="text-lg text-gray-900">{data.location.region || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Region</div>
-                  <div className="text-lg text-white">{data.location.region || 'N/A'}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">City</div>
+                  <div className="text-lg text-gray-900">{data.location.city || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">City</div>
-                  <div className="text-lg text-white">{data.location.city || 'N/A'}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Postal Code</div>
+                  <div className="text-lg text-gray-900">{data.location.postalCode || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Postal Code</div>
-                  <div className="text-lg text-white">{data.location.postalCode || 'N/A'}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Timezone</div>
+                  <div className="text-lg text-gray-900">{data.location.timezone || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Timezone</div>
-                  <div className="text-lg text-white">{data.location.timezone || 'N/A'}</div>
-                </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Coordinates</div>
-                  <div className="text-lg font-mono text-white">
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Coordinates</div>
+                  <div className="text-lg font-mono text-gray-900">
                     {data.location.lat}, {data.location.lng}
                   </div>
                 </div>
@@ -211,37 +196,37 @@ export default function IPGeolocationPage() {
             </div>
 
             {/* ISP Card */}
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-cyan-400">
-                <Globe className="w-5 h-5" />
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Globe className="w-5 h-5 text-indigo-500" />
                 ISP & Network Information
               </h3>
               <div className="grid grid-cols-1 gap-4">
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">ISP</div>
-                  <div className="text-lg text-white">{data.isp || 'N/A'}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">ISP</div>
+                  <div className="text-lg text-gray-900">{data.isp || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Organization</div>
-                  <div className="text-lg text-white">{data.organization || 'N/A'}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Organization</div>
+                  <div className="text-lg text-gray-900">{data.organization || 'N/A'}</div>
                 </div>
-                <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                  <div className="text-sm text-gray-400 mb-1">Connection Type</div>
-                  <div className="text-lg text-white">{data.connectionType || 'N/A'}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500 mb-1">Connection Type</div>
+                  <div className="text-lg text-gray-900">{data.connectionType || 'N/A'}</div>
                 </div>
                 {data.asn && (
                   <>
-                    <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                      <div className="text-sm text-gray-400 mb-1">ASN</div>
-                      <div className="text-lg font-mono text-white">{data.asn.asn || 'N/A'}</div>
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="text-sm text-gray-500 mb-1">ASN</div>
+                      <div className="text-lg font-mono text-gray-900">{data.asn.asn || 'N/A'}</div>
                     </div>
-                    <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                      <div className="text-sm text-gray-400 mb-1">ASN Name</div>
-                      <div className="text-lg text-white">{data.asn.name || 'N/A'}</div>
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="text-sm text-gray-500 mb-1">ASN Name</div>
+                      <div className="text-lg text-gray-900">{data.asn.name || 'N/A'}</div>
                     </div>
-                    <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                      <div className="text-sm text-gray-400 mb-1">Route</div>
-                      <div className="text-lg font-mono text-white">{data.asn.route || 'N/A'}</div>
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="text-sm text-gray-500 mb-1">Route</div>
+                      <div className="text-lg font-mono text-gray-900">{data.asn.route || 'N/A'}</div>
                     </div>
                   </>
                 )}
@@ -251,13 +236,22 @@ export default function IPGeolocationPage() {
         )}
 
         {/* Info Card */}
-        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-          <h3 className="font-semibold text-blue-400 mb-2">About IP Geolocation API</h3>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            This tool uses the WHOIS XML API IP Geolocation service to provide detailed location and ISP information 
-            for any IP address. Get accurate geolocation data including coordinates, timezone, ISP details, and network information.
-          </p>
-        </div>
+        {!data && !loading && (
+          <div className="max-w-3xl mx-auto mt-12">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">About IP Geolocation</h3>
+              <div className="space-y-3 text-gray-600">
+                <p>Get detailed location and network information for any IP address. Perfect for:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Identifying the geographic location of visitors</li>
+                  <li>Detecting fraud and suspicious activity</li>
+                  <li>Customizing content based on location</li>
+                  <li>Network troubleshooting and analysis</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
