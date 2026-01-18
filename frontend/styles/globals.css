@@ -1005,6 +1005,37 @@ textarea::placeholder {
   transform: translateX(-50%);
 }
 
+/* Fullscreen pass effect - image slides in, covers full screen, then slides out */
+@keyframes fullscreenPass {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  10% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  85% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+.animate-fullscreen-pass {
+  animation: fullscreenPass ease-in-out infinite;
+  opacity: 0;
+}
+
 /* Fade in up for hero text */
 @keyframes fadeInUpHero {
   from {
