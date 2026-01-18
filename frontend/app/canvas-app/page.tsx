@@ -784,6 +784,7 @@ function CanvasAppInner() {
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [useStreaming, setUseStreaming] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [conversationPhase, setConversationPhase] = useState<ConversationPhase>('initial');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [gatheredRequirements, setGatheredRequirements] = useState<string[]>([]);
@@ -1262,106 +1263,22 @@ function CanvasAppInner() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-lg font-bold tracking-tight">
-                  Canvas <span className="text-indigo-600">Builder</span>
-                </h1>
-                <p className="text-xs text-gray-500">
-                  AI-Powered App Generator
-                </p>
-              </div>
+    <div className="h-screen bg-gray-50 overflow-hidden flex">
+      {/* Left Vertical Nav Bar */}
+        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center shrink-0 border-r border-gray-700 relative">
+          {/* Micro Logo at Top */}
+          <div className="pt-3 pb-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            {/* Action Buttons */}
-            {currentApp && (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={shareApp}
-                  className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                  title="Share / Copy Code"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={downloadCode}
-                  className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                  title="Download HTML"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </button>
-                <button
-                  onClick={openInNewTab}
-                  className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                  title="Open in New Tab"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </button>
-                <button
-                  onClick={resetProject}
-                  className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
-                  title="New Project"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </button>
-                <button
-                  onClick={deleteProject}
-                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                  title="Delete Project"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Vertical Nav Bar */}
-        <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center shrink-0 border-r border-gray-700 relative">
-          {/* Scroll Up Indicator */}
-          <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#1e1e2e] to-transparent z-10 pointer-events-none flex items-start justify-center pt-1 opacity-50 animate-bounce">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          </div>
+          
+          <div className="w-8 h-px bg-gray-600 mb-2"></div>
           
           {/* Scrollable Content */}
-          <div className="flex-1 w-full overflow-y-auto scrollbar-hide py-4 flex flex-col items-center gap-2"
+          <div className="flex-1 w-full overflow-y-auto scrollbar-hide py-2 flex flex-col items-center gap-2"
                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {/* Home Icon */}
           <Link
@@ -1495,17 +1412,104 @@ function CanvasAppInner() {
             </svg>
           </button>
 
+          <div className="w-8 h-px bg-gray-600 my-1"></div>
+
+          {/* Feature Buttons - Camera, Voice, Screenshot */}
+          <button
+            onClick={() => {
+              // Camera/live picture capture functionality
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = 'image/*';
+              input.capture = 'environment';
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    // Add image to chat as user message
+                    const newMessage: ChatMessage = {
+                      id: Date.now().toString(),
+                      role: 'user',
+                      content: '📷 [Image uploaded for analysis]',
+                      timestamp: Date.now(),
+                    };
+                    setChatMessages(prev => [...prev, newMessage]);
+                    setActivePanel('assistant');
+                  };
+                  reader.readAsDataURL(file);
+                }
+              };
+              input.click();
+            }}
+            className="p-2 rounded-lg transition-all text-gray-500 hover:text-white hover:bg-white/5"
+            title="Camera - Take Photo"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`p-2 rounded-lg transition-all ${voiceEnabled ? 'bg-green-600/20 text-green-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            title={voiceEnabled ? 'Voice On - Click to Mute' : 'Voice Off - Click to Enable'}
+          >
+            {voiceEnabled ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+              </svg>
+            )}
+          </button>
+
+          <button
+            onClick={async () => {
+              // Screenshot functionality
+              try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const track = stream.getVideoTracks()[0];
+                const imageCapture = new (window as any).ImageCapture(track);
+                const bitmap = await imageCapture.grabFrame();
+                track.stop();
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = bitmap.width;
+                canvas.height = bitmap.height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(bitmap, 0, 0);
+                
+                const dataUrl = canvas.toDataURL('image/png');
+                // Add screenshot to chat
+                const newMessage: ChatMessage = {
+                  id: Date.now().toString(),
+                  role: 'user',
+                  content: '📸 [Screenshot captured for analysis]',
+                  timestamp: Date.now(),
+                };
+                setChatMessages(prev => [...prev, newMessage]);
+                setActivePanel('assistant');
+              } catch (err) {
+                console.log('Screenshot cancelled or not supported');
+              }
+            }}
+            className="p-2 rounded-lg transition-all text-gray-500 hover:text-white hover:bg-white/5"
+            title="Screenshot - Capture Screen"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </button>
+
           {/* Status indicator at bottom */}
           <div className="mt-auto pb-2">
             <div className={`w-2 h-2 rounded-full mx-auto ${genState.isGenerating ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
           </div>
-          </div>
-          
-          {/* Scroll Down Indicator */}
-          <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#1e1e2e] to-transparent z-10 pointer-events-none flex items-end justify-center pb-1 opacity-50">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
           </div>
         </nav>
 
