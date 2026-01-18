@@ -127,11 +127,11 @@ function ProductCard({
   );
 }
 
-// Snowflake component
+// Snowflake component - bigger and foggier
 function Snowflake({ style }: { style: React.CSSProperties }) {
   return (
     <div 
-      className="absolute w-1 h-1 bg-white/30 rounded-full animate-snowfall pointer-events-none"
+      className="absolute w-2 h-2 bg-white/25 rounded-full animate-snowfall pointer-events-none blur-[0.5px]"
       style={style}
     />
   );
@@ -141,16 +141,16 @@ export default function HeroSectionUltra() {
   const [mounted, setMounted] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Generate snowflakes
+  // Generate snowflakes - increased for foggy effect
   const snowflakes = useMemo(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
+    return Array.from({ length: 120 }, (_, i) => ({
       id: i,
       style: {
         left: `${Math.random() * 100}%`,
-        animationDuration: `${8 + Math.random() * 12}s`,
-        animationDelay: `${Math.random() * 8}s`,
-        opacity: 0.2 + Math.random() * 0.3,
-        transform: `scale(${0.5 + Math.random() * 1})`,
+        animationDuration: `${6 + Math.random() * 10}s`,
+        animationDelay: `${Math.random() * 6}s`,
+        opacity: 0.15 + Math.random() * 0.4,
+        transform: `scale(${0.8 + Math.random() * 1.5})`,
       }
     }));
   }, []);
@@ -171,11 +171,11 @@ export default function HeroSectionUltra() {
     setMounted(true);
   }, []);
 
-  // Change sticky image every 2 seconds
+  // Change sticky image every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % productScreenshots.length);
-    }, 2000);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -188,16 +188,18 @@ export default function HeroSectionUltra() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
       </div>
 
-      {/* Corner darkness vignette - all 4 corners */}
+      {/* Corner darkness vignette - all 4 corners - EXTRA DARK */}
       <div className="absolute inset-0 pointer-events-none z-30">
         {/* Top-left corner */}
-        <div className="absolute top-0 left-0 w-80 h-80 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-black/80 via-black/40 to-transparent"></div>
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
         {/* Top-right corner */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-black/80 via-black/40 to-transparent"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
         {/* Bottom-left corner */}
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-black/80 via-black/40 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
         {/* Bottom-right corner */}
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-black/80 via-black/40 to-transparent"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-black via-black/70 to-transparent"></div>
+        {/* Extra edge darkness */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.5)_100%)]"></div>
       </div>
 
       {/* Aurora/cosmic rays effect near logo (top-left) */}
