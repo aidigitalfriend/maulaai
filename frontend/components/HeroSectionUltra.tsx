@@ -20,14 +20,13 @@ const productScreenshots = [
   { id: 'neural-art', image: '/images/products/neural-art.jpeg' },
 ];
 
-// Duplicate for 30 cards with variety
+// Use 20 cards for smooth flying effect
 const expandedProducts = [
   ...productScreenshots,
-  ...productScreenshots.map((p) => ({ ...p, id: `${p.id}-alt1` })),
-  ...productScreenshots.slice(0, 6).map((p) => ({ ...p, id: `${p.id}-alt2` })),
+  ...productScreenshots.slice(0, 8).map((p) => ({ ...p, id: `${p.id}-alt1` })),
 ];
 
-// 30 smooth animation configurations - left, right, up, down only (no zoom)
+// 20 smooth animation configurations - left, right, up, down only (no zoom)
 const animationConfigs = [
   { direction: 'left-to-right', duration: 25, delay: 0, startY: '5%', size: 'large' },
   { direction: 'right-to-left', duration: 22, delay: 1, startY: '15%', size: 'medium' },
@@ -49,16 +48,6 @@ const animationConfigs = [
   { direction: 'right-to-left', duration: 23, delay: 7.5, startY: '8%', size: 'small' },
   { direction: 'top-to-bottom', duration: 27, delay: 10, startX: '40%', size: 'medium' },
   { direction: 'bottom-to-top', duration: 21, delay: 8.5, startX: '75%', size: 'large' },
-  { direction: 'left-to-right', duration: 25, delay: 11, startY: '92%', size: 'small' },
-  { direction: 'right-to-left', duration: 29, delay: 9.5, startY: '38%', size: 'medium' },
-  { direction: 'top-to-bottom', duration: 24, delay: 12, startX: '25%', size: 'large' },
-  { direction: 'bottom-to-top', duration: 28, delay: 10.5, startX: '55%', size: 'small' },
-  { direction: 'left-to-right', duration: 22, delay: 13, startY: '48%', size: 'medium' },
-  { direction: 'right-to-left', duration: 26, delay: 11.5, startY: '72%', size: 'large' },
-  { direction: 'top-to-bottom', duration: 30, delay: 14, startX: '5%', size: 'small' },
-  { direction: 'bottom-to-top', duration: 23, delay: 12.5, startX: '45%', size: 'medium' },
-  { direction: 'left-to-right', duration: 27, delay: 15, startY: '18%', size: 'large' },
-  { direction: 'right-to-left', duration: 25, delay: 13.5, startY: '58%', size: 'small' },
 ];
 
 // Product Card Component - smooth flying with dark shadows
@@ -139,7 +128,6 @@ function Snowflake({ style }: { style: React.CSSProperties }) {
 
 export default function HeroSectionUltra() {
   const [mounted, setMounted] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Generate snowflakes - increased for foggy effect
   const snowflakes = useMemo(() => {
@@ -169,14 +157,6 @@ export default function HeroSectionUltra() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  // Change sticky image every 3 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % productScreenshots.length);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -256,35 +236,25 @@ export default function HeroSectionUltra() {
         </div>
       )}
 
-      {/* Center content - sticky image above, buttons below */}
-      <div className="relative z-40 flex items-end justify-center min-h-screen px-4 pb-32">
-        <div className="text-center">
-          {/* Sticky image that changes every 2 seconds - ABOVE buttons */}
-          <div className="mb-8 flex justify-center">
-            <div className="w-[320px] h-[200px] md:w-[450px] md:h-[280px] lg:w-[550px] lg:h-[340px] rounded-2xl overflow-hidden shadow-[0_30px_80px_-15px_rgba(0,0,0,0.9),0_15px_40px_-10px_rgba(0,0,0,0.7)] relative">
-              {productScreenshots.map((product, index) => (
-                <div
-                  key={product.id}
-                  className={`absolute inset-0 transition-opacity duration-500 ${
-                    index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  <Image
-                    src={product.image}
-                    alt={`Product ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    priority={index < 3}
-                  />
-                </div>
-              ))}
-              {/* Dark overlay on edges */}
-              <div className="absolute inset-0 shadow-[inset_0_0_50px_20px_rgba(0,0,0,0.6)]"></div>
-              <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/60 to-transparent"></div>
-            </div>
-          </div>
+      {/* Center content - heading and text */}
+      <div className="relative z-40 flex items-center justify-center min-h-screen px-4">
+        <div className="text-center max-w-4xl">
+          {/* Main Heading */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent">
+            Build Intelligence
+          </h1>
+          
+          {/* Subheading */}
+          <p className="text-xl md:text-2xl lg:text-3xl text-white/80 mb-8 font-light">
+            Create powerful AI agents with our visual canvas builder
+          </p>
+          
+          {/* Description */}
+          <p className="text-base md:text-lg text-white/60 mb-12 max-w-2xl mx-auto">
+            No code required. Drag, drop, and deploy intelligent agents that solve real problems.
+          </p>
 
-          {/* CTA Buttons - moved DOWN */}
+          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/canvas-app"
