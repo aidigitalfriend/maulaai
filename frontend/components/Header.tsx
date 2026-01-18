@@ -42,14 +42,10 @@ export default function Header() {
     items?: Array<{ name: string; href: string }>;
   }> = [
     { name: 'Agents', href: '/agents' },
-    { name: 'Documents', href: '/docs' },
-    { name: 'Tools', href: '/tools/network-tools' },
     { name: 'Dev Utils', href: '/tools/developer-utils' },
-    { name: 'Pricing', href: '/pricing/overview' },
     { name: 'Status', href: '/status' },
-    { name: 'Support', href: '/support/help-center' },
-    { name: 'Legal', href: '/legal' },
     { name: 'AI Studio', href: '/studio' },
+    { name: 'AI Lab', href: '/lab' },
   ];
 
   return (
@@ -132,12 +128,6 @@ export default function Header() {
             ) : state.isAuthenticated ? (
               // Authenticated user navigation
               <>
-                <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-green-700 font-medium">
-                    {state.user?.name || state.user?.email}
-                  </span>
-                </div>
                 <Link href="/dashboard/overview" className="btn-secondary">
                   Dashboard
                 </Link>
@@ -227,14 +217,6 @@ export default function Header() {
                 ) : state.isAuthenticated ? (
                   // Authenticated mobile navigation
                   <>
-                    <div className="px-4 py-2 mb-3">
-                      <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-green-700 font-medium">
-                          {state.user?.name || state.user?.email}
-                        </span>
-                      </div>
-                    </div>
                     <Link
                       href="/dashboard"
                       className="block btn-secondary text-center"
