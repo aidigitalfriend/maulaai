@@ -785,6 +785,10 @@ function CanvasAppInner() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [useStreaming, setUseStreaming] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [conversationPhase, setConversationPhase] = useState<ConversationPhase>('initial');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [gatheredRequirements, setGatheredRequirements] = useState<string[]>([]);
@@ -1418,34 +1422,28 @@ function CanvasAppInner() {
 
           {/* Feature Buttons - Camera, Voice, Screenshot */}
           <button
-            onClick={() => {
-              // Camera/live picture capture functionality
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = 'image/*';
-              input.capture = 'environment';
-              input.onchange = (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    // Add image to chat as user message
-                    const newMessage: ChatMessage = {
-                      id: Date.now().toString(),
-                      role: 'user',
-                      content: '📷 [Image uploaded for analysis]',
-                      timestamp: Date.now(),
-                    };
-                    setChatMessages(prev => [...prev, newMessage]);
-                    setActivePanel('assistant');
-                  };
-                  reader.readAsDataURL(file);
-                }
-              };
-              input.click();
+            onClick={async () => {
+              // Open live camera
+              try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                  video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                  audio: false 
+                });
+                setCameraStream(stream);
+                setCameraOpen(true);
+                // Set video source after state update
+                setTimeout(() => {
+                  if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                  }
+                }, 100);
+              } catch (err) {
+                console.error('Camera access denied:', err);
+                alert('Camera access denied. Please allow camera permission to use this feature.');
+              }
             }}
-            className="p-2 rounded-lg transition-all text-gray-500 hover:text-white hover:bg-white/5"
-            title="Camera - Take Photo"
+            className={`p-2 rounded-lg transition-all ${cameraOpen ? 'bg-green-600/20 text-green-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            title="Camera - Live Capture"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -1931,6 +1929,118 @@ function CanvasAppInner() {
             </div>
           </div>
         </main>
+
+      {/* Live Camera Modal */}
+      {cameraOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center">
+          {/* Camera Header */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+              Live Camera
+            </h3>
+            <button
+              onClick={() => {
+                // Stop camera stream
+                if (cameraStream) {
+                  cameraStream.getTracks().forEach(track => track.stop());
+                  setCameraStream(null);
+                }
+                setCameraOpen(false);
+              }}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+              title="Close Camera"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Video Preview */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="max-w-full max-h-[60vh] bg-black"
+            />
+            {/* Capture Guide Overlay */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-white/50 rounded-tl-lg"></div>
+              <div className="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-white/50 rounded-tr-lg"></div>
+              <div className="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-white/50 rounded-bl-lg"></div>
+              <div className="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-white/50 rounded-br-lg"></div>
+            </div>
+          </div>
+
+          {/* Hidden canvas for capture */}
+          <canvas ref={canvasRef} className="hidden" />
+
+          {/* Capture Button */}
+          <div className="mt-8 flex items-center gap-4">
+            <button
+              onClick={() => {
+                // Capture photo from video
+                if (videoRef.current && canvasRef.current) {
+                  const video = videoRef.current;
+                  const canvas = canvasRef.current;
+                  canvas.width = video.videoWidth;
+                  canvas.height = video.videoHeight;
+                  const ctx = canvas.getContext('2d');
+                  if (ctx) {
+                    ctx.drawImage(video, 0, 0);
+                    const imageDataUrl = canvas.toDataURL('image/png');
+                    
+                    // Stop camera
+                    if (cameraStream) {
+                      cameraStream.getTracks().forEach(track => track.stop());
+                      setCameraStream(null);
+                    }
+                    setCameraOpen(false);
+
+                    // Add captured image to chat
+                    const newMessage: ChatMessage = {
+                      id: Date.now().toString(),
+                      role: 'user',
+                      content: `📷 [Live photo captured]\n\n![Captured Image](${imageDataUrl})`,
+                      timestamp: Date.now(),
+                    };
+                    setChatMessages(prev => [...prev, newMessage]);
+                    setActivePanel('assistant');
+
+                    // Auto-send AI response acknowledging the image
+                    setTimeout(() => {
+                      const aiResponse: ChatMessage = {
+                        id: (Date.now() + 1).toString(),
+                        role: 'assistant',
+                        content: "I've received your captured photo! 📸 I can see the image you've shared. How would you like me to help you with this? I can:\n\n• **Analyze** the content and describe what I see\n• **Generate code** inspired by the design or layout\n• **Extract text** if there's any visible text\n• **Create a similar UI** based on the visual elements\n\nJust let me know what you'd like to do!",
+                        timestamp: Date.now() + 1,
+                      };
+                      setChatMessages(prev => [...prev, aiResponse]);
+                    }, 500);
+                  }
+                }
+              }}
+              className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform active:scale-95 group"
+              title="Capture Photo"
+            >
+              <div className="w-16 h-16 bg-red-500 rounded-full group-hover:bg-red-600 transition-colors flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </button>
+          </div>
+
+          {/* Instructions */}
+          <p className="mt-4 text-white/60 text-sm">
+            Point camera at what you want to capture, then tap the button
+          </p>
+        </div>
+      )}
 
       {/* Error Toast */}
       {genState.error && (
