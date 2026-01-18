@@ -1,4 +1,4 @@
-import HeroSection from '@/components/HeroSection';
+import HeroSectionUltra from '@/components/HeroSectionUltra';
 import FeatureSection from '@/components/FeatureSection';
 import TestimonialSection from '@/components/TestimonialSection';
 import CommunityStats from '@/components/CommunityStats';
@@ -222,30 +222,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section - Fix #3: Proper hero alignment and spacing */}
-      <HeroSection
-        title={
-          <>
-            Meet Your
-            <br />
-            <span className="bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent">
-              AI Dream Team
-            </span>
-          </>
-        }
-        subtitle="Transform your workflow with 20+ specialized AI personalities. From Einstein's genius to Shakespeare's creativity - unlock the power of history's greatest minds."
-        description="Enterprise-grade AI platform with real-time analytics, secure infrastructure, and intelligent automation for modern businesses."
-        primaryAction={{
-          text: 'View Documentation',
-          href: '/docs',
-        }}
-        secondaryAction={{
-          text: 'Explore Agents',
-          href: '/agents',
-        }}
-        stats={heroStats}
-        backgroundGradient={true}
-      />
+      {/* ULTRA Hero Section - Flying product cards with blur/focus effect */}
+      <HeroSectionUltra />
 
       {/* Platform Features - Fix #1: Consistent grid system */}
       <FeatureSection

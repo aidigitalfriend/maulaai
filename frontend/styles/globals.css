@@ -780,3 +780,267 @@ textarea::placeholder {
 [class*="bg-[#2B2B2B]"] a {
   color: #7C6CFF !important;
 }
+/* ==========================================
+   ULTRA HERO SECTION - FLYING PRODUCT CARDS
+   Like watching fast cars pass by - blur, focus, blur
+   ========================================== */
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Float right to left (like passing car from right) */
+@keyframes floatLeft {
+  0% {
+    right: -20%;
+    opacity: 0;
+    transform: scale(0.3) rotate(-5deg);
+    filter: blur(8px);
+  }
+  15% {
+    opacity: 0.5;
+    transform: scale(0.6) rotate(-2deg);
+    filter: blur(4px);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px);
+  }
+  85% {
+    opacity: 0.5;
+    transform: scale(0.6) rotate(2deg);
+    filter: blur(4px);
+  }
+  100% {
+    right: 120%;
+    opacity: 0;
+    transform: scale(0.3) rotate(5deg);
+    filter: blur(8px);
+  }
+}
+
+.animate-float-left {
+  animation: floatLeft linear infinite;
+  right: -20%;
+}
+
+/* Float left to right (like passing car from left) */
+@keyframes floatRight {
+  0% {
+    left: -20%;
+    opacity: 0;
+    transform: scale(0.3) rotate(5deg);
+    filter: blur(8px);
+  }
+  15% {
+    opacity: 0.5;
+    transform: scale(0.6) rotate(2deg);
+    filter: blur(4px);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px);
+  }
+  85% {
+    opacity: 0.5;
+    transform: scale(0.6) rotate(-2deg);
+    filter: blur(4px);
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+    transform: scale(0.3) rotate(-5deg);
+    filter: blur(8px);
+  }
+}
+
+.animate-float-right {
+  animation: floatRight linear infinite;
+  left: -20%;
+}
+
+/* Float bottom to top (ascending) */
+@keyframes floatUp {
+  0% {
+    bottom: -20%;
+    opacity: 0;
+    transform: scale(0.3) translateX(-10px);
+    filter: blur(6px);
+  }
+  20% {
+    opacity: 0.6;
+    transform: scale(0.7) translateX(-5px);
+    filter: blur(3px);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0px);
+  }
+  80% {
+    opacity: 0.6;
+    transform: scale(0.7) translateX(5px);
+    filter: blur(3px);
+  }
+  100% {
+    bottom: 120%;
+    opacity: 0;
+    transform: scale(0.3) translateX(10px);
+    filter: blur(6px);
+  }
+}
+
+.animate-float-up {
+  animation: floatUp linear infinite;
+  bottom: -20%;
+}
+
+/* Float top to bottom (descending) */
+@keyframes floatDown {
+  0% {
+    top: -20%;
+    opacity: 0;
+    transform: scale(0.3) translateX(10px);
+    filter: blur(6px);
+  }
+  20% {
+    opacity: 0.6;
+    transform: scale(0.7) translateX(5px);
+    filter: blur(3px);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+    filter: blur(0px);
+  }
+  80% {
+    opacity: 0.6;
+    transform: scale(0.7) translateX(-5px);
+    filter: blur(3px);
+  }
+  100% {
+    top: 120%;
+    opacity: 0;
+    transform: scale(0.3) translateX(-10px);
+    filter: blur(6px);
+  }
+}
+
+.animate-float-down {
+  animation: floatDown linear infinite;
+  top: -20%;
+}
+
+/* Zoom pass effect - car coming from far, passing very close, going far again */
+@keyframes zoomPass {
+  0% {
+    left: 50%;
+    transform: translateX(-50%) scale(0.1) perspective(1000px) translateZ(-500px);
+    opacity: 0;
+    filter: blur(15px);
+  }
+  20% {
+    opacity: 0.3;
+    transform: translateX(-50%) scale(0.4) perspective(1000px) translateZ(-200px);
+    filter: blur(8px);
+  }
+  45% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.2) perspective(1000px) translateZ(0px);
+    filter: blur(0px);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.2) perspective(1000px) translateZ(0px);
+    filter: blur(0px);
+  }
+  80% {
+    opacity: 0.3;
+    transform: translateX(-50%) scale(0.4) perspective(1000px) translateZ(-200px);
+    filter: blur(8px);
+  }
+  100% {
+    left: 50%;
+    transform: translateX(-50%) scale(0.1) perspective(1000px) translateZ(-500px);
+    opacity: 0;
+    filter: blur(15px);
+  }
+}
+
+.animate-zoom-pass {
+  animation: zoomPass ease-in-out infinite;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Fade in up for hero text */
+@keyframes fadeInUpHero {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUpHero 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* Neural background colors for dark hero */
+.bg-neural-950 {
+  background-color: #0a0a0f !important;
+}
+
+.bg-neural-900 {
+  background-color: #121218 !important;
+}
+
+.from-neural-950 {
+  --tw-gradient-from: #0a0a0f var(--tw-gradient-from-position);
+}
+
+.via-neural-900 {
+  --tw-gradient-via: #121218 var(--tw-gradient-via-position);
+}
+
+.to-neural-950 {
+  --tw-gradient-to: #0a0a0f var(--tw-gradient-to-position);
+}
