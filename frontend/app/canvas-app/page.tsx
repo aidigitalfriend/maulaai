@@ -197,6 +197,52 @@ const DEVICE_SIZES = {
   mobile: { width: '375px', height: '812px' },
 };
 
+// Helper function to create file structure from generated code
+const createFilesFromCode = (code: string, appName: string): FileNode[] => {
+  // For now, canvas generates single HTML files with embedded CSS/JS
+  // We can parse and show the structure
+  const files: FileNode[] = [];
+  
+  // Main project folder
+  const projectFolder: FileNode = {
+    name: appName.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase().substring(0, 30) || 'my-app',
+    type: 'folder',
+    path: 'project',
+    children: []
+  };
+  
+  // Always add index.html with the full code
+  projectFolder.children!.push({
+    name: 'index.html',
+    type: 'file',
+    path: 'project/index.html',
+    content: code
+  });
+  
+  // Check if code has embedded styles - show as info
+  if (code.includes('<style>') || code.includes('<style ')) {
+    projectFolder.children!.push({
+      name: 'styles (embedded)',
+      type: 'file',
+      path: 'project/styles-embedded',
+      content: '/* Styles are embedded in index.html */'
+    });
+  }
+  
+  // Check if code has embedded scripts
+  if (code.includes('<script>') || code.includes('<script ')) {
+    projectFolder.children!.push({
+      name: 'scripts (embedded)',
+      type: 'file',
+      path: 'project/scripts-embedded',
+      content: '// Scripts are embedded in index.html'
+    });
+  }
+  
+  files.push(projectFolder);
+  return files;
+};
+
 // Preview Component with device sizing
 const Preview: React.FC<{ code: string; deviceMode: DeviceMode }> = ({ code, deviceMode }) => {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
@@ -500,8 +546,14 @@ const ChatBox: React.FC<{
 };
 
 // Files Panel Component
-const FilesPanel: React.FC<{ files: FileNode[]; onClose: () => void }> = ({ files, onClose }) => {
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
+const FilesPanel: React.FC<{ 
+  files: FileNode[]; 
+  onClose: () => void;
+  onFileClick?: (file: FileNode) => void;
+  hasCode: boolean;
+}> = ({ files, onClose, onFileClick, hasCode }) => {
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['project']));
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   const toggleFolder = (path: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -513,8 +565,23 @@ const FilesPanel: React.FC<{ files: FileNode[]; onClose: () => void }> = ({ file
     setExpandedFolders(newExpanded);
   };
 
+  const handleFileClick = (node: FileNode) => {
+    setSelectedFile(node.path);
+    if (onFileClick && node.name === 'index.html') {
+      onFileClick(node);
+    }
+  };
+
+  const getFileIcon = (name: string) => {
+    if (name.endsWith('.html')) return { color: 'text-orange-500', icon: '🌐' };
+    if (name.includes('styles')) return { color: 'text-blue-500', icon: '🎨' };
+    if (name.includes('scripts')) return { color: 'text-yellow-500', icon: '⚡' };
+    return { color: 'text-gray-500', icon: '📄' };
+  };
+
   const renderNode = (node: FileNode, depth: number = 0) => {
     const isExpanded = expandedFolders.has(node.path);
+    const isSelected = selectedFile === node.path;
     const paddingLeft = depth * 16 + 12;
 
     if (node.type === 'folder') {
@@ -522,7 +589,7 @@ const FilesPanel: React.FC<{ files: FileNode[]; onClose: () => void }> = ({ file
         <div key={node.path}>
           <button
             onClick={() => toggleFolder(node.path)}
-            className="w-full flex items-center gap-2 py-1.5 px-3 text-xs text-gray-700 hover:bg-gray-100 transition-colors"
+            className="w-full flex items-center gap-2 py-2 px-3 text-xs text-gray-700 hover:bg-indigo-50 transition-colors"
             style={{ paddingLeft }}
           >
             <svg
@@ -534,51 +601,49 @@ const FilesPanel: React.FC<{ files: FileNode[]; onClose: () => void }> = ({ file
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 text-yellow-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1H8a3 3 0 00-3 3v1.5a1.5 1.5 0 01-3 0V6z" clipRule="evenodd" />
-              <path d="M6 12a2 2 0 012-2h8a2 2 0 012 2v2a2 2 0 01-2 2H2h2a2 2 0 002-2v-2z" />
-            </svg>
-            <span className="font-medium">{node.name}</span>
+            <span className="text-base">📁</span>
+            <span className="font-semibold text-gray-800">{node.name}</span>
           </button>
           {isExpanded && node.children?.map((child) => renderNode(child, depth + 1))}
         </div>
       );
     }
 
+    const fileStyle = getFileIcon(node.name);
+    const isClickable = node.name === 'index.html';
+
     return (
-      <div
+      <button
         key={node.path}
-        className="flex items-center gap-2 py-1.5 px-3 text-xs text-gray-600 hover:bg-gray-100 cursor-pointer transition-colors"
+        onClick={() => handleFileClick(node)}
+        className={`w-full flex items-center gap-2 py-2 px-3 text-xs transition-colors text-left ${
+          isSelected 
+            ? 'bg-indigo-100 text-indigo-700' 
+            : isClickable 
+              ? 'text-gray-700 hover:bg-indigo-50 cursor-pointer' 
+              : 'text-gray-400 cursor-default'
+        }`}
         style={{ paddingLeft }}
+        title={isClickable ? 'Click to view code' : node.name}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 text-blue-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <span>{node.name}</span>
-      </div>
+        <span className="text-sm">{fileStyle.icon}</span>
+        <span className={isClickable ? 'font-medium' : 'italic'}>{node.name}</span>
+        {node.name === 'index.html' && (
+          <span className="ml-auto text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">main</span>
+        )}
+      </button>
     );
   };
 
-  // Default file structure for single-file HTML app
-  const defaultFiles: FileNode[] = files.length > 0 ? files : [
+  // Show actual files if available, otherwise show placeholder
+  const displayFiles: FileNode[] = files.length > 0 ? files : [
     {
-      name: 'project',
+      name: hasCode ? 'my-app' : 'No project yet',
       type: 'folder',
-      path: 'root',
-      children: [
-        { name: 'index.html', type: 'file', path: 'root/index.html' },
-      ],
+      path: 'project',
+      children: hasCode ? [
+        { name: 'index.html', type: 'file', path: 'project/index.html' },
+      ] : [],
     },
   ];
 
@@ -609,8 +674,13 @@ const FilesPanel: React.FC<{ files: FileNode[]; onClose: () => void }> = ({ file
         </button>
       </div>
       <div className="flex-1 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
-        {defaultFiles.map((node) => renderNode(node))}
+        {displayFiles.map((node) => renderNode(node))}
       </div>
+      {!hasCode && (
+        <p className="text-xs text-gray-400 text-center mt-3 italic">
+          Generate an app to see project files
+        </p>
+      )}
     </div>
   );
 };
@@ -919,13 +989,15 @@ function CanvasAppInner() {
         setConversationPhase('editing');
 
         if (isInitial) {
+          const appName = instruction.substring(0, 40);
           const newApp: GeneratedApp = {
             id: Date.now().toString(),
-            name: instruction.substring(0, 40) + '...',
+            name: appName + '...',
             code: finalCode,
             prompt: instruction,
             timestamp: Date.now(),
             history: [...chatMessages, modelMsg],
+            files: createFilesFromCode(finalCode, appName),
           };
           setCurrentApp(newApp);
           saveHistory([newApp, ...history].slice(0, 20));
@@ -934,6 +1006,7 @@ function CanvasAppInner() {
             ...currentApp,
             code: finalCode,
             history: [...chatMessages, modelMsg],
+            files: createFilesFromCode(finalCode, currentApp.name),
           };
           setCurrentApp(updatedApp);
           saveHistory(
@@ -1021,13 +1094,15 @@ function CanvasAppInner() {
       setConversationPhase('editing');
 
       if (isInitial) {
+        const appName = instruction.substring(0, 40);
         const newApp: GeneratedApp = {
           id: Date.now().toString(),
-          name: instruction.substring(0, 40) + '...',
+          name: appName + '...',
           code,
           prompt: instruction,
           timestamp: Date.now(),
           history: [...chatMessages, modelMsg],
+          files: createFilesFromCode(code, appName),
         };
         setCurrentApp(newApp);
         saveHistory([newApp, ...history].slice(0, 20));
@@ -1036,6 +1111,7 @@ function CanvasAppInner() {
           ...currentApp,
           code,
           history: [...chatMessages, modelMsg],
+          files: createFilesFromCode(code, currentApp.name),
         };
         setCurrentApp(updatedApp);
         saveHistory(
@@ -1536,7 +1612,12 @@ function CanvasAppInner() {
 
               {/* Files Panel */}
               {activePanel === 'files' && (
-                <FilesPanel files={currentApp?.files || []} onClose={() => setActivePanel(null)} />
+                <FilesPanel 
+                  files={currentApp?.files || []} 
+                  onClose={() => setActivePanel(null)} 
+                  onFileClick={() => setViewMode(ViewMode.CODE)}
+                  hasCode={!!currentApp?.code}
+                />
               )}
 
               {/* History Panel */}
