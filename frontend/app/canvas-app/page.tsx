@@ -1929,7 +1929,6 @@ function CanvasAppInner() {
             </div>
           </div>
         </main>
-      </div>
 
       {/* Error Toast */}
       {genState.error && (
