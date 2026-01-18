@@ -46,9 +46,17 @@ function SubscriptionContent() {
 
           const data = await response.json();
 
-          if (data.hasAccess && data.subscription) {
+          // Check for either hasAccess or hasActiveSubscription (backend response)
+          if ((data.hasAccess || data.hasActiveSubscription) && data.subscription) {
             // ✅ Store active subscription data instead of redirecting
-            setActiveSubscription(data.subscription);
+            // Calculate days remaining if not provided
+            const subscription = data.subscription;
+            if (!subscription.daysUntilRenewal && subscription.expiryDate) {
+              const expiry = new Date(subscription.expiryDate);
+              const now = new Date();
+              subscription.daysUntilRenewal = Math.max(0, Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+            }
+            setActiveSubscription(subscription);
 
             // If intent is cancel, auto-trigger the cancel confirmation
             if (intent === 'cancel') {

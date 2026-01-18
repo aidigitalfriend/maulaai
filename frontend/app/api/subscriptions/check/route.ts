@@ -36,7 +36,15 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    
+    // Normalize the response - backend uses hasActiveSubscription, frontend expects hasAccess
+    const normalizedData = {
+      ...data,
+      hasAccess: data.hasAccess || data.hasActiveSubscription || false,
+      subscription: data.subscription || null,
+    };
+    
+    return NextResponse.json(normalizedData, { status: res.status });
   } catch (err: any) {
     console.error('[/api/subscriptions/check] Proxy error:', err);
     return NextResponse.json(
