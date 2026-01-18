@@ -1179,7 +1179,7 @@ function CanvasAppInner() {
           <div className="flex items-center gap-3">
             {/* Action Buttons */}
             {currentApp && (
-              <div className="flex items-center gap-1 border-r border-gray-200 pr-3 mr-2">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={shareApp}
                   className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
@@ -1196,6 +1196,15 @@ function CanvasAppInner() {
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </button>
+                <button
+                  onClick={openInNewTab}
+                  className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                  title="Open in New Tab"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                 </button>
                 <button
@@ -1218,18 +1227,6 @@ function CanvasAppInner() {
                 </button>
               </div>
             )}
-
-            {/* Model Info Badge - Click settings for full selector */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl">
-              <span className={`w-2 h-2 rounded-full ${
-                selectedModel.provider === 'Gemini' ? 'bg-green-500' :
-                selectedModel.provider === 'OpenAI' ? 'bg-emerald-500' :
-                selectedModel.provider === 'Anthropic' ? 'bg-purple-500' :
-                selectedModel.provider === 'xAI' ? 'bg-blue-500' :
-                'bg-orange-500'
-              }`}></span>
-              <span className="text-xs font-semibold text-gray-700">{selectedModel.name}</span>
-            </div>
           </div>
         </div>
       </header>
@@ -1607,43 +1604,6 @@ function CanvasAppInner() {
                           <span className="truncate">{action.label}</span>
                         </button>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Export Options */}
-                  <div className="mb-6">
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Export Options</h4>
-                    <div className="space-y-2">
-                      <button
-                        onClick={downloadCode}
-                        disabled={!currentApp}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download HTML File
-                      </button>
-                      <button
-                        onClick={openInNewTab}
-                        disabled={!currentApp}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        Open in New Tab
-                      </button>
-                      <button
-                        onClick={shareApp}
-                        disabled={!currentApp}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all disabled:opacity-50"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                        </svg>
-                        Share / Copy Code
-                      </button>
                     </div>
                   </div>
 
