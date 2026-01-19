@@ -125,18 +125,18 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Right Column: Navigation Links */}
-          <div ref={linksRef} className="relative">
-            <div className="absolute -inset-[1px] bg-gradient-to-r from-brand-500/30 via-indigo-500/30 to-purple-500/30 rounded-2xl blur-sm"></div>
-            <div className="relative border border-white/10 rounded-2xl p-6 bg-neural-900/60 backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-neural-400 uppercase tracking-wider mb-4">Quick Links</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {/* Right Column: Navigation Links - Brand Theme Style */}
+          <div ref={linksRef}>
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg hover:shadow-xl hover:border-brand-500/30 transition-all duration-300">
+              <h3 className="text-sm font-bold bg-gradient-to-r from-brand-400 via-accent-400 to-brand-500 bg-clip-text text-transparent uppercase tracking-wider mb-5">Quick Links</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-4 gap-y-3">
                 {footerLinks.map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="text-neural-300 hover:text-brand-400 text-sm font-medium transition-all duration-300 hover:translate-x-1"
+                    className="group flex items-center text-neural-300 hover:text-white text-sm font-medium transition-all duration-300"
                   >
+                    <span className="w-0 group-hover:w-2 h-0.5 bg-gradient-to-r from-brand-400 to-accent-400 mr-0 group-hover:mr-2 transition-all duration-300 rounded-full"></span>
                     {link.name}
                   </Link>
                 ))}
