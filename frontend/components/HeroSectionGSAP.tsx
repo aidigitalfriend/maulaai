@@ -17,6 +17,13 @@ export default function HeroSectionGSAP() {
   useEffect(() => {
     // Dynamic import GSAP only on client side
     const initGSAP = async () => {
+      // Check if all refs are available before running GSAP
+      if (!titleRef.current || !subtitleRef.current || !descRef.current || 
+          !buttonsRef.current || !orb1Ref.current || !orb2Ref.current || 
+          !orb3Ref.current || !gridRef.current) {
+        return;
+      }
+
       const gsap = (await import('gsap')).default;
       
       // Initial states
@@ -71,8 +78,13 @@ export default function HeroSectionGSAP() {
         duration: 0.8
       }, '-=0.4');
 
+      // Store refs for cleanup
+      const orb1 = orb1Ref.current;
+      const orb2 = orb2Ref.current;
+      const orb3 = orb3Ref.current;
+
       // Continuous floating animation for orbs
-      gsap.to(orb1Ref.current, {
+      gsap.to(orb1, {
         y: -30,
         x: 20,
         duration: 8,
@@ -81,7 +93,7 @@ export default function HeroSectionGSAP() {
         ease: 'sine.inOut'
       });
 
-      gsap.to(orb2Ref.current, {
+      gsap.to(orb2, {
         y: 25,
         x: -15,
         duration: 10,
@@ -90,7 +102,7 @@ export default function HeroSectionGSAP() {
         ease: 'sine.inOut'
       });
 
-      gsap.to(orb3Ref.current, {
+      gsap.to(orb3, {
         y: -20,
         x: -25,
         duration: 12,
@@ -107,26 +119,32 @@ export default function HeroSectionGSAP() {
         const xPercent = (clientX / innerWidth - 0.5) * 2;
         const yPercent = (clientY / innerHeight - 0.5) * 2;
 
-        gsap.to(orb1Ref.current, {
-          x: xPercent * 30,
-          y: yPercent * 30,
-          duration: 1,
-          ease: 'power2.out'
-        });
+        if (orb1) {
+          gsap.to(orb1, {
+            x: xPercent * 30,
+            y: yPercent * 30,
+            duration: 1,
+            ease: 'power2.out'
+          });
+        }
 
-        gsap.to(orb2Ref.current, {
-          x: xPercent * -20,
-          y: yPercent * -20,
-          duration: 1.2,
-          ease: 'power2.out'
-        });
+        if (orb2) {
+          gsap.to(orb2, {
+            x: xPercent * -20,
+            y: yPercent * -20,
+            duration: 1.2,
+            ease: 'power2.out'
+          });
+        }
 
-        gsap.to(orb3Ref.current, {
-          x: xPercent * 15,
-          y: yPercent * -15,
-          duration: 1.4,
-          ease: 'power2.out'
-        });
+        if (orb3) {
+          gsap.to(orb3, {
+            x: xPercent * 15,
+            y: yPercent * -15,
+            duration: 1.4,
+            ease: 'power2.out'
+          });
+        }
       };
 
       window.addEventListener('mousemove', handleMouseMove);

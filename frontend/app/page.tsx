@@ -2,6 +2,7 @@ import HeroSectionGSAP from '@/components/HeroSectionGSAP';
 import FeatureSection from '@/components/FeatureSection';
 import TestimonialSection from '@/components/TestimonialSection';
 import CommunityStats from '@/components/CommunityStats';
+import NewsletterSection from '@/components/NewsletterSection';
 import Link from 'next/link';
 
 // Homepage showcasing the fixed design system
@@ -1091,62 +1092,7 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter Section - Content Left, Image Right */}
-      <section className="section-padding bg-gradient-to-br from-brand-700 via-brand-600 to-accent-600 text-white overflow-hidden relative">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-400 rounded-full filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-400 rounded-full filter blur-3xl"></div>
-        </div>
-        <div className="container-custom relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left - Content */}
-            <div>
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-white text-sm font-medium mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Newsletter
-              </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                Stay
-                <span className="text-white/90"> Updated</span>
-              </h2>
-              <p className="text-lg text-white/80 mb-8 leading-relaxed">
-                Get the latest news, features, and tips delivered to your inbox every week. Join 5,000+ subscribers.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 px-6 py-4 rounded-xl text-neural-900 placeholder-neural-500 focus:outline-none focus:ring-2 focus:ring-white"
-                />
-                <button className="px-8 py-4 bg-white text-brand-600 font-bold rounded-xl hover:bg-neutral-100 transition-colors whitespace-nowrap">
-                  Subscribe
-                </button>
-              </div>
-              <p className="text-sm text-white/60">
-                We respect your privacy. Unsubscribe at any time.
-              </p>
-            </div>
-            
-            {/* Right - Image */}
-            <div className="relative">
-              <img
-                src="/images/products/newsletter.jpeg"
-                alt="Newsletter Subscription"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '400px' }}
-              />
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-white to-neutral-100 rounded-2xl flex items-center justify-center shadow-xl">
-                <span className="text-4xl">📬</span>
-              </div>
-              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
-                <div className="text-2xl font-bold text-white">5K+</div>
-                <div className="text-xs text-white/70">Subscribers</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <NewsletterSection />
 
       {/* Pricing Section - Image Left, Content Right */}
       <section className="section-padding bg-gradient-to-br from-blue-900 via-indigo-900 to-neural-800 text-white overflow-hidden relative">

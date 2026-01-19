@@ -15,6 +15,11 @@ export default function Footer() {
 
   useEffect(() => {
     const initGSAP = async () => {
+      // Check if all refs are available before running GSAP
+      if (!footerRef.current || !brandRef.current || !linksRef.current || !ctaRef.current) {
+        return;
+      }
+
       const gsap = (await import('gsap')).default;
       const { ScrollTrigger } = await import('gsap/ScrollTrigger');
       gsap.registerPlugin(ScrollTrigger);
