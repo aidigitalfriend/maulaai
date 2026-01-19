@@ -486,7 +486,32 @@ export default function HomePage() {
         backgroundStyle="gradient"
       />
 
-      {/* Canvas Builder Section - AI App Generator */}
+      {/* Explore All Agents Button */}
+      <section className="bg-gradient-to-br from-neural-800 via-neural-900 to-neural-800 py-8">
+        <div className="container-custom text-center">
+          <a
+            href="/agents"
+            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 group"
+          >
+            <span>Explore All Agents</span>
+            <svg
+              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      {/* Canvas Builder Section - AI App Generator */
       <section className="section-padding bg-gradient-to-br from-neural-900 via-indigo-900 to-neural-800 text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl"></div>
@@ -721,32 +746,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Explore All Agents Button */}
-      <section className="bg-gradient-to-br from-white via-brand-50 to-accent-50 py-8">
-        <div className="container-custom text-center">
-          <a
-            href="/agents"
-            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 group"
-          >
-            <span>Explore All Agents</span>
-            <svg
-              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </a>
-        </div>
-      </section>
-
-      {/* Testimonials Section - Dark Theme Updated */}
+      {/* Testimonials Section - Dark Theme Updated */
       <TestimonialSection />
 
       {/* Community Stats Section */}
