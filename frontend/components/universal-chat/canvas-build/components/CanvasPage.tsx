@@ -1139,7 +1139,8 @@ export default function CanvasMode({
   // Sync pane selection with visible panels and modes
   useEffect(() => {
     const chatActive = activePane === 'chat' || activePane === 'templates';
-    const filesActive = activePane === 'files' || activePane === 'code';
+    // Files panel only shows for 'files' pane (not 'code')
+    const filesActive = activePane === 'files';
     const historyActive = activePane === 'history';
     const settingsActive = activePane === 'settings';
     setShowChatPanel(chatActive);
@@ -1150,10 +1151,12 @@ export default function CanvasMode({
     if (activePane === 'preview') {
       setViewMode('preview');
     }
+    // Code pane shows code view without the files panel
     if (activePane === 'code') {
       setViewMode('code');
     }
-    if (filesActive && generatedFiles.length > 0 && activePane !== 'preview') {
+    // Files pane shows files panel with code view
+    if (activePane === 'files' && generatedFiles.length > 0) {
       setViewMode('code');
     }
   }, [activePane, generatedFiles.length]);
