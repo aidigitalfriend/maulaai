@@ -511,7 +511,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Canvas Builder Section - AI App Generator */
+      {/* Canvas Builder Section - AI App Generator */}
       <section className="section-padding bg-gradient-to-br from-neural-900 via-indigo-900 to-neural-800 text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl"></div>
