@@ -3,7 +3,7 @@
  * Master controller that analyzes tasks and routes them to specialized agents
  * 
  * Architecture:
- * User Request → Orchestrator → [Analyze Task] → Route to Agent(s) → Execute → Combine Results
+ * User Request → Orchestrator → [RAG Context] → [Analyze Task] → Route to Agent(s) → Execute → Combine Results
  */
 
 import OpenAI from 'openai';
@@ -19,6 +19,9 @@ import DeployAgent from './agents/deploy-agent.js';
 import FileSystemAgent from './agents/filesystem-agent.js';
 import UIAgent from './agents/ui-agent.js';
 import DocumentationAgent from './agents/documentation-agent.js';
+
+// Import AI Core services
+import ragEngine from '../ai-core/rag-engine.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -180,9 +183,26 @@ Rules:
     const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     try {
+      // Step 0: Retrieve RAG context (if available)
+      let ragContext = null;
+      try {
+        const ragResult = await ragEngine.retrieveForLLM(userRequest, {
+          agentId: context.agentId,
+          userId: context.userId,
+          topK: 5,
+          minScore: 0.6,
+        });
+        if (ragResult.success && ragResult.context) {
+          ragContext = ragResult.context;
+          console.log(`[Orchestrator] RAG context retrieved: ${ragResult.totalSources} sources`);
+        }
+      } catch (ragError) {
+        console.warn('[Orchestrator] RAG retrieval failed, continuing without context:', ragError.message);
+      }
+
       // Step 1: Analyze the task
       console.log(`[Orchestrator] Analyzing task: ${userRequest.substring(0, 100)}...`);
-      const analysis = await this.analyzeTask(userRequest, context);
+      const analysis = await this.analyzeTask(userRequest, { ...context, ragContext });
       
       console.log(`[Orchestrator] Analysis complete:`, {
         primary: analysis.primaryAgent,
@@ -192,6 +212,7 @@ Rules:
 
       // Step 2: Execute agents
       const results = [];
+      const enhancedContext = { ...context, ragContext };
       
       if (analysis.requiresSequential) {
         // Sequential execution
@@ -199,7 +220,7 @@ Rules:
           const agentInfo = this.agents[task.agent];
           if (agentInfo) {
             const result = await this.executeAgent(task.agent, task.task, {
-              ...context,
+              ...enhancedContext,
               previousResults: results
             });
             results.push({
@@ -217,7 +238,7 @@ Rules:
           tasks.map(async (task) => {
             const agentInfo = this.agents[task.agent];
             if (agentInfo) {
-              const result = await this.executeAgent(task.agent, task.task, context);
+              const result = await this.executeAgent(task.agent, task.task, enhancedContext);
               return {
                 agent: task.agent,
                 agentName: agentInfo.name,
@@ -232,7 +253,7 @@ Rules:
       }
 
       // Step 3: Combine results
-      const combinedResult = await this.combineResults(userRequest, results, context);
+      const combinedResult = await this.combineResults(userRequest, results, enhancedContext);
 
       // Record execution
       const execution = {
@@ -241,6 +262,7 @@ Rules:
         analysis,
         results,
         combinedResult,
+        ragUsed: !!ragContext,
         duration: Date.now() - startTime,
         timestamp: new Date().toISOString()
       };

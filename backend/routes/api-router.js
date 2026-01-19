@@ -34,6 +34,9 @@ import mediaRouter from './media-routes.js';
 // Import Agent System (Orchestrator + Specialized Agents)
 import agentSystemRouter from './agent-system-routes.js';
 
+// Import AI Core (RAG, LangChain, LangGraph)
+import aiCoreRouter from './ai-core-routes.js';
+
 const router = express.Router();
 
 // ============================================
@@ -194,6 +197,13 @@ router.use('/media', mediaRouter);
 
 router.use('/agent-system', apiLimiter);
 router.use('/agent-system', agentSystemRouter);
+
+// ============================================
+// AI CORE ROUTES (RAG, LangChain, LangGraph)
+// ============================================
+
+router.use('/ai-core', apiLimiter);
+router.use('/ai-core', aiCoreRouter);
 
 // ============================================
 // ANALYTICS ROUTES
