@@ -94,13 +94,13 @@ export default function Footer() {
         }}
       />
 
-      {/* Main Footer */}
-      <div className="relative z-10 container-custom py-16 px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-12">
+      {/* Main Footer - Clean 2-column grid */}
+      <div className="relative z-10 container-custom py-12 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           
-          {/* Brand & Newsletter */}
-          <div ref={brandRef} className="lg:max-w-md">
-            <Link href="/" className="flex items-center gap-3 mb-6 group">
+          {/* Left Column: Brand & Description */}
+          <div ref={brandRef}>
+            <Link href="/" className="flex items-center gap-3 mb-4 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-brand-500/20 rounded-xl blur-xl group-hover:bg-brand-500/40 transition-all duration-300"></div>
                 <Image
@@ -115,45 +115,17 @@ export default function Footer() {
                 One Last AI
               </span>
             </Link>
-            <p className="text-neural-400 text-base mb-8 leading-relaxed">
+            <p className="text-neural-400 text-base leading-relaxed max-w-md">
               Transform your business with intelligent AI agents. 18+ specialized personalities ready to revolutionize how you work.
             </p>
-            
-            {/* Newsletter - Enhanced styling */}
-            <div className="p-1 rounded-2xl bg-gradient-to-r from-brand-500/20 via-indigo-500/20 to-purple-500/20">
-              <form onSubmit={handleSubscribe} className="flex gap-2 p-3 rounded-xl bg-neural-900/80 backdrop-blur-sm">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 rounded-lg bg-neural-800/50 border border-white/10 text-white placeholder-neural-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm transition-all duration-300"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-brand-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-brand-600 hover:to-indigo-600 transition-all duration-300 text-sm whitespace-nowrap shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-105"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
-            {subscribed && (
-              <p className="text-emerald-400 text-sm mt-3 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Thanks for subscribing!
-              </p>
-            )}
           </div>
 
-          {/* Navigation Links - Enhanced with gradient border */}
+          {/* Right Column: Navigation Links */}
           <div ref={linksRef} className="relative">
             <div className="absolute -inset-[1px] bg-gradient-to-r from-brand-500/30 via-indigo-500/30 to-purple-500/30 rounded-2xl blur-sm"></div>
-            <div className="relative border border-white/10 rounded-2xl p-8 bg-neural-900/60 backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-neural-400 uppercase tracking-wider mb-6">Quick Links</h3>
-              <div className="flex flex-wrap gap-x-8 gap-y-4">
+            <div className="relative border border-white/10 rounded-2xl p-6 bg-neural-900/60 backdrop-blur-sm">
+              <h3 className="text-sm font-semibold text-neural-400 uppercase tracking-wider mb-4">Quick Links</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {footerLinks.map((link) => (
                   <Link
                     key={link.name}
@@ -169,67 +141,69 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* CTA Banner - Sky Blue with 3-column grid layout */}
+      {/* CTA Banner - Sky Blue with 2-column layout: Email left, App badges right */}
       <div ref={ctaRef} className="relative z-10 bg-[#4A9FD4] overflow-hidden">
-        <div className="relative container-custom py-4 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-            {/* Left: Title */}
-            <div className="flex items-center justify-center md:justify-start">
-              <p className="text-white font-semibold text-lg flex items-center gap-2">
-                <span className="text-2xl">🚀</span>
-                Ready to build with AI agents?
+        <div className="relative container-custom py-5 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-6">
+            {/* Left: Email Subscription */}
+            <form onSubmit={handleSubscribe} className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email for early access"
+                className="flex-1 px-4 py-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white text-sm transition-all duration-300"
+                required
+              />
+              <button
+                type="submit"
+                className="px-6 py-3 bg-white text-[#4A9FD4] rounded-lg font-bold hover:bg-white/90 transition-all duration-300 text-sm whitespace-nowrap shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                Subscribe
+              </button>
+            </form>
+            {subscribed && (
+              <p className="text-white text-sm flex items-center gap-2 md:hidden">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Thanks for subscribing!
               </p>
-            </div>
+            )}
 
-            {/* Middle: App Store badges */}
-            <div className="flex flex-wrap gap-3 justify-center items-center">
+            {/* Right: App Store badges */}
+            <div className="flex flex-wrap gap-3 justify-center md:justify-end items-center">
               {/* App Store Badge */}
               <div className="relative group">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-all duration-300 cursor-not-allowed">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-all duration-300 cursor-not-allowed">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
                   </svg>
                   <div className="flex flex-col">
-                    <span className="text-[8px] text-white/80">Download on the</span>
-                    <span className="text-xs font-semibold text-white -mt-0.5">App Store</span>
+                    <span className="text-[9px] text-white/80 leading-tight">Download on the</span>
+                    <span className="text-sm font-semibold text-white leading-tight">App Store</span>
                   </div>
                 </div>
-                <div className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[8px] font-bold text-white shadow-lg">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[9px] font-bold text-white shadow-lg">
                   SOON
                 </div>
               </div>
 
               {/* Google Play Badge */}
               <div className="relative group">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-all duration-300 cursor-not-allowed">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg hover:bg-white/30 transition-all duration-300 cursor-not-allowed">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
                   </svg>
                   <div className="flex flex-col">
-                    <span className="text-[8px] text-white/80">GET IT ON</span>
-                    <span className="text-xs font-semibold text-white -mt-0.5">Google Play</span>
+                    <span className="text-[9px] text-white/80 leading-tight">GET IT ON</span>
+                    <span className="text-sm font-semibold text-white leading-tight">Google Play</span>
                   </div>
                 </div>
-                <div className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[8px] font-bold text-white shadow-lg">
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[9px] font-bold text-white shadow-lg">
                   SOON
                 </div>
               </div>
-            </div>
-
-            {/* Right: Buttons */}
-            <div className="flex gap-3 justify-center md:justify-end">
-              <Link
-                href="/agents"
-                className="px-5 py-2 bg-white text-[#4A9FD4] rounded-lg font-bold hover:bg-white/90 transition-all duration-300 text-sm shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                Start Free →
-              </Link>
-              <Link
-                href="/support/book-consultation"
-                className="px-5 py-2 bg-white/20 text-white border border-white/40 rounded-lg font-semibold hover:bg-white/30 backdrop-blur-sm transition-all duration-300 text-sm"
-              >
-                Book Demo
-              </Link>
             </div>
           </div>
         </div>
