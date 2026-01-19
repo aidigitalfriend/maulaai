@@ -42,6 +42,7 @@ export default function Header() {
     items?: Array<{ name: string; href: string }>;
   }> = [
     { name: 'Agents', href: '/agents' },
+    { name: 'Tool Box', href: '/tools/network-tools' },
     { name: 'Dev Utils', href: '/tools/developer-utils' },
     { name: 'Status', href: '/status' },
     { name: 'AI Studio', href: '/studio' },
