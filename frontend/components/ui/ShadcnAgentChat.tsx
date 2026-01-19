@@ -49,6 +49,25 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
+// Helper function to extract text content from React children
+// This fixes the [object Object] issue when copying code blocks
+const extractTextFromChildren = (children: React.ReactNode): string => {
+  if (typeof children === 'string') {
+    return children;
+  }
+  if (typeof children === 'number') {
+    return String(children);
+  }
+  if (Array.isArray(children)) {
+    return children.map(extractTextFromChildren).join('');
+  }
+  if (children && typeof children === 'object' && 'props' in children) {
+    const element = children as React.ReactElement;
+    return extractTextFromChildren(element.props?.children);
+  }
+  return '';
+};
+
 // Types
 interface Message {
   id: string;
@@ -233,7 +252,7 @@ const MessageBubble = React.memo(
                                 size="sm"
                                 className="h-6 px-2 text-xs text-zinc-400 hover:text-white"
                                 onClick={() =>
-                                  onCopy(message.id + '-code', String(children))
+                                  onCopy(message.id + '-code', extractTextFromChildren(children))
                                 }
                               >
                                 {copiedId === message.id + '-code' ? (
@@ -254,7 +273,7 @@ const MessageBubble = React.memo(
                                 borderTopRightRadius: 0,
                               }}
                             >
-                              {String(children).replace(/\n$/, '')}
+                              {extractTextFromChildren(children).replace(/\n$/, '')}
                             </SyntaxHighlighter>
                           </div>
                         ) : (

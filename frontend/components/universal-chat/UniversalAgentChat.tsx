@@ -99,6 +99,25 @@ const getSpeechRecognition = () => {
   return SR || null;
 };
 
+// Helper function to extract text content from React children
+// This fixes the [object Object] issue when copying code blocks
+const extractTextFromChildren = (children: React.ReactNode): string => {
+  if (typeof children === 'string') {
+    return children;
+  }
+  if (typeof children === 'number') {
+    return String(children);
+  }
+  if (Array.isArray(children)) {
+    return children.map(extractTextFromChildren).join('');
+  }
+  if (children && typeof children === 'object' && 'props' in children) {
+    const element = children as React.ReactElement;
+    return extractTextFromChildren(element.props?.children);
+  }
+  return '';
+};
+
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Auth
   const { state: authState } = useAuth();
@@ -1460,7 +1479,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       },
                       code({ inline, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
-                        const codeString = String(children).replace(/\n$/, '');
+                        const codeString = extractTextFromChildren(children).replace(/\n$/, '');
 
                         const handleCopy = async () => {
                           try {
