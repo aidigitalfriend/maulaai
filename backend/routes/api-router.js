@@ -28,6 +28,9 @@ import chatRouter from './chat.js';
 // Import Agent Memory & Tools routes
 import agentMemoryRouter from './agent-memory-routes.js';
 
+// Import Media Processing routes
+import mediaRouter from './media-routes.js';
+
 const router = express.Router();
 
 // ============================================
@@ -174,6 +177,13 @@ router.use('/agents', agentMemoryRouter);
 // Agent subscriptions
 router.use('/agent/subscriptions', apiLimiter);
 router.use('/agent/subscriptions', agentSubscriptionsRouter);
+
+// ============================================
+// MEDIA PROCESSING ROUTES
+// ============================================
+
+router.use('/media', apiLimiter);
+router.use('/media', mediaRouter);
 
 // ============================================
 // ANALYTICS ROUTES
