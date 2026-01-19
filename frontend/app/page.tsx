@@ -1,4 +1,4 @@
-import HeroSectionUltra from '@/components/HeroSectionUltra';
+import HeroSectionGSAP from '@/components/HeroSectionGSAP';
 import FeatureSection from '@/components/FeatureSection';
 import TestimonialSection from '@/components/TestimonialSection';
 import CommunityStats from '@/components/CommunityStats';
@@ -222,8 +222,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* ULTRA Hero Section - Flying product cards with blur/focus effect */}
-      <HeroSectionUltra />
+      {/* GSAP Hero Section - Clean, professional animation */}
+      <HeroSectionGSAP />
 
       {/* AI-Powered Agents Section - Image Right */}
       <section className="section-padding bg-gradient-to-br from-blue-900 via-sky-900 to-neural-800 text-white overflow-hidden relative">
