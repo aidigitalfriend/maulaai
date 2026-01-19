@@ -170,40 +170,47 @@ export default function ConfigSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-brand-500/10 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500/10 rounded-full filter blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-brand-500/5 to-accent-500/5 rounded-full filter blur-3xl"></div>
+      </div>
+
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="relative z-10 bg-neural-800/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Link 
                 href="/"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                className="flex items-center space-x-2 text-neural-300 hover:text-white transition-colors"
               >
                 <ChevronLeftIcon className="h-5 w-5" />
                 <span>Back to Home</span>
               </Link>
-              <div className="text-gray-300">|</div>
+              <div className="text-neural-600">|</div>
               <div className="flex items-center space-x-2">
-                <Cog6ToothIcon className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-semibold text-gray-900">Environment Configuration</h1>
+                <Cog6ToothIcon className="h-6 w-6 text-brand-400" />
+                <h1 className="text-xl font-semibold text-white">Environment Configuration</h1>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Configuration Validator */}
         <div className="mb-8">
           <ConfigValidator />
         </div>
 
         {/* Setup Instructions */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Environment Variable Setup</h2>
-            <p className="mt-2 text-gray-600">
+        <div className="bg-neural-800/60 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-white/10 bg-gradient-to-r from-brand-500/10 to-accent-500/10">
+            <h2 className="text-lg font-semibold text-white">Environment Variable Setup</h2>
+            <p className="mt-2 text-neural-300">
               Configure your environment variables to enable all features of the multilingual AI agent system.
               You don't need all services - the system will work with whatever you configure.
             </p>
@@ -211,18 +218,23 @@ export default function ConfigSetupPage() {
 
           <div className="p-6">
             {/* Quick Setup */}
-            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-medium text-blue-900">Quick Setup</h3>
-              <p className="text-sm text-blue-700 mt-1 mb-3">
-                Copy this template to your <code>.env.local</code> file and fill in your API keys:
+            <div className="mb-8 bg-gradient-to-br from-brand-500/20 to-brand-600/10 border border-brand-500/30 rounded-xl p-5">
+              <h3 className="font-medium text-brand-300 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Quick Setup
+              </h3>
+              <p className="text-sm text-neural-300 mt-1 mb-3">
+                Copy this template to your <code className="bg-neural-700/50 px-2 py-0.5 rounded text-brand-300">.env.local</code> file and fill in your API keys:
               </p>
               <div className="relative">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded text-sm overflow-x-auto">
+                <pre className="bg-neural-900 text-neural-100 p-4 rounded-lg text-sm overflow-x-auto border border-white/5">
                   <code>{generateEnvTemplate()}</code>
                 </pre>
                 <button
                   onClick={() => copyToClipboard(generateEnvTemplate())}
-                  className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 hover:text-white"
+                  className="absolute top-2 right-2 p-2 bg-neural-700 hover:bg-neural-600 rounded-lg text-neural-300 hover:text-white transition-colors"
                   title="Copy to clipboard"
                 >
                   <DocumentDuplicateIcon className="h-4 w-4" />
@@ -234,27 +246,27 @@ export default function ConfigSetupPage() {
             <div className="space-y-8">
               {envVarSections.map((section, sectionIndex) => (
                 <div key={sectionIndex}>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">{section.title}</h3>
-                  <p className="text-gray-600 mb-4">{section.description}</p>
+                  <h3 className="text-lg font-medium text-white mb-2">{section.title}</h3>
+                  <p className="text-neural-400 mb-4">{section.description}</p>
                   
                   <div className="grid gap-4">
                     {section.vars.map((envVar, varIndex) => (
-                      <div key={varIndex} className="bg-gray-50 rounded-lg p-4 border">
+                      <div key={varIndex} className="bg-neural-700/40 backdrop-blur rounded-xl p-4 border border-white/5 hover:border-brand-500/30 transition-colors">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                            <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+                              <code className="text-sm font-mono bg-neural-900/60 text-brand-300 px-3 py-1 rounded-lg">
                                 {envVar.name}
                               </code>
                               {envVar.required && (
-                                <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                                <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full border border-red-500/30">
                                   Required
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{envVar.description}</p>
-                            <div className="mt-2 text-xs text-gray-500">
-                              Example: <code className="bg-gray-100 px-1 rounded">{envVar.example}</code>
+                            <p className="text-sm text-neural-300 mt-2">{envVar.description}</p>
+                            <div className="mt-2 text-xs text-neural-500">
+                              Example: <code className="bg-neural-900/60 text-neural-300 px-2 py-0.5 rounded">{envVar.example}</code>
                             </div>
                             {envVar.link && (
                               <div className="mt-2">
@@ -262,16 +274,19 @@ export default function ConfigSetupPage() {
                                   href={envVar.link}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-blue-600 hover:text-blue-800"
+                                  className="text-xs text-brand-400 hover:text-brand-300 transition-colors inline-flex items-center gap-1"
                                 >
-                                  Get your API key →
+                                  Get your API key 
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
                                 </a>
                               </div>
                             )}
                           </div>
                           <button
                             onClick={() => copyToClipboard(`${envVar.name}=${envVar.example}`)}
-                            className="ml-4 p-1 text-gray-400 hover:text-gray-600"
+                            className="ml-4 p-2 text-neural-500 hover:text-brand-400 hover:bg-neural-700/50 rounded-lg transition-colors"
                             title="Copy to clipboard"
                           >
                             <DocumentDuplicateIcon className="h-4 w-4" />
@@ -285,31 +300,81 @@ export default function ConfigSetupPage() {
             </div>
 
             {/* Usage Notes */}
-            <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="font-medium text-yellow-900">Important Notes</h3>
-              <ul className="text-sm text-yellow-700 mt-2 space-y-1 list-disc list-inside">
-                <li>Environment variables with <code>NEXT_PUBLIC_</code> prefix are exposed to the browser</li>
-                <li>Keep your API keys secure and never commit them to version control</li>
-                <li>You only need to configure the services you want to use</li>
-                <li>The system will automatically fall back to available services</li>
-                <li>Restart your development server after changing environment variables</li>
-                <li>For production, use your hosting platform's environment variable settings</li>
+            <div className="mt-8 bg-gradient-to-br from-amber-500/20 to-orange-600/10 border border-amber-500/30 rounded-xl p-5">
+              <h3 className="font-medium text-amber-300 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Important Notes
+              </h3>
+              <ul className="text-sm text-neural-300 mt-3 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-1">•</span>
+                  <span>Environment variables with <code className="bg-neural-700/50 px-2 py-0.5 rounded text-amber-300">NEXT_PUBLIC_</code> prefix are exposed to the browser</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-1">•</span>
+                  <span>Keep your API keys secure and never commit them to version control</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-1">•</span>
+                  <span>You only need to configure the services you want to use</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-1">•</span>
+                  <span>The system will automatically fall back to available services</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-1">•</span>
+                  <span>Restart your development server after changing environment variables</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400 mt-1">•</span>
+                  <span>For production, use your hosting platform's environment variable settings</span>
+                </li>
               </ul>
             </div>
 
             {/* File Structure */}
-            <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900">File Structure</h3>
-              <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-8 bg-neural-700/40 border border-white/10 rounded-xl p-5">
+              <h3 className="font-medium text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                File Structure
+              </h3>
+              <div className="mt-3 text-sm text-neural-300">
                 <p>Create these files in your project root:</p>
-                <ul className="mt-2 space-y-1 font-mono text-xs bg-gray-900 text-gray-100 p-3 rounded">
-                  <li>📁 /frontend/</li>
-                  <li>&nbsp;&nbsp;📄 .env.local <span className="text-gray-400"># Your actual API keys (DO NOT COMMIT)</span></li>
-                  <li>&nbsp;&nbsp;📄 .env.example <span className="text-gray-400"># Template file (safe to commit)</span></li>
-                  <li>📁 /backend/</li>
-                  <li>&nbsp;&nbsp;📄 .env.local <span className="text-gray-400"># Backend environment variables</span></li>
-                  <li>&nbsp;&nbsp;📄 .env.example <span className="text-gray-400"># Backend template file</span></li>
-                </ul>
+                <div className="mt-3 font-mono text-xs bg-neural-900 text-neural-100 p-4 rounded-lg border border-white/5 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-brand-400">📁</span>
+                    <span className="text-white">/frontend/</span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-4">
+                    <span className="text-emerald-400">📄</span>
+                    <span>.env.local</span>
+                    <span className="text-neural-500 ml-2"># Your actual API keys (DO NOT COMMIT)</span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-4">
+                    <span className="text-blue-400">📄</span>
+                    <span>.env.example</span>
+                    <span className="text-neural-500 ml-2"># Template file (safe to commit)</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-brand-400">📁</span>
+                    <span className="text-white">/backend/</span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-4">
+                    <span className="text-emerald-400">📄</span>
+                    <span>.env.local</span>
+                    <span className="text-neural-500 ml-2"># Backend environment variables</span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-4">
+                    <span className="text-blue-400">📄</span>
+                    <span>.env.example</span>
+                    <span className="text-neural-500 ml-2"># Backend template file</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
