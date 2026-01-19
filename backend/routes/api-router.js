@@ -37,6 +37,9 @@ import agentSystemRouter from './agent-system-routes.js';
 // Import AI Core (RAG, LangChain, LangGraph)
 import aiCoreRouter from './ai-core-routes.js';
 
+// Import Marketplace (Plugin SDK, Sandbox, Permissions)
+import marketplaceRouter from './marketplace-routes.js';
+
 const router = express.Router();
 
 // ============================================
@@ -204,6 +207,13 @@ router.use('/agent-system', agentSystemRouter);
 
 router.use('/ai-core', apiLimiter);
 router.use('/ai-core', aiCoreRouter);
+
+// ============================================
+// MARKETPLACE ROUTES (Plugin SDK, Sandbox, Permissions)
+// ============================================
+
+router.use('/marketplace', apiLimiter);
+router.use('/marketplace', marketplaceRouter);
 
 // ============================================
 // ANALYTICS ROUTES
