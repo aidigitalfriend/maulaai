@@ -225,14 +225,257 @@ export default function HomePage() {
       {/* ULTRA Hero Section - Flying product cards with blur/focus effect */}
       <HeroSectionUltra />
 
-      {/* Platform Features - Fix #1: Consistent grid system */}
-      <FeatureSection
-        title="Why Choose Our AI Platform?"
-        subtitle="Built for scale, designed for simplicity, engineered for results"
-        features={platformFeatures}
-        layout="3-col"
-        backgroundStyle="white"
-      />
+      {/* AI-Powered Agents Section - Image Right */}
+      <section className="section-padding bg-gradient-to-br from-blue-900 via-sky-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-sky-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 rounded-full text-blue-300 text-sm font-medium mb-6">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                AI-Powered Agents
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                20+ Specialized
+                <span className="bg-gradient-to-r from-blue-400 to-sky-400 bg-clip-text text-transparent"> AI Personalities</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Access Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges with human-like conversation.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {['Einstein - Physics & Science', 'Tech Wizard - Coding & Innovation', 'Mrs Boss - Leadership & Strategy', 'Chef Biew - Culinary Expertise', 'Emma Emotional - Empathy & Support'].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-neural-200">
+                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/agents" className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/30 group">
+                Explore All Agents
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+            
+            {/* Right - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/ai-agents.jpeg"
+                alt="AI-Powered Agents"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-sky-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">🤖</span>
+              </div>
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-blue-400">20+</div>
+                <div className="text-xs text-neural-300">AI Agents</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Real-time Analytics Section - Image Left */}
+      <section className="section-padding bg-gradient-to-br from-teal-900 via-cyan-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative order-2 lg:order-1">
+              <img
+                src="/images/products/analytics-dashboard.jpeg"
+                alt="Real-time Analytics"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">📊</span>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-teal-400">Live</div>
+                <div className="text-xs text-neural-300">Real-time Data</div>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div className="order-1 lg:order-2">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500/20 rounded-full text-teal-300 text-sm font-medium mb-6">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Real-time Analytics
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Monitor Your AI
+                <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent"> In Real-time</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Comprehensive dashboards, usage analytics, and performance insights. Track conversations, measure engagement, and optimize your AI interactions.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {['Live conversation tracking', 'Usage & engagement metrics', 'Performance insights', 'Custom reporting dashboards', 'Export data anytime'].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-neural-200">
+                    <span className="flex-shrink-0 w-6 h-6 bg-teal-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-teal-500/30 group">
+                View Dashboard
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enterprise Security Section - Image Right */}
+      <section className="section-padding bg-gradient-to-br from-slate-900 via-zinc-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-slate-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-zinc-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-500/20 rounded-full text-slate-300 text-sm font-medium mb-6">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Enterprise Security
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Bank-Level
+                <span className="bg-gradient-to-r from-slate-400 to-zinc-400 bg-clip-text text-transparent"> Protection</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                SOC 2 compliance, end-to-end encryption, and privacy-first architecture. Your data stays protected and confidential at all times.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {['End-to-end encryption', 'SOC 2 Type II certified', 'GDPR & HIPAA compliant', 'Privacy-first architecture', 'Regular security audits'].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-neural-200">
+                    <span className="flex-shrink-0 w-6 h-6 bg-slate-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/security" className="inline-flex items-center gap-2 px-8 py-4 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-slate-500/30 group">
+                Security Details
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+            
+            {/* Right - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/enterprise-security.jpeg"
+                alt="Enterprise Security"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-slate-500 to-zinc-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">🔒</span>
+              </div>
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-green-400">100%</div>
+                <div className="text-xs text-neural-300">Secure</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Environment Configuration Section - Image Left */}
+      <section className="section-padding bg-gradient-to-br from-orange-900 via-amber-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative order-2 lg:order-1">
+              <img
+                src="/images/products/environment-config.jpeg"
+                alt="Environment Configuration"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">⚙️</span>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-orange-400">Easy</div>
+                <div className="text-xs text-neural-300">Setup</div>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div className="order-1 lg:order-2">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 rounded-full text-orange-300 text-sm font-medium mb-6">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Environment Setup
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Configure Your
+                <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent"> AI Services</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Set up API keys and configure multilingual AI services with our comprehensive environment variable guide. Quick setup, powerful results.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {['Simple API key setup', 'Multi-provider support', 'Environment variables guide', 'Multilingual AI services', 'Detailed documentation'].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-neural-200">
+                    <span className="flex-shrink-0 w-6 h-6 bg-orange-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/config" className="inline-flex items-center gap-2 px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-orange-500/30 group">
+                Configure Setup
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* AI Agents Preview - Fix #4: Visual hierarchy */}
       <FeatureSection
