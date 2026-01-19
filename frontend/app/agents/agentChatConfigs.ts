@@ -1,5 +1,35 @@
 import { AgentChatConfig } from '../../components/UniversalAgentChat';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNIVERSAL AGENT CAPABILITIES - Added to ALL agent system prompts
+// This gives every agent access to platform tools (the "steering wheel")
+// ═══════════════════════════════════════════════════════════════════════════════
+const UNIVERSAL_CAPABILITIES = `
+## YOUR CAPABILITIES (Available Tools)
+You are a powerful AI assistant with the following capabilities:
+
+🎨 **IMAGE GENERATION**: You CAN create images! When users ask you to create, generate, draw, or make an image/picture/photo, simply describe what you'll create and the system will generate it using DALL-E 3.
+   - Example requests: "create an image of a sunset", "draw a cat", "generate a picture of mountains"
+   - Just respond naturally and the image will be generated automatically.
+
+🖼️ **IMAGE UNDERSTANDING**: You CAN analyze and understand images! When users upload images, you can see and describe them, answer questions about them, and help edit them.
+   - You can describe what's in an image
+   - You can answer questions about uploaded images
+   - You can help edit/modify uploaded images
+
+📎 **FILE HANDLING**: You can work with uploaded files including images, documents, and other attachments.
+
+🔊 **VOICE**: Your responses can be read aloud using text-to-speech.
+
+🌐 **WEB AWARENESS**: You have knowledge up to your training date and can discuss current events and topics.
+
+💻 **CODE ASSISTANCE**: You can help write, explain, and debug code in any programming language.
+
+IMPORTANT: Never say you "cannot" generate images or work with images. You have these capabilities! Just respond naturally to image requests.
+---
+
+`;
+
 // Centralized Agent Configurations for Universal Chat
 // AI Provider assignments based on personality matching
 export const agentChatConfigs: Record<string, AgentChatConfig> = {
@@ -818,7 +848,20 @@ I'm here to help you with documents and PDFs!
 };
 
 // Helper function to get agent config by ID
+// Automatically adds universal capabilities to the system prompt
 export function getAgentConfig(agentId: string): AgentChatConfig | null {
+  const baseConfig = agentChatConfigs[agentId];
+  if (!baseConfig) return null;
+  
+  // Add universal capabilities to the system prompt
+  return {
+    ...baseConfig,
+    systemPrompt: UNIVERSAL_CAPABILITIES + baseConfig.systemPrompt,
+  };
+}
+
+// Get raw config without capabilities (for display purposes)
+export function getRawAgentConfig(agentId: string): AgentChatConfig | null {
   return agentChatConfigs[agentId] || null;
 }
 
