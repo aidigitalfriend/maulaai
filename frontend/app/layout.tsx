@@ -13,7 +13,7 @@ import '@/styles/globals.css';
 export const metadata: Metadata = {
   title: 'One Last AI - Your AI Dream Team',
   description:
-    "Transform your workflow with 20+ specialized AI personalities. From Einstein's genius to Shakespeare's creativity - unlock the power of history's greatest minds.",
+    "Transform your workflow with 18 specialized AI personalities. From Einstein's genius to Shakespeare's creativity - unlock the power of history's greatest minds.",
   keywords: [
     'AI',
     'artificial intelligence',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     url: 'https://onelastai.co',
     title: 'One Last AI - Your AI Dream Team',
     description:
-      "Transform your workflow with 20+ specialized AI personalities. From Einstein's genius to Shakespeare's creativity.",
+      "Transform your workflow with 18 specialized AI personalities. From Einstein's genius to Shakespeare's creativity.",
     siteName: 'One Last AI',
     images: [
       {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'One Last AI - Your AI Dream Team',
     description:
-      'Transform your workflow with 20+ specialized AI personalities.',
+      'Transform your workflow with 18 specialized AI personalities.',,
     images: ['/images/logos/company-logo.png'],
   },
   robots: {

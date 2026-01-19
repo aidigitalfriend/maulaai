@@ -51,7 +51,7 @@ export default function HomePage() {
       ),
       title: 'AI-Powered Agents',
       description:
-        'Access 20+ specialized AI personalities including Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges.',
+        'Access 18 specialized AI personalities including Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges.',,
       link: {
         text: 'Explore Agents',
         href: '/agents',
@@ -227,33 +227,33 @@ export default function HomePage() {
       <HeroSectionGSAP />
 
       {/* AI-Powered Agents Section - Image Right */}
-      <section className="section-padding bg-gradient-to-br from-blue-900 via-sky-900 to-neural-800 text-white overflow-hidden relative">
+      <section className="section-padding bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-sky-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-96 h-96 bg-brand-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500 rounded-full filter blur-3xl animate-pulse"></div>
         </div>
         <div className="container-custom relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Content */}
             <div>
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 rounded-full text-blue-300 text-sm font-medium mb-6">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/20 rounded-full text-brand-300 text-sm font-medium mb-6 border border-brand-500/30">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 AI-Powered Agents
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                20+ Specialized
-                <span className="bg-gradient-to-r from-blue-400 to-sky-400 bg-clip-text text-transparent"> AI Personalities</span>
+                18 Specialized
+                <span className="bg-gradient-to-r from-brand-400 via-accent-400 to-brand-500 bg-clip-text text-transparent"> AI Personalities</span>
               </h2>
               <p className="text-lg text-neural-300 mb-8 leading-relaxed">
                 Access Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges with human-like conversation.
               </p>
               <ul className="space-y-4 mb-8">
                 {['Einstein - Physics & Science', 'Tech Wizard - Coding & Innovation', 'Mrs Boss - Leadership & Strategy', 'Chef Biew - Culinary Expertise', 'Emma Emotional - Empathy & Support'].map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-3 text-neural-200">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500/30 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <li key={idx} className="flex items-center gap-3 text-neural-200 hover:text-white transition-colors">
+                    <span className="flex-shrink-0 w-6 h-6 bg-brand-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
@@ -261,7 +261,7 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/agents" className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/30 group">
+              <Link href="/agents" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-brand-500 to-accent-500 hover:from-brand-600 hover:to-accent-600 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-brand-500/30 group">
                 Explore All Agents
                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -277,11 +277,11 @@ export default function HomePage() {
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '450px' }}
               />
-              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-sky-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/30">
                 <span className="text-4xl">🤖</span>
               </div>
-              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
-                <div className="text-2xl font-bold text-blue-400">20+</div>
+              <div className="absolute -top-4 -left-4 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-lg hidden lg:block">
+                <div className="text-2xl font-bold bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent">18</div>
                 <div className="text-xs text-neural-300">AI Agents</div>
               </div>
             </div>
