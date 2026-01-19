@@ -1,43 +1,26 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * LANGCHAIN INTEGRATION SERVICE
+ * LANGCHAIN-STYLE SERVICE (Direct SDK Implementation)
  * Chains, prompts, memory, and tools for advanced AI workflows
+ * Uses OpenAI/Anthropic SDKs directly for stability
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { ChatOpenAI } from '@langchain/openai';
-import { ChatAnthropic } from '@langchain/anthropic';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { 
-  HumanMessage, 
-  SystemMessage, 
-  AIMessage,
-} from '@langchain/core/messages';
-import { 
-  ChatPromptTemplate,
-  MessagesPlaceholder,
-} from '@langchain/core/prompts';
-import { 
-  RunnableSequence,
-  RunnablePassthrough,
-} from '@langchain/core/runnables';
-import { StringOutputParser } from '@langchain/core/output_parsers';
-import { BufferMemory, ConversationSummaryMemory } from 'langchain/memory';
-import { ConversationChain, LLMChain } from 'langchain/chains';
-import { DynamicTool, DynamicStructuredTool } from '@langchain/core/tools';
-import { z } from 'zod';
+import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import ragEngine from './rag-engine.js';
 
 // LLM instances
-let openaiLLM = null;
-let anthropicLLM = null;
-let geminiLLM = null;
+let openai = null;
+let anthropic = null;
+let gemini = null;
 
 // Memory stores (per session)
 const sessionMemory = new Map();
 
 /**
- * Initialize LangChain with available providers
+ * Initialize LangChain-style service with available providers
  */
 export async function initializeLangChain() {
   const initialized = {
@@ -48,31 +31,19 @@ export async function initializeLangChain() {
 
   try {
     if (process.env.OPENAI_API_KEY) {
-      openaiLLM = new ChatOpenAI({
-        openAIApiKey: process.env.OPENAI_API_KEY,
-        modelName: 'gpt-4-turbo',
-        temperature: 0.7,
-      });
+      openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       initialized.openai = true;
       console.log('[LangChain] ✅ OpenAI initialized');
     }
 
     if (process.env.ANTHROPIC_API_KEY) {
-      anthropicLLM = new ChatAnthropic({
-        anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-        modelName: 'claude-3-5-sonnet-latest',
-        temperature: 0.7,
-      });
+      anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       initialized.anthropic = true;
       console.log('[LangChain] ✅ Anthropic initialized');
     }
 
     if (process.env.GEMINI_API_KEY) {
-      geminiLLM = new ChatGoogleGenerativeAI({
-        apiKey: process.env.GEMINI_API_KEY,
-        modelName: 'gemini-2.0-flash',
-        temperature: 0.7,
-      });
+      gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       initialized.gemini = true;
       console.log('[LangChain] ✅ Gemini initialized');
     }
@@ -85,138 +56,195 @@ export async function initializeLangChain() {
 }
 
 /**
- * Get the best available LLM
+ * Get the best available LLM provider
  */
-function getBestLLM(preferredProvider = 'auto') {
-  if (preferredProvider === 'openai' && openaiLLM) return openaiLLM;
-  if (preferredProvider === 'anthropic' && anthropicLLM) return anthropicLLM;
-  if (preferredProvider === 'gemini' && geminiLLM) return geminiLLM;
+function getBestProvider(preferred = 'auto') {
+  if (preferred === 'openai' && openai) return 'openai';
+  if (preferred === 'anthropic' && anthropic) return 'anthropic';
+  if (preferred === 'gemini' && gemini) return 'gemini';
   
   // Auto-select best available
-  if (openaiLLM) return openaiLLM;
-  if (anthropicLLM) return anthropicLLM;
-  if (geminiLLM) return geminiLLM;
+  if (openai) return 'openai';
+  if (anthropic) return 'anthropic';
+  if (gemini) return 'gemini';
   
   throw new Error('No LLM provider available');
 }
 
 /**
- * Get or create session memory
+ * Call LLM with messages
  */
-function getSessionMemory(sessionId, type = 'buffer') {
-  const key = `${sessionId}_${type}`;
-  
-  if (!sessionMemory.has(key)) {
-    if (type === 'summary') {
-      sessionMemory.set(key, new ConversationSummaryMemory({
-        llm: getBestLLM(),
-        memoryKey: 'history',
-        returnMessages: true,
-      }));
-    } else {
-      sessionMemory.set(key, new BufferMemory({
-        memoryKey: 'history',
-        returnMessages: true,
-      }));
-    }
-  }
-  
-  return sessionMemory.get(key);
-}
-
-/**
- * Create a simple conversation chain
- */
-export async function createConversationChain(options = {}) {
+async function callLLM(messages, options = {}) {
   const {
     provider = 'auto',
-    systemPrompt = 'You are a helpful AI assistant.',
-    sessionId = 'default',
-    memoryType = 'buffer',
+    model,
+    temperature = 0.7,
+    maxTokens = 2000,
   } = options;
 
-  const llm = getBestLLM(provider);
-  const memory = getSessionMemory(sessionId, memoryType);
+  const selectedProvider = getBestProvider(provider);
 
-  const prompt = ChatPromptTemplate.fromMessages([
-    ['system', systemPrompt],
-    new MessagesPlaceholder('history'),
-    ['human', '{input}'],
-  ]);
+  switch (selectedProvider) {
+    case 'openai': {
+      const response = await openai.chat.completions.create({
+        model: model || 'gpt-4-turbo',
+        messages: messages.map(m => ({
+          role: m.role,
+          content: m.content,
+        })),
+        temperature,
+        max_tokens: maxTokens,
+      });
+      return {
+        content: response.choices[0].message.content,
+        provider: 'openai',
+        model: model || 'gpt-4-turbo',
+        usage: response.usage,
+      };
+    }
 
-  const chain = new ConversationChain({
-    llm,
-    memory,
-    prompt,
-  });
+    case 'anthropic': {
+      const systemMessage = messages.find(m => m.role === 'system');
+      const otherMessages = messages.filter(m => m.role !== 'system');
+      
+      const response = await anthropic.messages.create({
+        model: model || 'claude-3-5-sonnet-latest',
+        max_tokens: maxTokens,
+        system: systemMessage?.content || '',
+        messages: otherMessages.map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content,
+        })),
+      });
+      return {
+        content: response.content[0].text,
+        provider: 'anthropic',
+        model: model || 'claude-3-5-sonnet-latest',
+        usage: response.usage,
+      };
+    }
 
-  return chain;
+    case 'gemini': {
+      const genModel = gemini.getGenerativeModel({ model: model || 'gemini-2.0-flash' });
+      
+      // Combine messages for Gemini
+      const systemMessage = messages.find(m => m.role === 'system');
+      const chatMessages = messages.filter(m => m.role !== 'system');
+      
+      const chat = genModel.startChat({
+        history: chatMessages.slice(0, -1).map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+        systemInstruction: systemMessage?.content,
+      });
+      
+      const lastMessage = chatMessages[chatMessages.length - 1];
+      const result = await chat.sendMessage(lastMessage.content);
+      
+      return {
+        content: result.response.text(),
+        provider: 'gemini',
+        model: model || 'gemini-2.0-flash',
+      };
+    }
+
+    default:
+      throw new Error(`Unknown provider: ${selectedProvider}`);
+  }
 }
 
 /**
- * Execute a conversation with memory
+ * Get or create session memory
+ */
+function getSessionMemory(sessionId) {
+  if (!sessionMemory.has(sessionId)) {
+    sessionMemory.set(sessionId, {
+      messages: [],
+      summary: null,
+      metadata: {
+        created: new Date().toISOString(),
+        lastAccess: new Date().toISOString(),
+      },
+    });
+  }
+  
+  const memory = sessionMemory.get(sessionId);
+  memory.metadata.lastAccess = new Date().toISOString();
+  return memory;
+}
+
+/**
+ * Chat with memory
  */
 export async function chat(input, options = {}) {
-  const chain = await createConversationChain(options);
+  const {
+    sessionId = 'default',
+    systemPrompt = 'You are a helpful AI assistant.',
+    provider = 'auto',
+  } = options;
+
+  const memory = getSessionMemory(sessionId);
   
-  const response = await chain.call({ input });
+  // Add user message to memory
+  memory.messages.push({ role: 'user', content: input });
   
+  // Build messages array
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...memory.messages.slice(-20), // Keep last 20 messages for context
+  ];
+
+  const result = await callLLM(messages, { provider });
+
+  // Add assistant response to memory
+  memory.messages.push({ role: 'assistant', content: result.content });
+
   return {
     success: true,
-    response: response.response,
-    sessionId: options.sessionId || 'default',
+    response: result.content,
+    sessionId,
+    provider: result.provider,
+    model: result.model,
   };
 }
 
 /**
- * Create a RAG-enhanced chain
- */
-export async function createRAGChain(options = {}) {
-  const {
-    provider = 'auto',
-    systemPrompt = 'You are a helpful AI assistant. Use the provided context to answer questions accurately.',
-    agentId = null,
-    userId = null,
-  } = options;
-
-  const llm = getBestLLM(provider);
-
-  // Create the RAG chain
-  const ragChain = RunnableSequence.from([
-    {
-      context: async (input) => {
-        const result = await ragEngine.retrieveForLLM(input.question, {
-          agentId,
-          userId,
-          topK: 5,
-        });
-        return result.context || 'No relevant context found.';
-      },
-      question: (input) => input.question,
-    },
-    ChatPromptTemplate.fromMessages([
-      ['system', `${systemPrompt}\n\n{context}`],
-      ['human', '{question}'],
-    ]),
-    llm,
-    new StringOutputParser(),
-  ]);
-
-  return ragChain;
-}
-
-/**
- * Query with RAG
+ * Query with RAG context
  */
 export async function queryWithRAG(question, options = {}) {
+  const {
+    agentId = null,
+    userId = null,
+    systemPrompt = 'You are a helpful AI assistant. Use the provided context to answer questions accurately.',
+    provider = 'auto',
+  } = options;
+
   try {
-    const chain = await createRAGChain(options);
-    const response = await chain.invoke({ question });
-    
+    // Retrieve RAG context
+    const ragResult = await ragEngine.retrieveForLLM(question, {
+      agentId,
+      userId,
+      topK: 5,
+    });
+
+    const contextPrompt = ragResult.context 
+      ? `${systemPrompt}\n\n${ragResult.context}`
+      : systemPrompt;
+
+    const messages = [
+      { role: 'system', content: contextPrompt },
+      { role: 'user', content: question },
+    ];
+
+    const result = await callLLM(messages, { provider });
+
     return {
       success: true,
-      response,
+      response: result.content,
       ragEnabled: true,
+      sources: ragResult.sources || [],
+      provider: result.provider,
     };
   } catch (error) {
     console.error('[LangChain] RAG query error:', error);
@@ -228,16 +256,91 @@ export async function queryWithRAG(question, options = {}) {
 }
 
 /**
- * Create custom tools for agents
+ * Execute a chain with custom prompt template
+ */
+export async function executeChain(options, input) {
+  const {
+    promptTemplate,
+    provider = 'auto',
+  } = options;
+
+  // Replace placeholders in template
+  let prompt = promptTemplate;
+  if (typeof input === 'object') {
+    for (const [key, value] of Object.entries(input)) {
+      prompt = prompt.replace(new RegExp(`{${key}}`, 'g'), value);
+    }
+  } else {
+    prompt = prompt.replace(/{input}/g, input);
+  }
+
+  const messages = [
+    { role: 'user', content: prompt },
+  ];
+
+  const result = await callLLM(messages, { provider });
+
+  return {
+    success: true,
+    response: result.content,
+    provider: result.provider,
+  };
+}
+
+/**
+ * Execute a multi-step chain
+ */
+export async function executeMultiStepChain(steps, initialInput, options = {}) {
+  const { provider = 'auto' } = options;
+  
+  let currentInput = initialInput;
+  const results = [];
+
+  for (const step of steps) {
+    let prompt = step.prompt;
+    
+    // Replace placeholders
+    if (typeof currentInput === 'object') {
+      for (const [key, value] of Object.entries(currentInput)) {
+        prompt = prompt.replace(new RegExp(`{${key}}`, 'g'), value);
+      }
+    }
+    prompt = prompt.replace(/{previousOutput}/g, results[results.length - 1]?.output || '');
+
+    const messages = [
+      { role: 'user', content: prompt },
+    ];
+
+    const result = await callLLM(messages, { provider });
+    
+    const stepResult = {
+      step: step.name || `step_${results.length + 1}`,
+      output: result.content,
+    };
+    results.push(stepResult);
+
+    // Update current input for next step
+    if (step.outputKey) {
+      currentInput = { ...currentInput, [step.outputKey]: result.content };
+    }
+  }
+
+  return {
+    success: true,
+    steps: results,
+    finalOutput: results[results.length - 1]?.output,
+  };
+}
+
+/**
+ * Create agent tools
  */
 export function createAgentTools() {
-  const tools = [
-    // Web Search Tool
-    new DynamicTool({
+  return [
+    {
       name: 'web_search',
-      description: 'Search the web for current information. Input should be a search query.',
-      func: async (query) => {
-        // Integration with existing web search
+      description: 'Search the web for current information',
+      execute: async (query) => {
         try {
           const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
           const data = await response.json();
@@ -246,18 +349,12 @@ export function createAgentTools() {
           return `Search error: ${error.message}`;
         }
       },
-    }),
-
-    // Calculator Tool
-    new DynamicStructuredTool({
+    },
+    {
       name: 'calculator',
-      description: 'Perform mathematical calculations. Supports basic arithmetic and common functions.',
-      schema: z.object({
-        expression: z.string().describe('The mathematical expression to evaluate'),
-      }),
-      func: async ({ expression }) => {
+      description: 'Perform mathematical calculations',
+      execute: async (expression) => {
         try {
-          // Safe math evaluation
           const mathjs = await import('mathjs');
           const result = mathjs.evaluate(expression);
           return `${expression} = ${result}`;
@@ -265,146 +362,31 @@ export function createAgentTools() {
           return `Calculation error: ${error.message}`;
         }
       },
-    }),
-
-    // Knowledge Base Search
-    new DynamicStructuredTool({
+    },
+    {
       name: 'knowledge_search',
-      description: 'Search the knowledge base for relevant information.',
-      schema: z.object({
-        query: z.string().describe('The search query'),
-        agentId: z.string().optional().describe('Filter by agent ID'),
-      }),
-      func: async ({ query, agentId }) => {
+      description: 'Search the knowledge base',
+      execute: async (query, agentId = null) => {
         try {
           const results = await ragEngine.searchContext(query, { agentId, topK: 3 });
           if (results.results.length === 0) {
-            return 'No relevant information found in knowledge base.';
+            return 'No relevant information found.';
           }
           return results.results.map(r => `[${r.title}]: ${r.content}`).join('\n\n');
         } catch (error) {
-          return `Knowledge search error: ${error.message}`;
+          return `Search error: ${error.message}`;
         }
       },
-    }),
-
-    // Code Execution Tool
-    new DynamicStructuredTool({
-      name: 'execute_code',
-      description: 'Execute JavaScript code safely. Returns the result.',
-      schema: z.object({
-        code: z.string().describe('JavaScript code to execute'),
-      }),
-      func: async ({ code }) => {
-        try {
-          // Safe sandbox execution
-          const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-          const fn = new AsyncFunction('return (async () => { ' + code + ' })()');
-          const result = await Promise.race([
-            fn(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-          ]);
-          return JSON.stringify(result, null, 2);
-        } catch (error) {
-          return `Execution error: ${error.message}`;
-        }
-      },
-    }),
-
-    // Date/Time Tool
-    new DynamicTool({
+    },
+    {
       name: 'current_datetime',
-      description: 'Get the current date and time.',
-      func: async () => {
+      description: 'Get current date and time',
+      execute: async () => {
         const now = new Date();
-        return `Current date and time: ${now.toISOString()} (${now.toLocaleString()})`;
+        return `Current: ${now.toISOString()} (${now.toLocaleString()})`;
       },
-    }),
+    },
   ];
-
-  return tools;
-}
-
-/**
- * Create a specialized prompt template
- */
-export function createPromptTemplate(template, inputVariables = []) {
-  return ChatPromptTemplate.fromTemplate(template);
-}
-
-/**
- * Create a chain with custom prompt
- */
-export async function createCustomChain(options = {}) {
-  const {
-    provider = 'auto',
-    promptTemplate,
-    inputVariables = ['input'],
-    outputParser = new StringOutputParser(),
-  } = options;
-
-  const llm = getBestLLM(provider);
-  const prompt = ChatPromptTemplate.fromTemplate(promptTemplate);
-
-  const chain = prompt.pipe(llm).pipe(outputParser);
-
-  return chain;
-}
-
-/**
- * Execute a custom chain
- */
-export async function executeChain(chainOrOptions, input) {
-  try {
-    let chain;
-    
-    if (chainOrOptions.invoke) {
-      // Already a chain
-      chain = chainOrOptions;
-    } else {
-      // Options object, create chain
-      chain = await createCustomChain(chainOrOptions);
-    }
-
-    const response = await chain.invoke(input);
-    
-    return {
-      success: true,
-      response,
-    };
-  } catch (error) {
-    console.error('[LangChain] Chain execution error:', error);
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-}
-
-/**
- * Create a multi-step chain
- */
-export async function createMultiStepChain(steps, options = {}) {
-  const { provider = 'auto' } = options;
-  const llm = getBestLLM(provider);
-
-  const runnables = steps.map(step => {
-    const prompt = ChatPromptTemplate.fromTemplate(step.prompt);
-    return RunnableSequence.from([
-      prompt,
-      llm,
-      new StringOutputParser(),
-      (output) => ({ ...step.outputKey ? { [step.outputKey]: output } : {}, previousOutput: output }),
-    ]);
-  });
-
-  // Chain all steps together
-  const chain = RunnableSequence.from([
-    RunnablePassthrough.assign({}),
-    ...runnables,
-  ]);
-
-  return chain;
 }
 
 /**
@@ -414,7 +396,7 @@ export function clearSessionMemory(sessionId) {
   const keysToDelete = [];
   
   for (const key of sessionMemory.keys()) {
-    if (key.startsWith(sessionId)) {
+    if (key === sessionId || key.startsWith(`${sessionId}_`)) {
       keysToDelete.push(key);
     }
   }
@@ -425,15 +407,15 @@ export function clearSessionMemory(sessionId) {
 }
 
 /**
- * Get LangChain service status
+ * Get service status
  */
 export function getLangChainStatus() {
   return {
     initialized: true,
     providers: {
-      openai: !!openaiLLM,
-      anthropic: !!anthropicLLM,
-      gemini: !!geminiLLM,
+      openai: !!openai,
+      anthropic: !!anthropic,
+      gemini: !!gemini,
     },
     activeSessions: sessionMemory.size,
     tools: createAgentTools().map(t => ({
@@ -443,21 +425,18 @@ export function getLangChainStatus() {
   };
 }
 
-// Export LangChain service
+// Export service
 const langChainService = {
   initialize: initializeLangChain,
   chat,
   queryWithRAG,
-  createConversationChain,
-  createRAGChain,
-  createCustomChain,
-  createMultiStepChain,
   executeChain,
+  executeMultiStepChain,
   createAgentTools,
-  createPromptTemplate,
   clearSessionMemory,
   getStatus: getLangChainStatus,
-  getBestLLM,
+  getBestProvider,
+  callLLM,
 };
 
 export default langChainService;
