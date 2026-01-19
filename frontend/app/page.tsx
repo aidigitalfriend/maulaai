@@ -746,7 +746,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials Section - Dark Theme Updated */
+      {/* Testimonials Section - Dark Theme Updated */}
       <TestimonialSection />
 
       {/* Community Stats Section */}
