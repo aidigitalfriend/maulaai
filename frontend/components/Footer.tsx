@@ -38,7 +38,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-white border-t border-neural-100 w-full">
+    <footer className="bg-neural-800 border-t border-neural-700 w-full">
       {/* Main Footer */}
       <div className="container-custom py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10">
@@ -53,51 +53,53 @@ export default function Footer() {
                 height={40}
                 className="w-10 h-10 object-contain"
               />
-              <span className="text-xl font-bold text-neural-800">One Last AI</span>
+              <span className="text-xl font-bold text-white">One Last AI</span>
             </Link>
-            <p className="text-neural-600 text-sm mb-6">
+            <p className="text-neural-400 text-sm mb-6">
               Transform your business with intelligent AI agents. 18+ specialized personalities ready to revolutionize how you work.
             </p>
             
-            {/* Newsletter */}
+            {/* Newsletter - Always visible border */}
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-2 rounded-lg bg-neural-50 border border-neural-200 text-neural-800 placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-neural-700/50 border border-neural-500 text-white placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm"
                 required
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-colors text-sm whitespace-nowrap"
+                className="px-5 py-2.5 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-colors text-sm whitespace-nowrap"
               >
                 Subscribe
               </button>
             </form>
             {subscribed && (
-              <p className="text-green-600 text-xs mt-2">✓ Thanks for subscribing!</p>
+              <p className="text-green-400 text-xs mt-2">✓ Thanks for subscribing!</p>
             )}
           </div>
 
-          {/* Navigation Links - Single Row */}
-          <div className="flex flex-wrap gap-x-8 gap-y-3">
-            {footerLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-neural-600 hover:text-brand-600 text-sm font-medium transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+          {/* Navigation Links - With border box */}
+          <div className="border border-neural-600 rounded-xl p-6 bg-neural-700/30">
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-neural-300 hover:text-brand-400 text-sm font-medium transition-colors"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-neural-100">
+      <div className="border-t border-neural-700">
         <div className="container-custom py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-neural-500 text-sm">
@@ -108,7 +110,7 @@ export default function Footer() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-neural-500 hover:text-neural-700 text-sm transition-colors"
+                  className="text-neural-400 hover:text-white text-sm transition-colors"
                 >
                   {link.name}
                 </Link>
