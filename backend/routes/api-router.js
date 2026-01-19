@@ -31,6 +31,9 @@ import agentMemoryRouter from './agent-memory-routes.js';
 // Import Media Processing routes
 import mediaRouter from './media-routes.js';
 
+// Import Agent System (Orchestrator + Specialized Agents)
+import agentSystemRouter from './agent-system-routes.js';
+
 const router = express.Router();
 
 // ============================================
@@ -184,6 +187,13 @@ router.use('/agent/subscriptions', agentSubscriptionsRouter);
 
 router.use('/media', apiLimiter);
 router.use('/media', mediaRouter);
+
+// ============================================
+// AI AGENT SYSTEM ROUTES (Orchestrator + Specialized Agents)
+// ============================================
+
+router.use('/agent-system', apiLimiter);
+router.use('/agent-system', agentSystemRouter);
 
 // ============================================
 // ANALYTICS ROUTES
