@@ -405,124 +405,73 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AI Data Generator Section */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
+      {/* AI Data Generator Section - Mirror layout of Canvas */}
+      <section className="section-padding bg-gradient-to-br from-emerald-900 via-green-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-green-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div>
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full text-green-700 text-sm font-medium mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
-                  />
+            {/* Left - Visual/Image */}
+            <div className="relative order-2 lg:order-1">
+              <div className="relative">
+                <img
+                  src="/images/products/data-generator.jpeg"
+                  alt="AI Data Generator"
+                  className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                  style={{ maxHeight: '450px' }}
+                />
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                  </svg>
+                </div>
+              </div>
+              {/* Floating stats */}
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-emerald-400">50+</div>
+                <div className="text-xs text-neural-300">Data Templates</div>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div className="order-1 lg:order-2">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 rounded-full text-emerald-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
                 </svg>
                 AI Data Generator
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Generate Test Data in Seconds
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Generate Test Data
+                <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent"> in Seconds</span>
               </h2>
-              <p className="text-lg text-neural-600 mb-6">
-                Create realistic test data for your applications instantly.
-                Choose from pre-built templates or customize your own schema.
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Create realistic test data for your applications instantly. Choose from pre-built templates or customize your own schema with AI assistance.
               </p>
-
-              {/* Feature Pills */}
-              <div className="flex flex-wrap gap-3 mb-8">
-                {[
-                  '👤 Users',
-                  '🛒 Products',
-                  '📝 Posts',
-                  '📊 Analytics',
-                  '💬 Comments',
-                  '📧 Emails',
-                ].map((item) => (
-                  <span
-                    key={item}
-                    className="px-3 py-1.5 bg-neural-100 rounded-full text-sm text-neural-700"
-                  >
-                    {item}
-                  </span>
+              <ul className="space-y-4 mb-8">
+                {['50+ pre-built data templates', 'Custom schema builder', 'Export to JSON, CSV, SQL', 'AI-powered realistic data', 'Batch generation support'].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-neural-200">
+                    <span className="flex-shrink-0 w-6 h-6 bg-emerald-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
                 ))}
-              </div>
-
+              </ul>
               <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/tools/data-generator"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
-                >
+                <Link href="/tools/data-generator" className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-emerald-500/30 group">
                   Generate Data
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-                <Link
-                  href="/docs"
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-green-600 text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors"
-                >
-                  Learn More
+                <Link href="/docs/data-generator" className="inline-flex items-center gap-2 px-8 py-4 border border-white/30 hover:bg-white/10 text-white font-semibold rounded-xl transition-all">
+                  View Documentation
                 </Link>
-              </div>
-            </div>
-
-            {/* Right - Interactive Preview */}
-            <div className="bg-gradient-to-br from-neural-900 to-neural-800 rounded-2xl p-6 shadow-2xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-                <span className="text-xs text-neural-400">
-                  data-generator.json
-                </span>
-              </div>
-              <pre className="text-sm font-mono text-neural-300 overflow-hidden">
-                <code>{`{
-  "users": [
-    {
-      "id": "usr_a1b2c3",
-      "name": "Sarah Johnson",
-      "email": "sarah.j@example.com",
-      "role": "admin",
-      "created": "2026-01-02"
-    },
-    {
-      "id": "usr_d4e5f6", 
-      "name": "Mike Chen",
-      "email": "mike.c@example.com",
-      "role": "user",
-      "created": "2026-01-01"
-    }
-  ]
-}`}</code>
-              </pre>
-              <div className="mt-4 pt-4 border-t border-neural-700 flex items-center justify-between">
-                <span className="text-xs text-neural-400">
-                  2 records generated
-                </span>
-                <span className="text-xs text-green-400">
-                  ✓ Ready to export
-                </span>
               </div>
             </div>
           </div>
@@ -560,487 +509,583 @@ export default function HomePage() {
       {/* Community Stats Section */}
       <CommunityStats />
 
-      {/* FAQ Preview Section */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-xl text-neural-600">
-              Get answers to the most common questions about our platform
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                q: 'How do I get started with One Last AI?',
-                a: 'Getting started is simple! Sign up for an account, choose your preferred AI agents, and begin chatting within minutes. Our onboarding guide walks you through every step.',
-              },
-              {
-                q: 'What AI agents are available?',
-                a: 'We offer 20+ specialized AI personalities including Einstein, Shakespeare, Tesla, Da Vinci, and many more. Each agent brings unique expertise to solve different challenges.',
-              },
-              {
-                q: 'Is my data secure?',
-                a: 'Yes! We use bank-level encryption, maintain SOC 2 compliance, and follow strict privacy-first architecture. Your data is never shared with third parties.',
-              },
-              {
-                q: "What's included in each pricing plan?",
-                a: 'We offer simple per-agent pricing: $1/day, $5/week, or $19/month. Each one-time purchase gives you access to one AI agent for the selected period with unlimited conversations. No auto-renewal.',
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="border-l-4 border-brand-600 pl-6">
-                <h3 className="text-lg font-bold mb-2">{item.q}</h3>
-                <p className="text-neural-600">{item.a}</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link
-              href="/support/faqs"
-              className="text-brand-600 hover:text-brand-700 font-medium inline-flex items-center gap-2"
-            >
-              View all FAQs →
-            </Link>
-          </div>
+      {/* FAQ Section - Image Left, Content Right */}
+      <section className="section-padding bg-gradient-to-br from-violet-900 via-purple-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-violet-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl animate-pulse"></div>
         </div>
-      </section>
-
-      {/* Recent News Section */}
-      <section className="section-padding bg-gradient-to-br from-neural-50 to-neural-100">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Latest News & Updates
-            </h2>
-            <p className="text-xl text-neural-600">
-              Stay informed about new features and platform improvements
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                date: 'Oct 22, 2025',
-                title: 'New Voice-to-Voice Agent Available',
-                desc: 'Experience seamless voice conversations with our new voice-to-voice AI agent technology.',
-                category: 'Feature',
-                link: '/resources/news',
-              },
-              {
-                date: 'Oct 18, 2025',
-                title: 'One Last AI Reaches 10K Active Users',
-                desc: 'Celebrating a milestone! Join our growing community of professionals using AI to transform their work.',
-                category: 'Milestone',
-                link: '/community',
-              },
-              {
-                date: 'Oct 15, 2025',
-                title: 'Enterprise Security Enhancements',
-                desc: 'Enhanced API security and new compliance certifications now available for enterprise customers.',
-                category: 'Security',
-                link: '/docs',
-              },
-            ].map((news, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-8 rounded-lg shadow-sm hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-brand-600">
-                    {news.category}
-                  </span>
-                  <span className="text-sm text-neural-500">{news.date}</span>
-                </div>
-                <h3 className="text-lg font-bold mb-2">{news.title}</h3>
-                <p className="text-neural-600 mb-4">{news.desc}</p>
-                <Link
-                  href={news.link}
-                  className="text-brand-600 hover:text-brand-700 font-medium text-sm inline-flex items-center gap-1"
-                >
-                  Read more →
-                </Link>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link href="/resources/news" className="btn-primary">
-              View All News
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Integration Partners Section */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Integrations & Partnerships
-            </h2>
-            <p className="text-xl text-neural-600">
-              Connect with your favorite tools and platforms
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
-            {[
-              { name: 'Slack', icon: '💬' },
-              { name: 'Microsoft Teams', icon: '🤖' },
-              { name: 'Zapier', icon: '⚡' },
-              { name: 'Discord', icon: '👾' },
-              { name: 'Twilio', icon: '📞' },
-              { name: 'OpenAI', icon: '🧠' },
-            ].map((partner, idx) => (
-              <div
-                key={idx}
-                className="text-center p-4 rounded-lg bg-neural-50 hover:bg-neural-100 transition-colors"
-              >
-                <div className="text-4xl mb-2">{partner.icon}</div>
-                <p className="font-medium text-sm">{partner.name}</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link
-              href="/about/partnerships"
-              className="text-brand-600 hover:text-brand-700 font-medium inline-flex items-center gap-2"
-            >
-              Explore all integrations →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Roadmap Preview Section */}
-      <section className="section-padding bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              What's Coming Next
-            </h2>
-            <p className="text-xl text-neural-300">
-              Our product roadmap for the next quarters
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                quarter: 'Q4 2025',
-                features: [
-                  'Advanced Analytics Dashboard',
-                  'Custom Agent Builder',
-                  'Team Collaboration Tools',
-                ],
-                status: 'In Progress',
-              },
-              {
-                quarter: 'Q1 2026',
-                features: [
-                  'Multi-language Support',
-                  'Real-time Translation',
-                  'Enterprise SSO Integration',
-                ],
-                status: 'Planned',
-              },
-              {
-                quarter: 'Q2 2026',
-                features: [
-                  'AI Agent Marketplace',
-                  'White-label Solution',
-                  'Advanced API Endpoints',
-                ],
-                status: 'Planned',
-              },
-            ].map((roadmap, idx) => (
-              <div
-                key={idx}
-                className="border border-neural-700 rounded-lg p-8 hover:border-brand-600 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold">{roadmap.quarter}</h3>
-                  <span
-                    className={`text-xs font-medium px-3 py-1 rounded-full ${
-                      roadmap.status === 'In Progress'
-                        ? 'bg-blue-500/20 text-blue-300'
-                        : 'bg-purple-500/20 text-purple-300'
-                    }`}
-                  >
-                    {roadmap.status}
-                  </span>
-                </div>
-                <ul className="space-y-2">
-                  {roadmap.features.map((feature, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-2 text-neural-300"
-                    >
-                      <span className="text-brand-400">✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link
-              href="/community/roadmap"
-              className="text-white hover:text-brand-300 transition-colors inline-flex items-center gap-2 border border-white px-6 py-3 rounded-lg"
-            >
-              View Complete Roadmap →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust & Compliance Badges Section */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Enterprise Trust & Compliance
-            </h2>
-            <p className="text-xl text-neural-600">
-              Meet the highest security and compliance standards
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-center">
-            {[
-              {
-                badge: '🔒',
-                title: 'SOC 2 Type II',
-                desc: 'Security compliance verified',
-              },
-              {
-                badge: '🌍',
-                title: 'GDPR Compliant',
-                desc: 'EU data protection',
-              },
-              { badge: '🛡️', title: 'ISO 27001', desc: 'Information security' },
-              {
-                badge: '✅',
-                title: 'HIPAA Ready',
-                desc: 'Healthcare data security',
-              },
-            ].map((trust, idx) => (
-              <div
-                key={idx}
-                className="text-center p-6 border border-neural-200 rounded-lg hover:border-brand-600 transition-colors"
-              >
-                <div className="text-4xl mb-2">{trust.badge}</div>
-                <h4 className="font-bold mb-1">{trust.title}</h4>
-                <p className="text-sm text-neural-600">{trust.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Signup Section */}
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom max-w-2xl">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Stay Updated
-            </h2>
-            <p className="text-lg mb-8 text-white/90">
-              Get the latest news, features, and tips delivered to your inbox
-              every week
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-6 py-3 rounded-lg text-neural-900 placeholder-neural-500 focus:outline-none focus:ring-2 focus:ring-white"
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/faq-support.jpeg"
+                alt="FAQ & Support"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '500px' }}
               />
-              <button className="px-8 py-3 bg-white text-brand-600 font-bold rounded-lg hover:bg-neutral-100 transition-colors whitespace-nowrap">
-                Subscribe
-              </button>
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">❓</span>
+              </div>
+              {/* Floating badge */}
+              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-violet-400">24/7</div>
+                <div className="text-xs text-neural-300">Support Ready</div>
+              </div>
             </div>
-            <p className="text-sm text-white/75 mt-4">
-              We respect your privacy. Unsubscribe at any time.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Preview Section */}
-      <section className="section-padding bg-gradient-to-br from-neural-900 to-neural-800 text-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="text-xl text-neural-300">
-              Choose the plan that works for you
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {[
-              {
-                name: 'Daily',
-                price: '$1',
-                period: '/day',
-                description: 'Perfect for short-term use',
-                features: [
-                  'Access to any single agent',
-                  'Unlimited conversations',
-                  'Real-time responses',
-                  'Cancel anytime',
-                ],
-              },
-              {
-                name: 'Weekly',
-                price: '$5',
-                period: '/week',
-                description: 'Great value for regular use',
-                features: [
-                  'Access to any single agent',
-                  'Unlimited conversations',
-                  'Real-time responses',
-                  'Save 29% vs daily',
-                  'Cancel anytime',
-                ],
-                highlighted: true,
-              },
-              {
-                name: 'Monthly',
-                price: '$19',
-                period: '/month',
-                description: 'Best value for long-term use',
-                features: [
-                  'Access to any single agent',
-                  'Unlimited conversations',
-                  'Real-time responses',
-                  'Save 37% vs daily',
-                  'Best value',
-                ],
-              },
-            ].map((plan, idx) => (
-              <div
-                key={idx}
-                className={`p-8 rounded-lg transition-transform ${
-                  plan.highlighted
-                    ? 'bg-gradient-to-br from-brand-600 to-accent-600 scale-105 shadow-lg'
-                    : 'bg-neural-800 border border-neural-700'
-                }`}
-              >
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-sm text-neural-200 mb-4">
-                  {plan.description}
-                </p>
-                <div className="text-4xl font-bold mb-6">
-                  {plan.price}
-                  <span className="text-lg text-neural-300">{plan.period}</span>
-                </div>
-                <p className="text-sm text-neural-300 mb-6">per agent</p>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span className="text-green-400">✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/pricing/overview"
-                  className={`block text-center py-3 rounded-lg font-medium transition-colors ${
-                    plan.highlighted
-                      ? 'bg-white text-brand-600 hover:bg-neutral-100'
-                      : 'border border-white text-white hover:bg-neural-700'
-                  }`}
-                >
-                  Get Started
+            
+            {/* Right - FAQ Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/20 rounded-full text-violet-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                FAQ Center
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Frequently Asked
+                <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Questions</span>
+              </h2>
+              <div className="space-y-6">
+                {[
+                  { q: 'How do I get started?', a: 'Sign up, choose your AI agents, and start chatting within minutes.' },
+                  { q: 'What AI agents are available?', a: '20+ specialized personalities including Einstein, Tech Wizard, and more.' },
+                  { q: 'Is my data secure?', a: 'Bank-level encryption, SOC 2 compliance, and privacy-first architecture.' },
+                  { q: 'What pricing plans exist?', a: 'Simple per-agent pricing: $1/day, $5/week, or $19/month.' },
+                ].map((item, idx) => (
+                  <div key={idx} className="border-l-4 border-violet-500 pl-6 hover:border-violet-300 transition-colors">
+                    <h3 className="text-lg font-bold mb-2 text-white">{item.q}</h3>
+                    <p className="text-neural-300">{item.a}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8">
+                <Link href="/support/faqs" className="inline-flex items-center gap-2 px-8 py-4 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-violet-500/30 group">
+                  View All FAQs
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </Link>
               </div>
-            ))}
-          </div>
-          <div className="text-center">
-            <Link
-              href="/pricing/overview"
-              className="text-white hover:text-brand-300 transition-colors inline-flex items-center gap-2"
-            >
-              View all pricing details →
-            </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Thousands Choose One Last AI
-            </h2>
-            <p className="text-xl text-neural-600">
-              Industry-leading features and support
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: '🚀',
-                title: 'Lightning Fast',
-                desc: 'Deploy AI agents in minutes, not months',
-              },
-              {
-                icon: '🔒',
-                title: 'Enterprise Security',
-                desc: 'Bank-level encryption and compliance',
-              },
-              {
-                icon: '📊',
-                title: 'Real-time Analytics',
-                desc: 'Monitor performance every second',
-              },
-              {
-                icon: '🌍',
-                title: 'Global Scale',
-                desc: 'Serve customers in 100+ countries',
-              },
-              {
-                icon: '🤖',
-                title: 'AI Expertise',
-                desc: 'Built by AI and ML pioneers',
-              },
-              {
-                icon: '💬',
-                title: '24/7 Support',
-                desc: 'Expert help whenever you need it',
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="text-center p-6">
-                <div className="text-4xl mb-4">{item.icon}</div>
-                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                <p className="text-neural-600">{item.desc}</p>
+      {/* News Section - Content Left, Image Right */}
+      <section className="section-padding bg-gradient-to-br from-amber-900 via-orange-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 rounded-full text-amber-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+                Latest Updates
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                News &
+                <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Updates</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Stay informed about new features, platform improvements, and exciting announcements from One Last AI.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { date: 'Jan 19, 2026', title: 'New Voice-to-Voice Agent Available', category: 'Feature' },
+                  { date: 'Jan 15, 2026', title: 'One Last AI Reaches 10K Active Users', category: 'Milestone' },
+                  { date: 'Jan 10, 2026', title: 'Enterprise Security Enhancements', category: 'Security' },
+                ].map((news, idx) => (
+                  <div key={idx} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:border-amber-500/50 transition-colors">
+                    <div className="flex-shrink-0 w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                      <span className="text-amber-400 text-lg">📰</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-white">{news.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-amber-400">{news.category}</span>
+                        <span className="text-xs text-neural-400">•</span>
+                        <span className="text-xs text-neural-400">{news.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+              <Link href="/resources/news" className="inline-flex items-center gap-2 px-8 py-4 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-amber-500/30 group">
+                View All News
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+            
+            {/* Right - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/news-updates.jpeg"
+                alt="Latest News & Updates"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '500px' }}
+              />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">📢</span>
+              </div>
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-amber-400">Fresh</div>
+                <div className="text-xs text-neural-300">Daily Updates</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Fix #3: Clear structure and spacing */}
-      <section className="section-padding bg-neural-900 text-white">
-        <div className="container-custom text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Transform Your Workflow?
-            </h2>
-            <p className="text-xl text-neural-300 mb-8 leading-relaxed">
-              Join thousands of professionals who trust our AI platform for
-              their most important work.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/contact" className="btn-primary">
-                Contact Us
+      {/* Integration Partners Section - Image Left, Content Right */}
+      <section className="section-padding bg-gradient-to-br from-cyan-900 via-teal-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-teal-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/integrations.jpeg"
+                alt="Integrations & Partnerships"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">🔗</span>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-cyan-400">20+</div>
+                <div className="text-xs text-neural-300">Integrations</div>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/20 rounded-full text-cyan-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                Integrations
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Connect Your
+                <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent"> Favorite Tools</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Seamlessly integrate with the tools and platforms you already use. Our API and webhooks make it easy to connect.
+              </p>
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                {[
+                  { name: 'Slack', icon: '💬' },
+                  { name: 'Teams', icon: '🤖' },
+                  { name: 'Zapier', icon: '⚡' },
+                  { name: 'Discord', icon: '👾' },
+                  { name: 'Twilio', icon: '📞' },
+                  { name: 'OpenAI', icon: '🧠' },
+                ].map((partner, idx) => (
+                  <div key={idx} className="text-center p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-colors">
+                    <div className="text-2xl mb-1">{partner.icon}</div>
+                    <p className="font-medium text-sm text-neural-200">{partner.name}</p>
+                  </div>
+                ))}
+              </div>
+              <Link href="/about/partnerships" className="inline-flex items-center gap-2 px-8 py-4 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-cyan-500/30 group">
+                Explore Integrations
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </Link>
-              <Link
-                href="/demo"
-                className="btn-secondary bg-neutral-800 border-neutral-600 text-white hover:bg-neutral-700"
-              >
-                Schedule Demo
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Roadmap Section - Content Left, Image Right */}
+      <section className="section-padding bg-gradient-to-br from-rose-900 via-pink-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-rose-500/20 rounded-full text-rose-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Product Roadmap
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                What's Coming
+                <span className="bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent"> Next</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                See what we're building next. Our transparent roadmap keeps you informed about upcoming features.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { quarter: 'Q1 2026', features: ['Multi-language Support', 'Real-time Translation', 'Enterprise SSO'], status: 'In Progress' },
+                  { quarter: 'Q2 2026', features: ['AI Agent Marketplace', 'White-label Solution', 'Advanced API'], status: 'Planned' },
+                ].map((roadmap, idx) => (
+                  <div key={idx} className="p-4 bg-white/5 rounded-xl border border-white/10 hover:border-rose-500/50 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-bold text-white">{roadmap.quarter}</h3>
+                      <span className={`text-xs font-medium px-3 py-1 rounded-full ${roadmap.status === 'In Progress' ? 'bg-blue-500/20 text-blue-300' : 'bg-purple-500/20 text-purple-300'}`}>
+                        {roadmap.status}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {roadmap.features.map((f, i) => (
+                        <span key={i} className="text-xs px-2 py-1 bg-white/10 rounded text-neural-200">{f}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/community/roadmap" className="inline-flex items-center gap-2 px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-rose-500/30 group">
+                View Full Roadmap
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </Link>
+            </div>
+            
+            {/* Right - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/roadmap.jpeg"
+                alt="Product Roadmap"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">🚀</span>
+              </div>
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-rose-400">2026</div>
+                <div className="text-xs text-neural-300">Big Plans</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust & Security Section - Image Left, Content Right */}
+      <section className="section-padding bg-gradient-to-br from-slate-900 via-gray-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-slate-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gray-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/security-trust.jpeg"
+                alt="Enterprise Security"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '450px' }}
+              />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">🛡️</span>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-green-400">100%</div>
+                <div className="text-xs text-neural-300">Secure</div>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-500/20 rounded-full text-slate-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Enterprise Trust
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Security &
+                <span className="bg-gradient-to-r from-slate-400 to-gray-400 bg-clip-text text-transparent"> Compliance</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Meet the highest security and compliance standards. Your data is protected with enterprise-grade security.
+              </p>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {[
+                  { badge: '🔒', title: 'SOC 2 Type II', desc: 'Security verified' },
+                  { badge: '🌍', title: 'GDPR Compliant', desc: 'EU data protection' },
+                  { badge: '🛡️', title: 'ISO 27001', desc: 'Info security' },
+                  { badge: '✅', title: 'HIPAA Ready', desc: 'Healthcare ready' },
+                ].map((trust, idx) => (
+                  <div key={idx} className="text-center p-4 bg-white/5 border border-white/10 rounded-xl hover:border-slate-500/50 transition-colors">
+                    <div className="text-2xl mb-1">{trust.badge}</div>
+                    <h4 className="font-bold text-sm text-white">{trust.title}</h4>
+                    <p className="text-xs text-neural-400">{trust.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <Link href="/security" className="inline-flex items-center gap-2 px-8 py-4 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-slate-500/30 group">
+                Learn About Security
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section - Content Left, Image Right */}
+      <section className="section-padding bg-gradient-to-br from-brand-700 via-brand-600 to-accent-600 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-brand-400 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-400 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-white text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Newsletter
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Stay
+                <span className="text-white/90"> Updated</span>
+              </h2>
+              <p className="text-lg text-white/80 mb-8 leading-relaxed">
+                Get the latest news, features, and tips delivered to your inbox every week. Join 5,000+ subscribers.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 px-6 py-4 rounded-xl text-neural-900 placeholder-neural-500 focus:outline-none focus:ring-2 focus:ring-white"
+                />
+                <button className="px-8 py-4 bg-white text-brand-600 font-bold rounded-xl hover:bg-neutral-100 transition-colors whitespace-nowrap">
+                  Subscribe
+                </button>
+              </div>
+              <p className="text-sm text-white/60">
+                We respect your privacy. Unsubscribe at any time.
+              </p>
+            </div>
+            
+            {/* Right - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/newsletter.jpeg"
+                alt="Newsletter Subscription"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '400px' }}
+              />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-white to-neutral-100 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">📬</span>
+              </div>
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-white">5K+</div>
+                <div className="text-xs text-white/70">Subscribers</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section - Image Left, Content Right */}
+      <section className="section-padding bg-gradient-to-br from-blue-900 via-indigo-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/pricing-plans.jpeg"
+                alt="Simple Pricing"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '500px' }}
+              />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">💎</span>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-blue-400">Save</div>
+                <div className="text-xs text-neural-300">Up to 37%</div>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 rounded-full text-blue-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Simple Pricing
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Transparent
+                <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent"> Pricing</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Choose the plan that works for you. Simple per-agent pricing with no hidden fees.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { name: 'Daily', price: '$1/day', desc: 'Perfect for trying out' },
+                  { name: 'Weekly', price: '$5/week', desc: 'Save 29% - Popular choice', highlight: true },
+                  { name: 'Monthly', price: '$19/month', desc: 'Save 37% - Best value' },
+                ].map((plan, idx) => (
+                  <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${plan.highlight ? 'bg-blue-500/20 border-blue-500/50' : 'bg-white/5 border-white/10 hover:border-blue-500/50'}`}>
+                    <div>
+                      <h4 className="font-bold text-white">{plan.name}</h4>
+                      <p className="text-sm text-neural-400">{plan.desc}</p>
+                    </div>
+                    <div className="text-xl font-bold text-blue-400">{plan.price}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <Link href="/pricing/overview" className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-blue-500/30 group">
+                  View All Plans
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+                <Link href="/agents" className="inline-flex items-center gap-2 px-8 py-4 border border-white/30 hover:bg-white/10 text-white font-semibold rounded-xl transition-all">
+                  Browse Agents
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section - Content Left, Image Right */}
+      <section className="section-padding bg-gradient-to-br from-fuchsia-900 via-purple-900 to-neural-800 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-fuchsia-500 rounded-full filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Content */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-fuchsia-500/20 rounded-full text-fuchsia-300 text-sm font-medium mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                Why Choose Us
+              </span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Why Thousands
+                <span className="bg-gradient-to-r from-fuchsia-400 to-purple-400 bg-clip-text text-transparent"> Choose Us</span>
+              </h2>
+              <p className="text-lg text-neural-300 mb-8 leading-relaxed">
+                Industry-leading features, exceptional support, and a platform built for your success.
+              </p>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {[
+                  { icon: '🚀', title: 'Lightning Fast', desc: 'Deploy in minutes' },
+                  { icon: '🔒', title: 'Enterprise Security', desc: 'Bank-level encryption' },
+                  { icon: '📊', title: 'Real-time Analytics', desc: 'Monitor everything' },
+                  { icon: '🌍', title: 'Global Scale', desc: '100+ countries' },
+                  { icon: '🤖', title: 'AI Expertise', desc: 'Built by pioneers' },
+                  { icon: '💬', title: '24/7 Support', desc: 'Always available' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 hover:border-fuchsia-500/50 transition-colors">
+                    <div className="text-2xl">{item.icon}</div>
+                    <div>
+                      <h4 className="font-bold text-sm text-white">{item.title}</h4>
+                      <p className="text-xs text-neural-400">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/about" className="inline-flex items-center gap-2 px-8 py-4 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-fuchsia-500/30 group">
+                Learn More About Us
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+            
+            {/* Right - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/why-choose-us.jpeg"
+                alt="Why Choose One Last AI"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '500px' }}
+              />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">⭐</span>
+              </div>
+              <div className="absolute -top-4 -left-4 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hidden lg:block">
+                <div className="text-2xl font-bold text-fuchsia-400">10K+</div>
+                <div className="text-xs text-neural-300">Happy Users</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Image Left, Content Right */}
+      <section className="section-padding bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-brand-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Image */}
+            <div className="relative">
+              <img
+                src="/images/products/transform-workflow.jpeg"
+                alt="Transform Your Workflow"
+                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
+                style={{ maxHeight: '400px' }}
+              />
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-brand-500 to-accent-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <span className="text-4xl">✨</span>
+              </div>
+            </div>
+            
+            {/* Right - Content */}
+            <div>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                Ready to Transform
+                <span className="bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent"> Your Workflow?</span>
+              </h2>
+              <p className="text-xl text-neural-300 mb-8 leading-relaxed">
+                Join thousands of professionals who trust our AI platform for their most important work. Start your journey today.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/contact" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-brand-500/30 group">
+                  Contact Us
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+                <Link href="/demo" className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-white/30 hover:bg-white/10 text-white font-semibold rounded-xl transition-all">
+                  Schedule Demo
+                </Link>
+              </div>
             </div>
           </div>
         </div>
