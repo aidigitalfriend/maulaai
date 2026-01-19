@@ -51,7 +51,7 @@ export default function HomePage() {
       ),
       title: 'AI-Powered Agents',
       description:
-        'Access 18 specialized AI personalities including Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges.',,
+        'Access 18 specialized AI personalities including Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges.',
       link: {
         text: 'Explore Agents',
         href: '/agents',

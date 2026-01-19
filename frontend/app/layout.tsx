@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'One Last AI - Your AI Dream Team',
     description:
-      'Transform your workflow with 18 specialized AI personalities.',,
+      'Transform your workflow with 18 specialized AI personalities.',
     images: ['/images/logos/company-logo.png'],
   },
   robots: {
