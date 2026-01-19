@@ -146,46 +146,6 @@ export default function Footer() {
                 Thanks for subscribing!
               </p>
             )}
-
-            {/* App Store Badges - Coming Soon */}
-            <div className="mt-8">
-              <p className="text-neural-500 text-xs uppercase tracking-wider mb-3">Mobile Apps</p>
-              <div className="flex flex-wrap gap-3">
-                {/* App Store Badge */}
-                <div className="relative group">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-neural-800/60 border border-white/10 rounded-xl hover:border-white/20 transition-all duration-300 cursor-not-allowed">
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
-                    </svg>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-neural-400">Download on the</span>
-                      <span className="text-sm font-semibold text-white -mt-0.5">App Store</span>
-                    </div>
-                  </div>
-                  {/* Coming Soon Badge */}
-                  <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[10px] font-bold text-white shadow-lg">
-                    SOON
-                  </div>
-                </div>
-
-                {/* Google Play Badge */}
-                <div className="relative group">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-neural-800/60 border border-white/10 rounded-xl hover:border-white/20 transition-all duration-300 cursor-not-allowed">
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
-                    </svg>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-neural-400">GET IT ON</span>
-                      <span className="text-sm font-semibold text-white -mt-0.5">Google Play</span>
-                    </div>
-                  </div>
-                  {/* Coming Soon Badge */}
-                  <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[10px] font-bold text-white shadow-lg">
-                    SOON
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Navigation Links - Enhanced with gradient border */}
@@ -209,11 +169,84 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="relative z-10 border-t border-white/5">
+      {/* CTA Banner - Enhanced with animation and app store logos */}
+      <div ref={ctaRef} className="relative z-10 bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 overflow-hidden">
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}></div>
+        </div>
+        <div className="relative container-custom py-8 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-6">
+            {/* Top row: Title and buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+              <p className="text-white font-semibold text-lg flex items-center gap-2">
+                <span className="text-2xl">🚀</span>
+                Ready to build with AI agents?
+              </p>
+              <div className="flex gap-4">
+                <Link
+                  href="/agents"
+                  className="px-6 py-2.5 bg-white text-brand-600 rounded-lg font-bold hover:bg-brand-50 transition-all duration-300 text-sm shadow-lg hover:shadow-xl hover:scale-105"
+                >
+                  Start Free →
+                </Link>
+                <Link
+                  href="/support/book-consultation"
+                  className="px-6 py-2.5 bg-white/10 text-white border border-white/30 rounded-lg font-semibold hover:bg-white/20 backdrop-blur-sm transition-all duration-300 text-sm"
+                >
+                  Book Demo
+                </Link>
+              </div>
+            </div>
+
+            {/* Middle row: App Store badges */}
+            <div className="flex flex-wrap gap-3 justify-center items-center">
+              {/* App Store Badge */}
+              <div className="relative group">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-300 cursor-not-allowed">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
+                  </svg>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-white/70">Download on the</span>
+                    <span className="text-sm font-semibold text-white -mt-0.5">App Store</span>
+                  </div>
+                </div>
+                {/* Coming Soon Badge */}
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[10px] font-bold text-white shadow-lg">
+                  SOON
+                </div>
+              </div>
+
+              {/* Google Play Badge */}
+              <div className="relative group">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-300 cursor-not-allowed">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
+                  </svg>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-white/70">GET IT ON</span>
+                    <span className="text-sm font-semibold text-white -mt-0.5">Google Play</span>
+                  </div>
+                </div>
+                {/* Coming Soon Badge */}
+                <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-[10px] font-bold text-white shadow-lg">
+                  SOON
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar - Dark Purple/Charcoal Background */}
+      <div className="relative z-10 bg-gradient-to-r from-purple-950 via-neutral-900 to-purple-950 border-t border-white/5">
         <div className="container-custom py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-neural-500 text-sm">
+            <p className="text-neural-400 text-sm">
               © {currentYear} One Last AI. All rights reserved.
             </p>
             <div className="flex items-center gap-8">
@@ -226,39 +259,6 @@ export default function Footer() {
                   {link.name}
                 </Link>
               ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Banner - Enhanced with animation */}
-      <div ref={ctaRef} className="relative z-10 bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 overflow-hidden">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px)',
-            backgroundSize: '40px 40px'
-          }}></div>
-        </div>
-        <div className="relative container-custom py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-white font-semibold text-lg flex items-center gap-2">
-              <span className="text-2xl">🚀</span>
-              Ready to build with AI agents?
-            </p>
-            <div className="flex gap-4">
-              <Link
-                href="/agents"
-                className="px-6 py-2.5 bg-white text-brand-600 rounded-lg font-bold hover:bg-brand-50 transition-all duration-300 text-sm shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                Start Free →
-              </Link>
-              <Link
-                href="/support/book-consultation"
-                className="px-6 py-2.5 bg-white/10 text-white border border-white/30 rounded-lg font-semibold hover:bg-white/20 backdrop-blur-sm transition-all duration-300 text-sm"
-              >
-                Book Demo
-              </Link>
             </div>
           </div>
         </div>
