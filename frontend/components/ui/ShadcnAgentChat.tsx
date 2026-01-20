@@ -604,6 +604,11 @@ export default function ShadcnAgentChat({
   );
 
   const handleListen = useCallback((content: string) => {
+    // ALWAYS cancel any ongoing speech first to prevent overlapping voices
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    
     const clean = content.replace(/[*#`]/g, '').replace(/```[\s\S]*?```/g, '');
     const utterance = new SpeechSynthesisUtterance(clean);
     utterance.rate = 0.9;

@@ -162,6 +162,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const ttsAbortControllerRef = useRef<AbortController | null>(null);
+  const ttsStoppedIntentionallyRef = useRef<boolean>(false);
 
   // Settings state - use agent's AI provider config if available
   const [settings, setSettings] = useState<AgentSettings>({
@@ -754,6 +755,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const stopTTS = useCallback(() => {
     console.log('[TTS] Stopping all audio...');
     
+    // Mark as intentionally stopped to prevent fallback TTS
+    ttsStoppedIntentionallyRef.current = true;
+    
     // FIRST: Abort any pending TTS fetch requests
     if (ttsAbortControllerRef.current) {
       console.log('[TTS] Aborting pending TTS request');
@@ -763,6 +767,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     
     // Stop HTML5 Audio
     if (ttsAudioRef.current) {
+      // Remove event listeners before stopping to prevent onerror from firing
+      ttsAudioRef.current.onerror = null;
+      ttsAudioRef.current.onended = null;
+      ttsAudioRef.current.oncanplaythrough = null;
       ttsAudioRef.current.pause();
       ttsAudioRef.current.currentTime = 0;
       ttsAudioRef.current.src = '';
@@ -851,22 +859,28 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         const audio = new Audio(audioUrl);
         ttsAudioRef.current = audio;
         
-        // Add better error handling
+        // Reset the intentional stop flag since we're starting new audio
+        ttsStoppedIntentionallyRef.current = false;
+        
+        // Add better error handling - but DON'T fallback if intentionally stopped
         audio.onerror = (e) => {
           console.error('Audio playback error:', e);
           URL.revokeObjectURL(audioUrl);
           ttsAudioRef.current = null;
-          setSpeakingMessageId(null);
-          speakingMessageIdRef.current = null;
-          // Fallback to browser TTS on error
-          if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.onend = () => { setSpeakingMessageId(null); speakingMessageIdRef.current = null; };
-            utterance.onerror = () => { setSpeakingMessageId(null); speakingMessageIdRef.current = null; };
-            window.speechSynthesis.speak(utterance);
-          } else {
+          
+          // Only fallback to browser TTS if NOT intentionally stopped
+          if (!ttsStoppedIntentionallyRef.current) {
+            console.log('[TTS] Unintentional error, falling back to browser TTS');
             setSpeakingMessageId(null);
             speakingMessageIdRef.current = null;
+            if ('speechSynthesis' in window) {
+              const utterance = new SpeechSynthesisUtterance(cleanText);
+              utterance.onend = () => { setSpeakingMessageId(null); speakingMessageIdRef.current = null; };
+              utterance.onerror = () => { setSpeakingMessageId(null); speakingMessageIdRef.current = null; };
+              window.speechSynthesis.speak(utterance);
+            }
+          } else {
+            console.log('[TTS] Intentionally stopped, NOT falling back to browser TTS');
           }
         };
         
