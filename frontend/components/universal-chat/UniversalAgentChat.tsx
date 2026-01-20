@@ -161,6 +161,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const ttsAbortControllerRef = useRef<AbortController | null>(null);
 
   // Settings state - use agent's AI provider config if available
   const [settings, setSettings] = useState<AgentSettings>({
@@ -749,12 +750,21 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     speakingMessageIdRef.current = speakingMessageId;
   }, [speakingMessageId]);
 
-  // Stop TTS function - immediately stops all audio
+  // Stop TTS function - immediately stops all audio and cancels pending requests
   const stopTTS = useCallback(() => {
     console.log('[TTS] Stopping all audio...');
+    
+    // FIRST: Abort any pending TTS fetch requests
+    if (ttsAbortControllerRef.current) {
+      console.log('[TTS] Aborting pending TTS request');
+      ttsAbortControllerRef.current.abort();
+      ttsAbortControllerRef.current = null;
+    }
+    
     // Stop HTML5 Audio
     if (ttsAudioRef.current) {
       ttsAudioRef.current.pause();
+      ttsAudioRef.current.currentTime = 0;
       ttsAudioRef.current.src = '';
       ttsAudioRef.current = null;
     }
@@ -783,6 +793,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         console.log('[TTS] Same message - just stopping');
         return;
       }
+      // Small delay to ensure audio is fully stopped before starting new
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     const cleanText = content
@@ -803,6 +815,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     setSpeakingMessageId(messageId);
     speakingMessageIdRef.current = messageId;
 
+    // Create abort controller for this TTS request
+    ttsAbortControllerRef.current = new AbortController();
+    const currentAbortController = ttsAbortControllerRef.current;
+
     // Try ElevenLabs first, fall back to browser TTS
     try {
       console.log('Attempting ElevenLabs TTS...');
@@ -810,11 +826,25 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: cleanText }),
+        signal: currentAbortController.signal,
       });
+
+      // Check if request was aborted while waiting
+      if (currentAbortController.signal.aborted) {
+        console.log('[TTS] Request was aborted, not playing audio');
+        return;
+      }
 
       if (response.ok) {
         console.log('ElevenLabs TTS successful, creating audio...');
         const audioBlob = await response.blob();
+        
+        // Check again if aborted during blob read
+        if (currentAbortController.signal.aborted) {
+          console.log('[TTS] Request was aborted after blob, not playing audio');
+          return;
+        }
+        
         console.log('Audio blob size:', audioBlob.size, 'type:', audioBlob.type);
         const audioUrl = URL.createObjectURL(audioBlob);
         console.log('Audio URL created:', audioUrl);
@@ -869,7 +899,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         setSpeakingMessageId(null);
         speakingMessageIdRef.current = null;
       }
-    } catch (err) {
+    } catch (err: any) {
+      // Don't treat abort as an error - it's intentional
+      if (err?.name === 'AbortError') {
+        console.log('[TTS] Request aborted (user clicked stop)');
+        return;
+      }
       console.warn('ElevenLabs TTS error:', err);
       setSpeakingMessageId(null);
       speakingMessageIdRef.current = null;

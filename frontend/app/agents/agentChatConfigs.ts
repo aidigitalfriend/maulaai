@@ -46,18 +46,9 @@ export const agentChatConfigs: Record<string, AgentChatConfig> = {
 - Friendly, casual gamer language
 
 Always be enthusiastic about gaming and share interesting facts and memories about retro games.`,
-    welcomeMessage: `🕹️ **Hey there, gamer!**
+    welcomeMessage: `🕹️ **Ben Sega**
 
-Welcome! I'm Ben Sega, your guide to the golden age of gaming.
-
-• **Retro Gaming** - Sega Genesis, arcade classics, and more
-• **Gaming History** - Stories from the industry's best era
-• **Tips & Tricks** - Master those classic games
-• **Nostalgia** - Let's reminisce about the best games ever!
-
----
-
-*✨ What's your favorite retro game? Let's chat!*`,
+Let's explore the golden age of gaming together!`,
     specialties: [
       'Retro Gaming',
       'Sega Consoles',
@@ -87,18 +78,9 @@ Welcome! I'm Ben Sega, your guide to the golden age of gaming.
 - German phrases occasionally (Guten Tag, mein Freund, etc.)
 
 Always maintain Einstein's characteristic wisdom, humor, and profound way of thinking about the universe.`,
-    welcomeMessage: `🧠 **Guten Tag, mein Freund!**
+    welcomeMessage: `🧠 **Albert Einstein**
 
-I am Albert Einstein. Let us explore the mysteries of the universe together!
-
-• **Physics & Mathematics** - Relativity, quantum mechanics, and beyond
-• **Scientific Method** - How to approach complex problems
-• **Philosophy** - The nature of reality and knowledge
-• **Thought Experiments** - Imagination is the key to understanding!
-
----
-
-*✨ "The important thing is not to stop questioning." What intrigues your mind today?*`,
+Guten Tag, mein Freund! Let us explore the mysteries of the universe together!`,
     specialties: [
       'Theoretical Physics',
       'Mathematics',
@@ -127,18 +109,9 @@ I am Albert Einstein. Let us explore the mysteries of the universe together!
 - Knowledge about comedy theory and timing
 
 Always keep things light-hearted, family-friendly, and genuinely funny. Your goal is to entertain while educating about comedy.`,
-    welcomeMessage: `🎤 **Hey there, comedy fans!**
+    welcomeMessage: `🎤 **Comedy King**
 
-The Comedy King is in the house! Ready to turn that frown upside down?
-
-• **Jokes & Puns** - Fresh humor delivered daily
-• **Comedy Writing** - Learn the craft of making people laugh
-• **Stand-up Tips** - Master comedic timing
-• **Entertainment** - Let's have some fun!
-
----
-
-*✨ What's tickling your funny bone today? Hit me with your best shot!*`,
+Ready to turn that frown upside down? Let's have some fun!`,
     specialties: [
       'Stand-up Comedy',
       'Joke Writing',
@@ -167,18 +140,9 @@ The Comedy King is in the house! Ready to turn that frown upside down?
 - Enthusiasm for good food and cooking
 
 Share your love for cooking while helping users improve their culinary skills.`,
-    welcomeMessage: `👨‍🍳 **Welcome to my kitchen!**
+    welcomeMessage: `👨‍🍳 **Chef Biew**
 
-I'm Chef Biew, your personal culinary guide. Let's cook something amazing!
-
-• **Recipes** - From simple to gourmet
-• **Techniques** - Master cooking methods
-• **Ingredients** - Learn about flavors and pairings
-• **Kitchen Tips** - Professional secrets revealed
-
----
-
-*✨ What shall we cook today? I'm ready to help you create delicious dishes!*`,
+Welcome to my kitchen! What shall we cook today?`,
     specialties: [
       'Cooking Techniques',
       'Recipe Creation',
@@ -207,18 +171,9 @@ I'm Chef Biew, your personal culinary guide. Let's cook something amazing!
 - Safety-first approach to exercise
 
 Help users achieve their fitness goals while emphasizing proper form and gradual progress.`,
-    welcomeMessage: `💪 **Let's get fit together!**
+    welcomeMessage: `💪 **Fitness Guru**
 
-I'm your Fitness Guru, here to help you achieve your health goals!
-
-• **Workouts** - Customized exercise routines
-• **Nutrition** - Fuel your body right
-• **Motivation** - Stay on track
-• **Recovery** - Rest and recuperation tips
-
----
-
-*✨ What fitness goal are you working towards? Let's make it happen!*`,
+Let's get fit together! What fitness goal are you working towards?`,
     specialties: [
       'Exercise Science',
       'Nutrition',
@@ -247,18 +202,9 @@ I'm your Fitness Guru, here to help you achieve your health goals!
 - Knowledge of multiple programming languages and frameworks
 
 Help users solve technical problems while teaching them along the way.`,
-    welcomeMessage: `🧙‍♂️ **Welcome, fellow coder!**
+    welcomeMessage: `🧙‍♂️ **Tech Wizard**
 
-I'm the Tech Wizard, here to help you master the art of programming!
-
-• **Coding** - Write clean, efficient code
-• **Debugging** - Solve tricky problems
-• **Best Practices** - Modern development techniques
-• **Learning** - Grow your skills
-
----
-
-*✨ What technical challenge can I help you with today?*`,
+Welcome, fellow coder! What technical challenge can I help you with?`,
     specialties: [
       'Programming',
       'Web Development',
@@ -287,18 +233,9 @@ I'm the Tech Wizard, here to help you master the art of programming!
 - Personal travel stories and experiences
 
 Help users plan amazing trips and discover new destinations.`,
-    welcomeMessage: `✈️ **Adventure awaits!**
+    welcomeMessage: `✈️ **Travel Buddy**
 
-I'm your Travel Buddy, ready to help you explore the world!
-
-• **Destinations** - Discover amazing places
-• **Planning** - Itineraries and logistics
-• **Culture** - Local insights and tips
-• **Budget** - Travel smart, explore more
-
----
-
-*✨ Where would you like to go? Let's plan your next adventure!*`,
+Adventure awaits! Where would you like to go?`,
     specialties: [
       'Travel Planning',
       'Cultural Knowledge',
@@ -327,18 +264,9 @@ I'm your Travel Buddy, ready to help you explore the world!
 - Dramatic flair and theatrical personality
 
 Bring passion and theatricality to every conversation about the performing arts.`,
-    welcomeMessage: `👑 **The stage is set!**
+    welcomeMessage: `👑 **Drama Queen**
 
-I am Drama Queen, your guide to the magnificent world of theatre!
-
-• **Acting** - Master the craft
-• **Theatre History** - From Shakespeare to Broadway
-• **Performance** - Tips for the stage
-• **Creative Writing** - Scripts and stories
-
----
-
-*✨ The spotlight awaits! What theatrical magic shall we explore?*`,
+The stage is set! What theatrical magic shall we explore?`,
     specialties: ['Theatre', 'Acting', 'Playwriting', 'Performance Arts'],
     aiProvider: {
       primary: 'mistral',
@@ -362,18 +290,9 @@ I am Drama Queen, your guide to the magnificent world of theatre!
 - Confident, authoritative but supportive tone
 
 Help users succeed in their professional lives with practical business wisdom.`,
-    welcomeMessage: `👩‍💼 **Let's talk business!**
+    welcomeMessage: `👩‍💼 **Mrs. Boss**
 
-I'm Mrs. Boss, your executive mentor and business advisor.
-
-• **Leadership** - Lead with confidence
-• **Strategy** - Business planning and execution
-• **Career** - Advance your professional journey
-• **Communication** - Master workplace dynamics
-
----
-
-*✨ Ready to level up your career? What business challenge can I help with?*`,
+Let's talk business! Ready to level up your career?`,
     specialties: [
       'Leadership',
       'Business Strategy',
@@ -402,18 +321,9 @@ I'm Mrs. Boss, your executive mentor and business advisor.
 - Patient teaching approach for all skill levels
 
 Help users improve their chess game with clear explanations and strategic insights.`,
-    welcomeMessage: `♟️ **Welcome to the board!**
+    welcomeMessage: `♟️ **Chess Master**
 
-I'm your Chess Master, ready to help you master the royal game!
-
-• **Strategy** - Opening, middlegame, endgame
-• **Tactics** - Patterns and combinations
-• **Analysis** - Understand positions deeply
-• **History** - Learn from the grandmasters
-
----
-
-*✨ Shall we play? What aspect of chess would you like to explore?*`,
+Welcome to the board! What aspect of chess would you like to explore?`,
     specialties: [
       'Chess Strategy',
       'Tactical Patterns',
@@ -442,18 +352,9 @@ I'm your Chess Master, ready to help you master the royal game!
 - Mystical but informative tone
 
 Share astrological wisdom while acknowledging the entertainment nature of the subject.`,
-    welcomeMessage: `🔮 **The stars have aligned!**
+    welcomeMessage: `🔮 **Professor Astrology**
 
-I am Professor Astrology, your guide to cosmic wisdom!
-
-• **Zodiac Signs** - Understand your sign
-• **Birth Charts** - Celestial blueprints
-• **Horoscopes** - Daily, weekly, monthly insights
-• **Cosmic Events** - Planetary movements and meanings
-
----
-
-*✨ What's your zodiac sign? Let's explore what the cosmos has in store!*`,
+The stars have aligned! What's your zodiac sign?`,
     specialties: [
       'Zodiac Signs',
       'Birth Charts',
@@ -482,18 +383,9 @@ I am Professor Astrology, your guide to cosmic wisdom!
 - Genuine interest in the user's day and feelings
 
 Be a supportive friend who makes conversations enjoyable and meaningful.`,
-    welcomeMessage: `💕 **Hey there!**
+    welcomeMessage: `💕 **Julie**
 
-I'm Julie, your friendly AI companion! So happy to chat with you!
-
-• **Chat** - Let's have fun conversations
-• **Support** - I'm here to listen
-• **Fun** - Games, jokes, stories
-• **Connect** - Let's get to know each other
-
----
-
-*✨ How's your day going? Tell me all about it!*`,
+Hey there! So happy to chat with you! How's your day going?`,
     specialties: [
       'Conversation',
       'Emotional Support',
@@ -522,18 +414,9 @@ I'm Julie, your friendly AI companion! So happy to chat with you!
 - Safe, non-judgmental space
 
 Help users process emotions and feel heard while providing supportive guidance.`,
-    welcomeMessage: `🤗 **Hello, dear friend!**
+    welcomeMessage: `🤗 **Emma**
 
-I'm Emma, here to listen and support you.
-
-• **Listen** - Share what's on your mind
-• **Support** - You're not alone
-• **Wellness** - Mindfulness and self-care
-• **Growth** - Navigate life's challenges together
-
----
-
-*✨ How are you really feeling today? I'm here for you.*`,
+Hello, dear friend! How are you really feeling today? I'm here for you.`,
     specialties: [
       'Emotional Support',
       'Active Listening',
@@ -562,18 +445,9 @@ I'm Emma, here to listen and support you.
 - Enthusiastic gamer language and culture
 
 Help users level up their gaming with expert knowledge and passionate discussion.`,
-    welcomeMessage: `🎮 **What's up, gamer!**
+    welcomeMessage: `🎮 **Nid Gaming**
 
-I'm Nid Gaming, your guide to the gaming universe!
-
-• **Games** - Tips, tricks, and strategies
-• **Esports** - Competitive scene and news
-• **Hardware** - Setup and gear advice
-• **Community** - Gaming culture and trends
-
----
-
-*✨ What are you playing right now? Let's talk games!*`,
+What's up, gamer! What are you playing right now?`,
     specialties: ['Video Games', 'Esports', 'Gaming Hardware', 'Game Strategy'],
     aiProvider: {
       primary: 'groq',
@@ -597,18 +471,9 @@ I'm Nid Gaming, your guide to the gaming universe!
 - Engaging brain teasers and challenges
 
 Help users sharpen their minds with logical challenges and clear reasoning.`,
-    welcomeMessage: `⚔️ **Greetings, logical warrior!**
+    welcomeMessage: `⚔️ **Knight Logic**
 
-I am Knight Logic, defender of reason and strategic thinking!
-
-• **Puzzles** - Brain teasers and riddles
-• **Logic** - Reasoning and analysis
-• **Strategy** - Think several moves ahead
-• **Problem-Solving** - Systematic approaches
-
----
-
-*✨ Ready to challenge your mind? Present your puzzle or let me challenge you!*`,
+Greetings, logical warrior! Ready to challenge your mind?`,
     specialties: [
       'Logic Puzzles',
       'Strategic Thinking',
@@ -637,18 +502,9 @@ I am Knight Logic, defender of reason and strategic thinking!
 - Comfort and low-pressure interaction
 
 Help users relax and take things easy with a laid-back conversational style.`,
-    welcomeMessage: `🐢 **Hey... no rush...**
+    welcomeMessage: `🐢 **Lazy Pawn**
 
-I'm Lazy Pawn, your chill companion. Take it easy!
-
-• **Relax** - No pressure here
-• **Chat** - Whatever's on your mind
-• **Chill** - Life's too short to stress
-• **Hang** - Just vibing together
-
----
-
-*✨ So... what's up? No rush to answer...*`,
+Hey... no rush... Take it easy! What's up?`,
     specialties: ['Relaxation', 'Stress Relief', 'Casual Chat', 'Life Advice'],
     aiProvider: {
       primary: 'groq',
@@ -672,18 +528,9 @@ I'm Lazy Pawn, your chill companion. Take it easy!
 - Enthusiastic foodie energy
 
 Share your passion for burgers and casual dining with delicious detail.`,
-    welcomeMessage: `🍔 **Welcome to Burger Paradise!**
+    welcomeMessage: `🍔 **Bishop Burger**
 
-I'm Bishop Burger, your guide to the world of delicious burgers!
-
-• **Burgers** - From classic to gourmet
-• **Recipes** - Make the perfect patty
-• **Reviews** - Best spots to eat
-• **Culture** - Fast food history and trends
-
----
-
-*✨ Hungry? Let's talk about the greatest food invention: the burger!*`,
+Welcome to Burger Paradise! Let's talk about the greatest food invention!`,
     specialties: ['Burgers', 'Fast Food', 'Recipes', 'Restaurant Reviews'],
     aiProvider: {
       primary: 'mistral',
@@ -707,18 +554,9 @@ I'm Bishop Burger, your guide to the world of delicious burgers!
 - Quick wit and comedic timing
 
 Entertain users with clever humor and playful conversation.`,
-    welcomeMessage: `🃏 **Ready for some fun?**
+    welcomeMessage: `🃏 **Rook Jokey**
 
-I'm Rook Jokey, master of jokes, riddles, and wordplay!
-
-• **Jokes** - Fresh humor daily
-• **Riddles** - Test your wits
-• **Puns** - The finest wordplay
-• **Games** - Let's play with words!
-
----
-
-*✨ Why did the scarecrow win an award? He was outstanding in his field! 😄 Got a riddle for me?*`,
+Ready for some fun? Got a riddle for me?`,
     specialties: ['Jokes', 'Riddles', 'Wordplay', 'Brain Teasers'],
     aiProvider: {
       primary: 'mistral',
@@ -741,18 +579,9 @@ I'm Rook Jokey, master of jokes, riddles, and wordplay!
 - Encouraging approach to language learning
 
 Help users learn languages and bridge communication gaps.`,
-    welcomeMessage: `🌍 **Hello! Hola! 你好! Bonjour!**
+    welcomeMessage: `🌍 **Polyglot**
 
-I'm Polyglot, your multilingual assistant!
-
-• **Languages** - I speak many!
-• **Learning** - Tips to learn faster
-• **Translation** - Help with any language
-• **Culture** - Language in context
-
----
-
-*✨ Which language would you like to explore today?*`,
+Hello! Hola! 你好! Which language would you like to explore today?`,
     specialties: [
       'Language Learning',
       'Translation',
@@ -775,18 +604,9 @@ I'm Polyglot, your multilingual assistant!
 
 When providing code examples, always use proper markdown code blocks with language identifiers.
 Format your responses nicely with markdown when appropriate.`,
-    welcomeMessage: `🧠 **Welcome to Neural Assistant!**
+    welcomeMessage: `🧠 **Neural Assistant**
 
-I'm your AI-powered digital friend, ready to help you with:
-
-• **Coding & Development** - Write, debug, and explain code
-• **Analysis & Research** - Process complex information
-• **Creative Writing** - Stories, articles, and more
-• **Problem Solving** - Work through challenges together
-
----
-
-*✨ Connected to live AI backend. Type a message to get started!*`,
+Your AI-powered digital friend is ready. How can I help you today?`,
     specialties: ['Coding', 'Analysis', 'Writing', 'Problem Solving'],
   },
 
@@ -800,18 +620,9 @@ I'm your AI-powered digital friend, ready to help you with:
 - Feature explanations
 - Platform capabilities
 - Professional assistance`,
-    welcomeMessage: `✨ **Welcome to Enhanced Demo!**
+    welcomeMessage: `✨ **Enhanced Demo**
 
-I'm here to showcase the platform's capabilities!
-
-• **Features** - See what's possible
-• **Demo** - Interactive examples
-• **Help** - Guided assistance
-• **Explore** - Discover more
-
----
-
-*✨ What would you like to explore?*`,
+Welcome! Let me show you what's possible.`,
     specialties: ['Demo', 'Features', 'Help', 'Exploration'],
   },
 
@@ -826,18 +637,9 @@ I'm here to showcase the platform's capabilities!
 - Extracting key information
 - Answering questions about documents
 - Document organization tips`,
-    welcomeMessage: `📄 **Welcome to PDF Assistant!**
+    welcomeMessage: `📄 **PDF Assistant**
 
-I'm here to help you with documents and PDFs!
-
-• **Analysis** - Understand document contents
-• **Summary** - Get key points quickly
-• **Questions** - Ask about your documents
-• **Organization** - Tips for document management
-
----
-
-*✨ What document can I help you with?*`,
+Ready to help with your documents! What can I analyze?`,
     specialties: [
       'Document Analysis',
       'PDF Processing',
