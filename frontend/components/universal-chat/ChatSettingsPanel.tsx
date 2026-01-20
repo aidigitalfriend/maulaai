@@ -316,14 +316,14 @@ export default function ChatSettingsPanel({
             />
           </div>
 
-          {/* Provider & Model */}
+          {/* AI Assistant Selection */}
           <div className={`rounded-xl border p-3 ${sectionStyles}`}>
             <h4
               className={`text-xs font-semibold mb-2 ${
                 isNeural ? 'text-cyan-400' : 'text-indigo-600'
               }`}
             >
-              AI Provider
+              AI Assistant
             </h4>
             <select
               value={settings.provider}
@@ -347,10 +347,13 @@ export default function ChatSettingsPanel({
                 </option>
               ))}
             </select>
+            <label className={`block text-xs mt-2 mb-1 ${isNeural ? 'text-gray-400' : 'text-gray-500'}`}>
+              Response Style
+            </label>
             <select
               value={settings.model}
               onChange={(e) => onUpdateSettings({ model: e.target.value })}
-              className={`w-full px-2 py-1.5 rounded-lg text-xs border mt-2 ${inputStyles}`}
+              className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
             >
               {(
                 PROVIDER_MODEL_OPTIONS.find(
