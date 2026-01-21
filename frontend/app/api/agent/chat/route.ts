@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Backend API base URL for memory operations
-const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:5000';
+const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:3005';
 
 // Initialize API keys from environment (NEVER expose these to frontend)
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -146,8 +146,40 @@ You have access to powerful tools. When you need to use a tool, include the tool
 4. **calculate** - Perform mathematical calculations
    [TOOL:calculate]{"expression": "2 + 2 * 5"}
 
+5. **create_file** - Create a new file with content
+   [TOOL:create_file]{"filename": "script.py", "content": "print('Hello!')", "folder": ""}
+   Use when: User asks to create, write, save, or generate a file
+
+6. **read_file** - Read contents of a file
+   [TOOL:read_file]{"filename": "notes.txt"}
+   Use when: User asks to view, read, open, or show a file
+
+7. **modify_file** - Edit an existing file (replace or append)
+   [TOOL:modify_file]{"filename": "notes.txt", "content": "new content", "mode": "replace"}
+   Modes: "replace" (overwrite) or "append" (add to end)
+
+8. **list_files** - List files and folders in workspace
+   [TOOL:list_files]{"folder": ""}
+   Use when: User asks to see files, browse, or check what exists
+
+9. **delete_file** - Delete a file
+   [TOOL:delete_file]{"filename": "old-file.txt"}
+   Use when: User explicitly asks to delete or remove a file
+
+10. **generate_image** - Generate an AI image from text description
+    [TOOL:generate_image]{"prompt": "a beautiful sunset over mountains", "style": "realistic"}
+    Styles: realistic, artistic, anime, oil-painting, watercolor, digital-art, 3d-render, pixel-art
+    Use when: User asks to create, generate, make, or draw an image, picture, artwork, or illustration
+
+11. **generate_video** - Generate a short AI video from text description
+    [TOOL:generate_video]{"prompt": "a cat playing with yarn", "duration": 4}
+    Duration: 2-10 seconds
+    Use when: User asks to create, generate, or make a video, clip, or animation
+
 **IMPORTANT GUIDELINES:**
 - Use tools when you need real-time information, to verify facts, or perform calculations
+- For file operations: create files when asked, read when user wants to see content
+- For images/videos: Add details to prompts for better results (lighting, style, mood, colors)
 - After using a tool, incorporate the results naturally into your response
 - If a tool fails, acknowledge it gracefully and provide the best response you can
 - Don't use tools for information you already know with certainty

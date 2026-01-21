@@ -277,4 +277,149 @@ router.get('/tools/available', (req, res) => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// FILE OPERATION ROUTES
+// ═══════════════════════════════════════════════════════════════════
+
+import fs from 'fs/promises';
+import fsSync from 'fs';
+import path from 'path';
+
+const WORKSPACE_BASE = process.env.AGENT_WORKSPACE_DIR || '/tmp/agent-workspace';
+
+/**
+ * GET /api/agents/files/download
+ * Download a file from agent workspace
+ */
+router.get('/files/download', async (req, res) => {
+  try {
+    const { file, userId = 'default' } = req.query;
+
+    if (!file) {
+      return res.status(400).json({ success: false, error: 'File path required' });
+    }
+
+    const userWorkspace = path.join(WORKSPACE_BASE, userId);
+    const safePath = path.normalize(file).replace(/^\.\.\//g, '').replace(/^\.\//g, '');
+    const filePath = path.join(userWorkspace, safePath);
+
+    // Security check
+    if (!filePath.startsWith(userWorkspace)) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch {
+      return res.status(404).json({ success: false, error: 'File not found' });
+    }
+
+    const filename = path.basename(filePath);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+
+    const fileStream = fsSync.createReadStream(filePath);
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * GET /api/agents/files/list
+ * List files in agent workspace
+ */
+router.get('/files/list', async (req, res) => {
+  try {
+    const { folder = '', userId = 'default' } = req.query;
+    const result = await agentTools.listFiles(folder, userId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error listing files:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /api/agents/files/create
+ * Create a file in agent workspace
+ */
+router.post('/files/create', async (req, res) => {
+  try {
+    const { filename, content, folder = '', userId = 'default' } = req.body;
+
+    if (!filename || content === undefined) {
+      return res.status(400).json({ success: false, error: 'Filename and content required' });
+    }
+
+    const result = await agentTools.createFile(filename, content, folder, userId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error creating file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * GET /api/agents/files/read
+ * Read a file from agent workspace
+ */
+router.get('/files/read', async (req, res) => {
+  try {
+    const { filename, userId = 'default' } = req.query;
+
+    if (!filename) {
+      return res.status(400).json({ success: false, error: 'Filename required' });
+    }
+
+    const result = await agentTools.readFile(filename, userId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error reading file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * PUT /api/agents/files/modify
+ * Modify a file in agent workspace
+ */
+router.put('/files/modify', async (req, res) => {
+  try {
+    const { filename, content, mode = 'replace', userId = 'default' } = req.body;
+
+    if (!filename || content === undefined) {
+      return res.status(400).json({ success: false, error: 'Filename and content required' });
+    }
+
+    const result = await agentTools.modifyFile(filename, content, mode, userId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error modifying file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/agents/files/delete
+ * Delete a file from agent workspace
+ */
+router.delete('/files/delete', async (req, res) => {
+  try {
+    const { filename, userId = 'default' } = req.query;
+
+    if (!filename) {
+      return res.status(400).json({ success: false, error: 'Filename required' });
+    }
+
+    const result = await agentTools.deleteFile(filename, userId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;
