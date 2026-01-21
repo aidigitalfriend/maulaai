@@ -20,7 +20,7 @@ export interface ProviderModelOption {
 const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   {
     provider: 'cerebras',
-    label: '🧠 Albert Einstein',
+    label: 'Albert Einstein',
     models: [
       { value: 'llama3.1-8b', label: 'Quick Insight' },
       { value: 'llama-3.3-70b', label: 'Deep Thought' },
@@ -28,7 +28,7 @@ const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'groq',
-    label: '⚡ One Last AI',
+    label: 'One Last AI',
     models: [
       { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
       { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
@@ -36,7 +36,7 @@ const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'openai',
-    label: '🎨 Image Generator',
+    label: 'Image Generator',
     models: [
       { value: 'gpt-4o', label: 'Best Quality' },
       { value: 'gpt-4o-mini', label: 'Fast Mode' },
@@ -44,7 +44,7 @@ const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'anthropic',
-    label: '💻 Code Builder',
+    label: 'Code Builder',
     models: [
       { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
       { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
@@ -52,7 +52,7 @@ const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'mistral',
-    label: '📝 Writing Assistant',
+    label: 'Writing Assistant',
     models: [
       { value: 'mistral-medium-latest', label: 'Detailed Write' },
       { value: 'mistral-small-latest', label: 'Quick Write' },
@@ -60,7 +60,7 @@ const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'xai',
-    label: '🔍 Research Helper',
+    label: 'Research Helper',
     models: [
       { value: 'grok-2', label: 'Deep Analysis' },
     ],
