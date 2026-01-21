@@ -108,6 +108,15 @@ export const AVAILABLE_TOOLS = {
       duration: { type: 'number', description: 'Video duration in seconds (2-10)', default: 4 },
     },
   },
+  convert_image: {
+    name: 'convert_image',
+    description: 'Convert an image to a different format (PNG, JPEG, WebP). Use when user asks to convert an image format, save as PNG/JPG, or change image type.',
+    parameters: {
+      image_url: { type: 'string', description: 'URL or base64 data URL of the image to convert', required: true },
+      format: { type: 'string', description: 'Target format: png, jpeg, webp', default: 'png' },
+      quality: { type: 'number', description: 'Quality for JPEG/WebP (1-100)', default: 90 },
+    },
+  },
 };
 
 /**
@@ -775,6 +784,89 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
 }
 
 /**
+ * Convert an image to a different format
+ */
+export async function convertImage(imageUrl, format = 'png', quality = 90, userId = 'default') {
+  try {
+    let imageBuffer;
+    
+    // Handle base64 data URLs
+    if (imageUrl.startsWith('data:image')) {
+      const base64Data = imageUrl.split(',')[1];
+      imageBuffer = Buffer.from(base64Data, 'base64');
+    } else {
+      // Download from URL
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      imageBuffer = Buffer.from(arrayBuffer);
+    }
+
+    // Use sharp for conversion if available, otherwise use the media service API
+    const sharp = await import('sharp').then(m => m.default).catch(() => null);
+    
+    let outputBuffer;
+    let mimeType;
+    
+    if (sharp) {
+      // Direct conversion with sharp
+      let processor = sharp(imageBuffer);
+      
+      switch (format.toLowerCase()) {
+        case 'jpeg':
+        case 'jpg':
+          outputBuffer = await processor.jpeg({ quality }).toBuffer();
+          mimeType = 'image/jpeg';
+          format = 'jpeg';
+          break;
+        case 'webp':
+          outputBuffer = await processor.webp({ quality }).toBuffer();
+          mimeType = 'image/webp';
+          break;
+        case 'png':
+        default:
+          outputBuffer = await processor.png().toBuffer();
+          mimeType = 'image/png';
+          format = 'png';
+          break;
+      }
+    } else {
+      // Fallback: just use the original buffer if sharp is not available
+      outputBuffer = imageBuffer;
+      mimeType = `image/${format}`;
+    }
+    
+    // Save to user workspace
+    const filename = `converted-image-${Date.now()}.${format}`;
+    const folderPath = await getWorkspacePath(userId, 'images');
+    await fs.mkdir(folderPath, { recursive: true });
+    const filePath = path.join(folderPath, filename);
+    await fs.writeFile(filePath, outputBuffer);
+    
+    // Create base64 data URL for display
+    const base64Image = outputBuffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64Image}`;
+    
+    return {
+      success: true,
+      format: format.toUpperCase(),
+      filename: `images/${filename}`,
+      downloadUrl: `/api/agents/files/download?file=${encodeURIComponent(`images/${filename}`)}&userId=${userId}`,
+      image: dataUrl,
+      message: `Image converted to ${format.toUpperCase()} successfully!`,
+    };
+  } catch (error) {
+    console.error('Image conversion error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to convert image',
+    };
+  }
+}
+
+/**
  * Execute a tool by name
  */
 export async function executeTool(toolName, params) {
@@ -819,6 +911,9 @@ export async function executeTool(toolName, params) {
 
     case 'generate_video':
       return generateVideo(params.prompt, params.duration, params.userId);
+
+    case 'convert_image':
+      return convertImage(params.image_url, params.format, params.quality, params.userId);
 
     default:
       return {
@@ -901,7 +996,16 @@ export function formatToolResults(results) {
     }
 
     if (r.tool === 'generate_image' && r.result.success) {
-      return `## Image Generated:\n**Prompt:** ${r.result.prompt}\n**Style:** ${r.result.style}\n**Dimensions:** ${r.result.dimensions}\n${r.result.downloadUrl ? `[Download Image](${r.result.downloadUrl})` : ''}\n${r.result.image ? '![Generated Image](' + r.result.image.slice(0, 100) + '...)' : ''}`;
+      // Include full base64 image for display in chat
+      const parts = [`## Image Generated!`, `**Prompt:** ${r.result.prompt}`, `**Style:** ${r.result.style}`, `**Dimensions:** ${r.result.dimensions}`];
+      if (r.result.downloadUrl) {
+        parts.push(`\n[📥 Download Image](${r.result.downloadUrl})`);
+      }
+      if (r.result.image) {
+        // Include the full base64 image for rendering
+        parts.push(`\n![Generated Image](${r.result.image})`);
+      }
+      return parts.join('\n');
     }
 
     if (r.tool === 'generate_video' && r.result.success) {
@@ -909,6 +1013,17 @@ export function formatToolResults(results) {
         return `## Video Processing:\n**Prompt:** ${r.result.prompt}\n⏳ ${r.result.message}`;
       }
       return `## Video Generated:\n**Prompt:** ${r.result.prompt}\n**Duration:** ${r.result.duration}\n${r.result.downloadUrl ? `[Download Video](${r.result.downloadUrl})` : ''}\n${r.result.videoUrl ? `[View Video](${r.result.videoUrl})` : ''}`;
+    }
+
+    if (r.tool === 'convert_image' && r.result.success) {
+      const parts = [`## Image Converted!`, `**Format:** ${r.result.format}`];
+      if (r.result.downloadUrl) {
+        parts.push(`\n[📥 Download ${r.result.format}](${r.result.downloadUrl})`);
+      }
+      if (r.result.image) {
+        parts.push(`\n![Converted Image](${r.result.image})`);
+      }
+      return parts.join('\n');
     }
 
     return `## Tool Result (${r.tool}):\n${JSON.stringify(r.result, null, 2)}`;
@@ -973,6 +1088,11 @@ You have access to the following tools. When you need to use a tool, include a t
     Usage: [TOOL:generate_video]{"prompt": "a cat playing with yarn", "duration": 4}
     Duration: 2-10 seconds
     Use when: User asks to create, generate, or make a video or animation.
+
+12. **convert_image** - Convert an image to a different format
+    Usage: [TOOL:convert_image]{"image_url": "data:image/jpeg;base64,..." or "https://...", "format": "png"}
+    Formats: png, jpeg, webp
+    Use when: User asks to convert an image format, save as PNG/JPG, or change image type.
 
 IMPORTANT: 
 - Only use tools when necessary - don't use them for general conversation.
