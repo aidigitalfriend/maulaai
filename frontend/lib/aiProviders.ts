@@ -81,6 +81,38 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 }
 
 // ============================================================================
+// GET AGENT-SPECIFIC CANVAS PROVIDER OPTIONS
+// ============================================================================
+// Converts ProviderModelOption[] to Canvas format for CanvasPage settings
+export function getAgentCanvasProviders(agentId: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
+  const options = getAgentProviderOptions(agentId);
+  const result: Record<string, { name: string; models: { id: string; name: string }[] }> = {};
+  
+  for (const opt of options) {
+    result[opt.provider] = {
+      name: opt.label,
+      models: opt.models.map(m => ({ id: m.value, name: m.label })),
+    };
+  }
+  
+  return result;
+}
+
+// Get first provider key for default selection
+export function getAgentDefaultProvider(agentId: string): string {
+  const options = getAgentProviderOptions(agentId);
+  return options[0]?.provider || 'cerebras';
+}
+
+// Get first model for a provider
+export function getAgentDefaultModel(agentId: string, provider?: string): string {
+  const options = getAgentProviderOptions(agentId);
+  const targetProvider = provider || options[0]?.provider;
+  const opt = options.find(o => o.provider === targetProvider);
+  return opt?.models[0]?.value || 'llama3.1-8b';
+}
+
+// ============================================================================
 // DEFAULT USER-FRIENDLY AI OPTIONS (Fallback)
 // ============================================================================
 // These show friendly names to users - backend handles actual provider routing

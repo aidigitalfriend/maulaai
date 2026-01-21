@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { getAgentCanvasProviders, getAgentDefaultProvider, getAgentDefaultModel } from '../../../../lib/aiProviders';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -982,55 +983,16 @@ export default function CanvasMode({
   const [builtinTemplateCategory, setBuiltinTemplateCategory] = useState<string>('All');
   const [showRotatePrompt, setShowRotatePrompt] = useState(false);
   const [isMobilePortrait, setIsMobilePortrait] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<string>('mistral');
-  const [selectedModel, setSelectedModel] = useState<string>(
-    'mistral-large-latest'
-  );
+  
+  // Agent-specific provider/model options
+  const providerModels = useMemo(() => getAgentCanvasProviders(agentId), [agentId]);
+  const defaultProvider = useMemo(() => getAgentDefaultProvider(agentId), [agentId]);
+  const defaultModel = useMemo(() => getAgentDefaultModel(agentId), [agentId]);
+  
+  const [selectedProvider, setSelectedProvider] = useState<string>(defaultProvider);
+  const [selectedModel, setSelectedModel] = useState<string>(defaultModel);
   const [temperature, setTemperature] = useState<number>(0.7);
   const [maxTokens, setMaxTokens] = useState<number>(4096);
-
-  // Provider/Model options
-  const providerModels: Record<
-    string,
-    { name: string; models: { id: string; name: string }[] }
-  > = {
-    mistral: {
-      name: 'Mistral AI',
-      models: [
-        { id: 'mistral-large-latest', name: 'Mistral Large' },
-        { id: 'mistral-small-latest', name: 'Mistral Small' },
-        { id: 'codestral-latest', name: 'Codestral' },
-      ],
-    },
-    openai: {
-      name: 'OpenAI',
-      models: [
-        { id: 'gpt-4o', name: 'GPT-4o' },
-        { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
-        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-      ],
-    },
-    anthropic: {
-      name: 'Anthropic',
-      models: [
-        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
-        { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
-        { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
-      ],
-    },
-    gemini: {
-      name: 'Google Gemini',
-      models: [
-        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
-      ],
-    },
-    xai: {
-      name: 'xAI (Grok)',
-      models: [{ id: 'grok-beta', name: 'Grok Beta' }],
-    },
-  };
 
   // Restore chat messages once when opened, or seed with welcome message
   useEffect(() => {
