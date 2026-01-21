@@ -115,6 +115,8 @@
     "react-hook-form": "^7.69.0",
     "react-live": "^4.1.8",
     "react-markdown": "^10.1.0",
+    "react-pdf": "^9.2.1",
+    "react-player": "^2.16.1",
     "react-resizable-panels": "^4.1.0",
     "react-syntax-highlighter": "^16.1.0",
     "react-virtualized-auto-sizer": "^2.0.1",
@@ -136,6 +138,7 @@
     "uuid": "^13.0.0",
     "vitest": "^4.0.16",
     "web-vitals": "^4.2.2",
+    "yet-another-react-lightbox": "^3.28.0",
     "yup": "^1.7.1",
     "zustand": "^5.0.9"
   },
