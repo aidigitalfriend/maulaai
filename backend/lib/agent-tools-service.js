@@ -1362,26 +1362,43 @@ export async function generateImage(prompt, style = 'realistic', width = 1024, h
 
     const data = await response.json();
 
-    // Save the image to user workspace
+    // Save the image to MongoDB/S3 using the proper createFile function
     if (data.image && data.image.startsWith('data:image')) {
       const base64Data = data.image.split(',')[1];
       const filename = `generated-image-${Date.now()}.png`;
-      const folderPath = await getWorkspacePath(userId, 'images');
-      await fs.mkdir(folderPath, { recursive: true });
-      const filePath = path.join(folderPath, filename);
-      await fs.writeFile(filePath, Buffer.from(base64Data, 'base64'));
-
-      return {
-        success: true,
-        prompt,
-        style,
-        dimensions: `${width}x${height}`,
-        image: data.image,
-        filename: `images/${filename}`,
-        downloadUrl: `/api/agents/files/download?file=${encodeURIComponent(`images/${filename}`)}&userId=${userId}`,
-        experimentId: data.experimentId,
-        message: `Image generated successfully! You can view it or download it.`,
-      };
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+      
+      // Use createFile to properly store in MongoDB/S3
+      const saveResult = await createFile(filename, imageBuffer, '/images', userId, 'image-generator');
+      
+      if (saveResult.success) {
+        return {
+          success: true,
+          prompt,
+          style,
+          dimensions: `${width}x${height}`,
+          image: data.image, // Include base64 for immediate display
+          filename: saveResult.filename,
+          path: saveResult.path,
+          downloadUrl: saveResult.downloadUrl,
+          s3Url: saveResult.s3Url,
+          experimentId: data.experimentId,
+          message: `Image generated and saved successfully! You can view or download it.`,
+        };
+      } else {
+        // Still return the image even if save failed
+        console.error('Failed to save generated image:', saveResult.error);
+        return {
+          success: true,
+          prompt,
+          style,
+          dimensions: `${width}x${height}`,
+          image: data.image,
+          experimentId: data.experimentId,
+          warning: 'Image generated but could not be saved to workspace',
+          message: `Image generated successfully! (Note: Could not save to workspace)`,
+        };
+      }
     }
 
     return {
@@ -1476,24 +1493,37 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
     if (videoUrl) {
       try {
         const videoResponse = await fetch(videoUrl);
-        const videoBuffer = await videoResponse.arrayBuffer();
+        const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
         const filename = `generated-video-${Date.now()}.mp4`;
-        const folderPath = await getWorkspacePath(userId, 'videos');
-        await fs.mkdir(folderPath, { recursive: true });
-        const filePath = path.join(folderPath, filename);
-        await fs.writeFile(filePath, Buffer.from(videoBuffer));
+        
+        // Use createFile to properly store in MongoDB/S3
+        const saveResult = await createFile(filename, videoBuffer, '/videos', userId, 'video-generator');
 
-        return {
-          success: true,
-          prompt,
-          duration: `~${duration}s`,
-          videoUrl: videoUrl,
-          filename: `videos/${filename}`,
-          downloadUrl: `/api/agents/files/download?file=${encodeURIComponent(`videos/${filename}`)}&userId=${userId}`,
-          message: 'Video generated successfully! You can view it or download it.',
-        };
+        if (saveResult.success) {
+          return {
+            success: true,
+            prompt,
+            duration: `~${duration}s`,
+            videoUrl: videoUrl,
+            filename: saveResult.filename,
+            path: saveResult.path,
+            downloadUrl: saveResult.downloadUrl,
+            s3Url: saveResult.s3Url,
+            message: 'Video generated and saved successfully! You can view or download it.',
+          };
+        } else {
+          // Return URL even if save fails
+          return {
+            success: true,
+            prompt,
+            videoUrl: videoUrl,
+            warning: 'Video generated but could not be saved to workspace',
+            message: 'Video generated! Click to view. (Note: Could not save to workspace)',
+          };
+        }
       } catch (saveError) {
         // Return URL even if save fails
+        console.error('Failed to save video:', saveError);
         return {
           success: true,
           prompt,
@@ -1573,25 +1603,34 @@ export async function convertImage(imageUrl, format = 'png', quality = 90, userI
       mimeType = `image/${format}`;
     }
     
-    // Save to user workspace
+    // Save to user workspace using createFile
     const filename = `converted-image-${Date.now()}.${format}`;
-    const folderPath = await getWorkspacePath(userId, 'images');
-    await fs.mkdir(folderPath, { recursive: true });
-    const filePath = path.join(folderPath, filename);
-    await fs.writeFile(filePath, outputBuffer);
+    const saveResult = await createFile(filename, outputBuffer, '/images', userId, 'image-converter');
     
     // Create base64 data URL for display
     const base64Image = outputBuffer.toString('base64');
     const dataUrl = `data:${mimeType};base64,${base64Image}`;
     
-    return {
-      success: true,
-      format: format.toUpperCase(),
-      filename: `images/${filename}`,
-      downloadUrl: `/api/agents/files/download?file=${encodeURIComponent(`images/${filename}`)}&userId=${userId}`,
-      image: dataUrl,
-      message: `Image converted to ${format.toUpperCase()} successfully!`,
-    };
+    if (saveResult.success) {
+      return {
+        success: true,
+        format: format.toUpperCase(),
+        filename: saveResult.filename,
+        path: saveResult.path,
+        downloadUrl: saveResult.downloadUrl,
+        s3Url: saveResult.s3Url,
+        image: dataUrl,
+        message: `Image converted to ${format.toUpperCase()} and saved successfully!`,
+      };
+    } else {
+      return {
+        success: true,
+        format: format.toUpperCase(),
+        image: dataUrl,
+        warning: 'Image converted but could not be saved to workspace',
+        message: `Image converted to ${format.toUpperCase()}! (Note: Could not save to workspace)`,
+      };
+    }
   } catch (error) {
     console.error('Image conversion error:', error);
     return {
