@@ -236,10 +236,12 @@ export async function POST(request: NextRequest) {
         }))));
       }
       
-      // Extract target format from message
-      const formatMatch = message.match(/(png|jpg|jpeg|webp)/i);
+      // Extract target format from message - handle with or without dot prefix
+      const formatMatch = message.match(/\.?(png|jpg|jpeg|webp)\b/i);
       const targetFormat = formatMatch ? formatMatch[1].toLowerCase() : 'png';
+      console.log('[chat-stream] Requested format from message:', message, '-> detected:', targetFormat);
       const mimeType = targetFormat === 'jpg' ? 'image/jpeg' : `image/${targetFormat}`;
+      const outputExtension = targetFormat === 'jpeg' ? 'jpg' : targetFormat;
       
       // Get the image - prefer attachment, fallback to history image
       const imageAttachment = attachments.find((a: any) => a.type?.startsWith('image/'));
@@ -295,17 +297,19 @@ export async function POST(request: NextRequest) {
             // If sharp is not available, just return the original buffer
           }
           
-          // Convert to base64 data URL
+          // Convert to base64 data URL - use user-friendly extension
           const base64Image = outputBuffer.toString('base64');
+          const displayFormat = convertedFormat === 'jpeg' ? 'JPG' : convertedFormat.toUpperCase();
+          const fileExtension = convertedFormat === 'jpeg' ? 'jpg' : convertedFormat;
           const dataUrl = `data:image/${convertedFormat};base64,${base64Image}`;
-          const filename = `converted-image-${Date.now()}.${convertedFormat}`;
+          const filename = `converted-image-${Date.now()}.${fileExtension}`;
           
-          console.log('[chat-stream] Image converted successfully to', convertedFormat.toUpperCase());
+          console.log('[chat-stream] Image converted successfully to', displayFormat);
           
           const encoder = new TextEncoder();
           const convertResultStream = new ReadableStream({
             start(controller) {
-              const resultMessage = `✅ **Image Converted to ${convertedFormat.toUpperCase()}!**
+              const resultMessage = `✅ **Image Converted to ${displayFormat}!**
 
 Here's your converted image:
 
@@ -500,13 +504,14 @@ Here's your converted image:
       }
     }
 
-    // Handle image editing - when user uploads an image and asks to edit it
-    if (isImageEditRequest && hasImageAttachment && apiKeys.openai) {
-      console.log('[chat-stream] Detected image edit request with attachment');
+    // Handle image editing - when user uploads an image OR asks to edit a recently generated image
+    const hasImageToEdit = hasImageAttachment || recentImageFromHistory;
+    if (isImageEditRequest && hasImageToEdit && apiKeys.openai) {
+      console.log('[chat-stream] Detected image edit request, hasAttachment:', hasImageAttachment, 'hasHistoryImage:', !!recentImageFromHistory);
       
-      // Get the image attachment
+      // Get the image - prefer attachment, fallback to history image
       const imageAttachment = attachments.find((a: any) => a.type?.startsWith('image/'));
-      const imageUrl = imageAttachment?.url || imageAttachment?.data;
+      const imageUrl = imageAttachment?.url || imageAttachment?.data || recentImageFromHistory;
       
       if (imageUrl) {
         try {
@@ -526,7 +531,7 @@ Here's your converted image:
                   content: [
                     {
                       type: 'text',
-                      text: `Describe this image in detail for image generation. Focus on the main subject, colors, composition, and style. Keep description under 200 words. The user wants to: ${message}`
+                      text: `Briefly describe this image for recreation (max 150 words). Include: main subject, colors, style, background. User wants to: ${message.substring(0, 200)}`
                     },
                     {
                       type: 'image_url',
@@ -545,11 +550,17 @@ Here's your converted image:
           }
 
           const visionData = await visionResponse.json();
-          const imageDescription = visionData.choices?.[0]?.message?.content || '';
+          let imageDescription = visionData.choices?.[0]?.message?.content || '';
+          // Limit description to prevent DALL-E prompt overflow (max 4000 chars total)
+          if (imageDescription.length > 2500) {
+            imageDescription = imageDescription.substring(0, 2500) + '...';
+          }
           console.log('[chat-stream] Image description:', imageDescription.substring(0, 100) + '...');
 
           // Step 2: Generate edited image with DALL-E using the description + edit request
-          const editPrompt = `Based on this image: ${imageDescription}\n\nApply this edit: ${message}\n\nCreate a new version of the image with the requested changes.`;
+          // Keep prompt under 4000 chars
+          const userRequest = message.length > 500 ? message.substring(0, 500) : message;
+          const editPrompt = `Recreate this image with modifications: ${imageDescription}\n\nApply this change: ${userRequest}`;
           
           console.log('[chat-stream] Generating edited image with DALL-E...');
           const dalleResponse = await fetch('https://api.openai.com/v1/images/generations', {
