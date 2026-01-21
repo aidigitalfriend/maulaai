@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'crypto';
 
@@ -59,13 +59,22 @@ export async function POST(request: NextRequest) {
         Bucket: bucket,
         Key: key,
         ContentType: contentType,
-        // Note: ACL removed - using bucket policy for public read access instead
+        // Note: ACL removed - using signed URLs for both upload and download
         // (bucket has "Bucket owner enforced" which disables ACLs)
       }),
       { expiresIn: 300 }
     );
 
-    const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    // Generate a signed URL for reading the file (valid for 7 days)
+    // This is necessary because the bucket doesn't have public read access
+    const fileUrl = await getSignedUrl(
+      s3Client,
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      }),
+      { expiresIn: 60 * 60 * 24 * 7 } // 7 days
+    );
 
     return NextResponse.json({
       uploadUrl,

@@ -156,15 +156,24 @@ export async function POST(request: NextRequest) {
     // Handle image format conversion - when user uploads an image and asks to convert format
     if (isImageConvertRequest && hasImageAttachment) {
       console.log('[chat-stream] Detected image conversion request');
+      console.log('[chat-stream] Attachments:', JSON.stringify(attachments.map((a: any) => ({ 
+        name: a.name, 
+        type: a.type, 
+        hasUrl: !!a.url, 
+        hasData: !!a.data,
+        dataPrefix: a.data?.substring(0, 50) 
+      }))));
       
       // Extract target format from message
       const formatMatch = message.match(/(png|jpg|jpeg|webp)/i);
       const targetFormat = formatMatch ? formatMatch[1].toLowerCase() : 'png';
       const mimeType = targetFormat === 'jpg' ? 'image/jpeg' : `image/${targetFormat}`;
       
-      // Get the image attachment
+      // Get the image attachment - PREFER base64 data over URL (S3 URLs may have permission issues)
       const imageAttachment = attachments.find((a: any) => a.type?.startsWith('image/'));
-      const imageUrl = imageAttachment?.url || imageAttachment?.data;
+      // Check if data is a base64 data URL (preferred) or use the URL
+      const imageData = imageAttachment?.data;
+      const imageUrl = (imageData && imageData.startsWith('data:')) ? imageData : (imageAttachment?.url || imageData);
       
       if (imageUrl) {
         try {
