@@ -101,7 +101,7 @@ If the instance might be compromised:
 ## Verification After Deployment
 
 ```bash
-curl https://onelastai.co/dashboard/agent-management
+curl https://maula.ai/dashboard/agent-management
 # Should show updated page with "Chat with Agent" button
 ```
 

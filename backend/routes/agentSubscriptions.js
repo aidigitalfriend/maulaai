@@ -30,7 +30,7 @@ router.post('/subscribe', async (req, res) => {
     }
 
     // Validate plan and set price
-    const prices = { daily: 1, weekly: 5, monthly: 19 };
+    const prices = { daily: 1, weekly: 5, monthly: 15 };
     if (!prices[plan]) {
       return res.status(400).json({
         error: 'Invalid plan. Choose: daily, weekly, or monthly',
@@ -172,7 +172,7 @@ router.put('/:subscriptionId', async (req, res) => {
 
     // Change plan if provided
     if (plan && plan !== subscription.plan) {
-      const prices = { daily: 1, weekly: 5, monthly: 19 };
+      const prices = { daily: 1, weekly: 5, monthly: 15 };
       subscription.plan = plan;
       subscription.price = prices[plan];
       subscription.expiryDate = AgentSubscription.calculateExpiryDate(

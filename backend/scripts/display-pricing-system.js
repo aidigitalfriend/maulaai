@@ -46,7 +46,7 @@ async function displayFinalPricingSystem() {
     
     console.log('\\n🎯 How It Works:')
     console.log('   1. Users browse available AI agents')
-    console.log('   2. Each agent has same pricing: $1 daily, $5 weekly, $19 monthly')
+    console.log('   2. Each agent has same pricing: $1 daily, $5 weekly, $15 monthly')
     console.log('   3. Users can subscribe to individual agents one by one')
     console.log('   4. Multiple agents = multiple subscriptions')
     console.log('   5. No free tier - pay per agent access')

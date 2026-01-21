@@ -126,7 +126,7 @@ export default function BillingPage() {
       case 'weekly':
         return '$5/week';
       case 'monthly':
-        return '$19/month';
+        return '$15/month';
       default:
         return plan;
     }
@@ -272,7 +272,7 @@ export default function BillingPage() {
               <p className="text-sm text-slate-400">
                 <span className="text-blue-400">$1/day</span> •
                 <span className="text-purple-400 mx-2">$5/week</span> •
-                <span className="text-green-400">$19/month</span> — No
+                <span className="text-green-400">$15/month</span> — No
                 auto-renewal. Cancel anytime or let it expire.
               </p>
             </div>

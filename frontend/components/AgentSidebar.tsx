@@ -210,7 +210,7 @@ export default function AgentSidebar({ currentAgentSlug }: AgentSidebarProps) {
           <div className="mb-6 bg-brand-500/10 border border-brand-500/20 rounded-lg p-4">
             <p className="text-brand-200 text-sm">
               💡 Click "Unlock" to purchase access to any agent. Each agent is a
-              separate one-time purchase ($1/day, $5/week, $19/month).
+              separate one-time purchase ($1/day, $5/week, $15/month).
             </p>
           </div>
 

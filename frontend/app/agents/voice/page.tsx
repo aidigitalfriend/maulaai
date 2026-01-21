@@ -92,91 +92,102 @@ export default function VoiceAgentsPage() {
           </div>
         </div>
 
-        {/* Pricing Tiers */}
+        {/* Pricing */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Subscription Tiers
+            Simple Per-Agent Pricing
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Choose the tier that fits your needs. All subscriptions include voice chat capabilities.
+            One-time purchases with no auto-renewal. Each agent subscription includes voice chat capabilities.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-yellow-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16">
+          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
             <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl">⭐</span>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl">⏰</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-              <p className="text-gray-600">For individual developers and professionals</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Daily</h3>
+              <p className="text-gray-600">Try any agent for a day</p>
             </div>
-
-            <div className="mb-6">
-              <div className="text-center mb-4">
-                <span className="text-3xl font-bold text-gray-900">$19.99 - $34.99</span>
-                <span className="text-gray-600">/month per agent</span>
-              </div>
-              
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>60-150 minutes voice chat per month</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>Advanced expertise in specialized domains</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>Multiple voice options</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>Priority support</span>
-                </li>
-              </ul>
+            <div className="text-center mb-4">
+              <span className="text-3xl font-bold text-gray-900">$1</span>
+              <span className="text-gray-600">/day per agent</span>
             </div>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>24-hour access</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>Voice chat included</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>No auto-renewal</span>
+              </li>
+            </ul>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-purple-200">
+          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-blue-400 ring-2 ring-blue-200">
+            <div className="absolute -mt-12 left-1/2 transform -translate-x-1/2">
+              <span className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">Popular</span>
+            </div>
             <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl">👑</span>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl">📅</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-              <p className="text-gray-600">For teams and organizations</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Weekly</h3>
+              <p className="text-gray-600">Full week of access</p>
             </div>
+            <div className="text-center mb-4">
+              <span className="text-3xl font-bold text-blue-600">$5</span>
+              <span className="text-gray-600">/week per agent</span>
+            </div>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>7-day access</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>Voice chat included</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>No auto-renewal</span>
+              </li>
+            </ul>
+          </div>
 
-            <div className="mb-6">
-              <div className="text-center mb-4">
-                <span className="text-3xl font-bold text-gray-900">$39.99 - $59.99</span>
-                <span className="text-gray-600">/month per agent</span>
+          <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-green-200">
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl">🏆</span>
               </div>
-              
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>160-300 minutes voice chat per month</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>All Premium features</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>Advanced analytics and insights</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>Team management features</span>
-                </li>
-                <li className="flex items-center space-x-3">
-                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
-                  <span>Custom integrations</span>
-                </li>
-              </ul>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Monthly</h3>
+              <p className="text-gray-600">Best value</p>
             </div>
+            <div className="text-center mb-4">
+              <span className="text-3xl font-bold text-green-600">$15</span>
+              <span className="text-gray-600">/month per agent</span>
+            </div>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>30-day access</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>Voice chat included</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">✓</span>
+                <span>No auto-renewal</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>

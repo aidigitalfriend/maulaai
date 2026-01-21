@@ -141,14 +141,14 @@ ssh -tt -i "$SSH_KEY" "$SERVER" "\
   pm2 info shiny-backend; \
   pm2 info shiny-frontend; \
   echo '\n--- NGINX error log (last 50 lines) ---'; \
-  sudo tail -n 50 /var/log/nginx/onelastai.co-error.log; \
+  sudo tail -n 50 /var/log/nginx/maula.ai-error.log; \
   echo '\n--- Updating NGINX config ---'; \
-  sudo cp ~/shiny-friend-disco/nginx/onelastai.co.conf /etc/nginx/sites-available/ 2>/dev/null || echo 'NGINX config copy skipped'; \
+  sudo cp ~/shiny-friend-disco/nginx/maula.ai.conf /etc/nginx/sites-available/ 2>/dev/null || echo 'NGINX config copy skipped'; \
   echo '\n--- Restarting NGINX ---'; \
   sudo nginx -t && sudo systemctl restart nginx; \
   echo '\n--- Retesting endpoints ---'; \
-  curl -f https://onelastai.co/api/status | head -c 200 || echo 'Status endpoint failed'; \
-  curl -f https://onelastai.co/api/user/profile | head -c 200 || echo 'Profile endpoint failed'; \
+  curl -f https://maula.ai/api/status | head -c 200 || echo 'Status endpoint failed'; \
+  curl -f https://maula.ai/api/user/profile | head -c 200 || echo 'Profile endpoint failed'; \
 "
 
 print_status "✅ Deployment and diagnostics complete"

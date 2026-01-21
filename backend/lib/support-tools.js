@@ -40,7 +40,7 @@ const mockKnowledgeBase = [
   {
     id: "kb2",
     title: "Subscription billing cycles",
-    content: "Billing cycles: Choose $1 daily, $5 weekly, or $19 monthly per agent. Each subscription covers exactly one AI agent and renews based on the interval you pick.",
+    content: "Billing cycles: Choose $1 daily, $5 weekly, or $15 monthly per agent. Each subscription covers exactly one AI agent and renews based on the interval you pick.",
     category: "Billing",
     relevanceScore: 0.9,
     url: "/pricing"

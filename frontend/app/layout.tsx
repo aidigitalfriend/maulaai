@@ -11,7 +11,7 @@ import '@/styles/globals.css';
 
 // Metadata for SEO and browser tabs
 export const metadata: Metadata = {
-  title: 'One Last AI - Your AI Dream Team',
+  title: 'Maula AI - Your AI Dream Team',
   description:
     "Transform your workflow with 18 specialized AI personalities. From Einstein's genius to Shakespeare's creativity - unlock the power of history's greatest minds.",
   keywords: [
@@ -23,33 +23,33 @@ export const metadata: Metadata = {
     'AI personalities',
     'machine learning',
   ],
-  authors: [{ name: 'One Last AI' }],
-  creator: 'One Last AI',
-  publisher: 'One Last AI',
-  metadataBase: new URL('https://onelastai.co'),
+  authors: [{ name: 'Maula AI' }],
+  creator: 'Maula AI',
+  publisher: 'Maula AI',
+  metadataBase: new URL('https://maula.ai'),
   alternates: {
-    canonical: 'https://onelastai.co',
+    canonical: 'https://maula.ai',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://onelastai.co',
-    title: 'One Last AI - Your AI Dream Team',
+    url: 'https://maula.ai',
+    title: 'Maula AI - Your AI Dream Team',
     description:
       "Transform your workflow with 18 specialized AI personalities. From Einstein's genius to Shakespeare's creativity.",
-    siteName: 'One Last AI',
+    siteName: 'Maula AI',
     images: [
       {
         url: '/images/logos/company-logo.png',
         width: 1200,
         height: 630,
-        alt: 'One Last AI - AI Dream Team',
+        alt: 'Maula AI - AI Dream Team',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'One Last AI - Your AI Dream Team',
+    title: 'Maula AI - Your AI Dream Team',
     description:
       'Transform your workflow with 18 specialized AI personalities.',
     images: ['/images/logos/company-logo.png'],

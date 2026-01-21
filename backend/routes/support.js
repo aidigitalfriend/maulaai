@@ -12,7 +12,7 @@ import {
   notifyAdminContactForm,
   notifyAdminSupportTicket,
   notifyAdminConsultation,
-} from '../services/email.ts';
+} from '../services/email.js';
 
 const router = express.Router();
 

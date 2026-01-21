@@ -63,7 +63,7 @@ export default function SubscriptionPrompt({
           <div className="bg-neutral-800 rounded-lg p-4">
             <div className="flex justify-between items-center">
               <div>
-                <span className="font-bold text-lg">$19</span>
+                <span className="font-bold text-lg">$15</span>
                 <span className="text-neutral-400 ml-2">per month</span>
               </div>
               <span className="text-sm text-neutral-400">Best Value</span>

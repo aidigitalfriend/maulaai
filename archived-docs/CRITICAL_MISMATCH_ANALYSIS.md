@@ -430,7 +430,7 @@ db.subscriptions.deleteMany({
 
 ## TEST NOW
 
-Go to billing page: **https://onelastai.co/dashboard/billing**
+Go to billing page: **https://maula.ai/dashboard/billing**
 
 You should now see your 22 active agent subscriptions!
 

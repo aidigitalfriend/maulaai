@@ -6,7 +6,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { JobApplication } from '../models/JobApplication.js';
-import { notifyAdminJobApplication } from '../services/email.ts';
+import { notifyAdminJobApplication } from '../services/email.js';
 
 const router = express.Router();
 

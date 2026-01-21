@@ -44,7 +44,7 @@ export default function PerAgentPricingPage() {
     {
       name: 'Monthly Access',
       description: 'Best value for ongoing work and long-term projects',
-      price: '$19',
+      price: '$15',
       period: 'per month',
       features: [
         'Access to any single agent',

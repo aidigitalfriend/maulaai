@@ -114,7 +114,7 @@ Requirements:
 • Delete information when no longer needed
 
 Our Compliance:
-One Last AI does not knowingly collect information from children under 13. Our services are intended for users 18 years and older.`,
+Maula AI does not knowingly collect information from children under 13. Our services are intended for users 18 years and older.`,
       source: '15 U.S.C. §§ 6501–6506',
     },
   };
@@ -145,16 +145,16 @@ One Last AI does not knowingly collect information from children under 13. Our s
               1. Introduction
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Welcome to One Last AI ("we," "our," or "us"). We operate a global
+              Welcome to Maula AI ("we," "our," or "us"). We operate a global
               multi-agent AI platform that provides specialized AI personalities
               and services to users worldwide. This Privacy Policy explains how
               we collect, use, disclose, and safeguard your information when you
               use our platform at{' '}
               <a
-                href="https://onelastai.co"
+                href="https://maula.ai"
                 className="text-blue-600 hover:text-blue-700 underline"
               >
-                onelastai.co
+                maula.ai
               </a>
               .
             </p>
@@ -509,10 +509,10 @@ One Last AI does not knowingly collect information from children under 13. Our s
               <p className="text-gray-700">
                 Email us at{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-blue-600 hover:text-blue-700 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>{' '}
                 or use the privacy controls in your account settings. We will
                 respond within 30 days.
@@ -603,10 +603,10 @@ One Last AI does not knowingly collect information from children under 13. Our s
                 provided us with personal information, please contact us
                 immediately at{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-blue-600 hover:text-blue-700 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>
                 . We will delete such information promptly.
               </p>
@@ -653,32 +653,32 @@ One Last AI does not knowingly collect information from children under 13. Our s
               <p>
                 <strong className="text-white">Data Protection Officer:</strong>
               </p>
-              <p>One Last AI Privacy Team</p>
+              <p>Maula AI Privacy Team</p>
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
 

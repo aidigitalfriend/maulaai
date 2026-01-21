@@ -36,7 +36,7 @@ export default function PricingOverview() {
     },
     {
       name: 'Monthly',
-      price: '$19',
+      price: '$15',
       period: '/month',
       description: 'Best value for ongoing work and long-term projects',
       features: [

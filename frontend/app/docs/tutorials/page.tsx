@@ -140,7 +140,7 @@ export default function DocsTutorials() {
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Getting Started</h2>
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
             <p className="text-gray-700 mb-6 text-lg">
-              Welcome to One Last AI! This guide will help you create your first AI agent in just a few minutes.
+              Welcome to Maula AI! This guide will help you create your first AI agent in just a few minutes.
             </p>
 
             <div className="mb-8">
@@ -149,7 +149,7 @@ export default function DocsTutorials() {
                 <div className="flex gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
                   <div>
-                    <p className="font-semibold text-gray-900">Create an account on One Last AI</p>
+                    <p className="font-semibold text-gray-900">Create an account on Maula AI</p>
                     <p className="text-gray-600 text-sm">Visit the dashboard and sign up with your email</p>
                   </div>
                 </div>
@@ -176,15 +176,15 @@ export default function DocsTutorials() {
               <div className="bg-gray-900 p-4 rounded-lg space-y-3">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">JavaScript:</p>
-                  <code className="text-gray-200">npm install @One Last AI/sdk</code>
+                  <code className="text-gray-200">npm install @Maula AI/sdk</code>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Python:</p>
-                  <code className="text-gray-200">pip install One Last AI-sdk</code>
+                  <code className="text-gray-200">pip install Maula AI-sdk</code>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Go:</p>
-                  <code className="text-gray-200">go get github.com/One Last AI/sdk-go</code>
+                  <code className="text-gray-200">go get github.com/Maula AI/sdk-go</code>
                 </div>
               </div>
             </div>
@@ -193,11 +193,11 @@ export default function DocsTutorials() {
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Step 3: Create Your First Agent</h3>
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
-                  {`import { One Last AI } from '@One Last AI/sdk';
+                  {`import { Maula AI } from '@Maula AI/sdk';
 
 // Initialize client
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY
+const client = new Maula AI({
+  apiKey: process.env.Maula AI_API_KEY
 });
 
 // Create an agent
@@ -248,10 +248,10 @@ console.log('Agent created:', agent.id);`}
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Complete Example</h3>
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
-                  {`import { One Last AI } from '@One Last AI/sdk';
+                  {`import { Maula AI } from '@Maula AI/sdk';
 
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY
+const client = new Maula AI({
+  apiKey: process.env.Maula AI_API_KEY
 });
 
 // Create the support bot
@@ -574,8 +574,8 @@ const bot = await client.agents.create({
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
                   {`# .env.production
-One Last AI_API_KEY=your-production-key
-One Last AI_ENV=production
+Maula AI_API_KEY=your-production-key
+Maula AI_ENV=production
 NODE_ENV=production
 LOG_LEVEL=info
 
@@ -591,8 +591,8 @@ DATADOG_API_KEY=your-datadog-key`}
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
                   {`// Set up logging
-const client = new One Last AI({
-  apiKey: process.env.One Last AI_API_KEY,
+const client = new Maula AI({
+  apiKey: process.env.Maula AI_API_KEY,
   logLevel: 'info',
   onError: (error) => {
     console.error('Agent Error:', error);

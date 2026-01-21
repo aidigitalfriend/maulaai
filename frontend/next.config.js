@@ -128,8 +128,8 @@ const nextConfig = {
   images: {
     // Modern configuration: prefer remotePatterns over deprecated domains list
     remotePatterns: [
-      { protocol: 'https', hostname: 'onelastai.co' },
-      { protocol: 'https', hostname: 'www.onelastai.co' },
+      { protocol: 'https', hostname: 'maula.ai' },
+      { protocol: 'https', hostname: 'www.maula.ai' },
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: '*.wikimedia.org' },
@@ -216,7 +216,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             // Allow Monaco workers (blob), Tailwind CDN, Google Maps, PayPal, base64 image downloads, audio playback, and third-party assets used by the canvas preview.
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net https://js.stripe.com https://m.stripe.network https://www.paypal.com https://static.cloudflareinsights.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' blob: data: https://api.stripe.com https://m.stripe.network https://cloudflareinsights.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://*.s3.ap-southeast-1.amazonaws.com https://one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com https://maps.googleapis.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.google.com; worker-src 'self' blob: data:; media-src 'self' blob: data: https://www.soundhelix.com https://*.s3.ap-southeast-1.amazonaws.com https://one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self';",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net https://js.stripe.com https://m.stripe.network https://www.paypal.com https://static.cloudflareinsights.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' blob: data: https://maula.ai https://api.stripe.com https://m.stripe.network https://cloudflareinsights.com https://api.openai.com https://api.anthropic.com https://generativelanguage.googleapis.com https://*.s3.ap-southeast-1.amazonaws.com https://one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com https://maps.googleapis.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://www.google.com; worker-src 'self' blob: data:; media-src 'self' blob: data: https://www.soundhelix.com https://*.s3.ap-southeast-1.amazonaws.com https://one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self';",
           },
         ],
       },

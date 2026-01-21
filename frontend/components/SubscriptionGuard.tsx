@@ -93,7 +93,7 @@ export function SubscriptionGuard({
           </div>
 
           <p className="text-neural-500 text-sm mt-6">
-            New to One Last AI?{' '}
+            New to Maula AI?{' '}
             <Link
               href="/pricing"
               className="text-brand-400 hover:text-brand-300"

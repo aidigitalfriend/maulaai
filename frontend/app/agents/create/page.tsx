@@ -39,7 +39,7 @@ function AgentCreator() {
       category: 'Business',
       avatar: '💼',
       capabilities: ['Strategic Planning', 'Market Analysis', 'Financial Modeling'],
-      pricing: '$19/month'
+      pricing: '$15/month'
     },
     {
       id: 'creative-writer',
@@ -48,7 +48,7 @@ function AgentCreator() {
       category: 'Creative',
       avatar: '✍️',
       capabilities: ['Story Writing', 'Content Creation', 'Copywriting'],
-      pricing: '$19/month'
+      pricing: '$15/month'
     },
     {
       id: 'technical-expert',
@@ -57,7 +57,7 @@ function AgentCreator() {
       category: 'Technology',
       avatar: '👨‍💻',
       capabilities: ['Code Review', 'Architecture Design', 'Debugging'],
-      pricing: '$19/month'
+      pricing: '$15/month'
     },
     {
       id: 'custom-agent',
@@ -66,7 +66,7 @@ function AgentCreator() {
       category: 'Custom',
       avatar: '🎨',
       capabilities: ['Fully Customizable'],
-      pricing: '$29/month'
+      pricing: '$15/month'
     }
   ])
 

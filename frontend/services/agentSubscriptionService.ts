@@ -2,7 +2,7 @@ import { connectToDatabase } from '../lib/mongodb-client';
 import { getAgentSubscriptionModel } from '../models/AgentSubscription';
 const API_BASE =
   process.env.NODE_ENV === 'production'
-    ? 'https://onelastai.co/api'
+    ? 'https://maula.ai/api'
     : 'http://localhost:3005/api';
 
 export interface AgentSubscription {
@@ -49,10 +49,10 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'monthly',
     name: 'monthly',
     displayName: 'Monthly Plan',
-    price: 19,
+    price: 15,
     period: 'month',
     description: 'Best value for ongoing work',
-    priceFormatted: '$19.00',
+    priceFormatted: '$15.00',
   },
 ];
 

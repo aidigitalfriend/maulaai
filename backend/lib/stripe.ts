@@ -218,7 +218,7 @@ export function getAgentSubscriptionPlan(
   }
 
   const intervals = { daily: 'day', weekly: 'week', monthly: 'month' } as const;
-  const prices = { daily: 1.0, weekly: 5.0, monthly: 19.0 };
+  const prices = { daily: 1.0, weekly: 5.0, monthly: 15.0 };
 
   return {
     id: plan,
@@ -252,7 +252,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
   monthly: {
     id: 'monthly',
     name: 'Monthly Agent Access',
-    price: 19.0,
+    price: 15.0,
     interval: 'month',
     productId: process.env.STRIPE_PRODUCT_MONTHLY || 'prod_Ta7WCiX1iu9g6C',
     priceId:

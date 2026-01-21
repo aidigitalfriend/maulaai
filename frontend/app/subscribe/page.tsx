@@ -178,7 +178,7 @@ function SubscriptionContent() {
     },
     {
       type: 'Monthly',
-      price: '$19',
+      price: '$15',
       period: 'per month',
       features: [
         'Full access to ' + agentName,
@@ -437,7 +437,7 @@ function SubscriptionContent() {
               </h3>
               <p className="text-sm text-gray-600">
                 All agents use the same simple pricing: $1/day, $5/week, or
-                $19/month. Each purchase is one-time with no recurring charges.
+                $15/month. Each purchase is one-time with no recurring charges.
               </p>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">

@@ -13,7 +13,7 @@ export interface ProviderModelOption {
 // AGENT-SPECIFIC AI PROVIDER OPTIONS
 // ============================================================================
 // Each agent gets customized dropdown options based on their personality
-// First option = Agent's primary persona, Second option = One Last AI fallback
+// First option = Agent's primary persona, Second option = Maula AI fallback
 // ============================================================================
 
 // Einstein - Theoretical Physicist
@@ -28,7 +28,7 @@ const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'groq',
-    label: 'One Last AI',
+    label: 'Maula AI',
     models: [
       { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
       { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
@@ -121,11 +121,11 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
 
 export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
   // ─────────────────────────────────────────────────────────────────────────
-  // ONE LAST AI - Default options (Recommended)
+  // MAULA AI - Default options (Recommended)
   // ─────────────────────────────────────────────────────────────────────────
   {
     provider: 'cerebras',  // Backend: Maps to Cerebras (fast & reliable)
-    label: '⚡ One Last AI 1',
+    label: '⚡ Maula AI 1',
     models: [
       { value: 'llama3.1-8b', label: 'Fast Response' },
       { value: 'llama-3.3-70b', label: 'Smart Response' },
@@ -133,7 +133,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'groq',  // Backend: Maps to Groq (ultra fast)
-    label: '🚀 One Last AI 2',
+    label: '🚀 Maula AI 2',
     models: [
       { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
       { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },

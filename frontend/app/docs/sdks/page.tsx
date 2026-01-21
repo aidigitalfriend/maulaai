@@ -304,7 +304,7 @@ for await (const chunk of stream) {
               <div className="text-4xl mb-4">⚙️</div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Easy to Use</h3>
               <p className="text-gray-600 text-sm">
-                Simple APIs that make it easy to integrate One Last AI into your apps
+                Simple APIs that make it easy to integrate Maula AI into your apps
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">

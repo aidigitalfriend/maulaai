@@ -1,4 +1,4 @@
-# 📊 Dashboard Page Analysis - onelastai.co/dashboard
+# 📊 Dashboard Page Analysis - maula.ai/dashboard
 
 **Date:** December 27, 2024  
 **Page:** `/dashboard` (Main Dashboard)  

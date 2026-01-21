@@ -10,7 +10,7 @@
 ```
                     ┌─────────────────────────────────────┐
                     │     USER BROWSER                    │
-                    │  https://onelastai.co              │
+                    │  https://maula.ai              │
                     └──────────────┬──────────────────────┘
                                    │
                     ┌──────────────▼──────────────────────┐
@@ -273,7 +273,7 @@ Both handle same endpoint! Which one is used?
 
 ```env
 # Root .env says:
-NEXT_PUBLIC_API_URL=https://onelastai.co/api  # Points to Next.js
+NEXT_PUBLIC_API_URL=https://maula.ai/api  # Points to Next.js
 
 # But backend is:
 BACKEND_URL=http://localhost:3005             # Different server

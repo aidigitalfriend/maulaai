@@ -198,7 +198,7 @@ async function createSampleData() {
 
   try {
     // Check if sample data already exists
-    const existingUser = await User.findOne({ email: 'admin@onelastai.com' });
+    const existingUser = await User.findOne({ email: 'admin@maula.aim' });
     if (existingUser) {
       console.log('ℹ️  Sample data already exists, skipping creation');
       return;
@@ -206,7 +206,7 @@ async function createSampleData() {
 
     // Create sample user
     const sampleUser = new User({
-      email: 'admin@onelastai.com',
+      email: 'admin@maula.aim',
       name: 'Admin User',
       authMethod: 'password',
       role: 'admin',
@@ -220,7 +220,7 @@ async function createSampleData() {
       authorId: sampleUser._id,
       authorName: 'Admin User',
       content:
-        'Welcome to the One Last AI community! This is a sample post to test the community features.',
+        'Welcome to the Maula AI community! This is a sample post to test the community features.',
       category: 'general',
       isPinned: true,
     });
@@ -261,7 +261,7 @@ async function createSampleData() {
       userId: sampleUser._id.toString(),
       type: 'in-app',
       category: 'system',
-      title: 'Welcome to One Last AI!',
+      title: 'Welcome to Maula AI!',
       message:
         'Your account has been successfully created. Explore our AI agents and tools.',
       priority: 'medium',
@@ -324,7 +324,7 @@ async function createSampleData() {
       {
         name: 'Monthly',
         displayName: 'Monthly Agent Access',
-        description: '$19 per month per agent',
+        description: '$15 per month per agent',
         billingPeriod: 'monthly',
         amount: 1900,
         usageCap: 15000,
@@ -498,7 +498,7 @@ async function checkCollectionHealth() {
 }
 
 async function main() {
-  console.log('🚀 One Last AI - Database Initializer\n');
+  console.log('🚀 Maula AI - Database Initializer\n');
 
   await connectToDatabase();
   await initializeCollections();

@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This document defines the non-negotiable rules for deploying the Next.js frontend for `onelastai.co`.
+This document defines the non-negotiable rules for deploying the Next.js frontend for `maula.ai`.
 
 Goal: **Prevent broken or partial frontend builds from ever reaching users**, while keeping the last known-good version live until a new build is fully validated.
 

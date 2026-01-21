@@ -46,7 +46,7 @@ export default function PaymentsRefundsPage() {
                     One-Time Purchases - No Auto-Renewal
                   </p>
                   <p className="text-gray-700">
-                    Choose from $1/day, $5/week, or $19/month access to any AI
+                    Choose from $1/day, $5/week, or $15/month access to any AI
                     agent. Each purchase is one-time only with NO automatic
                     renewal. You only pay when you want access.
                   </p>
@@ -75,7 +75,7 @@ export default function PaymentsRefundsPage() {
                         One-Time Purchase
                       </p>
                       <p className="text-gray-600 text-sm">
-                        $1/day, $5/week, or $19/month - NO auto-renewal
+                        $1/day, $5/week, or $15/month - NO auto-renewal
                       </p>
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export default function PaymentsRefundsPage() {
                   2.2 No Free Tier
                 </h3>
                 <p className="text-gray-700">
-                  One Last AI does not offer a free tier. All agent access
+                  Maula AI does not offer a free tier. All agent access
                   requires a one-time payment starting at $1/day. This low-cost
                   model ensures:
                 </p>
@@ -398,12 +398,12 @@ export default function PaymentsRefundsPage() {
                 </h3>
                 <p className="text-gray-700 leading-relaxed mb-4 text-lg">
                   <strong className="text-red-600">
-                    ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.
+                    MAULA AI DOES NOT OFFER REFUNDS FOR ANY REASON.
                   </strong>
                 </p>
                 <p className="text-gray-700 leading-relaxed">
                   {' '}
-                  All payments made to One Last AI are{' '}
+                  All payments made to Maula AI are{' '}
                   <strong className="text-gray-900">
                     final, non-refundable, and non-transferable
                   </strong>
@@ -412,7 +412,7 @@ export default function PaymentsRefundsPage() {
                 <ul className="list-disc pl-6 text-gray-700 space-y-2 mt-3">
                   <li>Daily access charges ($1.00 per day)</li>
                   <li>Weekly access charges ($5.00 per week)</li>
-                  <li>Monthly access charges ($19.00 per month)</li>
+                  <li>Monthly access charges ($15.00 per month)</li>
                   <li>Any one-time purchase fees</li>
                   <li>Payments made in error</li>
                   <li>Duplicate payments</li>
@@ -545,10 +545,10 @@ export default function PaymentsRefundsPage() {
                     <strong className="text-gray-900">Contact Support:</strong>{' '}
                     Email{' '}
                     <a
-                      href="mailto:support@onelastai.co"
+                      href="mailto:support@maula.ai"
                       className="text-blue-600 hover:text-blue-700 underline"
                     >
-                      support@onelastai.co
+                      support@maula.ai
                     </a>{' '}
                     for technical assistance
                   </li>
@@ -567,10 +567,10 @@ export default function PaymentsRefundsPage() {
                     </strong>{' '}
                     Explore guides and tutorials at{' '}
                     <a
-                      href="https://onelastai.co/docs"
+                      href="https://maula.ai/docs"
                       className="text-blue-600 hover:text-blue-700 underline"
                     >
-                      onelastai.co/docs
+                      maula.ai/docs
                     </a>
                   </li>
                 </ul>
@@ -626,10 +626,10 @@ export default function PaymentsRefundsPage() {
                     <p className="text-gray-700 text-sm">
                       Email{' '}
                       <a
-                        href="mailto:support@onelastai.co"
+                        href="mailto:support@maula.ai"
                         className="text-blue-600 hover:text-blue-700 underline"
                       >
-                        support@onelastai.co
+                        support@maula.ai
                       </a>{' '}
                       with your account email, agent name, and "CANCEL ACCESS"
                       in the subject line
@@ -679,7 +679,7 @@ export default function PaymentsRefundsPage() {
                   <li>Go to /subscribe page</li>
                   <li>Choose the same or different agent</li>
                   <li>
-                    Select your preferred plan ($1/day, $5/week, or $19/month)
+                    Select your preferred plan ($1/day, $5/week, or $15/month)
                   </li>
                   <li>Complete payment - access starts immediately</li>
                   <li>
@@ -706,10 +706,10 @@ export default function PaymentsRefundsPage() {
                   Before filing a chargeback or payment dispute with your bank,
                   please contact us at{' '}
                   <a
-                    href="mailto:billing@onelastai.co"
+                    href="mailto:billing@maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    billing@onelastai.co
+                    billing@maula.ai
                   </a>
                   . We're committed to resolving billing issues quickly.
                 </p>
@@ -792,28 +792,28 @@ export default function PaymentsRefundsPage() {
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:billing@onelastai.co"
+                  href="mailto:billing@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  billing@onelastai.co
+                  billing@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
 

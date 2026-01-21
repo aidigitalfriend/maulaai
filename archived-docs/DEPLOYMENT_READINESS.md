@@ -1,7 +1,7 @@
 # 🚀 DEPLOYMENT READINESS CHECKLIST
 
 **Date:** December 27, 2024  
-**Project:** One Last AI (onelastai.co)  
+**Project:** Maula AI (maula.ai)  
 **Status:** ⚠️ **READY AFTER SECURITY FIX**
 
 ---
@@ -121,7 +121,7 @@ LOG_LEVEL=info
 
 ```bash
 # 1. SSH into server
-ssh user@onelastai.co
+ssh user@maula.ai
 
 # 2. Pull latest code
 cd /path/to/shiny-friend-disco
@@ -162,13 +162,13 @@ cd /Users/onelastai/Downloads/shiny-friend-disco
 
 ```bash
 # Backend health
-curl https://onelastai.co:3005/health
+curl https://maula.ai:3005/health
 
 # Frontend
-curl https://onelastai.co/
+curl https://maula.ai/
 
 # API routes
-curl https://onelastai.co/api/status
+curl https://maula.ai/api/status
 ```
 
 ### **2. Monitor Logs**
@@ -187,7 +187,7 @@ sudo tail -f /var/log/nginx/access.log
 
 ### **3. Test Critical Features**
 
-- Visit https://onelastai.co
+- Visit https://maula.ai
 - Test user login
 - Try agent chat
 - Check dashboard loads
@@ -201,7 +201,7 @@ sudo tail -f /var/log/nginx/access.log
 
 ```bash
 # SSH into server
-ssh user@onelastai.co
+ssh user@maula.ai
 
 # Revert to previous commit
 cd /path/to/shiny-friend-disco
@@ -291,7 +291,7 @@ pm2 restart all
 
 - MongoDB Atlas: Check connection string in backend/.env
 - Stripe: Verify webhook endpoints configured
-- NGINX: Check `/etc/nginx/sites-available/onelastai.co.conf`
+- NGINX: Check `/etc/nginx/sites-available/maula.ai.conf`
 - SSL: Check certificate: `sudo certbot certificates`
 - PM2: Check processes: `pm2 list`, `pm2 logs`
 

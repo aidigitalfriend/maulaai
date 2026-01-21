@@ -152,12 +152,12 @@ Many services allow users to opt out of arbitration within a specified period (t
               1. Acceptance of Terms
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Welcome to One Last AI. By accessing or using our platform at{' '}
+              Welcome to Maula AI. By accessing or using our platform at{' '}
               <a
-                href="https://onelastai.co"
+                href="https://maula.ai"
                 className="text-blue-600 hover:text-blue-700 underline"
               >
-                onelastai.co
+                maula.ai
               </a>
               , you agree to be bound by these Terms of Service ("Terms"), our{' '}
               <a
@@ -195,7 +195,7 @@ Many services allow users to opt out of arbitration within a specified period (t
               2. Service Description
             </h2>
             <p className="text-gray-700 mb-4">
-              One Last AI provides a global multi-agent AI platform featuring:
+              Maula AI provides a global multi-agent AI platform featuring:
             </p>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
@@ -275,7 +275,7 @@ Many services allow users to opt out of arbitration within a specified period (t
                     you're charged only once per purchase
                   </li>
                   <li>You may cancel access at any time (no refund)</li>
-                  <li>Choose from $1/day, $5/week, or $19/month per agent</li>
+                  <li>Choose from $1/day, $5/week, or $15/month per agent</li>
                   <li>
                     Access expires automatically at the end of your chosen
                     period
@@ -461,7 +461,7 @@ Many services allow users to opt out of arbitration within a specified period (t
                 </h3>
                 <p className="text-gray-700 mb-2">
                   All platform content, features, and functionality are owned by
-                  One Last AI and protected by:
+                  Maula AI and protected by:
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
                   <li>Copyright laws</li>
@@ -535,10 +535,10 @@ Many services allow users to opt out of arbitration within a specified period (t
                 <p className="text-gray-700">
                   To file a copyright infringement notice, email:{' '}
                   <a
-                    href="mailto:dmca@onelastai.co"
+                    href="mailto:dmca@maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    dmca@onelastai.co
+                    dmca@maula.ai
                   </a>
                 </p>
               </div>
@@ -598,7 +598,7 @@ Many services allow users to opt out of arbitration within a specified period (t
                 </h3>
                 <div className="bg-red-50 rounded-xl p-6 border border-red-200">
                   <p className="text-gray-700 mb-3">
-                    TO THE MAXIMUM EXTENT PERMITTED BY LAW, ONE LAST AI SHALL
+                    TO THE MAXIMUM EXTENT PERMITTED BY LAW, MAULA AI SHALL
                     NOT BE LIABLE FOR:
                   </p>
                   <ul className="list-disc pl-6 text-gray-700 space-y-2">
@@ -642,10 +642,10 @@ Many services allow users to opt out of arbitration within a specified period (t
                 <p className="text-gray-700">
                   Before filing a claim, please contact us at{' '}
                   <a
-                    href="mailto:legal@onelastai.co"
+                    href="mailto:legal@maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    legal@onelastai.co
+                    legal@maula.ai
                   </a>{' '}
                   to attempt informal resolution.
                 </p>
@@ -717,43 +717,43 @@ Many services allow users to opt out of arbitration within a specified period (t
             <div className="space-y-3 text-blue-100">
               <p>
                 <strong className="text-white">
-                  One Last AI Legal Department
+                  Maula AI Legal Department
                 </strong>
               </p>
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:legal@onelastai.co"
+                  href="mailto:legal@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  legal@onelastai.co
+                  legal@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 DMCA:{' '}
                 <a
-                  href="mailto:dmca@onelastai.co"
+                  href="mailto:dmca@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  dmca@onelastai.co
+                  dmca@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
             </div>

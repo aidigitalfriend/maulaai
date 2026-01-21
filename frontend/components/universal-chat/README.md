@@ -79,7 +79,7 @@ Toggle via the sparkles/sun icon in the header.
 
 The chat service expects an endpoint at:
 
-- Production: `https://onelastai.co/api/studio/chat`
+- Production: `https://maula.ai/api/studio/chat`
 - Development: `http://localhost:3000/api/studio/chat`
 
 Expected request body:

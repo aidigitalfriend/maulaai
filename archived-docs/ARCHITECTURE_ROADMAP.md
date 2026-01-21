@@ -42,7 +42,7 @@
 - [ ] **Task:** Add `NEXT_PUBLIC_BACKEND_URL` for Express calls
   - **Files:** `/frontend/.env`, `/frontend/.env.production`
   - **Value (dev):** `http://localhost:3005`
-  - **Value (prod):** `https://onelastai.co:3005` or internal IP
+  - **Value (prod):** `https://maula.ai:3005` or internal IP
   - **Status:** 🔴 Not Started
 
 #### 1.2 API Routes to Keep in Next.js
@@ -113,7 +113,7 @@
 - [ ] **Task:** Fix `agentSubscriptionService.ts`
 
   - **File:** `/frontend/services/agentSubscriptionService.ts`
-  - **Current:** `const API_BASE = process.env.NODE_ENV === 'production' ? 'https://onelastai.co/api' : 'http://localhost:3005/api';`
+  - **Current:** `const API_BASE = process.env.NODE_ENV === 'production' ? 'https://maula.ai/api' : 'http://localhost:3005/api';`
   - **New:** `const API_BASE = '/api';` (use Next.js local routes)
   - **Status:** 🔴 Not Started
 
@@ -161,8 +161,8 @@
   - **Status:** 🔴 Not Started
 
 - [ ] **Task:** Update Stripe dashboard webhook URL
-  - **Current URL:** `https://onelastai.co/api/stripe/webhook`
-  - **New URL:** `https://onelastai.co:3005/webhooks/stripe`
+  - **Current URL:** `https://maula.ai/api/stripe/webhook`
+  - **New URL:** `https://maula.ai:3005/webhooks/stripe`
   - **Status:** 🔴 Not Started
 
 #### 2.2 Express Environment Variables
@@ -170,7 +170,7 @@
 - [ ] **Task:** Add backend-specific variables to `/backend/.env`
 
   - **Add:** `BACKEND_PORT=3005`
-  - **Add:** `FRONTEND_URL=https://onelastai.co` (for CORS)
+  - **Add:** `FRONTEND_URL=https://maula.ai` (for CORS)
   - **Keep:** All Stripe keys, MongoDB URI, AI keys
   - **Status:** 🔴 Not Started
 
@@ -205,7 +205,7 @@
 - [ ] **Task:** Update CORS in Express to allow Next.js frontend
   - **File:** `/backend/server-simple.js`
   - **Current:** `origin: process.env.ALLOWED_ORIGINS?.split(',')`
-  - **Update:** Ensure includes `http://localhost:3000` (dev) and `https://onelastai.co` (prod)
+  - **Update:** Ensure includes `http://localhost:3000` (dev) and `https://maula.ai` (prod)
   - **Status:** 🔴 Not Started
 
 #### 2.5 Express Socket.io Setup

@@ -38,7 +38,7 @@ const AGENTS = {
 const PRICING = {
   daily: { amount: 100, interval: 'day' }, // $1.00
   weekly: { amount: 500, interval: 'week' }, // $5.00
-  monthly: { amount: 1900, interval: 'month' }, // $19.00
+  monthly: { amount: 1900, interval: 'month' }, // $15.00
 };
 
 async function createAgentProducts() {

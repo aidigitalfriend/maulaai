@@ -216,7 +216,7 @@ pm2 restart 2
 
 ```
 1. Login as user: onelastai2.0@gmail.com
-2. Navigate to: https://onelastai.co/dashboard/billing
+2. Navigate to: https://maula.ai/dashboard/billing
 3. Expected: Should show 1 Einstein subscription only
 4. Should NOT show other users' 36 subscriptions
 ```

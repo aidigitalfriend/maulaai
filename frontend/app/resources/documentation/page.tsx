@@ -42,9 +42,9 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to One Last AI</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to Maula AI</h3>
             <p className="text-gray-600 leading-relaxed">
-              One Last AI is a powerful platform that lets you interact with specialized AI agents for various purposes. Whether you need help with physics, cooking advice, emotional support, or entertainment, our 18 unique AI personalities are ready to assist you.
+              Maula AI is a powerful platform that lets you interact with specialized AI agents for various purposes. Whether you need help with physics, cooking advice, emotional support, or entertainment, our 18 unique AI personalities are ready to assist you.
             </p>
           </div>
 
@@ -90,7 +90,7 @@ export default function DocumentationPage() {
 
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100">
             <p className="text-gray-700 text-sm">
-              💡 <strong>Tip:</strong> Start with the &quot;Integration Guide&quot; section to learn how to connect One Last AI to your platform.
+              💡 <strong>Tip:</strong> Start with the &quot;Integration Guide&quot; section to learn how to connect Maula AI to your platform.
             </p>
           </div>
         </div>
@@ -104,14 +104,14 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">API Reference</h3>
             <p className="text-gray-600 leading-relaxed">
-              The One Last AI API provides RESTful endpoints for managing agents, conversations, and more.
+              The Maula AI API provides RESTful endpoints for managing agents, conversations, and more.
             </p>
           </div>
 
           <div>
             <h4 className="text-xl font-bold text-gray-900 mb-3">Base URL</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400">
-              https://api.onelastai.co/v1
+              https://api.maula.ai/v1
             </div>
           </div>
 
@@ -156,7 +156,7 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Authentication</h3>
             <p className="text-gray-600 leading-relaxed">
-              All One Last AI API requests require authentication using an API key.
+              All Maula AI API requests require authentication using an API key.
             </p>
           </div>
 
@@ -181,7 +181,7 @@ export default function DocumentationPage() {
           <div>
             <h4 className="text-xl font-bold text-gray-900 mb-3">Example Request</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400 overflow-x-auto">
-              <pre>{`curl -X GET https://api.onelastai.co/v1/agents \\
+              <pre>{`curl -X GET https://api.maula.ai/v1/agents \\
   -H "Authorization: Bearer YOUR_API_KEY"`}</pre>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function DocumentationPage() {
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Integration Guide</h3>
             <p className="text-gray-600 leading-relaxed">
-              Learn how to integrate One Last AI with your applications.
+              Learn how to integrate Maula AI with your applications.
             </p>
           </div>
 
@@ -210,7 +210,7 @@ export default function DocumentationPage() {
             <h4 className="text-xl font-bold text-gray-900 mb-3">Web Integration</h4>
             <p className="text-gray-600 mb-3">Add a chat widget to your website:</p>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-blue-400 overflow-x-auto">
-              <pre>{`<script src="https://cdn.onelastai.co/widget.js"></script>
+              <pre>{`<script src="https://cdn.maula.ai/widget.js"></script>
 <script>
   OnelastAI.init({
     apiKey: 'YOUR_API_KEY',
@@ -224,7 +224,7 @@ export default function DocumentationPage() {
             <h4 className="text-xl font-bold text-gray-900 mb-3">Slack Integration</h4>
             <ol className="space-y-2 list-decimal list-inside text-gray-600">
               <li>Go to your workspace settings</li>
-              <li>Connect One Last AI to your Slack workspace</li>
+              <li>Connect Maula AI to your Slack workspace</li>
               <li>Authorize the required permissions</li>
               <li>Your agent is now available in Slack!</li>
             </ol>
@@ -232,7 +232,7 @@ export default function DocumentationPage() {
 
           <div>
             <h4 className="text-xl font-bold text-gray-900 mb-3">Discord Integration</h4>
-            <p className="text-gray-600">Similar to Slack, you can integrate One Last AI with Discord to make your agents available as bots in your servers.</p>
+            <p className="text-gray-600">Similar to Slack, you can integrate Maula AI with Discord to make your agents available as bots in your servers.</p>
           </div>
 
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100">
@@ -260,7 +260,7 @@ export default function DocumentationPage() {
             <div className="space-y-2 text-gray-600">
               <p>1. Configure a webhook URL in your dashboard</p>
               <p>2. Choose which events to subscribe to</p>
-              <p>3. One Last AI will POST to your URL when events occur</p>
+              <p>3. Maula AI will POST to your URL when events occur</p>
             </div>
           </div>
 
@@ -420,7 +420,7 @@ export default function DocumentationPage() {
             Developer Resources
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Documentation & Agents</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn everything about One Last AI and explore our 18 specialized AI agents</p>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn everything about Maula AI and explore our 18 specialized AI agents</p>
         </div>
       </section>
 

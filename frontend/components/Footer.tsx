@@ -110,14 +110,14 @@ export default function Footer() {
                 <div className="absolute inset-0 bg-brand-500/20 rounded-xl blur-xl group-hover:bg-brand-500/40 transition-all duration-300"></div>
                 <Image
                   src="/images/logos/company-logo.png"
-                  alt="One Last AI"
+                  alt="Maula AI"
                   width={48}
                   height={48}
                   className="relative w-12 h-12 object-contain"
                 />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-white via-white to-neural-300 bg-clip-text text-transparent">
-                One Last AI
+                Maula AI
               </span>
             </Link>
             <p className="text-neural-400 text-base leading-relaxed max-w-md">
@@ -219,7 +219,7 @@ export default function Footer() {
         <div className="container-custom py-3 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
             <p className="text-purple-300/70 text-xs">
-              © {currentYear} One Last AI. All rights reserved.
+              © {currentYear} Maula AI. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               {bottomLinks.map((link) => (

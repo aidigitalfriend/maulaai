@@ -796,7 +796,7 @@ export default function HomePage() {
                   { q: 'How do I get started?', a: 'Sign up, choose your AI agents, and start chatting within minutes.' },
                   { q: 'What AI agents are available?', a: '20+ specialized personalities including Einstein, Tech Wizard, and more.' },
                   { q: 'Is my data secure?', a: 'Bank-level encryption, SOC 2 compliance, and privacy-first architecture.' },
-                  { q: 'What pricing plans exist?', a: 'Simple per-agent pricing: $1/day, $5/week, or $19/month.' },
+                  { q: 'What pricing plans exist?', a: 'Simple per-agent pricing: $1/day, $5/week, or $15/month.' },
                 ].map((item, idx) => (
                   <div key={idx} className="border-l-4 border-violet-500 pl-6 hover:border-violet-300 transition-colors">
                     <h3 className="text-lg font-bold mb-2 text-white">{item.q}</h3>
@@ -838,12 +838,12 @@ export default function HomePage() {
                 <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Updates</span>
               </h2>
               <p className="text-lg text-neural-300 mb-8 leading-relaxed">
-                Stay informed about new features, platform improvements, and exciting announcements from One Last AI.
+                Stay informed about new features, platform improvements, and exciting announcements from Maula AI.
               </p>
               <div className="space-y-4 mb-8">
                 {[
                   { date: 'Jan 19, 2026', title: 'New Voice-to-Voice Agent Available', category: 'Feature' },
-                  { date: 'Jan 15, 2026', title: 'One Last AI Reaches 10K Active Users', category: 'Milestone' },
+                  { date: 'Jan 15, 2026', title: 'Maula AI Reaches 10K Active Users', category: 'Milestone' },
                   { date: 'Jan 10, 2026', title: 'Enterprise Security Enhancements', category: 'Security' },
                 ].map((news, idx) => (
                   <div key={idx} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:border-amber-500/50 transition-colors">
@@ -1138,7 +1138,7 @@ export default function HomePage() {
                 {[
                   { name: 'Daily', price: '$1/day', desc: 'Perfect for trying out' },
                   { name: 'Weekly', price: '$5/week', desc: 'Save 29% - Popular choice', highlight: true },
-                  { name: 'Monthly', price: '$19/month', desc: 'Save 37% - Best value' },
+                  { name: 'Monthly', price: '$15/month', desc: 'Save 37% - Best value' },
                 ].map((plan, idx) => (
                   <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${plan.highlight ? 'bg-blue-500/20 border-blue-500/50' : 'bg-white/5 border-white/10 hover:border-blue-500/50'}`}>
                     <div>
@@ -1218,7 +1218,7 @@ export default function HomePage() {
             <div className="relative">
               <img
                 src="/images/products/why-choose-us.jpeg"
-                alt="Why Choose One Last AI"
+                alt="Why Choose Maula AI"
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '500px' }}
               />

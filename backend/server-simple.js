@@ -45,8 +45,8 @@ const io = new Server(server, {
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3003',
-      'https://onelastai.co',
-      'https://www.onelastai.co',
+      'https://maula.ai',
+      'https://www.maula.ai',
     ],
     credentials: true,
   },
@@ -62,8 +62,8 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3003',
-    'https://onelastai.co',
-    'https://www.onelastai.co',
+    'https://maula.ai',
+    'https://www.maula.ai',
   ],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -3554,7 +3554,7 @@ const PLAN_TEMPLATES = [
   {
     key: 'monthly',
     name: 'Monthly Agent Access',
-    description: '$19 per month per agent',
+    description: '$15 per month per agent',
     defaultPrice: 19,
     billingPeriod: 'monthly',
     interval: 'month',
@@ -3851,7 +3851,7 @@ app.get('/api/user/billing/:userId', async (req, res) => {
             billingPeriod: 'monthly',
             price: 1,
             description:
-              '$19 per month per agent - Best value for continuous access',
+              '$15 per month per agent - Best value for continuous access',
             status: activeAgentSubscriptions.some(
               (s) =>
                 s.billing?.interval === 'month' ||

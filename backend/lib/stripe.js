@@ -188,7 +188,7 @@ function getAgentSubscriptionPlan(agentId, plan) {
     );
   }
   const intervals = { daily: 'day', weekly: 'week', monthly: 'month' };
-  const prices = { daily: 1, weekly: 5, monthly: 19 };
+  const prices = { daily: 1, weekly: 5, monthly: 15 };
   return {
     id: plan,
     name: `${agentId} ${plan.charAt(0).toUpperCase() + plan.slice(1)} Access`,
@@ -219,7 +219,7 @@ const SUBSCRIPTION_PLANS = {
   monthly: {
     id: 'monthly',
     name: 'Monthly Agent Access',
-    price: 19,
+    price: 15,
     interval: 'month',
     productId: process.env.STRIPE_PRODUCT_MONTHLY || 'prod_Ta7WCiX1iu9g6C',
     priceId:
