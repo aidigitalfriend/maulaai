@@ -1344,7 +1344,36 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             alt || `generated-image-${Date.now()}.png`;
 
                           try {
-                            // Use our proxy endpoint to bypass CORS
+                            // Handle base64 data URLs directly (no proxy needed)
+                            if (src.startsWith('data:')) {
+                              // Extract the base64 data and create a blob
+                              const [header, base64Data] = src.split(',');
+                              const mimeMatch = header.match(/data:([^;]+)/);
+                              const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                              
+                              const byteCharacters = atob(base64Data);
+                              const byteNumbers = new Array(byteCharacters.length);
+                              for (let i = 0; i < byteCharacters.length; i++) {
+                                byteNumbers[i] = byteCharacters.charCodeAt(i);
+                              }
+                              const byteArray = new Uint8Array(byteNumbers);
+                              const blob = new Blob([byteArray], { type: mimeType });
+                              
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = filename;
+                              a.style.display = 'none';
+                              document.body.appendChild(a);
+                              a.click();
+                              setTimeout(() => {
+                                document.body.removeChild(a);
+                                window.URL.revokeObjectURL(url);
+                              }, 100);
+                              return;
+                            }
+
+                            // Use our proxy endpoint to bypass CORS for remote URLs
                             const proxyUrl = `/api/uploads/proxy-download?url=${encodeURIComponent(src)}&filename=${encodeURIComponent(filename)}`;
 
                             const response = await fetch(proxyUrl);
@@ -1402,7 +1431,30 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  window.open(src, '_blank');
+                                  // Handle base64 data URLs - create blob URL for new tab
+                                  if (src?.startsWith('data:')) {
+                                    try {
+                                      const [header, base64Data] = src.split(',');
+                                      const mimeMatch = header.match(/data:([^;]+)/);
+                                      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                                      
+                                      const byteCharacters = atob(base64Data);
+                                      const byteNumbers = new Array(byteCharacters.length);
+                                      for (let i = 0; i < byteCharacters.length; i++) {
+                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                      }
+                                      const byteArray = new Uint8Array(byteNumbers);
+                                      const blob = new Blob([byteArray], { type: mimeType });
+                                      const blobUrl = window.URL.createObjectURL(blob);
+                                      window.open(blobUrl, '_blank');
+                                      // Clean up after a delay
+                                      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+                                    } catch (err) {
+                                      console.error('Failed to open base64 image:', err);
+                                    }
+                                  } else {
+                                    window.open(src, '_blank');
+                                  }
                                 }}
                                 className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
                                 title="Open full size"
