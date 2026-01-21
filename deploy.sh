@@ -110,7 +110,7 @@ echo "🗄️ Generating Prisma client"
 npx prisma generate
 
 echo "🔄 Restarting backend"
-pm2 restart shiny-backend || true
+pm2 restart maula-backend || true
 
 cd ..
 
@@ -124,7 +124,7 @@ echo "🏗️ Building Next.js frontend"
 NEXT_TELEMETRY_DISABLED=1 npm run build
 
 echo "🔄 Restarting frontend"
-pm2 restart shiny-frontend || true
+pm2 restart maula-frontend || true
 
 echo "📊 PM2 status"
 pm2 list
@@ -140,8 +140,8 @@ ssh -tt -i "$SSH_KEY" "$SERVER" "\
   ss -tuln | grep ':3000'; \
   ss -tuln | grep ':3005'; \
   echo '\n--- PM2 process info ---'; \
-  pm2 info shiny-backend; \
-  pm2 info shiny-frontend; \
+  pm2 info maula-backend; \
+  pm2 info maula-frontend; \
   echo '\n--- NGINX error log (last 50 lines) ---'; \
   sudo tail -n 50 /var/log/nginx/maula.ai-error.log; \
   echo '\n--- Updating NGINX config ---'; \
@@ -150,7 +150,6 @@ ssh -tt -i "$SSH_KEY" "$SERVER" "\
   sudo nginx -t && sudo systemctl restart nginx; \
   echo '\n--- Retesting endpoints ---'; \
   curl -f https://maula.ai/api/status | head -c 200 || echo 'Status endpoint failed'; \
-  curl -f https://maula.ai/api/user/profile | head -c 200 || echo 'Profile endpoint failed'; \
 "
 
 print_status "✅ Deployment and diagnostics complete"
