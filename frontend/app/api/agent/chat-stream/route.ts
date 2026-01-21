@@ -693,11 +693,22 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             messages.push({ role: 'system', content: enhancedSystemPrompt });
           }
 
-          // Add conversation history
+          // Add conversation history - but filter out base64 image data to prevent token overflow
           for (const msg of conversationHistory) {
+            let content = msg.content;
+            
+            // Strip base64 image data URLs from content (they can be 2MB+ and cause token limit errors)
+            // Replace with a placeholder so the AI knows an image was there
+            if (content && typeof content === 'string') {
+              // Match markdown images with base64 data URLs: ![alt](data:image/...)
+              content = content.replace(/!\[([^\]]*)\]\(data:image\/[^)]+\)/g, '[Generated Image: $1]');
+              // Also match standalone base64 data URLs
+              content = content.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]{100,}/g, '[base64 image data removed]');
+            }
+            
             messages.push({
               role: msg.role,
-              content: msg.content,
+              content: content,
             });
           }
 

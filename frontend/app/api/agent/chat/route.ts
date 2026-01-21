@@ -12,6 +12,16 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const COHERE_API_KEY = process.env.COHERE_API_KEY;
 
+// Helper function to strip base64 image data from content to prevent token overflow
+function stripBase64FromContent(content: string): string {
+  if (!content || typeof content !== 'string') return content;
+  // Replace markdown images with base64 data URLs: ![alt](data:image/...)
+  let cleaned = content.replace(/!\[([^\]]*)\]\(data:image\/[^)]+\)/g, '[Generated Image: $1]');
+  // Also replace standalone base64 data URLs
+  cleaned = cleaned.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]{100,}/g, '[base64 image data removed]');
+  return cleaned;
+}
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour for agents
 const RATE_LIMIT_MAX_MESSAGES = 50; // 50 messages per hour for agents
@@ -254,14 +264,14 @@ const openaiProvider: AIProvider = {
           { role: 'system', content: systemPrompt },
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: userContent },
         ]
       : [
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: userContent },
         ];
@@ -310,7 +320,7 @@ const anthropicProvider: AIProvider = {
 
     const userMessages = conversationHistory
       .filter((msg) => msg.role !== 'system')
-      .map((msg) => ({ role: msg.role, content: msg.content }));
+      .map((msg) => ({ role: msg.role, content: stripBase64FromContent(msg.content) }));
 
     // Build user message content - support multimodal (text + images)
     const userContent: any[] = [{ type: 'text', text: message }];
@@ -388,14 +398,14 @@ const xaiProvider: AIProvider = {
           { role: 'system', content: systemPrompt },
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: message },
         ]
       : [
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: message },
         ];
@@ -447,14 +457,14 @@ const mistralProvider: AIProvider = {
           { role: 'system', content: systemPrompt },
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: message },
         ]
       : [
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: message },
         ];
@@ -566,14 +576,14 @@ const groqProvider: AIProvider = {
           { role: 'system', content: systemPrompt },
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: message },
         ]
       : [
           ...conversationHistory.map((msg) => ({
             role: msg.role,
-            content: msg.content,
+            content: stripBase64FromContent(msg.content),
           })),
           { role: 'user', content: message },
         ];
