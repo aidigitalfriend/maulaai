@@ -148,6 +148,45 @@ export async function POST(request: NextRequest) {
       /(png|jpg|jpeg|webp)\s*(conversion|convert)/i,
     ];
 
+    // Patterns for file operations
+    const fileOperationPatterns = [
+      // Create file
+      /create\s+(a\s+)?(new\s+)?file/i,
+      /make\s+(a\s+)?(new\s+)?file/i,
+      /save\s+(this\s+)?(as\s+)?(a\s+)?file/i,
+      /write\s+(to\s+)?(a\s+)?file/i,
+      /generate\s+(a\s+)?file/i,
+      /create\s+.+\.(txt|py|js|ts|json|md|html|css|csv|xml|yaml|yml)/i,
+      /save\s+.+\.(txt|py|js|ts|json|md|html|css|csv|xml|yaml|yml)/i,
+      // Read file
+      /read\s+(the\s+)?file/i,
+      /open\s+(the\s+)?file/i,
+      /show\s+(me\s+)?(the\s+)?file/i,
+      /view\s+(the\s+)?file/i,
+      /what('s| is)\s+in\s+(the\s+)?file/i,
+      // List files
+      /list\s+(all\s+)?(my\s+)?files/i,
+      /show\s+(all\s+)?(my\s+)?files/i,
+      /what\s+files\s+(do\s+i\s+have|exist)/i,
+      // Delete file
+      /delete\s+(the\s+)?file/i,
+      /remove\s+(the\s+)?file/i,
+      // Modify file
+      /edit\s+(the\s+)?file/i,
+      /update\s+(the\s+)?file/i,
+      /modify\s+(the\s+)?file/i,
+      /change\s+(the\s+)?file/i,
+      /append\s+to\s+(the\s+)?file/i,
+      // Zip operations
+      /zip\s+(the\s+)?files?/i,
+      /create\s+(a\s+)?zip/i,
+      /compress\s+(the\s+)?files?/i,
+      /unzip\s+(the\s+)?file/i,
+      /extract\s+(the\s+)?zip/i,
+    ];
+
+    const isFileOperation = fileOperationPatterns.some(pattern => pattern.test(message));
+
     const isImageRequest = imageGenerationPatterns.some(pattern => pattern.test(message));
     const isImageEditRequest = imageEditPatterns.some(pattern => pattern.test(message));
     const isImageConvertRequest = imageConvertPatterns.some(pattern => pattern.test(message));
@@ -258,6 +297,170 @@ Here's your converted image:
           console.error('[chat-stream] Image conversion error:', convertError);
           // Fall through to regular chat
         }
+      }
+    }
+
+    // Handle file operations - create, read, list, delete, modify files
+    if (isFileOperation) {
+      console.log('[chat-stream] Detected file operation request');
+      
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005';
+      const userId = 'default'; // TODO: Get from session
+      
+      try {
+        // Determine the type of file operation
+        const lowerMessage = message.toLowerCase();
+        
+        // CREATE FILE
+        if (/create|make|save|write|generate/.test(lowerMessage) && /file|\.txt|\.py|\.js|\.ts|\.json|\.md|\.html|\.css/.test(lowerMessage)) {
+          // Extract filename from message
+          const filenameMatch = message.match(/(?:called|named|as|file:?)\s*["']?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']?/i) ||
+                               message.match(/["']([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']/i) ||
+                               message.match(/([a-zA-Z0-9_-]+\.(txt|py|js|ts|json|md|html|css|csv|xml|yaml|yml))/i);
+          
+          if (filenameMatch) {
+            const filename = filenameMatch[1];
+            // Extract content between code blocks or after "content:" or "with:"
+            const contentMatch = message.match(/```[\w]*\n?([\s\S]*?)```/i) ||
+                                message.match(/(?:content|with|containing)[:=]?\s*["']?([\s\S]+?)["']?$/i);
+            const content = contentMatch ? contentMatch[1].trim() : '// File created by AI agent\n';
+            
+            const response = await fetch(`${backendUrl}/api/agents/files/create`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename, content, userId }),
+            });
+            
+            const result = await response.json();
+            
+            const encoder = new TextEncoder();
+            const fileResultStream = new ReadableStream({
+              start(controller) {
+                const resultMessage = result.success
+                  ? `✅ **File Created Successfully!**\n\n**Filename:** \`${filename}\`\n**Size:** ${result.size} bytes\n\n📁 Your file has been saved to your workspace.`
+                  : `❌ **File Creation Failed**\n\n${result.error}`;
+                
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                controller.close();
+              }
+            });
+            
+            return new Response(fileResultStream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+              },
+            });
+          }
+        }
+        
+        // LIST FILES
+        if (/list|show|what files/.test(lowerMessage)) {
+          const response = await fetch(`${backendUrl}/api/agents/files/list?userId=${userId}`);
+          const result = await response.json();
+          
+          const encoder = new TextEncoder();
+          const listResultStream = new ReadableStream({
+            start(controller) {
+              let resultMessage = '📁 **Your Files:**\n\n';
+              
+              if (result.success && result.files && result.files.length > 0) {
+                result.files.forEach((f: any) => {
+                  const icon = f.type === 'folder' ? '📂' : '📄';
+                  const size = f.size ? ` (${f.size} bytes)` : '';
+                  resultMessage += `${icon} \`${f.name}\`${size}\n`;
+                });
+                resultMessage += `\n**Total:** ${result.totalFiles} files, ${result.totalFolders} folders`;
+              } else {
+                resultMessage = '📁 **Your workspace is empty.**\n\nCreate a file by saying "create a file called example.txt"';
+              }
+              
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+              controller.close();
+            }
+          });
+          
+          return new Response(listResultStream, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              Connection: 'keep-alive',
+            },
+          });
+        }
+        
+        // READ FILE
+        if (/read|open|show|view|what('s| is) in/.test(lowerMessage)) {
+          const filenameMatch = message.match(/(?:file|read|open|view)\s*["']?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']?/i) ||
+                               message.match(/["']([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']/i);
+          
+          if (filenameMatch) {
+            const filename = filenameMatch[1];
+            const response = await fetch(`${backendUrl}/api/agents/files/read?filename=${encodeURIComponent(filename)}&userId=${userId}`);
+            const result = await response.json();
+            
+            const encoder = new TextEncoder();
+            const readResultStream = new ReadableStream({
+              start(controller) {
+                const resultMessage = result.success
+                  ? `📄 **File: \`${filename}\`**\n\n\`\`\`\n${result.content}\n\`\`\`\n\n*Size: ${result.size} bytes*`
+                  : `❌ **Could not read file**\n\n${result.error}`;
+                
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                controller.close();
+              }
+            });
+            
+            return new Response(readResultStream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+              },
+            });
+          }
+        }
+        
+        // DELETE FILE
+        if (/delete|remove/.test(lowerMessage)) {
+          const filenameMatch = message.match(/(?:delete|remove)\s*(?:the\s+)?(?:file\s+)?["']?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']?/i);
+          
+          if (filenameMatch) {
+            const filename = filenameMatch[1];
+            const response = await fetch(`${backendUrl}/api/agents/files/delete?filename=${encodeURIComponent(filename)}&userId=${userId}`, {
+              method: 'DELETE',
+            });
+            const result = await response.json();
+            
+            const encoder = new TextEncoder();
+            const deleteResultStream = new ReadableStream({
+              start(controller) {
+                const resultMessage = result.success
+                  ? `🗑️ **File Deleted**\n\n\`${filename}\` has been removed from your workspace.`
+                  : `❌ **Could not delete file**\n\n${result.error}`;
+                
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                controller.close();
+              }
+            });
+            
+            return new Response(deleteResultStream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+              },
+            });
+          }
+        }
+      } catch (fileError) {
+        console.error('[chat-stream] File operation error:', fileError);
+        // Fall through to regular chat
       }
     }
 
