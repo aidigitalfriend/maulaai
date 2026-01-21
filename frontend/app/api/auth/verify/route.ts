@@ -6,7 +6,8 @@ async function proxyToBackend(request: NextRequest) {
   const backendBase = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
   const incomingUrl = new URL(request.url);
-  const targetUrl = new URL('/api/auth/verify', backendBase);
+  // Backend uses /api/auth/session for session verification
+  const targetUrl = new URL('/api/auth/session', backendBase);
 
   // Forward query parameters if any
   incomingUrl.searchParams.forEach((value, key) => {
