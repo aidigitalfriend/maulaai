@@ -133,15 +133,124 @@ export async function POST(request: NextRequest) {
       /replace\s+.+\s+(in|on)\s+(this\s+)?(image|photo|picture)/i,
       /make\s+(this|the)\s+(image|photo|picture|it)\s+/i,
       /transform\s+(this\s+)?(image|photo|picture)/i,
-      /convert\s+(this\s+)?(image|photo|picture)/i,
       /can\s+you\s+edit/i,
       /edit\s+it/i,
       /change\s+it/i,
     ];
 
+    // Patterns for image format conversion
+    const imageConvertPatterns = [
+      /convert\s+(this\s+)?(image|photo|picture|file|it)?\s*(to|into)\s*(png|jpg|jpeg|webp)/i,
+      /save\s+(this\s+)?(image|photo|picture|it)?\s*(as|to)\s*(png|jpg|jpeg|webp)/i,
+      /(to|into|as)\s*(\.?)(png|jpg|jpeg|webp)\s*(format|file)?/i,
+      /change\s+(to|into)\s*(png|jpg|jpeg|webp)/i,
+      /make\s+(it\s+)?(a\s+)?(png|jpg|jpeg|webp)/i,
+      /(png|jpg|jpeg|webp)\s*(conversion|convert)/i,
+    ];
+
     const isImageRequest = imageGenerationPatterns.some(pattern => pattern.test(message));
     const isImageEditRequest = imageEditPatterns.some(pattern => pattern.test(message));
+    const isImageConvertRequest = imageConvertPatterns.some(pattern => pattern.test(message));
     const hasImageAttachment = attachments?.some((a: any) => a.type?.startsWith('image/'));
+
+    // Handle image format conversion - when user uploads an image and asks to convert format
+    if (isImageConvertRequest && hasImageAttachment) {
+      console.log('[chat-stream] Detected image conversion request');
+      
+      // Extract target format from message
+      const formatMatch = message.match(/(png|jpg|jpeg|webp)/i);
+      const targetFormat = formatMatch ? formatMatch[1].toLowerCase() : 'png';
+      const mimeType = targetFormat === 'jpg' ? 'image/jpeg' : `image/${targetFormat}`;
+      
+      // Get the image attachment
+      const imageAttachment = attachments.find((a: any) => a.type?.startsWith('image/'));
+      const imageUrl = imageAttachment?.url || imageAttachment?.data;
+      
+      if (imageUrl) {
+        try {
+          // Fetch the image
+          let imageBuffer: Buffer;
+          
+          if (imageUrl.startsWith('data:')) {
+            // Base64 data URL
+            const base64Data = imageUrl.split(',')[1];
+            imageBuffer = Buffer.from(base64Data, 'base64');
+          } else {
+            // Remote URL
+            const imageResponse = await fetch(imageUrl);
+            if (!imageResponse.ok) throw new Error('Failed to fetch image');
+            const arrayBuffer = await imageResponse.arrayBuffer();
+            imageBuffer = Buffer.from(arrayBuffer);
+          }
+          
+          // Try to use sharp for conversion, fallback to returning as-is
+          let outputBuffer = imageBuffer;
+          let convertedFormat = targetFormat;
+          
+          try {
+            const sharp = (await import('sharp')).default;
+            let processor = sharp(imageBuffer);
+            
+            switch (targetFormat) {
+              case 'jpeg':
+              case 'jpg':
+                outputBuffer = await processor.jpeg({ quality: 90 }).toBuffer();
+                convertedFormat = 'jpeg';
+                break;
+              case 'webp':
+                outputBuffer = await processor.webp({ quality: 90 }).toBuffer();
+                break;
+              case 'png':
+              default:
+                outputBuffer = await processor.png().toBuffer();
+                convertedFormat = 'png';
+                break;
+            }
+          } catch (sharpError) {
+            console.log('[chat-stream] Sharp not available, returning original image');
+            // If sharp is not available, just return the original buffer
+          }
+          
+          // Convert to base64 data URL
+          const base64Image = outputBuffer.toString('base64');
+          const dataUrl = `data:image/${convertedFormat};base64,${base64Image}`;
+          const filename = `converted-image-${Date.now()}.${convertedFormat}`;
+          
+          console.log('[chat-stream] Image converted successfully to', convertedFormat.toUpperCase());
+          
+          const encoder = new TextEncoder();
+          const convertResultStream = new ReadableStream({
+            start(controller) {
+              const resultMessage = `✅ **Image Converted to ${convertedFormat.toUpperCase()}!**
+
+Here's your converted image:
+
+![${filename}](${dataUrl})
+
+**Filename:** ${filename}
+
+*Hover over the image to download, or right-click to save.*`;
+              
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+              controller.close();
+            }
+          });
+
+          return new Response(convertResultStream, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              Connection: 'keep-alive',
+              'X-Accel-Buffering': 'no',
+            },
+          });
+        } catch (convertError) {
+          console.error('[chat-stream] Image conversion error:', convertError);
+          // Fall through to regular chat
+        }
+      }
+    }
 
     // Handle image editing - when user uploads an image and asks to edit it
     if (isImageEditRequest && hasImageAttachment && apiKeys.openai) {
@@ -208,26 +317,29 @@ export async function POST(request: NextRequest) {
               size: '1024x1024',
               quality: 'standard',
               style: 'vivid',
+              response_format: 'b64_json', // Get base64 to avoid expiring Azure URLs
             }),
           });
 
           if (dalleResponse.ok) {
             const dalleData = await dalleResponse.json();
-            const newImageUrl = dalleData.data?.[0]?.url;
+            const base64Image = dalleData.data?.[0]?.b64_json;
             const revisedPrompt = dalleData.data?.[0]?.revised_prompt;
 
-            if (newImageUrl) {
+            if (base64Image) {
+              const imageDataUrl = `data:image/png;base64,${base64Image}`;
+              const filename = `edited-image-${Date.now()}.png`;
               console.log('[chat-stream] Edited image generated successfully');
               const encoder = new TextEncoder();
               const editResultStream = new ReadableStream({
                 start(controller) {
                   const resultMessage = `✨ **Image Edited Successfully!**
 
-![edited-image-${Date.now()}.png](${newImageUrl})
+![${filename}](${imageDataUrl})
 
 **What I did:** I analyzed your original image and created a new version with the requested changes: "${message}"
 
-**Note:** This is a newly generated image based on your original. Some details may differ from the original.`;
+*Hover over the image to download, or right-click to save.*`;
                   
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
@@ -277,7 +389,7 @@ export async function POST(request: NextRequest) {
         const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         console.log('[chat-stream] Calling DALL-E API...');
-        // Call DALL-E API directly
+        // Call DALL-E API directly - use b64_json to avoid expiring Azure URLs
         const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
           headers: {
@@ -291,6 +403,7 @@ export async function POST(request: NextRequest) {
             size: '1024x1024',
             quality: 'standard',
             style: 'vivid',
+            response_format: 'b64_json', // Get base64 to avoid expiring Azure URLs
           }),
           signal: controller.signal,
         });
@@ -300,11 +413,14 @@ export async function POST(request: NextRequest) {
 
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
-          const imageUrl = imageData.data?.[0]?.url;
+          const base64Image = imageData.data?.[0]?.b64_json;
           const revisedPrompt = imageData.data?.[0]?.revised_prompt;
 
-          if (imageUrl) {
-            console.log('[chat-stream] Image generated successfully, URL:', imageUrl.substring(0, 100) + '...');
+          if (base64Image) {
+            // Convert to data URL for display
+            const imageDataUrl = `data:image/png;base64,${base64Image}`;
+            const filename = `generated-image-${Date.now()}.png`;
+            console.log('[chat-stream] Image generated successfully');
             
             // Return image in the response using the token format
             // Use markdown image format which frontend already handles with download button
@@ -314,9 +430,11 @@ export async function POST(request: NextRequest) {
                 // Use standard markdown image - frontend has custom img renderer with download button
                 const resultMessage = `🎨 **Image Generated Successfully!**
 
-![generated-image-${Date.now()}.png](${imageUrl})
+![${filename}](${imageDataUrl})
 
-**Prompt Used:** ${revisedPrompt || imagePrompt}`;
+**Prompt Used:** ${revisedPrompt || imagePrompt}
+
+*Hover over the image to download, or right-click to save.*`;
                 
                 // Send as streaming chunks using token format (matches regular chat)
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
