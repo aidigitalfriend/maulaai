@@ -96,7 +96,7 @@ git push origin main
 print_status "3) Deploying to production server"
 SSH_COMMAND=$(cat <<'REMOTE'
 set -euo pipefail
-cd ~/shiny-friend-disco
+cd ~/maula-ai
 
 echo "📦 Pulling latest code"
 git fetch origin main
@@ -145,7 +145,7 @@ ssh -tt -i "$SSH_KEY" "$SERVER" "\
   echo '\n--- NGINX error log (last 50 lines) ---'; \
   sudo tail -n 50 /var/log/nginx/maula.ai-error.log; \
   echo '\n--- Updating NGINX config ---'; \
-  sudo cp ~/shiny-friend-disco/nginx/maula.ai.conf /etc/nginx/sites-available/ 2>/dev/null || echo 'NGINX config copy skipped'; \
+  sudo cp ~/maula-ai/nginx/maula.ai.conf /etc/nginx/sites-available/ 2>/dev/null || echo 'NGINX config copy skipped'; \
   echo '\n--- Restarting NGINX ---'; \
   sudo nginx -t && sudo systemctl restart nginx; \
   echo '\n--- Retesting endpoints ---'; \
