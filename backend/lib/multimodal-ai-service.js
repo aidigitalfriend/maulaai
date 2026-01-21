@@ -573,10 +573,16 @@ class MultiModalAIService {
       size: config.size,
       quality: config.quality,
       style: config.style,
-      response_format: 'url',
+      response_format: 'b64_json', // Use base64 instead of URL to avoid expiring Azure links
     });
+    
+    // Convert base64 to data URL for consistent handling
+    const base64Image = response.data[0].b64_json;
+    const imageDataUrl = `data:image/png;base64,${base64Image}`;
+    
     return {
-      url: response.data[0].url,
+      url: imageDataUrl,
+      image: imageDataUrl,
       provider: 'openai',
       model: config.model,
       revisedPrompt: response.data[0].revised_prompt,

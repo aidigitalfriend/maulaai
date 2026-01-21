@@ -99,6 +99,7 @@ export interface EmbeddingResponse {
 export interface ImageResponse {
   url?: string;
   base64?: string;
+  image?: string; // data URL format (data:image/png;base64,...)
   provider: string;
   model: string;
   revisedPrompt?: string;
@@ -776,11 +777,16 @@ export class MultiModalAIService {
       size: config.size,
       quality: config.quality,
       style: config.style,
-      response_format: 'url',
+      response_format: 'b64_json', // Use base64 instead of URL to avoid expiring Azure links
     });
 
+    // Convert base64 to data URL for consistent handling
+    const base64Image = (response.data[0] as any).b64_json;
+    const imageDataUrl = `data:image/png;base64,${base64Image}`;
+
     return {
-      url: response.data[0].url,
+      url: imageDataUrl,
+      image: imageDataUrl,
       provider: 'openai',
       model: config.model,
       revisedPrompt: response.data[0].revised_prompt,
