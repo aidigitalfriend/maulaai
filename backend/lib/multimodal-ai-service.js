@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Mistral } from '@mistralai/mistralai';
 import { CohereClient } from 'cohere-ai';
+import Groq from 'groq-sdk';
 import {
   getAgentPersonalityConfig,
   buildAgentSystemMessage,
@@ -51,6 +52,7 @@ class MultiModalAIService {
   gemini = null;
   mistral = null;
   cohere = null;
+  groq = null;
   xaiApiKey = null;
   // External API keys
   nasaApiKey = null;
@@ -90,6 +92,12 @@ class MultiModalAIService {
         token: process.env.COHERE_API_KEY,
       });
       console.log('\u2705 Cohere initialized (FALLBACK)');
+    }
+    if (process.env.GROQ_API_KEY) {
+      this.groq = new Groq({
+        apiKey: process.env.GROQ_API_KEY,
+      });
+      console.log('\u2705 Groq initialized (ULTRA-FAST)');
     }
     if (process.env.XAI_API_KEY) {
       this.xaiApiKey = process.env.XAI_API_KEY;
@@ -166,6 +174,13 @@ class MultiModalAIService {
             defaultConfig,
             startTime
           );
+        case 'groq':
+          return await this.getChatGroq(
+            message,
+            systemPrompt,
+            defaultConfig,
+            startTime
+          );
         case 'xai':
           return await this.getChatXAI(
             message,
@@ -189,6 +204,7 @@ class MultiModalAIService {
   selectBestProvider() {
     if (this.gemini) return 'gemini';
     if (this.openai) return 'openai';
+    if (this.groq) return 'groq';
     if (this.mistral) return 'mistral';
     if (this.anthropic) return 'anthropic';
     if (this.xaiApiKey) return 'xai';
@@ -207,6 +223,7 @@ class MultiModalAIService {
     const providers = [
       'gemini',
       'openai',
+      'groq',
       'mistral',
       'anthropic',
       'xai',
@@ -255,6 +272,15 @@ class MultiModalAIService {
           case 'xai':
             if (this.xaiApiKey)
               return await this.getChatXAI(
+                message,
+                systemPrompt,
+                config,
+                startTime
+              );
+            break;
+          case 'groq':
+            if (this.groq)
+              return await this.getChatGroq(
                 message,
                 systemPrompt,
                 config,
@@ -371,6 +397,31 @@ class MultiModalAIService {
       provider: 'cohere',
       model: config.model || 'command-r-plus',
       latency: Date.now() - startTime,
+    };
+  }
+  /**
+   * Chat with Groq (ultra-fast LLaMA models)
+   */
+  async getChatGroq(message, systemPrompt, config, startTime) {
+    if (!this.groq) throw new Error('Groq not initialized');
+    const model = config.model || 'llama-3.3-70b-versatile';
+    const response = await this.groq.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message },
+      ],
+      temperature: config.temperature ?? 0.7,
+      max_tokens: config.maxTokens ?? 2000,
+    });
+    const text = response.choices?.[0]?.message?.content || '';
+    const latency = Date.now() - startTime;
+    return {
+      text,
+      provider: 'groq',
+      model: response.model || model,
+      tokensUsed: response.usage?.total_tokens,
+      latency,
     };
   }
   /**

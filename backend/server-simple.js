@@ -1707,14 +1707,18 @@ async function handlePasswordSignup(req, res) {
   }
 }
 
+// ============================================
+// AUTH ROUTES WITH RATE LIMITING
+// ============================================
+// Apply strict auth rate limiting (10 attempts per 15 minutes)
 // Primary auth endpoint used by Nginx/backend routing
-app.post('/api/auth/login', handlePasswordLogin);
+app.post('/api/auth/login', rateLimiters.auth, handlePasswordLogin);
 // Backend-only alias used by the frontend AuthContext to bypass
 // the Next.js route handler when calling from the browser.
-app.post('/api/auth-backend/login', handlePasswordLogin);
+app.post('/api/auth-backend/login', rateLimiters.auth, handlePasswordLogin);
 // Signup endpoints (primary and backend-only alias)
-app.post('/api/auth/signup', handlePasswordSignup);
-app.post('/api/auth-backend/signup', handlePasswordSignup);
+app.post('/api/auth/signup', rateLimiters.auth, handlePasswordSignup);
+app.post('/api/auth-backend/signup', rateLimiters.auth, handlePasswordSignup);
 
 // GET /api/auth/verify
 async function handleAuthVerify(req, res) {
@@ -4782,8 +4786,8 @@ app.get('/api/agents/:agentId', async (req, res) => {
   }
 });
 
-// Language detection endpoint
-app.post('/api/language-detect', async (req, res) => {
+// Language detection endpoint (rate limited: 20/min)
+app.post('/api/language-detect', rateLimiters.agent, async (req, res) => {
   try {
     const { text, preferredProvider = 'openai' } = req.body;
 
@@ -4827,8 +4831,8 @@ app.post('/api/language-detect', async (req, res) => {
   }
 });
 
-// Chat endpoint for AI responses
-app.post('/api/chat', async (req, res) => {
+// Chat endpoint for AI responses (rate limited: 20/min)
+app.post('/api/chat', rateLimiters.agent, async (req, res) => {
   try {
     const {
       message,
@@ -4888,8 +4892,8 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Unified agent chat endpoint using AgentAIProviderService
-app.post('/api/agents/unified', async (req, res) => {
+// Unified agent chat endpoint using AgentAIProviderService (rate limited: 20/min)
+app.post('/api/agents/unified', rateLimiters.agent, async (req, res) => {
   try {
     const {
       agentId,
@@ -5090,8 +5094,8 @@ app.post('/api/voice/synthesize', async (req, res) => {
   }
 });
 
-// Translation endpoint
-app.post('/api/translate', async (req, res) => {
+// Translation endpoint (rate limited: 20/min)
+app.post('/api/translate', rateLimiters.agent, async (req, res) => {
   try {
     const {
       text,
