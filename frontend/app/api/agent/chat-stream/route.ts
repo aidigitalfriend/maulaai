@@ -193,30 +193,64 @@ export async function POST(request: NextRequest) {
     const isImageEditRequest = imageEditPatterns.some(pattern => pattern.test(message));
     const isImageConvertRequest = imageConvertPatterns.some(pattern => pattern.test(message));
     const hasImageAttachment = attachments?.some((a: any) => a.type?.startsWith('image/'));
+    
+    // Check if there's a recently generated image in conversation history
+    // Look for base64 image data URLs in previous assistant messages
+    let recentImageFromHistory: string | null = null;
+    if (isImageConvertRequest && !hasImageAttachment && conversationHistory.length > 0) {
+      // Search conversation history (most recent first) for generated images
+      for (let i = conversationHistory.length - 1; i >= 0; i--) {
+        const msg = conversationHistory[i];
+        if (msg.role === 'assistant' && msg.content) {
+          // Look for base64 image data URLs in markdown format ![...](data:image/...)
+          const base64Match = msg.content.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
+          if (base64Match) {
+            recentImageFromHistory = base64Match[1];
+            console.log('[chat-stream] Found recent image in conversation history');
+            break;
+          }
+          // Also check for S3/remote image URLs
+          const urlMatch = msg.content.match(/!\[.*?\]\((https?:\/\/[^\)]+)\)/);
+          if (urlMatch) {
+            recentImageFromHistory = urlMatch[1];
+            console.log('[chat-stream] Found recent image URL in conversation history');
+            break;
+          }
+        }
+      }
+    }
+    
+    const hasImageToConvert = hasImageAttachment || recentImageFromHistory;
 
-    // Handle image format conversion - when user uploads an image and asks to convert format
-    if (isImageConvertRequest && hasImageAttachment) {
+    // Handle image format conversion - when user uploads an image OR has recently generated one
+    if (isImageConvertRequest && hasImageToConvert) {
       console.log('[chat-stream] Detected image conversion request');
-      console.log('[chat-stream] Attachments:', JSON.stringify(attachments.map((a: any) => ({ 
-        name: a.name, 
-        type: a.type, 
-        hasUrl: !!a.url, 
-        hasData: !!a.data,
-        dataPrefix: a.data?.substring(0, 50) 
-      }))));
+      console.log('[chat-stream] Has attachment:', hasImageAttachment, 'Has history image:', !!recentImageFromHistory);
+      if (attachments.length > 0) {
+        console.log('[chat-stream] Attachments:', JSON.stringify(attachments.map((a: any) => ({ 
+          name: a.name, 
+          type: a.type, 
+          hasUrl: !!a.url, 
+          hasData: !!a.data,
+          dataPrefix: a.data?.substring(0, 50) 
+        }))));
+      }
       
       // Extract target format from message
       const formatMatch = message.match(/(png|jpg|jpeg|webp)/i);
       const targetFormat = formatMatch ? formatMatch[1].toLowerCase() : 'png';
       const mimeType = targetFormat === 'jpg' ? 'image/jpeg' : `image/${targetFormat}`;
       
-      // Get the image attachment - PREFER base64 data over URL (S3 URLs may have permission issues)
+      // Get the image - prefer attachment, fallback to history image
       const imageAttachment = attachments.find((a: any) => a.type?.startsWith('image/'));
-      // Check if data is a base64 data URL (preferred) or use the URL
       const imageData = imageAttachment?.data;
-      const imageUrl = (imageData && imageData.startsWith('data:')) ? imageData : (imageAttachment?.url || imageData);
+      // Priority: attachment data URL > attachment URL > history image
+      const imageUrl = (imageData && imageData.startsWith('data:')) 
+        ? imageData 
+        : (imageAttachment?.url || imageData || recentImageFromHistory);
       
       if (imageUrl) {
+        console.log('[chat-stream] Starting image conversion to', targetFormat.toUpperCase());
         try {
           // Fetch the image
           let imageBuffer: Buffer;
