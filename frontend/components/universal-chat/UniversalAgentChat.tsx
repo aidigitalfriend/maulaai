@@ -17,6 +17,9 @@ import {
   ClipboardDocumentIcon,
   ShareIcon,
   SpeakerWaveIcon,
+  ArrowPathIcon,
+  PencilIcon,
+  EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
 import EnhancedChatLayout from './EnhancedChatLayout';
 import { useChatTheme } from './ThemeContext';
@@ -184,6 +187,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     Record<string, 'up' | 'down' | null>
   >({});
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState<string>('');
+  const [userMenuOpenId, setUserMenuOpenId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
   const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -623,6 +629,312 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       await navigator.clipboard.writeText(content);
       setCopiedMessageId(id);
       setTimeout(() => setCopiedMessageId(null), 1200);
+    } catch (err) {
+      console.error('Failed to copy message', err);
+    }
+  }, []);
+
+  // Regenerate the last assistant response
+  const handleRegenerateMessage = useCallback(async (messageId: string) => {
+    if (!activeSession || isLoading) return;
+    
+    // Find the index of the message to regenerate
+    const messageIndex = activeSession.messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+    
+    // Get the user message before this assistant message
+    const userMessageIndex = messageIndex - 1;
+    if (userMessageIndex < 0 || activeSession.messages[userMessageIndex]?.role !== 'user') return;
+    
+    const userMessage = activeSession.messages[userMessageIndex];
+    
+    // Remove the assistant message being regenerated
+    setSessions(prev => prev.map(s => 
+      s.id === activeSessionId 
+        ? { ...s, messages: s.messages.slice(0, messageIndex) }
+        : s
+    ));
+    
+    setIsLoading(true);
+    
+    const conversationHistory = activeSession.messages
+      .slice(0, userMessageIndex)
+      .filter(m => m.role !== 'assistant' || !m.isStreaming)
+      .map(m => ({ role: m.role, content: m.content }));
+    
+    const assistantMessageId = `asst-${Date.now()}`;
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+    };
+    
+    setSessions(prev => prev.map(s =>
+      s.id === activeSessionId
+        ? { ...s, messages: [...s.messages, assistantMessage], updatedAt: new Date() }
+        : s
+    ));
+    
+    try {
+      abortControllerRef.current = new AbortController();
+      
+      const response = await fetch('/api/agent/chat-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage.content,
+          agentId: agent.id,
+          agentName: agent.name,
+          conversationHistory,
+          settings: {
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens,
+            systemPrompt: settings.systemPrompt || agent.systemPrompt,
+            provider: settings.provider,
+            model: settings.model,
+          },
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+      
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+      
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+      
+      const decoder = new TextDecoder();
+      let fullContent = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                fullContent += parsed.content;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+      
+      // Finalize message
+      setSessions(prev => prev.map(s =>
+        s.id === activeSessionId
+          ? {
+              ...s,
+              messages: s.messages.map(m =>
+                m.id === assistantMessageId
+                  ? { ...m, content: fullContent, isStreaming: false }
+                  : m
+              ),
+              lastMessage: fullContent.slice(0, 50),
+            }
+          : s
+      ));
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Regenerate failed:', error);
+        setSessions(prev => prev.map(s =>
+          s.id === activeSessionId
+            ? {
+                ...s,
+                messages: s.messages.map(m =>
+                  m.id === assistantMessageId
+                    ? { ...m, content: 'Sorry, regeneration failed. Please try again.', isStreaming: false }
+                    : m
+                ),
+              }
+            : s
+        ));
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
+    }
+  }, [activeSession, activeSessionId, isLoading, agent.id, agent.name, agent.systemPrompt, settings]);
+
+  // Start editing a user message
+  const handleStartEdit = useCallback((messageId: string, content: string) => {
+    setEditingMessageId(messageId);
+    setEditingContent(content);
+    setUserMenuOpenId(null);
+  }, []);
+
+  // Cancel editing
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessageId(null);
+    setEditingContent('');
+  }, []);
+
+  // Save edited message and regenerate response
+  const handleSaveEdit = useCallback(async (messageId: string) => {
+    if (!activeSession || isLoading || !editingContent.trim()) return;
+    
+    const messageIndex = activeSession.messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+    
+    // Update the user message and remove all messages after it
+    const updatedMessages = activeSession.messages.slice(0, messageIndex + 1).map(m =>
+      m.id === messageId ? { ...m, content: editingContent.trim() } : m
+    );
+    
+    setSessions(prev => prev.map(s =>
+      s.id === activeSessionId
+        ? { ...s, messages: updatedMessages }
+        : s
+    ));
+    
+    setEditingMessageId(null);
+    setEditingContent('');
+    setIsLoading(true);
+    
+    const conversationHistory = updatedMessages
+      .slice(0, -1)
+      .filter(m => m.role !== 'assistant' || !m.isStreaming)
+      .map(m => ({ role: m.role, content: m.content }));
+    
+    const assistantMessageId = `asst-${Date.now()}`;
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+    };
+    
+    setSessions(prev => prev.map(s =>
+      s.id === activeSessionId
+        ? { ...s, messages: [...s.messages, assistantMessage], updatedAt: new Date() }
+        : s
+    ));
+    
+    try {
+      abortControllerRef.current = new AbortController();
+      
+      const response = await fetch('/api/agent/chat-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: editingContent.trim(),
+          agentId: agent.id,
+          agentName: agent.name,
+          conversationHistory,
+          settings: {
+            temperature: settings.temperature,
+            maxTokens: settings.maxTokens,
+            systemPrompt: settings.systemPrompt || agent.systemPrompt,
+            provider: settings.provider,
+            model: settings.model,
+          },
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+      
+      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+      
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+      
+      const decoder = new TextDecoder();
+      let fullContent = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                fullContent += parsed.content;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+      
+      // Finalize message
+      setSessions(prev => prev.map(s =>
+        s.id === activeSessionId
+          ? {
+              ...s,
+              messages: s.messages.map(m =>
+                m.id === assistantMessageId
+                  ? { ...m, content: fullContent, isStreaming: false }
+                  : m
+              ),
+              lastMessage: fullContent.slice(0, 50),
+            }
+          : s
+      ));
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Edit and regenerate failed:', error);
+        setSessions(prev => prev.map(s =>
+          s.id === activeSessionId
+            ? {
+                ...s,
+                messages: s.messages.map(m =>
+                  m.id === assistantMessageId
+                    ? { ...m, content: 'Sorry, regeneration failed. Please try again.', isStreaming: false }
+                    : m
+                ),
+              }
+            : s
+        ));
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
+    }
+  }, [activeSession, activeSessionId, isLoading, editingContent, agent.id, agent.name, agent.systemPrompt, settings]);
+
+  // Copy user message
+  const handleCopyUserMessage = useCallback(async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setUserMenuOpenId(null);
     } catch (err) {
       console.error('Failed to copy message', err);
     }
@@ -1924,7 +2236,75 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                         <SpeakerWaveIcon className="w-4 h-4" />
                       )}
                     </button>
+                    <div
+                      className={`w-px h-4 mx-1 ${isNeural ? 'bg-gray-600' : 'bg-gray-200'}`}
+                    />
+                    <button
+                      onClick={() => handleRegenerateMessage(message.id)}
+                      disabled={isLoading}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        isLoading
+                          ? 'opacity-50 cursor-not-allowed'
+                          : isNeural
+                            ? 'hover:bg-gray-700 text-gray-300 hover:text-gray-100'
+                            : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                      }`}
+                      title="Regenerate response"
+                    >
+                      <ArrowPathIcon className="w-4 h-4" />
+                    </button>
                   </div>
+                )}
+
+                {/* User message actions */}
+                {message.role === 'user' && (
+                  <>
+                    {editingMessageId === message.id ? (
+                      <div className="mt-2 space-y-2">
+                        <textarea
+                          value={editingContent}
+                          onChange={(e) => setEditingContent(e.target.value)}
+                          placeholder="Edit your message..."
+                          className="w-full p-2 rounded-lg bg-white/10 text-white text-sm resize-none border border-white/20 focus:border-indigo-400 focus:outline-none"
+                          rows={3}
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1 text-xs text-white/70 hover:text-white transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEdit(message.id)}
+                            disabled={isLoading || !editingContent.trim()}
+                            className="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            Save & Regenerate
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end space-x-1 mt-2 pt-2 border-t border-white/10 relative">
+                        <button
+                          onClick={() => handleCopyUserMessage(message.content)}
+                          className="p-1.5 rounded-lg transition-all text-white/60 hover:text-white hover:bg-white/10"
+                          title="Copy message"
+                        >
+                          <ClipboardDocumentIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleStartEdit(message.id, message.content)}
+                          disabled={isLoading}
+                          className={`p-1.5 rounded-lg transition-all text-white/60 hover:text-white hover:bg-white/10 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          title="Edit message"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

@@ -295,6 +295,8 @@ function EnhancedChatLayoutContent({
               setIsRightPanelCollapsed(!isRightPanelCollapsed)
             }
             theme={theme}
+            agentId={agentId}
+            agentName={agentName}
           />
         </div>
       </div>
@@ -313,6 +315,8 @@ function EnhancedChatLayoutContent({
         isOpen={isMobileCanvasOpen}
         onClose={() => setIsMobileCanvasOpen(false)}
         theme={theme}
+        agentId={agentId}
+        agentName={agentName}
       />
     </div>
   );

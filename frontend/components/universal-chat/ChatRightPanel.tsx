@@ -8,12 +8,16 @@ interface ChatRightPanelProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   theme?: 'default' | 'neural';
+  agentId?: string;
+  agentName?: string;
 }
 
 export default function ChatRightPanel({
   isCollapsed = false,
   onToggleCollapse,
   theme = 'default',
+  agentId,
+  agentName,
 }: ChatRightPanelProps) {
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const isNeural = theme === 'neural';
@@ -71,6 +75,8 @@ export default function ChatRightPanel({
         isOpen={isCanvasOpen}
         onClose={() => setIsCanvasOpen(false)}
         theme={theme}
+        agentId={agentId}
+        agentName={agentName}
       />
     </>
   );

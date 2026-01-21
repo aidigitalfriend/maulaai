@@ -983,9 +983,10 @@ export default function CanvasMode({
   const [builtinTemplateCategory, setBuiltinTemplateCategory] = useState<string>('All');
   const [showRotatePrompt, setShowRotatePrompt] = useState(false);
   const [isMobilePortrait, setIsMobilePortrait] = useState(false);
+  const [quickResponseMode, setQuickResponseMode] = useState(false);
   
   // Agent-specific provider/model options
-  const providerModels = useMemo(() => getAgentCanvasProviders(agentId), [agentId]);
+  const providerModels = useMemo(() => getAgentCanvasProviders(agentId, agentName), [agentId, agentName]);
   const defaultProvider = useMemo(() => getAgentDefaultProvider(agentId), [agentId]);
   const defaultModel = useMemo(() => getAgentDefaultModel(agentId), [agentId]);
   
@@ -993,6 +994,20 @@ export default function CanvasMode({
   const [selectedModel, setSelectedModel] = useState<string>(defaultModel);
   const [temperature, setTemperature] = useState<number>(0.7);
   const [maxTokens, setMaxTokens] = useState<number>(4096);
+
+  // Auto-select quick model when quick response mode is toggled
+  useEffect(() => {
+    if (quickResponseMode) {
+      // Select first (quick) model of current provider
+      const firstModel = providerModels[selectedProvider]?.models[0]?.id;
+      if (firstModel) setSelectedModel(firstModel);
+    } else {
+      // Select second (smart) model if available
+      const smartModel = providerModels[selectedProvider]?.models[1]?.id || 
+                         providerModels[selectedProvider]?.models[0]?.id;
+      if (smartModel) setSelectedModel(smartModel);
+    }
+  }, [quickResponseMode, selectedProvider, providerModels]);
 
   // Restore chat messages once when opened, or seed with welcome message
   useEffect(() => {
@@ -2436,6 +2451,25 @@ export default function CanvasMode({
         {activePane === 'settings' && showHistoryPanel ? (
           /* =========== SETTINGS PANEL CONTENT =========== */
           <div className="flex-1 overflow-y-auto p-3 custom-scrollbar space-y-4">
+            {/* Agent Name Display */}
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center gap-2 mb-2 ${brandColors.text}`}
+              >
+                <SparklesIcon className="w-4 h-4 text-purple-400" />
+                <span className="font-semibold text-sm">Canvas Agent</span>
+              </div>
+              <div className={`text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent`}>
+                {agentName || 'AI Assistant'}
+              </div>
+              <p className={`text-xs mt-1 ${brandColors.textSecondary}`}>
+                Opened from this agent&apos;s chat
+              </p>
+            </div>
+
+            {/* Fine-tune Best Practices */}
             <div
               className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
             >
@@ -2525,6 +2559,51 @@ export default function CanvasMode({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Quick Response Toggle */}
+            <div
+              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
+            >
+              <div
+                className={`flex items-center justify-between ${brandColors.text}`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-cyan-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  <span className="font-semibold text-sm">Quick Response</span>
+                </div>
+                <button
+                  onClick={() => setQuickResponseMode(!quickResponseMode)}
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                    quickResponseMode 
+                      ? 'bg-gradient-to-r from-cyan-500 to-purple-500' 
+                      : `${brandColors.bgInput}`
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                      quickResponseMode ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className={`text-xs mt-2 ${brandColors.textSecondary}`}>
+                {quickResponseMode 
+                  ? '⚡ Faster responses with smaller model' 
+                  : '🧠 Smarter responses with larger model'}
+              </p>
             </div>
 
             {/* Temperature Setting */}

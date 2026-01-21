@@ -228,6 +228,20 @@ export default function ChatSettingsPanel({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+          {/* Agent Name Display */}
+          <div className={`rounded-xl border p-3 ${sectionStyles}`}>
+            <h4
+              className={`text-xs font-semibold mb-1 ${
+                isNeural ? 'text-cyan-400' : 'text-indigo-600'
+              }`}
+            >
+              Current Agent
+            </h4>
+            <div className={`text-base font-bold bg-gradient-to-r ${isNeural ? 'from-cyan-400 to-purple-400' : 'from-indigo-500 to-purple-500'} bg-clip-text text-transparent`}>
+              {agentName}
+            </div>
+          </div>
+
           {/* Presets */}
           <div className={`rounded-xl border p-3 ${sectionStyles}`}>
             <h4

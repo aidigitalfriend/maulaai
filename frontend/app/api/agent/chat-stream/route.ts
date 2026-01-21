@@ -138,6 +138,21 @@ export async function POST(request: NextRequest) {
       /can\s+you\s+edit/i,
       /edit\s+it/i,
       /change\s+it/i,
+      // Enhancement/fix patterns
+      /fix\s+(this\s+)?(image|photo|picture|it)/i,
+      /fix\s+(the\s+)?(clarity|quality|blur|blurr?iness|resolution)/i,
+      /enhance\s+(this\s+)?(image|photo|picture|it)/i,
+      /improve\s+(this\s+)?(image|photo|picture|it)/i,
+      /improve\s+(the\s+)?(clarity|quality|resolution)/i,
+      /upscale\s+(this\s+)?(image|photo|picture|it)/i,
+      /sharpen\s+(this\s+)?(image|photo|picture|it)/i,
+      /clear\s+up\s+(this\s+)?(image|photo|picture|it)/i,
+      /make\s+(it|this)\s+(clear|clearer|sharper|better)/i,
+      /increase\s+(the\s+)?(resolution|quality|clarity)/i,
+      /reduce\s+(the\s+)?(blur|noise|grain)/i,
+      /denoise\s+(this\s+)?(image|photo|picture|it)?/i,
+      /clean\s+up\s+(this\s+)?(image|photo|picture|it)/i,
+      /(pixelat|blur|fuzzy|grainy)\w*\s*(fix|improve|enhance|remove)/i,
     ];
 
     // Patterns for image format conversion
