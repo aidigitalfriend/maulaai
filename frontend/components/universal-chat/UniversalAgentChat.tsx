@@ -118,6 +118,39 @@ const extractTextFromChildren = (children: React.ReactNode): string => {
   return '';
 };
 
+// Helper function to extract base64 images from markdown content
+// This prevents markdown parsers from choking on very long data URLs
+interface ExtractedImage {
+  src: string;
+  alt: string;
+  placeholder: string;
+}
+
+const extractBase64Images = (content: string): { cleanContent: string; images: ExtractedImage[] } => {
+  const images: ExtractedImage[] = [];
+  // Match markdown images with data URLs: ![alt](data:image/...)
+  const imageRegex = /!\[([^\]]*)\]\((data:image\/[^)]+)\)/g;
+  let match;
+  let cleanContent = content;
+  let imageIndex = 0;
+  
+  while ((match = imageRegex.exec(content)) !== null) {
+    const fullMatch = match[0];
+    const alt = match[1];
+    const src = match[2];
+    
+    // Only extract if it's a large base64 image (over 1000 chars means it's actual image data)
+    if (src.length > 1000) {
+      const placeholder = `__IMAGE_PLACEHOLDER_${imageIndex}__`;
+      images.push({ src, alt, placeholder });
+      cleanContent = cleanContent.replace(fullMatch, placeholder);
+      imageIndex++;
+    }
+  }
+  
+  return { cleanContent, images };
+};
+
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Auth
   const { state: authState } = useAuth();
@@ -1724,9 +1757,85 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           </td>
                         );
                       },
+                      // Custom renderer for image placeholders
+                      p({ children, ...props }) {
+                        // Check if this paragraph contains an image placeholder
+                        const text = typeof children === 'string' ? children : '';
+                        const placeholderMatch = text.match(/__IMAGE_PLACEHOLDER_(\d+)__/);
+                        
+                        if (placeholderMatch) {
+                          const imageIndex = parseInt(placeholderMatch[1]);
+                          const { images } = extractBase64Images(message.content);
+                          const image = images[imageIndex];
+                          
+                          if (image) {
+                            return (
+                              <div className="relative group my-3">
+                                <img
+                                  src={image.src}
+                                  alt={image.alt}
+                                  className="max-w-full rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
+                                  onClick={() => setPreviewImage({ src: image.src, alt: image.alt })}
+                                />
+                                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const [header, base64Data] = image.src.split(',');
+                                      const mimeMatch = header.match(/data:([^;]+)/);
+                                      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                                      const byteCharacters = atob(base64Data);
+                                      const byteNumbers = new Array(byteCharacters.length);
+                                      for (let i = 0; i < byteCharacters.length; i++) {
+                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                      }
+                                      const byteArray = new Uint8Array(byteNumbers);
+                                      const blob = new Blob([byteArray], { type: mimeType });
+                                      const url = window.URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = image.alt || 'generated-image.png';
+                                      a.style.display = 'none';
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      setTimeout(() => {
+                                        document.body.removeChild(a);
+                                        window.URL.revokeObjectURL(url);
+                                      }, 100);
+                                    }}
+                                    className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
+                                    title="Download image"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Download
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPreviewImage({ src: image.src, alt: image.alt });
+                                    }}
+                                    className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
+                                    title="Open full size"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    Open
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          }
+                        }
+                        
+                        return <p {...props}>{children}</p>;
+                      },
                     }}
                   >
-                    {message.content}
+                    {extractBase64Images(message.content).cleanContent}
                   </ReactMarkdown>
                   </div>
                   {/* Blinking cursor during streaming */}

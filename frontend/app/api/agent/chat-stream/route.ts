@@ -551,8 +551,6 @@ Here's your converted image:
 
 ![${filename}](${imageDataUrl})
 
-**What I did:** I analyzed your original image and created a new version with the requested changes: "${message}"
-
 *Hover over the image to download, or right-click to save.*`;
                   
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
@@ -645,8 +643,6 @@ Here's your converted image:
                 const resultMessage = `🎨 **Image Generated Successfully!**
 
 ![${filename}](${imageDataUrl})
-
-**Prompt Used:** ${revisedPrompt || imagePrompt}
 
 *Hover over the image to download, or right-click to save.*`;
                 
