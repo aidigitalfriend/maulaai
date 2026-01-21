@@ -3003,15 +3003,21 @@ export async function semanticSearch(query, collectionName = 'agent_memories', l
         apiKey: qdrantApiKey,
       });
       
-      // Search for similar vectors
-      const searchResult = await client.search(collectionName, {
+      // Search for similar vectors (filter by userId if not 'default')
+      const searchParams = {
         vector: queryVector,
         limit,
-        filter: {
-          must: [{ key: 'userId', match: { value: userId } }],
-        },
         with_payload: true,
-      });
+      };
+      
+      // Only filter by userId if it's not the default
+      if (userId && userId !== 'default') {
+        searchParams.filter = {
+          must: [{ key: 'userId', match: { value: userId } }],
+        };
+      }
+      
+      const searchResult = await client.search(collectionName, searchParams);
       
       return {
         success: true,
