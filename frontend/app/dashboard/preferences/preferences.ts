@@ -402,7 +402,7 @@ export class PreferencesLogic {
 
       const link = document.createElement('a');
       link.href = URL.createObjectURL(dataBlob);
-      link.download = `onelastai-preferences-${
+      link.download = `maulaai-preferences-${
         new Date().toISOString().split('T')[0]
       }.json`;
       link.click();
@@ -613,7 +613,7 @@ export class PreferencesLogic {
     return [
       {
         id: 'brand',
-        name: 'OneLastAI',
+        name: 'Maula AI',
         description: 'Our signature brand colors',
         colors: ['#3B82F6', '#8B5CF6', '#06B6D4'],
       },

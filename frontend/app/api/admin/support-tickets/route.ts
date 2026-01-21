@@ -28,7 +28,7 @@ async function connectToDatabase() {
 
   try {
     await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
+      dbName: process.env.MONGODB_DB || 'maulaai',
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });

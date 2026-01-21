@@ -1,5 +1,5 @@
 import express from 'express';
-import mongoose from 'mongoose';
+import { isValidId } from '../lib/validation-utils.js';
 import { body, param, validationResult } from 'express-validator';
 import { ChatInteraction } from '../models/Analytics.js';
 import User from '../models/User.js';
@@ -215,7 +215,7 @@ router.post(
       const session = new ChatSession({
         sessionId,
         userId,
-        agentId: mongoose.Types.ObjectId.isValid(agentId) ? agentId : undefined,
+        agentId: isValidId(agentId) ? agentId : undefined,
         name:
           name || (agent?.name ? `Chat with ${agent.name}` : 'Chat session'),
         description: description || '',
@@ -236,7 +236,7 @@ router.post(
       const welcomeInteraction = new ChatInteraction({
         conversationId,
         userId,
-        agentId: mongoose.Types.ObjectId.isValid(agentId) ? agentId : undefined,
+        agentId: isValidId(agentId) ? agentId : undefined,
         messages: [
           {
             role: 'assistant',
@@ -350,7 +350,7 @@ router.post(
       const interaction = new ChatInteraction({
         conversationId,
         userId,
-        agentId: mongoose.Types.ObjectId.isValid(agentId) ? agentId : undefined,
+        agentId: isValidId(agentId) ? agentId : undefined,
         messages: messages.map((msg) => ({
           role: msg.role,
           content: msg.content,

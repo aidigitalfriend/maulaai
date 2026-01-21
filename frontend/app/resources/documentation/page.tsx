@@ -212,7 +212,7 @@ export default function DocumentationPage() {
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-blue-400 overflow-x-auto">
               <pre>{`<script src="https://cdn.maula.ai/widget.js"></script>
 <script>
-  OnelastAI.init({
+  MaulaAI.init({
     apiKey: 'YOUR_API_KEY',
     agent: 'einstein' // or any agent id
   })

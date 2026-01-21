@@ -164,9 +164,9 @@ const KNOWLEDGE_BASE = `
 - 99.9% uptime guarantee
 
 ## 🔗 SOCIAL MEDIA
-- Twitter/X: @onelastai
-- Facebook: /onelastai
-- Instagram: @onelastai
+- Twitter/X: @maulaai
+- Facebook: /maulaai
+- Instagram: @maulaai
 - Discord: discord.gg/EXH6w9CH
 
 ## ❓ COMMON QUESTIONS
@@ -208,7 +208,7 @@ async function connectToDatabase() {
 
   try {
     await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
+      dbName: process.env.MONGODB_DB || 'maulaai',
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });

@@ -3,7 +3,7 @@
  * Gives agents capabilities beyond just text generation:
  * - Web Search (using DuckDuckGo/SerpAPI)
  * - URL Fetching & Content Extraction
- * - File Operations (stored in MongoDB + S3 for persistence)
+ * - File Operations (stored in PostgreSQL + S3 for persistence)
  * - Image Understanding (via vision models)
  * - Date/Time awareness
  * - Calculator/Math operations
@@ -22,7 +22,7 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 // S3 CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════
 
-const S3_BUCKET = process.env.S3_BUCKET || 'one-last-ai-bucket';
+const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({
@@ -116,8 +116,8 @@ function isBinaryFile(filename) {
   return BINARY_EXTENSIONS.includes(ext);
 }
 
-// Maximum size for MongoDB storage (1MB for text, all binary to S3)
-const MAX_MONGODB_SIZE = 1024 * 1024; // 1MB
+// Maximum size for database storage (1MB for text, all binary to S3)
+const MAX_DATABASE_SIZE = 1024 * 1024; // 1MB
 
 // Tool definitions that can be exposed to AI
 export const AVAILABLE_TOOLS = {
@@ -746,7 +746,7 @@ export async function fetchUrl(url) {
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; OneLastAI/1.0; +https://maula.ai)',
+        'User-Agent': 'Mozilla/5.0 (compatible; MaulaAI/1.0; +https://maula.ai)',
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
       redirect: 'follow',
@@ -919,8 +919,8 @@ export function calculate(expression) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FILE OPERATIONS - MongoDB + S3 Hybrid Storage
-// Text files < 1MB → MongoDB
+// FILE OPERATIONS - Database + S3 Hybrid Storage
+// Text files < 1MB → Database
 // Binary files & large files → S3
 // ═══════════════════════════════════════════════════════════════════
 
@@ -966,8 +966,8 @@ function sanitizePath(folder) {
 }
 
 /**
- * Create a new file with content - HYBRID STORAGE (MongoDB + S3)
- * - Text files < 1MB → MongoDB
+ * Create a new file with content - HYBRID STORAGE (Database + S3)
+ * - Text files < 1MB → Database
  * - Binary files (images, videos, etc.) → S3
  * - Large files > 1MB → S3
  */
@@ -997,9 +997,9 @@ export async function createFile(filename, content, folder = '', userId = 'defau
     const isBinary = isBinaryFile(sanitizedFilename);
     const contentBuffer = typeof content === 'string' ? Buffer.from(content, 'utf-8') : content;
     const size = contentBuffer.length;
-    const useS3 = isBinary || size > MAX_MONGODB_SIZE;
+    const useS3 = isBinary || size > MAX_DATABASE_SIZE;
     
-    let storageType = 'mongodb';
+    let storageType = 'database';
     let s3Key = null;
     let s3Url = null;
     let storedContent = null;
@@ -1010,9 +1010,9 @@ export async function createFile(filename, content, folder = '', userId = 'defau
       const s3Result = await uploadToS3(s3Key, contentBuffer, mimeType);
       
       if (!s3Result.success) {
-        // Fallback to MongoDB if S3 fails
-        console.warn(`[AgentFiles] S3 upload failed, falling back to MongoDB: ${s3Result.error}`);
-        storageType = 'mongodb';
+        // Fallback to database if S3 fails
+        console.warn(`[AgentFiles] S3 upload failed, falling back to database: ${s3Result.error}`);
+        storageType = 'database';
         storedContent = isBinary ? contentBuffer.toString('base64') : content;
       } else {
         storageType = 's3';
@@ -1020,7 +1020,7 @@ export async function createFile(filename, content, folder = '', userId = 'defau
         console.log(`[AgentFiles] Stored in S3: ${s3Key}`);
       }
     } else {
-      // Store in MongoDB
+      // Store in database (PostgreSQL)
       storedContent = content;
     }
     
@@ -1263,7 +1263,7 @@ export async function listFiles(folder = '', userId = 'default') {
       files: result,
       totalFiles: files.length,
       totalFolders: subfolders.size,
-      storage: 'mongodb',
+      storage: 'database',
     };
   } catch (error) {
     console.error('[AgentFiles] List error:', error);
@@ -1307,7 +1307,7 @@ export async function deleteFile(filename, userId = 'default') {
       }
     }
     
-    // Soft delete in MongoDB
+    // Soft delete in Database
     file.isDeleted = true;
     file.updatedAt = new Date();
     await file.save();
@@ -1362,13 +1362,13 @@ export async function generateImage(prompt, style = 'realistic', width = 1024, h
 
     const data = await response.json();
 
-    // Save the image to MongoDB/S3 using the proper createFile function
+    // Save the image to Database/S3 using the proper createFile function
     if (data.image && data.image.startsWith('data:image')) {
       const base64Data = data.image.split(',')[1];
       const filename = `generated-image-${Date.now()}.png`;
       const imageBuffer = Buffer.from(base64Data, 'base64');
       
-      // Use createFile to properly store in MongoDB/S3
+      // Use createFile to properly store in Database/S3
       const saveResult = await createFile(filename, imageBuffer, '/images', userId, 'image-generator');
       
       if (saveResult.success) {
@@ -1496,7 +1496,7 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
         const videoBuffer = Buffer.from(await videoResponse.arrayBuffer());
         const filename = `generated-video-${Date.now()}.mp4`;
         
-        // Use createFile to properly store in MongoDB/S3
+        // Use createFile to properly store in Database/S3
         const saveResult = await createFile(filename, videoBuffer, '/videos', userId, 'video-generator');
 
         if (saveResult.success) {
@@ -1662,7 +1662,7 @@ export async function createFolder(folderPath, userId = 'default') {
       path: `${sanitizedFolder}/.folder`,
       mimeType: 'application/x-directory',
       size: 0,
-      storageType: 'mongodb',
+      storageType: 'database',
       content: '',
     });
     
@@ -1837,7 +1837,7 @@ export async function zipFiles(filePaths, outputName = 'archive.zip', userId = '
     await archive.finalize();
     const zipBuffer = Buffer.concat(chunks);
     
-    // Save zip to MongoDB
+    // Save zip to Database
     const zipFile = new AgentFile({
       userId,
       filename: outputName,
@@ -1845,7 +1845,7 @@ export async function zipFiles(filePaths, outputName = 'archive.zip', userId = '
       path: `/${outputName}`,
       mimeType: 'application/zip',
       size: zipBuffer.length,
-      storageType: 'mongodb',
+      storageType: 'database',
       content: zipBuffer.toString('base64'),
     });
     
@@ -1897,7 +1897,7 @@ export async function unzipFiles(zipFile, destination = '', userId = 'default') 
           path: `${destFolder}/${entry.path}`,
           mimeType: getMimeType(entry.path),
           size: content.length,
-          storageType: 'mongodb',
+          storageType: 'database',
           content: content.toString('utf-8'),
         });
         await newFile.save();
@@ -2164,7 +2164,7 @@ export async function resizeImage(imagePath, width, height, userId = 'default') 
       path: `${file.folder}/${newFilename}`,
       mimeType: file.mimeType,
       size: resized.length,
-      storageType: 'mongodb',
+      storageType: 'database',
       content: resized.toString('base64'),
     });
     
@@ -2219,7 +2219,7 @@ export async function cropImage(imagePath, x, y, width, height, userId = 'defaul
       path: `${file.folder}/${newFilename}`,
       mimeType: file.mimeType,
       size: cropped.length,
-      storageType: 'mongodb',
+      storageType: 'database',
       content: cropped.toString('base64'),
     });
     
@@ -2329,7 +2329,7 @@ export async function editImage(imagePath, operations = [], userId = 'default') 
       path: `${file.folder}/${newFilename}`,
       mimeType: file.mimeType,
       size: edited.length,
-      storageType: 'mongodb',
+      storageType: 'database',
       content: edited.toString('base64'),
     });
     
@@ -2363,7 +2363,7 @@ export async function ocrImage(imagePath, language = 'eng', userId = 'default') 
       };
     }
     
-    // Get image from MongoDB if it's a path
+    // Get image from Database if it's a path
     let imageBuffer;
     if (imagePath.startsWith('data:')) {
       // Base64 data URL
@@ -2374,7 +2374,7 @@ export async function ocrImage(imagePath, language = 'eng', userId = 'default') 
       const response = await fetch(imagePath);
       imageBuffer = Buffer.from(await response.arrayBuffer());
     } else {
-      // File in MongoDB
+      // File in Database
       const file = await AgentFile.findOne({
         userId,
         $or: [{ path: imagePath }, { filename: imagePath }],
@@ -3001,11 +3001,11 @@ export async function storeInQdrant(embeddings, metadata, collectionName = 'agen
       message: `Stored ${points.length} vectors in Qdrant collection: ${collectionName}`,
     };
   } catch (error) {
-    // Fallback: store in MongoDB if Qdrant not available
-    console.log('[Qdrant] Fallback to MongoDB:', error.message);
+    // Fallback: store in Database if Qdrant not available
+    console.log('[Qdrant] Fallback to Database:', error.message);
     return {
       success: true,
-      fallback: 'mongodb',
+      fallback: 'database',
       message: 'Qdrant not available, embeddings returned for manual storage',
       embeddings: embeddings.map(e => ({ dimensions: e.dimensions, chunkIndex: e.chunkIndex })),
     };
@@ -3074,7 +3074,7 @@ export async function semanticSearch(query, collectionName = 'agent_memories', l
     } catch (qdrantError) {
       console.log('[Qdrant] Search fallback:', qdrantError.message);
       
-      // Fallback: search in MongoDB using text search
+      // Fallback: search in Database using text search
       const AgentMemory = (await import('../models/AgentMemory.js')).default;
       
       const mongoResults = await AgentMemory.find({
@@ -3086,7 +3086,7 @@ export async function semanticSearch(query, collectionName = 'agent_memories', l
       
       return {
         success: true,
-        source: 'mongodb_text',
+        source: 'database_text',
         query,
         results: mongoResults.map(r => ({
           key: r.key,
@@ -3166,7 +3166,7 @@ export async function getFromRedis(key, userId = 'default') {
  */
 export async function saveMemory(key, content, tags = [], userId = 'default', agentId = 'general') {
   try {
-    // Use MongoDB to store memory
+    // Use Database to store memory
     const memoryFile = new AgentFile({
       userId,
       agentId,
@@ -3175,7 +3175,7 @@ export async function saveMemory(key, content, tags = [], userId = 'default', ag
       path: `/.memory/memory-${key}.json`,
       mimeType: 'application/json',
       size: content.length,
-      storageType: 'mongodb',
+      storageType: 'database',
       content: JSON.stringify({ key, content, tags, timestamp: new Date() }),
     });
     

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientPromise } from '@/lib/mongodb';
 
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
+const DB_NAME = process.env.MONGODB_DB || 'maulaai';
 
 const AGENT_MAP: Record<
   string,

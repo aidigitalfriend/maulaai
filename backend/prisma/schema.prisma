@@ -72,6 +72,10 @@ model User {
   chatFeedback         ChatFeedback[]
   chatSettings         ChatSettings[]
   agentPersonalizations AgentPersonalization[]
+  toolUsages           ToolUsage[]
+  userEvents           UserEvent[]
+  apiUsages            ApiUsage[]
+  chatInteractions     ChatAnalyticsInteraction[]
 
   @@index([email])
   @@index([sessionId])
@@ -129,6 +133,8 @@ model Agent {
   memories      AgentMemory[]
   files         AgentFile[]
   personalizations AgentPersonalization[]
+  toolUsages    ToolUsage[]
+  chatInteractions ChatAnalyticsInteraction[]
 
   @@index([agentId])
   @@index([status])
@@ -616,6 +622,154 @@ model AnalyticsEvent {
   @@index([eventName])
   @@index([timestamp])
   @@map("analytics_events")
+}
+
+model ToolUsage {
+  id           String       @id @default(cuid())
+  toolName     String
+  version      String?
+  userId       String?
+  agentId      String?
+  command      String
+  arguments    Json?
+  inputPreview String?
+  outputPreview String?
+  tokensInput  Int          @default(0)
+  tokensOutput Int          @default(0)
+  latencyMs    Int          @default(0)
+  status       ToolStatus   @default(completed)
+  integration  String?
+  environment  String?
+  tags         String[]     @default([])
+  occurredAt   DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  user         User?        @relation(fields: [userId], references: [id])
+  agent        Agent?       @relation(fields: [agentId], references: [id])
+
+  @@index([toolName])
+  @@index([userId])
+  @@index([agentId])
+  @@index([occurredAt])
+  @@map("tool_usages")
+}
+
+enum ToolStatus {
+  pending
+  completed
+  failed
+}
+
+model UserEvent {
+  id          String      @id @default(cuid())
+  userId      String?
+  eventType   String
+  category    String
+  action      String
+  label       String?
+  value       Int?
+  properties  Json?
+  durationMs  Int?
+  success     Boolean?
+  source      EventSource @default(web)
+  occurredAt  DateTime    @default(now())
+  tags        String[]    @default([])
+  featureFlag String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  user        User?       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([category])
+  @@index([occurredAt])
+  @@map("user_events")
+}
+
+enum EventSource {
+  web
+  mobile
+  api
+}
+
+model ApiUsage {
+  id           String   @id @default(cuid())
+  visitorId    String
+  sessionId    String
+  userId       String?
+  endpoint     String
+  method       String
+  statusCode   Int
+  responseTime Int      // in milliseconds
+  userAgent    String?
+  ipAddress    String?
+  timestamp    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([visitorId])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([endpoint])
+  @@index([timestamp])
+  @@map("api_usages")
+}
+
+model ChatAnalyticsInteraction {
+  id              String       @id @default(cuid())
+  conversationId  String
+  userId          String?
+  agentId         String?
+  channel         ChatChannel  @default(web)
+  language        String       @default("en")
+  messages        Json         @default("[]")
+  keywords        String[]     @default([])
+  actionItems     String[]     @default([])
+  totalTokens     Int          @default(0)
+  durationMs      Int          @default(0)
+  turnCount       Int          @default(0)
+  status          ChatStatus   @default(active)
+  tags            String[]     @default([])
+  priority        ChatPriority @default(medium)
+  startedAt       DateTime     @default(now())
+  closedAt        DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  user            User?        @relation(fields: [userId], references: [id])
+  agent           Agent?       @relation(fields: [agentId], references: [id])
+
+  @@index([conversationId])
+  @@index([userId])
+  @@index([agentId])
+  @@index([startedAt])
+  @@map("chat_analytics_interactions")
+}
+
+enum ChatChannel {
+  web
+  mobile
+  api
+}
+
+enum ChatStatus {
+  active
+  closed
+  archived
+}
+
+enum ChatPriority {
+  low
+  medium
+  high
 }
 
 // ============================================

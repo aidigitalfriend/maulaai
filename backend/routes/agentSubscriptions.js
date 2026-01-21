@@ -1,7 +1,13 @@
+/**
+ * AGENT SUBSCRIPTIONS ROUTES - PRISMA VERSION
+ * PostgreSQL-based subscription management for Maula AI
+ * Replaces Mongoose-based agentSubscriptions.js
+ */
+
 import express from 'express';
-import AgentSubscription from '../models/AgentSubscription.js';
-import mongoose from 'mongoose';
 import Stripe from 'stripe';
+import prisma from '../lib/prisma.js';
+import { AgentSubscriptionService } from '../lib/db.js';
 
 const router = express.Router();
 
@@ -14,6 +20,30 @@ const getStripe = () => {
     });
   }
   return stripe;
+};
+
+// Helper function to calculate expiry date
+const calculateExpiryDate = (plan, startDate) => {
+  const date = new Date(startDate);
+  switch (plan) {
+    case 'daily':
+      date.setDate(date.getDate() + 1);
+      break;
+    case 'weekly':
+      date.setDate(date.getDate() + 7);
+      break;
+    case 'monthly':
+      date.setMonth(date.getMonth() + 1);
+      break;
+    default:
+      throw new Error(`Invalid plan: ${plan}`);
+  }
+  return date;
+};
+
+// Helper function to check if subscription is valid
+const isSubscriptionValid = (subscription) => {
+  return subscription.status === 'active' && new Date(subscription.expiryDate) > new Date();
 };
 
 // ============================================
@@ -38,12 +68,16 @@ router.post('/subscribe', async (req, res) => {
     }
 
     // Check if subscription already exists
-    const existingSubscription = await AgentSubscription.findOne({
-      userId,
-      agentId,
+    const existingSubscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId,
+        agentId,
+        status: 'active',
+        expiryDate: { gt: new Date() }
+      }
     });
 
-    if (existingSubscription && existingSubscription.isValid()) {
+    if (existingSubscription) {
       return res.status(409).json({
         error: 'Active subscription already exists for this agent',
         subscription: existingSubscription,
@@ -52,20 +86,20 @@ router.post('/subscribe', async (req, res) => {
 
     // Calculate expiry date
     const startDate = new Date();
-    const expiryDate = AgentSubscription.calculateExpiryDate(plan, startDate);
+    const expiryDate = calculateExpiryDate(plan, startDate);
 
     // Create new subscription
-    const subscription = new AgentSubscription({
-      userId,
-      agentId,
-      plan,
-      price: prices[plan],
-      startDate,
-      expiryDate,
-      status: 'active',
+    const subscription = await prisma.agentSubscription.create({
+      data: {
+        userId,
+        agentId,
+        plan,
+        price: prices[plan],
+        startDate,
+        expiryDate,
+        status: 'active',
+      }
     });
-
-    await subscription.save();
 
     res.status(201).json({
       message: 'Subscription created successfully',
@@ -85,21 +119,36 @@ router.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const { status, agentId } = req.query;
 
-    const query = { userId };
-    if (status) query.status = status;
-    if (agentId) query.agentId = agentId;
+    const where = { userId };
+    if (status) where.status = status;
+    if (agentId) where.agentId = agentId;
 
-    const subscriptions = await AgentSubscription.find(query).sort({
-      createdAt: -1,
+    const subscriptions = await prisma.agentSubscription.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        agent: {
+          select: {
+            name: true,
+            avatarUrl: true,
+            specialty: true
+          }
+        }
+      }
     });
 
     res.json({
+      success: true,
       count: subscriptions.length,
       subscriptions,
     });
   } catch (error) {
     console.error('Error fetching subscriptions:', error);
-    res.status(500).json({ error: 'Failed to fetch subscriptions' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch subscriptions',
+      subscriptions: []
+    });
   }
 });
 
@@ -110,20 +159,41 @@ router.get('/check/:userId/:agentId', async (req, res) => {
   try {
     const { userId, agentId } = req.params;
 
-    const subscription = await AgentSubscription.findOne({
-      userId,
-      agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
+    const subscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId,
+        agentId,
+        status: 'active',
+        expiryDate: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' }
     });
+
+    // Calculate days remaining if subscription exists
+    let daysRemaining = 0;
+    if (subscription && subscription.expiryDate) {
+      daysRemaining = Math.ceil(
+        (new Date(subscription.expiryDate).getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24)
+      );
+    }
 
     res.json({
       hasActiveSubscription: !!subscription,
-      subscription: subscription || null,
+      hasAccess: !!subscription,
+      subscription: subscription
+        ? {
+            ...subscription,
+            daysRemaining,
+          }
+        : null,
     });
   } catch (error) {
     console.error('Error checking subscription:', error);
-    res.status(500).json({ error: 'Failed to check subscription' });
+    res.status(500).json({ 
+      error: 'Failed to check subscription',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
@@ -132,10 +202,13 @@ router.get('/check/:userId/:agentId', async (req, res) => {
 // ============================================
 router.get('/active', async (req, res) => {
   try {
-    const subscriptions = await AgentSubscription.find({
-      status: 'active',
-      expiryDate: { $gt: new Date() },
-    }).sort({ expiryDate: 1 });
+    const subscriptions = await prisma.agentSubscription.findMany({
+      where: {
+        status: 'active',
+        expiryDate: { gt: new Date() },
+      },
+      orderBy: { expiryDate: 'asc' }
+    });
 
     res.json({
       count: subscriptions.length,
@@ -155,37 +228,42 @@ router.put('/:subscriptionId', async (req, res) => {
     const { subscriptionId } = req.params;
     const { status, autoRenew, plan } = req.body;
 
-    const subscription = await AgentSubscription.findById(subscriptionId);
+    const subscription = await prisma.agentSubscription.findUnique({
+      where: { id: subscriptionId }
+    });
+
     if (!subscription) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
 
+    const updateData = {};
+
     // Update status if provided
     if (status) {
-      subscription.status = status;
+      updateData.status = status;
     }
 
     // Update auto-renew if provided
     if (typeof autoRenew === 'boolean') {
-      subscription.autoRenew = autoRenew;
+      updateData.autoRenew = autoRenew;
     }
 
     // Change plan if provided
     if (plan && plan !== subscription.plan) {
       const prices = { daily: 1, weekly: 5, monthly: 15 };
-      subscription.plan = plan;
-      subscription.price = prices[plan];
-      subscription.expiryDate = AgentSubscription.calculateExpiryDate(
-        plan,
-        subscription.startDate
-      );
+      updateData.plan = plan;
+      updateData.price = prices[plan];
+      updateData.expiryDate = calculateExpiryDate(plan, subscription.startDate);
     }
 
-    await subscription.save();
+    const updated = await prisma.agentSubscription.update({
+      where: { id: subscriptionId },
+      data: updateData
+    });
 
     res.json({
       message: 'Subscription updated successfully',
-      subscription,
+      subscription: updated,
     });
   } catch (error) {
     console.error('Error updating subscription:', error);
@@ -200,26 +278,28 @@ router.post('/:subscriptionId/renew', async (req, res) => {
   try {
     const { subscriptionId } = req.params;
 
-    const subscription = await AgentSubscription.findById(subscriptionId);
+    const subscription = await prisma.agentSubscription.findUnique({
+      where: { id: subscriptionId }
+    });
+
     if (!subscription) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
 
-    // Calculate new expiry date
-    const newExpiryDate = AgentSubscription.calculateExpiryDate(
-      subscription.plan,
-      subscription.expiryDate
-    );
+    // Calculate new expiry date from current expiry
+    const newExpiryDate = calculateExpiryDate(subscription.plan, subscription.expiryDate);
 
-    subscription.expiryDate = newExpiryDate;
-    subscription.status = 'active';
-    subscription.lastRenewal = new Date();
-
-    await subscription.save();
+    const updated = await prisma.agentSubscription.update({
+      where: { id: subscriptionId },
+      data: {
+        expiryDate: newExpiryDate,
+        status: 'active',
+      }
+    });
 
     res.json({
       message: 'Subscription renewed successfully',
-      subscription,
+      subscription: updated,
     });
   } catch (error) {
     console.error('Error renewing subscription:', error);
@@ -234,19 +314,25 @@ router.delete('/:subscriptionId', async (req, res) => {
   try {
     const { subscriptionId } = req.params;
 
-    const subscription = await AgentSubscription.findById(subscriptionId);
+    const subscription = await prisma.agentSubscription.findUnique({
+      where: { id: subscriptionId }
+    });
+
     if (!subscription) {
       return res.status(404).json({ error: 'Subscription not found' });
     }
 
-    subscription.status = 'cancelled';
-    subscription.autoRenew = false;
-
-    await subscription.save();
+    const updated = await prisma.agentSubscription.update({
+      where: { id: subscriptionId },
+      data: {
+        status: 'cancelled',
+        autoRenew: false,
+      }
+    });
 
     res.json({
       message: 'Subscription cancelled successfully',
-      subscription,
+      subscription: updated,
     });
   } catch (error) {
     console.error('Error cancelling subscription:', error);
@@ -263,14 +349,17 @@ router.get('/expiring/soon', async (req, res) => {
     const expiryThreshold = new Date();
     expiryThreshold.setDate(expiryThreshold.getDate() + parseInt(days));
 
-    const subscriptions = await AgentSubscription.find({
-      status: 'active',
-      autoRenew: true,
-      expiryDate: {
-        $gte: new Date(),
-        $lte: expiryThreshold,
+    const subscriptions = await prisma.agentSubscription.findMany({
+      where: {
+        status: 'active',
+        autoRenew: true,
+        expiryDate: {
+          gte: new Date(),
+          lte: expiryThreshold,
+        },
       },
-    }).sort({ expiryDate: 1 });
+      orderBy: { expiryDate: 'asc' }
+    });
 
     res.json({
       count: subscriptions.length,
@@ -287,47 +376,44 @@ router.get('/expiring/soon', async (req, res) => {
 // ============================================
 router.get('/stats/overview', async (req, res) => {
   try {
-    const stats = await AgentSubscription.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 },
-          totalRevenue: { $sum: '$price' },
-        },
-      },
-    ]);
+    // Status breakdown
+    const statusBreakdown = await prisma.agentSubscription.groupBy({
+      by: ['status'],
+      _count: { status: true },
+      _sum: { price: true }
+    });
 
-    const planStats = await AgentSubscription.aggregate([
-      {
-        $match: { status: 'active' },
-      },
-      {
-        $group: {
-          _id: '$plan',
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+    // Plan breakdown for active subscriptions
+    const planBreakdown = await prisma.agentSubscription.groupBy({
+      by: ['plan'],
+      where: { status: 'active' },
+      _count: { plan: true }
+    });
 
-    const agentStats = await AgentSubscription.aggregate([
-      {
-        $match: { status: 'active' },
-      },
-      {
-        $group: {
-          _id: '$agentId',
-          subscribers: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { subscribers: -1 },
-      },
-    ]);
+    // Agent popularity
+    const agentPopularity = await prisma.agentSubscription.groupBy({
+      by: ['agentId'],
+      where: { status: 'active' },
+      _count: { agentId: true },
+      orderBy: {
+        _count: { agentId: 'desc' }
+      }
+    });
 
     res.json({
-      statusBreakdown: stats,
-      planBreakdown: planStats,
-      agentPopularity: agentStats,
+      statusBreakdown: statusBreakdown.map(s => ({
+        _id: s.status,
+        count: s._count.status,
+        totalRevenue: s._sum.price || 0
+      })),
+      planBreakdown: planBreakdown.map(p => ({
+        _id: p.plan,
+        count: p._count.plan
+      })),
+      agentPopularity: agentPopularity.map(a => ({
+        _id: a.agentId,
+        subscribers: a._count.agentId
+      })),
     });
   } catch (error) {
     console.error('Error fetching subscription stats:', error);
@@ -336,7 +422,7 @@ router.get('/stats/overview', async (req, res) => {
 });
 
 // ============================================
-// 10. Cancel Subscription
+// 10. Cancel Subscription by userId/agentId
 // ============================================
 router.post('/cancel', async (req, res) => {
   try {
@@ -349,10 +435,12 @@ router.post('/cancel', async (req, res) => {
     }
 
     // Find active subscription
-    const subscription = await AgentSubscription.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
+    const subscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId,
+        agentId,
+        status: 'active',
+      }
     });
 
     if (!subscription) {
@@ -361,18 +449,20 @@ router.post('/cancel', async (req, res) => {
       });
     }
 
-    // Mark as cancelled (keep in database for history)
-    subscription.status = 'cancelled';
-    await subscription.save();
+    // Mark as cancelled
+    const updated = await prisma.agentSubscription.update({
+      where: { id: subscription.id },
+      data: { status: 'cancelled' }
+    });
 
     res.json({
       message: 'Subscription cancelled successfully',
       subscription: {
-        id: subscription._id,
-        agentId: subscription.agentId,
-        plan: subscription.plan,
+        id: updated.id,
+        agentId: updated.agentId,
+        plan: updated.plan,
         status: 'cancelled',
-        wasExpiringOn: subscription.expiryDate,
+        wasExpiringOn: updated.expiryDate,
         cancelledAt: new Date(),
       },
     });
@@ -383,92 +473,7 @@ router.post('/cancel', async (req, res) => {
 });
 
 // ============================================
-// 7. Get User Subscriptions
-// ============================================
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        error: 'User ID is required',
-      });
-    }
-
-    // Find all subscriptions for this user
-    const subscriptions = await AgentSubscription.find({
-      userId: userId,
-    }).sort({ createdAt: -1 }); // Most recent first
-
-    res.json({
-      success: true,
-      subscriptions: subscriptions,
-    });
-  } catch (error) {
-    console.error('Error fetching user subscriptions:', error);
-    res.status(500).json({
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to fetch subscriptions',
-      subscriptions: [],
-    });
-  }
-});
-
-// ============================================
-// 8. Check User Agent Access
-// ============================================
-router.get('/check/:userId/:agentId', async (req, res) => {
-  try {
-    const { userId, agentId } = req.params;
-
-    if (!userId || !agentId) {
-      return res.status(400).json({
-        error: 'User ID and Agent ID are required',
-      });
-    }
-
-    // Find active subscription for this user and agent
-    const subscription = await AgentSubscription.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
-    }).sort({ createdAt: -1 });
-
-    // Calculate days remaining if subscription exists
-    let daysRemaining = 0;
-    if (subscription && subscription.expiryDate) {
-      daysRemaining = Math.ceil(
-        (new Date(subscription.expiryDate).getTime() - Date.now()) /
-          (1000 * 60 * 60 * 24)
-      );
-    }
-
-    res.json({
-      hasActiveSubscription: !!subscription,
-      hasAccess: !!subscription, // For frontend compatibility
-      subscription: subscription
-        ? {
-            ...subscription.toObject(),
-            daysRemaining,
-          }
-        : null,
-    });
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    res.status(500).json({
-      error: 'Failed to check subscription',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
-// ============================================
-// 9. Verify Stripe Session
+// 11. Verify Stripe Session
 // ============================================
 router.post('/verify-session', async (req, res) => {
   try {
@@ -505,7 +510,7 @@ router.post('/verify-session', async (req, res) => {
       });
     }
 
-    // Get payment period object (we use Stripe subscription mode with cancel_at_period_end)
+    // Get payment period object
     const subscriptionData = session.subscription;
 
     if (!subscriptionData) {
@@ -528,18 +533,25 @@ router.post('/verify-session', async (req, res) => {
       });
     }
 
-    // Extract metadata (from subscription_data metadata)
-    const agentId =
-      subscriptionData.metadata?.agentId || session.metadata?.agentId;
-    const agentName =
-      subscriptionData.metadata?.agentName || session.metadata?.agentName;
+    // Extract metadata
+    const agentId = subscriptionData.metadata?.agentId || session.metadata?.agentId;
+    const agentName = subscriptionData.metadata?.agentName || session.metadata?.agentName;
     const plan = subscriptionData.metadata?.plan || session.metadata?.plan;
+    const userId = session.metadata?.userId;
 
     if (!agentId || !agentName || !plan) {
       console.error('❌ Missing metadata:', { agentId, agentName, plan });
       return res.status(400).json({
         success: false,
         error: 'Payment information missing',
+      });
+    }
+
+    if (!userId) {
+      console.error('❌ Missing userId in session metadata');
+      return res.status(400).json({
+        success: false,
+        error: 'User information missing',
       });
     }
 
@@ -551,120 +563,95 @@ router.post('/verify-session', async (req, res) => {
       plan,
       amount: session.amount_total,
       subscriptionId: subscriptionData.id,
-      cancelAtPeriodEnd: subscriptionData.cancel_at_period_end,
     });
 
-    // Use subscription period dates (cancel_at_period_end is true, so it won't auto-renew)
+    // Use subscription period dates
     const startDate = new Date(subscriptionData.current_period_start * 1000);
     const expiryDate = new Date(subscriptionData.current_period_end * 1000);
-
-    // Get price from session
     const price = session.amount_total ? session.amount_total / 100 : 0;
 
-    // Convert userId to ObjectId for proper backend filtering
-    const userId = session.metadata?.userId
-      ? new mongoose.Types.ObjectId(session.metadata.userId)
-      : null;
-
-    if (!userId) {
-      console.error('❌ Missing userId in session metadata');
-      return res.status(400).json({
-        success: false,
-        error: 'User information missing',
-      });
-    }
-
-    // Check if subscription already exists (avoid duplicates)
-    const existingByStripeId = await AgentSubscription.findOne({
-      stripeSubscriptionId: subscriptionData.id,
+    // Check if subscription already exists by Stripe ID
+    const existingByStripeId = await prisma.agentSubscription.findFirst({
+      where: { stripeSubscriptionId: subscriptionData.id }
     });
 
     if (existingByStripeId) {
-      // Update user field if missing AND ensure status is active
-      // Since payment is successful, this subscription should be active
-      existingByStripeId.status = 'active';
-      existingByStripeId.startDate = startDate;
-      existingByStripeId.expiryDate = expiryDate;
-      if (!existingByStripeId.userId) {
-        existingByStripeId.userId = userId;
-      }
-      existingByStripeId.updatedAt = new Date();
-      await existingByStripeId.save();
-      console.log(
-        '✅ Updated existing subscription to active:',
-        subscriptionData.id
-      );
+      // Update existing subscription
+      const updated = await prisma.agentSubscription.update({
+        where: { id: existingByStripeId.id },
+        data: {
+          status: 'active',
+          startDate,
+          expiryDate,
+          ...(existingByStripeId.userId ? {} : { userId })
+        }
+      });
 
       const daysRemaining = Math.ceil(
-        (existingByStripeId.expiryDate.getTime() - Date.now()) /
-          (1000 * 60 * 60 * 24)
+        (updated.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
       );
 
       return res.json({
         success: true,
         hasAccess: true,
         subscription: {
-          id: existingByStripeId._id,
-          agentId: existingByStripeId.agentId,
-          plan: existingByStripeId.plan,
-          status: 'active', // Always return active for successful payment
-          expiryDate: existingByStripeId.expiryDate,
+          id: updated.id,
+          agentId: updated.agentId,
+          plan: updated.plan,
+          status: 'active',
+          expiryDate: updated.expiryDate,
           daysRemaining: daysRemaining > 0 ? daysRemaining : 0,
-          price: existingByStripeId.price,
+          price: updated.price,
         },
       });
     }
 
     // Check if user already has subscription for this agent
-    const existingSubscription = await AgentSubscription.findOne({
-      userId: userId,
-      agentId: agentId,
+    const existingSubscription = await prisma.agentSubscription.findFirst({
+      where: { userId, agentId }
     });
 
     let subscriptionRecord;
     if (existingSubscription) {
-      // Update existing record - extend access
-      existingSubscription.status = 'active';
-      existingSubscription.plan = plan;
-      existingSubscription.price = price;
-      existingSubscription.startDate = startDate;
-      existingSubscription.expiryDate = expiryDate;
-      existingSubscription.stripeSubscriptionId = subscriptionData.id;
-      existingSubscription.updatedAt = new Date();
-      await existingSubscription.save();
-      subscriptionRecord = existingSubscription;
+      // Update existing record
+      subscriptionRecord = await prisma.agentSubscription.update({
+        where: { id: existingSubscription.id },
+        data: {
+          status: 'active',
+          plan,
+          price,
+          startDate,
+          expiryDate,
+          stripeSubscriptionId: subscriptionData.id,
+        }
+      });
     } else {
       // Create new subscription record
-      subscriptionRecord = new AgentSubscription({
-        userId,
-        agentId,
-        agentName,
-        plan,
-        price,
-        status: 'active',
-        startDate,
-        expiryDate,
-        stripeSubscriptionId: subscriptionData.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      subscriptionRecord = await prisma.agentSubscription.create({
+        data: {
+          userId,
+          agentId,
+          plan,
+          price,
+          status: 'active',
+          startDate,
+          expiryDate,
+          stripeSubscriptionId: subscriptionData.id,
+        }
       });
-      await subscriptionRecord.save();
     }
 
-    // Return access details
     res.json({
       success: true,
       hasAccess: true,
       subscription: {
-        id: subscriptionRecord._id,
+        id: subscriptionRecord.id,
         agentId: subscriptionRecord.agentId,
-        agentName: subscriptionRecord.agentName,
         plan: subscriptionRecord.plan,
         status: subscriptionRecord.status,
         expiryDate: subscriptionRecord.expiryDate,
         daysRemaining: Math.ceil(
-          (subscriptionRecord.expiryDate.getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
+          (subscriptionRecord.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
         ),
         price: subscriptionRecord.price,
       },

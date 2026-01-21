@@ -321,9 +321,9 @@ export function getWelcomeEmailTemplate(userName) {
     <!-- Footer -->
     <div class="footer">
       <div class="social-links">
-        <a href="https://twitter.com/onelastai" class="social-link" title="Twitter">🐦</a>
-        <a href="https://linkedin.com/company/onelastai" class="social-link" title="LinkedIn">💼</a>
-        <a href="https://github.com/onelastai" class="social-link" title="GitHub">💻</a>
+        <a href="https://twitter.com/maulaai" class="social-link" title="Twitter">🐦</a>
+        <a href="https://linkedin.com/company/maulaai" class="social-link" title="LinkedIn">💼</a>
+        <a href="https://github.com/maulaai" class="social-link" title="GitHub">💻</a>
         <a href="https://discord.gg/EXH6w9CH" class="social-link" title="Discord">💬</a>
       </div>
 
@@ -622,9 +622,9 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
     <!-- Footer -->
     <div class="footer">
       <div class="social-links">
-        <a href="https://twitter.com/onelastai" class="social-link" title="Twitter">🐦</a>
-        <a href="https://linkedin.com/company/onelastai" class="social-link" title="LinkedIn">💼</a>
-        <a href="https://github.com/onelastai" class="social-link" title="GitHub">💻</a>
+        <a href="https://twitter.com/maulaai" class="social-link" title="Twitter">🐦</a>
+        <a href="https://linkedin.com/company/maulaai" class="social-link" title="LinkedIn">💼</a>
+        <a href="https://github.com/maulaai" class="social-link" title="GitHub">💻</a>
         <a href="https://discord.gg/EXH6w9CH" class="social-link" title="Discord">💬</a>
       </div>
 

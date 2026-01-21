@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ############################################################
-# Unified Production Deployment Script
+# Maula AI - Production Deployment Script
 # ------------------------------------
 # Automates the local commit + push flow and the remote build
-# + restart cycle used for the shiny-friend-disco project.
+# + restart cycle for the maula.ai project.
 #
 # Usage:
 #   ./deploy.sh                          # auto commit + deploy
@@ -12,8 +12,8 @@
 #   ./deploy.sh --no-commit              # skip git add/commit
 #
 # Requirements:
-#   • one-last-ai.pem key present in repo root
-#   • ssh access to ubuntu@47.129.43.231
+#   • victorykit.pem key present in repo root
+#   • ssh access to ubuntu@18.140.156.40
 #   • pm2 configured with shiny-backend + shiny-frontend
 ############################################################
 
@@ -22,9 +22,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$REPO_ROOT"
 
-SERVER="ubuntu@47.130.228.100"
-SSH_KEY="$REPO_ROOT/one-last-ai.pem"
-REMOTE_DIR="~/shiny-friend-disco"
+SERVER="ubuntu@18.140.156.40"
+SSH_KEY="$REPO_ROOT/victorykit.pem"
+REMOTE_DIR="~/maula-ai"
 COMMIT_MSG="chore: deploy $(date +'%Y-%m-%d %H:%M:%S')"
 SKIP_COMMIT=false
 
@@ -105,6 +105,11 @@ git reset --hard origin/main
 echo "🔧 Installing backend dependencies"
 cd backend
 npm ci --omit=dev
+
+echo "🗄️ Generating Prisma client"
+npx prisma generate
+
+echo "🔄 Restarting backend"
 pm2 restart shiny-backend || true
 
 cd ..
@@ -114,9 +119,6 @@ cd frontend
 
 echo "📦 Installing frontend dependencies"
 npm ci
-
-echo "🛟 Ensuring mongodb and mongoose are installed (safety net)"
-npm install mongodb@^6.21.0 mongoose@^8.0.0 --no-save || echo "⚠️ Optional mongodb/mongoose safety install failed; continuing if already present"
 
 echo "🏗️ Building Next.js frontend"
 NEXT_TELEMETRY_DISABLED=1 npm run build

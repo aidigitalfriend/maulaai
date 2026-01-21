@@ -1,321 +1,237 @@
-import { MongoClient } from 'mongodb';
-
 /**
- * Agent Collection Hub Service
+ * Agent Collection Hub Service - PRISMA VERSION
  * 
- * This service automatically syncs data to agent-specific collections
- * while maintaining the existing universal collections.
+ * This service manages agent-specific data operations using PostgreSQL/Prisma.
+ * Replaces the MongoDB-based agentCollectionHub.js
  * 
- * Usage: Call these functions alongside existing data operations
- * to maintain dual storage (universal + agent-specific)
+ * In PostgreSQL, we use the existing tables with agentId filtering
+ * rather than creating separate collections per agent.
  */
+
+import { prisma } from '../lib/prisma.js';
 
 class AgentCollectionHub {
   constructor() {
-    this.client = null;
-    this.db = null;
+    // No connection needed - Prisma handles connection pooling
   }
 
   async connect() {
-    if (!this.client) {
-      this.client = new MongoClient(process.env.MONGODB_URI);
-      await this.client.connect();
-      this.db = this.client.db('onelastai');
-    }
-    return this.db;
+    // Prisma handles connections automatically
+    return prisma;
   }
 
   async disconnect() {
-    if (this.client) {
-      await this.client.close();
-      this.client = null;
-      this.db = null;
-    }
-  }
-
-  getAgentCollectionName(agentId) {
-    return `agent_${agentId.replace('-', '_')}`;
+    // Prisma handles disconnection in the main server
   }
 
   /**
-   * Sync chat session to agent's collection
-   * Call this after saving to universal agentchathistories collection
+   * Sync chat session to agent's data
+   * In PostgreSQL, we use the ChatSession table with agentId filtering
    */
   async syncChatSession(agentId, chatSessionData) {
     try {
-      await this.connect();
-      const collectionName = this.getAgentCollectionName(agentId);
-      const collection = this.db.collection(collectionName);
-
-      const agentDoc = {
-        dataType: 'chatSession',
-        agentId: agentId,
-        userId: chatSessionData.userId,
-        sessionId: chatSessionData.sessionId,
-        timestamp: new Date(chatSessionData.timestamp || Date.now()),
-        messages: chatSessionData.messages || [],
-        sessionMetrics: {
-          messageCount: chatSessionData.messages ? chatSessionData.messages.length : 0,
-          duration: chatSessionData.duration || 0,
-          userSatisfaction: chatSessionData.userSatisfaction || null,
-          topicsDiscussed: chatSessionData.topicsDiscussed || []
+      const session = await prisma.chatSession.upsert({
+        where: { sessionId: chatSessionData.sessionId },
+        update: {
+          agentId,
+          messageCount: chatSessionData.messages?.length || 0,
+          totalTokens: chatSessionData.totalTokens || 0,
+          lastMessageAt: new Date()
         },
-        subscriptionStatus: chatSessionData.subscriptionStatus || 'unknown',
-        // Keep reference to universal collection
-        universalDocId: chatSessionData._id || chatSessionData.id,
-        syncedAt: new Date()
-      };
-
-      const result = await collection.insertOne(agentDoc);
+        create: {
+          sessionId: chatSessionData.sessionId,
+          userId: chatSessionData.userId,
+          agentId,
+          name: chatSessionData.name || 'Chat Session',
+          messageCount: chatSessionData.messages?.length || 0,
+          totalTokens: chatSessionData.totalTokens || 0,
+          context: chatSessionData.context || {}
+        }
+      });
       
-      console.log(`✅ Synced chat session to ${collectionName}:`, result.insertedId);
-      return result.insertedId;
+      console.log(`✅ Synced chat session for agent ${agentId}:`, session.id);
+      return session.id;
 
     } catch (error) {
-      console.error(`❌ Error syncing chat session to ${agentId} collection:`, error);
-      // Don't throw - this is supplementary storage
+      console.error(`❌ Error syncing chat session for ${agentId}:`, error);
       return null;
     }
   }
 
   /**
-   * Log user interaction in agent's collection
-   * Call this for any user interaction with the agent
+   * Sync user interaction to agent's data
+   * Uses UserEvent or AnalyticsEvent tables
    */
-  async logInteraction(agentId, interactionData) {
+  async syncUserInteraction(agentId, interactionData) {
     try {
-      await this.connect();
-      const collectionName = this.getAgentCollectionName(agentId);
-      const collection = this.db.collection(collectionName);
+      const event = await prisma.analyticsEvent.create({
+        data: {
+          visitorId: interactionData.visitorId || 'system',
+          sessionId: interactionData.sessionId || 'system',
+          userId: interactionData.userId,
+          eventName: 'agent_interaction',
+          eventData: {
+            agentId,
+            interactionType: interactionData.type,
+            messageContent: interactionData.userMessage?.substring(0, 500),
+            aiResponsePreview: interactionData.aiResponse?.substring(0, 500),
+            tokensUsed: interactionData.tokens || 0,
+            responseTime: interactionData.responseTime || 0,
+            ...interactionData.metadata
+          },
+          timestamp: new Date()
+        }
+      });
 
-      const interactionDoc = {
-        dataType: 'userInteraction',
-        agentId: agentId,
-        userId: interactionData.userId,
-        timestamp: new Date(),
-        interactionType: interactionData.type, // 'chat_start', 'message_sent', 'session_end', 'subscription_purchased'
-        sessionId: interactionData.sessionId,
-        metadata: {
-          userAgent: interactionData.userAgent,
-          messageText: interactionData.messageText ? interactionData.messageText.substring(0, 100) : null, // First 100 chars
-          responseTime: interactionData.responseTime,
-          subscriptionStatus: interactionData.subscriptionStatus,
-          ...interactionData.customData
+      console.log(`✅ Synced interaction for agent ${agentId}:`, event.id);
+      return event.id;
+
+    } catch (error) {
+      console.error(`❌ Error syncing interaction for ${agentId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Sync subscription event to agent's data
+   * Uses Transaction or AgentSubscription tables
+   */
+  async syncSubscriptionEvent(agentId, subscriptionData) {
+    try {
+      // Log subscription event as analytics
+      const event = await prisma.analyticsEvent.create({
+        data: {
+          visitorId: subscriptionData.visitorId || 'system',
+          sessionId: subscriptionData.sessionId || 'system',
+          userId: subscriptionData.userId,
+          eventName: 'subscription_event',
+          eventData: {
+            agentId,
+            eventType: subscriptionData.eventType, // 'created', 'renewed', 'cancelled', 'expired'
+            plan: subscriptionData.plan,
+            price: subscriptionData.price,
+            subscriptionId: subscriptionData.subscriptionId,
+            stripeId: subscriptionData.stripeSubscriptionId,
+            ...subscriptionData.metadata
+          },
+          timestamp: new Date()
+        }
+      });
+
+      console.log(`✅ Synced subscription event for agent ${agentId}:`, event.id);
+      return event.id;
+
+    } catch (error) {
+      console.error(`❌ Error syncing subscription event for ${agentId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get agent analytics summary
+   */
+  async getAgentAnalytics(agentId, startDate, endDate) {
+    try {
+      const dateFilter = {};
+      if (startDate) dateFilter.gte = new Date(startDate);
+      if (endDate) dateFilter.lte = new Date(endDate);
+
+      const [
+        chatSessions,
+        subscriptions,
+        interactions
+      ] = await Promise.all([
+        // Total chat sessions for this agent
+        prisma.chatSession.count({
+          where: {
+            agentId,
+            ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {})
+          }
+        }),
+        // Active subscriptions for this agent
+        prisma.agentSubscription.count({
+          where: {
+            agentId,
+            status: 'active'
+          }
+        }),
+        // Interactions (from analytics events)
+        prisma.analyticsEvent.count({
+          where: {
+            eventName: 'agent_interaction',
+            eventData: { path: ['agentId'], equals: agentId },
+            ...(Object.keys(dateFilter).length ? { timestamp: dateFilter } : {})
+          }
+        })
+      ]);
+
+      return {
+        agentId,
+        totalChatSessions: chatSessions,
+        activeSubscriptions: subscriptions,
+        totalInteractions: interactions,
+        period: {
+          start: startDate || 'all-time',
+          end: endDate || 'now'
         }
       };
 
-      const result = await collection.insertOne(interactionDoc);
-      
-      console.log(`📊 Logged interaction for ${agentId}:`, interactionData.type);
-      return result.insertedId;
-
     } catch (error) {
-      console.error(`❌ Error logging interaction for ${agentId}:`, error);
+      console.error(`❌ Error getting analytics for ${agentId}:`, error);
       return null;
     }
   }
 
   /**
-   * Sync subscription data to agent's collection
-   * Call this when subscription changes occur
+   * Get recent activity for an agent
    */
-  async syncSubscription(agentId, subscriptionData) {
+  async getAgentRecentActivity(agentId, limit = 10) {
     try {
-      await this.connect();
-      const collectionName = this.getAgentCollectionName(agentId);
-      const collection = this.db.collection(collectionName);
-
-      const subscriptionDoc = {
-        dataType: 'subscriptionData',
-        agentId: agentId,
-        userId: subscriptionData.userId,
-        timestamp: new Date(),
-        subscriptionStatus: subscriptionData.status,
-        plan: subscriptionData.plan,
-        price: subscriptionData.price,
-        expiryDate: subscriptionData.expiryDate,
-        // Keep reference to universal collection
-        universalSubscriptionId: subscriptionData._id || subscriptionData.id,
-        syncedAt: new Date()
-      };
-
-      const result = await collection.insertOne(subscriptionDoc);
-      
-      console.log(`💰 Synced subscription to ${collectionName}:`, subscriptionData.plan);
-      return result.insertedId;
-
-    } catch (error) {
-      console.error(`❌ Error syncing subscription to ${agentId} collection:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Update agent analytics
-   * Call this periodically to update agent performance metrics
-   */
-  async updateAnalytics(agentId, period = 'daily') {
-    try {
-      await this.connect();
-      const collectionName = this.getAgentCollectionName(agentId);
-      const collection = this.db.collection(collectionName);
-
-      // Calculate analytics from agent's collection data
-      const now = new Date();
-      let startDate;
-      
-      switch (period) {
-        case 'hourly':
-          startDate = new Date(now.getTime() - 60 * 60 * 1000);
-          break;
-        case 'daily':
-          startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case 'weekly':
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'monthly':
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
-        default:
-          startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      }
-
-      // Get metrics from the period
-      const totalSessions = await collection.countDocuments({
-        dataType: 'chatSession',
-        timestamp: { $gte: startDate }
-      });
-
-      const totalInteractions = await collection.countDocuments({
-        dataType: 'userInteraction',
-        timestamp: { $gte: startDate }
-      });
-
-      const uniqueUsers = await collection.distinct('userId', {
-        dataType: 'chatSession',
-        timestamp: { $gte: startDate }
-      });
-
-      // Get subscription conversions
-      const subscriptionEvents = await collection.countDocuments({
-        dataType: 'userInteraction',
-        interactionType: 'subscription_purchased',
-        timestamp: { $gte: startDate }
-      });
-
-      const analyticsDoc = {
-        dataType: 'agentAnalytics',
-        agentId: agentId,
-        period: period,
-        timestamp: now,
-        startDate: startDate,
-        endDate: now,
-        metrics: {
-          totalSessions: totalSessions,
-          totalInteractions: totalInteractions,
-          uniqueUsers: uniqueUsers.length,
-          subscriptionConversions: subscriptionEvents,
-          avgSessionsPerUser: uniqueUsers.length > 0 ? (totalSessions / uniqueUsers.length).toFixed(2) : 0,
-          interactionRate: totalSessions > 0 ? (totalInteractions / totalSessions).toFixed(2) : 0
+      const recentSessions = await prisma.chatSession.findMany({
+        where: { agentId },
+        orderBy: { updatedAt: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          sessionId: true,
+          userId: true,
+          name: true,
+          messageCount: true,
+          updatedAt: true
         }
-      };
+      });
 
-      const result = await collection.insertOne(analyticsDoc);
-      
-      console.log(`📈 Updated analytics for ${agentId} (${period}):`, analyticsDoc.metrics);
-      return result.insertedId;
+      return recentSessions;
 
     } catch (error) {
-      console.error(`❌ Error updating analytics for ${agentId}:`, error);
-      return null;
+      console.error(`❌ Error getting recent activity for ${agentId}:`, error);
+      return [];
     }
   }
 
   /**
-   * Get agent collection statistics
+   * Migrate data for a specific agent (utility function)
+   * This would be used during migration from MongoDB
    */
-  async getAgentStats(agentId) {
-    try {
-      await this.connect();
-      const collectionName = this.getAgentCollectionName(agentId);
-      const collection = this.db.collection(collectionName);
+  async migrateAgentData(agentId, mongoData) {
+    console.log(`Starting migration for agent ${agentId}...`);
+    
+    let migratedCount = {
+      sessions: 0,
+      interactions: 0,
+      subscriptions: 0
+    };
 
-      const totalDocs = await collection.countDocuments();
-      const chatSessions = await collection.countDocuments({ dataType: 'chatSession' });
-      const interactions = await collection.countDocuments({ dataType: 'userInteraction' });
-      const analytics = await collection.countDocuments({ dataType: 'agentAnalytics' });
-      const subscriptions = await collection.countDocuments({ dataType: 'subscriptionData' });
+    // Migration would be implemented based on actual MongoDB data structure
+    // This is a placeholder for the migration logic
 
-      return {
-        agentId: agentId,
-        collectionName: collectionName,
-        totalDocuments: totalDocs,
-        chatSessions: chatSessions,
-        userInteractions: interactions,
-        analyticsRecords: analytics,
-        subscriptionRecords: subscriptions
-      };
-
-    } catch (error) {
-      console.error(`❌ Error getting stats for ${agentId}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Batch sync existing data from universal collections
-   * Use this for migration/backfill
-   */
-  async backfillAgentData(agentId, limit = 100) {
-    try {
-      await this.connect();
-      
-      console.log(`🔄 Starting backfill for ${agentId}...`);
-      
-      // Backfill chat histories
-      const chatHistories = await this.db.collection('agentchathistories')
-        .find({ agentId: agentId })
-        .limit(limit)
-        .toArray();
-
-      for (const chat of chatHistories) {
-        await this.syncChatSession(agentId, chat);
-      }
-
-      // Backfill subscriptions
-      const subscriptions = await this.db.collection('agentsubscriptions')
-        .find({ agentId: agentId })
-        .limit(limit)
-        .toArray();
-
-      for (const sub of subscriptions) {
-        await this.syncSubscription(agentId, sub);
-      }
-
-      console.log(`✅ Backfilled ${chatHistories.length} chat histories and ${subscriptions.length} subscriptions for ${agentId}`);
-
-      return {
-        chatHistoriesBackfilled: chatHistories.length,
-        subscriptionsBackfilled: subscriptions.length
-      };
-
-    } catch (error) {
-      console.error(`❌ Error backfilling data for ${agentId}:`, error);
-      return null;
-    }
+    console.log(`Migration complete for ${agentId}:`, migratedCount);
+    return migratedCount;
   }
 }
 
 // Create singleton instance
-const agentHub = new AgentCollectionHub();
+const agentCollectionHub = new AgentCollectionHub();
 
-export default agentHub;
-
-// Export convenience functions
-export const syncChatSession = (agentId, data) => agentHub.syncChatSession(agentId, data);
-export const logInteraction = (agentId, data) => agentHub.logInteraction(agentId, data);
-export const syncSubscription = (agentId, data) => agentHub.syncSubscription(agentId, data);
-export const updateAnalytics = (agentId, period) => agentHub.updateAnalytics(agentId, period);
-export const getAgentStats = (agentId) => agentHub.getAgentStats(agentId);
-export const backfillAgentData = (agentId, limit) => agentHub.backfillAgentData(agentId, limit);
+export default agentCollectionHub;
+export { AgentCollectionHub };

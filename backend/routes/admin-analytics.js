@@ -1,7 +1,6 @@
 import express from 'express'
 import { Visitor, Session, PageView, UserEvent, ApiUsage } from '../models/Analytics.js'
 import User from '../models/User.js'
-import mongoose from 'mongoose'
 
 const router = express.Router()
 
@@ -10,9 +9,9 @@ router.get('/stats', async (req, res) => {
     const now = new Date()
     const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     
-    const UserModel = mongoose.models.User || User
-    const totalUsers = await UserModel.countDocuments()
-    const activeUsers = await UserModel.countDocuments({ lastLoginAt: { $gte: last7Days } })
+    // Using Prisma-compatible model adapters
+    const totalUsers = await User.countDocuments()
+    const activeUsers = await User.countDocuments({ lastLoginAt: { $gte: last7Days } })
     const totalPageViews = await PageView.countDocuments()
     const totalEvents = await UserEvent.countDocuments()
     const signupEvents = await UserEvent.countDocuments({ eventName: 'signup' })
@@ -34,8 +33,8 @@ router.get('/stats', async (req, res) => {
 
 router.get('/users', async (req, res) => {
   try {
-    const UserModel = mongoose.models.User || User
-    const users = await UserModel.find()
+    // Using Prisma-compatible model adapter
+    const users = await User.find()
       .sort({ createdAt: -1 })
       .limit(100)
       .select('email name createdAt lastLoginAt')

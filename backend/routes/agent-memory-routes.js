@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import mongoose from 'mongoose';
+import { isValidId } from '../lib/validation-utils.js';
 import AgentMemory from '../models/AgentMemory.js';
 import memoryService from '../lib/agent-memory-service.js';
 import agentTools from '../lib/agent-tools-service.js';
@@ -19,7 +19,7 @@ router.get('/memory/:userId/:agentId', async (req, res) => {
   try {
     const { userId, agentId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!isValidId(userId)) {
       return res.status(400).json({ success: false, error: 'Invalid user ID' });
     }
 
@@ -40,7 +40,7 @@ router.post('/memory/:userId/:agentId/learn', async (req, res) => {
     const { userId, agentId } = req.params;
     const { messages, conversationId } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!isValidId(userId)) {
       return res.status(400).json({ success: false, error: 'Invalid user ID' });
     }
 
@@ -71,7 +71,7 @@ router.get('/memory/:userId/:agentId/context', async (req, res) => {
     const { userId, agentId } = req.params;
     const { basePrompt } = req.query;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!isValidId(userId)) {
       return res.status(400).json({ success: false, error: 'Invalid user ID' });
     }
 
@@ -97,7 +97,7 @@ router.post('/memory/:userId/:agentId/profile', async (req, res) => {
     const { userId, agentId } = req.params;
     const { updates } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!isValidId(userId)) {
       return res.status(400).json({ success: false, error: 'Invalid user ID' });
     }
 
@@ -118,7 +118,7 @@ router.delete('/memory/:userId/:agentId', async (req, res) => {
     const { userId, agentId } = req.params;
     const { clearAll, memoryType, olderThan } = req.body || {};
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!isValidId(userId)) {
       return res.status(400).json({ success: false, error: 'Invalid user ID' });
     }
 
@@ -144,7 +144,7 @@ router.post('/memory/:userId/:agentId/add', async (req, res) => {
     const { userId, agentId } = req.params;
     const { type, content, importance, tags, data } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!isValidId(userId)) {
       return res.status(400).json({ success: false, error: 'Invalid user ID' });
     }
 
@@ -284,7 +284,7 @@ router.get('/tools/available', (req, res) => {
 import AgentFile from '../models/AgentFile.js';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-const S3_BUCKET = process.env.S3_BUCKET || 'one-last-ai-bucket';
+const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({
