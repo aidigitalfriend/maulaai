@@ -273,6 +273,7 @@ function EnhancedChatLayoutContent({
                 onUpdateSettings={onUpdateSettings}
                 onResetSettings={onResetSettings}
                 agentName={agentName}
+                agentId={agentId}
                 theme={theme}
                 isLeftPanel={true}
               />

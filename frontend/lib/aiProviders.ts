@@ -10,7 +10,78 @@ export interface ProviderModelOption {
 }
 
 // ============================================================================
-// USER-FRIENDLY AI OPTIONS
+// AGENT-SPECIFIC AI PROVIDER OPTIONS
+// ============================================================================
+// Each agent gets customized dropdown options based on their personality
+// First option = Agent's primary persona, Second option = One Last AI fallback
+// ============================================================================
+
+// Einstein - Theoretical Physicist
+const EINSTEIN_PROVIDER_OPTIONS: ProviderModelOption[] = [
+  {
+    provider: 'cerebras',
+    label: '🧠 Albert Einstein',
+    models: [
+      { value: 'llama3.1-8b', label: 'Quick Insight' },
+      { value: 'llama-3.3-70b', label: 'Deep Thought' },
+    ],
+  },
+  {
+    provider: 'groq',
+    label: '⚡ One Last AI',
+    models: [
+      { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
+      { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
+    ],
+  },
+  {
+    provider: 'openai',
+    label: '🎨 Image Generator',
+    models: [
+      { value: 'gpt-4o', label: 'Best Quality' },
+      { value: 'gpt-4o-mini', label: 'Fast Mode' },
+    ],
+  },
+  {
+    provider: 'anthropic',
+    label: '💻 Code Builder',
+    models: [
+      { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
+      { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
+    ],
+  },
+  {
+    provider: 'mistral',
+    label: '📝 Writing Assistant',
+    models: [
+      { value: 'mistral-medium-latest', label: 'Detailed Write' },
+      { value: 'mistral-small-latest', label: 'Quick Write' },
+    ],
+  },
+  {
+    provider: 'xai',
+    label: '🔍 Research Helper',
+    models: [
+      { value: 'grok-2', label: 'Deep Analysis' },
+    ],
+  },
+];
+
+// ============================================================================
+// GET AGENT-SPECIFIC PROVIDER OPTIONS
+// ============================================================================
+export function getAgentProviderOptions(agentId: string): ProviderModelOption[] {
+  switch (agentId) {
+    case 'einstein':
+      return EINSTEIN_PROVIDER_OPTIONS;
+    // Add more agents here as we configure them
+    default:
+      return PROVIDER_MODEL_OPTIONS;
+  }
+}
+
+// ============================================================================
+// DEFAULT USER-FRIENDLY AI OPTIONS (Fallback)
 // ============================================================================
 // These show friendly names to users - backend handles actual provider routing
 // Users don't need to know technical details - just pick what they want to do!

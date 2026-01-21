@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   XMarkIcon,
   Cog6ToothIcon,
@@ -17,7 +17,7 @@ import {
   BeakerIcon,
 } from '@heroicons/react/24/outline';
 import type { AIProvider } from '../../app/agents/types';
-import { PROVIDER_MODEL_OPTIONS } from '../../lib/aiProviders';
+import { PROVIDER_MODEL_OPTIONS, getAgentProviderOptions } from '../../lib/aiProviders';
 
 export interface AgentSettings {
   temperature: number;
@@ -105,6 +105,7 @@ interface ChatSettingsPanelProps {
   onUpdateSettings: (settings: Partial<AgentSettings>) => void;
   onResetSettings: () => void;
   agentName: string;
+  agentId?: string;
   theme?: 'default' | 'neural';
   isLeftPanel?: boolean;
 }
@@ -116,6 +117,7 @@ export default function ChatSettingsPanel({
   onUpdateSettings,
   onResetSettings,
   agentName,
+  agentId = '',
   theme = 'default',
   isLeftPanel = false,
 }: ChatSettingsPanelProps) {
@@ -124,6 +126,9 @@ export default function ChatSettingsPanel({
     'presets'
   );
   const [activePreset, setActivePreset] = useState<string | null>(null);
+
+  // Get agent-specific provider options
+  const providerOptions = useMemo(() => getAgentProviderOptions(agentId), [agentId]);
 
   // Close on outside click
   useEffect(() => {
@@ -329,7 +334,7 @@ export default function ChatSettingsPanel({
               value={settings.provider}
               onChange={(e) => {
                 const newProvider = e.target.value as AIProvider;
-                const providerOption = PROVIDER_MODEL_OPTIONS.find(
+                const providerOption = providerOptions.find(
                   (opt) => opt.provider === newProvider
                 );
                 const firstModel =
@@ -341,7 +346,7 @@ export default function ChatSettingsPanel({
               }}
               className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
             >
-              {PROVIDER_MODEL_OPTIONS.map((opt) => (
+              {providerOptions.map((opt) => (
                 <option key={opt.provider} value={opt.provider}>
                   {opt.label}
                 </option>
@@ -356,7 +361,7 @@ export default function ChatSettingsPanel({
               className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
             >
               {(
-                PROVIDER_MODEL_OPTIONS.find(
+                providerOptions.find(
                   (opt) => opt.provider === settings.provider
                 )?.models || []
               ).map((model) => (
@@ -606,7 +611,7 @@ export default function ChatSettingsPanel({
                   value={settings.provider}
                   onChange={(e) => {
                     const newProvider = e.target.value as AIProvider;
-                    const providerOption = PROVIDER_MODEL_OPTIONS.find(
+                    const providerOption = providerOptions.find(
                       (opt) => opt.provider === newProvider
                     );
                     const firstModel =
@@ -618,7 +623,7 @@ export default function ChatSettingsPanel({
                   }}
                   className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
                 >
-                  {PROVIDER_MODEL_OPTIONS.map((opt) => (
+                  {providerOptions.map((opt) => (
                     <option key={opt.provider} value={opt.provider}>
                       {opt.label}
                     </option>
@@ -640,7 +645,7 @@ export default function ChatSettingsPanel({
                   className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
                 >
                   {(
-                    PROVIDER_MODEL_OPTIONS.find(
+                    providerOptions.find(
                       (opt) => opt.provider === settings.provider
                     )?.models || []
                   ).map((model) => (
