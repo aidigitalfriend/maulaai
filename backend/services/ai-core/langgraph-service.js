@@ -368,6 +368,320 @@ Be thorough but concise.` },
 }
 
 /**
+ * Execute Research Workflow
+ * Multi-step research with source synthesis
+ */
+export async function executeResearchWorkflow(input, options = {}) {
+  const state = new WorkflowState({
+    messages: [{ role: 'user', content: input }],
+    ...options,
+  });
+
+  try {
+    // Step 1: Break down research question
+    state.update({ status: 'analyzing_question' });
+    
+    const analysisResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a research analyst. Break down this research question into 3-5 specific sub-questions that need to be answered.' },
+      { role: 'user', content: input },
+    ]);
+
+    const subQuestions = analysisResult.content;
+
+    // Step 2: Retrieve RAG context for each sub-question
+    state.update({ status: 'gathering_sources' });
+    const contexts = [];
+    
+    try {
+      const ragResult = await ragEngine.retrieveForLLM(input, { topK: 5, minScore: 0.5 });
+      if (ragResult.context) contexts.push(ragResult.context);
+    } catch (e) {
+      console.warn('[LangGraph] RAG retrieval failed:', e.message);
+    }
+
+    // Step 3: Synthesize research
+    state.update({ status: 'synthesizing' });
+    
+    const synthesisPrompt = `You are a research expert. Based on the following research question and sub-questions, provide a comprehensive research report.
+
+Research Question: ${input}
+
+Sub-questions identified:
+${subQuestions}
+
+${contexts.length > 0 ? `\nRelevant Context:\n${contexts.join('\n\n')}` : ''}
+
+Provide a well-structured research report with:
+1. Executive Summary
+2. Key Findings
+3. Detailed Analysis
+4. Conclusions
+5. Recommendations`;
+
+    const finalResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are an expert research synthesizer.' },
+      { role: 'user', content: synthesisPrompt },
+    ]);
+
+    state.update({
+      finalResult: finalResult.content,
+      status: 'completed',
+    });
+
+    return {
+      success: true,
+      workflowType: 'research',
+      result: {
+        question: input,
+        subQuestions,
+        report: finalResult.content,
+        sourcesUsed: contexts.length,
+      },
+    };
+  } catch (error) {
+    console.error('[LangGraph] Research workflow error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Execute Creative Writing Workflow
+ * Multi-stage creative content generation
+ */
+export async function executeCreativeWorkflow(input, options = {}) {
+  const state = new WorkflowState({
+    messages: [{ role: 'user', content: input }],
+    ...options,
+  });
+
+  try {
+    // Step 1: Ideation - Generate creative concepts
+    state.update({ status: 'ideating' });
+    
+    const ideationResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a creative director. Generate 3 unique creative concepts or angles for this request.' },
+      { role: 'user', content: input },
+    ]);
+
+    // Step 2: Outline - Create structure
+    state.update({ status: 'outlining' });
+    
+    const outlineResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a content strategist. Create a detailed outline for the best concept.' },
+      { role: 'user', content: `Based on these concepts:\n${ideationResult.content}\n\nCreate a detailed outline for the most promising one.` },
+    ]);
+
+    // Step 3: Draft - Write full content
+    state.update({ status: 'drafting' });
+    
+    const draftResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are an expert creative writer. Write engaging, polished content.' },
+      { role: 'user', content: `Write the full content based on this outline:\n${outlineResult.content}\n\nOriginal request: ${input}` },
+    ]);
+
+    // Step 4: Polish - Final edits
+    state.update({ status: 'polishing' });
+    
+    const finalResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are an editor. Polish this content for clarity, flow, and impact. Keep the same structure but improve the prose.' },
+      { role: 'user', content: draftResult.content },
+    ]);
+
+    state.update({
+      finalResult: finalResult.content,
+      status: 'completed',
+    });
+
+    return {
+      success: true,
+      workflowType: 'creative',
+      result: {
+        concepts: ideationResult.content,
+        outline: outlineResult.content,
+        finalContent: finalResult.content,
+      },
+    };
+  } catch (error) {
+    console.error('[LangGraph] Creative workflow error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Execute Data Analysis Workflow
+ * Analyze data and generate insights
+ */
+export async function executeAnalysisWorkflow(input, options = {}) {
+  const state = new WorkflowState({
+    messages: [{ role: 'user', content: input }],
+    ...options,
+  });
+
+  try {
+    // Step 1: Understand the data/question
+    state.update({ status: 'understanding' });
+    
+    const understandingResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a data analyst. Identify what data is being discussed, what questions are being asked, and what analysis approach would be best.' },
+      { role: 'user', content: input },
+    ]);
+
+    // Step 2: Perform analysis
+    state.update({ status: 'analyzing' });
+    
+    const analysisResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a senior data scientist. Perform detailed analysis and calculations. Show your work.' },
+      { role: 'user', content: `Based on this understanding:\n${understandingResult.content}\n\nPerform the analysis for: ${input}` },
+    ]);
+
+    // Step 3: Generate insights and recommendations
+    state.update({ status: 'generating_insights' });
+    
+    const insightsResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a business intelligence expert. Extract key insights and provide actionable recommendations.' },
+      { role: 'user', content: `Analysis results:\n${analysisResult.content}\n\nProvide key insights and recommendations.` },
+    ]);
+
+    state.update({
+      finalResult: insightsResult.content,
+      status: 'completed',
+    });
+
+    return {
+      success: true,
+      workflowType: 'analysis',
+      result: {
+        understanding: understandingResult.content,
+        analysis: analysisResult.content,
+        insights: insightsResult.content,
+      },
+    };
+  } catch (error) {
+    console.error('[LangGraph] Analysis workflow error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Execute Planning Workflow
+ * Create detailed project plans
+ */
+export async function executePlanningWorkflow(input, options = {}) {
+  const state = new WorkflowState({
+    messages: [{ role: 'user', content: input }],
+    ...options,
+  });
+
+  try {
+    // Step 1: Scope definition
+    state.update({ status: 'scoping' });
+    
+    const scopeResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a project manager. Define the scope, objectives, and constraints for this project.' },
+      { role: 'user', content: input },
+    ]);
+
+    // Step 2: Task breakdown
+    state.update({ status: 'breaking_down' });
+    
+    const tasksResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a project planner. Break this project into specific tasks with estimates and dependencies.' },
+      { role: 'user', content: `Project scope:\n${scopeResult.content}\n\nCreate a detailed task breakdown.` },
+    ]);
+
+    // Step 3: Resource and timeline planning
+    state.update({ status: 'planning' });
+    
+    const planResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a project management expert. Create a comprehensive project plan with timeline, milestones, and resource allocation.' },
+      { role: 'user', content: `Tasks:\n${tasksResult.content}\n\nCreate a complete project plan.` },
+    ]);
+
+    // Step 4: Risk assessment
+    state.update({ status: 'assessing_risks' });
+    
+    const risksResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a risk analyst. Identify potential risks and mitigation strategies.' },
+      { role: 'user', content: `Project plan:\n${planResult.content}\n\nIdentify risks and mitigation strategies.` },
+    ]);
+
+    state.update({
+      finalResult: planResult.content,
+      status: 'completed',
+    });
+
+    return {
+      success: true,
+      workflowType: 'planning',
+      result: {
+        scope: scopeResult.content,
+        tasks: tasksResult.content,
+        plan: planResult.content,
+        risks: risksResult.content,
+      },
+    };
+  } catch (error) {
+    console.error('[LangGraph] Planning workflow error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Execute QA/Testing Workflow
+ * Generate comprehensive test cases and quality checks
+ */
+export async function executeQAWorkflow(input, options = {}) {
+  const state = new WorkflowState({
+    messages: [{ role: 'user', content: input }],
+    ...options,
+  });
+
+  try {
+    // Step 1: Understand requirements
+    state.update({ status: 'understanding_requirements' });
+    
+    const requirementsResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a QA lead. Identify all testable requirements and acceptance criteria from this input.' },
+      { role: 'user', content: input },
+    ]);
+
+    // Step 2: Generate test cases
+    state.update({ status: 'generating_tests' });
+    
+    const testCasesResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a test engineer. Generate comprehensive test cases including happy path, edge cases, and negative tests.' },
+      { role: 'user', content: `Requirements:\n${requirementsResult.content}\n\nGenerate detailed test cases.` },
+    ]);
+
+    // Step 3: Create test code
+    state.update({ status: 'writing_test_code' });
+    
+    const testCodeResult = await langChainService.callLLM([
+      { role: 'system', content: 'You are a test automation engineer. Write executable test code using Jest/Mocha/Pytest as appropriate.' },
+      { role: 'user', content: `Test cases:\n${testCasesResult.content}\n\nWrite automated test code.` },
+    ]);
+
+    state.update({
+      finalResult: testCodeResult.content,
+      status: 'completed',
+    });
+
+    return {
+      success: true,
+      workflowType: 'qa',
+      result: {
+        requirements: requirementsResult.content,
+        testCases: testCasesResult.content,
+        testCode: testCodeResult.content,
+      },
+    };
+  } catch (error) {
+    console.error('[LangGraph] QA workflow error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Main workflow executor
  */
 export async function executeWorkflow(workflowType, input, options = {}) {
@@ -378,6 +692,16 @@ export async function executeWorkflow(workflowType, input, options = {}) {
       return executeCollaborationWorkflow(input, options);
     case 'review':
       return executeReviewWorkflow(input, options);
+    case 'research':
+      return executeResearchWorkflow(input, options);
+    case 'creative':
+      return executeCreativeWorkflow(input, options);
+    case 'analysis':
+      return executeAnalysisWorkflow(input, options);
+    case 'planning':
+      return executePlanningWorkflow(input, options);
+    case 'qa':
+      return executeQAWorkflow(input, options);
     default:
       return executeCodingWorkflow(input, options);
   }
@@ -405,6 +729,31 @@ export function getLangGraphStatus() {
         description: 'Code generation with iterative review and improvement',
         nodes: ['generate', 'review', 'revise (loop)'],
       },
+      {
+        name: 'research',
+        description: 'Multi-step research with source synthesis',
+        nodes: ['analyze_question', 'gather_sources', 'synthesize'],
+      },
+      {
+        name: 'creative',
+        description: 'Multi-stage creative content generation',
+        nodes: ['ideate', 'outline', 'draft', 'polish'],
+      },
+      {
+        name: 'analysis',
+        description: 'Data analysis with insights generation',
+        nodes: ['understand', 'analyze', 'generate_insights'],
+      },
+      {
+        name: 'planning',
+        description: 'Project planning with risk assessment',
+        nodes: ['scope', 'breakdown', 'plan', 'assess_risks'],
+      },
+      {
+        name: 'qa',
+        description: 'Test case generation and automation',
+        nodes: ['requirements', 'test_cases', 'test_code'],
+      },
     ],
   };
 }
@@ -415,6 +764,11 @@ const langGraphService = {
   executeCodingWorkflow,
   executeCollaborationWorkflow,
   executeReviewWorkflow,
+  executeResearchWorkflow,
+  executeCreativeWorkflow,
+  executeAnalysisWorkflow,
+  executePlanningWorkflow,
+  executeQAWorkflow,
   executeWorkflow,
   getStatus: getLangGraphStatus,
 };

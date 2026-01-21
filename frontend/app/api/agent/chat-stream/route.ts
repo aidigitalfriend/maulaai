@@ -78,6 +78,8 @@ export async function POST(request: NextRequest) {
       maxTokens = 1200,
       systemPrompt,
       attachments = [],
+      userId: requestUserId,
+      agentId,
     } = body;
 
     if (!message?.trim()) {
@@ -305,7 +307,7 @@ Here's your converted image:
       console.log('[chat-stream] Detected file operation request');
       
       const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005';
-      const userId = 'default'; // TODO: Get from session
+      const userId = requestUserId || 'default';
       
       try {
         // Determine the type of file operation

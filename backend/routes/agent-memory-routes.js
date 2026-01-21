@@ -278,49 +278,77 @@ router.get('/tools/available', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// FILE OPERATION ROUTES
+// FILE OPERATION ROUTES - MongoDB + S3 Hybrid Storage
 // ═══════════════════════════════════════════════════════════════════
 
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
+import AgentFile from '../models/AgentFile.js';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-const WORKSPACE_BASE = process.env.AGENT_WORKSPACE_DIR || '/tmp/agent-workspace';
+const S3_BUCKET = process.env.S3_BUCKET || 'one-last-ai-bucket';
+const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
+
+const s3Client = new S3Client({
+  region: S3_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 
 /**
  * GET /api/agents/files/download
- * Download a file from agent workspace
+ * Download a file from MongoDB or S3 storage
  */
 router.get('/files/download', async (req, res) => {
   try {
-    const { file, userId = 'default' } = req.query;
+    const { path: filePath, filename, userId = 'default' } = req.query;
+
+    if (!filePath && !filename) {
+      return res.status(400).json({ success: false, error: 'File path or filename required' });
+    }
+
+    // Find file in MongoDB
+    const searchPath = filePath || (filename.startsWith('/') ? filename : `/${filename}`);
+    const file = await AgentFile.findOne({
+      userId,
+      $or: [
+        { path: searchPath },
+        { filename: filename || searchPath.split('/').pop() }
+      ],
+      isDeleted: false
+    });
 
     if (!file) {
-      return res.status(400).json({ success: false, error: 'File path required' });
-    }
-
-    const userWorkspace = path.join(WORKSPACE_BASE, userId);
-    const safePath = path.normalize(file).replace(/^\.\.\//g, '').replace(/^\.\//g, '');
-    const filePath = path.join(userWorkspace, safePath);
-
-    // Security check
-    if (!filePath.startsWith(userWorkspace)) {
-      return res.status(403).json({ success: false, error: 'Access denied' });
-    }
-
-    // Check if file exists
-    try {
-      await fs.access(filePath);
-    } catch {
       return res.status(404).json({ success: false, error: 'File not found' });
     }
 
-    const filename = path.basename(filePath);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
+    // Update last accessed time
+    file.lastAccessedAt = new Date();
+    await file.save();
 
-    const fileStream = fsSync.createReadStream(filePath);
-    fileStream.pipe(res);
+    res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+    res.setHeader('Content-Type', file.mimeType || 'application/octet-stream');
+
+    // Check storage type
+    if (file.storageType === 's3' && file.s3Key) {
+      // Stream from S3
+      try {
+        const s3Response = await s3Client.send(new GetObjectCommand({
+          Bucket: S3_BUCKET,
+          Key: file.s3Key,
+        }));
+        
+        res.setHeader('Content-Length', s3Response.ContentLength);
+        s3Response.Body.pipe(res);
+      } catch (s3Error) {
+        console.error('S3 download error:', s3Error);
+        return res.status(500).json({ success: false, error: 'Failed to download from S3' });
+      }
+    } else {
+      // Serve from MongoDB
+      res.setHeader('Content-Length', file.size);
+      res.send(file.content);
+    }
   } catch (error) {
     console.error('Error downloading file:', error);
     res.status(500).json({ success: false, error: error.message });
