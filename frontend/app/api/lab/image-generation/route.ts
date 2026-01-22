@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface ImageGenerationRequest {
   prompt: string;
@@ -34,8 +33,6 @@ export async function POST(req: NextRequest) {
     .substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const {
       prompt,
       style,
@@ -55,17 +52,18 @@ export async function POST(req: NextRequest) {
     const enhancedPrompt = `${prompt}, ${styleModifier}`;
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'neural-art',
-      input: {
-        prompt: enhancedPrompt,
-        settings: { style, width, height },
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'neural-art',
+        input: {
+          prompt: enhancedPrompt,
+          settings: { style, width, height },
+        },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     const response = await fetch(
       'https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image',
@@ -105,9 +103,9 @@ export async function POST(req: NextRequest) {
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: imageDataUrl,
           fileUrl: imageDataUrl,
@@ -120,8 +118,8 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         processingTime,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -135,14 +133,14 @@ export async function POST(req: NextRequest) {
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: {
           status: 'failed',
           errorMessage: error.message,
           completedAt: new Date(),
-        }
-      );
+        },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }

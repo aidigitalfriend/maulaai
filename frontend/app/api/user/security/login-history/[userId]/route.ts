@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
@@ -14,14 +13,18 @@ export async function GET(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    // Connect to database
-    await dbConnect();
-
     // Find user with valid session
-    const sessionUser = await User.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
@@ -31,12 +34,16 @@ export async function GET(
     }
 
     // Check if user is requesting their own login history
-    if (sessionUser._id.toString() !== params.userId) {
+    if (sessionUser.id !== params.userId) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    // Mock login history data (in real app, this would come from user's login log)
-    const loginHistory = [
+    // Get login history from userSecurity
+    const userSecurity = await prisma.userSecurity.findUnique({
+      where: { userId: sessionUser.id },
+    });
+
+    const loginHistory = (userSecurity?.loginHistory as any[]) || [
       {
         id: 1,
         date: new Date().toISOString(),
@@ -44,22 +51,6 @@ export async function GET(
         device: 'Current Device',
         status: 'success',
         ip: '127.0.0.1',
-      },
-      {
-        id: 2,
-        date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        location: 'Previous Location',
-        device: 'iPhone',
-        status: 'success',
-        ip: '192.168.1.100',
-      },
-      {
-        id: 3,
-        date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-        location: 'Home',
-        device: 'Laptop',
-        status: 'success',
-        ip: '192.168.1.101',
       },
     ];
 

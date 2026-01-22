@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface PredictionRequest {
   topic: string;
@@ -118,8 +117,6 @@ export async function POST(req: NextRequest) {
     .substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const { topic, timeframe }: PredictionRequest = await req.json();
 
     if (!topic || !timeframe) {
@@ -130,26 +127,27 @@ export async function POST(req: NextRequest) {
     }
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'future-predictor',
-      input: {
-        prompt: topic,
-        settings: { timeframe },
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'future-predictor',
+        input: {
+          prompt: topic,
+          settings: { timeframe },
+        },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     // Use AI provider with fallback chain: Cerebras → Groq → OpenAI
     const { prediction, tokens } = await predictWithAI(topic, timeframe);
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: prediction,
           metadata: { topic, timeframe, processingTime },
@@ -157,8 +155,8 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         processingTime,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -172,14 +170,14 @@ export async function POST(req: NextRequest) {
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: {
           status: 'failed',
           errorMessage: error.message,
           completedAt: new Date(),
-        }
-      );
+        },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }
@@ -198,19 +196,23 @@ export async function GET(req: NextRequest) {
     const isStats = searchParams.get('stats') === 'true';
 
     if (isStats) {
-      await dbConnect();
-
       // Count completed predictions
-      const totalPredictions = await LabExperiment.countDocuments({
-        experimentType: { $in: ['future-predictor', 'future-prediction'] },
-        status: 'completed'
+      const totalPredictions = await prisma.labExperiment.count({
+        where: {
+          experimentType: { in: ['future-predictor', 'future-prediction'] },
+          status: 'completed'
+        }
       });
 
       // Count recent active users (last 30 minutes)
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-      const recentExperiments = await LabExperiment.distinct('input.userId', {
-        experimentType: { $in: ['future-predictor', 'future-prediction'] },
-        startedAt: { $gte: thirtyMinutesAgo }
+      const recentExperiments = await prisma.labExperiment.findMany({
+        where: {
+          experimentType: { in: ['future-predictor', 'future-prediction'] },
+          startedAt: { gte: thirtyMinutesAgo }
+        },
+        select: { userId: true },
+        distinct: ['userId'],
       });
 
       // Estimate active users based on recent activity

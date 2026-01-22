@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
-
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
+import prisma from '@/lib/prisma';
 
 const MAX_TRUSTED_DEVICES = 10;
 const MAX_LOGIN_HISTORY = 25;
@@ -272,13 +270,11 @@ export async function GET(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(DB_NAME);
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -288,7 +284,7 @@ export async function GET(
       );
     }
 
-    const sessionUserId = sessionUser._id.toString();
+    const sessionUserId = sessionUser.id;
 
     if (params.userId && params.userId !== sessionUserId) {
       console.warn('Security access mismatch. Using session user.', {
@@ -299,9 +295,8 @@ export async function GET(
 
     const targetUserId = sessionUserId;
 
-    const userSecurities = db.collection('usersecurities');
-    let userSecurity = (await userSecurities.findOne({
-      userId: targetUserId,
+    let userSecurity = (await prisma.userSecurity.findUnique({
+      where: { userId: targetUserId },
     })) as Record<string, any> | null;
 
     const userAgent = request.headers.get('user-agent') || 'Unknown Browser';
@@ -335,7 +330,7 @@ export async function GET(
         passwordLastChanged: sessionUser.updatedAt || now,
         twoFactorEnabled: sessionUser.twoFactorEnabled || false,
         twoFactorSecret: sessionUser.twoFactorSecret || null,
-        backupCodes: sessionUser.backupCodes || [],
+        backupCodes: (sessionUser.backupCodes as string[]) || [],
         trustedDevices: [currentDevice],
         loginHistory: [currentLogin],
         activeSessions: [
@@ -354,12 +349,11 @@ export async function GET(
         lockExpires: null,
         failedLoginAttempts: 0,
         lastFailedLogin: null,
-        createdAt: now,
-        updatedAt: now,
       };
 
-      await userSecurities.insertOne(defaultSecurity);
-      userSecurity = defaultSecurity;
+      userSecurity = await prisma.userSecurity.create({
+        data: defaultSecurity as any,
+      });
     }
 
     const trackingUpdates = updateSecurityTracking(userSecurity, {
@@ -379,18 +373,16 @@ export async function GET(
         JSON.stringify(userSecurity.activeSessions || []);
 
     if (needsTrackingUpdate) {
-      await userSecurities.updateOne(
-        { userId: targetUserId },
-        {
-          $set: {
-            trustedDevices: trackingUpdates.trustedDevices,
-            loginHistory: trackingUpdates.loginHistory,
-            activeSessions: trackingUpdates.activeSessions,
-            updatedAt: new Date(),
-            lastLoginAt: new Date(),
-          },
-        }
-      );
+      await prisma.userSecurity.update({
+        where: { userId: targetUserId },
+        data: {
+          trustedDevices: trackingUpdates.trustedDevices,
+          loginHistory: trackingUpdates.loginHistory,
+          activeSessions: trackingUpdates.activeSessions,
+          updatedAt: new Date(),
+          lastLoginAt: new Date(),
+        },
+      });
 
       userSecurity = {
         ...userSecurity,
@@ -439,13 +431,11 @@ export async function POST(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(DB_NAME);
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -455,7 +445,7 @@ export async function POST(
       );
     }
 
-    const sessionUserId = sessionUser._id.toString();
+    const sessionUserId = sessionUser.id;
 
     if (params.userId && params.userId !== sessionUserId) {
       console.warn('Security action mismatch. Using session user.', {

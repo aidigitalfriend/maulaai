@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 
 export async function PATCH(
   request: NextRequest,
@@ -13,12 +12,18 @@ export async function PATCH(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    await dbConnect();
-
-    const sessionUser = await User.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        preferences: true,
+      },
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
@@ -27,7 +32,7 @@ export async function PATCH(
       );
     }
 
-    const sessionUserId = sessionUser._id.toString();
+    const sessionUserId = sessionUser.id;
 
     if (params.userId && params.userId !== sessionUserId) {
       console.warn('Preferences update mismatch. Using session user.', {
@@ -69,21 +74,23 @@ export async function PATCH(
       );
     }
 
+    const existingPreferences = (sessionUser.preferences as Record<string, any>) || {};
     const mergedPreferences = {
-      ...(sessionUser.preferences || {}),
+      ...existingPreferences,
       ...sanitizedPreferences,
     };
 
-    const updatedUser = await User.findByIdAndUpdate(
-      targetUserId,
-      {
-        $set: {
-          preferences: mergedPreferences,
-          updatedAt: new Date(),
-        },
+    const updatedUser = await prisma.user.update({
+      where: { id: targetUserId },
+      data: {
+        preferences: mergedPreferences,
+        updatedAt: new Date(),
       },
-      { new: true, select: '-password' }
-    );
+      select: {
+        id: true,
+        preferences: true,
+      },
+    });
 
     if (!updatedUser) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });

@@ -2,15 +2,15 @@
  * Billing Helpers - Invoice and Payment Record Creation
  *
  * Creates invoice and payment records when subscriptions are purchased
+ * Uses Prisma for database operations
  */
 
-import { connectToDatabase } from './mongodb-client';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 
 export interface InvoiceRecord {
-  _id?: ObjectId;
-  userId: ObjectId;
+  id?: string;
+  userId: string;
   email: string;
   stripeInvoiceId?: string;
   stripeSubscriptionId: string;
@@ -26,8 +26,8 @@ export interface InvoiceRecord {
 }
 
 export interface PaymentRecord {
-  _id?: ObjectId;
-  userId: ObjectId;
+  id?: string;
+  userId: string;
   email: string;
   stripePaymentIntentId?: string;
   stripeChargeId?: string;
@@ -48,6 +48,7 @@ export interface PaymentRecord {
 
 /**
  * Create an invoice record when a subscription is purchased
+ * Uses Prisma Transaction model for storing invoice/billing data
  */
 export async function createInvoiceRecord(params: {
   userId: string;
@@ -62,11 +63,31 @@ export async function createInvoiceRecord(params: {
   status: 'paid' | 'pending' | 'failed';
   paidAt?: Date;
 }): Promise<InvoiceRecord> {
-  const { db } = await connectToDatabase();
-  const invoices = db.collection<InvoiceRecord>('invoices');
+  const transaction = await prisma.transaction.create({
+    data: {
+      userId: params.userId,
+      type: 'invoice',
+      amount: params.amount,
+      currency: params.currency,
+      status: params.status === 'paid' ? 'completed' : params.status === 'failed' ? 'failed' : 'pending',
+      stripePaymentIntentId: params.stripeSubscriptionId,
+      metadata: {
+        email: params.email,
+        stripeInvoiceId: params.stripeInvoiceId,
+        stripeSubscriptionId: params.stripeSubscriptionId,
+        agentId: params.agentId,
+        agentName: params.agentName,
+        plan: params.plan,
+        paidAt: params.paidAt?.toISOString(),
+      },
+    },
+  });
 
-  const invoiceRecord: InvoiceRecord = {
-    userId: new ObjectId(params.userId),
+  console.log('✅ Invoice record created:', transaction.id);
+
+  return {
+    id: transaction.id,
+    userId: params.userId,
     email: params.email,
     stripeInvoiceId: params.stripeInvoiceId,
     stripeSubscriptionId: params.stripeSubscriptionId,
@@ -77,18 +98,14 @@ export async function createInvoiceRecord(params: {
     currency: params.currency,
     status: params.status,
     paidAt: params.paidAt || new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: transaction.createdAt,
+    updatedAt: transaction.updatedAt,
   };
-
-  await invoices.insertOne(invoiceRecord);
-  console.log('✅ Invoice record created:', invoiceRecord._id);
-
-  return invoiceRecord;
 }
 
 /**
  * Create a payment record when a payment is successful
+ * Uses Prisma Transaction model for storing payment data
  */
 export async function createPaymentRecord(params: {
   userId: string;
@@ -107,11 +124,34 @@ export async function createPaymentRecord(params: {
   last4?: string;
   brand?: string;
 }): Promise<PaymentRecord> {
-  const { db } = await connectToDatabase();
-  const payments = db.collection<PaymentRecord>('payments');
+  const transaction = await prisma.transaction.create({
+    data: {
+      userId: params.userId,
+      type: 'payment',
+      amount: params.amount,
+      currency: params.currency,
+      status: params.status === 'succeeded' ? 'completed' : params.status === 'failed' ? 'failed' : 'pending',
+      stripePaymentIntentId: params.stripePaymentIntentId,
+      metadata: {
+        email: params.email,
+        stripeChargeId: params.stripeChargeId,
+        stripeInvoiceId: params.stripeInvoiceId,
+        stripeSubscriptionId: params.stripeSubscriptionId,
+        agentId: params.agentId,
+        agentName: params.agentName,
+        plan: params.plan,
+        paymentMethod: params.paymentMethod,
+        last4: params.last4,
+        brand: params.brand,
+      },
+    },
+  });
 
-  const paymentRecord: PaymentRecord = {
-    userId: new ObjectId(params.userId),
+  console.log('✅ Payment record created:', transaction.id);
+
+  return {
+    id: transaction.id,
+    userId: params.userId,
     email: params.email,
     stripePaymentIntentId: params.stripePaymentIntentId,
     stripeChargeId: params.stripeChargeId,
@@ -127,17 +167,13 @@ export async function createPaymentRecord(params: {
     last4: params.last4,
     brand: params.brand,
     paidAt: new Date(),
-    createdAt: new Date(),
+    createdAt: transaction.createdAt,
   };
-
-  await payments.insertOne(paymentRecord);
-  console.log('✅ Payment record created:', paymentRecord._id);
-
-  return paymentRecord;
 }
 
 /**
  * Create billing history entry
+ * Uses Prisma Transaction model for storing billing records
  */
 export async function createBillingRecord(params: {
   userId: string;
@@ -151,25 +187,26 @@ export async function createBillingRecord(params: {
   currency?: string;
   description: string;
 }): Promise<void> {
-  const { db } = await connectToDatabase();
-  const billings = db.collection('billings');
+  const transaction = await prisma.transaction.create({
+    data: {
+      userId: params.userId,
+      type: params.type,
+      amount: params.amount || 0,
+      currency: params.currency || 'usd',
+      status: 'completed',
+      stripePaymentIntentId: params.stripeSubscriptionId,
+      metadata: {
+        email: params.email,
+        stripeSubscriptionId: params.stripeSubscriptionId,
+        agentId: params.agentId,
+        agentName: params.agentName,
+        plan: params.plan,
+        description: params.description,
+      },
+    },
+  });
 
-  const billingRecord = {
-    userId: new ObjectId(params.userId),
-    email: params.email,
-    type: params.type,
-    stripeSubscriptionId: params.stripeSubscriptionId,
-    agentId: params.agentId,
-    agentName: params.agentName,
-    plan: params.plan,
-    amount: params.amount || 0,
-    currency: params.currency || 'usd',
-    description: params.description,
-    createdAt: new Date(),
-  };
-
-  await billings.insertOne(billingRecord);
-  console.log('✅ Billing record created:', billingRecord);
+  console.log('✅ Billing record created:', transaction.id);
 }
 
 /**

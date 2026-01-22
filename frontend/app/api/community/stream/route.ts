@@ -1,109 +1,47 @@
 import { NextRequest } from 'next/server';
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-// =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('❌ Community Stream: Database connection failed:', error);
-    throw error;
-  }
-}
-
-// =====================================================
-// Mongoose Schemas (inline for Next.js API routes)
-// =====================================================
-const communityPostSchema = new mongoose.Schema(
-  {
-    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    authorName: { type: String, required: true },
-    content: { type: String, required: true },
-    category: { type: String, enum: ['general', 'agents', 'ideas', 'help'], default: 'general' },
-    isPinned: { type: Boolean, default: false },
-    likesCount: { type: Number, default: 0 },
-    repliesCount: { type: Number, default: 0 },
-    status: { type: String, enum: ['active', 'hidden', 'deleted'], default: 'active' },
-  },
-  { timestamps: true, collection: 'communityposts' }
-);
-
-const CommunityPost = mongoose.models.CommunityPost || mongoose.model('CommunityPost', communityPostSchema);
-
-const userSchema = new mongoose.Schema({
-  email: String,
-  name: String,
-  createdAt: Date,
-});
-
-const User = mongoose.models.User || mongoose.model('User', userSchema);
-
-// Presence tracking schema
-const presenceSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  userName: String,
-  lastPing: { type: Date, default: Date.now },
-  status: { type: String, enum: ['online', 'away', 'offline'], default: 'online' },
-}, { timestamps: true, collection: 'communitypresence' });
-
-presenceSchema.index({ lastPing: 1 }, { expireAfterSeconds: 120 }); // Auto-expire after 2 minutes
-
-const CommunityPresence = mongoose.models.CommunityPresence || mongoose.model('CommunityPresence', presenceSchema);
+import prisma from '@/lib/prisma';
 
 // =====================================================
 // Fetch Real Metrics from Database
 // =====================================================
 async function fetchMetrics() {
   try {
-    await connectToDatabase();
-
     // Total members (users)
-    const totalMembers = await User.countDocuments();
+    const totalMembers = await prisma.user.count();
 
-    // Online now (presence within last 60 seconds)
+    // Online now (sessions active within last 60 seconds)
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-    const onlineNow = await CommunityPresence.countDocuments({
-      lastPing: { $gte: oneMinuteAgo },
-      status: 'online',
+    const onlineNow = await prisma.session.count({
+      where: {
+        lastActivity: { gte: oneMinuteAgo },
+        isActive: true,
+      },
     });
 
     // Total posts
-    const totalPosts = await CommunityPost.countDocuments({ status: { $ne: 'deleted' } });
+    const totalPosts = await prisma.communityPost.count();
 
     // Posts this week
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const postsThisWeek = await CommunityPost.countDocuments({
-      createdAt: { $gte: weekAgo },
-      status: { $ne: 'deleted' },
+    const postsThisWeek = await prisma.communityPost.count({
+      where: {
+        createdAt: { gte: weekAgo },
+      },
     });
 
     // Active replies (sum of repliesCount from all posts)
-    const replyAgg = await CommunityPost.aggregate([
-      { $match: { status: { $ne: 'deleted' } } },
-      { $group: { _id: null, total: { $sum: '$repliesCount' } } },
-    ]);
-    const activeReplies = replyAgg[0]?.total || 0;
+    const replyAgg = await prisma.communityPost.aggregate({
+      _sum: {
+        repliesCount: true,
+      },
+    });
+    const activeReplies = replyAgg._sum.repliesCount || 0;
 
     // New members this week
-    const newMembersWeek = await User.countDocuments({
-      createdAt: { $gte: weekAgo },
+    const newMembersWeek = await prisma.user.count({
+      where: {
+        createdAt: { gte: weekAgo },
+      },
     });
 
     return {

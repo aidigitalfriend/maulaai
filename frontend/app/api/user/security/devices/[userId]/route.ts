@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
@@ -14,14 +13,18 @@ export async function GET(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    // Connect to database
-    await dbConnect();
-
     // Find user with valid session
-    const sessionUser = await User.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
@@ -31,12 +34,16 @@ export async function GET(
     }
 
     // Check if user is requesting their own device info
-    if (sessionUser._id.toString() !== params.userId) {
+    if (sessionUser.id !== params.userId) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
-    // Mock trusted devices data (in real app, this would come from user's device history)
-    const devices = [
+    // Get devices from userSecurity
+    const userSecurity = await prisma.userSecurity.findUnique({
+      where: { userId: sessionUser.id },
+    });
+
+    const devices = (userSecurity?.trustedDevices as any[]) || [
       {
         id: 1,
         name: 'Current Device',
@@ -45,15 +52,6 @@ export async function GET(
         location: 'Current Location',
         browser: 'Current Browser',
         current: true,
-      },
-      {
-        id: 2,
-        name: 'iPhone',
-        type: 'mobile',
-        lastSeen: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        location: 'Previous Location',
-        browser: 'Safari Mobile',
-        current: false,
       },
     ];
 
@@ -79,14 +77,18 @@ export async function DELETE(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    // Connect to database
-    await dbConnect();
-
     // Find user with valid session
-    const sessionUser = await User.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
@@ -96,13 +98,32 @@ export async function DELETE(
     }
 
     // Check if user is managing their own devices
-    if (sessionUser._id.toString() !== params.userId) {
+    if (sessionUser.id !== params.userId) {
       return NextResponse.json({ message: 'Access denied' }, { status: 403 });
     }
 
     const { deviceId } = await request.json();
 
-    // Mock device removal (in real app, this would remove from user's device list)
+    // Get current security data
+    const userSecurity = await prisma.userSecurity.findUnique({
+      where: { userId: sessionUser.id },
+    });
+
+    if (userSecurity) {
+      const trustedDevices = (userSecurity.trustedDevices as any[]) || [];
+      const updatedDevices = trustedDevices.filter(
+        (device: any) => device.id !== deviceId
+      );
+
+      await prisma.userSecurity.update({
+        where: { userId: sessionUser.id },
+        data: {
+          trustedDevices: updatedDevices,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
     return NextResponse.json(
       { message: 'Device removed successfully' },
       { status: 200 }

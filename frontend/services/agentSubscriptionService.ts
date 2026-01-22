@@ -1,5 +1,8 @@
-import { connectToDatabase } from '../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../models/AgentSubscription';
+/**
+ * Agent Subscription Service
+ * Handles subscription operations via API calls to backend
+ */
+
 const API_BASE =
   process.env.NODE_ENV === 'production'
     ? 'https://onelastai.co/api'

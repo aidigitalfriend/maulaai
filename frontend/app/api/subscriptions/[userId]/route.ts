@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 import {
   verifyRequest,
   unauthorizedResponse,
 } from '../../../../lib/validateAuth';
-import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
-import { connectToDatabase } from '../../../../lib/mongodb-client';
 
 export async function GET(
   request: NextRequest,
@@ -19,16 +18,20 @@ export async function GET(
     console.log(`[/api/subscriptions/${userId}] Auth result:`, authResult.ok ? 'OK' : authResult.error);
     if (!authResult.ok) return unauthorizedResponse(authResult.error);
 
-    // Connect to database
-    await connectToDatabase();
-    
-    // Get the AgentSubscription model (uses 'subscriptions' collection)
-    const AgentSubscription = await getAgentSubscriptionModel();
-
-    // Query subscriptions collection directly (userId is stored as string)
-    const subscriptions = await AgentSubscription.find({ 
-      userId: userId 
-    }).sort({ createdAt: -1 }).lean();
+    // Query subscriptions using Prisma
+    const subscriptions = await prisma.agentSubscription.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        agent: {
+          select: {
+            name: true,
+            avatarUrl: true,
+            specialty: true,
+          },
+        },
+      },
+    });
 
     console.log(`[/api/subscriptions/${userId}] Found ${subscriptions.length} subscriptions`);
     

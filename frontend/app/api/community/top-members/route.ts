@@ -1,118 +1,99 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-// =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('❌ Top Members API: Database connection failed:', error);
-    throw error;
-  }
-}
-
-// =====================================================
-// Mongoose Schemas
-// =====================================================
-const communityPostSchema = new mongoose.Schema(
-  {
-    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    authorName: { type: String, required: true },
-    authorAvatar: { type: String, default: '👤' },
-    authorEmail: { type: String },
-    content: { type: String, required: true },
-    category: { type: String, enum: ['general', 'agents', 'ideas', 'help'], default: 'general' },
-    likesCount: { type: Number, default: 0 },
-    status: { type: String, enum: ['active', 'hidden', 'deleted'], default: 'active' },
-  },
-  { timestamps: true, collection: 'communityposts' }
-);
-
-const CommunityPost = mongoose.models.CommunityPost || mongoose.model('CommunityPost', communityPostSchema);
-
-const userSchema = new mongoose.Schema({
-  email: String,
-  name: String,
-  firstName: String,
-  lastName: String,
-  avatar: String,
-  createdAt: Date,
-});
-
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+import prisma from '@/lib/prisma';
 
 // =====================================================
 // GET /api/community/top-members - Get leaderboard
 // =====================================================
 export async function GET(request: NextRequest) {
   try {
-    await connectToDatabase();
-
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
 
-    // Aggregate top posters by post count and total likes
-    const topPosters = await CommunityPost.aggregate([
-      { $match: { status: { $ne: 'deleted' } } },
-      {
-        $group: {
-          _id: '$authorId',
-          authorName: { $first: '$authorName' },
-          avatar: { $first: '$authorAvatar' },
-          postsCount: { $sum: 1 },
-          totalLikes: { $sum: '$likesCount' },
-          lastPost: { $max: '$createdAt' },
-          categories: { $addToSet: '$category' },
-        },
+    // Get all posts grouped by author for aggregation
+    const posts = await prisma.communityPost.findMany({
+      select: {
+        authorId: true,
+        authorName: true,
+        authorAvatar: true,
+        likesCount: true,
+        category: true,
+        createdAt: true,
       },
-      {
-        $addFields: {
-          // Calculate a score based on posts + likes
-          score: { $add: [{ $multiply: ['$postsCount', 2] }, '$totalLikes'] },
-        },
-      },
-      { $sort: { score: -1, postsCount: -1 } },
-      { $limit: limit },
-    ]);
+    });
+
+    // Aggregate data by author
+    const authorMap = new Map<string, {
+      authorId: string | null;
+      authorName: string;
+      avatar: string;
+      postsCount: number;
+      totalLikes: number;
+      lastPost: Date;
+      categories: Set<string>;
+    }>();
+
+    for (const post of posts) {
+      const key = post.authorId || post.authorName;
+      const existing = authorMap.get(key);
+      
+      if (existing) {
+        existing.postsCount++;
+        existing.totalLikes += post.likesCount;
+        if (post.createdAt > existing.lastPost) {
+          existing.lastPost = post.createdAt;
+        }
+        existing.categories.add(post.category);
+      } else {
+        authorMap.set(key, {
+          authorId: post.authorId,
+          authorName: post.authorName,
+          avatar: post.authorAvatar,
+          postsCount: 1,
+          totalLikes: post.likesCount,
+          lastPost: post.createdAt,
+          categories: new Set([post.category]),
+        });
+      }
+    }
+
+    // Convert to array and calculate scores
+    const topPosters = Array.from(authorMap.values())
+      .map(member => ({
+        ...member,
+        score: member.postsCount * 2 + member.totalLikes,
+        categories: Array.from(member.categories),
+      }))
+      .sort((a, b) => b.score - a.score || b.postsCount - a.postsCount)
+      .slice(0, limit);
 
     // Enrich with user data if available
     const enrichedMembers = await Promise.all(
       topPosters.map(async (member) => {
         let userData = null;
-        if (member._id) {
+        if (member.authorId) {
           try {
-            userData = await User.findById(member._id).lean();
+            userData = await prisma.user.findUnique({
+              where: { id: member.authorId },
+              select: {
+                name: true,
+                avatar: true,
+              },
+            });
           } catch {
             // User not found
           }
         }
 
         return {
-          _id: member._id?.toString() || member.authorName,
-          name: userData?.name || userData?.firstName || member.authorName || 'Anonymous',
+          _id: member.authorId || member.authorName,
+          name: userData?.name || member.authorName || 'Anonymous',
           avatar: userData?.avatar || member.avatar || '👤',
           postsCount: member.postsCount,
           totalLikes: member.totalLikes,
           score: member.score,
           title: getBadgeTitle(member.postsCount, member.totalLikes),
           lastPost: member.lastPost,
-          topCategories: member.categories?.slice(0, 3) || [],
+          topCategories: member.categories.slice(0, 3),
         };
       })
     );

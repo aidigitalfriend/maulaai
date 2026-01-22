@@ -1,41 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: string;
-  attachments?: Array<{
-    id: string;
-    name: string;
-    type: string;
-    url: string;
-    size: number;
-  }>;
-}
-
-interface ChatSession {
-  _id?: ObjectId;
-  id: string;
-  userId: string;
-  name: string;
-  agentId?: string;
-  subscriptionId?: string; // Reference to the active subscription
-  messages: ChatMessage[];
-  createdAt: string;
-  updatedAt: string;
-  deleted?: boolean;
-}
-
 // Authenticate user from request cookies
 async function authenticateUser(
   request: NextRequest
-): Promise<{ userId: string; db: any } | { error: string; status: number }> {
+): Promise<{ userId: string } | { error: string; status: number }> {
   const sessionId = request.cookies.get('session_id')?.value;
 
   console.log(
@@ -48,17 +20,15 @@ async function authenticateUser(
   }
 
   try {
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() }
+      }
     });
 
     console.log(
-      '[chat/sessions] MongoDB session lookup:',
+      '[chat/sessions] Session lookup:',
       sessionUser ? 'found user' : 'no user found'
     );
 
@@ -66,58 +36,32 @@ async function authenticateUser(
       return { error: 'Invalid or expired session', status: 401 };
     }
 
-    return { userId: sessionUser._id.toString(), db };
+    return { userId: sessionUser.id };
   } catch (dbError) {
-    console.error('[chat/sessions] MongoDB error:', dbError);
+    console.error('[chat/sessions] Database error:', dbError);
     return { error: 'Database error', status: 500 };
   }
 }
 
 // Check if user has active subscription for specific agent
 async function checkAgentSubscription(
-  db: any,
   userId: string,
   agentId: string
 ): Promise<boolean> {
   try {
-    // Check agentsubscriptions collection (one-time purchases)
-    const agentSubscriptions = db.collection('agentsubscriptions');
-    const activeAgentSub = await agentSubscriptions.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
+    // Check subscriptions table (AgentSubscription)
+    const activeSubscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId: userId,
+        agentId: agentId,
+        status: 'active',
+        expiryDate: { gt: new Date() }
+      }
     });
 
-    if (activeAgentSub) {
+    if (activeSubscription) {
       console.log(
-        '[chat/sessions] Found active agent subscription for user:',
-        userId,
-        'agent:',
-        agentId
-      );
-      return true;
-    }
-
-    // Also check legacy subscriptions collection as fallback
-    const subscriptions = db.collection('subscriptions');
-    const legacySub = await subscriptions.findOne({
-      $and: [
-        { $or: [{ user: userId }, { userId: userId }] },
-        { agentId: agentId },
-        { status: 'active' },
-        {
-          $or: [
-            { 'billing.currentPeriodEnd': { $gt: new Date() } },
-            { expiryDate: { $gt: new Date() } },
-          ],
-        },
-      ],
-    });
-
-    if (legacySub) {
-      console.log(
-        '[chat/sessions] Found legacy subscription for user:',
+        '[chat/sessions] Found active subscription for user:',
         userId,
         'agent:',
         agentId
@@ -142,13 +86,13 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// GET - List all sessions for user (from MongoDB)
+// GET - List all sessions for user
 export async function GET(request: NextRequest) {
   const auth = await authenticateUser(request);
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -160,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     // Validate agent subscription if agentId is specified (excluding free tools)
     if (requiresSubscription) {
-      const hasSubscription = await checkAgentSubscription(db, userId, agentId);
+      const hasSubscription = await checkAgentSubscription(userId, agentId);
       if (!hasSubscription) {
         return NextResponse.json(
           { success: false, error: 'No active subscription for this agent' },
@@ -169,33 +113,41 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const sessionsCollection = db.collection('chat_sessions');
-
     // Build query
-    const query: Record<string, unknown> = { userId, deleted: { $ne: true } };
+    const where: any = { 
+      userId, 
+      isArchived: false 
+    };
     if (agentId) {
-      query.agentId = agentId;
+      where.agentId = agentId;
     }
 
-    // Fetch from MongoDB, sorted by updatedAt descending
-    const sessions = await sessionsCollection
-      .find(query)
-      .sort({ updatedAt: -1 })
-      .limit(100)
-      .toArray();
+    // Fetch sessions with Prisma
+    const sessions = await prisma.chatSession.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+      include: {
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        _count: {
+          select: { messages: true }
+        }
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      sessions: sessions.map((s: ChatSession) => ({
-        id: s.id,
+      sessions: sessions.map((s: typeof sessions[0]) => ({
+        id: s.sessionId,
         name: s.name,
         agentId: s.agentId,
-        subscriptionId: s.subscriptionId, // Include subscription reference
-        messageCount: s.messages?.length || 0,
-        lastMessage:
-          s.messages?.[s.messages.length - 1]?.content?.slice(0, 100) || '',
-        createdAt: s.createdAt,
-        updatedAt: s.updatedAt,
+        messageCount: s._count.messages,
+        lastMessage: s.messages[0]?.content?.slice(0, 100) || '',
+        createdAt: s.createdAt.toISOString(),
+        updatedAt: s.updatedAt.toISOString(),
       })),
     });
   } catch (error) {
@@ -207,13 +159,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create new session (in MongoDB)
+// POST - Create new session
 export async function POST(request: NextRequest) {
   const auth = await authenticateUser(request);
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const body = await request.json();
@@ -221,7 +173,7 @@ export async function POST(request: NextRequest) {
 
     // Validate agent subscription before creating session
     if (agentId) {
-      const hasSubscription = await checkAgentSubscription(db, userId, agentId);
+      const hasSubscription = await checkAgentSubscription(userId, agentId);
       if (!hasSubscription) {
         return NextResponse.json(
           { success: false, error: 'No active subscription for this agent' },
@@ -230,65 +182,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get the active subscription for this agent to link it to the session
-    let subscriptionId: string | undefined;
-    if (agentId) {
-      // First check agentsubscriptions collection
-      const agentSubscriptions = db.collection('agentsubscriptions');
-      const activeAgentSub = await agentSubscriptions.findOne({
-        userId: userId,
-        agentId: agentId,
-        status: 'active',
-        expiryDate: { $gt: new Date() },
-      });
-
-      if (activeAgentSub) {
-        subscriptionId = activeAgentSub._id?.toString();
-      } else {
-        // Fallback to legacy subscriptions collection
-        const subscriptions = db.collection('subscriptions');
-        const legacySub = await subscriptions.findOne({
-          $or: [{ user: userId }, { userId: userId }],
-          agentId: agentId,
-          status: 'active',
-        });
-        subscriptionId = legacySub?._id?.toString();
-      }
-    }
-
-    const sessionsCollection = db.collection('chat_sessions');
-
     // Count existing sessions for naming
-    const sessionCount = await sessionsCollection.countDocuments({ userId });
+    const sessionCount = await prisma.chatSession.count({ where: { userId } });
 
-    const now = new Date().toISOString();
-    const session: ChatSession = {
-      id: generateId(),
-      userId,
-      name: name || `Conversation ${sessionCount + 1}`,
-      agentId: agentId || undefined,
-      subscriptionId: subscriptionId, // Link to active subscription
-      messages: [],
-      createdAt: now,
-      updatedAt: now,
-    };
+    const sessionId = generateId();
+    const session = await prisma.chatSession.create({
+      data: {
+        sessionId,
+        userId,
+        name: name || `Conversation ${sessionCount + 1}`,
+        agentId: agentId || null,
+        isActive: true
+      }
+    });
 
-    // Insert into MongoDB
-    await sessionsCollection.insertOne(session);
-
-    console.log('[chat/sessions] Created new session in MongoDB:', session.id);
+    console.log('[chat/sessions] Created new session:', session.sessionId);
 
     return NextResponse.json({
       success: true,
       session: {
-        id: session.id,
+        id: session.sessionId,
         name: session.name,
         agentId: session.agentId,
-        subscriptionId: session.subscriptionId, // Include subscription reference
         messageCount: 0,
         lastMessage: '',
-        createdAt: session.createdAt,
-        updatedAt: session.updatedAt,
+        createdAt: session.createdAt.toISOString(),
+        updatedAt: session.updatedAt.toISOString(),
       },
     });
   } catch (error) {
@@ -306,7 +225,7 @@ export async function PUT(request: NextRequest) {
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const body = await request.json();
@@ -319,28 +238,31 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const sessionsCollection = db.collection('chat_sessions');
+    const session = await prisma.chatSession.findFirst({
+      where: { sessionId, userId }
+    });
 
-    const now = new Date().toISOString();
-    const result = await sessionsCollection.findOneAndUpdate(
-      { id: sessionId, userId },
-      { $set: { name, updatedAt: now } },
-      { returnDocument: 'after' }
-    );
-
-    if (!result) {
+    if (!session) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
 
+    const updatedSession = await prisma.chatSession.update({
+      where: { id: session.id },
+      data: { 
+        name, 
+        updatedAt: new Date() 
+      }
+    });
+
     return NextResponse.json({
       success: true,
       session: {
-        id: result.id,
-        name: result.name,
-        updatedAt: result.updatedAt,
+        id: updatedSession.sessionId,
+        name: updatedSession.name,
+        updatedAt: updatedSession.updatedAt.toISOString(),
       },
     });
   } catch (error) {
@@ -358,7 +280,7 @@ export async function DELETE(request: NextRequest) {
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -371,21 +293,26 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const sessionsCollection = db.collection('chat_sessions');
+    const session = await prisma.chatSession.findFirst({
+      where: { sessionId, userId }
+    });
 
-    const now = new Date().toISOString();
-    const result = await sessionsCollection.findOneAndUpdate(
-      { id: sessionId, userId },
-      { $set: { deleted: true, updatedAt: now } },
-      { returnDocument: 'after' }
-    );
-
-    if (!result) {
+    if (!session) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
+
+    // Soft delete by archiving
+    await prisma.chatSession.update({
+      where: { id: session.id },
+      data: {
+        isArchived: true,
+        archivedAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
 
     console.log('[chat/sessions] Soft deleted session:', sessionId);
 

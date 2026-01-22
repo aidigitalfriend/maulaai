@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface StoryRequest {
   story: string;
@@ -15,18 +14,22 @@ export async function GET(req: NextRequest) {
     const wantStats = searchParams.get('stats');
 
     if (wantStats === 'true') {
-      await dbConnect();
-      
       // Get total story generations count
-      const totalCreated = await LabExperiment.countDocuments({
-        experimentType: 'story-weaver'
+      const totalCreated = await prisma.labExperiment.count({
+        where: {
+          experimentType: 'story-weaver'
+        }
       });
 
       // Get active users in the last 5 minutes
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const recentExperiments = await LabExperiment.distinct('userId', {
-        experimentType: 'story-weaver',
-        createdAt: { $gte: fiveMinutesAgo }
+      const recentExperiments = await prisma.labExperiment.findMany({
+        where: {
+          experimentType: 'story-weaver',
+          createdAt: { gte: fiveMinutesAgo }
+        },
+        select: { userId: true },
+        distinct: ['userId'],
       });
 
       return NextResponse.json({
@@ -135,8 +138,6 @@ export async function POST(req: NextRequest) {
     .substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const { story, genre, action }: StoryRequest = await req.json();
 
     if (!story) {
@@ -147,17 +148,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'story-weaver',
-      input: {
-        prompt: story,
-        settings: { genre, action },
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'story-weaver',
+        input: {
+          prompt: story,
+          settings: { genre, action },
+        },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -182,9 +184,9 @@ export async function POST(req: NextRequest) {
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: generatedText,
           metadata: { action, genre, tokensUsed, processingTime },
@@ -193,8 +195,8 @@ export async function POST(req: NextRequest) {
         processingTime,
         tokensUsed,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -209,14 +211,14 @@ export async function POST(req: NextRequest) {
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: {
           status: 'failed',
           errorMessage: error.message,
           completedAt: new Date(),
-        }
-      );
+        },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }

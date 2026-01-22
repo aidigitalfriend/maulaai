@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { checkEnvironmentVariables } from '@/lib/environment-checker';
@@ -30,16 +29,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database with timeout
-    await Promise.race([
-      dbConnect(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Database connection timeout')), 5000)
-      ),
-    ]);
+    // Find user by email using Prisma
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
 
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
@@ -62,13 +56,15 @@ export async function POST(request: NextRequest) {
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    // Store session in user document
-    user.sessionId = sessionId;
-    user.sessionExpiry = sessionExpiry;
-
-    // Update last login time
-    user.lastLoginAt = new Date();
-    await user.save();
+    // Update user with session info and last login time
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        sessionId,
+        sessionExpiry,
+        lastLoginAt: new Date()
+      }
+    });
 
     // Create response without token in JSON (security improvement)
     const response = NextResponse.json(
@@ -76,12 +72,12 @@ export async function POST(request: NextRequest) {
         message: 'Login successful',
         success: true,
         user: {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          authMethod: user.authMethod,
-          createdAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt,
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          authMethod: updatedUser.authMethod,
+          createdAt: updatedUser.createdAt,
+          lastLoginAt: updatedUser.lastLoginAt,
         },
       },
       { status: 200 }

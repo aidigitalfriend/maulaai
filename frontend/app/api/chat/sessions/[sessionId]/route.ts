@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import prisma from '@/lib/prisma';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -19,23 +18,10 @@ interface ChatMessage {
   }>;
 }
 
-interface ChatSession {
-  _id?: ObjectId;
-  id: string;
-  userId: string;
-  name: string;
-  agentId?: string;
-  subscriptionId?: string; // Reference to the active subscription
-  messages: ChatMessage[];
-  createdAt: string;
-  updatedAt: string;
-  deleted?: boolean;
-}
-
 // Authenticate user from request cookies
 async function authenticateUser(
   request: NextRequest
-): Promise<{ userId: string; db: any } | { error: string; status: number }> {
+): Promise<{ userId: string } | { error: string; status: number }> {
   const sessionId = request.cookies.get('session_id')?.value;
 
   if (!sessionId) {
@@ -43,71 +29,43 @@ async function authenticateUser(
   }
 
   try {
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() }
+      }
     });
 
     if (!sessionUser) {
       return { error: 'Invalid or expired session', status: 401 };
     }
 
-    return { userId: sessionUser._id.toString(), db };
+    return { userId: sessionUser.id };
   } catch (dbError) {
-    console.error('[chat/sessions/id] MongoDB error:', dbError);
+    console.error('[chat/sessions/id] Database error:', dbError);
     return { error: 'Database error', status: 500 };
   }
 }
 
 // Check if user has active subscription for specific agent
 async function checkAgentSubscription(
-  db: any,
   userId: string,
   agentId: string
 ): Promise<boolean> {
   try {
-    // Check agentsubscriptions collection (one-time purchases)
-    const agentSubscriptions = db.collection('agentsubscriptions');
-    const activeAgentSub = await agentSubscriptions.findOne({
-      userId: userId,
-      agentId: agentId,
-      status: 'active',
-      expiryDate: { $gt: new Date() },
+    // Check subscriptions table (AgentSubscription)
+    const activeSubscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId: userId,
+        agentId: agentId,
+        status: 'active',
+        expiryDate: { gt: new Date() }
+      }
     });
 
-    if (activeAgentSub) {
+    if (activeSubscription) {
       console.log(
-        '[chat/sessions/id] Found active agent subscription for user:',
-        userId,
-        'agent:',
-        agentId
-      );
-      return true;
-    }
-
-    // Also check legacy subscriptions collection as fallback
-    const subscriptions = db.collection('subscriptions');
-    const legacySub = await subscriptions.findOne({
-      $and: [
-        { $or: [{ user: userId }, { userId: userId }] },
-        { agentId: agentId },
-        { status: 'active' },
-        {
-          $or: [
-            { 'billing.currentPeriodEnd': { $gt: new Date() } },
-            { expiryDate: { $gt: new Date() } },
-          ],
-        },
-      ],
-    });
-
-    if (legacySub) {
-      console.log(
-        '[chat/sessions/id] Found legacy subscription for user:',
+        '[chat/sessions/id] Found active subscription for user:',
         userId,
         'agent:',
         agentId
@@ -132,7 +90,7 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// GET - Get session with messages (from MongoDB)
+// GET - Get session with messages
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -141,16 +99,22 @@ export async function GET(
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const { sessionId } = await params;
-    const sessionsCollection = db.collection('chat_sessions');
 
-    let session = await sessionsCollection.findOne({ id: sessionId, userId });
+    let session = await prisma.chatSession.findFirst({
+      where: { sessionId, userId },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' }
+        }
+      }
+    });
 
-    // Check if session exists and is not deleted
-    if (session && session.deleted) {
+    // Check if session exists and is not archived
+    if (session && session.isArchived) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
@@ -159,31 +123,41 @@ export async function GET(
 
     // Auto-create session if it doesn't exist
     if (!session) {
-      const now = new Date().toISOString();
-      session = {
-        id: sessionId,
-        userId,
-        name: 'New Conversation',
-        messages: [],
-        createdAt: now,
-        updatedAt: now,
-      };
-      await sessionsCollection.insertOne(session);
+      session = await prisma.chatSession.create({
+        data: {
+          sessionId,
+          userId,
+          name: 'New Conversation',
+          isActive: true
+        },
+        include: {
+          messages: true
+        }
+      });
       console.log(
-        '[chat/sessions/id] Auto-created session in MongoDB:',
+        '[chat/sessions/id] Auto-created session:',
         sessionId
       );
     }
 
+    // Transform messages to expected format
+    const transformedMessages = session.messages.map((msg: typeof session.messages[0]) => ({
+      id: msg.id,
+      role: msg.role.toLowerCase(),
+      content: msg.content,
+      timestamp: msg.createdAt.toISOString(),
+      attachments: (msg.metadata as any)?.attachments || undefined
+    }));
+
     return NextResponse.json({
       success: true,
       session: {
-        id: session.id,
+        id: session.sessionId,
         name: session.name,
         agentId: session.agentId,
-        messages: session.messages || [],
-        createdAt: session.createdAt,
-        updatedAt: session.updatedAt,
+        messages: transformedMessages,
+        createdAt: session.createdAt.toISOString(),
+        updatedAt: session.updatedAt.toISOString(),
       },
     });
   } catch (error) {
@@ -195,7 +169,7 @@ export async function GET(
   }
 }
 
-// POST - Add message to session (in MongoDB)
+// POST - Add message to session
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -204,7 +178,7 @@ export async function POST(
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const { sessionId } = await params;
@@ -231,7 +205,7 @@ export async function POST(
 
     // Validate agent subscription if agentId is provided
     if (agentId) {
-      const hasSubscription = await checkAgentSubscription(db, userId, agentId);
+      const hasSubscription = await checkAgentSubscription(userId, agentId);
       if (!hasSubscription) {
         return NextResponse.json(
           { success: false, error: 'No active subscription for this agent' },
@@ -240,82 +214,100 @@ export async function POST(
       }
     }
 
-    const sessionsCollection = db.collection('chat_sessions');
-
     // Check if session exists
-    let session = await sessionsCollection.findOne({ id: sessionId, userId });
+    let session = await prisma.chatSession.findFirst({
+      where: { sessionId, userId }
+    });
 
-    // Don't allow adding messages to deleted sessions
-    if (session && session.deleted) {
+    // Don't allow adding messages to archived sessions
+    if (session && session.isArchived) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
 
-    const now = new Date().toISOString();
-    const message: ChatMessage = {
-      id: generateId(),
-      role,
-      content,
-      timestamp: now,
-      attachments: attachments || undefined,
+    const now = new Date();
+    const messageId = generateId();
+
+    // Map role to Prisma enum
+    const roleMap: Record<string, 'user' | 'assistant' | 'system'> = {
+      user: 'user',
+      assistant: 'assistant',
+      system: 'system'
     };
+    const prismaRole = roleMap[role.toLowerCase()] || 'user';
 
     if (!session) {
-      // Get the active subscription for this agent to link it to the session
-      let subscriptionId: string | undefined;
-      if (agentId) {
-        const subscriptions = db.collection('subscriptions');
-        const activeSub = await subscriptions.findOne({
-          user: userId,
-          agentId: agentId,
-          status: 'active',
-          'billing.currentPeriodEnd': { $gt: new Date() },
-        });
-        subscriptionId = activeSub?._id?.toString();
-      }
-
       // Create new session with the first message
-      const sessionCount = await sessionsCollection.countDocuments({ userId });
-      session = {
-        id: sessionId,
-        userId,
-        name:
-          role === 'user'
+      const sessionCount = await prisma.chatSession.count({ where: { userId } });
+      
+      session = await prisma.chatSession.create({
+        data: {
+          sessionId,
+          userId,
+          name: role === 'user'
             ? content.slice(0, 50) + (content.length > 50 ? '...' : '')
             : `Conversation ${sessionCount + 1}`,
-        agentId: agentId || undefined,
-        subscriptionId: subscriptionId, // Link to active subscription
-        messages: [message],
-        createdAt: now,
-        updatedAt: now,
-      };
-      await sessionsCollection.insertOne(session);
+          agentId: agentId || null,
+          isActive: true,
+          messages: {
+            create: {
+              role: prismaRole,
+              content,
+              metadata: attachments ? { attachments } : {}
+            }
+          }
+        }
+      });
+
       console.log(
         '[chat/sessions/id] Created session with first message:',
         sessionId
       );
     } else {
-      // Update existing session - add message
-      const updateData: Record<string, unknown> = {
-        $push: { messages: message },
-        $set: { updatedAt: now },
+      // Add message to existing session
+      await prisma.chatMessage.create({
+        data: {
+          sessionId: session.sessionId,
+          role: prismaRole,
+          content,
+          metadata: attachments ? { attachments } : {}
+        }
+      });
+
+      // Update session
+      const updateData: any = {
+        updatedAt: now
       };
 
-      // Update name if first user message
-      if (session.messages.length === 0 && role === 'user') {
-        (updateData.$set as Record<string, unknown>).name =
-          content.slice(0, 50) + (content.length > 50 ? '...' : '');
+      // Update name if this is the first user message and session has no messages
+      const messageCount = await prisma.chatMessage.count({
+        where: { sessionId: session.sessionId }
+      });
+      
+      if (messageCount === 1 && role === 'user') {
+        updateData.name = content.slice(0, 50) + (content.length > 50 ? '...' : '');
       }
 
       // Update agentId if provided and not set
       if (agentId && !session.agentId) {
-        (updateData.$set as Record<string, unknown>).agentId = agentId;
+        updateData.agentId = agentId;
       }
 
-      await sessionsCollection.updateOne({ id: sessionId, userId }, updateData);
+      await prisma.chatSession.update({
+        where: { id: session.id },
+        data: updateData
+      });
     }
+
+    const message: ChatMessage = {
+      id: messageId,
+      role,
+      content,
+      timestamp: now.toISOString(),
+      attachments: attachments || undefined,
+    };
 
     return NextResponse.json({
       success: true,
@@ -330,7 +322,7 @@ export async function POST(
   }
 }
 
-// DELETE - Delete session (from MongoDB)
+// DELETE - Delete session (soft delete by archiving)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -339,25 +331,31 @@ export async function DELETE(
   if ('error' in auth) {
     return NextResponse.json({ message: auth.error }, { status: auth.status });
   }
-  const { userId, db } = auth;
+  const { userId } = auth;
 
   try {
     const { sessionId } = await params;
-    const sessionsCollection = db.collection('chat_sessions');
 
-    const now = new Date().toISOString();
-    const result = await sessionsCollection.findOneAndUpdate(
-      { id: sessionId, userId },
-      { $set: { deleted: true, updatedAt: now } },
-      { returnDocument: 'after' }
-    );
+    const session = await prisma.chatSession.findFirst({
+      where: { sessionId, userId }
+    });
 
-    if (!result) {
+    if (!session) {
       return NextResponse.json(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
     }
+
+    // Soft delete by archiving
+    await prisma.chatSession.update({
+      where: { id: session.id },
+      data: {
+        isArchived: true,
+        archivedAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
 
     console.log('[chat/sessions/id] Soft deleted session:', sessionId);
 

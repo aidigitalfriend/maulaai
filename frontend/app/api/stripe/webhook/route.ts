@@ -1,23 +1,16 @@
 /**
  * Stripe Webhook Handler
- * Receives events from Stripe and saves subscriptions to MongoDB
+ * Receives events from Stripe and saves subscriptions to PostgreSQL via Prisma
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
+import prisma from '@/lib/prisma';
 import { verifyWebhookSignature } from '../../../../lib/stripe-client';
-import { connectToDatabase } from '../../../../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
-import {
-  createInvoiceRecord,
-  createPaymentRecord,
-  createBillingRecord,
-  getPaymentDetailsFromSubscription,
-} from '../../../../lib/billing-helpers';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-11-17.clover' as any,
 });
 
 function safeDateFromUnix(
@@ -81,11 +74,6 @@ export async function POST(request: NextRequest) {
       livemode: event.livemode,
     });
 
-    // Connect to MongoDB
-    console.log('🔌 Connecting to MongoDB...');
-    await connectToDatabase();
-    console.log('✅ Connected to MongoDB successfully');
-
     // Handle different event types
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -129,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('💥 WEBHOOK HANDLER ERROR:', {
       message: error.message,
       stack: error.stack,
@@ -197,6 +185,7 @@ async function handleCheckoutSessionCompleted(
   }
 
   let stripeSubscriptionId: string | undefined;
+  let subscription: Stripe.Subscription | null = null;
 
   if (mode === 'subscription' && subscriptionId) {
     // Get full subscription details from Stripe
@@ -204,7 +193,7 @@ async function handleCheckoutSessionCompleted(
       '🔍 Fetching subscription details from Stripe:',
       subscriptionId
     );
-    const subscription = await stripe.subscriptions.retrieve(
+    subscription = await stripe.subscriptions.retrieve(
       subscriptionId as string
     );
     console.log('✅ Subscription details retrieved:', {
@@ -234,13 +223,9 @@ async function handleCheckoutSessionCompleted(
     stripeSubscriptionId = session.id;
   }
 
-  // Save subscription to MongoDB
-  console.log('💾 Saving agent subscription to database...');
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
-
   // Check if subscription already exists by Stripe ID (avoid duplicates)
-  const existingByStripeId = await AgentSubscriptionModel.findOne({
-    stripeSubscriptionId: stripeSubscriptionId,
+  const existingByStripeId = await prisma.agentSubscription.findFirst({
+    where: { stripeSubscriptionId },
   });
 
   if (existingByStripeId) {
@@ -252,12 +237,14 @@ async function handleCheckoutSessionCompleted(
   }
 
   // Check if agent subscription already exists
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: metadata?.userId,
-    agentId: metadata?.agentId,
+  const existingSubscription = await prisma.agentSubscription.findFirst({
+    where: {
+      userId: metadata?.userId,
+      agentId: metadata?.agentId,
+    },
   });
 
-  if (!existingSubscription) {
+  if (!existingSubscription && subscription) {
     // Map Stripe interval to our plan types
     let planType: 'daily' | 'weekly' | 'monthly' = 'monthly';
     if (subscription.items.data[0]?.price?.recurring?.interval === 'day')
@@ -265,90 +252,47 @@ async function handleCheckoutSessionCompleted(
     else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
       planType = 'weekly';
 
-    const startDate = safeDateFromUnix(subscription.current_period_start);
+    const subAny = subscription as any;
+    const startDate = safeDateFromUnix(subAny.current_period_start);
     const expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
+      subAny.current_period_end,
       planType
     );
 
-    const agentSub = new AgentSubscriptionModel({
-      userId: metadata?.userId,
-      agentId: metadata?.agentId,
-      agentName: metadata?.agentName, // Add agent name
-      plan: planType,
-      price: subscription.items.data[0]?.price?.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0,
-      status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate,
-      expiryDate,
-      autoRenew: false, // Always false for one-time purchase model
-      stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
-      billing: {
-        // Add billing sub-document
-        interval:
-          planType === 'daily'
-            ? 'day'
-            : planType === 'weekly'
-              ? 'week'
-              : 'month',
-        amount: subscription.items.data[0]?.price?.unit_amount || 0,
-        currentPeriodEnd: expiryDate,
+    const agentSub = await prisma.agentSubscription.create({
+      data: {
+        userId: metadata?.userId as string,
+        agentId: metadata?.agentId as string,
+        plan: planType,
+        price: subscription.items.data[0]?.price?.unit_amount
+          ? subscription.items.data[0].price.unit_amount / 100
+          : 0,
+        status: subscription.status === 'active' ? 'active' : 'expired',
+        startDate,
+        expiryDate,
+        autoRenew: false, // Always false for one-time purchase model
+        stripeSubscriptionId: subscription.id,
       },
     });
 
-    await agentSub.save();
-    console.log('✅ Agent subscription created:', agentSub._id);
+    console.log('✅ Agent subscription created:', agentSub.id);
 
-    // 💰 CREATE INVOICE RECORD
-    await createInvoiceRecord({
-      userId: metadata?.userId as string,
-      email: email as string,
-      stripeSubscriptionId: subscription.id,
-      agentId: metadata?.agentId as string,
-      agentName: metadata?.agentName as string,
-      plan: planType,
-      amount: agentSub.price,
-      currency: 'usd',
-      status: 'paid',
-      paidAt: new Date(subscription.current_period_start * 1000),
-    });
-
-    // 💳 CREATE PAYMENT RECORD
-    const paymentDetails = await getPaymentDetailsFromSubscription(
-      stripe,
-      subscription.id
-    );
-    await createPaymentRecord({
-      userId: metadata?.userId as string,
-      email: email as string,
-      stripePaymentIntentId: paymentDetails?.paymentIntentId,
-      stripeChargeId: paymentDetails?.chargeId,
-      stripeInvoiceId: paymentDetails?.invoiceId,
-      stripeSubscriptionId: subscription.id,
-      agentId: metadata?.agentId as string,
-      agentName: metadata?.agentName as string,
-      plan: planType,
-      amount: agentSub.price,
-      currency: 'usd',
-      status: 'succeeded',
-      paymentMethod: paymentDetails?.paymentMethod || 'card',
-      last4: paymentDetails?.last4,
-      brand: paymentDetails?.brand,
-    });
-
-    // 📋 CREATE BILLING HISTORY RECORD
-    await createBillingRecord({
-      userId: metadata?.userId as string,
-      email: email as string,
-      type: 'subscription',
-      stripeSubscriptionId: subscription.id,
-      agentId: metadata?.agentId as string,
-      agentName: metadata?.agentName as string,
-      plan: planType,
-      amount: agentSub.price,
-      currency: 'usd',
-      description: `Purchased ${metadata?.agentName} - ${planType} plan`,
+    // Create transaction record
+    await prisma.transaction.create({
+      data: {
+        transactionId: `txn_${Date.now()}_${subscription.id}`,
+        userId: metadata?.userId as string,
+        type: 'subscription',
+        item: {
+          agentId: metadata?.agentId,
+          agentName: metadata?.agentName,
+          plan: planType,
+        },
+        amount: agentSub.price,
+        currency: 'USD',
+        status: 'completed',
+        stripeSubscriptionId: subscription.id,
+      },
     });
   } else {
     console.log('ℹ️ Agent subscription already exists, skipping creation');
@@ -362,7 +306,6 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   console.log('🆕 Subscription created:', subscription.id);
 
   // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
-  // If the subscription has the cancelAtPeriodEnd metadata flag, update it in Stripe
   if (
     subscription.metadata?.cancelAtPeriodEnd === 'true' &&
     !subscription.cancel_at_period_end
@@ -380,11 +323,9 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     }
   }
 
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
-
   // Check if subscription already exists by Stripe ID (avoid duplicates)
-  const existingByStripeId = await AgentSubscriptionModel.findOne({
-    stripeSubscriptionId: subscription.id,
+  const existingByStripeId = await prisma.agentSubscription.findFirst({
+    where: { stripeSubscriptionId: subscription.id },
   });
 
   if (existingByStripeId) {
@@ -395,9 +336,11 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     return;
   }
 
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: subscription.metadata?.userId,
-    agentId: subscription.metadata?.agentId,
+  const existingSubscription = await prisma.agentSubscription.findFirst({
+    where: {
+      userId: subscription.metadata?.userId,
+      agentId: subscription.metadata?.agentId,
+    },
   });
 
   if (!existingSubscription) {
@@ -408,28 +351,30 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
       planType = 'weekly';
 
-    const startDate = safeDateFromUnix(subscription.current_period_start);
+    const subAny = subscription as any;
+    const startDate = safeDateFromUnix(subAny.current_period_start);
     const expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
+      subAny.current_period_end,
       planType
     );
 
-    const agentSub = new AgentSubscriptionModel({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
-      plan: planType,
-      price: subscription.items.data[0]?.price?.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0,
-      status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate,
-      expiryDate,
-      autoRenew: false, // Always false for one-time purchase model
-      stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
+    const agentSub = await prisma.agentSubscription.create({
+      data: {
+        userId: subscription.metadata?.userId as string,
+        agentId: subscription.metadata?.agentId as string,
+        plan: planType,
+        price: subscription.items.data[0]?.price?.unit_amount
+          ? subscription.items.data[0].price.unit_amount / 100
+          : 0,
+        status: subscription.status === 'active' ? 'active' : 'expired',
+        startDate,
+        expiryDate,
+        autoRenew: false,
+        stripeSubscriptionId: subscription.id,
+      },
     });
 
-    await agentSub.save();
-    console.log('✅ Agent subscription created:', agentSub._id);
+    console.log('✅ Agent subscription created:', agentSub.id);
   }
 }
 
@@ -438,59 +383,66 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
  */
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   console.log('🔄 Subscription updated:', subscription.id);
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: subscription.metadata?.userId,
-    agentId: subscription.metadata?.agentId,
+  const existingSubscription = await prisma.agentSubscription.findFirst({
+    where: {
+      userId: subscription.metadata?.userId,
+      agentId: subscription.metadata?.agentId,
+    },
   });
+
+  // Map Stripe interval to our plan types
+  let planType: 'daily' | 'weekly' | 'monthly' = 'monthly';
+  if (subscription.items.data[0]?.price?.recurring?.interval === 'day')
+    planType = 'daily';
+  else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
+    planType = 'weekly';
+
+  const subAny = subscription as any;
 
   if (!existingSubscription) {
     console.log(
       'Agent subscription not found in database, creating new record'
     );
 
-    // Map Stripe interval to our plan types
-    let planType: 'daily' | 'weekly' | 'monthly' = 'monthly';
-    if (subscription.items.data[0]?.price?.recurring?.interval === 'day')
-      planType = 'daily';
-    else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
-      planType = 'weekly';
-
-    const startDate = safeDateFromUnix(subscription.current_period_start);
+    const startDate = safeDateFromUnix(subAny.current_period_start);
     const expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
+      subAny.current_period_end,
       planType
     );
 
-    const agentSub = new AgentSubscriptionModel({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
-      plan: planType,
-      price: subscription.items.data[0]?.price?.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0,
-      status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate,
-      expiryDate,
-      autoRenew: false, // Always false for one-time purchase model
+    const agentSub = await prisma.agentSubscription.create({
+      data: {
+        userId: subscription.metadata?.userId as string,
+        agentId: subscription.metadata?.agentId as string,
+        plan: planType,
+        price: subscription.items.data[0]?.price?.unit_amount
+          ? subscription.items.data[0].price.unit_amount / 100
+          : 0,
+        status: subscription.status === 'active' ? 'active' : 'expired',
+        startDate,
+        expiryDate,
+        autoRenew: false,
+        stripeSubscriptionId: subscription.id,
+      },
     });
 
-    await agentSub.save();
-    console.log('✅ Agent subscription created:', agentSub._id);
+    console.log('✅ Agent subscription created:', agentSub.id);
   } else {
     // Update existing subscription
-    existingSubscription.status =
-      subscription.status === 'active' ? 'active' : 'expired';
-    existingSubscription.expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
-      planType
-    );
-    existingSubscription.autoRenew = false; // Always false for one-time purchase model
-    existingSubscription.updatedAt = new Date();
+    await prisma.agentSubscription.update({
+      where: { id: existingSubscription.id },
+      data: {
+        status: subscription.status === 'active' ? 'active' : 'expired',
+        expiryDate: safeDateFromUnix(
+          subAny.current_period_end,
+          planType
+        ),
+        autoRenew: false,
+      },
+    });
 
-    await existingSubscription.save();
-    console.log('✅ Agent subscription updated:', existingSubscription._id);
+    console.log('✅ Agent subscription updated:', existingSubscription.id);
   }
 }
 
@@ -499,17 +451,19 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
  */
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   console.log('Subscription deleted:', subscription.id);
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: subscription.metadata?.userId,
-    agentId: subscription.metadata?.agentId,
+  const existingSubscription = await prisma.agentSubscription.findFirst({
+    where: {
+      userId: subscription.metadata?.userId,
+      agentId: subscription.metadata?.agentId,
+    },
   });
 
   if (existingSubscription) {
-    existingSubscription.status = 'canceled';
-    existingSubscription.updatedAt = new Date();
-    await existingSubscription.save();
+    await prisma.agentSubscription.update({
+      where: { id: existingSubscription.id },
+      data: { status: 'cancelled' },
+    });
     console.log('Agent subscription marked as canceled in database');
   }
 }
@@ -520,22 +474,25 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
   console.log('Invoice paid:', invoice.id);
 
-  if (invoice.subscription) {
+  const invoiceAny = invoice as any;
+  if (invoiceAny.subscription) {
     // Get the subscription object from Stripe to access metadata
     const subscription = await stripe.subscriptions.retrieve(
-      invoice.subscription as string
+      invoiceAny.subscription as string
     );
-    const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
-    const existingSubscription = await AgentSubscriptionModel.findOne({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
+    const existingSubscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId: subscription.metadata?.userId,
+        agentId: subscription.metadata?.agentId,
+      },
     });
 
     if (existingSubscription && existingSubscription.status !== 'active') {
-      existingSubscription.status = 'active';
-      existingSubscription.updatedAt = new Date();
-      await existingSubscription.save();
+      await prisma.agentSubscription.update({
+        where: { id: existingSubscription.id },
+        data: { status: 'active' },
+      });
       console.log('Agent subscription reactivated after payment');
     }
   }
@@ -547,23 +504,26 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   console.log('Invoice payment failed:', invoice.id);
 
-  if (invoice.subscription) {
+  const invoiceAny = invoice as any;
+  if (invoiceAny.subscription) {
     // Get the subscription object from Stripe to access metadata
     const subscription = await stripe.subscriptions.retrieve(
-      invoice.subscription as string
+      invoiceAny.subscription as string
     );
-    const AgentSubscriptionModel = await getAgentSubscriptionModel();
 
-    const existingSubscription = await AgentSubscriptionModel.findOne({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
+    const existingSubscription = await prisma.agentSubscription.findFirst({
+      where: {
+        userId: subscription.metadata?.userId,
+        agentId: subscription.metadata?.agentId,
+      },
     });
 
     if (existingSubscription) {
-      existingSubscription.status = 'past_due';
-      existingSubscription.updatedAt = new Date();
-      await existingSubscription.save();
-      console.log('Agent subscription marked as past_due');
+      await prisma.agentSubscription.update({
+        where: { id: existingSubscription.id },
+        data: { status: 'expired' },
+      });
+      console.log('Agent subscription marked as expired due to payment failure');
     }
   }
 }

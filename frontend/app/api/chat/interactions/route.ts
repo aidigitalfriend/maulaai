@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose';
+import prisma from '@/lib/prisma';
 
 // Helper to authenticate user from session cookie
 async function authenticateUser(request: NextRequest) {
@@ -11,18 +10,12 @@ async function authenticateUser(request: NextRequest) {
   }
 
   try {
-    await dbConnect();
-    const db = mongoose.connection.db;
-
-    if (!db) {
-      return null;
-    }
-
-    // Session is stored directly on the user document (not a separate collection)
-    // Backend stores sessionId and sessionExpiry on user during login
-    const user = await db.collection('users').findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    // Session is stored directly on the user document
+    const user = await prisma.user.findFirst({
+      where: {
+        sessionId: sessionId,
+        sessionExpiry: { gt: new Date() }
+      }
     });
 
     return user;
@@ -62,48 +55,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await dbConnect();
-    const db = mongoose.connection.db;
-
-    if (!db) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // Create interaction document
-    const interaction = {
-      conversationId,
-      userId: user._id,
-      agentId:
-        agentId && mongoose.Types.ObjectId.isValid(agentId)
-          ? new mongoose.Types.ObjectId(agentId)
-          : undefined,
-      messages: messages.map(
-        (msg: { role: string; content: string; timestamp?: number }) => ({
-          role: msg.role,
-          content: msg.content,
-          createdAt: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-        })
-      ),
-      summary,
-      metrics,
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Save to chatinteractions collection
-    const result = await db
-      .collection('chatinteractions')
-      .insertOne(interaction);
+    // Create interaction document using Prisma
+    const interaction = await prisma.chatAnalyticsInteraction.create({
+      data: {
+        conversationId,
+        userId: user.id,
+        agentId: agentId || null,
+        messages: messages.map(
+          (msg: { role: string; content: string; timestamp?: number }) => ({
+            role: msg.role,
+            content: msg.content,
+            createdAt: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
+          })
+        ),
+        status: 'active',
+        startedAt: new Date(),
+        durationMs: metrics?.durationMs || 0,
+        totalTokens: metrics?.totalTokens || 0,
+        turnCount: messages.length
+      }
+    });
 
     return NextResponse.json(
       {
         success: true,
         interaction: {
-          id: result.insertedId,
+          id: interaction.id,
           conversationId,
           messageCount: messages.length,
           createdAt: interaction.createdAt,
@@ -136,36 +113,25 @@ export async function GET(request: NextRequest) {
     const conversationId = searchParams.get('conversationId');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    await dbConnect();
-    const db = mongoose.connection.db;
-
-    if (!db) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // Build query
-    const query: Record<string, unknown> = { userId: user._id };
+    // Build Prisma query
+    const where: any = { userId: user.id };
     if (conversationId) {
-      query.conversationId = conversationId;
+      where.conversationId = conversationId;
     }
 
-    const interactions = await db
-      .collection('chatinteractions')
-      .find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
+    const interactions = await prisma.chatAnalyticsInteraction.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
 
     return NextResponse.json({
       success: true,
-      interactions: interactions.map((i) => ({
-        id: i._id,
+      interactions: interactions.map((i: typeof interactions[0]) => ({
+        id: i.id,
         conversationId: i.conversationId,
         agentId: i.agentId,
-        messageCount: i.messages?.length || 0,
+        messageCount: (i.messages as any[])?.length || 0,
         createdAt: i.createdAt,
         updatedAt: i.updatedAt,
       })),

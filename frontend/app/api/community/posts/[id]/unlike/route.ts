@@ -1,72 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-// =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('❌ Unlike API: Database connection failed:', error);
-    throw error;
-  }
-}
-
-// =====================================================
-// Mongoose Schemas
-// =====================================================
-const communityPostSchema = new mongoose.Schema(
-  {
-    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    authorName: { type: String, required: true },
-    content: { type: String, required: true },
-    category: { type: String, enum: ['general', 'agents', 'ideas', 'help'], default: 'general' },
-    likesCount: { type: Number, default: 0 },
-    status: { type: String, enum: ['active', 'hidden', 'deleted'], default: 'active' },
-  },
-  { timestamps: true, collection: 'communityposts' }
-);
-
-const CommunityPost = mongoose.models.CommunityPost || mongoose.model('CommunityPost', communityPostSchema);
-
-const communityLikeSchema = new mongoose.Schema(
-  {
-    postId: { type: mongoose.Schema.Types.ObjectId, ref: 'CommunityPost', required: true, index: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  },
-  { timestamps: { createdAt: true, updatedAt: false }, collection: 'communitylikes' }
-);
-
-communityLikeSchema.index({ postId: 1, userId: 1 }, { unique: true });
-
-const CommunityLike = mongoose.models.CommunityLike || mongoose.model('CommunityLike', communityLikeSchema);
-
-// Session schema for auth
-const sessionSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  userEmail: { type: String },
-  expiresAt: { type: Date },
-  isActive: { type: Boolean, default: true },
-});
-
-const Session = mongoose.models.Session || mongoose.model('Session', sessionSchema);
 
 // =====================================================
 // Helper: Get User from Session Cookie
@@ -80,21 +14,21 @@ async function getUserFromSession() {
       return null;
     }
 
-    await connectToDatabase();
+    // Find user by session using Prisma
+    const user = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() }
+      }
+    });
 
-    const session = await Session.findOne({
-      sessionId,
-      isActive: true,
-      expiresAt: { $gt: new Date() },
-    }).lean();
-
-    if (!session) {
+    if (!user) {
       return null;
     }
 
     return {
-      id: session.userId.toString(),
-      email: (session as any).userEmail || '',
+      id: user.id,
+      email: user.email,
     };
   } catch (error) {
     console.error('Session lookup error:', error);
@@ -110,17 +44,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToDatabase();
-
     const { id: postId } = await params;
-
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid post ID' },
-        { status: 400 }
-      );
-    }
 
     // Get user from session
     const user = await getUserFromSession();
@@ -133,38 +57,61 @@ export async function POST(
     }
 
     // Check if post exists
-    const post = await CommunityPost.findById(postId);
-    if (!post || post.status === 'deleted') {
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId }
+    });
+
+    if (!post) {
       return NextResponse.json(
         { success: false, error: 'Post not found' },
         { status: 404 }
       );
     }
 
-    // Remove like record
-    const result = await CommunityLike.deleteOne({
-      postId,
-      userId: user.id,
+    // Check if like exists
+    const existingLike = await prisma.communityLike.findUnique({
+      where: {
+        userId_postId: {
+          userId: user.id,
+          postId: postId
+        }
+      }
     });
 
-    if (result.deletedCount === 0) {
+    if (!existingLike) {
       return NextResponse.json(
         { success: false, error: 'You have not liked this post' },
         { status: 400 }
       );
     }
 
-    // Decrement likes count
-    await CommunityPost.findByIdAndUpdate(postId, {
-      $inc: { likesCount: -1 },
-    });
+    // Remove like record and decrement likes count in a transaction
+    const [_, updatedPost] = await prisma.$transaction([
+      prisma.communityLike.delete({
+        where: {
+          userId_postId: {
+            userId: user.id,
+            postId: postId
+          }
+        }
+      }),
+      prisma.communityPost.update({
+        where: { id: postId },
+        data: { 
+          likesCount: { 
+            decrement: 1 
+          } 
+        }
+      })
+    ]);
 
     // Ensure likesCount doesn't go negative
-    await CommunityPost.findByIdAndUpdate(postId, {
-      $max: { likesCount: 0 },
-    });
-
-    const updatedPost = await CommunityPost.findById(postId).lean();
+    if (updatedPost.likesCount < 0) {
+      await prisma.communityPost.update({
+        where: { id: postId },
+        data: { likesCount: 0 }
+      });
+    }
 
     console.log(`💔 Post ${postId} unliked by user ${user.id}`);
 
@@ -174,7 +121,7 @@ export async function POST(
       data: {
         postId,
         liked: false,
-        likesCount: Math.max(0, (updatedPost as any)?.likesCount || 0),
+        likesCount: Math.max(0, updatedPost.likesCount),
       },
     });
   } catch (error) {

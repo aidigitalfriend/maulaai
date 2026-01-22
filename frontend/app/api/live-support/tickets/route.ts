@@ -1,79 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-// =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
-  }
-}
-
-// =====================================================
-// Mongoose Schemas (inline)
-// =====================================================
-const supportTicketSchema = new mongoose.Schema({
-  ticketId: { type: String, required: true, unique: true, index: true },
-  ticketNumber: { type: Number, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  userEmail: { type: String, required: true },
-  userName: { type: String },
-  subject: { type: String, required: true, maxlength: 200 },
-  description: { type: String, required: true, maxlength: 5000 },
-  category: { type: String, enum: ['billing', 'technical', 'account', 'agents', 'subscription', 'feature-request', 'bug-report', 'general', 'other'] },
-  priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
-  status: { type: String, enum: ['open', 'in-progress', 'waiting-customer', 'waiting-internal', 'resolved', 'closed'], default: 'open' },
-  messages: [{
-    sender: { type: String, enum: ['customer', 'support', 'system', 'ai'], required: true },
-    senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    senderName: { type: String },
-    message: { type: String, required: true },
-    isInternal: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
-  }],
-  relatedAgent: { type: String },
-  relatedChatId: { type: String },
-  resolution: {
-    summary: { type: String },
-    resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    resolvedAt: { type: Date }
-  },
-  satisfaction: {
-    rating: { type: Number, min: 1, max: 5 },
-    feedback: { type: String },
-    ratedAt: { type: Date }
-  },
-  sla: {
-    firstResponseDue: { type: Date },
-    firstResponseAt: { type: Date },
-    resolutionDue: { type: Date },
-    breached: { type: Boolean, default: false }
-  },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  lastActivityAt: { type: Date, default: Date.now },
-  closedAt: { type: Date }
-}, { collection: 'supporttickets' });
-
-const SupportTicket = mongoose.models.SupportTicket || mongoose.model('SupportTicket', supportTicketSchema);
+import prisma from '@/lib/prisma';
 
 // =====================================================
 // GET Handler - Get User's Tickets
@@ -94,14 +20,14 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    await connectToDatabase();
-    
     // Get specific ticket
     if (ticketId) {
-      const ticket = await SupportTicket.findOne({
-        ticketId,
-        userId: new mongoose.Types.ObjectId(userId)
-      }).lean();
+      const ticket = await prisma.supportTicket.findFirst({
+        where: {
+          id: ticketId,
+          userId,
+        },
+      });
       
       if (!ticket) {
         return NextResponse.json(
@@ -116,59 +42,53 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    // Build query
-    const query: any = {
-      userId: new mongoose.Types.ObjectId(userId)
-    };
+    // Build where clause
+    const where: any = { userId };
     
     if (status && status !== 'all') {
-      query.status = status;
+      where.status = status;
     }
     
     // Get total count
-    const totalCount = await SupportTicket.countDocuments(query);
+    const totalCount = await prisma.supportTicket.count({ where });
     
     // Get tickets with pagination
-    const tickets = await SupportTicket.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .select({
-        ticketId: 1,
-        ticketNumber: 1,
-        subject: 1,
-        category: 1,
-        priority: 1,
-        status: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        lastActivityAt: 1,
-        'sla.firstResponseDue': 1,
-        'sla.resolutionDue': 1,
-        'sla.breached': 1,
-        'resolution.summary': 1,
-        'satisfaction.rating': 1
-      })
-      .lean();
+    const tickets = await prisma.supportTicket.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        subject: true,
+        category: true,
+        priority: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        metadata: true,
+      },
+    });
     
-    // Get status counts
-    const statusCounts = await SupportTicket.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]);
+    // Get status counts using groupBy
+    const statusGroups = await prisma.supportTicket.groupBy({
+      by: ['status'],
+      where: { userId },
+      _count: true,
+    });
     
-    const counts = {
+    const counts: Record<string, number> = {
       total: totalCount,
       open: 0,
-      'in-progress': 0,
-      'waiting-customer': 0,
+      in_progress: 0,
+      waiting: 0,
       resolved: 0,
-      closed: 0
+      closed: 0,
     };
     
-    statusCounts.forEach((item: any) => {
-      if (item._id in counts) {
-        counts[item._id as keyof typeof counts] = item.count;
+    statusGroups.forEach((item: any) => {
+      if (item.status in counts) {
+        counts[item.status] = item._count;
       }
     });
     
@@ -208,49 +128,53 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    await connectToDatabase();
-    
-    // Find and update ticket
-    const ticket = await SupportTicket.findOneAndUpdate(
-      { 
-        ticketId, 
-        userId: new mongoose.Types.ObjectId(userId) 
+    // Find the ticket
+    const existingTicket = await prisma.supportTicket.findFirst({
+      where: {
+        id: ticketId,
+        userId,
       },
-      {
-        $push: {
-          messages: {
-            sender: 'customer',
-            senderId: new mongoose.Types.ObjectId(userId),
-            senderName: userName || 'Customer',
-            message,
-            createdAt: new Date()
-          }
-        },
-        $set: {
-          lastActivityAt: new Date(),
-          updatedAt: new Date(),
-          // If ticket was waiting on customer, change to open
-          ...(true && { status: 'open' })
-        }
-      },
-      { new: true }
-    );
+    });
     
-    if (!ticket) {
+    if (!existingTicket) {
       return NextResponse.json(
         { error: 'Ticket not found or access denied' },
         { status: 404 }
       );
     }
     
+    // Update ticket with new message in metadata
+    const existingMetadata = (existingTicket.metadata as any) || {};
+    const existingMessages = existingMetadata.messages || [];
+    
+    const ticket = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: {
+        status: 'open', // Reopen if was waiting
+        updatedAt: new Date(),
+        metadata: {
+          ...existingMetadata,
+          messages: [
+            ...existingMessages,
+            {
+              sender: 'customer',
+              senderId: userId,
+              senderName: userName || 'Customer',
+              message,
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        },
+      },
+    });
+    
     return NextResponse.json({
       success: true,
       message: 'Reply added successfully',
       ticket: {
-        ticketId: ticket.ticketId,
-        ticketNumber: ticket.ticketNumber,
+        ticketId: ticket.id,
         status: ticket.status,
-        lastActivityAt: ticket.lastActivityAt
+        updatedAt: ticket.updatedAt,
       }
     });
     
@@ -278,11 +202,24 @@ export async function PATCH(req: NextRequest) {
       );
     }
     
-    await connectToDatabase();
+    // Find the ticket
+    const existingTicket = await prisma.supportTicket.findFirst({
+      where: {
+        id: ticketId,
+        userId,
+      },
+    });
     
+    if (!existingTicket) {
+      return NextResponse.json(
+        { error: 'Ticket not found or access denied' },
+        { status: 404 }
+      );
+    }
+    
+    const existingMetadata = (existingTicket.metadata as any) || {};
     let updateData: any = {
       updatedAt: new Date(),
-      lastActivityAt: new Date()
     };
     
     if (action === 'rate') {
@@ -293,42 +230,34 @@ export async function PATCH(req: NextRequest) {
         );
       }
       
-      updateData.satisfaction = {
-        rating,
-        feedback: feedback || '',
-        ratedAt: new Date()
+      updateData.metadata = {
+        ...existingMetadata,
+        satisfaction: {
+          rating,
+          feedback: feedback || '',
+          ratedAt: new Date().toISOString(),
+        },
       };
     } else if (action === 'close') {
       updateData.status = 'closed';
-      updateData.closedAt = new Date();
+      updateData.resolvedAt = new Date();
     } else if (action === 'reopen') {
       updateData.status = 'open';
-      updateData.closedAt = null;
+      updateData.resolvedAt = null;
     }
     
-    const ticket = await SupportTicket.findOneAndUpdate(
-      { 
-        ticketId, 
-        userId: new mongoose.Types.ObjectId(userId) 
-      },
-      { $set: updateData },
-      { new: true }
-    );
-    
-    if (!ticket) {
-      return NextResponse.json(
-        { error: 'Ticket not found or access denied' },
-        { status: 404 }
-      );
-    }
+    const ticket = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: updateData,
+    });
     
     return NextResponse.json({
       success: true,
       message: `Ticket ${action}d successfully`,
       ticket: {
-        ticketId: ticket.ticketId,
+        ticketId: ticket.id,
         status: ticket.status,
-        satisfaction: ticket.satisfaction
+        metadata: ticket.metadata,
       }
     });
     

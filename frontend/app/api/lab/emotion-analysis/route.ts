@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface EmotionAnalysisRequest {
   text: string;
@@ -202,8 +201,6 @@ export async function POST(req: NextRequest) {
     .substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const { text }: EmotionAnalysisRequest = await req.json();
 
     if (!text) {
@@ -211,16 +208,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'emotion-visualizer',
-      input: {
-        prompt: text,
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'emotion-visualizer',
+        input: {
+          prompt: text,
+        },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     // Use AI provider with fallback chain: Cerebras → Cohere
     const { classification, emotions: emotionScores } = await analyzeEmotions(text);
@@ -233,9 +231,9 @@ export async function POST(req: NextRequest) {
     };
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: analysisResult,
           metadata: { processingTime },
@@ -243,8 +241,8 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         processingTime,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -256,14 +254,14 @@ export async function POST(req: NextRequest) {
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: {
           status: 'failed',
           errorMessage: error.message,
           completedAt: new Date(),
-        }
-      );
+        },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }
@@ -282,19 +280,23 @@ export async function GET(req: NextRequest) {
     const isStats = searchParams.get('stats') === 'true';
 
     if (isStats) {
-      await dbConnect();
-
       // Count completed emotion analyses
-      const totalAnalyzed = await LabExperiment.countDocuments({
-        experimentType: { $in: ['emotion-visualizer', 'emotion-analysis'] },
-        status: 'completed'
+      const totalAnalyzed = await prisma.labExperiment.count({
+        where: {
+          experimentType: { in: ['emotion-visualizer', 'emotion-analysis'] },
+          status: 'completed'
+        }
       });
 
       // Count recent active users (last 30 minutes)
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-      const recentExperiments = await LabExperiment.distinct('input.userId', {
-        experimentType: { $in: ['emotion-visualizer', 'emotion-analysis'] },
-        startedAt: { $gte: thirtyMinutesAgo }
+      const recentExperiments = await prisma.labExperiment.findMany({
+        where: {
+          experimentType: { in: ['emotion-visualizer', 'emotion-analysis'] },
+          startedAt: { gte: thirtyMinutesAgo }
+        },
+        select: { userId: true },
+        distinct: ['userId'],
       });
 
       // Estimate active users based on recent activity

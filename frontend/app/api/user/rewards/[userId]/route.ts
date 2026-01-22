@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
@@ -12,13 +12,11 @@ export async function GET(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -28,7 +26,7 @@ export async function GET(
       );
     }
 
-    const sessionUserId = sessionUser._id.toString();
+    const sessionUserId = sessionUser.id;
 
     if (params.userId && params.userId !== sessionUserId) {
       console.warn('Rewards access mismatch. Using session user.', {
@@ -39,16 +37,13 @@ export async function GET(
 
     const targetUserId = sessionUserId;
 
-    const rewardsCenters = db.collection('rewardscenters');
-    const chatInteractions = db.collection('chat_interactions');
-
-    let rewardsData = (await rewardsCenters.findOne({
-      userId: targetUserId,
+    let rewardsData = (await prisma.rewardsCenter.findUnique({
+      where: { userId: targetUserId },
     })) as Record<string, any> | null;
 
     if (!rewardsData) {
-      const userActivity = await chatInteractions.countDocuments({
-        userId: sessionUser._id,
+      const userActivity = await prisma.chatInteraction.count({
+        where: { userId: sessionUser.id },
       });
 
       const startingPoints = Math.min(userActivity * 10, 500);
@@ -107,7 +102,7 @@ export async function GET(
         });
       }
 
-      const defaultRewards: Record<string, any> = {
+      const defaultRewards = {
         userId: targetUserId,
         currentLevel: startingLevel,
         totalPoints: startingPoints,
@@ -127,15 +122,14 @@ export async function GET(
             userActivity > 0 ? Math.ceil(startingPoints / 7) : 0,
           daysActive: Math.min(userActivity, 30),
         },
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
-      await rewardsCenters.insertOne(defaultRewards);
-      rewardsData = defaultRewards;
+      rewardsData = await prisma.rewardsCenter.create({
+        data: defaultRewards as any,
+      });
     }
 
-    const { _id, ...rewards } = (rewardsData || {}) as Record<string, any>;
+    const { id, ...rewards } = (rewardsData || {}) as Record<string, any>;
     return NextResponse.json({ success: true, data: rewards });
   } catch (error) {
     console.error('Rewards fetch error:', error);

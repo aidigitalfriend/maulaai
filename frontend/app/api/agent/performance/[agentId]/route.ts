@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
-
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
+import prisma from '@/lib/prisma';
 
 const AGENT_MAP: Record<
   string,
@@ -56,13 +54,12 @@ export async function GET(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(DB_NAME);
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    // Find user by session using Prisma
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() }
+      }
     });
 
     if (!sessionUser) {
@@ -92,116 +89,79 @@ export async function GET(
       startDate.getTime() - (now.getTime() - startDate.getTime())
     );
 
-    // Use 'chatinteractions' collection (no underscore)
-    const chatInteractions = db.collection('chatinteractions');
     const agentInfo = resolveAgent(params.agentId);
 
-    // Match by agentId field (not agentName)
-    const conversationStats = await chatInteractions
-      .aggregate([
-        {
-          $match: {
-            $or: [
-              { agentId: { $regex: params.agentId, $options: 'i' } },
-              { agentName: { $regex: agentInfo.name, $options: 'i' } },
-            ],
-          },
-        },
-        {
-          $match: {
-            $or: [
-              { timestamp: { $gte: startDate } },
-              { startedAt: { $gte: startDate } },
-              { createdAt: { $gte: startDate } },
-            ],
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalConversations: { $sum: 1 },
-            totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: {
-              $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] },
-            },
-            uniqueUsers: { $addToSet: '$userId' },
-          },
-        },
-      ])
-      .toArray();
+    // Get current period stats using Prisma
+    const currentInteractions = await prisma.chatAnalyticsInteraction.findMany({
+      where: {
+        OR: [
+          { agentId: { contains: params.agentId, mode: 'insensitive' } }
+        ],
+        startedAt: { gte: startDate }
+      }
+    });
 
-    const stats = conversationStats[0] || {
-      totalConversations: 0,
-      totalMessages: 0,
-      avgResponseTime: 0,
-      uniqueUsers: [],
-    };
+    // Calculate stats from interactions
+    const totalConversations = currentInteractions.length;
+    let totalMessages = 0;
+    let totalResponseTime = 0;
+    const uniqueUserIds = new Set<string>();
 
-    const previousStats = await chatInteractions
-      .aggregate([
-        {
-          $match: {
-            $or: [
-              { agentId: { $regex: params.agentId, $options: 'i' } },
-              { agentName: { $regex: agentInfo.name, $options: 'i' } },
-            ],
-          },
-        },
-        {
-          $match: {
-            $or: [
-              { timestamp: { $gte: previousPeriodStart, $lt: startDate } },
-              { startedAt: { $gte: previousPeriodStart, $lt: startDate } },
-              { createdAt: { $gte: previousPeriodStart, $lt: startDate } },
-            ],
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalConversations: { $sum: 1 },
-            totalMessages: { $sum: { $size: { $ifNull: ['$messages', []] } } },
-            avgResponseTime: {
-              $avg: { $ifNull: ['$metrics.avgResponseTime', '$responseTime'] },
-            },
-          },
-        },
-      ])
-      .toArray();
+    currentInteractions.forEach((interaction: typeof currentInteractions[0]) => {
+      const messages = interaction.messages as any[];
+      totalMessages += messages?.length || 0;
+      totalResponseTime += interaction.durationMs || 0;
+      if (interaction.userId) {
+        uniqueUserIds.add(interaction.userId);
+      }
+    });
 
-    const prevStats = previousStats[0] || {
-      totalConversations: 0,
-      totalMessages: 0,
-      avgResponseTime: 0,
-    };
+    const avgResponseTime = totalConversations > 0 
+      ? totalResponseTime / totalConversations / 1000 // Convert to seconds
+      : 1.2;
 
-    const conversationTrend = calculateTrend(
-      stats.totalConversations || 0,
-      prevStats.totalConversations || 0
-    );
-    const messageTrend = calculateTrend(
-      stats.totalMessages || 0,
-      prevStats.totalMessages || 0
-    );
-    const responseTimeTrend = calculateTrend(
-      prevStats.avgResponseTime || 1,
-      stats.avgResponseTime || 1
-    );
+    // Get previous period stats
+    const previousInteractions = await prisma.chatAnalyticsInteraction.findMany({
+      where: {
+        OR: [
+          { agentId: { contains: params.agentId, mode: 'insensitive' } }
+        ],
+        startedAt: { gte: previousPeriodStart, lt: startDate }
+      }
+    });
 
-    const recentActivity = await chatInteractions
-      .find({
-        agentName: { $regex: agentInfo.name, $options: 'i' },
-        timestamp: { $gte: startDate },
-      })
-      .sort({ timestamp: -1 })
-      .limit(10)
-      .toArray();
+    const prevTotalConversations = previousInteractions.length;
+    let prevTotalMessages = 0;
+    let prevTotalResponseTime = 0;
 
-    const transformedActivity = recentActivity.map((activity) => {
-      const timestampValue =
-        activity.timestamp instanceof Date
-          ? activity.timestamp
-          : new Date(activity.timestamp);
+    previousInteractions.forEach((interaction: typeof previousInteractions[0]) => {
+      const messages = interaction.messages as any[];
+      prevTotalMessages += messages?.length || 0;
+      prevTotalResponseTime += interaction.durationMs || 0;
+    });
+
+    const prevAvgResponseTime = prevTotalConversations > 0 
+      ? prevTotalResponseTime / prevTotalConversations / 1000
+      : 1.2;
+
+    const conversationTrend = calculateTrend(totalConversations, prevTotalConversations);
+    const messageTrend = calculateTrend(totalMessages, prevTotalMessages);
+    const responseTimeTrend = calculateTrend(prevAvgResponseTime, avgResponseTime);
+
+    // Get recent activity
+    const recentActivity = await prisma.chatAnalyticsInteraction.findMany({
+      where: {
+        OR: [
+          { agentId: { contains: params.agentId, mode: 'insensitive' } }
+        ],
+        startedAt: { gte: startDate }
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 10
+    });
+
+    const transformedActivity = recentActivity.map((activity: typeof recentActivity[0]) => {
+      const timestampValue = activity.startedAt;
       const minutesAgo = Math.floor(
         (now.getTime() - timestampValue.getTime()) / (1000 * 60)
       );
@@ -210,7 +170,8 @@ export async function GET(
           ? `${minutesAgo} min ago`
           : `${Math.floor(minutesAgo / 60)} hours ago`;
 
-      const firstMessage = activity.messages?.find(
+      const messages = activity.messages as any[];
+      const firstMessage = messages?.find(
         (msg: any) => msg.role === 'user'
       );
 
@@ -230,7 +191,7 @@ export async function GET(
 
     const satisfactionScore = Math.min(
       5,
-      4 + ((stats.totalConversations || 0) / 100) * 0.5
+      4 + (totalConversations / 100) * 0.5
     );
 
     const performanceData = {
@@ -238,30 +199,29 @@ export async function GET(
         name: agentInfo.name,
         type: agentInfo.type,
         avatar: agentInfo.avatar,
-        status: (stats.totalConversations || 0) > 0 ? 'active' : 'idle',
+        status: totalConversations > 0 ? 'active' : 'idle',
       },
       metrics: {
-        totalConversations: stats.totalConversations || 0,
-        totalMessages: stats.totalMessages || 0,
-        averageResponseTime:
-          Math.round((stats.avgResponseTime || 1.2) * 10) / 10,
+        totalConversations,
+        totalMessages,
+        averageResponseTime: Math.round(avgResponseTime * 10) / 10,
         satisfactionScore: Math.round(satisfactionScore * 10) / 10,
-        activeUsers: (stats.uniqueUsers || []).length,
+        activeUsers: uniqueUserIds.size,
         uptime: 99.9,
       },
       trends: {
         conversations: {
-          value: stats.totalConversations || 0,
+          value: totalConversations,
           change: conversationTrend.change,
           trend: conversationTrend.trend,
         },
         messages: {
-          value: stats.totalMessages || 0,
+          value: totalMessages,
           change: messageTrend.change,
           trend: messageTrend.trend,
         },
         responseTime: {
-          value: Math.round((stats.avgResponseTime || 1.2) * 10) / 10,
+          value: Math.round(avgResponseTime * 10) / 10,
           change: responseTimeTrend.change,
           trend: responseTimeTrend.trend,
         },

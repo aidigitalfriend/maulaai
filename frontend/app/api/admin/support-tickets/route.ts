@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { 
@@ -8,7 +8,6 @@ import {
   notifySlaBreach 
 } from '@/lib/services/emailNotifications';
 
-const MONGODB_URI = process.env.MONGODB_URI;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Admin emails (in production, store in database with roles)
@@ -18,25 +17,6 @@ const ADMIN_EMAILS = [
   'tech@onelastai.co',
   // Add your admin emails here
 ];
-
-// =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) return;
-  if (!MONGODB_URI) throw new Error('MONGODB_URI is not configured');
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
-  }
-}
 
 // =====================================================
 // Auth Check
@@ -69,56 +49,6 @@ async function verifyAdmin(req: NextRequest): Promise<{ isAdmin: boolean; user?:
 }
 
 // =====================================================
-// Mongoose Schema
-// =====================================================
-const supportTicketSchema = new mongoose.Schema({
-  ticketId: { type: String, required: true, unique: true, index: true },
-  ticketNumber: { type: Number, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  userEmail: { type: String, required: true },
-  userName: { type: String },
-  subject: { type: String, required: true, maxlength: 200 },
-  description: { type: String, required: true, maxlength: 5000 },
-  category: { type: String, enum: ['billing', 'technical', 'account', 'agents', 'subscription', 'feature-request', 'bug-report', 'general', 'other'] },
-  priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
-  status: { type: String, enum: ['open', 'in-progress', 'waiting-customer', 'waiting-internal', 'resolved', 'closed'], default: 'open' },
-  assignedTo: { type: String },
-  assignedName: { type: String },
-  messages: [{
-    sender: { type: String, enum: ['customer', 'support', 'system', 'ai'], required: true },
-    senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    senderName: { type: String },
-    message: { type: String, required: true },
-    isInternal: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
-  }],
-  relatedAgent: { type: String },
-  relatedChatId: { type: String },
-  resolution: {
-    summary: { type: String },
-    resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    resolvedAt: { type: Date }
-  },
-  satisfaction: {
-    rating: { type: Number, min: 1, max: 5 },
-    feedback: { type: String },
-    ratedAt: { type: Date }
-  },
-  sla: {
-    firstResponseDue: { type: Date },
-    firstResponseAt: { type: Date },
-    resolutionDue: { type: Date },
-    breached: { type: Boolean, default: false }
-  },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  lastActivityAt: { type: Date, default: Date.now },
-  closedAt: { type: Date }
-}, { collection: 'supporttickets' });
-
-const SupportTicket = mongoose.models.SupportTicket || mongoose.model('SupportTicket', supportTicketSchema);
-
-// =====================================================
 // Email Notification Helper (use service)
 // =====================================================
 async function sendNotificationEmail(to: string, subject: string, body: string) {
@@ -137,8 +67,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: 403 });
     }
 
-    await connectToDatabase();
-
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
     const priority = searchParams.get('priority');
@@ -148,53 +76,81 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const page = parseInt(searchParams.get('page') || '1');
 
-    // Build query
-    const query: any = {};
+    // Build Prisma where clause
+    const where: any = {};
     
-    if (status && status !== 'all') query.status = status;
-    if (priority && priority !== 'all') query.priority = priority;
-    if (category && category !== 'all') query.category = category;
-    if (slaBreached) query['sla.breached'] = true;
+    if (status && status !== 'all') {
+      // Map status to Prisma enum
+      const statusMap: Record<string, string> = {
+        'open': 'open',
+        'in-progress': 'in_progress',
+        'waiting-customer': 'waiting',
+        'resolved': 'resolved',
+        'closed': 'closed'
+      };
+      where.status = statusMap[status] || status;
+    }
+    
+    if (priority && priority !== 'all') where.priority = priority;
+    if (category && category !== 'all') where.category = category;
+    
+    // Note: SLA breach tracking would need to be stored in metadata JSON
+    if (slaBreached) {
+      where.metadata = {
+        path: ['sla', 'breached'],
+        equals: true
+      };
+    }
     
     if (search) {
-      query.$or = [
-        { subject: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { userEmail: { $regex: search, $options: 'i' } },
-        { userName: { $regex: search, $options: 'i' } },
-        { ticketNumber: parseInt(search) || 0 }
+      where.OR = [
+        { subject: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } }
       ];
     }
 
-    // Get tickets
-    const tickets = await SupportTicket.find(query)
-      .sort({ priority: -1, createdAt: -1 }) // Urgent first, then by date
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
-
-    // Get stats
-    const stats = await SupportTicket.aggregate([
-      {
-        $facet: {
-          total: [{ $count: 'count' }],
-          byStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
-          byPriority: [{ $group: { _id: '$priority', count: { $sum: 1 } } }],
-          breached: [{ $match: { 'sla.breached': true } }, { $count: 'count' }]
+    // Get tickets with Prisma
+    const tickets = await prisma.supportTicket.findMany({
+      where,
+      orderBy: [
+        { priority: 'desc' },
+        { createdAt: 'desc' }
+      ],
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true
+          }
         }
       }
+    });
+
+    // Get stats using Prisma aggregation
+    const [total, openCount, inProgressCount, waitingCount, resolvedCount, closedCount, urgentCount] = await Promise.all([
+      prisma.supportTicket.count({ where }),
+      prisma.supportTicket.count({ where: { ...where, status: 'open' } }),
+      prisma.supportTicket.count({ where: { ...where, status: 'in_progress' } }),
+      prisma.supportTicket.count({ where: { ...where, status: 'waiting' } }),
+      prisma.supportTicket.count({ where: { ...where, status: 'resolved' } }),
+      prisma.supportTicket.count({ where: { ...where, status: 'closed' } }),
+      prisma.supportTicket.count({ where: { ...where, priority: 'urgent' } })
     ]);
 
-    const statsData = stats[0];
     const formattedStats = {
-      total: statsData.total[0]?.count || 0,
-      open: statsData.byStatus.find((s: any) => s._id === 'open')?.count || 0,
-      inProgress: statsData.byStatus.find((s: any) => s._id === 'in-progress')?.count || 0,
-      waitingCustomer: statsData.byStatus.find((s: any) => s._id === 'waiting-customer')?.count || 0,
-      resolved: statsData.byStatus.find((s: any) => s._id === 'resolved')?.count || 0,
-      closed: statsData.byStatus.find((s: any) => s._id === 'closed')?.count || 0,
-      urgent: statsData.byPriority.find((p: any) => p._id === 'urgent')?.count || 0,
-      breachedSla: statsData.breached[0]?.count || 0
+      total,
+      open: openCount,
+      inProgress: inProgressCount,
+      waitingCustomer: waitingCount,
+      resolved: resolvedCount,
+      closed: closedCount,
+      urgent: urgentCount,
+      breachedSla: 0 // Would need to query metadata for this
     };
 
     return NextResponse.json({
@@ -238,10 +194,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await connectToDatabase();
-
     // Find ticket first
-    const ticket = await SupportTicket.findOne({ ticketId });
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: ticketId }
+    });
+
     if (!ticket) {
       return NextResponse.json(
         { error: 'Ticket not found' },
@@ -249,10 +206,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Build update data
     const updateData: any = {
-      updatedAt: new Date(),
-      lastActivityAt: new Date()
+      updatedAt: new Date()
     };
+
+    // Get current metadata or initialize
+    const currentMetadata = (ticket.metadata as any) || {};
+    const messages = currentMetadata.messages || [];
 
     // Add message if provided
     if (message && message.trim()) {
@@ -261,24 +222,27 @@ export async function POST(req: NextRequest) {
         senderName: agentName || 'Support Team',
         message: message.trim(),
         isInternal: isInternal || false,
-        createdAt: new Date()
+        createdAt: new Date().toISOString()
       };
       
-      updateData.$push = { messages: newMessage };
+      messages.push(newMessage);
+      currentMetadata.messages = messages;
+      currentMetadata.lastActivityAt = new Date().toISOString();
 
       // Mark first response for SLA
-      if (!ticket.sla?.firstResponseAt && !isInternal) {
-        updateData['sla.firstResponseAt'] = new Date();
+      if (!currentMetadata.sla?.firstResponseAt && !isInternal) {
+        currentMetadata.sla = currentMetadata.sla || {};
+        currentMetadata.sla.firstResponseAt = new Date().toISOString();
       }
 
       // Send email notification to customer (unless internal note)
-      if (!isInternal) {
+      if (!isInternal && ticket.email) {
         await notifyNewReply({
-          ticketNumber: ticket.ticketNumber,
-          ticketId: ticket.ticketId,
+          ticketNumber: currentMetadata.ticketNumber || ticket.id,
+          ticketId: ticket.id,
           subject: ticket.subject,
-          userName: ticket.userName || 'Customer',
-          userEmail: ticket.userEmail,
+          userName: ticket.name || 'Customer',
+          userEmail: ticket.email,
           message: message.trim()
         });
       }
@@ -286,7 +250,15 @@ export async function POST(req: NextRequest) {
 
     // Update status if changed
     if (newStatus && newStatus !== ticket.status) {
-      updateData.status = newStatus;
+      // Map status format
+      const statusMap: Record<string, string> = {
+        'open': 'open',
+        'in-progress': 'in_progress',
+        'waiting-customer': 'waiting',
+        'resolved': 'resolved',
+        'closed': 'closed'
+      };
+      updateData.status = statusMap[newStatus] || newStatus;
       
       // Add system message for status change
       const statusMessage = {
@@ -294,43 +266,40 @@ export async function POST(req: NextRequest) {
         senderName: 'System',
         message: `Ticket status changed to: ${newStatus.replace('-', ' ')}`,
         isInternal: false,
-        createdAt: new Date()
+        createdAt: new Date().toISOString()
       };
       
-      if (updateData.$push) {
-        updateData.$push.messages = { $each: [updateData.$push.messages, statusMessage] };
-      } else {
-        updateData.$push = { messages: statusMessage };
-      }
+      messages.push(statusMessage);
+      currentMetadata.messages = messages;
 
       // Handle resolution
       if (newStatus === 'resolved') {
-        updateData['resolution.resolvedAt'] = new Date();
-        updateData['resolution.resolvedBy'] = auth.user?.id;
+        currentMetadata.resolution = currentMetadata.resolution || {};
+        currentMetadata.resolution.resolvedAt = new Date().toISOString();
+        currentMetadata.resolution.resolvedBy = auth.user?.id;
+        updateData.resolvedAt = new Date();
         
         // Send resolution email
-        await notifyStatusChange({
-          ticketNumber: ticket.ticketNumber,
-          ticketId: ticket.ticketId,
-          subject: ticket.subject,
-          userName: ticket.userName || 'Customer',
-          userEmail: ticket.userEmail,
-          status: 'resolved'
-        });
+        if (ticket.email) {
+          await notifyStatusChange({
+            ticketNumber: currentMetadata.ticketNumber || ticket.id,
+            ticketId: ticket.id,
+            subject: ticket.subject,
+            userName: ticket.name || 'Customer',
+            userEmail: ticket.email,
+            status: 'resolved'
+          });
+        }
       }
 
-      if (newStatus === 'closed') {
-        updateData.closedAt = new Date();
-      }
-
-      if (newStatus === 'waiting-customer') {
+      if (newStatus === 'waiting-customer' && ticket.email) {
         // Send email asking for response
         await notifyStatusChange({
-          ticketNumber: ticket.ticketNumber,
-          ticketId: ticket.ticketId,
+          ticketNumber: currentMetadata.ticketNumber || ticket.id,
+          ticketId: ticket.id,
           subject: ticket.subject,
-          userName: ticket.userName || 'Customer',
-          userEmail: ticket.userEmail,
+          userName: ticket.name || 'Customer',
+          userEmail: ticket.email,
           status: 'waiting-customer'
         });
       }
@@ -339,21 +308,15 @@ export async function POST(req: NextRequest) {
     // Update assignment if changed
     if (assignTo !== undefined) {
       updateData.assignedTo = assignTo || null;
-      // Map agent ID to name (in production, fetch from database)
-      const agentNames: Record<string, string> = {
-        'agent1': 'Support Team',
-        'agent2': 'Technical Support',
-        'agent3': 'Billing Support'
-      };
-      updateData.assignedName = agentNames[assignTo] || null;
     }
 
+    updateData.metadata = currentMetadata;
+
     // Apply update
-    const updatedTicket = await SupportTicket.findOneAndUpdate(
-      { ticketId },
-      updateData,
-      { new: true }
-    ).lean();
+    const updatedTicket = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: updateData
+    });
 
     return NextResponse.json({
       success: true,
@@ -381,62 +344,64 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: 403 });
     }
 
-    await connectToDatabase();
-
     const now = new Date();
 
-    // Find tickets with breached SLA
-    const breachedTickets = await SupportTicket.find({
-      status: { $nin: ['resolved', 'closed'] },
-      'sla.breached': { $ne: true },
-      $or: [
-        { 'sla.firstResponseDue': { $lt: now }, 'sla.firstResponseAt': null },
-        { 'sla.resolutionDue': { $lt: now } }
-      ]
+    // Find open tickets that might have breached SLA
+    const openTickets = await prisma.supportTicket.findMany({
+      where: {
+        status: {
+          notIn: ['resolved', 'closed']
+        }
+      }
     });
 
     const breachedIds: string[] = [];
 
-    for (const ticket of breachedTickets) {
-      // Mark as breached
-      await SupportTicket.updateOne(
-        { ticketId: ticket.ticketId },
-        {
-          $set: {
-            'sla.breached': true,
+    for (const ticket of openTickets) {
+      const metadata = (ticket.metadata as any) || {};
+      const sla = metadata.sla || {};
+
+      // Check if SLA is breached
+      const isBreached = 
+        (sla.firstResponseDue && new Date(sla.firstResponseDue) < now && !sla.firstResponseAt) ||
+        (sla.resolutionDue && new Date(sla.resolutionDue) < now);
+
+      if (isBreached && !sla.breached) {
+        // Mark as breached
+        metadata.sla = metadata.sla || {};
+        metadata.sla.breached = true;
+        metadata.messages = metadata.messages || [];
+        metadata.messages.push({
+          sender: 'system',
+          senderName: 'System',
+          message: '⚠️ SLA BREACHED - This ticket requires immediate attention!',
+          isInternal: true,
+          createdAt: new Date().toISOString()
+        });
+
+        await prisma.supportTicket.update({
+          where: { id: ticket.id },
+          data: {
+            priority: 'urgent',
+            metadata,
             updatedAt: new Date()
-          },
-          $push: {
-            messages: {
-              sender: 'system',
-              senderName: 'System',
-              message: '⚠️ SLA BREACHED - This ticket requires immediate attention!',
-              isInternal: true,
-              createdAt: new Date()
-            }
           }
+        });
+
+        breachedIds.push(ticket.id);
+
+        // Send notification to admins
+        if (ticket.email) {
+          await notifySlaBreach({
+            ticketNumber: metadata.ticketNumber || ticket.id,
+            ticketId: ticket.id,
+            subject: ticket.subject,
+            userName: ticket.name || 'Customer',
+            userEmail: ticket.email,
+            priority: 'urgent'
+          }, 'support@onelastai.co');
         }
-      );
-
-      // Auto-escalate priority if not already urgent
-      if (ticket.priority !== 'urgent') {
-        await SupportTicket.updateOne(
-          { ticketId: ticket.ticketId },
-          { $set: { priority: 'urgent' } }
-        );
       }
-
-      breachedIds.push(ticket.ticketId);
-
-      // Send notification to admins
-      await notifySlaBreach({
-        ticketNumber: ticket.ticketNumber,
-        ticketId: ticket.ticketId,
-        subject: ticket.subject,
-        userName: ticket.userName || 'Customer',
-        userEmail: ticket.userEmail,
-        priority: 'urgent'
-      }, 'support@onelastai.co');
     }
 
     return NextResponse.json({

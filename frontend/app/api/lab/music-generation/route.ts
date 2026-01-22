@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 // Demo audio samples (royalty-free music URLs) for fallback
 const DEMO_AUDIO_SAMPLES: Record<string, string[]> = {
@@ -97,8 +96,6 @@ export async function POST(req: NextRequest) {
     .substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const {
       prompt,
       genre,
@@ -119,17 +116,18 @@ export async function POST(req: NextRequest) {
     if (mood) enhancedPrompt += `, ${mood} mood`;
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'music-generator',
-      input: {
-        prompt: enhancedPrompt,
-        settings: { genre, mood, duration },
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'music-generator',
+        input: {
+          prompt: enhancedPrompt,
+          settings: { genre, mood, duration },
+        },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     let output: string;
     let isDemo = false;
@@ -176,9 +174,9 @@ export async function POST(req: NextRequest) {
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: output,
           fileUrl: output,
@@ -187,8 +185,8 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         processingTime,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -207,14 +205,14 @@ export async function POST(req: NextRequest) {
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: {
           status: 'failed',
           errorMessage: error.message,
           completedAt: new Date(),
-        }
-      );
+        },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }

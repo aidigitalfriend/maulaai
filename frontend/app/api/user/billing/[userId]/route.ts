@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 
 const PLAN_TEMPLATES = [
   {
@@ -132,13 +132,11 @@ export async function GET(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'onelastai');
-    const users = db.collection('users');
-
-    const sessionUser = await users.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -148,7 +146,7 @@ export async function GET(
       );
     }
 
-    const sessionUserId = sessionUser._id.toString();
+    const sessionUserId = sessionUser.id;
 
     if (params.userId && params.userId !== sessionUserId) {
       console.warn('Billing access mismatch. Using session user.', {
@@ -157,18 +155,14 @@ export async function GET(
       });
     }
 
-    const subscriptions = db.collection('subscriptions');
-    const invoices = db.collection('invoices');
-    const payments = db.collection('payments');
-    const usageMetrics = db.collection('usagemetrics');
-    const plans = db.collection('plans');
-
-    const planDocs = await plans.find({}).toArray();
+    const planDocs = await prisma.plan.findMany();
     const basePlanOptions = buildPlanOptions(planDocs);
 
-    const activeSubscription = await subscriptions.findOne({
-      user: sessionUser._id,
-      status: { $in: ['active', 'trialing', 'past_due'] },
+    const activeSubscription = await prisma.subscription.findFirst({
+      where: {
+        userId: sessionUser.id,
+        status: { in: ['active', 'trialing', 'past_due'] },
+      },
     });
 
     if (!activeSubscription) {
@@ -228,28 +222,30 @@ export async function GET(
       activeSubscription.billing?.currentPeriodEnd ||
       new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    const usageData = await usageMetrics.findOne({
-      user: sessionUser._id,
-      period: { $gte: currentPeriodStart, $lt: currentPeriodEnd },
+    const usageData = await prisma.usageMetric.findFirst({
+      where: {
+        userId: sessionUser.id,
+        period: { gte: currentPeriodStart, lt: currentPeriodEnd },
+      },
     });
 
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const userInvoices = await invoices
-      .find({ user: sessionUser._id, createdAt: { $gte: sixMonthsAgo } })
-      .sort({ createdAt: -1 })
-      .limit(12)
-      .toArray();
+    const userInvoices = await prisma.invoice.findMany({
+      where: { userId: sessionUser.id, createdAt: { gte: sixMonthsAgo } },
+      orderBy: { createdAt: 'desc' },
+      take: 12,
+    });
 
-    const paymentHistory = await payments
-      .find({ user: sessionUser._id, createdAt: { $gte: sixMonthsAgo } })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .toArray();
+    const paymentHistory = await prisma.payment.findMany({
+      where: { userId: sessionUser.id, createdAt: { gte: sixMonthsAgo } },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
 
-    const activePlanDoc = activeSubscription.plan
-      ? await plans.findOne({ _id: activeSubscription.plan })
+    const activePlanDoc = activeSubscription?.planId
+      ? await prisma.plan.findUnique({ where: { id: activeSubscription.planId } })
       : null;
 
     const planLimits = activePlanDoc?.features || {
@@ -336,21 +332,21 @@ export async function GET(
         },
       },
       invoices: userInvoices.map((inv) => ({
-        id: inv._id.toString(),
+        id: inv.id,
         number:
           inv.invoiceNumber ||
-          `INV-${inv._id.toString().slice(-6).toUpperCase()}`,
+          `INV-${inv.id.slice(-6).toUpperCase()}`,
         date: inv.createdAt?.toISOString().split('T')[0] || '',
-        amount: `$${((inv.financial?.total ?? 0) / 100 || 0).toFixed(2)}`,
+        amount: `$${((inv.total ?? 0) / 100 || 0).toFixed(2)}`,
         status: inv.status || 'paid',
       })),
       paymentMethods: [],
       billingHistory: paymentHistory.map((payment) => ({
-        id: payment._id.toString(),
+        id: payment.id,
         date: payment.createdAt?.toISOString().split('T')[0] || '',
         description:
           payment.description ||
-          `${activeSubscription.planName || 'Professional'} Plan`,
+          `${activeSubscription?.planName || 'Professional'} Plan`,
         amount: `$${((payment.amount ?? 0) / 100 || 0).toFixed(2)}`,
         status: payment.status || 'completed',
         method: payment.paymentMethod || 'card',

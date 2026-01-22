@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -19,12 +18,18 @@ export async function POST(
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    await dbConnect();
-
-    const sessionUser = await User.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+      },
+    });
 
     if (!sessionUser) {
       return NextResponse.json(
@@ -33,7 +38,7 @@ export async function POST(
       );
     }
 
-    const sessionUserId = sessionUser._id.toString();
+    const sessionUserId = sessionUser.id;
 
     if (params.userId && params.userId !== sessionUserId) {
       console.warn('Avatar upload mismatch. Using session user.', {
@@ -79,16 +84,17 @@ export async function POST(
     const base64 = Buffer.from(fileArrayBuffer).toString('base64');
     const dataUrl = `data:${mimeType};base64,${base64}`;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      targetUserId,
-      {
-        $set: {
-          avatar: dataUrl,
-          updatedAt: new Date(),
-        },
+    const updatedUser = await prisma.user.update({
+      where: { id: targetUserId },
+      data: {
+        avatar: dataUrl,
+        updatedAt: new Date(),
       },
-      { new: true, select: '-password' }
-    );
+      select: {
+        id: true,
+        avatar: true,
+      },
+    });
 
     if (!updatedUser) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });

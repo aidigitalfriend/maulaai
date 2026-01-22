@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface DreamAnalysisRequest {
   dream: string;
@@ -13,18 +12,22 @@ export async function GET(req: NextRequest) {
     const wantStats = searchParams.get('stats');
 
     if (wantStats === 'true') {
-      await dbConnect();
-      
       // Get total dream analyses count (check both possible experimentType values)
-      const totalAnalyzed = await LabExperiment.countDocuments({
-        experimentType: { $in: ['dream-analysis', 'dream-interpreter'] }
+      const totalAnalyzed = await prisma.labExperiment.count({
+        where: {
+          experimentType: { in: ['dream-analysis', 'dream-interpreter'] }
+        }
       });
 
       // Get active users in the last 5 minutes (approximation based on recent experiments)
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const recentExperiments = await LabExperiment.distinct('userId', {
-        experimentType: { $in: ['dream-analysis', 'dream-interpreter'] },
-        createdAt: { $gte: fiveMinutesAgo }
+      const recentExperiments = await prisma.labExperiment.findMany({
+        where: {
+          experimentType: { in: ['dream-analysis', 'dream-interpreter'] },
+          createdAt: { gte: fiveMinutesAgo }
+        },
+        select: { userId: true },
+        distinct: ['userId'],
       });
 
       return NextResponse.json({
@@ -148,8 +151,6 @@ export async function POST(req: NextRequest) {
     .substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const { dream }: DreamAnalysisRequest = await req.json();
 
     if (!dream) {
@@ -160,25 +161,26 @@ export async function POST(req: NextRequest) {
     }
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'dream-interpreter',
-      input: {
-        prompt: dream,
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'dream-interpreter',
+        input: {
+          prompt: dream,
+        },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     // Use AI provider with fallback chain: Cerebras → Groq → OpenAI
     const { analysis, tokens } = await analyzeWithAI(dream);
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: analysis,
           metadata: { tokensUsed: tokens, processingTime },
@@ -187,8 +189,8 @@ export async function POST(req: NextRequest) {
         processingTime,
         tokensUsed: tokens,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -201,14 +203,14 @@ export async function POST(req: NextRequest) {
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: {
           status: 'failed',
           errorMessage: error.message,
           completedAt: new Date(),
-        }
-      );
+        },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }

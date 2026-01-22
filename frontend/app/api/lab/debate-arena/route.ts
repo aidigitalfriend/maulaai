@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { Debate } from '@/lib/models/Debate';
+import prisma from '@/lib/prisma';
 
 // GET handler - fetch all debates and stats
 export async function GET(req: NextRequest) {
@@ -10,11 +9,11 @@ export async function GET(req: NextRequest) {
   const debateId = searchParams.get('debateId');
 
   try {
-    await dbConnect();
-
     // Get single debate by ID
     if (debateId) {
-      const debate = await Debate.findOne({ debateId });
+      const debate = await prisma.debate.findUnique({
+        where: { debateId },
+      });
       if (!debate) {
         return NextResponse.json({ success: false, error: 'Debate not found' }, { status: 404 });
       }
@@ -23,14 +22,18 @@ export async function GET(req: NextRequest) {
 
     // Get stats only
     if (stats === 'true') {
-      const [totalDebates, activeDebates, recentVotes] = await Promise.all([
-        Debate.countDocuments(),
-        Debate.countDocuments({ status: 'active' }),
-        Debate.aggregate([
-          { $match: { updatedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } },
-          { $group: { _id: null, totalVotes: { $sum: '$totalVotes' } } },
-        ]),
+      const [totalDebates, activeDebates] = await Promise.all([
+        prisma.debate.count(),
+        prisma.debate.count({ where: { status: 'active' } }),
       ]);
+
+      // Get recent votes by aggregating totalVotes from debates updated in last 24 hours
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const recentDebates = await prisma.debate.findMany({
+        where: { updatedAt: { gte: twentyFourHoursAgo } },
+        select: { totalVotes: true },
+      });
+      const recentVotes = recentDebates.reduce((sum, d) => sum + d.totalVotes, 0);
 
       const activeUsers = Math.max(12, activeDebates * 3 + Math.floor(Math.random() * 20));
 
@@ -40,18 +43,19 @@ export async function GET(req: NextRequest) {
           totalDebates,
           activeDebates,
           activeUsers,
-          recentVotes: recentVotes[0]?.totalVotes || 0,
+          recentVotes,
         },
       });
     }
 
     // List all debates (default behavior)
-    const debates = await Debate.find({ status: 'active' })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    const debates = await prisma.debate.findMany({
+      where: { status: 'active' },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
 
-    const totalDebates = await Debate.countDocuments();
+    const totalDebates = await prisma.debate.count();
     const activeUsers = Math.max(12, debates.length * 3 + Math.floor(Math.random() * 20));
 
     return NextResponse.json({
@@ -151,14 +155,14 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
   try {
-    await dbConnect();
-
     const body = await req.json();
     const { action, topic, agent1Position, agent2Position, debateId, vote, visitorId } = body;
 
     // Handle voting
     if (action === 'vote' && debateId && vote) {
-      const debate = await Debate.findOne({ debateId });
+      const debate = await prisma.debate.findUnique({
+        where: { debateId },
+      });
       if (!debate) {
         return NextResponse.json({ success: false, error: 'Debate not found' }, { status: 404 });
       }
@@ -169,24 +173,32 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: 'Already voted' }, { status: 400 });
       }
 
-      // Update votes
-      const updateField = vote === 'agent1' ? 'agent1.votes' : 'agent2.votes';
-      await Debate.findOneAndUpdate(
-        { debateId },
-        {
-          $inc: { [updateField]: 1, totalVotes: 1 },
-          $push: { votedUsers: voterId },
-        }
-      );
+      // Update votes - need to handle JSON fields for agent1/agent2
+      const agent1Data = debate.agent1 as any;
+      const agent2Data = debate.agent2 as any;
+      
+      if (vote === 'agent1') {
+        agent1Data.votes = (agent1Data.votes || 0) + 1;
+      } else {
+        agent2Data.votes = (agent2Data.votes || 0) + 1;
+      }
 
-      const updatedDebate = await Debate.findOne({ debateId });
+      const updatedDebate = await prisma.debate.update({
+        where: { debateId },
+        data: {
+          agent1: agent1Data,
+          agent2: agent2Data,
+          totalVotes: { increment: 1 },
+          votedUsers: { push: voterId },
+        },
+      });
 
       return NextResponse.json({
         success: true,
         votes: {
-          agent1: updatedDebate?.agent1.votes || 0,
-          agent2: updatedDebate?.agent2.votes || 0,
-          total: updatedDebate?.totalVotes || 0,
+          agent1: (updatedDebate.agent1 as any).votes || 0,
+          agent2: (updatedDebate.agent2 as any).votes || 0,
+          total: updatedDebate.totalVotes || 0,
         },
       });
     }
@@ -207,38 +219,38 @@ export async function POST(req: NextRequest) {
     const responseTime = Date.now() - startTime;
 
     // Create and save the debate
-    const debate = new Debate({
-      debateId: debateIdNew,
-      topic,
-      status: 'active',
-      agent1: {
-        name: 'Nova',
-        position: agent1Position || 'Pro',
-        avatar: '⚡',
-        provider: 'Nova',
-        response: agent1Response.text,
-        responseTime: agent1Response.responseTime,
-        votes: 0,
+    const debate = await prisma.debate.create({
+      data: {
+        debateId: debateIdNew,
+        topic,
+        status: 'active',
+        agent1: {
+          name: 'Nova',
+          position: agent1Position || 'Pro',
+          avatar: '⚡',
+          provider: 'Nova',
+          response: agent1Response.text,
+          responseTime: agent1Response.responseTime,
+          votes: 0,
+        },
+        agent2: {
+          name: 'Blaze',
+          position: agent2Position || 'Con',
+          avatar: '🔥',
+          provider: 'Blaze',
+          response: agent2Response.text,
+          responseTime: agent2Response.responseTime,
+          votes: 0,
+        },
+        totalVotes: 0,
+        viewers: Math.floor(Math.random() * 50) + 20,
+        votedUsers: [],
       },
-      agent2: {
-        name: 'Blaze',
-        position: agent2Position || 'Con',
-        avatar: '🔥',
-        provider: 'Blaze',
-        response: agent2Response.text,
-        responseTime: agent2Response.responseTime,
-        votes: 0,
-      },
-      totalVotes: 0,
-      viewers: Math.floor(Math.random() * 50) + 20,
-      votedUsers: [],
     });
-
-    await debate.save();
 
     return NextResponse.json({
       success: true,
-      debate: debate.toObject(),
+      debate,
       totalTime: responseTime,
     });
   } catch (error: any) {

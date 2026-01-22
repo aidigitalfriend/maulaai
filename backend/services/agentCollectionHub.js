@@ -1,11 +1,8 @@
 /**
- * Agent Collection Hub Service - PRISMA VERSION
+ * Agent Collection Hub Service
  * 
  * This service manages agent-specific data operations using PostgreSQL/Prisma.
- * Replaces the MongoDB-based agentCollectionHub.js
- * 
- * In PostgreSQL, we use the existing tables with agentId filtering
- * rather than creating separate collections per agent.
+ * Uses existing tables with agentId filtering rather than separate collections.
  */
 
 import { prisma } from '../lib/prisma.js';
@@ -26,7 +23,7 @@ class AgentCollectionHub {
 
   /**
    * Sync chat session to agent's data
-   * In PostgreSQL, we use the ChatSession table with agentId filtering
+   * Uses the ChatSession table with agentId filtering
    */
   async syncChatSession(agentId, chatSessionData) {
     try {
@@ -207,26 +204,6 @@ class AgentCollectionHub {
       console.error(`❌ Error getting recent activity for ${agentId}:`, error);
       return [];
     }
-  }
-
-  /**
-   * Migrate data for a specific agent (utility function)
-   * This would be used during migration from MongoDB
-   */
-  async migrateAgentData(agentId, mongoData) {
-    console.log(`Starting migration for agent ${agentId}...`);
-    
-    let migratedCount = {
-      sessions: 0,
-      interactions: 0,
-      subscriptions: 0
-    };
-
-    // Migration would be implemented based on actual MongoDB data structure
-    // This is a placeholder for the migration logic
-
-    console.log(`Migration complete for ${agentId}:`, migratedCount);
-    return migratedCount;
   }
 }
 

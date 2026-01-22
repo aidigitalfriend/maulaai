@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
-
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,16 +15,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database
-    const client = await getClientPromise();
-    const db = client.db(DB_NAME);
-    const users = db.collection('users');
-    const userSecurities = db.collection('usersecurities');
-
     // Find user with valid session
-    const sessionUser = await users.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -53,17 +47,20 @@ export async function POST(request: NextRequest) {
     const now = new Date();
 
     // Store the secret temporarily (not enabled yet until verified)
-    await userSecurities.updateOne(
-      { userId: sessionUser._id.toString() },
-      {
-        $set: {
-          tempTwoFactorSecret: secret,
-          tempBackupCodes: backupCodes,
-          updatedAt: now,
-        },
+    await prisma.userSecurity.upsert({
+      where: { userId: sessionUser.id },
+      update: {
+        tempTwoFactorSecret: secret,
+        tempBackupCodes: backupCodes,
+        updatedAt: now,
       },
-      { upsert: true }
-    );
+      create: {
+        userId: sessionUser.id,
+        tempTwoFactorSecret: secret,
+        tempBackupCodes: backupCodes,
+        twoFactorEnabled: false,
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -91,13 +88,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    // Connect to database
-    await dbConnect();
-
     // Find user with valid session
-    const sessionUser = await User.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -116,10 +112,22 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Get temp secret from userSecurity
+    const userSecurity = await prisma.userSecurity.findUnique({
+      where: { userId: sessionUser.id },
+    });
+
+    if (!userSecurity?.tempTwoFactorSecret) {
+      return NextResponse.json(
+        { message: 'No pending 2FA setup found. Please start setup again.' },
+        { status: 400 }
+      );
+    }
+
     // Verify the code using the temporary secret
     const isValid = authenticator.verify({
       token: code,
-      secret: sessionUser.tempTwoFactorSecret,
+      secret: userSecurity.tempTwoFactorSecret,
     });
 
     if (!isValid) {
@@ -129,13 +137,27 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const now = new Date();
+
     // Enable 2FA permanently
-    await User.findByIdAndUpdate(sessionUser._id, {
-      twoFactorEnabled: true,
-      twoFactorSecret: sessionUser.tempTwoFactorSecret,
-      backupCodes: sessionUser.tempBackupCodes,
-      tempTwoFactorSecret: undefined,
-      tempBackupCodes: undefined,
+    await prisma.userSecurity.update({
+      where: { userId: sessionUser.id },
+      data: {
+        twoFactorEnabled: true,
+        twoFactorSecret: userSecurity.tempTwoFactorSecret,
+        backupCodes: userSecurity.tempBackupCodes || [],
+        tempTwoFactorSecret: null,
+        tempBackupCodes: [],
+        updatedAt: now,
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: sessionUser.id },
+      data: {
+        twoFactorEnabled: true,
+        updatedAt: now,
+      },
     });
 
     return NextResponse.json({
@@ -161,13 +183,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    // Connect to database
-    await dbConnect();
-
     // Find user with valid session
-    const sessionUser = await User.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -181,10 +202,9 @@ export async function DELETE(request: NextRequest) {
 
     // Verify password before disabling 2FA
     const bcrypt = require('bcryptjs');
-    const isValidPassword = await bcrypt.compare(
-      password,
-      sessionUser.password
-    );
+    const isValidPassword = sessionUser.password
+      ? await bcrypt.compare(password, sessionUser.password)
+      : false;
 
     if (!isValidPassword) {
       return NextResponse.json(
@@ -193,11 +213,27 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const now = new Date();
+
     // Disable 2FA
-    await User.findByIdAndUpdate(sessionUser._id, {
-      twoFactorEnabled: false,
-      twoFactorSecret: undefined,
-      backupCodes: undefined,
+    await prisma.userSecurity.updateMany({
+      where: { userId: sessionUser.id },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        backupCodes: [],
+        updatedAt: now,
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: sessionUser.id },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        backupCodes: [],
+        updatedAt: now,
+      },
     });
 
     return NextResponse.json({

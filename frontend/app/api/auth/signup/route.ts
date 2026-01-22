@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { checkEnvironmentVariables } from '@/lib/environment-checker';
@@ -50,10 +49,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await dbConnect();
+    // Check if user already exists using Prisma
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return NextResponse.json(
         { message: 'Email already registered' },
@@ -61,40 +61,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash the password manually
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const newUser = new User({
-      email: email.toLowerCase(),
-      name: name || email.split('@')[0],
-      password: hashedPassword, // Use pre-hashed password
-      authMethod: authMethod || 'password',
-      emailVerified: new Date(), // Auto-verify for password signup
-    });
-
-    await newUser.save();
 
     // Generate secure session ID
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    // Store session in user document
-    newUser.sessionId = sessionId;
-    newUser.sessionExpiry = sessionExpiry;
-    await newUser.save();
+    // Create new user with Prisma
+    const newUser = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        name: name || email.split('@')[0],
+        password: hashedPassword,
+        authMethod: authMethod === 'passwordless' ? 'passwordless' : 'password',
+        emailVerified: new Date(), // Auto-verify for password signup
+        sessionId,
+        sessionExpiry
+      }
+    });
 
     // Send admin notification email (async, don't block response)
     notifyAdminNewUser({
       email: newUser.email,
-      name: newUser.name,
+      name: newUser.name || '',
     }).catch((err) => console.error('Failed to send admin notification:', err));
 
     // Send welcome email to user (async, don't block response)
     sendWelcomeEmail({
       email: newUser.email,
-      name: newUser.name,
+      name: newUser.name || '',
     }).catch((err) => console.error('Failed to send welcome email:', err));
 
     // Create response without token in JSON (security improvement)
@@ -103,7 +100,7 @@ export async function POST(request: NextRequest) {
         message: 'User created successfully',
         success: true,
         user: {
-          id: newUser._id.toString(),
+          id: newUser.id,
           email: newUser.email,
           name: newUser.name,
           authMethod: newUser.authMethod,

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,16 +14,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database
-    const client = await getClientPromise();
-    const db = client.db(DB_NAME);
-    const users = db.collection('users');
-    const userSecurities = db.collection('usersecurities');
-
     // Find user with valid session
-    const sessionUser = await users.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -38,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { password } = await request.json();
 
     // Verify password before disabling 2FA
-    if (password) {
+    if (password && sessionUser.password) {
       const isValidPassword = await bcrypt.compare(
         password,
         sessionUser.password
@@ -54,37 +48,29 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
 
-    // Disable 2FA in usersecurities
-    await userSecurities.updateOne(
-      { userId: sessionUser._id.toString() },
-      {
-        $set: {
-          twoFactorEnabled: false,
-          updatedAt: now,
-        },
-        $unset: {
-          twoFactorSecret: '',
-          backupCodes: '',
-          tempTwoFactorSecret: '',
-          tempBackupCodes: '',
-        },
-      }
-    );
+    // Disable 2FA in userSecurity
+    await prisma.userSecurity.updateMany({
+      where: { userId: sessionUser.id },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        backupCodes: [],
+        tempTwoFactorSecret: null,
+        tempBackupCodes: [],
+        updatedAt: now,
+      },
+    });
 
-    // Also update the users collection
-    await users.updateOne(
-      { _id: sessionUser._id },
-      {
-        $set: {
-          twoFactorEnabled: false,
-          updatedAt: now,
-        },
-        $unset: {
-          twoFactorSecret: '',
-          backupCodes: '',
-        },
-      }
-    );
+    // Also update the users table
+    await prisma.user.update({
+      where: { id: sessionUser.id },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        backupCodes: [],
+        updatedAt: now,
+      },
+    });
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClientPromise } from '@/lib/mongodb';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,16 +14,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database
-    const client = await getClientPromise();
-    const db = client.db(DB_NAME);
-    const users = db.collection('users');
-    const userSecurities = db.collection('usersecurities');
-
     // Find user with valid session
-    const sessionUser = await users.findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const sessionUser = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+      },
     });
 
     if (!sessionUser) {
@@ -59,6 +53,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify current password
+    if (!sessionUser.password) {
+      return NextResponse.json(
+        { success: false, message: 'No password set for this account' },
+        { status: 400 }
+      );
+    }
+
     const isValidPassword = await bcrypt.compare(
       currentPassword,
       sessionUser.password
@@ -75,28 +76,28 @@ export async function POST(request: NextRequest) {
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
     const now = new Date();
 
-    // Update password in users collection
-    await users.updateOne(
-      { _id: sessionUser._id },
-      {
-        $set: {
-          password: hashedNewPassword,
-          updatedAt: now,
-        },
-      }
-    );
-
-    // Update passwordLastChanged in usersecurities collection
-    await userSecurities.updateOne(
-      { userId: sessionUser._id.toString() },
-      {
-        $set: {
-          passwordLastChanged: now,
-          updatedAt: now,
-        },
+    // Update password in users table
+    await prisma.user.update({
+      where: { id: sessionUser.id },
+      data: {
+        password: hashedNewPassword,
+        updatedAt: now,
       },
-      { upsert: true }
-    );
+    });
+
+    // Update passwordLastChanged in userSecurity table
+    await prisma.userSecurity.upsert({
+      where: { userId: sessionUser.id },
+      update: {
+        passwordLastChanged: now,
+        updatedAt: now,
+      },
+      create: {
+        userId: sessionUser.id,
+        passwordLastChanged: now,
+        twoFactorEnabled: false,
+      },
+    });
 
     return NextResponse.json(
       {

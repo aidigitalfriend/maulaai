@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+import prisma from '@/lib/prisma';
 
 // API Keys
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const MONGODB_URI = process.env.MONGODB_URI;
 
 // =====================================================
 // COMPREHENSIVE KNOWLEDGE BASE - Everything About One Last AI
@@ -195,121 +194,41 @@ A: I can create a ticket for you, or email support@onelastai.co!
 
 
 // =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
-  }
-}
-
-// =====================================================
-// Mongoose Schemas (inline)
-// =====================================================
-const agentSubscriptionSchema = new mongoose.Schema({
-  userId: { type: String, index: true },  // Stored as string in DB
-  agentId: { type: String },
-  agentName: { type: String },
-  plan: { type: String, enum: ['daily', 'weekly', 'monthly'] },
-  price: { type: Number },
-  status: { type: String, enum: ['active', 'expired', 'cancelled'] },
-  startDate: { type: Date },
-  expiryDate: { type: Date },
-  autoRenew: { type: Boolean, default: false },
-  stripeSubscriptionId: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, { collection: 'subscriptions' });  // Real data is in 'subscriptions' collection
-
-const transactionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
-  type: { type: String },
-  amount: { type: Number },
-  currency: { type: String, default: 'usd' },
-  item: { type: String },
-  status: { type: String },
-  createdAt: { type: Date, default: Date.now }
-}, { collection: 'transactions' });
-
-const supportTicketSchema = new mongoose.Schema({
-  ticketId: { type: String, required: true, unique: true, index: true },
-  ticketNumber: { type: Number, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
-  userEmail: { type: String, required: true },
-  userName: { type: String },
-  subject: { type: String, required: true },
-  description: { type: String, required: true },
-  category: { type: String, enum: ['billing', 'technical', 'account', 'agents', 'subscription', 'feature-request', 'bug-report', 'general', 'other'] },
-  priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
-  status: { type: String, enum: ['open', 'in-progress', 'waiting-customer', 'waiting-internal', 'resolved', 'closed'], default: 'open' },
-  messages: [{ sender: String, senderId: mongoose.Schema.Types.ObjectId, senderName: String, message: String, createdAt: { type: Date, default: Date.now } }],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, { collection: 'supporttickets' });
-
-const supportChatSchema = new mongoose.Schema({
-  chatId: { type: String, required: true, unique: true, index: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
-  userEmail: { type: String, required: true },
-  userName: { type: String },
-  userContext: { type: mongoose.Schema.Types.Mixed },
-  messages: [{ id: String, role: String, content: String, timestamp: { type: Date, default: Date.now } }],
-  ticketCreated: { type: Boolean, default: false },
-  ticketId: { type: String },
-  ticketNumber: { type: Number },
-  resolved: { type: Boolean, default: false },
-  resolutionSummary: { type: String },
-  status: { type: String, enum: ['active', 'closed'], default: 'active' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  closedAt: { type: Date }
-}, { collection: 'supportchats' });
-
-const AgentSubscription = mongoose.models.AgentSubscription || mongoose.model('AgentSubscription', agentSubscriptionSchema);
-const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', transactionSchema);
-const SupportTicket = mongoose.models.SupportTicket || mongoose.model('SupportTicket', supportTicketSchema);
-const SupportChat = mongoose.models.SupportChat || mongoose.model('SupportChat', supportChatSchema);
-
-// =====================================================
 // Fetch User Context
 // =====================================================
 async function fetchUserContext(userId: string) {
   try {
-    // userId is stored as string in subscriptions collection, not ObjectId
-    const userIdStr = userId.toString();
-    const userObjectId = new mongoose.Types.ObjectId(userId);
-    
-    // Fetch subscriptions - userId is stored as string in this collection
-    const subscriptions = await AgentSubscription.find({ 
-      userId: userIdStr,
-      status: { $in: ['active', 'expired'] }
-    }).sort({ createdAt: -1 }).limit(10).lean();
+    // Fetch subscriptions
+    const subscriptions = await prisma.agentSubscription.findMany({
+      where: {
+        userId,
+        status: { in: ['active', 'expired'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      include: {
+        agent: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
     
     // Fetch transactions
-    const transactions = await Transaction.find({
-      userId: userObjectId
-    }).sort({ createdAt: -1 }).limit(5).lean();
+    const transactions = await prisma.transaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
     
     // Fetch open tickets
-    const openTickets = await SupportTicket.find({
-      userId: userObjectId,
-      status: { $in: ['open', 'in-progress', 'waiting-customer'] }
-    }).lean();
+    const openTickets = await prisma.supportTicket.findMany({
+      where: {
+        userId,
+        status: { in: ['open', 'in_progress', 'waiting'] },
+      },
+    });
     
     // Calculate total spent
     const totalSpent = transactions
@@ -318,29 +237,28 @@ async function fetchUserContext(userId: string) {
     
     return {
       subscriptions: subscriptions.map((s: any) => ({
-        agentId: s.agentId?.toString() || 'unknown',
-        agentName: s.agentName || s.agentId || 'Unknown Agent',
+        agentId: s.agentId || 'unknown',
+        agentName: s.agent?.name || 'Unknown Agent',
         plan: s.plan || 'unknown',
         price: s.price || 0,
         status: s.status || 'unknown',
         startDate: s.startDate,
-        expiryDate: s.expiryDate
+        expiryDate: s.expiryDate,
       })),
       totalSpent,
       recentTransactions: transactions.map((t: any) => ({
         type: t.type,
         amount: t.amount,
         item: t.item,
-        date: t.createdAt
+        date: t.createdAt,
       })),
       openTickets: openTickets.map((t: any) => ({
-        ticketId: t.ticketId,
-        ticketNumber: t.ticketNumber,
+        ticketId: t.id,
         subject: t.subject,
         status: t.status,
-        createdAt: t.createdAt
+        createdAt: t.createdAt,
       })),
-      previousTicketsCount: openTickets.length
+      previousTicketsCount: openTickets.length,
     };
   } catch (error) {
     console.error('Error fetching user context:', error);
@@ -349,7 +267,7 @@ async function fetchUserContext(userId: string) {
       totalSpent: 0,
       recentTransactions: [],
       openTickets: [],
-      previousTicketsCount: 0
+      previousTicketsCount: 0,
     };
   }
 }
@@ -369,7 +287,7 @@ function generateSystemPrompt(userName: string, userEmail: string, userContext: 
     .join(', ') || 'No recent purchases';
   
   const openTicketsInfo = userContext.openTickets.length > 0
-    ? userContext.openTickets.map((t: any) => `#${t.ticketNumber}: ${t.subject} (${t.status})`).join('\n')
+    ? userContext.openTickets.map((t: any) => `${t.ticketId}: ${t.subject} (${t.status})`).join('\n')
     : 'No open tickets';
 
   return `You are "Luna" 🌙 - A warm, caring, and absolutely LOVELY AI support companion for One Last AI. You're like a dear friend who happens to know everything about the platform!
@@ -518,9 +436,6 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Connect to database
-    await connectToDatabase();
-    
     // Fetch user context
     const userContext = await fetchUserContext(userId);
     
@@ -537,34 +452,8 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: message }
     ];
     
-    // Get or create chat session
+    // Get or create chat session ID
     const currentChatId = chatId || `chat_${Date.now()}_${userId}`;
-    
-    // Save user message to chat
-    await SupportChat.findOneAndUpdate(
-      { chatId: currentChatId },
-      {
-        $setOnInsert: {
-          chatId: currentChatId,
-          userId: new mongoose.Types.ObjectId(userId),
-          userEmail,
-          userName,
-          userContext,
-          status: 'active',
-          createdAt: new Date()
-        },
-        $push: {
-          messages: {
-            id: `msg_${Date.now()}`,
-            role: 'user',
-            content: message,
-            timestamp: new Date()
-          }
-        },
-        $set: { updatedAt: new Date() }
-      },
-      { upsert: true, new: true }
-    );
     
     // Call AI provider with streaming
     const aiStream = await callAIProvider(messages, systemPrompt);
@@ -609,7 +498,6 @@ export async function POST(req: NextRequest) {
                     fullResponse += content;
                     
                     // 💕 Slow, romantic typing effect - like Luna is thoughtfully typing each word
-                    // Base delay of 50-80ms per chunk with occasional pauses
                     const baseDelay = 50 + Math.random() * 30; // 50-80ms base
                     
                     // Add extra pause after punctuation (like thinking/breathing)
@@ -617,7 +505,6 @@ export async function POST(req: NextRequest) {
                     const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(content);
                     const pauseDelay = hasPunctuation ? 150 : (hasEmoji ? 200 : 0);
                     
-                    // Total delay: makes Luna feel like she's typing with care 🥰
                     await new Promise(resolve => setTimeout(resolve, baseDelay + pauseDelay));
                     
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
@@ -631,22 +518,6 @@ export async function POST(req: NextRequest) {
               }
             }
           }
-          
-          // Save assistant response to chat
-          await SupportChat.findOneAndUpdate(
-            { chatId: currentChatId },
-            {
-              $push: {
-                messages: {
-                  id: `msg_${Date.now()}`,
-                  role: 'assistant',
-                  content: fullResponse,
-                  timestamp: new Date()
-                }
-              },
-              $set: { updatedAt: new Date() }
-            }
-          );
           
           // Send completion
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
@@ -690,7 +561,6 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
-    const chatId = searchParams.get('chatId');
     
     if (!userId) {
       return NextResponse.json(
@@ -699,27 +569,14 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    await connectToDatabase();
+    // Get recent support tickets for this user (as a proxy for chat history)
+    const tickets = await prisma.supportTicket.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      take: 10,
+    });
     
-    if (chatId) {
-      // Get specific chat
-      const chat = await SupportChat.findOne({ 
-        chatId, 
-        userId: new mongoose.Types.ObjectId(userId) 
-      }).lean();
-      
-      return NextResponse.json({ success: true, chat });
-    }
-    
-    // Get recent chats
-    const chats = await SupportChat.find({ 
-      userId: new mongoose.Types.ObjectId(userId) 
-    })
-      .sort({ updatedAt: -1 })
-      .limit(10)
-      .lean();
-    
-    return NextResponse.json({ success: true, chats });
+    return NextResponse.json({ success: true, chats: tickets });
     
   } catch (error) {
     console.error('Get chat history error:', error);
