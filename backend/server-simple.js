@@ -42,8 +42,8 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://onelastai.co',
-      'https://www.onelastai.co',
+      'https://maula.ai',
+      'https://www.maula.ai',
     ],
     credentials: true,
   },
@@ -56,8 +56,8 @@ app.use(helmet());
 // CORS configuration
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-    'https://onelastai.co',
-    'https://www.onelastai.co',
+    'https://maula.ai',
+    'https://www.maula.ai',
   ],
   credentials: true,
   optionsSuccessStatus: 200,

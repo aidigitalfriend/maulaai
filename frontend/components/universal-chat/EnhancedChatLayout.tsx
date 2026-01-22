@@ -141,7 +141,7 @@ function EnhancedChatLayoutContent({
               {/* Platform Logo */}
               <img
                 src="/images/logos/company-logo.png"
-                alt="OnelastAI"
+                alt="MaulaAI"
                 className="h-8 w-auto object-contain"
               />
               <p className={`text-[11px] ${textSecondary}`}>

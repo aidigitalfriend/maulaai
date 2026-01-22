@@ -2,7 +2,7 @@ import { connectToDatabase } from '../lib/mongodb-client';
 import { getAgentSubscriptionModel } from '../models/AgentSubscription';
 const API_BASE =
   process.env.NODE_ENV === 'production'
-    ? 'https://onelastai.co/api'
+    ? (process.env.NEXT_PUBLIC_API_URL || '/api')
     : 'http://localhost:3005/api';
 
 export interface AgentSubscription {

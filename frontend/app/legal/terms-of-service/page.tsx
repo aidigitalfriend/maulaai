@@ -154,10 +154,10 @@ Many services allow users to opt out of arbitration within a specified period (t
             <p className="text-gray-700 leading-relaxed mb-4">
               Welcome to Maula AI. By accessing or using our platform at{' '}
               <a
-                href="https://onelastai.co"
+                href="https://maula.ai"
                 className="text-blue-600 hover:text-blue-700 underline"
               >
-                onelastai.co
+                maula.ai
               </a>
               , you agree to be bound by these Terms of Service ("Terms"), our{' '}
               <a
@@ -535,10 +535,10 @@ Many services allow users to opt out of arbitration within a specified period (t
                 <p className="text-gray-700">
                   To file a copyright infringement notice, email:{' '}
                   <a
-                    href="mailto:dmca@onelastai.co"
+                    href="mailto:dmca@maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    dmca@onelastai.co
+                    dmca@maula.ai
                   </a>
                 </p>
               </div>
@@ -642,10 +642,10 @@ Many services allow users to opt out of arbitration within a specified period (t
                 <p className="text-gray-700">
                   Before filing a claim, please contact us at{' '}
                   <a
-                    href="mailto:legal@onelastai.co"
+                    href="mailto:legal@maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    legal@onelastai.co
+                    legal@maula.ai
                   </a>{' '}
                   to attempt informal resolution.
                 </p>
@@ -723,37 +723,37 @@ Many services allow users to opt out of arbitration within a specified period (t
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:legal@onelastai.co"
+                  href="mailto:legal@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  legal@onelastai.co
+                  legal@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 DMCA:{' '}
                 <a
-                  href="mailto:dmca@onelastai.co"
+                  href="mailto:dmca@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  dmca@onelastai.co
+                  dmca@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
             </div>

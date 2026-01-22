@@ -111,7 +111,7 @@ export default function DocumentationPage() {
           <div>
             <h4 className="text-xl font-bold text-gray-900 mb-3">Base URL</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400">
-              https://api.onelastai.co/v1
+              https://api.maula.ai/v1
             </div>
           </div>
 
@@ -181,7 +181,7 @@ export default function DocumentationPage() {
           <div>
             <h4 className="text-xl font-bold text-gray-900 mb-3">Example Request</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400 overflow-x-auto">
-              <pre>{`curl -X GET https://api.onelastai.co/v1/agents \\
+              <pre>{`curl -X GET https://api.maula.ai/v1/agents \\
   -H "Authorization: Bearer YOUR_API_KEY"`}</pre>
             </div>
           </div>
@@ -210,9 +210,9 @@ export default function DocumentationPage() {
             <h4 className="text-xl font-bold text-gray-900 mb-3">Web Integration</h4>
             <p className="text-gray-600 mb-3">Add a chat widget to your website:</p>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-blue-400 overflow-x-auto">
-              <pre>{`<script src="https://cdn.onelastai.co/widget.js"></script>
+              <pre>{`<script src="https://cdn.maula.ai/widget.js"></script>
 <script>
-  OnelastAI.init({
+  MaulaAI.init({
     apiKey: 'YOUR_API_KEY',
     agent: 'einstein' // or any agent id
   })

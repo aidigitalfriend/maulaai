@@ -138,10 +138,10 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                   "us") uses cookies and similar tracking technologies on our
                   website at{' '}
                   <a
-                    href="https://onelastai.co"
+                    href="https://maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    onelastai.co
+                    maula.ai
                   </a>
                   .
                 </p>
@@ -756,28 +756,28 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
             </div>

@@ -1,7 +1,7 @@
 // Real-time Chat Service with streaming support
 const API_BASE =
   process.env.NODE_ENV === 'production'
-    ? 'https://onelastai.co/api'
+    ? (process.env.NEXT_PUBLIC_API_URL || '/api')
     : 'http://localhost:3000/api';
 
 export interface ChatMessage {

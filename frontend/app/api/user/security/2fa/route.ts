@@ -3,7 +3,7 @@ import { getClientPromise } from '@/lib/mongodb';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 
-const DB_NAME = process.env.MONGODB_DB || 'onelastai';
+const DB_NAME = process.env.MONGODB_DB || 'maulaai';
 
 export async function POST(request: NextRequest) {
   try {

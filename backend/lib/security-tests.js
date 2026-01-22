@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.BACKEND_URL || "https://onelastai.co";
+const BACKEND_URL = process.env.BACKEND_URL || "https://maula.ai";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const colors = {
   reset: "\x1B[0m",

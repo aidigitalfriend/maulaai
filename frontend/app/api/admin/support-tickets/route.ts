@@ -13,9 +13,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Admin emails (in production, store in database with roles)
 const ADMIN_EMAILS = [
-  'admin@onelastai.co',
-  'support@onelastai.co',
-  'tech@onelastai.co',
+  'admin@maula.ai',
+  'support@maula.ai',
+  'tech@maula.ai',
   // Add your admin emails here
 ];
 
@@ -28,7 +28,7 @@ async function connectToDatabase() {
 
   try {
     await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
+      dbName: process.env.MONGODB_DB || 'maulaai',
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
@@ -436,7 +436,7 @@ export async function PATCH(req: NextRequest) {
         userName: ticket.userName || 'Customer',
         userEmail: ticket.userEmail,
         priority: 'urgent'
-      }, 'support@onelastai.co');
+      }, 'support@maula.ai');
     }
 
     return NextResponse.json({

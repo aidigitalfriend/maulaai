@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://onelastai.co'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 
 function getVisitorId(): string {
   if (typeof window === 'undefined') return ''

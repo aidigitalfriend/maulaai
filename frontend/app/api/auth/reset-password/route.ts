@@ -10,7 +10,7 @@ const SMTP_CONFIG = {
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
   auth: {
-    user: process.env.SMTP_USER || 'noreply@onelastai.co',
+    user: process.env.SMTP_USER || 'noreply@maula.ai',
     pass: process.env.SMTP_PASS || '',
   },
 };
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
     await user.save();
 
     // Build reset URL
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://onelastai.co';
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://maula.ai';
     const resetUrl = `${baseUrl}/auth/reset-password/confirm?token=${resetToken}`;
 
     // Send email
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     if (transporter) {
       try {
         await transporter.sendMail({
-          from: 'Maula AI <noreply@onelastai.co>',
+          from: 'Maula AI <noreply@maula.ai>',
           to: user.email,
           subject: '🔐 Reset Your Password - Maula AI',
           html: getPasswordResetEmailTemplate(user.name || 'User', resetUrl),

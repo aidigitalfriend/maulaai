@@ -284,7 +284,7 @@ router.get('/tools/available', (req, res) => {
 import AgentFile from '../models/AgentFile.js';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-const S3_BUCKET = process.env.S3_BUCKET || 'onelastai-bucket';
+const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({

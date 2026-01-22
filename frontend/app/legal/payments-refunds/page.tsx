@@ -545,10 +545,10 @@ export default function PaymentsRefundsPage() {
                     <strong className="text-gray-900">Contact Support:</strong>{' '}
                     Email{' '}
                     <a
-                      href="mailto:support@onelastai.co"
+                      href="mailto:support@maula.ai"
                       className="text-blue-600 hover:text-blue-700 underline"
                     >
-                      support@onelastai.co
+                      support@maula.ai
                     </a>{' '}
                     for technical assistance
                   </li>
@@ -567,10 +567,10 @@ export default function PaymentsRefundsPage() {
                     </strong>{' '}
                     Explore guides and tutorials at{' '}
                     <a
-                      href="https://onelastai.co/docs"
+                      href="https://maula.ai/docs"
                       className="text-blue-600 hover:text-blue-700 underline"
                     >
-                      onelastai.co/docs
+                      maula.ai/docs
                     </a>
                   </li>
                 </ul>
@@ -626,10 +626,10 @@ export default function PaymentsRefundsPage() {
                     <p className="text-gray-700 text-sm">
                       Email{' '}
                       <a
-                        href="mailto:support@onelastai.co"
+                        href="mailto:support@maula.ai"
                         className="text-blue-600 hover:text-blue-700 underline"
                       >
-                        support@onelastai.co
+                        support@maula.ai
                       </a>{' '}
                       with your account email, agent name, and "CANCEL ACCESS"
                       in the subject line
@@ -706,10 +706,10 @@ export default function PaymentsRefundsPage() {
                   Before filing a chargeback or payment dispute with your bank,
                   please contact us at{' '}
                   <a
-                    href="mailto:billing@onelastai.co"
+                    href="mailto:billing@maula.ai"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    billing@onelastai.co
+                    billing@maula.ai
                   </a>
                   . We're committed to resolving billing issues quickly.
                 </p>
@@ -792,28 +792,28 @@ export default function PaymentsRefundsPage() {
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:billing@onelastai.co"
+                  href="mailto:billing@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  billing@onelastai.co
+                  billing@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
 

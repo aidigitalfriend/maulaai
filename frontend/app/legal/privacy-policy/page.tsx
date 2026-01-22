@@ -151,10 +151,10 @@ Maula AI does not knowingly collect information from children under 13. Our serv
               we collect, use, disclose, and safeguard your information when you
               use our platform at{' '}
               <a
-                href="https://onelastai.co"
+                href="https://maula.ai"
                 className="text-blue-600 hover:text-blue-700 underline"
               >
-                onelastai.co
+                maula.ai
               </a>
               .
             </p>
@@ -509,10 +509,10 @@ Maula AI does not knowingly collect information from children under 13. Our serv
               <p className="text-gray-700">
                 Email us at{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-blue-600 hover:text-blue-700 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>{' '}
                 or use the privacy controls in your account settings. We will
                 respond within 30 days.
@@ -603,10 +603,10 @@ Maula AI does not knowingly collect information from children under 13. Our serv
                 provided us with personal information, please contact us
                 immediately at{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-blue-600 hover:text-blue-700 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>
                 . We will delete such information promptly.
               </p>
@@ -657,28 +657,28 @@ Maula AI does not knowingly collect information from children under 13. Our serv
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:privacy@onelastai.co"
+                  href="mailto:privacy@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  privacy@onelastai.co
+                  privacy@maula.ai
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@onelastai.co"
+                  href="mailto:support@maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@onelastai.co
+                  support@maula.ai
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://onelastai.co"
+                  href="https://maula.ai"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://onelastai.co
+                  https://maula.ai
                 </a>
               </p>
 

@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer'
 
 // Admin notification email
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.co'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@maula.ai'
 
 // Namecheap Private Email SMTP Configuration
 const SMTP_CONFIG = {
@@ -9,10 +9,10 @@ const SMTP_CONFIG = {
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false, // Use STARTTLS
   auth: {
-    user: process.env.SMTP_USER || 'noreply@onelastai.co',
+    user: process.env.SMTP_USER || 'noreply@maula.ai',
     pass: process.env.SMTP_PASS || '',
   },
-  from: process.env.SMTP_FROM || 'Maula AI <noreply@onelastai.co>',
+  from: process.env.SMTP_FROM || 'Maula AI <noreply@maula.ai>',
 }
 
 // Create SMTP transporter
@@ -298,7 +298,7 @@ export function getWelcomeEmailTemplate(userName) {
 
       <!-- CTA Button -->
       <div class="cta-container">
-        <a href="https://onelastai.co/dashboard" class="cta-button">
+        <a href="https://maula.ai/dashboard" class="cta-button">
           🚀 Start Exploring Now
         </a>
       </div>
@@ -308,8 +308,8 @@ export function getWelcomeEmailTemplate(userName) {
         <div class="support-title">💡 Need Help?</div>
         <p class="support-text">
           Our support team is here 24/7! Visit our <strong>Help Center</strong> at 
-          <a href="https://onelastai.co/support" style="color: #667eea;">onelastai.co/support</a> 
-          or email us at <strong>support@onelastai.co</strong>
+          <a href="https://maula.ai/support" style="color: #667eea;">maula.ai/support</a> 
+          or email us at <strong>support@maula.ai</strong>
         </p>
       </div>
 
@@ -321,9 +321,9 @@ export function getWelcomeEmailTemplate(userName) {
     <!-- Footer -->
     <div class="footer">
       <div class="social-links">
-        <a href="https://twitter.com/onelastai" class="social-link" title="Twitter">🐦</a>
-        <a href="https://linkedin.com/company/onelastai" class="social-link" title="LinkedIn">💼</a>
-        <a href="https://github.com/onelastai" class="social-link" title="GitHub">💻</a>
+        <a href="https://twitter.com/maulaai" class="social-link" title="Twitter">🐦</a>
+        <a href="https://linkedin.com/company/maulaai" class="social-link" title="LinkedIn">💼</a>
+        <a href="https://github.com/maulaai" class="social-link" title="GitHub">💻</a>
         <a href="https://discord.gg/EXH6w9CH" class="social-link" title="Discord">💬</a>
       </div>
 
@@ -339,8 +339,8 @@ export function getWelcomeEmailTemplate(userName) {
       
       <p class="footer-text" style="margin-top: 15px;">
         You received this email because you created an account at Maula AI.<br>
-        <a href="https://onelastai.co/legal/privacy-policy" style="color: #667eea;">Privacy Policy</a> | 
-        <a href="https://onelastai.co/legal/terms-of-service" style="color: #667eea;">Terms of Service</a>
+        <a href="https://maula.ai/legal/privacy-policy" style="color: #667eea;">Privacy Policy</a> | 
+        <a href="https://maula.ai/legal/terms-of-service" style="color: #667eea;">Terms of Service</a>
       </p>
     </div>
   </div>
@@ -622,9 +622,9 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
     <!-- Footer -->
     <div class="footer">
       <div class="social-links">
-        <a href="https://twitter.com/onelastai" class="social-link" title="Twitter">🐦</a>
-        <a href="https://linkedin.com/company/onelastai" class="social-link" title="LinkedIn">💼</a>
-        <a href="https://github.com/onelastai" class="social-link" title="GitHub">💻</a>
+        <a href="https://twitter.com/maulaai" class="social-link" title="Twitter">🐦</a>
+        <a href="https://linkedin.com/company/maulaai" class="social-link" title="LinkedIn">💼</a>
+        <a href="https://github.com/maulaai" class="social-link" title="GitHub">💻</a>
         <a href="https://discord.gg/EXH6w9CH" class="social-link" title="Discord">💬</a>
       </div>
 
@@ -639,9 +639,9 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
       </p>
       
       <p class="footer-text" style="margin-top: 15px;">
-        Need help? Contact us at <strong>support@onelastai.co</strong><br>
-        <a href="https://onelastai.co/legal/privacy-policy" style="color: #f5576c;">Privacy Policy</a> | 
-        <a href="https://onelastai.co/legal/terms-of-service" style="color: #f5576c;">Terms of Service</a>
+        Need help? Contact us at <strong>support@maula.ai</strong><br>
+        <a href="https://maula.ai/legal/privacy-policy" style="color: #f5576c;">Privacy Policy</a> | 
+        <a href="https://maula.ai/legal/terms-of-service" style="color: #f5576c;">Terms of Service</a>
       </p>
     </div>
   </div>
@@ -664,7 +664,7 @@ export async function sendWelcomeEmail(email, name) {
 
   try {
     await transporter.sendMail({
-      from: 'Maula AI <noreply@onelastai.co>',
+      from: 'Maula AI <noreply@maula.ai>',
       to: email,
       subject: '🎉 Welcome to Maula AI - Let\'s Get Started!',
       html: getWelcomeEmailTemplate(name),
@@ -693,7 +693,7 @@ export async function sendPasswordResetEmail(
 
   try {
     await transporter.sendMail({
-      from: 'Maula AI Security <noreply@onelastai.co>',
+      from: 'Maula AI Security <noreply@maula.ai>',
       to: email,
       subject: '🔐 Reset Your Password - Maula AI',
       html: getPasswordResetEmailTemplate(name, resetUrl),
@@ -865,13 +865,13 @@ export async function notifyAdminSupportTicket(data) {
       <div class="value"><span class="priority">${data.priority}</span></div>
       
       <div style="text-align: center; margin-top: 30px;">
-        <a href="https://onelastai.co/admin/support" class="btn">View in Admin Panel</a>
+        <a href="https://maula.ai/admin/support" class="btn">View in Admin Panel</a>
       </div>
     </div>
   </div>
 </body>
 </html>`
-  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://onelastai.co/admin/support`
+  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://maula.ai/admin/support`
   
   await sendAdminEmail(subject, html, text)
 }

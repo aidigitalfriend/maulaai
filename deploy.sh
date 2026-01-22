@@ -4,7 +4,7 @@
 # Maula AI - Production Deployment Script
 # ------------------------------------
 # Automates the local commit + push flow and the remote build
-# + restart cycle for the onelastai.co project.
+# + restart cycle for the maula.ai project.
 #
 # Usage:
 #   ./deploy.sh                          # auto commit + deploy

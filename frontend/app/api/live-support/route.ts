@@ -12,7 +12,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const KNOWLEDGE_BASE = `
 ## 🏠 ABOUT MAULA AI
 - Platform Name: Maula AI
-- Website: https://onelastai.co
+- Website: https://maula.ai
 - Tagline: "Your AI Companion for Everything"
 - Founded: 2024
 - Mission: Making AI accessible, personal, and delightful for everyone
@@ -38,7 +38,7 @@ const KNOWLEDGE_BASE = `
 - Plans expire after the purchased period (1 day, 1 week, or 1 month)
 - To continue using an agent after expiry, simply purchase again
 - View purchase history at /dashboard/billing
-- Contact: support@onelastai.co for billing questions
+- Contact: support@maula.ai for billing questions
 
 ## 🤖 ALL AVAILABLE AGENTS (18 Specialized AI Friends)
 
@@ -150,7 +150,7 @@ const KNOWLEDGE_BASE = `
 
 ## 📞 SUPPORT CHANNELS
 - 24/7 AI Support: /support/live-support (That's me, darling! 💕)
-- Email: support@onelastai.co
+- Email: support@maula.ai
 - Ticket Response: Within 24-48 hours
 
 ## 🎮 GAMIFICATION & REWARDS
@@ -164,9 +164,9 @@ const KNOWLEDGE_BASE = `
 - 99.9% uptime guarantee
 
 ## 🔗 SOCIAL MEDIA
-- Twitter/X: @onelastai
-- Facebook: /onelastai
-- Instagram: @onelastai
+- Twitter/X: maulaai
+- Facebook: /maulaai
+- Instagram: maulaai
 - Discord: discord.gg/EXH6w9CH
 
 ## ❓ COMMON QUESTIONS
@@ -190,7 +190,7 @@ Q: How do I change my password?
 A: Go to /dashboard/security to update your password.
 
 Q: How do I contact a human?
-A: I can create a ticket for you, or email support@onelastai.co!
+A: I can create a ticket for you, or email support@maula.ai!
 `;
 
 
@@ -208,7 +208,7 @@ async function connectToDatabase() {
 
   try {
     await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'onelastai',
+      dbName: process.env.MONGODB_DB || 'maulaai',
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });

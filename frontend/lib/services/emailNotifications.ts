@@ -12,14 +12,14 @@ const EMAIL_CONFIG = {
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false, // Use STARTTLS
   auth: {
-    user: process.env.SMTP_USER || 'noreply@onelastai.co',
+    user: process.env.SMTP_USER || 'noreply@maula.ai',
     pass: process.env.SMTP_PASS || '',
   },
-  from: process.env.SMTP_FROM || 'Maula AI <noreply@onelastai.co>',
+  from: process.env.SMTP_FROM || 'Maula AI <noreply@maula.ai>',
 };
 
 // Admin email for notifications
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.co';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@maula.ai';
 
 // Create transporter
 let transporter: nodemailer.Transporter | null = null;
@@ -86,7 +86,7 @@ export function getTicketCreatedEmail(data: TicketEmailData): { subject: string;
             
             <p>We typically respond within 24 hours, but often much sooner! 🚀</p>
             
-            <a href="https://onelastai.co/dashboard/support-tickets" class="btn">View Your Ticket</a>
+            <a href="https://maula.ai/dashboard/support-tickets" class="btn">View Your Ticket</a>
             
             <div class="footer">
               <p>With love,<br>Maula AI Support Team 🌙</p>
@@ -106,7 +106,7 @@ Priority: ${data.priority || 'Medium'}
 
 We typically respond within 24 hours, but often much sooner!
 
-View your ticket: https://onelastai.co/dashboard/support-tickets
+View your ticket: https://maula.ai/dashboard/support-tickets
 
 With love,
 Maula AI Support Team`
@@ -143,7 +143,7 @@ export function getNewReplyEmail(data: TicketEmailData): { subject: string; html
               ${data.message?.substring(0, 500)}${(data.message?.length || 0) > 500 ? '...' : ''}
             </div>
             
-            <a href="https://onelastai.co/dashboard/support-tickets" class="btn">View Full Conversation</a>
+            <a href="https://maula.ai/dashboard/support-tickets" class="btn">View Full Conversation</a>
             
             <div class="footer">
               <p>With love,<br>Maula AI Support Team 🌙</p>
@@ -161,7 +161,7 @@ You have a new reply on Ticket #${data.ticketNumber}!
 ${data.message?.substring(0, 500)}${(data.message?.length || 0) > 500 ? '...' : ''}
 ---
 
-View full conversation: https://onelastai.co/dashboard/support-tickets
+View full conversation: https://maula.ai/dashboard/support-tickets
 
 With love,
 Maula AI Support Team`
@@ -218,7 +218,7 @@ export function getStatusChangeEmail(data: TicketEmailData): { subject: string; 
               <p>⏳ We need your response to continue. Please check your ticket and reply when you can!</p>
             ` : ''}
             
-            <a href="https://onelastai.co/dashboard/support-tickets" class="btn">View Ticket Details</a>
+            <a href="https://maula.ai/dashboard/support-tickets" class="btn">View Ticket Details</a>
             
             <div class="footer">
               <p>With love,<br>Maula AI Support Team 🌙</p>
@@ -237,7 +237,7 @@ Subject: ${data.subject}
 ${data.status === 'resolved' ? 'Great news! Your issue has been resolved. If you\'re satisfied, we\'d love to hear your feedback!' : ''}
 ${data.status === 'waiting-customer' ? 'We need your response to continue. Please check your ticket and reply when you can!' : ''}
 
-View ticket: https://onelastai.co/dashboard/support-tickets
+View ticket: https://maula.ai/dashboard/support-tickets
 
 With love,
 Maula AI Support Team`
@@ -277,7 +277,7 @@ export function getSlaBreachEmail(data: TicketEmailData): { subject: string; htm
             
             <p>The SLA for this ticket has been breached. Please respond immediately.</p>
             
-            <a href="https://onelastai.co/admin/support" class="btn">Handle Ticket Now</a>
+            <a href="https://maula.ai/admin/support" class="btn">Handle Ticket Now</a>
           </div>
         </div>
       </body>
@@ -291,7 +291,7 @@ Subject: ${data.subject}
 Customer: ${data.userEmail}
 Priority: ESCALATED TO URGENT
 
-Please respond immediately: https://onelastai.co/admin/support`
+Please respond immediately: https://maula.ai/admin/support`
   };
 }
 
@@ -397,13 +397,13 @@ export async function notifyAdminNewTicket(data: TicketEmailData) {
       <div class="value">${data.status || 'Open'}</div>
       
       <div style="text-align: center; margin-top: 30px;">
-        <a href="https://onelastai.co/admin/support" class="btn">View in Admin Panel</a>
+        <a href="https://maula.ai/admin/support" class="btn">View in Admin Panel</a>
       </div>
     </div>
   </div>
 </body>
 </html>`,
-    text: `New Support Ticket #${data.ticketNumber}\n\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\n\nView: https://onelastai.co/admin/support`
+    text: `New Support Ticket #${data.ticketNumber}\n\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\n\nView: https://maula.ai/admin/support`
   };
   
   return sendSupportEmail(ADMIN_EMAIL, template);
@@ -685,7 +685,7 @@ export async function sendWelcomeEmail(data: {
       </div>
       
       <div class="btn-container">
-        <a href="https://onelastai.co/dashboard" class="btn">Go to Dashboard →</a>
+        <a href="https://maula.ai/dashboard" class="btn">Go to Dashboard →</a>
       </div>
       
       <p class="message" style="margin-top: 30px;">
@@ -713,7 +713,7 @@ Thank you for joining us! You now have access to:
 🎨 Canvas Builder - Create stunning visuals with AI assistance
 📊 Personal Dashboard - Track usage and manage subscriptions
 
-Get started: https://onelastai.co/dashboard
+Get started: https://maula.ai/dashboard
 
 If you have any questions, our support team is here to help!
 
