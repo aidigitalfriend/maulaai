@@ -2,13 +2,13 @@
 
 # =================================================
 # NGINX Config Deployment Script for Maula AI
-# Server: 47.130.228.100 (maula.ai)
+# Server: 18.140.156.40 (maula.ai)
 # =================================================
 
 set -e
 
-SERVER="ubuntu@47.130.228.100"
-SSH_KEY_FILE="./one-last-ai.pem"
+SERVER="ubuntu@18.140.156.40"
+SSH_KEY_FILE="./victorykit.pem"
 NGINX_CONFIG="./nginx/maula.ai.conf"
 
 echo "🚀 Deploying NGINX configuration..."
