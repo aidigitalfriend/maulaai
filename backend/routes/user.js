@@ -615,4 +615,100 @@ router.put('/security/:userId', async (req, res) => {
   }
 });
 
+// ============================================
+// USER BILLING
+// ============================================
+router.get('/billing/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Return billing data (with defaults for users without billing info)
+    const billing = {
+      plan: user.subscription?.plan || 'free',
+      status: user.subscription?.status || 'active',
+      billingCycle: user.subscription?.billingCycle || 'monthly',
+      nextBillingDate: user.subscription?.nextBillingDate || null,
+      paymentMethod: user.paymentMethod ? {
+        type: user.paymentMethod.type || 'card',
+        last4: user.paymentMethod.last4 || '****',
+        expiryMonth: user.paymentMethod.expiryMonth,
+        expiryYear: user.paymentMethod.expiryYear,
+      } : null,
+      invoices: user.invoices || [],
+      credits: user.credits || 0,
+      usage: {
+        apiCalls: user.usage?.apiCalls || 0,
+        storage: user.usage?.storage || 0,
+        bandwidth: user.usage?.bandwidth || 0,
+      },
+    };
+
+    res.json({
+      success: true,
+      billing,
+    });
+  } catch (error) {
+    console.error('Get billing error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get billing info' });
+  }
+});
+
+// ============================================
+// USER ANALYTICS
+// ============================================
+router.get('/analytics', async (req, res) => {
+  try {
+    let userId = req.headers['x-user-id'];
+    
+    // Check session cookie if no header
+    if (!userId) {
+      const sessionId = req.cookies?.sessionId;
+      if (sessionId) {
+        const sessionUser = await db.User.findBySessionId(sessionId);
+        if (sessionUser && (!sessionUser.sessionExpiry || new Date(sessionUser.sessionExpiry) > new Date())) {
+          userId = sessionUser.id;
+        }
+      }
+    }
+
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Return user analytics data
+    const analytics = {
+      totalLogins: user.totalLogins || 0,
+      lastLogin: user.lastLogin || user.updatedAt,
+      accountAge: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
+      totalMessages: user.totalMessages || 0,
+      totalAgentInteractions: user.totalAgentInteractions || 0,
+      favoriteAgents: user.favoriteAgents || [],
+      activityHistory: user.activityHistory || [],
+      usageStats: {
+        daily: user.usageStats?.daily || [],
+        weekly: user.usageStats?.weekly || [],
+        monthly: user.usageStats?.monthly || [],
+      },
+    };
+
+    res.json({
+      success: true,
+      analytics,
+    });
+  } catch (error) {
+    console.error('Get analytics error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get analytics' });
+  }
+});
+
 export default router;
