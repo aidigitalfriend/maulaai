@@ -301,7 +301,7 @@ export default function AboutOverviewPage() {
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                     <Users className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900">OneLast.ai</h4>
+                  <h4 className="text-xl font-bold text-gray-900">Maula AI</h4>
                 </div>
                 <p className="text-gray-600 text-sm mb-4">
                   Cinematic AI multiverse with 50+ modular agents
