@@ -237,17 +237,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       // Call logout endpoint to clear HttpOnly cookie on server
-      await secureAuthStorage.logout();
+      const response = await secureAuthStorage.logout();
       console.log('✅ Logout successful - HttpOnly cookie cleared');
     } catch (error) {
       console.error('❌ Logout error:', error);
     } finally {
       // Clear local user data
       secureAuthStorage.clearUser();
+      
+      // Clear any other localStorage items
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_user');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+      }
+      
       dispatch({ type: 'AUTH_LOGOUT' });
 
-      // Force redirect to home page with cache busting
-      window.location.replace(`/?logout=${Date.now()}`);
+      // Force hard redirect to home page (clears all state)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   };
 
