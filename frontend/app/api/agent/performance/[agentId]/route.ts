@@ -49,7 +49,8 @@ export async function GET(
   { params }: { params: { agentId: string } }
 ) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }

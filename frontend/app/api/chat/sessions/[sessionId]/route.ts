@@ -22,7 +22,8 @@ interface ChatMessage {
 async function authenticateUser(
   request: NextRequest
 ): Promise<{ userId: string } | { error: string; status: number }> {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = request.cookies.get('session_id')?.value ||
+                    request.cookies.get('sessionId')?.value;
 
   if (!sessionId) {
     return { error: 'No session ID', status: 401 };

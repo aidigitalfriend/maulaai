@@ -3,7 +3,8 @@ import prisma from '@/lib/prisma';
 
 // Helper to authenticate user from session cookie
 async function authenticateUser(request: NextRequest) {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = request.cookies.get('session_id')?.value ||
+                    request.cookies.get('sessionId')?.value;
 
   if (!sessionId) {
     return null;

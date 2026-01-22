@@ -4,8 +4,9 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies.get('session_id')?.value;
+    // Get session ID from HttpOnly cookie (check both names for compatibility)
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json(

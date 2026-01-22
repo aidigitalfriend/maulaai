@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 async function authenticateUser(
   request: NextRequest
 ): Promise<{ userId: string } | { error: string; status: number }> {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = request.cookies.get('session_id')?.value ||
+                    request.cookies.get('sessionId')?.value;
 
   console.log(
     '[chat/sessions] Auth check - session_id cookie:',

@@ -6,8 +6,9 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies.get('session_id')?.value;
+    // Get session ID from HttpOnly cookie (check both names for compatibility)
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
@@ -70,8 +71,9 @@ export async function DELETE(
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies.get('session_id')?.value;
+    // Get session ID from HttpOnly cookie (check both names for compatibility)
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
