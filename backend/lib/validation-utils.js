@@ -34,7 +34,7 @@ export function isValidId(id) {
   // Accept CUIDs (start with 'c' and are 25 chars)
   if (/^c[a-z0-9]{24}$/i.test(id)) return true;
   
-  // Accept MongoDB ObjectIds (24 hex chars) - kept for backwards compatibility
+  // Accept legacy ObjectIds (24 hex chars) for backwards compatibility
   if (/^[a-f0-9]{24}$/i.test(id)) return true;
   
   // Accept other reasonable string IDs (alphanumeric, dashes, underscores, 1-64 chars)
@@ -44,7 +44,7 @@ export function isValidId(id) {
 }
 
 /**
- * Validate MongoDB ObjectId format (24 hex characters)
+ * Validate legacy ObjectId format (24 hex characters)
  * For backwards compatibility with existing data
  * @param {string} id - ID to validate
  * @returns {boolean}

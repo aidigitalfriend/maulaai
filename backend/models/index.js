@@ -1,7 +1,6 @@
 /**
  * PRISMA MODEL ADAPTERS
- * Provides Mongoose-like interface for existing routes while using Prisma underneath
- * This allows gradual migration without rewriting all routes at once
+ * Provides a service layer interface for routes using Prisma underneath
  */
 
 import { prisma } from '../lib/prisma.js';
@@ -742,7 +741,7 @@ class ConsultationAdapter {
 }
 
 // ============================================
-// EXPORTS - MONGOOSE-COMPATIBLE INTERFACE
+// EXPORTS - SERVICE INTERFACE
 // ============================================
 
 export const User = UserAdapter;

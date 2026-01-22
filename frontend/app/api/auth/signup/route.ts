@@ -8,7 +8,7 @@ import { notifyAdminNewUser, sendWelcomeEmail } from '@/lib/services/emailNotifi
 /**
  * POST /api/auth/signup
  * Register a new user with email and password
- * Using PostgreSQL via Prisma - NO MongoDB!
+ * Using PostgreSQL via Prisma
  */
 export async function POST(request: NextRequest) {
   try {

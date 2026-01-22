@@ -1,5 +1,5 @@
 /**
- * Agent Subscription Service - API-based (No MongoDB)
+ * Agent Subscription Service - API-based
  * All operations go through API routes which use Prisma/PostgreSQL
  */
 

@@ -1,6 +1,6 @@
 /**
  * PRISMA CLIENT FOR FRONTEND API ROUTES
- * PostgreSQL Only - No MongoDB!
+ * PostgreSQL Database via Prisma ORM
  * Imports from backend's generated Prisma client
  */
 

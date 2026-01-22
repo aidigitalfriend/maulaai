@@ -2,8 +2,6 @@
  * UNIVERSAL ANALYTICS TRACKER - PRISMA VERSION
  * Tracks EVERYTHING: visitors, sessions, chats, tools, events
  * Stores ALL data in PostgreSQL via Prisma for complete analytics
- * 
- * @migrated 2025-01-XX - Converted from MongoDB to Prisma
  */
 
 import prisma from './prisma.js'

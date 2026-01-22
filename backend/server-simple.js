@@ -1,7 +1,6 @@
 /**
  * MAULA AI - PRODUCTION SERVER
  * PostgreSQL/Prisma Backend
- * Migrated from MongoDB to PostgreSQL
  */
 
 import dotenv from 'dotenv';

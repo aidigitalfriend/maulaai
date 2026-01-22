@@ -5,7 +5,7 @@
 
 import { body, param, query } from 'express-validator';
 
-// Custom validator for Prisma IDs (CUID, UUID, or legacy MongoDB ObjectIds)
+// Custom validator for Prisma IDs (CUID, UUID, or legacy ObjectIds)
 const isValidPrismaId = (value) => {
   if (!value || typeof value !== 'string') return false;
   // Accept UUIDs

@@ -1,5 +1,5 @@
 // Prisma schema for Maula AI
-// Migrated from MongoDB/Mongoose to PostgreSQL
+// Prisma Schema - PostgreSQL Database
 
 generator client {
   provider = "prisma-client-js"

@@ -1,4 +1,4 @@
-// Note: This project now uses PostgreSQL via Prisma instead of MongoDB
+// Note: This project uses PostgreSQL via Prisma
 // This file is deprecated - use Prisma Studio or pgAdmin for database monitoring
 
 import { PrismaClient } from '@prisma/client';

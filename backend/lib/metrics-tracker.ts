@@ -1,7 +1,6 @@
 /**
  * Real-time Metrics Tracker
  * Tracks user sessions, agent usage, and API metrics using PostgreSQL/Prisma
- * Migrated from MongoDB
  */
 
 import { prisma } from './prisma.js';

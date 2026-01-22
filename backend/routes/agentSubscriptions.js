@@ -1,7 +1,6 @@
 /**
  * AGENT SUBSCRIPTIONS ROUTES - PRISMA VERSION
  * PostgreSQL-based subscription management for Maula AI
- * Replaces Mongoose-based agentSubscriptions.js
  */
 
 import express from 'express';

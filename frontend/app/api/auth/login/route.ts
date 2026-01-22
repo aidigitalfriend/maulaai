@@ -7,7 +7,7 @@ import { checkEnvironmentVariables } from '@/lib/environment-checker';
 /**
  * POST /api/auth/login
  * Authenticate user with email and password
- * Using PostgreSQL via Prisma - NO MongoDB!
+ * Using PostgreSQL via Prisma
  */
 export async function POST(request: NextRequest) {
   try {

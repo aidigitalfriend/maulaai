@@ -282,8 +282,8 @@ UI → POST /api/marketplace/transactions
 ```
 ┌────────────────┐
 │  Database      │
-│  (MongoDB/     │
-│   PostgreSQL)  │
+│  (PostgreSQL)  │
+│                │
 │  Unlimited     │
 │  scale         │
 └────────────────┘
@@ -360,7 +360,7 @@ All views consistent
          ↓
 ┌─────────────────────────────────────────┐
 │  Database Layer (Replicated)            │
-│  MongoDB/PostgreSQL Cluster             │
+│  PostgreSQL Cluster                     │
 └─────────────────────────────────────────┘
          ↓
 ┌─────────────────────────────────────────┐

@@ -324,7 +324,7 @@ export default function DocsIntegrations() {
                   <li>✓ Project Management (Jira, Asana)</li>
                   <li>✓ Analytics Platforms (Google Analytics, Mixpanel)</li>
                   <li>✓ Payment Processors (Stripe, PayPal)</li>
-                  <li>✓ Database Services (Firebase, MongoDB)</li>
+                  <li>✓ Database Services (Firebase, PostgreSQL)</li>
                 </ul>
               </div>
             </div>
