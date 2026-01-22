@@ -1,17 +1,10 @@
 /**
  * Real-time Metrics Tracker
- * Tracks user sessions, agent usage, and API metrics in MongoDB
+ * Tracks user sessions, agent usage, and API metrics using PostgreSQL/Prisma
+ * Migrated from MongoDB
  */
 
-import { MongoClient, Db } from 'mongodb'
-
-// MongoDB connection helper
-async function getDb(): Promise<Db> {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017'
-  const client = new MongoClient(uri)
-  await client.connect()
-  return client.db('aiAgent')
-}
+import { prisma } from './prisma.js';
 
 interface UserSession {
   sessionId: string
@@ -35,7 +28,7 @@ interface AgentMetric {
   lastUpdated: Date
 }
 
-interface ApiMetric {
+interface ApiMetricData {
   endpoint: string
   method: string
   statusCode: number
@@ -56,7 +49,15 @@ export class MetricsTracker {
   private static instance: MetricsTracker
   private sessionTimeout = 30 * 60 * 1000 // 30 minutes
 
-  private constructor() {}
+  // In-memory cache for performance (to reduce DB writes)
+  private sessionCache = new Map<string, { lastActivity: Date, agentName?: string }>()
+  private apiMetricsBuffer: ApiMetricData[] = []
+  private flushInterval: NodeJS.Timeout | null = null
+
+  private constructor() {
+    // Flush API metrics every 10 seconds
+    this.flushInterval = setInterval(() => this.flushApiMetrics(), 10000)
+  }
 
   static getInstance(): MetricsTracker {
     if (!MetricsTracker.instance) {
@@ -70,27 +71,31 @@ export class MetricsTracker {
    */
   async trackSession(sessionId: string, data: Partial<UserSession>): Promise<void> {
     try {
-      const db = await getDb()
       const now = new Date()
+      
+      // Update in-memory cache
+      this.sessionCache.set(sessionId, {
+        lastActivity: now,
+        agentName: data.currentAgent
+      })
 
-      // Remove sessionId from data to avoid conflict with $setOnInsert
-      const { sessionId: _omit, ...dataWithoutSessionId } = data as any
-
-      await db.collection('user_sessions').updateOne(
-        { sessionId },
-        {
-          $set: {
-            ...dataWithoutSessionId,
-            lastActivity: now,
-            isActive: true,
-          },
-          $setOnInsert: {
-            sessionId,
-            startTime: now,
-          },
+      // Upsert session in database
+      await prisma.session.upsert({
+        where: { sessionId },
+        update: {
+          lastActivity: now,
+          isActive: true,
+          userId: data.userId,
         },
-        { upsert: true }
-      )
+        create: {
+          sessionId,
+          visitorId: data.userId || sessionId, // Use sessionId as visitorId if not available
+          userId: data.userId,
+          startTime: now,
+          lastActivity: now,
+          isActive: true,
+        },
+      })
     } catch (error) {
       console.error('Error tracking session:', error)
     }
@@ -106,28 +111,22 @@ export class MetricsTracker {
     success: boolean
   ): Promise<void> {
     try {
-      const db = await getDb()
       const now = new Date()
 
-      // Update agent metrics
-      await db.collection('agent_metrics').updateOne(
-        { agentName, date: this.getDateKey(now) },
-        {
-          $inc: {
-            requestCount: 1,
-            totalResponseTime: responseTime,
-            successCount: success ? 1 : 0,
-            errorCount: success ? 0 : 1,
+      // Track as analytics event
+      await prisma.analyticsEvent.create({
+        data: {
+          visitorId: sessionId,
+          sessionId,
+          eventName: 'agent_request',
+          eventData: {
+            agentName,
+            responseTime,
+            success,
           },
-          $set: {
-            lastUpdated: now,
-          },
-          $addToSet: {
-            activeSessions: sessionId,
-          },
+          timestamp: now,
         },
-        { upsert: true }
-      )
+      })
 
       // Update session with current agent
       await this.trackSession(sessionId, { currentAgent: agentName })
@@ -137,7 +136,7 @@ export class MetricsTracker {
   }
 
   /**
-   * Track API endpoint usage
+   * Track API endpoint usage (buffered for performance)
    */
   async trackApiRequest(
     endpoint: string,
@@ -146,23 +145,47 @@ export class MetricsTracker {
     responseTime: number,
     error?: string
   ): Promise<void> {
+    // Buffer API metrics for batch insert
+    this.apiMetricsBuffer.push({
+      endpoint,
+      method,
+      statusCode,
+      responseTime,
+      timestamp: new Date(),
+      error,
+    })
+
+    // Flush if buffer is large
+    if (this.apiMetricsBuffer.length >= 100) {
+      await this.flushApiMetrics()
+    }
+  }
+
+  /**
+   * Flush buffered API metrics to database
+   */
+  private async flushApiMetrics(): Promise<void> {
+    if (this.apiMetricsBuffer.length === 0) return
+
+    const metrics = [...this.apiMetricsBuffer]
+    this.apiMetricsBuffer = []
+
     try {
-      const db = await getDb()
-      const now = new Date()
-
-      await db.collection('api_metrics').insertOne({
-        endpoint,
-        method,
-        statusCode,
-        responseTime,
-        timestamp: now,
-        error,
+      await prisma.apiUsage.createMany({
+        data: metrics.map(m => ({
+          visitorId: 'system',
+          sessionId: 'system',
+          endpoint: m.endpoint,
+          method: m.method,
+          statusCode: m.statusCode,
+          responseTime: m.responseTime,
+          timestamp: m.timestamp,
+        })),
       })
-
-      // Also update hourly aggregates
-      await this.updateHourlyMetrics(now, responseTime, statusCode >= 400)
     } catch (error) {
-      console.error('Error tracking API request:', error)
+      console.error('Error flushing API metrics:', error)
+      // Re-add to buffer on failure
+      this.apiMetricsBuffer.push(...metrics)
     }
   }
 
@@ -171,12 +194,13 @@ export class MetricsTracker {
    */
   async getActiveUsers(): Promise<number> {
     try {
-      const db = await getDb()
       const cutoff = new Date(Date.now() - this.sessionTimeout)
 
-      const count = await db.collection('user_sessions').countDocuments({
-        lastActivity: { $gte: cutoff },
-        isActive: true,
+      const count = await prisma.session.count({
+        where: {
+          lastActivity: { gte: cutoff },
+          isActive: true,
+        },
       })
 
       return count
@@ -191,23 +215,62 @@ export class MetricsTracker {
    */
   async getAgentMetrics(): Promise<AgentMetric[]> {
     try {
-      const db = await getDb()
-      const today = this.getDateKey(new Date())
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-      const metrics = await db
-        .collection('agent_metrics')
-        .find({ date: today })
-        .toArray()
+      // Get agent request events from today
+      const events = await prisma.analyticsEvent.findMany({
+        where: {
+          eventName: 'agent_request',
+          timestamp: { gte: today },
+        },
+      })
 
-      return metrics.map((m: any) => ({
-        agentName: m.agentName,
-        requestCount: m.requestCount || 0,
-        activeUsers: m.activeSessions?.length || 0,
-        totalResponseTime: m.totalResponseTime || 0,
-        avgResponseTime: m.requestCount > 0 ? Math.round(m.totalResponseTime / m.requestCount) : 0,
-        successCount: m.successCount || 0,
-        errorCount: m.errorCount || 0,
-        lastUpdated: m.lastUpdated,
+      // Aggregate by agent name
+      const agentMap = new Map<string, {
+        requestCount: number
+        totalResponseTime: number
+        successCount: number
+        errorCount: number
+        sessions: Set<string>
+        lastUpdated: Date
+      }>()
+
+      for (const event of events) {
+        const data = event.eventData as any
+        const agentName = data?.agentName || 'unknown'
+        
+        if (!agentMap.has(agentName)) {
+          agentMap.set(agentName, {
+            requestCount: 0,
+            totalResponseTime: 0,
+            successCount: 0,
+            errorCount: 0,
+            sessions: new Set(),
+            lastUpdated: event.timestamp,
+          })
+        }
+
+        const stats = agentMap.get(agentName)!
+        stats.requestCount += 1
+        stats.totalResponseTime += data?.responseTime || 0
+        stats.successCount += data?.success ? 1 : 0
+        stats.errorCount += data?.success ? 0 : 1
+        stats.sessions.add(event.sessionId)
+        if (event.timestamp > stats.lastUpdated) {
+          stats.lastUpdated = event.timestamp
+        }
+      }
+
+      return Array.from(agentMap.entries()).map(([agentName, stats]) => ({
+        agentName,
+        requestCount: stats.requestCount,
+        activeUsers: stats.sessions.size,
+        totalResponseTime: stats.totalResponseTime,
+        avgResponseTime: stats.requestCount > 0 ? Math.round(stats.totalResponseTime / stats.requestCount) : 0,
+        successCount: stats.successCount,
+        errorCount: stats.errorCount,
+        lastUpdated: stats.lastUpdated,
       }))
     } catch (error) {
       console.error('Error getting agent metrics:', error)
@@ -220,41 +283,29 @@ export class MetricsTracker {
    */
   async getApiStats(timeRange: number = 24 * 60 * 60 * 1000): Promise<any> {
     try {
-      const db = await getDb()
       const cutoff = new Date(Date.now() - timeRange)
 
-      const stats = await db
-        .collection('api_metrics')
-        .aggregate([
-          { $match: { timestamp: { $gte: cutoff } } },
-          {
-            $group: {
-              _id: null,
-              totalRequests: { $sum: 1 },
-              avgResponseTime: { $avg: '$responseTime' },
-              errorCount: {
-                $sum: { $cond: [{ $gte: ['$statusCode', 400] }, 1, 0] },
-              },
-            },
-          },
-        ])
-        .toArray()
+      const stats = await prisma.apiUsage.aggregate({
+        where: {
+          timestamp: { gte: cutoff },
+        },
+        _count: { id: true },
+        _avg: { responseTime: true },
+      })
 
-      if (stats.length === 0) {
-        return {
-          totalRequests: 0,
-          avgResponseTime: 0,
-          errorRate: 0,
-          successRate: 100,
-        }
-      }
+      const errorCount = await prisma.apiUsage.count({
+        where: {
+          timestamp: { gte: cutoff },
+          statusCode: { gte: 400 },
+        },
+      })
 
-      const result = stats[0]
-      const errorRate = result.totalRequests > 0 ? (result.errorCount / result.totalRequests) * 100 : 0
+      const totalRequests = stats._count.id || 0
+      const errorRate = totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0
 
       return {
-        totalRequests: result.totalRequests,
-        avgResponseTime: Math.round(result.avgResponseTime || 0),
+        totalRequests,
+        avgResponseTime: Math.round(stats._avg.responseTime || 0),
         errorRate: Math.round(errorRate * 10) / 10,
         successRate: Math.round((100 - errorRate) * 10) / 10,
       }
@@ -269,16 +320,64 @@ export class MetricsTracker {
    */
   async getHourlyMetrics(): Promise<HourlyMetric[]> {
     try {
-      const db = await getDb()
       const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
-      const metrics = await db
-        .collection('hourly_metrics')
-        .find({ hour: { $gte: last24Hours } })
-        .sort({ hour: 1 })
-        .toArray()
+      // Get raw API usage data
+      const apiData = await prisma.apiUsage.findMany({
+        where: {
+          timestamp: { gte: last24Hours },
+        },
+        select: {
+          timestamp: true,
+          responseTime: true,
+          statusCode: true,
+          visitorId: true,
+        },
+      })
 
-      return metrics as any[]
+      // Aggregate by hour
+      const hourlyMap = new Map<string, {
+        totalRequests: number
+        totalResponseTime: number
+        errorCount: number
+        users: Set<string>
+      }>()
+
+      for (const record of apiData) {
+        const hourKey = new Date(record.timestamp)
+        hourKey.setMinutes(0, 0, 0)
+        const key = hourKey.toISOString()
+
+        if (!hourlyMap.has(key)) {
+          hourlyMap.set(key, {
+            totalRequests: 0,
+            totalResponseTime: 0,
+            errorCount: 0,
+            users: new Set(),
+          })
+        }
+
+        const stats = hourlyMap.get(key)!
+        stats.totalRequests += 1
+        stats.totalResponseTime += record.responseTime
+        if (record.statusCode >= 400) stats.errorCount += 1
+        stats.users.add(record.visitorId)
+      }
+
+      // Convert to array
+      return Array.from(hourlyMap.entries())
+        .map(([hourStr, stats]) => ({
+          hour: new Date(hourStr),
+          totalRequests: stats.totalRequests,
+          uniqueUsers: stats.users.size,
+          avgResponseTime: stats.totalRequests > 0 
+            ? Math.round(stats.totalResponseTime / stats.totalRequests) 
+            : 0,
+          errorRate: stats.totalRequests > 0 
+            ? Math.round((stats.errorCount / stats.totalRequests) * 100 * 10) / 10 
+            : 0,
+        }))
+        .sort((a, b) => a.hour.getTime() - b.hour.getTime())
     } catch (error) {
       console.error('Error getting hourly metrics:', error)
       return []
@@ -290,21 +389,57 @@ export class MetricsTracker {
    */
   async getHistoricalData(): Promise<any[]> {
     try {
-      const db = await getDb()
       const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
-      const data = await db
-        .collection('daily_metrics')
-        .find({ date: { $gte: last7Days } })
-        .sort({ date: 1 })
-        .toArray()
+      // Get raw API usage data
+      const apiData = await prisma.apiUsage.findMany({
+        where: {
+          timestamp: { gte: last7Days },
+        },
+        select: {
+          timestamp: true,
+          responseTime: true,
+          statusCode: true,
+        },
+      })
 
-      return data.map((d: any) => ({
-        date: d.date.toISOString(),
-        uptime: d.uptime || 99.9,
-        requests: d.totalRequests || 0,
-        avgResponseTime: d.avgResponseTime || 0,
-      }))
+      // Aggregate by day
+      const dailyMap = new Map<string, {
+        totalRequests: number
+        totalResponseTime: number
+        errorCount: number
+      }>()
+
+      for (const record of apiData) {
+        const dateKey = record.timestamp.toISOString().split('T')[0]
+
+        if (!dailyMap.has(dateKey)) {
+          dailyMap.set(dateKey, {
+            totalRequests: 0,
+            totalResponseTime: 0,
+            errorCount: 0,
+          })
+        }
+
+        const stats = dailyMap.get(dateKey)!
+        stats.totalRequests += 1
+        stats.totalResponseTime += record.responseTime
+        if (record.statusCode >= 400) stats.errorCount += 1
+      }
+
+      // Convert to array
+      return Array.from(dailyMap.entries())
+        .map(([date, stats]) => ({
+          date: new Date(date).toISOString(),
+          uptime: stats.totalRequests > 0 
+            ? Math.round((1 - stats.errorCount / stats.totalRequests) * 100 * 10) / 10 
+            : 99.9,
+          requests: stats.totalRequests,
+          avgResponseTime: stats.totalRequests > 0 
+            ? Math.round(stats.totalResponseTime / stats.totalRequests) 
+            : 0,
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     } catch (error) {
       console.error('Error getting historical data:', error)
       return []
@@ -316,119 +451,53 @@ export class MetricsTracker {
    */
   async cleanupSessions(): Promise<void> {
     try {
-      const db = await getDb()
       const cutoff = new Date(Date.now() - this.sessionTimeout)
 
-      await db.collection('user_sessions').updateMany(
-        {
-          lastActivity: { $lt: cutoff },
+      await prisma.session.updateMany({
+        where: {
+          lastActivity: { lt: cutoff },
           isActive: true,
         },
-        {
-          $set: { isActive: false },
+        data: {
+          isActive: false,
+        },
+      })
+
+      // Also clean up old cache entries
+      for (const [sessionId, data] of this.sessionCache.entries()) {
+        if (data.lastActivity < cutoff) {
+          this.sessionCache.delete(sessionId)
         }
-      )
+      }
     } catch (error) {
       console.error('Error cleaning up sessions:', error)
     }
   }
 
   /**
-   * Update hourly metrics aggregate
-   */
-  private async updateHourlyMetrics(
-    timestamp: Date,
-    responseTime: number,
-    isError: boolean
-  ): Promise<void> {
-    try {
-      const db = await getDb()
-      const hourKey = new Date(timestamp)
-      hourKey.setMinutes(0, 0, 0)
-
-      await db.collection('hourly_metrics').updateOne(
-        { hour: hourKey },
-        {
-          $inc: {
-            totalRequests: 1,
-            totalResponseTime: responseTime,
-            errorCount: isError ? 1 : 0,
-          },
-          $set: {
-            lastUpdated: timestamp,
-          },
-        },
-        { upsert: true }
-      )
-    } catch (error) {
-      console.error('Error updating hourly metrics:', error)
-    }
-  }
-
-  /**
-   * Update daily metrics aggregate
+   * Update daily metrics aggregate (called by cron job)
    */
   async updateDailyMetrics(): Promise<void> {
-    try {
-      const db = await getDb()
-      const today = this.getDateKey(new Date())
-      const stats = await this.getApiStats(24 * 60 * 60 * 1000)
-
-      await db.collection('daily_metrics').updateOne(
-        { date: new Date(today) },
-        {
-          $set: {
-            totalRequests: stats.totalRequests,
-            avgResponseTime: stats.avgResponseTime,
-            errorRate: stats.errorRate,
-            uptime: stats.successRate,
-            lastUpdated: new Date(),
-          },
-        },
-        { upsert: true }
-      )
-    } catch (error) {
-      console.error('Error updating daily metrics:', error)
-    }
+    // Stats are calculated on-demand from raw data
+    // No need to maintain separate daily_metrics collection
+    console.log('Daily metrics calculated on-demand from raw data')
   }
 
   /**
-   * Get date key for grouping (YYYY-MM-DD)
-   */
-  private getDateKey(date: Date): string {
-    return date.toISOString().split('T')[0]
-  }
-
-  /**
-   * Initialize database indexes
+   * Initialize (no-op for Prisma - indexes are in schema)
    */
   async initializeIndexes(): Promise<void> {
-    try {
-      const db = await getDb()
+    console.log('✅ Metrics indexes managed by Prisma schema')
+  }
 
-      // User sessions indexes
-      await db.collection('user_sessions').createIndex({ sessionId: 1 }, { unique: true })
-      await db.collection('user_sessions').createIndex({ lastActivity: 1 })
-      await db.collection('user_sessions').createIndex({ isActive: 1 })
-
-      // Agent metrics indexes
-      await db.collection('agent_metrics').createIndex({ agentName: 1, date: 1 }, { unique: true })
-      await db.collection('agent_metrics').createIndex({ date: 1 })
-
-      // API metrics indexes
-      await db.collection('api_metrics').createIndex({ timestamp: 1 })
-      await db.collection('api_metrics').createIndex({ endpoint: 1, timestamp: 1 })
-
-      // Hourly metrics indexes
-      await db.collection('hourly_metrics').createIndex({ hour: 1 }, { unique: true })
-
-      // Daily metrics indexes
-      await db.collection('daily_metrics').createIndex({ date: 1 }, { unique: true })
-
-      console.log('✅ Metrics indexes initialized')
-    } catch (error) {
-      console.error('Error initializing indexes:', error)
+  /**
+   * Cleanup on shutdown
+   */
+  async shutdown(): Promise<void> {
+    if (this.flushInterval) {
+      clearInterval(this.flushInterval)
     }
+    await this.flushApiMetrics()
   }
 }
 

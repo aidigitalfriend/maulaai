@@ -1,7 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-// In-memory storage for gamification data (in production, use MongoDB)
+// In-memory storage for gamification data (in production, use PostgreSQL via Prisma)
 const gamificationData = new Map();
 
 // GET /api/gamification/metrics/:userId - Get user metrics

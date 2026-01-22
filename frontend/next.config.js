@@ -20,7 +20,7 @@ const nextConfig = {
   },
 
   // Move server external packages to correct location
-  serverExternalPackages: ['mongoose', 'mongodb'],
+  serverExternalPackages: [],
 
   // Enable turbopack for builds
   turbopack: {},
@@ -68,7 +68,7 @@ const nextConfig = {
           },
           // Separate heavy libraries
           heavy: {
-            test: /[\\/]node_modules[\\/](mongodb|mongoose|stripe|axios)[\\/]/,
+            test: /[\\/]node_modules[\\/](stripe|axios|@prisma\/client)[\\/]/,
             name: 'heavy-libs',
             chunks: 'async', // Load asynchronously
             priority: 5,
@@ -96,11 +96,10 @@ const nextConfig = {
     };
 
     if (isServer) {
-      // Externalize mongoose and other native modules for serverless
+      // Externalize native modules for serverless
       config.externals = config.externals || [];
       config.externals.push({
-        mongoose: 'commonjs mongoose',
-        mongodb: 'commonjs mongodb',
+        // Add any native modules here if needed
       });
     }
 

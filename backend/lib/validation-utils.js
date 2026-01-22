@@ -1,6 +1,6 @@
 /**
  * Validation Utilities
- * Replaces mongoose.Types.ObjectId validation for PostgreSQL/Prisma
+ * For PostgreSQL/Prisma ID validation (UUID, CUID formats)
  */
 
 /**
@@ -16,7 +16,7 @@ export function isValidUUID(id) {
 
 /**
  * Validate if a string is a valid ID (UUID, CUID, or simple string ID)
- * This replaces mongoose.Types.ObjectId.isValid() for Prisma
+ * Used for Prisma ID validation
  * @param {string} id - ID to validate
  * @returns {boolean}
  */
@@ -34,7 +34,7 @@ export function isValidId(id) {
   // Accept CUIDs (start with 'c' and are 25 chars)
   if (/^c[a-z0-9]{24}$/i.test(id)) return true;
   
-  // Accept MongoDB ObjectIds (24 hex chars) - for backwards compatibility during migration
+  // Accept MongoDB ObjectIds (24 hex chars) - kept for backwards compatibility
   if (/^[a-f0-9]{24}$/i.test(id)) return true;
   
   // Accept other reasonable string IDs (alphanumeric, dashes, underscores, 1-64 chars)

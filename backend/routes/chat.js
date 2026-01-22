@@ -14,6 +14,12 @@ import ChatCanvasHistory from '../models/ChatCanvasHistory.js';
 
 const router = express.Router();
 
+// Custom validator for Prisma IDs
+const isPrismaId = (value) => {
+  if (!value) return true; // Optional fields
+  return isValidId(value);
+};
+
 // ============================================
 // MIDDLEWARE
 // ============================================
@@ -445,7 +451,7 @@ router.put(
     body('fontSize').optional().isIn(['small', 'medium', 'large']),
     body('notifications').optional().isObject(),
     body('autoSave').optional().isBoolean(),
-    body('defaultAgent').optional().isMongoId(),
+    body('defaultAgent').optional().custom(isPrismaId).withMessage('Invalid agent ID'),
     body('quickActions').optional().isObject(),
     body('privacy').optional().isObject(),
     body('accessibility').optional().isObject(),
@@ -512,7 +518,7 @@ router.post(
         'technical',
       ]),
     body('messageId').optional().isString(),
-    body('agentId').optional().isMongoId(),
+    body('agentId').optional().custom(isPrismaId).withMessage('Invalid agent ID'),
   ],
   validateRequest,
   async (req, res) => {

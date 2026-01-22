@@ -5,13 +5,27 @@
 
 import { body, param, query } from 'express-validator';
 
+// Custom validator for Prisma IDs (CUID, UUID, or legacy MongoDB ObjectIds)
+const isValidPrismaId = (value) => {
+  if (!value || typeof value !== 'string') return false;
+  // Accept UUIDs
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) return true;
+  // Accept CUIDs (start with 'c' and are 25 chars)
+  if (/^c[a-z0-9]{24}$/i.test(value)) return true;
+  // Accept legacy ObjectIds (24 hex chars) for backwards compatibility
+  if (/^[a-f0-9]{24}$/i.test(value)) return true;
+  // Accept other reasonable string IDs
+  if (/^[a-zA-Z0-9_-]{1,64}$/.test(value)) return true;
+  return false;
+};
+
 // ============================================
 // COMMON VALIDATION RULES
 // ============================================
 
 export const commonValidation = {
-  // ID validation
-  id: param('id').isMongoId().withMessage('Invalid ID format'),
+  // ID validation (works with CUID, UUID, or legacy ObjectIds)
+  id: param('id').custom(isValidPrismaId).withMessage('Invalid ID format'),
 
   // Pagination
   pagination: [
@@ -189,7 +203,7 @@ export const analyticsValidation = {
     body('event')
       .isLength({ min: 1, max: 100 })
       .withMessage('Event name required (1-100 chars)'),
-    body('userId').optional().isMongoId().withMessage('Invalid user ID'),
+    body('userId').optional().custom(isValidPrismaId).withMessage('Invalid user ID'),
     body('sessionId')
       .optional()
       .isLength({ min: 1, max: 100 })
@@ -209,7 +223,7 @@ export const analyticsValidation = {
       .optional()
       .isLength({ min: 1, max: 100 })
       .withMessage('Event name max 100 chars'),
-    query('userId').optional().isMongoId().withMessage('Invalid user ID'),
+    query('userId').optional().custom(isValidPrismaId).withMessage('Invalid user ID'),
     query('startDate').optional().isISO8601().withMessage('Invalid start date'),
     query('endDate').optional().isISO8601().withMessage('Invalid end date'),
     ...commonValidation.pagination,
@@ -265,7 +279,7 @@ export const communityValidation = {
       .withMessage('Comment required (max 2k chars)'),
     body('parentId')
       .optional()
-      .isMongoId()
+      .custom(isValidPrismaId)
       .withMessage('Invalid parent comment ID'),
   ],
 };

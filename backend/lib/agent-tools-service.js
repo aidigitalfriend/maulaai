@@ -1067,7 +1067,7 @@ export async function createFile(filename, content, folder = '', userId = 'defau
 }
 
 /**
- * Read file contents - FROM MONGODB
+ * Read file contents - FROM DATABASE
  */
 export async function readFile(filename, userId = 'default') {
   try {
@@ -1140,7 +1140,7 @@ export async function readFile(filename, userId = 'default') {
 }
 
 /**
- * Modify an existing file - IN MONGODB
+ * Modify an existing file - IN DATABASE
  */
 export async function modifyFile(filename, content, mode = 'replace', userId = 'default') {
   try {
@@ -1212,7 +1212,7 @@ export async function modifyFile(filename, content, mode = 'replace', userId = '
 }
 
 /**
- * List files in a directory - FROM MONGODB
+ * List files in a directory - FROM DATABASE
  */
 export async function listFiles(folder = '', userId = 'default') {
   try {
@@ -1276,7 +1276,7 @@ export async function listFiles(folder = '', userId = 'default') {
 }
 
 /**
- * Delete a file - SOFT DELETE IN MONGODB + DELETE FROM S3
+ * Delete a file - SOFT DELETE IN DATABASE + DELETE FROM S3
  */
 export async function deleteFile(filename, userId = 'default') {
   try {
@@ -3077,7 +3077,7 @@ export async function semanticSearch(query, collectionName = 'agent_memories', l
       // Fallback: search in Database using text search
       const AgentMemory = (await import('../models/AgentMemory.js')).default;
       
-      const mongoResults = await AgentMemory.find({
+      const dbResults = await AgentMemory.find({
         userId,
         $text: { $search: query },
       })
@@ -3088,12 +3088,12 @@ export async function semanticSearch(query, collectionName = 'agent_memories', l
         success: true,
         source: 'database_text',
         query,
-        results: mongoResults.map(r => ({
+        results: dbResults.map(r => ({
           key: r.key,
           content: r.content?.slice(0, 200),
           tags: r.tags,
         })),
-        message: `Found ${mongoResults.length} results via text search (Qdrant unavailable)`,
+        message: `Found ${dbResults.length} results via text search (Qdrant unavailable)`,
       };
     }
   } catch (error) {
