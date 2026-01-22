@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Verify request using HttpOnly session_id cookie.
+ * Verify request using HttpOnly session cookie.
  * This checks if the session cookie exists - actual validation happens on backend.
+ * Supports both 'session_id' and 'sessionId' cookie names for compatibility.
  */
 export function verifyRequest(request: NextRequest) {
-  // Check for session_id cookie (HttpOnly session-based auth)
-  const sessionId = request.cookies.get('session_id')?.value;
+  // Check for session cookie (HttpOnly session-based auth)
+  // Support both naming conventions for compatibility
+  const sessionId = request.cookies.get('session_id')?.value 
+    || request.cookies.get('sessionId')?.value;
 
   if (!sessionId) {
     return { ok: false, error: 'No session found' };
@@ -21,7 +24,8 @@ export function verifyRequest(request: NextRequest) {
  * Use this when you need to get user data from the session.
  */
 export async function verifyRequestAsync(request: NextRequest) {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = request.cookies.get('session_id')?.value
+    || request.cookies.get('sessionId')?.value;
 
   if (!sessionId) {
     return { ok: false, error: 'No session found' };
