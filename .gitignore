@@ -388,9 +388,11 @@ frontend/public/uploads/
 **/email-logs/
 **/sendgrid-logs/
 
-# Session storage
+# Session storage (except API routes)
 sessions/
 **/sessions/
+!frontend/app/api/**/sessions/
+!frontend/app/api/**/sessions/**
 
 # Analytics data
 **/analytics-data/
