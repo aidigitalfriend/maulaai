@@ -77,10 +77,33 @@ model User {
   userEvents           UserEvent[]
   apiUsages            ApiUsage[]
   chatInteractions     ChatAnalyticsInteraction[]
+  security             UserSecurity?
 
   @@index([email])
   @@index([sessionId])
   @@index([resetPasswordToken])
+}
+
+// User Security - Extended security settings
+model UserSecurity {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  twoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret      String?
+  tempTwoFactorSecret  String?
+  backupCodes          String[]  @default([])
+  tempBackupCodes      String[]  @default([])
+  trustedDevices       Json      @default("[]")
+  loginHistory         Json      @default("[]")
+  lastPasswordChange   DateTime?
+  passwordHistory      String[]  @default([])
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relation
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_security")
 }
 
 enum AuthMethod {
