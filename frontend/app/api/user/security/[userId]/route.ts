@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-const MAX_TRUSTED_DEVICES = 10;
-const MAX_LOGIN_HISTORY = 25;
-const MAX_ACTIVE_SESSIONS = 10;
+export const dynamic = 'force-dynamic';
 
 function detectDeviceName(userAgent: string) {
   if (userAgent.includes('iPhone')) return 'iPhone';
@@ -37,8 +35,6 @@ function getRequestIp(request: NextRequest): string {
     'x-forwarded-for',
     'x-real-ip',
     'cf-connecting-ip',
-    'x-vercel-forwarded-for',
-    'x-vercel-ip',
   ];
 
   for (const header of prioritizedHeaders) {
@@ -48,170 +44,36 @@ function getRequestIp(request: NextRequest): string {
     }
   }
 
-  return (request as any).ip || 'unknown';
+  return 'unknown';
 }
 
-function getLocationFromHeaders(request: NextRequest) {
-  const city =
-    request.headers.get('cf-ipcity') ||
-    request.headers.get('x-vercel-ip-city') ||
-    '';
-  const country =
-    request.headers.get('cf-ipcountry') ||
-    request.headers.get('x-vercel-ip-country') ||
-    '';
-
-  if (city || country) {
-    return `${city ? `${city}, ` : ''}${country}`.trim();
-  }
-
-  return 'Current Session';
-}
-
-function buildDeviceMetadata(userAgent: string) {
-  return {
-    name: detectDeviceName(userAgent),
-    type: detectDeviceType(userAgent),
-    browser: detectBrowser(userAgent),
-  };
-}
-
-function updateSecurityTracking(
-  userSecurity: Record<string, any>,
-  context: {
-    userAgent: string;
-    userIP: string;
-    location: string;
-    sessionId: string;
-    sessionUser: any;
-  }
-) {
-  const now = new Date();
-  const nowIso = now.toISOString();
-  const { name, type, browser } = buildDeviceMetadata(context.userAgent);
-
-  let trustedDevices = Array.isArray(userSecurity?.trustedDevices)
-    ? [...userSecurity.trustedDevices]
-    : [];
-  trustedDevices = trustedDevices.map((device) => ({
-    ...device,
-    current: false,
-  }));
-
-  const existingDeviceIndex = trustedDevices.findIndex(
-    (device) =>
-      device.name === name && device.browser === browser && device.type === type
-  );
-
-  const updatedDevice = {
-    id:
-      existingDeviceIndex >= 0
-        ? trustedDevices[existingDeviceIndex].id
-        : `device-${Date.now()}`,
-    name,
-    type,
-    lastSeen: nowIso,
-    location: context.location,
-    browser,
-    current: true,
-    ipAddress: context.userIP,
-  };
-
-  if (existingDeviceIndex >= 0) {
-    trustedDevices[existingDeviceIndex] = updatedDevice;
-  } else {
-    trustedDevices = [updatedDevice, ...trustedDevices].slice(
-      0,
-      MAX_TRUSTED_DEVICES
-    );
-  }
-
-  let loginHistory = Array.isArray(userSecurity?.loginHistory)
-    ? [...userSecurity.loginHistory]
-    : [];
-  const lastEntry = loginHistory[0];
-  const isDuplicate = lastEntry
-    ? (() => {
-        const lastDate = new Date(lastEntry.date || lastEntry.timestamp || 0);
-        return (
-          lastEntry.ip === context.userIP &&
-          Math.abs(now.getTime() - lastDate.getTime()) < 60 * 1000
-        );
-      })()
-    : false;
-
-  const loginEntry = {
-    id: `login-${Date.now()}`,
-    date: nowIso,
-    device: `${browser} on ${name}`,
-    location: context.location,
-    status: 'success',
-    ip: context.userIP,
-    userAgent: context.userAgent,
-  };
-
-  if (!isDuplicate) {
-    loginHistory = [loginEntry, ...loginHistory].slice(0, MAX_LOGIN_HISTORY);
-  }
-
-  let activeSessions = Array.isArray(userSecurity?.activeSessions)
-    ? [...userSecurity.activeSessions]
-    : [];
-  activeSessions = activeSessions.map((session) => ({
-    ...session,
-    isCurrent: false,
-  }));
-
-  const activeSessionRecord = {
-    id: context.sessionId,
-    createdAt:
-      context.sessionUser.lastLoginAt || context.sessionUser.createdAt || now,
-    lastActivity: now,
-    ipAddress: context.userIP,
-    userAgent: context.userAgent,
-    isCurrent: true,
-  };
-
-  const existingSessionIndex = activeSessions.findIndex(
-    (session) => session.id === context.sessionId
-  );
-
-  if (existingSessionIndex >= 0) {
-    activeSessions[existingSessionIndex] = activeSessionRecord;
-  } else {
-    activeSessions = [activeSessionRecord, ...activeSessions].slice(
-      0,
-      MAX_ACTIVE_SESSIONS
-    );
-  }
-
-  return { trustedDevices, loginHistory, activeSessions };
-}
-
-function calculateSecurityScore(userSecurity: any) {
+function calculateSecurityScore(user: any) {
   let score = 50;
 
-  if (userSecurity.twoFactorEnabled) score += 25;
+  // 2FA enabled: +25
+  if (user.twoFactorEnabled) score += 25;
 
-  const passwordChangedAt = userSecurity.passwordLastChanged
-    ? new Date(userSecurity.passwordLastChanged)
-    : new Date();
-  const passwordAge = Date.now() - passwordChangedAt.getTime();
+  // Password age check
+  const updatedAt = user.updatedAt ? new Date(user.updatedAt) : new Date();
+  const passwordAge = Date.now() - updatedAt.getTime();
   const daysOld = passwordAge / (1000 * 60 * 60 * 24);
   if (daysOld < 90) score += 15;
   else if (daysOld < 180) score += 10;
   else if (daysOld < 365) score += 5;
 
-  if ((userSecurity.failedLoginAttempts || 0) === 0) score += 5;
-  if (!userSecurity.accountLocked) score += 5;
+  // No failed login attempts: +5
+  if ((user.loginAttempts || 0) === 0) score += 5;
+  
+  // Not locked: +5
+  if (!user.lockUntil || new Date(user.lockUntil) < new Date()) score += 5;
 
   return Math.min(100, Math.max(0, score));
 }
 
-function generateSecurityRecommendations(userSecurity: any) {
+function generateSecurityRecommendations(user: any) {
   const recommendations: any[] = [];
 
-  if (!userSecurity.twoFactorEnabled) {
+  if (!user.twoFactorEnabled) {
     recommendations.push({
       id: 1,
       type: 'warning',
@@ -221,10 +83,8 @@ function generateSecurityRecommendations(userSecurity: any) {
     });
   }
 
-  const passwordChangedAt = userSecurity.passwordLastChanged
-    ? new Date(userSecurity.passwordLastChanged)
-    : new Date();
-  const passwordAge = Date.now() - passwordChangedAt.getTime();
+  const updatedAt = user.updatedAt ? new Date(user.updatedAt) : new Date();
+  const passwordAge = Date.now() - updatedAt.getTime();
   const daysOld = passwordAge / (1000 * 60 * 60 * 24);
   if (daysOld > 180) {
     recommendations.push({
@@ -236,7 +96,7 @@ function generateSecurityRecommendations(userSecurity: any) {
     });
   }
 
-  if ((userSecurity.failedLoginAttempts || 0) > 3) {
+  if ((user.loginAttempts || 0) > 3) {
     recommendations.push({
       id: 3,
       type: 'warning',
@@ -264,7 +124,8 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
@@ -275,6 +136,19 @@ export async function GET(
         sessionId,
         sessionExpiry: { gt: new Date() },
       },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+        authMethod: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLoginAt: true,
+        twoFactorEnabled: true,
+        backupCodes: true,
+        loginAttempts: true,
+        lockUntil: true,
+      },
     });
 
     if (!sessionUser) {
@@ -284,111 +158,32 @@ export async function GET(
       );
     }
 
-    const sessionUserId = sessionUser.id;
-
-    if (params.userId && params.userId !== sessionUserId) {
-      console.warn('Security access mismatch. Using session user.', {
-        sessionUserId,
-        requestedUserId: params.userId,
-      });
-    }
-
-    const targetUserId = sessionUserId;
-
-    let userSecurity = (await prisma.userSecurity.findUnique({
-      where: { userId: targetUserId },
-    })) as Record<string, any> | null;
-
     const userAgent = request.headers.get('user-agent') || 'Unknown Browser';
     const userIP = getRequestIp(request);
-    const location = getLocationFromHeaders(request);
 
-    if (!userSecurity) {
-      const currentDevice = {
-        id: `device-${Date.now()}`,
-        name: detectDeviceName(userAgent),
-        type: detectDeviceType(userAgent),
-        lastSeen: new Date().toISOString(),
-        location,
-        browser: detectBrowser(userAgent),
-        current: true,
-        ipAddress: userIP,
-      };
+    // Build current device info
+    const currentDevice = {
+      id: `device-${Date.now()}`,
+      name: detectDeviceName(userAgent),
+      type: detectDeviceType(userAgent),
+      lastSeen: new Date().toISOString(),
+      location: 'Current Session',
+      browser: detectBrowser(userAgent),
+      current: true,
+      ipAddress: userIP,
+    };
 
-      const currentLogin = {
-        timestamp: new Date(),
-        ipAddress: userIP,
-        userAgent,
-        success: true,
-        location,
-      };
-
-      const now = new Date();
-      const defaultSecurity: Record<string, any> = {
-        userId: targetUserId,
-        email: sessionUser.email,
-        passwordLastChanged: sessionUser.updatedAt || now,
-        twoFactorEnabled: sessionUser.twoFactorEnabled || false,
-        twoFactorSecret: sessionUser.twoFactorSecret || null,
-        backupCodes: (sessionUser.backupCodes as string[]) || [],
-        trustedDevices: [currentDevice],
-        loginHistory: [currentLogin],
-        activeSessions: [
-          {
-            id: 'current',
-            createdAt: sessionUser.lastLoginAt || sessionUser.createdAt,
-            lastActivity: now,
-            ipAddress: userIP,
-            userAgent,
-            isCurrent: true,
-          },
-        ],
-        securityQuestions: [],
-        accountLocked: false,
-        lockReason: null,
-        lockExpires: null,
-        failedLoginAttempts: 0,
-        lastFailedLogin: null,
-      };
-
-      userSecurity = await prisma.userSecurity.create({
-        data: defaultSecurity as any,
-      });
-    }
-
-    const trackingUpdates = updateSecurityTracking(userSecurity, {
+    // Build current session info
+    const currentSession = {
+      id: sessionId,
+      createdAt: sessionUser.lastLoginAt || sessionUser.createdAt,
+      lastActivity: new Date(),
+      ipAddress: userIP,
       userAgent,
-      userIP,
-      location,
-      sessionId,
-      sessionUser,
-    });
+      isCurrent: true,
+    };
 
-    const needsTrackingUpdate =
-      JSON.stringify(trackingUpdates.trustedDevices) !==
-        JSON.stringify(userSecurity.trustedDevices || []) ||
-      JSON.stringify(trackingUpdates.loginHistory) !==
-        JSON.stringify(userSecurity.loginHistory || []) ||
-      JSON.stringify(trackingUpdates.activeSessions) !==
-        JSON.stringify(userSecurity.activeSessions || []);
-
-    if (needsTrackingUpdate) {
-      await prisma.userSecurity.update({
-        where: { userId: targetUserId },
-        data: {
-          trustedDevices: trackingUpdates.trustedDevices,
-          loginHistory: trackingUpdates.loginHistory,
-          activeSessions: trackingUpdates.activeSessions,
-          updatedAt: new Date(),
-          lastLoginAt: new Date(),
-        },
-      });
-
-      userSecurity = {
-        ...userSecurity,
-        ...trackingUpdates,
-      };
-    }
+    const isLocked = sessionUser.lockUntil && new Date(sessionUser.lockUntil) > new Date();
 
     const securityData = {
       email: sessionUser.email,
@@ -396,25 +191,31 @@ export async function GET(
       authMethod: sessionUser.authMethod || 'password',
       lastLoginAt: sessionUser.lastLoginAt,
       accountCreatedAt: sessionUser.createdAt,
-      passwordLastChanged:
-        userSecurity?.passwordLastChanged || sessionUser.updatedAt,
-      twoFactorEnabled: userSecurity?.twoFactorEnabled || false,
-      twoFactorMethod: userSecurity?.twoFactorMethod || 'authenticator',
-      backupCodes: userSecurity?.backupCodes || [],
-      trustedDevices: userSecurity?.trustedDevices || [],
-      loginHistory: userSecurity?.loginHistory || [],
-      activeSessions: userSecurity?.activeSessions || [],
-      failedLoginAttempts: userSecurity?.failedLoginAttempts || 0,
-      accountLocked: userSecurity?.accountLocked || false,
-      securityScore: calculateSecurityScore(userSecurity || {}),
-      recommendations: generateSecurityRecommendations(userSecurity || {}),
+      passwordLastChanged: sessionUser.updatedAt,
+      twoFactorEnabled: sessionUser.twoFactorEnabled || false,
+      twoFactorMethod: 'authenticator',
+      backupCodes: sessionUser.backupCodes || [],
+      trustedDevices: [currentDevice],
+      loginHistory: [{
+        id: `login-${Date.now()}`,
+        date: sessionUser.lastLoginAt?.toISOString() || new Date().toISOString(),
+        device: `${detectBrowser(userAgent)} on ${detectDeviceName(userAgent)}`,
+        location: 'Current Session',
+        status: 'success',
+        ip: userIP,
+      }],
+      activeSessions: [currentSession],
+      failedLoginAttempts: sessionUser.loginAttempts || 0,
+      accountLocked: isLocked,
+      securityScore: calculateSecurityScore(sessionUser),
+      recommendations: generateSecurityRecommendations(sessionUser),
     };
 
     return NextResponse.json({ success: true, data: securityData });
   } catch (error) {
     console.error('Security fetch error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', error: String(error) },
       { status: 500 }
     );
   }
@@ -425,7 +226,8 @@ export async function POST(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
@@ -445,20 +247,19 @@ export async function POST(
       );
     }
 
-    const sessionUserId = sessionUser.id;
-
-    if (params.userId && params.userId !== sessionUserId) {
-      console.warn('Security action mismatch. Using session user.', {
-        sessionUserId,
-        requestedUserId: params.userId,
-      });
-    }
-
     const { action } = await request.json();
 
-    if (action === 'revoke_session' && sessionId) {
+    if (action === 'revoke_session') {
+      // Revoke the user's session
+      await prisma.user.update({
+        where: { id: sessionUser.id },
+        data: {
+          sessionId: null,
+          sessionExpiry: null,
+        },
+      });
       return NextResponse.json(
-        { message: 'Session revoked successfully' },
+        { success: true, message: 'Session revoked successfully' },
         { status: 200 }
       );
     }
@@ -474,7 +275,7 @@ export async function POST(
   } catch (error) {
     console.error('Security action error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', error: String(error) },
       { status: 500 }
     );
   }

@@ -4,15 +4,55 @@ import prisma from '@/lib/prisma';
 // Force dynamic rendering so we always hit the database
 export const dynamic = 'force-dynamic';
 
+const DEFAULT_PREFERENCES = {
+  theme: 'system',
+  language: 'en',
+  timezone: 'UTC',
+  dateFormat: 'MM/DD/YYYY',
+  timeFormat: '12h',
+  currency: 'USD',
+  notifications: {
+    email: {
+      enabled: true,
+      frequency: 'immediate',
+      types: ['security', 'billing', 'updates'],
+    },
+    push: {
+      enabled: true,
+      types: ['messages', 'reminders'],
+    },
+    sms: {
+      enabled: false,
+      types: [],
+    },
+  },
+  dashboard: {
+    defaultView: 'overview',
+    widgets: ['profile', 'security', 'rewards', 'analytics'],
+    layout: 'grid',
+  },
+  accessibility: {
+    highContrast: false,
+    largeText: false,
+    reduceMotion: false,
+    screenReader: false,
+  },
+  privacy: {
+    showOnlineStatus: true,
+    allowDataCollection: true,
+    shareUsageStats: false,
+  },
+  integrations: {},
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
-    const { userId } = params;
-
-    // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies.get('session_id')?.value;
+    // Get session ID from HttpOnly cookie (support both cookie names)
+    const sessionId = request.cookies.get('session_id')?.value || 
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
@@ -23,6 +63,11 @@ export async function GET(
         sessionId,
         sessionExpiry: { gt: new Date() },
       },
+      select: {
+        id: true,
+        preferences: true,
+        timezone: true,
+      },
     });
 
     if (!sessionUser) {
@@ -32,78 +77,19 @@ export async function GET(
       );
     }
 
-    const sessionUserId = sessionUser.id;
+    // Merge user preferences with defaults
+    const userPrefs = sessionUser.preferences as Record<string, any> || {};
+    const preferences = {
+      ...DEFAULT_PREFERENCES,
+      ...userPrefs,
+      timezone: sessionUser.timezone || DEFAULT_PREFERENCES.timezone,
+    };
 
-    if (userId && userId !== sessionUserId) {
-      console.warn('Preferences access mismatch. Defaulting to session user.', {
-        sessionUserId,
-        requestedUserId: userId,
-      });
-    }
-
-    const targetUserId = sessionUserId;
-
-    // Get user preferences from userPreference table
-    let preferences = await prisma.userPreference.findUnique({
-      where: { userId: targetUserId },
-    });
-
-    // If no preferences exist, create default
-    if (!preferences) {
-      const defaultPreferences = {
-        userId: targetUserId,
-        theme: 'system',
-        language: 'en',
-        timezone: 'UTC',
-        dateFormat: 'MM/DD/YYYY',
-        timeFormat: '12h',
-        currency: 'USD',
-        notifications: {
-          email: {
-            enabled: true,
-            frequency: 'immediate',
-            types: ['security', 'billing', 'updates'],
-          },
-          push: {
-            enabled: true,
-            types: ['messages', 'reminders'],
-          },
-          sms: {
-            enabled: false,
-            types: [],
-          },
-        },
-        dashboard: {
-          defaultView: 'overview',
-          widgets: ['profile', 'security', 'rewards', 'analytics'],
-          layout: 'grid',
-        },
-        accessibility: {
-          highContrast: false,
-          largeText: false,
-          reduceMotion: false,
-          screenReader: false,
-        },
-        privacy: {
-          showOnlineStatus: true,
-          allowDataCollection: true,
-          shareUsageStats: false,
-        },
-        integrations: {},
-      };
-
-      preferences = await prisma.userPreference.create({
-        data: defaultPreferences as any,
-      });
-    }
-
-    // Return preferences data
-    const { id, ...preferencesData } = preferences as any;
-    return NextResponse.json({ success: true, data: preferencesData });
+    return NextResponse.json({ success: true, data: preferences });
   } catch (error) {
-    console.error('Preferences error (Next API):', error);
+    console.error('Preferences error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', error: String(error) },
       { status: 500 }
     );
   }
@@ -114,11 +100,11 @@ export async function PUT(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const { userId } = params;
     const updateData = await request.json();
 
     // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = request.cookies.get('session_id')?.value ||
+                      request.cookies.get('sessionId')?.value;
 
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
@@ -138,16 +124,43 @@ export async function PUT(
       );
     }
 
-    const sessionUserId = sessionUser.id;
+    // Get current preferences
+    const currentPrefs = sessionUser.preferences as Record<string, any> || {};
+    
+    // Merge with update data
+    const updatedPrefs = {
+      ...currentPrefs,
+      ...updateData,
+    };
 
-    if (userId && userId !== sessionUserId) {
-      console.warn('Preferences update mismatch. Using session user.', {
-        sessionUserId,
-        requestedUserId: userId,
-      });
+    // Update timezone if provided
+    const updateFields: any = {
+      preferences: updatedPrefs,
+    };
+    
+    if (updateData.timezone) {
+      updateFields.timezone = updateData.timezone;
     }
 
-    const targetUserId = sessionUserId;
+    // Update user
+    await prisma.user.update({
+      where: { id: sessionUser.id },
+      data: updateFields,
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Preferences updated successfully',
+      data: { ...DEFAULT_PREFERENCES, ...updatedPrefs }
+    });
+  } catch (error) {
+    console.error('Preferences update error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error', error: String(error) },
+      { status: 500 }
+    );
+  }
+}
 
     // Validate and sanitize update data
     const allowedFields = [
