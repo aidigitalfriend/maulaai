@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 // Demo audio samples (royalty-free music URLs) for fallback
 const DEMO_AUDIO_SAMPLES: Record<string, string[]> = {
@@ -92,25 +91,13 @@ interface MusicGenerationRequest {
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  let experimentId = `exp_${Date.now()}_${Math.random()
-    .toString(36)
-    .substr(2, 9)}`;
+  const experimentId = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
-    const {
-      prompt,
-      genre,
-      mood,
-      duration = 10, // HuggingFace free tier works better with shorter durations
-    }: MusicGenerationRequest = await req.json();
+    const { prompt, genre, mood, duration = 10 }: MusicGenerationRequest = await req.json();
 
     if (!prompt) {
-      return NextResponse.json(
-        { error: 'Prompt is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
     // Enhance prompt with genre and mood
@@ -119,17 +106,15 @@ export async function POST(req: NextRequest) {
     if (mood) enhancedPrompt += `, ${mood} mood`;
 
     // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'music-generator',
-      input: {
-        prompt: enhancedPrompt,
-        settings: { genre, mood, duration },
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'music-generator',
+        input: { prompt: enhancedPrompt, settings: { genre, mood, duration } },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
     let output: string;
     let isDemo = false;
@@ -152,18 +137,15 @@ export async function POST(req: NextRequest) {
           },
           JSON.stringify({
             inputs: enhancedPrompt,
-            parameters: {
-              max_new_tokens: Math.min(duration * 50, 500), // ~10 tokens per second of audio
-            },
+            parameters: { max_new_tokens: Math.min(duration * 50, 500) },
           }),
-          15, // max attempts
-          4000 // delay between attempts (4 seconds)
+          15,
+          4000
         );
 
         // Convert to base64 data URL
         const base64Audio = Buffer.from(audioBuffer).toString('base64');
         output = `data:audio/wav;base64,${base64Audio}`;
-        
         console.log('HuggingFace MusicGen generation successful');
       } catch (hfError: any) {
         console.error('HuggingFace error:', hfError.message);
@@ -176,9 +158,9 @@ export async function POST(req: NextRequest) {
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
         output: {
           result: output,
           fileUrl: output,
@@ -187,8 +169,8 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         processingTime,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -198,30 +180,21 @@ export async function POST(req: NextRequest) {
       experimentId,
       isDemo,
       provider: isDemo ? 'demo' : provider,
-      ...(isDemo && { 
-        notice: 'Demo mode: Using sample audio. AI generation temporarily unavailable.' 
-      }),
+      ...(isDemo && { notice: 'Demo mode: Using sample audio. AI generation temporarily unavailable.' }),
     });
   } catch (error: any) {
     console.error('Music Generation Error:', error);
 
     // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
-          status: 'failed',
-          errorMessage: error.message,
-          completedAt: new Date(),
-        }
-      );
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: { status: 'failed', errorMessage: error.message, completedAt: new Date() },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate music' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to generate music' }, { status: 500 });
   }
 }

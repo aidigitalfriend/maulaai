@@ -1,30 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import mongoose from 'mongoose';
+import prisma from '@/lib/prisma';
 
 // Helper to authenticate user from session cookie
 async function authenticateUser(request: NextRequest) {
   const sessionId = request.cookies.get('session_id')?.value;
-
-  if (!sessionId) {
-    return null;
-  }
+  if (!sessionId) return null;
 
   try {
-    await dbConnect();
-    const db = mongoose.connection.db;
-
-    if (!db) {
-      return null;
-    }
-
-    // Session is stored directly on the user document (not a separate collection)
-    // Backend stores sessionId and sessionExpiry on user during login
-    const user = await db.collection('users').findOne({
-      sessionId: sessionId,
-      sessionExpiry: { $gt: new Date() },
+    const user = await prisma.user.findFirst({
+      where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
     });
-
     return user;
   } catch (error) {
     console.error('Auth error:', error);
@@ -36,145 +21,87 @@ async function authenticateUser(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await authenticateUser(request);
-
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
     const body = await request.json();
     const { conversationId, agentId, messages, summary, metrics } = body;
 
-    // Validate required fields
     if (!conversationId || typeof conversationId !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'conversationId is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'conversationId is required' }, { status: 400 });
     }
 
     if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { success: false, error: 'messages array is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'messages array is required' }, { status: 400 });
     }
 
-    await dbConnect();
-    const db = mongoose.connection.db;
-
-    if (!db) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // Create interaction document
-    const interaction = {
-      conversationId,
-      userId: user._id,
-      agentId:
-        agentId && mongoose.Types.ObjectId.isValid(agentId)
-          ? new mongoose.Types.ObjectId(agentId)
-          : undefined,
-      messages: messages.map(
-        (msg: { role: string; content: string; timestamp?: number }) => ({
-          role: msg.role,
-          content: msg.content,
-          createdAt: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-        })
-      ),
-      summary,
-      metrics,
-      status: 'active',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Save to chatinteractions collection
-    const result = await db
-      .collection('chatinteractions')
-      .insertOne(interaction);
-
-    return NextResponse.json(
-      {
-        success: true,
-        interaction: {
-          id: result.insertedId,
-          conversationId,
-          messageCount: messages.length,
-          createdAt: interaction.createdAt,
-        },
+    // Save to ChatAnalyticsInteraction using correct schema fields
+    const interaction = await prisma.chatAnalyticsInteraction.create({
+      data: {
+        conversationId,
+        userId: user.id,
+        agentId: agentId || undefined,
+        messages: messages,  // JSON field stores all messages
+        turnCount: messages.length,
+        durationMs: metrics?.responseTime || 0,
+        totalTokens: metrics?.totalTokens || 0,
+        keywords: summary ? [summary] : [],
       },
-      { status: 201 }
-    );
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Interaction saved',
+      interactionId: interaction.id,
+    });
   } catch (error) {
-    console.error('Error saving chat interaction:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to save chat interaction' },
-      { status: 500 }
-    );
+    console.error('Save interaction error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to save interaction' }, { status: 500 });
   }
 }
 
-// GET /api/chat/interactions - Get user's chat interactions
+// GET /api/chat/interactions - Get user's chat history
 export async function GET(request: NextRequest) {
   try {
     const user = await authenticateUser(request);
-
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const conversationId = searchParams.get('conversationId');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const agentId = searchParams.get('agentId');
 
-    await dbConnect();
-    const db = mongoose.connection.db;
+    const where: any = { userId: user.id };
+    if (agentId) where.agentId = agentId;
 
-    if (!db) {
-      return NextResponse.json(
-        { success: false, error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // Build query
-    const query: Record<string, unknown> = { userId: user._id };
-    if (conversationId) {
-      query.conversationId = conversationId;
-    }
-
-    const interactions = await db
-      .collection('chatinteractions')
-      .find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
+    const [interactions, total] = await Promise.all([
+      prisma.chatAnalyticsInteraction.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.chatAnalyticsInteraction.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,
       interactions: interactions.map((i) => ({
-        id: i._id,
+        id: i.id,
         conversationId: i.conversationId,
         agentId: i.agentId,
-        messageCount: i.messages?.length || 0,
+        turnCount: i.turnCount,
+        durationMs: i.durationMs,
         createdAt: i.createdAt,
-        updatedAt: i.updatedAt,
+        messages: i.messages,
       })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    console.error('Error fetching chat interactions:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch chat interactions' },
-      { status: 500 }
-    );
+    console.error('Get interactions error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to get interactions' }, { status: 500 });
   }
 }

@@ -1174,28 +1174,72 @@ model UserFavorites {
 // LAB EXPERIMENTS
 // ============================================
 
-enum ExperimentStatus {
-  draft
-  running
-  paused
-  completed
-  archived
+model LabExperiment {
+  id             String   @id @default(cuid())
+  experimentId   String   @unique // External unique ID like exp_xxx
+  experimentType String   // music-generator, neural-art, battle-arena, etc.
+  userId         String?  // Optional user ID
+  input          Json?    // { prompt, settings, files }
+  output         Json?    // { result, fileUrl, metadata }
+  status         String   @default("pending") // pending, processing, completed, failed
+  errorMessage   String?
+  processingTime Int?     // milliseconds
+  tokensUsed     Int?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([experimentType])
+  @@index([userId])
+  @@index([status])
+  @@map("lab_experiments")
 }
 
-model LabExperiment {
-  id          String           @id @default(cuid())
-  name        String
-  description String?
-  hypothesis  String?
-  status      ExperimentStatus @default(draft)
-  startDate   DateTime?
-  endDate     DateTime?
-  config      Json?            @default("{}")
-  results     Json?
-  createdBy   String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+// ============================================
+// DEBATE ARENA
+// ============================================
 
-  @@index([createdBy])
-  @@map("lab_experiments")
+model Debate {
+  id         String   @id @default(cuid())
+  debateId   String   @unique
+  topic      String
+  status     String   @default("active") // active, completed, archived
+  agent1     Json     // { name, position, avatar, provider, response, responseTime, votes }
+  agent2     Json     // { name, position, avatar, provider, response, responseTime, votes }
+  totalVotes Int      @default(0)
+  viewers    Int      @default(0)
+  votedUsers String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("debates")
+}
+
+// ============================================
+// SUPPORT CHAT
+// ============================================
+
+model SupportChat {
+  id                String   @id @default(cuid())
+  chatId            String   @unique
+  userId            String?
+  userEmail         String
+  userName          String?
+  userContext       Json?    // { subscriptions, totalSpent, recentTransactions, openTickets }
+  messages          Json     @default("[]") // [{ id, role, content, timestamp }]
+  ticketCreated     Boolean  @default(false)
+  ticketId          String?
+  ticketNumber      Int?
+  resolved          Boolean  @default(false)
+  resolutionSummary String?
+  status            String   @default("active") // active, closed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  closedAt          DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@map("support_chats")
 }

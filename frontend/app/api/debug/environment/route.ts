@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
         warningCount: envStatus.warnings.length,
         // Only expose missing variable names, not values
         missingVars: envStatus.missing,
-        hasMongoUri: !!process.env.MONGODB_URI,
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
         hasJwtSecret: !!process.env.JWT_SECRET,
-        mongoUriFormat: process.env.MONGODB_URI
-          ? process.env.MONGODB_URI.startsWith('mongodb')
+        databaseUrlFormat: process.env.DATABASE_URL
+          ? process.env.DATABASE_URL.startsWith('postgres')
             ? 'valid'
             : 'invalid'
           : 'missing',

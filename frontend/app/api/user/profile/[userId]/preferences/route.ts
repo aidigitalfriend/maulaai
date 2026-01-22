@@ -1,107 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 
-export async function PATCH(
+export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
     const sessionId = request.cookies.get('session_id')?.value;
-
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    await dbConnect();
+    const user = await prisma.user.findFirst({
+      where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
+      select: { preferences: true },
+    });
 
-    const sessionUser = await User.findOne({
-      sessionId,
-      sessionExpiry: { $gt: new Date() },
-    }).select('-password');
-
-    if (!sessionUser) {
-      return NextResponse.json(
-        { message: 'Invalid or expired session' },
-        { status: 401 }
-      );
+    if (!user) {
+      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
     }
 
-    const sessionUserId = sessionUser._id.toString();
-
-    if (params.userId && params.userId !== sessionUserId) {
-      console.warn('Preferences update mismatch. Using session user.', {
-        sessionUserId,
-        requestedUserId: params.userId,
-      });
-    }
-
-    const targetUserId = sessionUserId;
-
-    const body = await request.json();
-    const preferences = body.preferences || {};
-
-    const allowedPreferenceKeys: Array<
-      | 'emailNotifications'
-      | 'smsNotifications'
-      | 'marketingEmails'
-      | 'productUpdates'
-    > = [
-      'emailNotifications',
-      'smsNotifications',
-      'marketingEmails',
-      'productUpdates',
-    ];
-
-    const sanitizedPreferences: Record<string, boolean> = {};
-
-    for (const key of allowedPreferenceKeys) {
-      const value = preferences[key];
-      if (typeof value === 'boolean') {
-        sanitizedPreferences[key] = value;
-      }
-    }
-
-    if (!Object.keys(sanitizedPreferences).length) {
-      return NextResponse.json(
-        { message: 'No valid preferences supplied' },
-        { status: 400 }
-      );
-    }
-
-    const mergedPreferences = {
-      ...(sessionUser.preferences || {}),
-      ...sanitizedPreferences,
+    const defaultPreferences = {
+      language: 'en',
+      theme: 'auto',
+      notifications: { email: true, push: true, sms: false },
     };
 
-    const updatedUser = await User.findByIdAndUpdate(
-      targetUserId,
-      {
-        $set: {
-          preferences: mergedPreferences,
-          updatedAt: new Date(),
-        },
-      },
-      { new: true, select: '-password' }
-    );
+    const preferences = user.preferences ? 
+      (typeof user.preferences === 'string' ? JSON.parse(user.preferences) : user.preferences) 
+      : defaultPreferences;
 
-    if (!updatedUser) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    return NextResponse.json({ success: true, data: preferences });
+  } catch (error) {
+    console.error('Profile preferences fetch error:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    const sessionId = request.cookies.get('session_id')?.value;
+    if (!sessionId) {
+      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Preferences updated successfully',
-        preferences: mergedPreferences,
-      },
-      { status: 200 }
-    );
+    const user = await prisma.user.findFirst({
+      where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
+    }
+
+    const body = await request.json();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { preferences: body },
+    });
+
+    return NextResponse.json({ success: true, message: 'Preferences updated' });
   } catch (error) {
     console.error('Profile preferences update error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,9 +1,11 @@
 /**
  * PRISMA CLIENT FOR FRONTEND API ROUTES
  * PostgreSQL Only - No MongoDB!
+ * Imports from backend's generated Prisma client
  */
 
-import { PrismaClient } from '@prisma/client';
+// Import from the backend's generated client
+import { PrismaClient } from '../../backend/node_modules/@prisma/client';
 
 // Create global Prisma client instance (avoids multiple connections in development)
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };

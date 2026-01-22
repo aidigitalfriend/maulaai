@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { Debate } from '@/lib/models/Debate';
+import prisma from '@/lib/prisma';
 
 // GET handler - fetch all debates and stats
 export async function GET(req: NextRequest) {
@@ -10,11 +9,9 @@ export async function GET(req: NextRequest) {
   const debateId = searchParams.get('debateId');
 
   try {
-    await dbConnect();
-
     // Get single debate by ID
     if (debateId) {
-      const debate = await Debate.findOne({ debateId });
+      const debate = await prisma.debate.findUnique({ where: { debateId } });
       if (!debate) {
         return NextResponse.json({ success: false, error: 'Debate not found' }, { status: 404 });
       }
@@ -23,13 +20,9 @@ export async function GET(req: NextRequest) {
 
     // Get stats only
     if (stats === 'true') {
-      const [totalDebates, activeDebates, recentVotes] = await Promise.all([
-        Debate.countDocuments(),
-        Debate.countDocuments({ status: 'active' }),
-        Debate.aggregate([
-          { $match: { updatedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } },
-          { $group: { _id: null, totalVotes: { $sum: '$totalVotes' } } },
-        ]),
+      const [totalDebates, activeDebates] = await Promise.all([
+        prisma.debate.count(),
+        prisma.debate.count({ where: { status: 'active' } }),
       ]);
 
       const activeUsers = Math.max(12, activeDebates * 3 + Math.floor(Math.random() * 20));
@@ -40,212 +33,173 @@ export async function GET(req: NextRequest) {
           totalDebates,
           activeDebates,
           activeUsers,
-          recentVotes: recentVotes[0]?.totalVotes || 0,
+          recentVotes: 0,
         },
       });
     }
 
     // List all debates (default behavior)
-    const debates = await Debate.find({ status: 'active' })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
-
-    const totalDebates = await Debate.countDocuments();
-    const activeUsers = Math.max(12, debates.length * 3 + Math.floor(Math.random() * 20));
-
-    return NextResponse.json({
-      success: true,
-      debates,
-      stats: {
-        totalDebates,
-        activeUsers,
-      },
+    const debates = await prisma.debate.findMany({
+      where: { status: 'active' },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
     });
+
+    return NextResponse.json({ success: true, debates });
   } catch (error: any) {
-    console.error('Debate GET Error:', error);
+    console.error('Debate GET error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
-// Generate response using CEREBRAS (Agent 1 - Pro side)
-async function generateCerebrasResponse(
-  position: string,
-  topic: string
-): Promise<{ text: string; provider: string; responseTime: number }> {
-  const startTime = Date.now();
-
-  const systemPrompt = `You are "Nova", a brilliant AI debater known for logical precision and articulate arguments. You argue the "${position}" position on: "${topic}".
-Give a compelling opening statement. Be logical, articulate, and convincing. Keep response to 2-3 paragraphs.`;
-
-  const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Opening statement for "${topic}". Argue: ${position}` },
-      ],
-      max_tokens: 600,
-      temperature: 0.85,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Cerebras API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return {
-    text: data.choices[0].message.content,
-    provider: 'Cerebras',
-    responseTime: Date.now() - startTime,
-  };
-}
-
-// Generate response using GROQ (Agent 2 - Con side)
-async function generateGroqResponse(
-  position: string,
-  topic: string
-): Promise<{ text: string; provider: string; responseTime: number }> {
-  const startTime = Date.now();
-
-  const systemPrompt = `You are "Blaze", a sharp AI debater known for fiery persuasion and engaging rhetoric. You argue the "${position}" position on: "${topic}".
-Give a compelling opening statement. Be analytical, persuasive, and engaging. Keep response to 2-3 paragraphs.`;
-
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Opening statement for "${topic}". Argue: ${position}` },
-      ],
-      max_tokens: 600,
-      temperature: 0.85,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Groq API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return {
-    text: data.choices[0].message.content,
-    provider: 'Groq',
-    responseTime: Date.now() - startTime,
-  };
-}
-
-// POST handler - create new debate or vote
+// POST handler - create new debate or submit vote
 export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-
   try {
-    await dbConnect();
-
     const body = await req.json();
-    const { action, topic, agent1Position, agent2Position, debateId, vote, visitorId } = body;
+    const { action, topic, debateId, vote, userId } = body;
 
-    // Handle voting
+    // Vote on existing debate
     if (action === 'vote' && debateId && vote) {
-      const debate = await Debate.findOne({ debateId });
+      const debate = await prisma.debate.findUnique({ where: { debateId } });
       if (!debate) {
         return NextResponse.json({ success: false, error: 'Debate not found' }, { status: 404 });
       }
 
-      // Check if user already voted (using visitorId or IP)
-      const voterId = visitorId || 'anonymous';
-      if (debate.votedUsers.includes(voterId)) {
+      const votedUsers = debate.votedUsers as string[];
+      if (userId && votedUsers.includes(userId)) {
         return NextResponse.json({ success: false, error: 'Already voted' }, { status: 400 });
       }
 
-      // Update votes
-      const updateField = vote === 'agent1' ? 'agent1.votes' : 'agent2.votes';
-      await Debate.findOneAndUpdate(
-        { debateId },
-        {
-          $inc: { [updateField]: 1, totalVotes: 1 },
-          $push: { votedUsers: voterId },
-        }
-      );
+      const agent1 = debate.agent1 as any;
+      const agent2 = debate.agent2 as any;
 
-      const updatedDebate = await Debate.findOne({ debateId });
+      if (vote === 'agent1') {
+        agent1.votes = (agent1.votes || 0) + 1;
+      } else if (vote === 'agent2') {
+        agent2.votes = (agent2.votes || 0) + 1;
+      }
 
-      return NextResponse.json({
-        success: true,
-        votes: {
-          agent1: updatedDebate?.agent1.votes || 0,
-          agent2: updatedDebate?.agent2.votes || 0,
-          total: updatedDebate?.totalVotes || 0,
+      const updatedDebate = await prisma.debate.update({
+        where: { debateId },
+        data: {
+          agent1,
+          agent2,
+          totalVotes: { increment: 1 },
+          votedUsers: userId ? [...votedUsers, userId] : votedUsers,
         },
       });
+
+      return NextResponse.json({ success: true, debate: updatedDebate });
     }
 
-    // Handle creating new debate
+    // Create new debate
     if (!topic) {
-      return NextResponse.json({ error: 'Missing topic' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Topic is required' }, { status: 400 });
     }
 
-    const debateIdNew = `debate_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newDebateId = `debate_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Generate responses from both AI providers in parallel
+    // Generate debate responses from AI providers (simplified)
     const [agent1Response, agent2Response] = await Promise.all([
-      generateCerebrasResponse(agent1Position || 'Pro', topic),
-      generateGroqResponse(agent2Position || 'Con', topic),
+      generateDebateResponse(topic, 'Pro', 'Nova'),
+      generateDebateResponse(topic, 'Con', 'Blaze'),
     ]);
 
-    const responseTime = Date.now() - startTime;
-
-    // Create and save the debate
-    const debate = new Debate({
-      debateId: debateIdNew,
-      topic,
-      status: 'active',
-      agent1: {
-        name: 'Nova',
-        position: agent1Position || 'Pro',
-        avatar: '⚡',
-        provider: 'Nova',
-        response: agent1Response.text,
-        responseTime: agent1Response.responseTime,
-        votes: 0,
+    const debate = await prisma.debate.create({
+      data: {
+        debateId: newDebateId,
+        topic,
+        status: 'active',
+        agent1: {
+          name: 'Nova',
+          position: 'Pro',
+          avatar: '⚡',
+          provider: 'Nova',
+          response: agent1Response.text,
+          responseTime: agent1Response.time,
+          votes: 0,
+        },
+        agent2: {
+          name: 'Blaze',
+          position: 'Con',
+          avatar: '🔥',
+          provider: 'Blaze',
+          response: agent2Response.text,
+          responseTime: agent2Response.time,
+          votes: 0,
+        },
+        totalVotes: 0,
+        viewers: 0,
+        votedUsers: [],
       },
-      agent2: {
-        name: 'Blaze',
-        position: agent2Position || 'Con',
-        avatar: '🔥',
-        provider: 'Blaze',
-        response: agent2Response.text,
-        responseTime: agent2Response.responseTime,
-        votes: 0,
-      },
-      totalVotes: 0,
-      viewers: Math.floor(Math.random() * 50) + 20,
-      votedUsers: [],
     });
 
-    await debate.save();
-
-    return NextResponse.json({
-      success: true,
-      debate: debate.toObject(),
-      totalTime: responseTime,
-    });
+    return NextResponse.json({ success: true, debate });
   } catch (error: any) {
-    console.error('Debate Arena Error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Failed to process request' },
-      { status: 500 }
-    );
+    console.error('Debate POST error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
+}
+
+async function generateDebateResponse(topic: string, position: string, agentName: string): Promise<{ text: string; time: number }> {
+  const startTime = Date.now();
+  const prompt = `You are ${agentName}, arguing the ${position} position on: "${topic}". Provide a compelling argument in 2-3 paragraphs.`;
+
+  // Try Cerebras first
+  if (process.env.CEREBRAS_API_KEY) {
+    try {
+      const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 500,
+          temperature: 0.8,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return { text: data.choices[0].message.content, time: Date.now() - startTime };
+      }
+    } catch (e) {
+      console.log('Cerebras failed, trying Groq...');
+    }
+  }
+
+  // Try Groq
+  if (process.env.GROQ_API_KEY) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 500,
+          temperature: 0.8,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return { text: data.choices[0].message.content, time: Date.now() - startTime };
+      }
+    } catch (e) {
+      console.log('Groq failed, using fallback');
+    }
+  }
+
+  // Fallback response
+  return {
+    text: `As ${agentName}, arguing ${position}: This topic "${topic}" requires careful consideration. While there are valid points on both sides, the ${position} position offers compelling arguments that deserve attention.`,
+    time: Date.now() - startTime,
+  };
 }

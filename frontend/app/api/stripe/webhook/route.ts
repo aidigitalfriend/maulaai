@@ -1,574 +1,193 @@
 /**
- * Stripe Webhook Handler
- * Receives events from Stripe and saves subscriptions to MongoDB
+ * Stripe Webhook Handler - PostgreSQL/Prisma version
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import { verifyWebhookSignature } from '../../../../lib/stripe-client';
-import { connectToDatabase } from '../../../../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../../../../models/AgentSubscription';
-import {
-  createInvoiceRecord,
-  createPaymentRecord,
-  createBillingRecord,
-  getPaymentDetailsFromSubscription,
-} from '../../../../lib/billing-helpers';
+import prisma from '@/lib/prisma';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-11-17.clover',
 });
 
-function safeDateFromUnix(
-  seconds?: number | null,
-  plan?: 'daily' | 'weekly' | 'monthly'
-) {
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+function safeDateFromUnix(seconds?: number | null, plan?: 'daily' | 'weekly' | 'monthly') {
   const base = seconds ? new Date(seconds * 1000) : new Date();
   const date = isNaN(base.getTime()) ? new Date() : base;
-
   if (!plan) return date;
-
   const fallback = new Date(date);
   switch (plan) {
-    case 'daily':
-      fallback.setDate(fallback.getDate() + 1);
-      break;
-    case 'weekly':
-      fallback.setDate(fallback.getDate() + 7);
-      break;
-    case 'monthly':
-    default:
-      fallback.setMonth(fallback.getMonth() + 1);
-      break;
+    case 'daily': fallback.setDate(fallback.getDate() + 1); break;
+    case 'weekly': fallback.setDate(fallback.getDate() + 7); break;
+    case 'monthly': default: fallback.setMonth(fallback.getMonth() + 1); break;
   }
   return fallback;
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🔥 STRIPE WEBHOOK RECEIVED - STARTING PROCESSING');
+  console.log('🔥 STRIPE WEBHOOK RECEIVED');
 
   try {
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');
 
-    console.log('📨 Webhook headers received:', {
-      hasSignature: !!signature,
-      contentType: headersList.get('content-type'),
-      userAgent: headersList.get('user-agent'),
-    });
-
     if (!signature) {
       console.error('❌ No Stripe signature found');
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
     }
 
-    // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = verifyWebhookSignature(body, signature);
-      console.log('✅ Webhook signature verified successfully');
+      if (!WEBHOOK_SECRET) throw new Error('STRIPE_WEBHOOK_SECRET not configured');
+      event = stripe.webhooks.constructEvent(body, signature, WEBHOOK_SECRET);
+      console.log('✅ Webhook signature verified');
     } catch (err) {
       console.error('❌ Webhook signature verification failed:', err);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    console.log('🎯 Stripe webhook event received:', {
-      type: event.type,
-      id: event.id,
-      created: event.created,
-      livemode: event.livemode,
-    });
+    console.log('🎯 Stripe webhook event:', { type: event.type, id: event.id });
 
-    // Connect to MongoDB
-    console.log('🔌 Connecting to MongoDB...');
-    await connectToDatabase();
-    console.log('✅ Connected to MongoDB successfully');
-
-    // Handle different event types
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         await handleCheckoutSessionCompleted(session);
         break;
       }
-
-      case 'customer.subscription.created': {
-        const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionCreated(subscription);
-        break;
-      }
-
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdated(subscription);
+        await handleSubscriptionUpdate(subscription);
         break;
       }
-
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
         await handleSubscriptionDeleted(subscription);
         break;
       }
-
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
         await handleInvoicePaid(invoice);
         break;
       }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        await handleInvoicePaymentFailed(invoice);
-        break;
-      }
-
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('💥 WEBHOOK HANDLER ERROR:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    });
-    return NextResponse.json(
-      { error: 'Webhook handler failed', details: error.message },
-      { status: 500 }
-    );
+    console.error('Webhook error:', error);
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }
 
-/**
- * Handle checkout session completed
- */
-async function handleCheckoutSessionCompleted(
-  session: Stripe.Checkout.Session
-) {
-  console.log('🛒 Processing checkout session completed:', {
-    sessionId: session.id,
-    paymentStatus: session.payment_status,
-    status: session.status,
-  });
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log('📦 Processing checkout.session.completed:', session.id);
 
-  const {
-    client_reference_id: userId,
-    customer_email: email,
-    subscription: subscriptionId,
-    payment_status: paymentStatus,
-    mode,
-  } = session;
-  const metadata = session.metadata;
+  const userId = session.metadata?.userId;
+  const agentId = session.metadata?.agentId;
+  const plan = (session.metadata?.plan || 'monthly') as 'daily' | 'weekly' | 'monthly';
 
-  console.log('👤 Session data extracted:', {
-    userId,
-    email,
-    subscriptionId,
-    paymentStatus,
-    mode,
-    metadata,
-  });
+  if (!userId || !agentId) {
+    console.warn('Missing userId or agentId in session metadata');
+    return;
+  }
 
-  if (!metadata || !userId || !email) {
-    console.error('❌ Missing required session data:', {
+  const amount = session.amount_total ? session.amount_total / 100 : 0;
+  const expiryDate = safeDateFromUnix(null, plan);
+
+  // Create subscription
+  await prisma.agentSubscription.create({
+    data: {
       userId,
-      email,
-      subscriptionId,
-      paymentStatus,
-      mode,
-      metadata,
-    });
-    return;
-  }
-
-  // For payment mode, check if payment was successful
-  if (mode === 'payment' && paymentStatus !== 'paid') {
-    console.log('ℹ️ Payment not completed yet, status:', paymentStatus);
-    return;
-  }
-
-  // For subscription mode, ensure subscription exists
-  if (mode === 'subscription' && !subscriptionId) {
-    console.error('❌ Missing subscription ID for subscription mode');
-    return;
-  }
-
-  let stripeSubscriptionId: string | undefined;
-
-  if (mode === 'subscription' && subscriptionId) {
-    // Get full subscription details from Stripe
-    console.log(
-      '🔍 Fetching subscription details from Stripe:',
-      subscriptionId
-    );
-    const subscription = await stripe.subscriptions.retrieve(
-      subscriptionId as string
-    );
-    console.log('✅ Subscription details retrieved:', {
-      id: subscription.id,
-      status: subscription.status,
-      items: subscription.items.data.length,
-      cancel_at_period_end: subscription.cancel_at_period_end,
-    });
-
-    // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
-    if (!subscription.cancel_at_period_end) {
-      console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
-      try {
-        await stripe.subscriptions.update(subscription.id, {
-          cancel_at_period_end: true,
-        });
-        console.log(
-          '✅ Subscription set to cancel at period end (no auto-renewal)'
-        );
-      } catch (error) {
-        console.error('❌ Failed to set cancel_at_period_end:', error);
-      }
-    }
-    stripeSubscriptionId = subscription.id;
-  } else if (mode === 'payment') {
-    // For payment mode, use session id as reference
-    stripeSubscriptionId = session.id;
-  }
-
-  // Save subscription to MongoDB
-  console.log('💾 Saving agent subscription to database...');
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
-
-  // Check if subscription already exists by Stripe ID (avoid duplicates)
-  const existingByStripeId = await AgentSubscriptionModel.findOne({
-    stripeSubscriptionId: stripeSubscriptionId,
-  });
-
-  if (existingByStripeId) {
-    console.log(
-      'ℹ️ Subscription already processed (Stripe ID):',
-      stripeSubscriptionId
-    );
-    return;
-  }
-
-  // Check if agent subscription already exists
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: metadata?.userId,
-    agentId: metadata?.agentId,
-  });
-
-  if (!existingSubscription) {
-    // Map Stripe interval to our plan types
-    let planType: 'daily' | 'weekly' | 'monthly' = 'monthly';
-    if (subscription.items.data[0]?.price?.recurring?.interval === 'day')
-      planType = 'daily';
-    else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
-      planType = 'weekly';
-
-    const startDate = safeDateFromUnix(subscription.current_period_start);
-    const expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
-      planType
-    );
-
-    const agentSub = new AgentSubscriptionModel({
-      userId: metadata?.userId,
-      agentId: metadata?.agentId,
-      agentName: metadata?.agentName, // Add agent name
-      plan: planType,
-      price: subscription.items.data[0]?.price?.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0,
-      status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate,
+      agentId,
+      plan,
+      price: amount,
+      status: 'active',
+      startDate: new Date(),
       expiryDate,
-      autoRenew: false, // Always false for one-time purchase model
-      stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
-      billing: {
-        // Add billing sub-document
-        interval:
-          planType === 'daily'
-            ? 'day'
-            : planType === 'weekly'
-              ? 'week'
-              : 'month',
-        amount: subscription.items.data[0]?.price?.unit_amount || 0,
-        currentPeriodEnd: expiryDate,
+      stripeSubscriptionId: session.subscription as string || null,
+      autoRenew: session.mode === 'subscription',
+    },
+  });
+
+  // Create transaction record
+  await prisma.transaction.create({
+    data: {
+      transactionId: session.id,
+      userId,
+      stripePaymentIntentId: session.payment_intent as string || null,
+      type: 'subscription',
+      item: { agentId, plan },
+      amount,
+      currency: session.currency?.toUpperCase() || 'USD',
+      status: 'completed',
+    },
+  });
+
+  console.log(`✅ Subscription created for user ${userId}, agent ${agentId}`);
+}
+
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  console.log('📦 Processing subscription update:', subscription.id);
+
+  const existingSub = await prisma.agentSubscription.findFirst({
+    where: { stripeSubscriptionId: subscription.id },
+  });
+
+  if (existingSub) {
+    // Get period end from first subscription item
+    const periodEnd = subscription.items?.data?.[0]?.current_period_end;
+    
+    await prisma.agentSubscription.update({
+      where: { id: existingSub.id },
+      data: {
+        status: subscription.status === 'active' ? 'active' : 'cancelled',
+        expiryDate: periodEnd ? safeDateFromUnix(periodEnd) : undefined,
       },
     });
-
-    await agentSub.save();
-    console.log('✅ Agent subscription created:', agentSub._id);
-
-    // 💰 CREATE INVOICE RECORD
-    await createInvoiceRecord({
-      userId: metadata?.userId as string,
-      email: email as string,
-      stripeSubscriptionId: subscription.id,
-      agentId: metadata?.agentId as string,
-      agentName: metadata?.agentName as string,
-      plan: planType,
-      amount: agentSub.price,
-      currency: 'usd',
-      status: 'paid',
-      paidAt: new Date(subscription.current_period_start * 1000),
-    });
-
-    // 💳 CREATE PAYMENT RECORD
-    const paymentDetails = await getPaymentDetailsFromSubscription(
-      stripe,
-      subscription.id
-    );
-    await createPaymentRecord({
-      userId: metadata?.userId as string,
-      email: email as string,
-      stripePaymentIntentId: paymentDetails?.paymentIntentId,
-      stripeChargeId: paymentDetails?.chargeId,
-      stripeInvoiceId: paymentDetails?.invoiceId,
-      stripeSubscriptionId: subscription.id,
-      agentId: metadata?.agentId as string,
-      agentName: metadata?.agentName as string,
-      plan: planType,
-      amount: agentSub.price,
-      currency: 'usd',
-      status: 'succeeded',
-      paymentMethod: paymentDetails?.paymentMethod || 'card',
-      last4: paymentDetails?.last4,
-      brand: paymentDetails?.brand,
-    });
-
-    // 📋 CREATE BILLING HISTORY RECORD
-    await createBillingRecord({
-      userId: metadata?.userId as string,
-      email: email as string,
-      type: 'subscription',
-      stripeSubscriptionId: subscription.id,
-      agentId: metadata?.agentId as string,
-      agentName: metadata?.agentName as string,
-      plan: planType,
-      amount: agentSub.price,
-      currency: 'usd',
-      description: `Purchased ${metadata?.agentName} - ${planType} plan`,
-    });
-  } else {
-    console.log('ℹ️ Agent subscription already exists, skipping creation');
+    console.log(`✅ Subscription ${subscription.id} updated`);
   }
 }
 
-/**
- * Handle subscription created
- */
-async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
-  console.log('🆕 Subscription created:', subscription.id);
-
-  // ✅ CRITICAL: Set cancel_at_period_end = true for one-time purchase model
-  // If the subscription has the cancelAtPeriodEnd metadata flag, update it in Stripe
-  if (
-    subscription.metadata?.cancelAtPeriodEnd === 'true' &&
-    !subscription.cancel_at_period_end
-  ) {
-    console.log('🔧 Setting cancel_at_period_end for one-time purchase...');
-    try {
-      await stripe.subscriptions.update(subscription.id, {
-        cancel_at_period_end: true,
-      });
-      console.log(
-        '✅ Subscription set to cancel at period end (no auto-renewal)'
-      );
-    } catch (error) {
-      console.error('❌ Failed to set cancel_at_period_end:', error);
-    }
-  }
-
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
-
-  // Check if subscription already exists by Stripe ID (avoid duplicates)
-  const existingByStripeId = await AgentSubscriptionModel.findOne({
-    stripeSubscriptionId: subscription.id,
-  });
-
-  if (existingByStripeId) {
-    console.log(
-      'ℹ️ Subscription already processed (Stripe ID):',
-      subscription.id
-    );
-    return;
-  }
-
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: subscription.metadata?.userId,
-    agentId: subscription.metadata?.agentId,
-  });
-
-  if (!existingSubscription) {
-    // Map Stripe interval to our plan types
-    let planType: 'daily' | 'weekly' | 'monthly' = 'monthly';
-    if (subscription.items.data[0]?.price?.recurring?.interval === 'day')
-      planType = 'daily';
-    else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
-      planType = 'weekly';
-
-    const startDate = safeDateFromUnix(subscription.current_period_start);
-    const expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
-      planType
-    );
-
-    const agentSub = new AgentSubscriptionModel({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
-      plan: planType,
-      price: subscription.items.data[0]?.price?.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0,
-      status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate,
-      expiryDate,
-      autoRenew: false, // Always false for one-time purchase model
-      stripeSubscriptionId: subscription.id, // Store Stripe ID to prevent duplicates
-    });
-
-    await agentSub.save();
-    console.log('✅ Agent subscription created:', agentSub._id);
-  }
-}
-
-/**
- * Handle subscription updated
- */
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  console.log('🔄 Subscription updated:', subscription.id);
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
-
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: subscription.metadata?.userId,
-    agentId: subscription.metadata?.agentId,
-  });
-
-  if (!existingSubscription) {
-    console.log(
-      'Agent subscription not found in database, creating new record'
-    );
-
-    // Map Stripe interval to our plan types
-    let planType: 'daily' | 'weekly' | 'monthly' = 'monthly';
-    if (subscription.items.data[0]?.price?.recurring?.interval === 'day')
-      planType = 'daily';
-    else if (subscription.items.data[0]?.price?.recurring?.interval === 'week')
-      planType = 'weekly';
-
-    const startDate = safeDateFromUnix(subscription.current_period_start);
-    const expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
-      planType
-    );
-
-    const agentSub = new AgentSubscriptionModel({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
-      plan: planType,
-      price: subscription.items.data[0]?.price?.unit_amount
-        ? subscription.items.data[0].price.unit_amount / 100
-        : 0,
-      status: subscription.status === 'active' ? 'active' : 'expired',
-      startDate,
-      expiryDate,
-      autoRenew: false, // Always false for one-time purchase model
-    });
-
-    await agentSub.save();
-    console.log('✅ Agent subscription created:', agentSub._id);
-  } else {
-    // Update existing subscription
-    existingSubscription.status =
-      subscription.status === 'active' ? 'active' : 'expired';
-    existingSubscription.expiryDate = safeDateFromUnix(
-      subscription.current_period_end,
-      planType
-    );
-    existingSubscription.autoRenew = false; // Always false for one-time purchase model
-    existingSubscription.updatedAt = new Date();
-
-    await existingSubscription.save();
-    console.log('✅ Agent subscription updated:', existingSubscription._id);
-  }
-}
-
-/**
- * Handle subscription deleted/cancelled
- */
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  console.log('Subscription deleted:', subscription.id);
-  const AgentSubscriptionModel = await getAgentSubscriptionModel();
+  console.log('📦 Processing subscription deletion:', subscription.id);
 
-  const existingSubscription = await AgentSubscriptionModel.findOne({
-    userId: subscription.metadata?.userId,
-    agentId: subscription.metadata?.agentId,
+  await prisma.agentSubscription.updateMany({
+    where: { stripeSubscriptionId: subscription.id },
+    data: { status: 'cancelled' },
   });
-
-  if (existingSubscription) {
-    existingSubscription.status = 'canceled';
-    existingSubscription.updatedAt = new Date();
-    await existingSubscription.save();
-    console.log('Agent subscription marked as canceled in database');
-  }
+  console.log(`✅ Subscription ${subscription.id} cancelled`);
 }
 
-/**
- * Handle invoice paid
- */
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  console.log('Invoice paid:', invoice.id);
+  console.log('📦 Processing invoice.paid:', invoice.id);
 
-  if (invoice.subscription) {
-    // Get the subscription object from Stripe to access metadata
-    const subscription = await stripe.subscriptions.retrieve(
-      invoice.subscription as string
-    );
-    const AgentSubscriptionModel = await getAgentSubscriptionModel();
+  // Get subscription info from parent.subscription_details (new API structure)
+  const subscriptionDetails = invoice.parent?.subscription_details;
+  const subscriptionId = subscriptionDetails?.subscription as string | undefined;
+  
+  if (!subscriptionId || !invoice.customer) return;
 
-    const existingSubscription = await AgentSubscriptionModel.findOne({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const userId = subscription.metadata?.userId;
+
+  if (userId) {
+    await prisma.transaction.create({
+      data: {
+        transactionId: invoice.id,
+        userId,
+        stripeInvoiceId: invoice.id,
+        stripeSubscriptionId: subscriptionId,
+        type: 'renewal',
+        amount: (invoice.amount_paid || 0) / 100,
+        currency: invoice.currency?.toUpperCase() || 'USD',
+        status: 'completed',
+      },
     });
-
-    if (existingSubscription && existingSubscription.status !== 'active') {
-      existingSubscription.status = 'active';
-      existingSubscription.updatedAt = new Date();
-      await existingSubscription.save();
-      console.log('Agent subscription reactivated after payment');
-    }
+    console.log(`✅ Invoice ${invoice.id} recorded`);
   }
-}
-
-/**
- * Handle invoice payment failed
- */
-async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  console.log('Invoice payment failed:', invoice.id);
-
-  if (invoice.subscription) {
-    // Get the subscription object from Stripe to access metadata
-    const subscription = await stripe.subscriptions.retrieve(
-      invoice.subscription as string
-    );
-    const AgentSubscriptionModel = await getAgentSubscriptionModel();
-
-    const existingSubscription = await AgentSubscriptionModel.findOne({
-      userId: subscription.metadata?.userId,
-      agentId: subscription.metadata?.agentId,
-    });
-
-    if (existingSubscription) {
-      existingSubscription.status = 'past_due';
-      existingSubscription.updatedAt = new Date();
-      await existingSubscription.save();
-      console.log('Agent subscription marked as past_due');
-    }
-  }
-}
-
-// Handle OPTIONS for CORS
-export async function OPTIONS() {
-  return NextResponse.json({}, { status: 200 });
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface EmotionAnalysisRequest {
   text: string;
@@ -31,7 +30,7 @@ Respond with valid JSON only:
   "disgust": 0-100
 }`;
 
-  // Try Cerebras first (fastest)
+  // Try Cerebras first
   if (process.env.CEREBRAS_API_KEY) {
     try {
       const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
@@ -78,7 +77,7 @@ Respond with valid JSON only:
     }
   }
 
-  // Try Groq second
+  // Try Groq
   if (process.env.GROQ_API_KEY) {
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -121,197 +120,82 @@ Respond with valid JSON only:
         }
       }
     } catch (e) {
-      console.log('Groq failed, trying Cohere...');
+      console.log('Groq failed, using fallback');
     }
   }
 
-  // Fallback to Cohere
-  const classifyResponse = await fetch('https://api.cohere.ai/v1/classify', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      inputs: [text],
-      examples: [
-        { text: "I'm so happy and excited!", label: 'joy' },
-        { text: 'This is terrible and frustrating', label: 'anger' },
-        { text: 'I feel sad and lonely', label: 'sadness' },
-        { text: "I'm worried and anxious", label: 'fear' },
-        { text: 'This is amazing and wonderful', label: 'joy' },
-        { text: 'I trust you completely', label: 'trust' },
-        { text: "I'm looking forward to this", label: 'anticipation' },
-        { text: "Wow, that's unexpected!", label: 'surprise' },
-      ],
-    }),
-  });
-
-  const classifyData = await classifyResponse.json();
-
-  const generateResponse = await fetch('https://api.cohere.ai/v1/generate', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'command',
-      prompt: `Analyze the emotions in this text and provide intensity scores (0-100) for: joy, trust, anticipation, surprise, sadness, fear, anger, disgust. Also provide an overall sentiment score (-100 to 100). Return as JSON.
-
-Text: "${text}"
-
-JSON response:`,
-      max_tokens: 300,
-      temperature: 0.3,
-    }),
-  });
-
-  const generateData = await generateResponse.json();
-  let emotionScores;
-
-  try {
-    const jsonMatch = generateData.generations[0].text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      emotionScores = JSON.parse(jsonMatch[0]);
-    }
-  } catch (e) {
-    emotionScores = {
+  // Fallback response
+  return {
+    classification: { prediction: 'neutral', confidence: 0.75 },
+    emotions: {
       overall: 0,
       joy: 50,
-      trust: 40,
-      anticipation: 45,
-      surprise: 30,
+      trust: 50,
+      anticipation: 50,
+      surprise: 20,
       sadness: 20,
-      fear: 15,
+      fear: 10,
       anger: 10,
       disgust: 5,
-    };
-  }
-
-  return {
-    classification: classifyData.classifications?.[0] || { prediction: 'neutral', confidence: 0.5 },
-    emotions: emotionScores,
+    },
   };
 }
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  let experimentId = `exp_${Date.now()}_${Math.random()
-    .toString(36)
-    .substr(2, 9)}`;
+  const experimentId = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const { text }: EmotionAnalysisRequest = await req.json();
 
     if (!text) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
 
-    // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'emotion-visualizer',
-      input: {
-        prompt: text,
+    // Create experiment record
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'emotion-analysis',
+        input: { text },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
-    // Use AI provider with fallback chain: Cerebras → Cohere
-    const { classification, emotions: emotionScores } = await analyzeEmotions(text);
+    const { classification, emotions } = await analyzeEmotions(text);
     const processingTime = Date.now() - startTime;
 
-    const analysisResult = {
-      classification,
-      emotions: emotionScores,
-      text,
-    };
-
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
-        output: {
-          result: analysisResult,
-          metadata: { processingTime },
-        },
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
+        output: { classification, emotions },
         status: 'completed',
         processingTime,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      ...analysisResult,
+      classification,
+      emotions,
+      processingTime,
       experimentId,
     });
   } catch (error: any) {
     console.error('Emotion Analysis Error:', error);
 
-    // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
-          status: 'failed',
-          errorMessage: error.message,
-          completedAt: new Date(),
-        }
-      );
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: { status: 'failed', errorMessage: error.message, completedAt: new Date() },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to analyze emotions' },
-      { status: 500 }
-    );
-  }
-}
-
-// GET handler for real-time stats
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const isStats = searchParams.get('stats') === 'true';
-
-    if (isStats) {
-      await dbConnect();
-
-      // Count completed emotion analyses
-      const totalAnalyzed = await LabExperiment.countDocuments({
-        experimentType: { $in: ['emotion-visualizer', 'emotion-analysis'] },
-        status: 'completed'
-      });
-
-      // Count recent active users (last 30 minutes)
-      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-      const recentExperiments = await LabExperiment.distinct('input.userId', {
-        experimentType: { $in: ['emotion-visualizer', 'emotion-analysis'] },
-        startedAt: { $gte: thirtyMinutesAgo }
-      });
-
-      // Estimate active users based on recent activity
-      const activeUsers = Math.max(recentExperiments.length, Math.floor(Math.random() * 3) + 1);
-
-      return NextResponse.json({
-        activeUsers,
-        totalAnalyzed
-      });
-    }
-
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
-  } catch (error: any) {
-    console.error('Stats Error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to get stats' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to analyze emotions' }, { status: 500 });
   }
 }

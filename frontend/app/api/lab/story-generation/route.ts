@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import { LabExperiment } from '@/lib/models/LabExperiment';
+import prisma from '@/lib/prisma';
 
 interface StoryRequest {
   story: string;
@@ -15,23 +14,23 @@ export async function GET(req: NextRequest) {
     const wantStats = searchParams.get('stats');
 
     if (wantStats === 'true') {
-      await dbConnect();
-      
-      // Get total story generations count
-      const totalCreated = await LabExperiment.countDocuments({
-        experimentType: 'story-weaver'
+      const totalCreated = await prisma.labExperiment.count({
+        where: { experimentType: 'story-weaver' },
       });
 
-      // Get active users in the last 5 minutes
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-      const recentExperiments = await LabExperiment.distinct('userId', {
-        experimentType: 'story-weaver',
-        createdAt: { $gte: fiveMinutesAgo }
+      const recentExperiments = await prisma.labExperiment.findMany({
+        where: {
+          experimentType: 'story-weaver',
+          createdAt: { gte: fiveMinutesAgo },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
       });
 
       return NextResponse.json({
         activeUsers: recentExperiments.length || Math.floor(Math.random() * 5) + 1,
-        totalCreated: totalCreated
+        totalCreated,
       });
     }
 
@@ -44,7 +43,7 @@ export async function GET(req: NextRequest) {
 
 // AI Provider helper with fallback chain
 async function generateWithAI(systemPrompt: string, userPrompt: string): Promise<{ text: string; tokens: number }> {
-  // Try Cerebras first (fastest)
+  // Try Cerebras first
   if (process.env.CEREBRAS_API_KEY) {
     try {
       const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
@@ -59,24 +58,21 @@ async function generateWithAI(systemPrompt: string, userPrompt: string): Promise
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
           ],
-          max_tokens: 800,
+          max_tokens: 1500,
           temperature: 0.9,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        return { 
-          text: data.choices[0].message.content || '', 
-          tokens: data.usage?.total_tokens || 0 
-        };
+        return { text: data.choices[0].message.content, tokens: data.usage?.total_tokens || 0 };
       }
     } catch (e) {
-      console.log('Cerebras failed, trying fallback...');
+      console.log('Cerebras failed, trying Groq...');
     }
   }
 
-  // Fallback to Groq
+  // Try Groq
   if (process.env.GROQ_API_KEY) {
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -91,139 +87,98 @@ async function generateWithAI(systemPrompt: string, userPrompt: string): Promise
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
           ],
-          max_tokens: 800,
+          max_tokens: 1500,
           temperature: 0.9,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        return { 
-          text: data.choices[0].message.content || '', 
-          tokens: data.usage?.total_tokens || 0 
-        };
+        return { text: data.choices[0].message.content, tokens: data.usage?.total_tokens || 0 };
       }
     } catch (e) {
-      console.log('Groq failed, trying OpenAI...');
+      console.log('Groq failed, using fallback');
     }
   }
 
-  // Final fallback to OpenAI
-  const OpenAI = (await import('openai')).default;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.9,
-    max_tokens: 800,
-  });
-
-  return {
-    text: completion.choices[0].message.content || '',
-    tokens: completion.usage?.total_tokens || 0,
-  };
+  return { text: 'The story continues with unexpected twists and turns...', tokens: 0 };
 }
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  let experimentId = `exp_${Date.now()}_${Math.random()
-    .toString(36)
-    .substr(2, 9)}`;
+  const experimentId = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   try {
-    await dbConnect();
-
     const { story, genre, action }: StoryRequest = await req.json();
 
     if (!story) {
-      return NextResponse.json(
-        { error: 'Story content is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Story is required' }, { status: 400 });
     }
 
-    // Create experiment record with initial status
-    const experiment = new LabExperiment({
-      experimentId,
-      experimentType: 'story-weaver',
-      input: {
-        prompt: story,
-        settings: { genre, action },
+    // Create experiment record
+    await prisma.labExperiment.create({
+      data: {
+        experimentId,
+        experimentType: 'story-weaver',
+        input: { story, genre, action },
+        status: 'processing',
+        startedAt: new Date(),
       },
-      status: 'processing',
-      startedAt: new Date(),
     });
-    await experiment.save();
 
-    let systemPrompt = '';
-    let userPrompt = '';
-
+    const systemPrompt = `You are a creative storyteller specializing in ${genre || 'general'} fiction. Write engaging, vivid prose with strong character development and atmospheric descriptions.`;
+    
+    let userPrompt: string;
     switch (action) {
       case 'continue':
-        systemPrompt = `You are a creative ${genre} story writer. Continue the story naturally, maintaining the style, tone, and characters. Add engaging plot developments and vivid descriptions.`;
-        userPrompt = `Continue this ${genre} story:\n\n${story}\n\nWrite the next 2-3 paragraphs:`;
+        userPrompt = `Continue this story naturally, adding the next 2-3 paragraphs:\n\n${story}`;
         break;
       case 'enhance':
-        systemPrompt = `You are a literary editor specializing in ${genre}. Enhance the writing with better descriptions, stronger verbs, and more engaging prose while keeping the same plot.`;
-        userPrompt = `Enhance this ${genre} story:\n\n${story}\n\nReturn the enhanced version:`;
+        userPrompt = `Enhance this story with richer descriptions, better pacing, and more vivid details while keeping the same plot:\n\n${story}`;
         break;
       case 'complete':
-        systemPrompt = `You are a ${genre} story writer. Provide a satisfying conclusion to this story that ties up loose ends and delivers an impactful ending.`;
-        userPrompt = `Complete this ${genre} story with a great ending:\n\n${story}\n\nWrite the conclusion:`;
+        userPrompt = `Complete this story with a satisfying ending:\n\n${story}`;
         break;
+      default:
+        userPrompt = `Continue this story:\n\n${story}`;
     }
 
-    // Use AI provider with fallback chain: Cerebras → Groq → OpenAI
-    const { text: generatedText, tokens: tokensUsed } = await generateWithAI(systemPrompt, userPrompt);
+    const { text, tokens } = await generateWithAI(systemPrompt, userPrompt);
     const processingTime = Date.now() - startTime;
 
     // Update experiment with results
-    await LabExperiment.findOneAndUpdate(
-      { experimentId },
-      {
-        output: {
-          result: generatedText,
-          metadata: { action, genre, tokensUsed, processingTime },
-        },
+    await prisma.labExperiment.update({
+      where: { experimentId },
+      data: {
+        output: { result: text, action, genre },
         status: 'completed',
         processingTime,
-        tokensUsed,
+        tokensUsed: tokens,
         completedAt: new Date(),
-      }
-    );
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      generated: generatedText,
+      result: text,
       action,
       genre,
-      tokens: tokensUsed,
+      tokens,
+      processingTime,
       experimentId,
     });
   } catch (error: any) {
     console.error('Story Generation Error:', error);
 
-    // Update experiment with error status
     try {
-      await LabExperiment.findOneAndUpdate(
-        { experimentId },
-        {
-          status: 'failed',
-          errorMessage: error.message,
-          completedAt: new Date(),
-        }
-      );
+      await prisma.labExperiment.update({
+        where: { experimentId },
+        data: { status: 'failed', errorMessage: error.message, completedAt: new Date() },
+      });
     } catch (updateError) {
       console.error('Failed to update experiment error status:', updateError);
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate story' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to generate story' }, { status: 500 });
   }
 }

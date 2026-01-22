@@ -7,7 +7,7 @@ export interface EnvironmentStatus {
 
 export function checkEnvironmentVariables(): EnvironmentStatus {
   const required = [
-    'MONGODB_URI',
+    'DATABASE_URL',
     'JWT_SECRET',
     'OPENAI_API_KEY',
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
@@ -31,11 +31,11 @@ export function checkEnvironmentVariables(): EnvironmentStatus {
     }
   }
 
-  // Check MongoDB URI format
-  const mongoUri = process.env.MONGODB_URI;
-  if (mongoUri && !mongoUri.startsWith('mongodb')) {
+  // Check DATABASE_URL format
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl && !dbUrl.startsWith('postgres')) {
     warnings.push(
-      'MONGODB_URI does not appear to be a valid MongoDB connection string'
+      'DATABASE_URL does not appear to be a valid PostgreSQL connection string'
     );
   }
 

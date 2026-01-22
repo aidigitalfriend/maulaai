@@ -1,73 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import { cookies } from 'next/headers';
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-// =====================================================
-// Database Connection
-// =====================================================
-async function connectToDatabase() {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      dbName: process.env.MONGODB_DB || 'maulaai',
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-  } catch (error) {
-    console.error('❌ Like API: Database connection failed:', error);
-    throw error;
-  }
-}
-
-// =====================================================
-// Mongoose Schemas
-// =====================================================
-const communityPostSchema = new mongoose.Schema(
-  {
-    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    authorName: { type: String, required: true },
-    content: { type: String, required: true },
-    category: { type: String, enum: ['general', 'agents', 'ideas', 'help'], default: 'general' },
-    likesCount: { type: Number, default: 0 },
-    status: { type: String, enum: ['active', 'hidden', 'deleted'], default: 'active' },
-  },
-  { timestamps: true, collection: 'communityposts' }
-);
-
-const CommunityPost = mongoose.models.CommunityPost || mongoose.model('CommunityPost', communityPostSchema);
-
-const communityLikeSchema = new mongoose.Schema(
-  {
-    postId: { type: mongoose.Schema.Types.ObjectId, ref: 'CommunityPost', required: true, index: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    userEmail: { type: String },
-  },
-  { timestamps: { createdAt: true, updatedAt: false }, collection: 'communitylikes' }
-);
-
-communityLikeSchema.index({ postId: 1, userId: 1 }, { unique: true });
-
-const CommunityLike = mongoose.models.CommunityLike || mongoose.model('CommunityLike', communityLikeSchema);
-
-// Session schema for auth
-const sessionSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true, unique: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  userEmail: { type: String },
-  expiresAt: { type: Date },
-  isActive: { type: Boolean, default: true },
-});
-
-const Session = mongoose.models.Session || mongoose.model('Session', sessionSchema);
+import prisma from '@/lib/prisma';
 
 // =====================================================
 // Helper: Get User from Session Cookie
@@ -77,26 +10,18 @@ async function getUserFromSession() {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get('session_id')?.value;
 
-    if (!sessionId) {
-      return null;
-    }
+    if (!sessionId) return null;
 
-    await connectToDatabase();
+    const user = await prisma.user.findFirst({
+      where: {
+        sessionId,
+        sessionExpiry: { gt: new Date() },
+        isActive: true,
+      },
+      select: { id: true, email: true },
+    });
 
-    const session = await Session.findOne({
-      sessionId,
-      isActive: true,
-      expiresAt: { $gt: new Date() },
-    }).lean();
-
-    if (!session) {
-      return null;
-    }
-
-    return {
-      id: session.userId.toString(),
-      email: (session as any).userEmail || '',
-    };
+    return user ? { id: user.id, email: user.email || '' } : null;
   } catch (error) {
     console.error('Session lookup error:', error);
     return null;
@@ -111,17 +36,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectToDatabase();
-
     const { id: postId } = await params;
-
-    // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid post ID' },
-        { status: 400 }
-      );
-    }
 
     // Get user from session
     const user = await getUserFromSession();
@@ -134,8 +49,11 @@ export async function POST(
     }
 
     // Check if post exists
-    const post = await CommunityPost.findById(postId);
-    if (!post || post.status === 'deleted') {
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
       return NextResponse.json(
         { success: false, error: 'Post not found' },
         { status: 404 }
@@ -143,9 +61,13 @@ export async function POST(
     }
 
     // Check if already liked
-    const existingLike = await CommunityLike.findOne({
-      postId,
-      userId: user.id,
+    const existingLike = await prisma.communityLike.findUnique({
+      where: {
+        userId_postId: {
+          userId: user.id,
+          postId: postId,
+        },
+      },
     });
 
     if (existingLike) {
@@ -155,19 +77,24 @@ export async function POST(
       );
     }
 
-    // Create like record
-    await CommunityLike.create({
-      postId,
-      userId: user.id,
-      userEmail: user.email,
-    });
+    // Create like and update count in transaction
+    await prisma.$transaction([
+      prisma.communityLike.create({
+        data: {
+          userId: user.id,
+          postId: postId,
+        },
+      }),
+      prisma.communityPost.update({
+        where: { id: postId },
+        data: { likesCount: { increment: 1 } },
+      }),
+    ]);
 
-    // Increment likes count
-    await CommunityPost.findByIdAndUpdate(postId, {
-      $inc: { likesCount: 1 },
+    const updatedPost = await prisma.communityPost.findUnique({
+      where: { id: postId },
+      select: { likesCount: true },
     });
-
-    const updatedPost = await CommunityPost.findById(postId).lean();
 
     console.log(`❤️ Post ${postId} liked by user ${user.id}`);
 
@@ -177,12 +104,12 @@ export async function POST(
       data: {
         postId,
         liked: true,
-        likesCount: (updatedPost as any)?.likesCount || 0,
+        likesCount: updatedPost?.likesCount || 0,
       },
     });
   } catch (error: any) {
-    // Handle duplicate key error (race condition)
-    if (error.code === 11000) {
+    // Handle unique constraint violation (race condition)
+    if (error.code === 'P2002') {
       return NextResponse.json(
         { success: false, error: 'Already liked this post' },
         { status: 400 }

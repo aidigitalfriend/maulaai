@@ -1,221 +1,134 @@
-import { connectToDatabase } from '../lib/mongodb-client';
-import { getAgentSubscriptionModel } from '../models/AgentSubscription';
-const API_BASE =
-  process.env.NODE_ENV === 'production'
-    ? (process.env.NEXT_PUBLIC_API_URL || '/api')
-    : 'http://localhost:3005/api';
+/**
+ * Agent Subscription Service - API-based (No MongoDB)
+ * All operations go through API routes which use Prisma/PostgreSQL
+ */
 
 export interface AgentSubscription {
-  _id: string;
-  userId: string;
+  id: string;
   agentId: string;
+  userId: string;
   plan: 'daily' | 'weekly' | 'monthly';
   price: number;
-  status: 'active' | 'expired' | 'cancelled';
-  startDate: string;
-  expiryDate: string;
+  status: 'active' | 'cancelled' | 'expired' | 'pending';
+  startDate: Date;
+  expiryDate: Date;
+  autoRenew: boolean;
+  stripeSubscriptionId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  displayName: string;
-  price: number;
-  period: string;
-  description: string;
-  priceFormatted: string;
+async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+  return response;
 }
 
-export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  {
-    id: 'daily',
-    name: 'daily',
-    displayName: 'Daily Plan',
-    price: 1,
-    period: 'day',
-    description: 'Perfect for short-term projects',
-    priceFormatted: '$1.00',
-  },
-  {
-    id: 'weekly',
-    name: 'weekly',
-    displayName: 'Weekly Plan',
-    price: 5,
-    period: 'week',
-    description: 'Great for weekly projects',
-    priceFormatted: '$5.00',
-  },
-  {
-    id: 'monthly',
-    name: 'monthly',
-    displayName: 'Monthly Plan',
-    price: 15,
-    period: 'month',
-    description: 'Best value for ongoing work',
-    priceFormatted: '$15.00',
-  },
-];
-
-class AgentSubscriptionService {
-  // Check if user has active subscription for agent
-  async checkSubscription(
-    userId: string,
-    agentId: string
-  ): Promise<{
-    hasActiveSubscription: boolean;
-    subscription: AgentSubscription | null;
-  }> {
-    try {
-      const response = await fetch(
-        `${API_BASE}/agent/subscriptions/check/${userId}/${agentId}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to check subscription: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      return { hasActiveSubscription: false, subscription: null };
-    }
-  }
-
-  // Create new subscription
-  async createSubscription(
-    userId: string,
-    agentId: string,
-    plan: string
-  ): Promise<AgentSubscription> {
-    try {
-      const response = await fetch(
-        `${API_BASE}/agent/subscriptions/subscribe`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId, agentId, plan }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error ||
-            `Failed to create subscription: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      return data.subscription;
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-      throw error;
-    }
-  }
-
-  // Get user's all subscriptions
+export const agentSubscriptionService = {
+  /**
+   * Get all subscriptions for the current user
+   */
   async getUserSubscriptions(userId: string): Promise<AgentSubscription[]> {
     try {
-      const response = await fetch(
-        `${API_BASE}/agent/subscriptions/user/${userId}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get subscriptions: ${response.statusText}`);
-      }
-
+      const response = await fetchWithAuth(`/api/subscriptions/${userId}`);
+      if (!response.ok) return [];
       const data = await response.json();
       return data.subscriptions || [];
     } catch (error) {
-      console.error('Error fetching subscriptions:', error);
+      console.error('[agentSubscriptionService] Error fetching subscriptions:', error);
       return [];
     }
-  }
+  },
 
-  // Cancel subscription
-  async cancelSubscription(subscriptionId: string): Promise<void> {
+  /**
+   * Check if user has active subscription for an agent
+   */
+  async hasActiveSubscription(userId: string, agentId: string): Promise<boolean> {
     try {
-      const response = await fetch(
-        `${API_BASE}/agent/subscriptions/${subscriptionId}`,
-        {
-          method: 'DELETE',
-        }
+      const subscriptions = await this.getUserSubscriptions(userId);
+      return subscriptions.some(
+        (sub) => sub.agentId === agentId && sub.status === 'active' && new Date(sub.expiryDate) > new Date()
       );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to cancel subscription: ${response.statusText}`
-        );
-      }
     } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      throw error;
+      console.error('[agentSubscriptionService] Error checking subscription:', error);
+      return false;
     }
-  }
+  },
 
-  // Update subscription
-  async updateSubscription(
-    subscriptionId: string,
-    updates: {
-      status?: string;
-      plan?: string;
-    }
-  ): Promise<AgentSubscription> {
+  /**
+   * Get subscription for a specific agent
+   */
+  async getSubscription(userId: string, agentId: string): Promise<AgentSubscription | null> {
     try {
-      const response = await fetch(
-        `${API_BASE}/agent/subscriptions/${subscriptionId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updates),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error ||
-            `Failed to update subscription: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      return data.subscription;
+      const subscriptions = await this.getUserSubscriptions(userId);
+      return subscriptions.find((sub) => sub.agentId === agentId) || null;
     } catch (error) {
-      console.error('Error updating subscription:', error);
-      throw error;
+      console.error('[agentSubscriptionService] Error getting subscription:', error);
+      return null;
     }
-  }
+  },
 
-  // Get plan by ID
-  getPlan(planId: string): SubscriptionPlan | undefined {
-    return SUBSCRIPTION_PLANS.find((plan) => plan.id === planId);
-  }
+  /**
+   * Get active subscription for an agent
+   */
+  async getActiveSubscription(userId: string, agentId: string): Promise<AgentSubscription | null> {
+    try {
+      const subscriptions = await this.getUserSubscriptions(userId);
+      return (
+        subscriptions.find(
+          (sub) => sub.agentId === agentId && sub.status === 'active' && new Date(sub.expiryDate) > new Date()
+        ) || null
+      );
+    } catch (error) {
+      console.error('[agentSubscriptionService] Error getting active subscription:', error);
+      return null;
+    }
+  },
 
-  // Format expiry date
-  formatExpiryDate(expiryDate: string): string {
-    const date = new Date(expiryDate);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
+  /**
+   * Create a new subscription (typically called after Stripe payment)
+   */
+  async createSubscription(data: {
+    userId: string;
+    agentId: string;
+    plan: 'daily' | 'weekly' | 'monthly';
+    price: number;
+    stripeSubscriptionId?: string;
+  }): Promise<AgentSubscription | null> {
+    try {
+      const response = await fetchWithAuth(`/api/subscriptions/${data.userId}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) return null;
+      const result = await response.json();
+      return result.subscription || null;
+    } catch (error) {
+      console.error('[agentSubscriptionService] Error creating subscription:', error);
+      return null;
+    }
+  },
 
-  // Check if subscription is expiring soon (within 24 hours)
-  isExpiringSoon(expiryDate: string): boolean {
-    const expiry = new Date(expiryDate);
-    const now = new Date();
-    const timeDiff = expiry.getTime() - now.getTime();
-    const hoursDiff = timeDiff / (1000 * 3600);
-    return hoursDiff > 0 && hoursDiff <= 24;
-  }
-}
+  /**
+   * Cancel a subscription
+   */
+  async cancelSubscription(userId: string, subscriptionId: string): Promise<boolean> {
+    try {
+      const response = await fetchWithAuth(`/api/subscriptions/${userId}/${subscriptionId}`, {
+        method: 'DELETE',
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('[agentSubscriptionService] Error cancelling subscription:', error);
+      return false;
+    }
+  },
+};
 
-export const agentSubscriptionService = new AgentSubscriptionService();
+export default agentSubscriptionService;
