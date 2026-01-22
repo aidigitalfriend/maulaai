@@ -9,16 +9,27 @@ export async function GET(
     const sessionId = request.cookies.get('session_id')?.value ||
                       request.cookies.get('sessionId')?.value;
 
+    console.log('[rewards] Cookies received:', {
+      session_id: request.cookies.get('session_id')?.value?.substring(0, 10),
+      sessionId: request.cookies.get('sessionId')?.value?.substring(0, 10),
+      allCookies: request.cookies.getAll().map(c => c.name),
+    });
+
     if (!sessionId) {
+      console.log('[rewards] No session ID found in cookies');
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
 
+    console.log('[rewards] Looking up session:', sessionId.substring(0, 10) + '...');
+    
     const sessionUser = await prisma.user.findFirst({
       where: {
         sessionId,
         sessionExpiry: { gt: new Date() },
       },
     });
+
+    console.log('[rewards] Session user found:', sessionUser ? sessionUser.id : 'null');
 
     if (!sessionUser) {
       return NextResponse.json(

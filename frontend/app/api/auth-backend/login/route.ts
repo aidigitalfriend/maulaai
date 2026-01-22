@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
     const backendBase = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
     const body = await request.json();
 
+    console.log('[auth-backend/login] Proxying to backend:', backendBase);
+
     const response = await fetch(`${backendBase}/api/auth/login`, {
       method: 'POST',
       headers: {
@@ -18,6 +20,7 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
+    console.log('[auth-backend/login] Backend response status:', response.status, 'success:', data.success);
 
     // Create response with the same status
     const nextResponse = NextResponse.json(data, { status: response.status });
@@ -28,27 +31,39 @@ export async function POST(request: NextRequest) {
     if (response.ok && data.success) {
       // Parse the Set-Cookie header to get the session ID
       const setCookieHeader = response.headers.get('set-cookie');
+      console.log('[auth-backend/login] Set-Cookie header:', setCookieHeader);
+      
       if (setCookieHeader) {
         // Extract sessionId value from the cookie header
         const sessionMatch = setCookieHeader.match(/sessionId=([^;]+)/);
         if (sessionMatch) {
           const sessionId = sessionMatch[1];
+          console.log('[auth-backend/login] Setting sessionId cookie:', sessionId.substring(0, 10) + '...');
+          
+          // Determine if we're in production (HTTPS)
+          const isProduction = request.headers.get('x-forwarded-proto') === 'https' || 
+                              request.url.startsWith('https://');
+          
           // Set both cookie names for compatibility
           nextResponse.cookies.set('sessionId', sessionId, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: isProduction,
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
             path: '/',
           });
           nextResponse.cookies.set('session_id', sessionId, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: isProduction,
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
             path: '/',
           });
+        } else {
+          console.log('[auth-backend/login] Could not parse sessionId from Set-Cookie');
         }
+      } else {
+        console.log('[auth-backend/login] No Set-Cookie header from backend');
       }
     }
 
@@ -58,6 +73,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { success: false, message: 'Login failed - server error' },
       { status: 500 }
+    );
+  }
+}
     );
   }
 }
