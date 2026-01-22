@@ -1245,3 +1245,282 @@ model SupportChat {
   @@index([status])
   @@map("support_chats")
 }
+
+// ============================================
+// GAMIFICATION - Rewards, Badges, Achievements
+// ============================================
+
+model UserGamification {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  
+  // Points & Levels
+  totalPoints      Int      @default(0)
+  availablePoints  Int      @default(0)
+  level            Int      @default(1)
+  levelProgress    Int      @default(0)  // percentage 0-100
+  
+  // Streaks
+  currentStreak    Int      @default(0)
+  longestStreak    Int      @default(0)
+  streakMultiplier Float    @default(1.0)
+  lastActivityAt   DateTime?
+  
+  // Statistics
+  totalBadgesEarned       Int @default(0)
+  totalAchievements       Int @default(0)
+  totalRewardsRedeemed    Int @default(0)
+  totalPointsEarned       Int @default(0)
+  totalPointsRedeemed     Int @default(0)
+  daysActive              Int @default(0)
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  badges           UserBadge[]
+  achievements     UserAchievement[]
+  pointsHistory    PointsHistory[]
+  redemptions      RewardRedemption[]
+
+  @@map("user_gamification")
+}
+
+model Badge {
+  id          String       @id @default(cuid())
+  badgeId     String       @unique  // e.g., "first_chat", "ai_enthusiast"
+  name        String
+  description String
+  icon        String?      // Icon name or URL
+  category    BadgeCategory
+  rarity      BadgeRarity
+  points      Int          @default(0)  // Points awarded when earned
+  
+  // Requirements (JSON) - e.g., { "chatCount": 5, "streakDays": 7 }
+  requirements Json?       @default("{}")
+  
+  isActive    Boolean      @default(true)
+  displayOrder Int         @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+enum BadgeCategory {
+  milestone    // Based on usage milestones
+  achievement  // Completing specific achievements
+  streak       // Streak-based badges
+  special      // Special/promotional badges
+  seasonal     // Time-limited seasonal badges
+  social       // Social interaction badges
+}
+
+enum BadgeRarity {
+  common
+  rare
+  epic
+  legendary
+}
+
+model UserBadge {
+  id             String   @id @default(cuid())
+  userId         String
+  badgeId        String
+  earnedAt       DateTime @default(now())
+  
+  // Relations
+  gamification   UserGamification @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  badge          Badge    @relation(fields: [badgeId], references: [badgeId], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@map("user_badges")
+}
+
+model Achievement {
+  id          String            @id @default(cuid())
+  achievementId String          @unique  // e.g., "chat_master", "power_user"
+  name        String
+  description String
+  icon        String?
+  category    AchievementCategory
+  rarity      BadgeRarity
+  points      Int               @default(0)
+  
+  // Target for completion
+  targetValue Int               @default(1)
+  
+  // Requirements (JSON)
+  requirements Json?            @default("{}")
+  
+  isActive    Boolean           @default(true)
+  displayOrder Int              @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+enum AchievementCategory {
+  usage       // Chat usage achievements
+  exploration // Using different features/agents
+  engagement  // Community engagement
+  milestone   // Major milestones
+  special     // Special achievements
+}
+
+model UserAchievement {
+  id             String   @id @default(cuid())
+  userId         String
+  achievementId  String
+  
+  // Progress tracking
+  currentValue   Int      @default(0)
+  completed      Boolean  @default(false)
+  completedAt    DateTime?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  gamification   UserGamification @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  achievement    Achievement @relation(fields: [achievementId], references: [achievementId], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@map("user_achievements")
+}
+
+model PointsHistory {
+  id          String        @id @default(cuid())
+  userId      String
+  type        PointsType
+  amount      Int           // positive for earned, negative for spent
+  description String
+  category    String?       // "chat", "badge", "achievement", "redemption"
+  
+  // Reference to related entity
+  relatedType String?       // "badge", "achievement", "reward"
+  relatedId   String?
+  
+  metadata    Json?         @default("{}")
+  createdAt   DateTime      @default(now())
+
+  // Relations
+  gamification UserGamification @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("points_history")
+}
+
+enum PointsType {
+  earned      // Points earned from activities
+  bonus       // Bonus points (multipliers, promotions)
+  redeemed    // Points spent on rewards
+  adjustment  // Manual adjustments
+  expired     // Points that expired
+}
+
+model Reward {
+  id          String        @id @default(cuid())
+  rewardId    String        @unique
+  name        String
+  description String
+  category    RewardCategory
+  type        RewardType
+  
+  // Cost & Value
+  cost        Int           // Points required
+  value       String?       // e.g., "10%", "$5", "1 month"
+  
+  // Availability
+  availability RewardAvailability
+  stock       Int?          // null for unlimited
+  
+  // Requirements
+  minLevel    Int           @default(1)
+  
+  // Requirements (JSON)
+  requirements Json?        @default("{}")
+  
+  image       String?
+  featured    Boolean       @default(false)
+  isActive    Boolean       @default(true)
+  expiresAt   DateTime?
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  redemptions RewardRedemption[]
+
+  @@map("rewards")
+}
+
+enum RewardCategory {
+  discount    // Discounts on subscriptions/purchases
+  feature     // Unlock premium features
+  merchandise // Physical merchandise
+  upgrade     // Service upgrades
+  exclusive   // Exclusive content/access
+}
+
+enum RewardType {
+  percentage  // Percentage discount
+  fixed       // Fixed amount
+  service     // Service/feature
+  physical    // Physical item
+}
+
+enum RewardAvailability {
+  unlimited
+  limited
+  seasonal
+}
+
+model RewardRedemption {
+  id          String   @id @default(cuid())
+  userId      String
+  rewardId    String
+  
+  // Redemption details
+  pointsSpent Int
+  code        String?  // Redemption code if applicable
+  instructions String?
+  
+  status      RedemptionStatus
+  usedAt      DateTime?
+  expiresAt   DateTime?
+  
+  metadata    Json?    @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  gamification UserGamification @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  reward       Reward   @relation(fields: [rewardId], references: [rewardId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([rewardId])
+  @@index([status])
+  @@map("reward_redemptions")
+}
+
+enum RedemptionStatus {
+  pending
+  active
+  used
+  expired
+  cancelled
+}
