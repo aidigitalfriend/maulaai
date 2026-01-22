@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 // Helper to authenticate user from session cookie
 async function authenticateUser(request: NextRequest) {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = getSessionId(request);
   if (!sessionId) return null;
 
   try {

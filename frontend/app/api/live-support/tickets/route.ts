@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ success: false, error: 'No session' }, { status: 401 });
     }
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ success: false, error: 'No session' }, { status: 401 });
     }

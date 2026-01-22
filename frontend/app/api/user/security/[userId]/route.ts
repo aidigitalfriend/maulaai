@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
@@ -47,7 +48,7 @@ export async function PUT(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }

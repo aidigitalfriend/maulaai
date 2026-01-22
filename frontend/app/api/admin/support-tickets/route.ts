@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 export const dynamic = 'force-dynamic';
 
 // Admin authentication check
 async function verifyAdmin(request: NextRequest) {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = getSessionId(request);
   if (!sessionId) return null;
 
   const user = await prisma.user.findFirst({

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getSessionIdFromCookies } from '@/lib/session-utils';
 
 // =====================================================
 // POST /api/community/presence/ping - Update user presence
 // =====================================================
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session_id')?.value;
+    const sessionId = await getSessionIdFromCookies();
 
     let userName = 'Guest';
     let onlineCount = 1;

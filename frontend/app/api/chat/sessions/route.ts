@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -8,7 +9,7 @@ export const dynamic = 'force-dynamic';
 async function authenticateUser(
   request: NextRequest
 ): Promise<{ userId: string } | { error: string; status: number }> {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = getSessionId(request);
 
   console.log(
     '[chat/sessions] Auth check - session_id cookie:',

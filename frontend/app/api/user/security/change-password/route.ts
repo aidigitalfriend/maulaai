@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { getSessionId } from '@/lib/session-utils';
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 // GET - Check 2FA status
 export async function GET(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 // POST - Enable 2FA (generate secret)
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }

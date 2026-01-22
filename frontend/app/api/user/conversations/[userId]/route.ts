@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { getSessionIdFromCookies } from '@/lib/session-utils';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3005';
 
@@ -15,8 +16,7 @@ export async function GET(
     const search = searchParams.get('search') || '';
 
     // Get session cookie to forward to backend
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session_id')?.value;
+    const sessionId = await getSessionIdFromCookies();
 
     if (!sessionId) {
       return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 const AGENT_MAP: Record<string, { name: string; type: string; avatar: string }> = {
   einstein: { name: 'Einstein', type: 'Physics & Science', avatar: '🧠' },
@@ -33,7 +34,7 @@ export async function GET(
 ) {
   try {
     const { agentId } = await params;
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSessionId } from '@/lib/session-utils';
 
 const PLAN_TEMPLATES = [
   { key: 'daily', name: 'Daily Agent Access', description: '$1 per day per agent', defaultPrice: 1, billingPeriod: 'daily', interval: 'day' },
@@ -22,7 +23,7 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const sessionId = request.cookies.get('session_id')?.value;
+    const sessionId = getSessionId(request);
     if (!sessionId) {
       return NextResponse.json({ message: 'No session ID' }, { status: 401 });
     }
