@@ -3,10 +3,11 @@
  *
  * Automatically marks expired subscriptions as 'expired' status
  * Runs every hour to keep subscription statuses up to date
+ * Uses Prisma/PostgreSQL
  */
 
 import cron from 'node-cron';
-import AgentSubscription from '../models/AgentSubscription.js';
+import prisma from '../lib/prisma.js';
 
 /**
  * Start the subscription expiration cron job
@@ -26,19 +27,19 @@ export function startSubscriptionExpirationCron() {
       const now = new Date();
 
       // Find all active subscriptions that have passed their expiry date
-      const result = await AgentSubscription.updateMany(
-        {
+      const result = await prisma.agentSubscription.updateMany({
+        where: {
           status: 'active',
-          expiryDate: { $lt: now },
+          expiryDate: { lt: now },
         },
-        {
-          $set: { status: 'expired' },
-        }
-      );
+        data: {
+          status: 'expired',
+        },
+      });
 
-      if (result.modifiedCount > 0) {
+      if (result.count > 0) {
         console.log(
-          `✅ [Cron] Marked ${result.modifiedCount} subscription(s) as expired`
+          `✅ [Cron] Marked ${result.count} subscription(s) as expired`
         );
       } else {
         console.log('✅ [Cron] No subscriptions to expire');
@@ -62,17 +63,17 @@ export async function expireOldSubscriptions() {
 
     const now = new Date();
 
-    const result = await AgentSubscription.updateMany(
-      {
+    const result = await prisma.agentSubscription.updateMany({
+      where: {
         status: 'active',
-        expiryDate: { $lt: now },
+        expiryDate: { lt: now },
       },
-      {
-        $set: { status: 'expired' },
-      }
-    );
+      data: {
+        status: 'expired',
+      },
+    });
 
-    console.log(`✅ Marked ${result.modifiedCount} subscription(s) as expired`);
+    console.log(`✅ Marked ${result.count} subscription(s) as expired`);
     return result;
   } catch (error) {
     console.error('❌ Error expiring subscriptions:', error);
