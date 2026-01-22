@@ -22,14 +22,19 @@ async function proxyToBackend(request: NextRequest) {
     cache: 'no-store',
   });
 
-  const body = await response.text();
+  const data = await response.json();
+  
+  // Transform backend response to match frontend expectations
+  // Backend returns: { success: boolean, user: object|null }
+  // Frontend expects: { valid: boolean, user: object|null }
+  const transformedResponse = {
+    valid: data.success && data.user !== null,
+    success: data.success,
+    user: data.user,
+  };
 
-  return new NextResponse(body, {
+  return NextResponse.json(transformedResponse, {
     status: response.status,
-    headers: {
-      'content-type':
-        response.headers.get('content-type') || 'application/json',
-    },
   });
 }
 
@@ -39,7 +44,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error proxying /api/auth/verify:', error);
     return NextResponse.json(
-      { valid: false, message: 'Session verification failed' },
+      { valid: false, success: false, message: 'Session verification failed' },
       { status: 500 }
     );
   }
