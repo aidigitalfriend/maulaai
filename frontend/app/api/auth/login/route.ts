@@ -83,12 +83,25 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Set secure HttpOnly session cookie (not accessible to JavaScript)
+    // Determine if we're in production (HTTPS)
+    const isProduction = request.headers.get('x-forwarded-proto') === 'https' || 
+                        request.url.startsWith('https://');
+    
+    // Set secure HttpOnly session cookies (not accessible to JavaScript)
+    // Set both cookie names for compatibility (some code uses session_id, some uses sessionId)
     response.cookies.set('session_id', sessionId, {
       httpOnly: true, // Prevents XSS attacks
-      secure: true, // HTTPS only
-      sameSite: 'strict', // CSRF protection
+      secure: isProduction, // HTTPS in production only
+      sameSite: 'lax', // Allow cookies for same-site navigation
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      path: '/',
+    });
+    
+    response.cookies.set('sessionId', sessionId, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });
 
