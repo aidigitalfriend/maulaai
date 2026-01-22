@@ -29,109 +29,139 @@ export async function GET(
 
     const sessionUserId = sessionUser.id;
 
-    if (params.userId && params.userId !== sessionUserId) {
-      console.warn('Rewards access mismatch. Using session user.', {
-        sessionUserId,
-        requestedUserId: params.userId,
+    // Count user activity from chat interactions
+    const userActivity = await prisma.chatAnalyticsInteraction.count({
+      where: { userId: sessionUserId },
+    });
+
+    // Calculate points and level based on activity
+    const startingPoints = Math.min(userActivity * 10, 5000);
+    const startingLevel = Math.floor(startingPoints / 100) + 1;
+    const pointsThisLevel = startingPoints % 100;
+    const pointsToNextLevel = 100 - pointsThisLevel;
+
+    // Build badges based on activity
+    const badges: any[] = [];
+    const rewardHistory: any[] = [];
+
+    if (userActivity > 0) {
+      badges.push({
+        id: 'first_chat',
+        name: 'First Steps',
+        description: 'Your first AI conversation',
+        earnedAt: sessionUser.createdAt,
+        points: 50,
+      });
+      rewardHistory.push({
+        title: 'First Steps Badge',
+        points: 50,
+        date: sessionUser.createdAt,
+        type: 'badge',
       });
     }
 
-    const targetUserId = sessionUserId;
-
-    let rewardsData = (await prisma.rewardsCenter.findUnique({
-      where: { userId: targetUserId },
-    })) as Record<string, any> | null;
-
-    if (!rewardsData) {
-      const userActivity = await prisma.chatInteraction.count({
-        where: { userId: sessionUser.id },
+    if (userActivity >= 5) {
+      badges.push({
+        id: 'getting_started',
+        name: 'Getting Started',
+        description: 'Completed 5 AI conversations',
+        earnedAt: sessionUser.createdAt,
+        points: 100,
       });
-
-      const startingPoints = Math.min(userActivity * 10, 500);
-      const startingLevel = Math.floor(startingPoints / 100) + 1;
-      const pointsThisLevel = startingPoints % 100;
-      const pointsToNextLevel = 100 - pointsThisLevel;
-
-      const starterBadges: any[] = [];
-      const rewardHistory: any[] = [];
-
-      if (userActivity > 0) {
-        starterBadges.push({
-          id: 'first_chat',
-          name: 'First Steps',
-          description: 'Your first AI conversation',
-          earnedAt: new Date(),
-          points: 50,
-        });
-        rewardHistory.push({
-          title: 'First Steps Badge',
-          points: 50,
-          date: new Date(),
-          type: 'badge',
-        });
-      }
-
-      if (userActivity >= 5) {
-        starterBadges.push({
-          id: 'getting_started',
-          name: 'Getting Started',
-          description: 'Completed 5 AI conversations',
-          earnedAt: new Date(),
-          points: 100,
-        });
-        rewardHistory.push({
-          title: 'Getting Started Badge',
-          points: 100,
-          date: new Date(),
-          type: 'badge',
-        });
-      }
-
-      if (userActivity >= 10) {
-        starterBadges.push({
-          id: 'ai_enthusiast',
-          name: 'AI Enthusiast',
-          description: 'Active AI user with 10+ conversations',
-          earnedAt: new Date(),
-          points: 200,
-        });
-        rewardHistory.push({
-          title: 'AI Enthusiast Badge',
-          points: 200,
-          date: new Date(),
-          type: 'badge',
-        });
-      }
-
-      const defaultRewards = {
-        userId: targetUserId,
-        currentLevel: startingLevel,
-        totalPoints: startingPoints,
-        pointsThisLevel,
-        pointsToNextLevel,
-        badges: starterBadges,
-        achievements: [],
-        rewardHistory,
-        streaks: {
-          current: userActivity > 0 ? 1 : 0,
-          longest: userActivity > 0 ? Math.min(userActivity, 7) : 0,
-        },
-        statistics: {
-          totalBadgesEarned: starterBadges.length,
-          totalAchievementsCompleted: 0,
-          averagePointsPerDay:
-            userActivity > 0 ? Math.ceil(startingPoints / 7) : 0,
-          daysActive: Math.min(userActivity, 30),
-        },
-      };
-
-      rewardsData = await prisma.rewardsCenter.create({
-        data: defaultRewards as any,
+      rewardHistory.push({
+        title: 'Getting Started Badge',
+        points: 100,
+        date: sessionUser.createdAt,
+        type: 'badge',
       });
     }
 
-    const { id, ...rewards } = (rewardsData || {}) as Record<string, any>;
-    return NextResponse.json({ success: true, data: rewards });
+    if (userActivity >= 10) {
+      badges.push({
+        id: 'ai_enthusiast',
+        name: 'AI Enthusiast',
+        description: 'Active AI user with 10+ conversations',
+        earnedAt: sessionUser.createdAt,
+        points: 200,
+      });
+      rewardHistory.push({
+        title: 'AI Enthusiast Badge',
+        points: 200,
+        date: sessionUser.createdAt,
+        type: 'badge',
+      });
+    }
+
+    if (userActivity >= 50) {
+      badges.push({
+        id: 'power_user',
+        name: 'Power User',
+        description: 'Engaged in 50+ AI conversations',
+        earnedAt: sessionUser.createdAt,
+        points: 500,
+      });
+      rewardHistory.push({
+        title: 'Power User Badge',
+        points: 500,
+        date: sessionUser.createdAt,
+        type: 'badge',
+      });
+    }
+
+    if (userActivity >= 100) {
+      badges.push({
+        id: 'ai_master',
+        name: 'AI Master',
+        description: 'Reached 100+ AI conversations',
+        earnedAt: sessionUser.createdAt,
+        points: 1000,
+      });
+      rewardHistory.push({
+        title: 'AI Master Badge',
+        points: 1000,
+        date: sessionUser.createdAt,
+        type: 'badge',
+      });
+    }
+
+    // Account age badge
+    const accountAgeDays = Math.floor(
+      (Date.now() - new Date(sessionUser.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    if (accountAgeDays >= 30) {
+      badges.push({
+        id: 'loyal_member',
+        name: 'Loyal Member',
+        description: 'Member for 30+ days',
+        earnedAt: new Date(new Date(sessionUser.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000),
+        points: 150,
+      });
+    }
+
+    // Compute rewards data
+    const rewardsData = {
+      userId: sessionUserId,
+      currentLevel: startingLevel,
+      totalPoints: startingPoints,
+      pointsThisLevel,
+      pointsToNextLevel,
+      badges,
+      achievements: [],
+      rewardHistory,
+      streaks: {
+        current: userActivity > 0 ? Math.min(userActivity, 7) : 0,
+        longest: userActivity > 0 ? Math.min(userActivity, 30) : 0,
+      },
+      statistics: {
+        totalBadgesEarned: badges.length,
+        totalAchievementsCompleted: 0,
+        averagePointsPerDay: userActivity > 0 ? Math.ceil(startingPoints / Math.max(accountAgeDays, 1)) : 0,
+        daysActive: Math.min(accountAgeDays, 365),
+      },
+    };
+
+    return NextResponse.json({ success: true, data: rewardsData });
   } catch (error) {
     console.error('Rewards fetch error:', error);
     return NextResponse.json(
