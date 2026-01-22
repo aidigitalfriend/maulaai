@@ -4,7 +4,7 @@
  * Replaces Mongoose-based analytics-tracker.js
  */
 
-import prisma from './prisma.js';
+import { prisma } from './prisma.js';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

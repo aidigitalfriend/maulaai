@@ -6,7 +6,7 @@
 
 import express from 'express';
 import Stripe from 'stripe';
-import prisma from '../lib/prisma.js';
+import { prisma } from '../lib/prisma.js';
 import { AgentSubscriptionService } from '../lib/db.js';
 
 const router = express.Router();
