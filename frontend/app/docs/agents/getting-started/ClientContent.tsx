@@ -22,7 +22,7 @@ export default function GettingStartedContent() {
             Getting Started with Agents
           </h1>
           <p className="text-xl text-gray-600">
-            Learn the fundamentals of creating, deploying, and managing AI agents on One Last AI.
+            Learn the fundamentals of creating, deploying, and managing AI agents on Maula AI.
           </p>
           <div className="flex items-center gap-4 mt-6 text-gray-500">
             <span>📖 Reading time: 8 minutes</span>
@@ -95,7 +95,7 @@ export default function GettingStartedContent() {
                   <h3 className="text-xl font-bold text-gray-900">Create an Account</h3>
                 </div>
                 <p className="text-gray-600">
-                  Visit One Last AI and sign up for a free account. You'll get immediate access to all available agents and the ability to create custom ones.
+                  Visit Maula AI and sign up for a free account. You'll get immediate access to all available agents and the ability to create custom ones.
                 </p>
               </div>
 

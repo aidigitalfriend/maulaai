@@ -464,7 +464,7 @@ export default function StatusPage() {
             System Status
           </h1>
           <p className="text-base md:text-lg lg:text-xl text-neural-600 mb-4 md:mb-6 max-w-2xl mx-auto px-4">
-            Real-time monitoring of all One Last AI services
+            Real-time monitoring of all Maula AI services
           </p>
           {usedMock && (
             <p className="text-xs text-neural-600">

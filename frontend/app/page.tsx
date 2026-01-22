@@ -838,12 +838,12 @@ export default function HomePage() {
                 <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent"> Updates</span>
               </h2>
               <p className="text-lg text-neural-300 mb-8 leading-relaxed">
-                Stay informed about new features, platform improvements, and exciting announcements from One Last AI.
+                Stay informed about new features, platform improvements, and exciting announcements from Maula AI.
               </p>
               <div className="space-y-4 mb-8">
                 {[
                   { date: 'Jan 19, 2026', title: 'New Voice-to-Voice Agent Available', category: 'Feature' },
-                  { date: 'Jan 15, 2026', title: 'One Last AI Reaches 10K Active Users', category: 'Milestone' },
+                  { date: 'Jan 15, 2026', title: 'Maula AI Reaches 10K Active Users', category: 'Milestone' },
                   { date: 'Jan 10, 2026', title: 'Enterprise Security Enhancements', category: 'Security' },
                 ].map((news, idx) => (
                   <div key={idx} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10 hover:border-amber-500/50 transition-colors">
@@ -1218,7 +1218,7 @@ export default function HomePage() {
             <div className="relative">
               <img
                 src="/images/products/why-choose-us.jpeg"
-                alt="Why Choose One Last AI"
+                alt="Why Choose Maula AI"
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '500px' }}
               />

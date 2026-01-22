@@ -14,7 +14,7 @@ export interface ProviderModelOption {
 // ============================================================================
 // Structure for ALL agents:
 // 1. [Agent Name] - Cerebras (Primary Default)
-// 2. One Last AI - Groq (Secondary Default)
+// 2. Maula AI - Groq (Secondary Default)
 // 3. Specialized options based on agent personality
 // ============================================================================
 
@@ -33,10 +33,10 @@ function createAgentOptions(
         { value: 'llama-3.3-70b', label: 'Smart Response' },
       ],
     },
-    // 2. One Last AI - Groq
+    // 2. Maula AI - Groq
     {
       provider: 'groq',
-      label: 'One Last AI',
+      label: 'Maula AI',
       models: [
         { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
         { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
@@ -708,7 +708,7 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 // For Canvas app - focused on coding with 3 options:
 // 1. [Agent Name] - Cerebras
-// 2. One Last AI - Groq  
+// 2. Maula AI - Groq  
 // 3. Better Quality - Gemini
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
@@ -723,7 +723,7 @@ export function getAgentCanvasProviders(agentId: string, agentName?: string): Re
       ],
     },
     groq: {
-      name: 'One Last AI',
+      name: 'Maula AI',
       models: [
         { id: 'llama-3.1-8b-instant', name: 'Instant Response' },
         { id: 'llama-3.3-70b-versatile', name: 'Balanced Response' },
@@ -801,7 +801,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'groq',
-    label: 'One Last AI',
+    label: 'Maula AI',
     models: [
       { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
       { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },

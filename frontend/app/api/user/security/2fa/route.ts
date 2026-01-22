@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Generate secret and QR code for 2FA setup
     const secret = authenticator.generateSecret();
-    const appName = 'OnelastAI';
+    const appName = 'Maula AI';
     const accountName = sessionUser.email;
 
     const otpauth = authenticator.keyuri(accountName, appName, secret);

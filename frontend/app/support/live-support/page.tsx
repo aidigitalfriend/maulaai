@@ -244,7 +244,7 @@ export default function LiveSupportPage() {
     const welcomeMessage: Message = {
       id: '0',
       role: 'assistant',
-      content: `Hey there, ${userName}! 🌙💕\n\nI'm Luna, your personal support companion here at One Last AI! It's so wonderful to have you here, darling!\n\nHow can I make your day better today? 🥰`,
+      content: `Hey there, ${userName}! 🌙💕\n\nI'm Luna, your personal support companion here at Maula AI! It's so wonderful to have you here, darling!\n\nHow can I make your day better today? 🥰`,
       timestamp: new Date(),
     };
     setMessages([welcomeMessage]);

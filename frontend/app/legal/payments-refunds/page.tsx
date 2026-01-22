@@ -177,7 +177,7 @@ export default function PaymentsRefundsPage() {
                   2.2 No Free Tier
                 </h3>
                 <p className="text-gray-700">
-                  One Last AI does not offer a free tier. All agent access
+                  Maula AI does not offer a free tier. All agent access
                   requires a one-time payment starting at $1/day. This low-cost
                   model ensures:
                 </p>
@@ -398,12 +398,12 @@ export default function PaymentsRefundsPage() {
                 </h3>
                 <p className="text-gray-700 leading-relaxed mb-4 text-lg">
                   <strong className="text-red-600">
-                    ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.
+                    MAULA AI DOES NOT OFFER REFUNDS FOR ANY REASON.
                   </strong>
                 </p>
                 <p className="text-gray-700 leading-relaxed">
                   {' '}
-                  All payments made to One Last AI are{' '}
+                  All payments made to Maula AI are{' '}
                   <strong className="text-gray-900">
                     final, non-refundable, and non-transferable
                   </strong>

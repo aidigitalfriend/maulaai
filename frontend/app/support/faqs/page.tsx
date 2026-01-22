@@ -8,8 +8,8 @@ export default function FAQsPage() {
       category: 'Getting Started',
       questions: [
         {
-          q: 'What is One Last AI?',
-          a: 'One Last AI is a comprehensive AI platform featuring 20+ specialized AI agents, an AI Studio for interactive conversations, Canvas for real-time code and content generation, and developer tools including APIs and SDKs. Each agent specializes in different areas like physics, programming, cooking, fitness, and entertainment.',
+          q: 'What is Maula AI?',
+          a: 'Maula AI is a comprehensive AI platform featuring 20+ specialized AI agents, an AI Studio for interactive conversations, Canvas for real-time code and content generation, and developer tools including APIs and SDKs. Each agent specializes in different areas like physics, programming, cooking, fitness, and entertainment.',
         },
         {
           q: 'How do I get started?',
@@ -25,7 +25,7 @@ export default function FAQsPage() {
         },
         {
           q: 'Do I need technical skills?',
-          a: 'No! One Last AI is designed for everyone. Non-technical users can chat with agents naturally, while developers can leverage our APIs, SDKs, and Canvas for advanced integrations. We provide tutorials for all skill levels.',
+          a: 'No! Maula AI is designed for everyone. Non-technical users can chat with agents naturally, while developers can leverage our APIs, SDKs, and Canvas for advanced integrations. We provide tutorials for all skill levels.',
         },
         {
           q: 'What agents are available?',
@@ -165,15 +165,15 @@ export default function FAQsPage() {
           a: 'We support Slack, Microsoft Teams, Discord, Zapier, Make.com, and direct API integration. Connect agents to your existing workflows or build custom integrations with our APIs.',
         },
         {
-          q: 'Can I use One Last AI offline?',
-          a: 'One Last AI requires an internet connection as AI processing happens on our servers. However, you can export conversations for offline reference, and our mobile experience is optimized for varying connectivity.',
+          q: 'Can I use Maula AI offline?',
+          a: 'Maula AI requires an internet connection as AI processing happens on our servers. However, you can export conversations for offline reference, and our mobile experience is optimized for varying connectivity.',
         },
         {
           q: 'Are there mobile apps?',
           a: 'Our web app is fully responsive and works great on mobile browsers. Native iOS and Android apps are coming soon. You can also add the site to your home screen for an app-like experience.',
         },
         {
-          q: 'Can I use One Last AI for commercial purposes?',
+          q: 'Can I use Maula AI for commercial purposes?',
           a: 'Yes! All paid plans include commercial usage rights. Use agent outputs in your products, services, or business operations. Enterprise plans include additional SLAs and licensing options.',
         },
       ],
@@ -261,7 +261,7 @@ export default function FAQsPage() {
       category: 'Compliance & Legal',
       questions: [
         {
-          q: 'Is One Last AI GDPR compliant?',
+          q: 'Is Maula AI GDPR compliant?',
           a: 'Yes! We\'re fully GDPR compliant with data subject rights, DPA agreements, and compliance tools. EU users can request EU data residency. See /security for details.',
         },
         {
@@ -293,7 +293,7 @@ export default function FAQsPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-            Find answers to common questions about One Last AI, our agents, Studio, Canvas, and more
+            Find answers to common questions about Maula AI, our agents, Studio, Canvas, and more
           </p>
         </div>
       </section>

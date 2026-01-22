@@ -36,7 +36,7 @@ function getPasswordResetEmailTemplate(userName: string, resetUrl: string): stri
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password - One Last AI</title>
+  <title>Reset Your Password - Maula AI</title>
   <style>
     body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -62,7 +62,7 @@ function getPasswordResetEmailTemplate(userName: string, resetUrl: string): stri
     <div class="content">
       <p class="greeting">Hi ${userName}!</p>
       <p class="message">
-        We received a request to reset your password for your One Last AI account.
+        We received a request to reset your password for your Maula AI account.
         Click the button below to create a new password:
       </p>
       
@@ -86,8 +86,8 @@ function getPasswordResetEmailTemplate(userName: string, resetUrl: string): stri
     </div>
     <div class="footer">
       <p class="footer-text">
-        This email was sent by One Last AI<br>
-        © ${new Date().getFullYear()} One Last AI. All rights reserved.
+        This email was sent by Maula AI<br>
+        © ${new Date().getFullYear()} Maula AI. All rights reserved.
       </p>
     </div>
   </div>
@@ -185,9 +185,9 @@ export async function POST(request: NextRequest) {
     if (transporter) {
       try {
         await transporter.sendMail({
-          from: 'One Last AI <noreply@onelastai.co>',
+          from: 'Maula AI <noreply@onelastai.co>',
           to: user.email,
-          subject: '🔐 Reset Your Password - One Last AI',
+          subject: '🔐 Reset Your Password - Maula AI',
           html: getPasswordResetEmailTemplate(user.name || 'User', resetUrl),
         });
         console.log(`✅ Password reset email sent to ${user.email}`);

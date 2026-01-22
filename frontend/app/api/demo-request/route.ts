@@ -53,7 +53,7 @@ function getDemoRequestAdminEmail(data: {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Demo Request - One Last AI</title>
+  <title>New Demo Request - Maula AI</title>
   <style>
     body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -79,7 +79,7 @@ function getDemoRequestAdminEmail(data: {
   <div class="container">
     <div class="header">
       <h1>🎯 New Demo Request!</h1>
-      <p>Someone wants to see One Last AI in action</p>
+      <p>Someone wants to see Maula AI in action</p>
     </div>
     <div class="content">
       <div style="text-align: center; margin-bottom: 25px;">
@@ -137,8 +137,8 @@ function getDemoRequestAdminEmail(data: {
     </div>
     <div class="footer">
       <p class="footer-text">
-        This notification was sent from One Last AI Demo Request Form<br>
-        © ${new Date().getFullYear()} One Last AI. All rights reserved.
+        This notification was sent from Maula AI Demo Request Form<br>
+        © ${new Date().getFullYear()} Maula AI. All rights reserved.
       </p>
     </div>
   </div>
@@ -155,7 +155,7 @@ function getDemoRequestUserEmail(data: { name: string; date: string; time: strin
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Demo Request Received - One Last AI</title>
+  <title>Demo Request Received - Maula AI</title>
   <style>
     body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -184,7 +184,7 @@ function getDemoRequestUserEmail(data: { name: string; date: string; time: strin
     <div class="content">
       <p class="greeting">Hi ${data.name}! 👋</p>
       <p class="message">
-        Thank you for your interest in One Last AI! We're excited to show you how our AI agents can transform your workflow.
+        Thank you for your interest in Maula AI! We're excited to show you how our AI agents can transform your workflow.
       </p>
       
       <div class="schedule-card">
@@ -213,7 +213,7 @@ function getDemoRequestUserEmail(data: { name: string; date: string; time: strin
     <div class="footer">
       <p class="footer-text">
         Questions? Reply to this email or contact support@onelastai.co<br>
-        © ${new Date().getFullYear()} One Last AI. All rights reserved.
+        © ${new Date().getFullYear()} Maula AI. All rights reserved.
       </p>
     </div>
   </div>
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
       try {
         // Admin notification
         await transporter.sendMail({
-          from: 'One Last AI <noreply@onelastai.co>',
+          from: 'Maula AI <noreply@onelastai.co>',
           to: ADMIN_EMAIL,
           replyTo: email,
           subject: `🎯 New Demo Request from ${name}${company ? ` (${company})` : ''}`,
@@ -264,9 +264,9 @@ export async function POST(request: NextRequest) {
 
         // User confirmation
         await transporter.sendMail({
-          from: 'One Last AI <noreply@onelastai.co>',
+          from: 'Maula AI <noreply@onelastai.co>',
           to: email,
-          subject: '🎉 Demo Request Received - One Last AI',
+          subject: '🎉 Demo Request Received - Maula AI',
           html: getDemoRequestUserEmail({ name, date, time }),
         });
         console.log(`✅ Demo request confirmation sent to ${email}`);

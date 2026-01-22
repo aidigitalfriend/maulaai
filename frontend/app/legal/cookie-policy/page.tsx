@@ -134,7 +134,7 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                   1. Introduction
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  This Cookie Policy explains how One Last AI ("we," "our," or
+                  This Cookie Policy explains how Maula AI ("we," "our," or
                   "us") uses cookies and similar tracking technologies on our
                   website at{' '}
                   <a
@@ -261,7 +261,7 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                       First-Party Cookies
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Set by One Last AI directly. We have full control over
+                      Set by Maula AI directly. We have full control over
                       these cookies.
                     </p>
                   </div>

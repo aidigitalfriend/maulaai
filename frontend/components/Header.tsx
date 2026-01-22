@@ -57,13 +57,13 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-3">
             <img
               src="/images/logos/company-logo.png"
-              alt="One Last AI"
+              alt="Maula AI"
               width="40"
               height="40"
               className="w-10 h-10 object-contain"
             />
             <span className="text-xl font-bold text-neural-800">
-              One Last AI
+              Maula AI
             </span>
           </Link>
 

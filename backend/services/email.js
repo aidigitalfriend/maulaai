@@ -12,7 +12,7 @@ const SMTP_CONFIG = {
     user: process.env.SMTP_USER || 'noreply@onelastai.co',
     pass: process.env.SMTP_PASS || '',
   },
-  from: process.env.SMTP_FROM || 'One Last AI <noreply@onelastai.co>',
+  from: process.env.SMTP_FROM || 'Maula AI <noreply@onelastai.co>',
 }
 
 // Create SMTP transporter
@@ -66,7 +66,7 @@ export function getWelcomeEmailTemplate(userName) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to One Last AI</title>
+  <title>Welcome to Maula AI</title>
   <style>
     body {
       margin: 0;
@@ -250,7 +250,7 @@ export function getWelcomeEmailTemplate(userName) {
     <!-- Header -->
     <div class="header">
       <div class="logo">🤖</div>
-      <h1>Welcome to One Last AI!</h1>
+      <h1>Welcome to Maula AI!</h1>
       <p>Your journey into the future of AI begins now</p>
     </div>
 
@@ -259,7 +259,7 @@ export function getWelcomeEmailTemplate(userName) {
       <p class="greeting">Hello ${userName}! 👋</p>
       
       <p class="message">
-        We're thrilled to have you join the One Last AI community! You've just unlocked access to the most advanced AI platform designed to transform the way you work, create, and innovate.
+        We're thrilled to have you join the Maula AI community! You've just unlocked access to the most advanced AI platform designed to transform the way you work, create, and innovate.
       </p>
 
       <p class="message">
@@ -314,7 +314,7 @@ export function getWelcomeEmailTemplate(userName) {
       </div>
 
       <p class="message">
-        We can't wait to see what you'll create with One Last AI. Welcome aboard! 🎉
+        We can't wait to see what you'll create with Maula AI. Welcome aboard! 🎉
       </p>
     </div>
 
@@ -328,17 +328,17 @@ export function getWelcomeEmailTemplate(userName) {
       </div>
 
       <div class="signature">
-        <div class="signature-team">The One Last AI Team</div>
-        <div class="signature-company">One Last AI - Empowering Innovation with AI</div>
+        <div class="signature-team">The Maula AI Team</div>
+        <div class="signature-company">Maula AI - Empowering Innovation with AI</div>
       </div>
 
       <p class="footer-text">
-        © 2025 One Last AI. All rights reserved.<br>
+        © 2025 Maula AI. All rights reserved.<br>
         Mansion 24 Ramkhamhaeng, HuaMak, 10240 THA
       </p>
       
       <p class="footer-text" style="margin-top: 15px;">
-        You received this email because you created an account at One Last AI.<br>
+        You received this email because you created an account at Maula AI.<br>
         <a href="https://onelastai.co/legal/privacy-policy" style="color: #667eea;">Privacy Policy</a> | 
         <a href="https://onelastai.co/legal/terms-of-service" style="color: #667eea;">Terms of Service</a>
       </p>
@@ -360,7 +360,7 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password - One Last AI</title>
+  <title>Reset Your Password - Maula AI</title>
   <style>
     body {
       margin: 0;
@@ -565,7 +565,7 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
       <p class="greeting">Hello ${userName}! 👋</p>
       
       <p class="message">
-        We received a request to reset the password for your One Last AI account. If you made this request, click the button below to create a new password.
+        We received a request to reset the password for your Maula AI account. If you made this request, click the button below to create a new password.
       </p>
 
       <!-- Reset Button -->
@@ -629,12 +629,12 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
       </div>
 
       <div class="signature">
-        <div class="signature-team">The One Last AI Security Team</div>
-        <div class="signature-company">One Last AI - Your Security is Our Priority</div>
+        <div class="signature-team">The Maula AI Security Team</div>
+        <div class="signature-company">Maula AI - Your Security is Our Priority</div>
       </div>
 
       <p class="footer-text">
-        © 2025 One Last AI. All rights reserved.<br>
+        © 2025 Maula AI. All rights reserved.<br>
         Mansion 24 Ramkhamhaeng, HuaMak, 10240 THA
       </p>
       
@@ -664,9 +664,9 @@ export async function sendWelcomeEmail(email, name) {
 
   try {
     await transporter.sendMail({
-      from: 'One Last AI <noreply@onelastai.co>',
+      from: 'Maula AI <noreply@onelastai.co>',
       to: email,
-      subject: '🎉 Welcome to One Last AI - Let\'s Get Started!',
+      subject: '🎉 Welcome to Maula AI - Let\'s Get Started!',
       html: getWelcomeEmailTemplate(name),
     })
     console.log(`✅ Welcome email sent to ${email}`)
@@ -693,9 +693,9 @@ export async function sendPasswordResetEmail(
 
   try {
     await transporter.sendMail({
-      from: 'One Last AI Security <noreply@onelastai.co>',
+      from: 'Maula AI Security <noreply@onelastai.co>',
       to: email,
-      subject: '🔐 Reset Your Password - One Last AI',
+      subject: '🔐 Reset Your Password - Maula AI',
       html: getPasswordResetEmailTemplate(name, resetUrl),
     })
     console.log(`✅ Password reset email sent to ${email}`)
@@ -959,7 +959,7 @@ export async function notifyAdminNewUser(data) {
     <div class="content">
       <div class="name">${data.name}</div>
       <div class="email">${data.email}</div>
-      <p style="color: #888; margin-top: 20px; font-size: 14px;">A new user just joined One Last AI!</p>
+      <p style="color: #888; margin-top: 20px; font-size: 14px;">A new user just joined Maula AI!</p>
     </div>
   </div>
 </body>

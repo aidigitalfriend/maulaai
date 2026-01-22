@@ -1,4 +1,4 @@
-// Prisma schema for One Last AI
+// Prisma schema for Maula AI
 // Migrated from MongoDB/Mongoose to PostgreSQL
 
 generator client {

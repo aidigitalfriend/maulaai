@@ -114,7 +114,7 @@ Requirements:
 • Delete information when no longer needed
 
 Our Compliance:
-One Last AI does not knowingly collect information from children under 13. Our services are intended for users 18 years and older.`,
+Maula AI does not knowingly collect information from children under 13. Our services are intended for users 18 years and older.`,
       source: '15 U.S.C. §§ 6501–6506',
     },
   };
@@ -145,7 +145,7 @@ One Last AI does not knowingly collect information from children under 13. Our s
               1. Introduction
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Welcome to One Last AI ("we," "our," or "us"). We operate a global
+              Welcome to Maula AI ("we," "our," or "us"). We operate a global
               multi-agent AI platform that provides specialized AI personalities
               and services to users worldwide. This Privacy Policy explains how
               we collect, use, disclose, and safeguard your information when you
@@ -653,7 +653,7 @@ One Last AI does not knowingly collect information from children under 13. Our s
               <p>
                 <strong className="text-white">Data Protection Officer:</strong>
               </p>
-              <p>One Last AI Privacy Team</p>
+              <p>Maula AI Privacy Team</p>
               <p>
                 Email:{' '}
                 <a

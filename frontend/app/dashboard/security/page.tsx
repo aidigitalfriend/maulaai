@@ -404,7 +404,7 @@ export default function SecuritySettingsPage() {
   const handleDownloadBackupCodes = () => {
     if (backupCodes.length === 0) return;
 
-    const content = `One Last AI - Two-Factor Authentication Backup Codes
+    const content = `Maula AI - Two-Factor Authentication Backup Codes
 ================================================
 Generated: ${new Date().toLocaleString()}
 Account: ${state.user?.email || 'Unknown'}

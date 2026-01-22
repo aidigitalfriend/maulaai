@@ -1,5 +1,5 @@
 /**
- * ONE LAST AI - PRODUCTION SERVER
+ * MAULA AI - PRODUCTION SERVER
  * PostgreSQL/Prisma Backend
  * Migrated from MongoDB to PostgreSQL
  */
@@ -807,7 +807,7 @@ const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 async function initializeServer() {
   try {
-    console.log('🔧 Initializing One Last AI Server...');
+    console.log('🔧 Initializing Maula AI Server...');
     console.log('📦 Database: PostgreSQL via Prisma');
 
     // Connect to PostgreSQL
@@ -819,7 +819,7 @@ async function initializeServer() {
 
     // Start server
     server.listen(PORT, host, () => {
-      console.log(`🚀 One Last AI Backend running on ${host}:${PORT}`);
+      console.log(`🚀 Maula AI Backend running on ${host}:${PORT}`);
       console.log(`📊 Health check: http://${host}:${PORT}/health`);
       console.log(`🔗 API: http://${host}:${PORT}/api`);
 

@@ -63,7 +63,7 @@ function LoginPageContent() {
           >
             <Image
               src="/images/logos/company-logo.png"
-              alt="One Last AI"
+              alt="Maula AI"
               width={80}
               height={80}
               className="w-20 h-20 object-contain"

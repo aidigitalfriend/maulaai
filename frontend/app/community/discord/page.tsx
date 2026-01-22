@@ -24,7 +24,7 @@ export default function DiscordPage() {
             <MessageCircle className="w-8 h-8" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Join Our Discord</h1>
-          <p className="text-xl text-white/90 mb-2">Connect with the One Last AI community</p>
+          <p className="text-xl text-white/90 mb-2">Connect with the Maula AI community</p>
           <p className="text-lg text-white/75">10,000+ members sharing knowledge and building together</p>
         </div>
       </section>
@@ -36,7 +36,7 @@ export default function DiscordPage() {
             <div className="text-7xl mb-6 animate-bounce">💜</div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Active Discord Community</h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow One Last AI users worldwide.
+              Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow Maula AI users worldwide.
             </p>
             <a
               href="https://discord.gg/EXH6w9CH"
@@ -90,7 +90,7 @@ export default function DiscordPage() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Real-Time Support</h3>
-                <p className="text-gray-600">Get instant help from community members and One Last AI team members</p>
+                <p className="text-gray-600">Get instant help from community members and Maula AI team members</p>
               </div>
             </div>
 
@@ -237,7 +237,7 @@ export default function DiscordPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all">
               <h3 className="text-lg font-bold text-gray-900 mb-2">💬 #general</h3>
-              <p className="text-gray-600 text-sm">General discussion about One Last AI and the community</p>
+              <p className="text-gray-600 text-sm">General discussion about Maula AI and the community</p>
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-indigo-300 hover:shadow-xl transition-all">

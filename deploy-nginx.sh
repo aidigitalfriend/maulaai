@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================
-# NGINX Config Deployment Script for One Last AI
+# NGINX Config Deployment Script for Maula AI
 # Server: 47.130.228.100 (onelastai.co)
 # =================================================
 
