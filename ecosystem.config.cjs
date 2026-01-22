@@ -7,13 +7,13 @@ module.exports = {
   apps: [
     // Frontend Next.js Application
     {
-      name: 'shiny-frontend',
-      cwd: '/home/ubuntu/shiny-friend-disco/frontend',
+      name: 'maula-frontend',
+      cwd: '/home/ubuntu/maula-ai/frontend',
       script: 'npm',
       args: 'start',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000,
+        PORT: 3100,
       },
       instances: 1,
       exec_mode: 'fork',
@@ -32,17 +32,17 @@ module.exports = {
 
     // Backend API Server with Authentication
     {
-      name: 'shiny-backend',
-      cwd: '/home/ubuntu/shiny-friend-disco/backend',
+      name: 'maula-backend',
+      cwd: '/home/ubuntu/maula-ai/backend',
       script: 'server-simple.js',
       interpreter: '/usr/bin/node',
       node_args: '-r dotenv/config',
       env: {
         NODE_ENV: 'production',
         PORT: 3005,
-        DOTENV_CONFIG_PATH: '/home/ubuntu/shiny-friend-disco/backend/.env',
+        DOTENV_CONFIG_PATH: '/home/ubuntu/maula-ai/backend/.env',
         REDIS_URL:
-          'redis://default:O0GuKqY8vfZp4I9QZxG4wwpyhLFxJ2uJ@redis-17779.crce185.ap-seast-1-1.ec2.cloud.redislabs.com:17779',
+          'redis://default:oSBgRq10A8j5Pg8AMxZmf5P8bOiPYrtn@redis-13535.crce214.us-east-1-3.ec2.cloud.redislabs.com:13535',
       },
       instances: 1,
       exec_mode: 'fork',

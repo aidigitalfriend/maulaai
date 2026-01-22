@@ -24,8 +24,8 @@ jobs:
           script: |
             set -euo pipefail
 
-            APP_DIR=${APP_DIR:-/home/ubuntu/shiny-friend-disco}
-            REPO_URL="https://github.com/aidigitalfriend/shiny-friend-disco.git"
+            APP_DIR=${APP_DIR:-/home/ubuntu/maula-ai}
+            REPO_URL="https://github.com/aidigitalfriend/maulaai.git"
 
             echo "==> Ensuring application directory exists: $APP_DIR"
             if [ ! -d "$APP_DIR/.git" ]; then
@@ -93,4 +93,4 @@ jobs:
           echo "- SSH_HOST (e.g., ec2-xx-xx-xx-xx.compute.amazonaws.com)"
           echo "- SSH_USER (e.g., ubuntu)"
           echo "- SSH_KEY (private key for the instance)"
-          echo "Optional: APP_DIR (defaults to /home/ubuntu/shiny-friend-disco)"
+          echo "Optional: APP_DIR (defaults to /home/ubuntu/maula-ai)"
