@@ -43,8 +43,19 @@ const upload = multer({
 // GET /api/user/profile - Get current user profile
 router.get('/profile', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
-    const userEmail = req.headers['x-user-email'];
+    let userId = req.headers['x-user-id'];
+    let userEmail = req.headers['x-user-email'];
+    
+    // Also check session cookie for authentication
+    if (!userId && !userEmail) {
+      const sessionId = req.cookies?.sessionId;
+      if (sessionId) {
+        const sessionUser = await db.User.findBySessionId(sessionId);
+        if (sessionUser && (!sessionUser.sessionExpiry || new Date(sessionUser.sessionExpiry) > new Date())) {
+          userId = sessionUser.id;
+        }
+      }
+    }
 
     if (!userId && !userEmail) {
       return res.status(401).json({ success: false, error: 'Authentication required' });
