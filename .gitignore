@@ -404,6 +404,7 @@ backup_*/
 
 # Database dumps
 *.sql
+!backend/prisma/migrations/**/*.sql
 
 # ==================================================
 # ADDITIONAL SENSITIVE FILES - ENSURE THESE ARE IGNORED
