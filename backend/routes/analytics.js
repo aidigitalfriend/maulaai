@@ -507,7 +507,7 @@ router.post('/track/event', async (req, res) => {
 // ============================================
 // GET VISITOR STATS
 // ============================================
-router.get('/analytics/visitor/:visitorId', async (req, res) => {
+router.get('/visitor/:visitorId', async (req, res) => {
   try {
     const { visitorId } = req.params;
     const stats = await getVisitorStats(visitorId);
@@ -526,7 +526,7 @@ router.get('/analytics/visitor/:visitorId', async (req, res) => {
 // ============================================
 // GET SESSION STATS
 // ============================================
-router.get('/analytics/session/:sessionId', async (req, res) => {
+router.get('/session/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     const stats = await getSessionStats(sessionId);
@@ -545,7 +545,7 @@ router.get('/analytics/session/:sessionId', async (req, res) => {
 // ============================================
 // GET REALTIME STATS
 // ============================================
-router.get('/analytics/realtime', async (req, res) => {
+router.get('/realtime', async (req, res) => {
   try {
     const stats = await getRealtimeStats();
 
@@ -559,7 +559,7 @@ router.get('/analytics/realtime', async (req, res) => {
 // ============================================
 // GET CURRENT TRACKING DATA
 // ============================================
-router.get('/analytics/current', (req, res) => {
+router.get('/current', (req, res) => {
   const trackingData = getTrackingData(req);
 
   if (!trackingData) {
