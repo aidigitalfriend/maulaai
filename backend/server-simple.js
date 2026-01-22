@@ -37,6 +37,7 @@ import agentAIService from './lib/agent-ai-provider-service.js';
 import { startSubscriptionExpirationCron } from './services/subscription-cron.js';
 
 const app = express();
+app.set('trust proxy', 1);
 const server = createServer(app);
 const io = new Server(server, {
   cors: {

@@ -688,7 +688,7 @@ router.get('/analytics', async (req, res) => {
     // Get active subscriptions count for user
     let activeAgentsCount = 0;
     try {
-      const subscriptions = await db.Subscription.findByUserId(userId);
+      const subscriptions = await db.AgentSubscription.findByUserId(userId);
       activeAgentsCount = subscriptions?.filter(s => s.status === 'active')?.length || 0;
     } catch (e) {
       console.warn('Could not fetch subscriptions for analytics:', e.message);
