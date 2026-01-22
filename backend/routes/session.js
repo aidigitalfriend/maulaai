@@ -1,7 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import User from '../models/User.ts';
+import { prisma } from '../lib/prisma.js';
 
 const router = express.Router();
 const JWT_SECRET =
@@ -21,9 +21,9 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
-      '+password'
-    );
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -32,7 +32,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password || '');
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       {
-        userId: user._id,
+        userId: user.id,
         email: user.email,
         name: user.name,
       },
@@ -60,14 +60,16 @@ router.post('/login', async (req, res) => {
     });
 
     // Update user's last login
-    user.lastLoginAt = new Date();
-    await user.save();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() }
+    });
 
     res.json({
       success: true,
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
           avatar: user.avatar,
@@ -105,7 +107,9 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if user exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -117,21 +121,20 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user
-    const user = new User({
-      name: name.trim(),
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      avatar: '👤',
-      createdAt: new Date(),
-      lastLoginAt: new Date(),
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        avatar: '👤',
+        lastLoginAt: new Date(),
+      }
     });
-
-    await user.save();
 
     // Generate JWT token
     const token = jwt.sign(
       {
-        userId: user._id,
+        userId: user.id,
         email: user.email,
         name: user.name,
       },
@@ -151,7 +154,7 @@ router.post('/register', async (req, res) => {
       success: true,
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
           avatar: user.avatar,
@@ -188,7 +191,9 @@ router.get('/profile', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Get fresh user data
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -200,7 +205,7 @@ router.get('/profile', async (req, res) => {
       success: true,
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
           avatar: user.avatar,
@@ -270,7 +275,9 @@ router.post('/refresh', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Get user
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -281,7 +288,7 @@ router.post('/refresh', async (req, res) => {
     // Generate new token
     const newToken = jwt.sign(
       {
-        userId: user._id,
+        userId: user.id,
         email: user.email,
         name: user.name,
       },
@@ -301,7 +308,7 @@ router.post('/refresh', async (req, res) => {
       success: true,
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
           avatar: user.avatar,

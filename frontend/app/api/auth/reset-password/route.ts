@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import bcrypt from 'bcryptjs';
 
 // SMTP Configuration (Namecheap Private Email)
 const SMTP_CONFIG = {
@@ -104,14 +104,20 @@ export async function POST(request: NextRequest) {
   try {
     const { email, token, newPassword } = await request.json();
 
-    await dbConnect();
-
     // If token and newPassword are provided, this is the actual password reset
     if (token && newPassword) {
+      // Create token hash for comparison
+      const tokenHash = crypto
+        .createHash('sha256')
+        .update(token)
+        .digest('hex');
+
       // Find user with valid reset token
-      const user = await User.findOne({
-        resetPasswordToken: token,
-        resetPasswordExpires: { $gt: new Date() },
+      const user = await prisma.user.findFirst({
+        where: {
+          resetPasswordToken: tokenHash,
+          resetPasswordExpires: { gt: new Date() },
+        },
       });
 
       if (!user) {
@@ -129,16 +135,19 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Import bcrypt dynamically
-      const bcrypt = await import('bcryptjs');
+      // Hash the new password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
 
       // Update password and clear reset token
-      user.password = hashedPassword;
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-      await user.save();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      });
 
       return NextResponse.json({
         success: true,
@@ -154,7 +163,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
 
     // Always return success to prevent email enumeration
     if (!user) {
@@ -172,9 +183,13 @@ export async function POST(request: NextRequest) {
       .digest('hex');
 
     // Save token to user (expires in 1 hour)
-    user.resetPasswordToken = resetTokenHash;
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    await user.save();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetTokenHash,
+        resetPasswordExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+      },
+    });
 
     // Build reset URL
     const baseUrl = process.env.NEXTAUTH_URL || 'https://maula.ai';

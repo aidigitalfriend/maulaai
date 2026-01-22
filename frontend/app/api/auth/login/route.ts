@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import User from '@/models/User';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { checkEnvironmentVariables } from '@/lib/environment-checker';
 
+/**
+ * POST /api/auth/login
+ * Authenticate user with email and password
+ * Using PostgreSQL via Prisma - NO MongoDB!
+ */
 export async function POST(request: NextRequest) {
   try {
     // Check environment first
@@ -30,16 +34,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to database with timeout
-    await Promise.race([
-      dbConnect(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Database connection timeout')), 5000)
-      ),
-    ]);
-
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
+
     if (!user) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
@@ -51,6 +50,7 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = user.password
       ? await bcrypt.compare(password, user.password)
       : false;
+
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: 'Invalid email or password' },
@@ -62,37 +62,39 @@ export async function POST(request: NextRequest) {
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    // Store session in user document
-    user.sessionId = sessionId;
-    user.sessionExpiry = sessionExpiry;
+    // Update user with session and last login
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        sessionId,
+        sessionExpiry,
+        lastLoginAt: new Date(),
+      }
+    });
 
-    // Update last login time
-    user.lastLoginAt = new Date();
-    await user.save();
-
-    // Create response without token in JSON (security improvement)
+    // Create response
     const response = NextResponse.json(
       {
         message: 'Login successful',
         success: true,
         user: {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          authMethod: user.authMethod,
-          createdAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt,
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          authMethod: updatedUser.authMethod,
+          createdAt: updatedUser.createdAt,
+          lastLoginAt: updatedUser.lastLoginAt,
         },
       },
       { status: 200 }
     );
 
-    // Set secure HttpOnly session cookie (not accessible to JavaScript)
+    // Set secure HttpOnly session cookie
     response.cookies.set('session_id', sessionId, {
-      httpOnly: true, // Prevents XSS attacks
-      secure: true, // HTTPS only
-      sameSite: 'strict', // CSRF protection
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
     });
 
