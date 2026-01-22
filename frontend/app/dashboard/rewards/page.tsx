@@ -27,7 +27,7 @@ export default function RewardsCenterPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://onelastai.co/api/user/rewards/${state.user.id}`,
+        `/api/user/rewards/${state.user.id}`,
         {
           credentials: 'include',
         }
