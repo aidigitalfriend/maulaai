@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ############################################################
-# Maula AI - Production Deployment Script
+# One Last AI - Production Deployment Script
 # ------------------------------------
 # Automates the local commit + push flow and the remote build
-# + restart cycle for the maula.ai project.
+# + restart cycle for the onelastai.co project.
 #
 # Usage:
 #   ./deploy.sh                          # auto commit + deploy
@@ -12,8 +12,8 @@
 #   ./deploy.sh --no-commit              # skip git add/commit
 #
 # Requirements:
-#   • victorykit.pem key present in repo root
-#   • ssh access to ubuntu@18.140.156.40
+#   • one-last-ai.pem key present in repo root
+#   • ssh access to ubuntu@47.130.228.100
 #   • pm2 configured with shiny-backend + shiny-frontend
 ############################################################
 
@@ -22,9 +22,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$REPO_ROOT"
 
-SERVER="ubuntu@18.140.156.40"
-SSH_KEY="$REPO_ROOT/victorykit.pem"
-REMOTE_DIR="~/maula-ai"
+SERVER="ubuntu@47.130.228.100"
+SSH_KEY="$REPO_ROOT/one-last-ai.pem"
+REMOTE_DIR="~/shiny-friend-disco"
 COMMIT_MSG="chore: deploy $(date +'%Y-%m-%d %H:%M:%S')"
 SKIP_COMMIT=false
 
@@ -96,9 +96,10 @@ git push origin main
 print_status "3) Deploying to production server"
 SSH_COMMAND=$(cat <<'REMOTE'
 set -euo pipefail
-cd ~/maula-ai
+cd ~/shiny-friend-disco
 
 echo "📦 Pulling latest code"
+git stash || true
 git fetch origin main
 git reset --hard origin/main
 
@@ -110,7 +111,7 @@ echo "🗄️ Generating Prisma client"
 npx prisma generate
 
 echo "🔄 Restarting backend"
-pm2 restart maula-backend || true
+pm2 restart shiny-backend || true
 
 cd ..
 
@@ -124,7 +125,7 @@ echo "🏗️ Building Next.js frontend"
 NEXT_TELEMETRY_DISABLED=1 npm run build
 
 echo "🔄 Restarting frontend"
-pm2 restart maula-frontend || true
+pm2 restart shiny-frontend || true
 
 echo "📊 PM2 status"
 pm2 list
@@ -137,19 +138,13 @@ ssh -tt -i "$SSH_KEY" "$SERVER" "$SSH_COMMAND"
 print_status "4) Automated diagnostics and fix"
 ssh -tt -i "$SSH_KEY" "$SERVER" "\
   echo '--- Checking port bindings ---'; \
-  ss -tuln | grep ':3000'; \
-  ss -tuln | grep ':3005'; \
+  ss -tuln | grep ':3000' || true; \
+  ss -tuln | grep ':3005' || true; \
   echo '\n--- PM2 process info ---'; \
-  pm2 info maula-backend; \
-  pm2 info maula-frontend; \
-  echo '\n--- NGINX error log (last 50 lines) ---'; \
-  sudo tail -n 50 /var/log/nginx/maula.ai-error.log; \
-  echo '\n--- Updating NGINX config ---'; \
-  sudo cp ~/maula-ai/nginx/maula.ai.conf /etc/nginx/sites-available/ 2>/dev/null || echo 'NGINX config copy skipped'; \
-  echo '\n--- Restarting NGINX ---'; \
-  sudo nginx -t && sudo systemctl restart nginx; \
+  pm2 info shiny-backend || true; \
+  pm2 info shiny-frontend || true; \
   echo '\n--- Retesting endpoints ---'; \
-  curl -f https://maula.ai/api/status | head -c 200 || echo 'Status endpoint failed'; \
+  curl -f http://localhost:3000/api/status | head -c 200 || echo 'Status endpoint failed'; \
 "
 
 print_status "✅ Deployment and diagnostics complete"

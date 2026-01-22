@@ -2,8 +2,8 @@
   "CORSRules": [
     {
       "AllowedOrigins": [
-        "https://maula.ai",
-        "https://www.maula.ai",
+        "https://onelastai.co",
+        "https://www.onelastai.co",
         "http://localhost:3000"
       ],
       "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],

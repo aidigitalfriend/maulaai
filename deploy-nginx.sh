@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # =================================================
-# NGINX Config Deployment Script for Maula AI
-# Server: 18.140.156.40 (maula.ai)
+# NGINX Config Deployment Script for One Last AI
+# Server: 47.130.228.100 (onelastai.co)
 # =================================================
 
 set -e
 
-SERVER="ubuntu@18.140.156.40"
-SSH_KEY_FILE="./victorykit.pem"
-NGINX_CONFIG="./nginx/maula.ai.conf"
+SERVER="ubuntu@47.130.228.100"
+SSH_KEY_FILE="./one-last-ai.pem"
+NGINX_CONFIG="./nginx/onelastai.co.conf"
 
 echo "🚀 Deploying NGINX configuration..."
 
@@ -26,16 +26,16 @@ if [[ ! -f "$SSH_KEY_FILE" ]]; then
 fi
 
 echo "📤 Copying NGINX config to server..."
-scp -i "$SSH_KEY_FILE" "$NGINX_CONFIG" "$SERVER:~/maula.ai.conf"
+scp -i "$SSH_KEY_FILE" "$NGINX_CONFIG" "$SERVER:~/onelastai.co.conf"
 
 ssh -i "$SSH_KEY_FILE" "$SERVER" << 'EOF'
 echo "🔧 Installing NGINX config..."
-sudo cp ~/maula.ai.conf /etc/nginx/sites-available/maula.ai
+sudo cp ~/onelastai.co.conf /etc/nginx/sites-available/onelastai.co
 
 echo "🔗 Ensuring proper symlink (removing any stale copies)..."
 # Remove existing file/symlink and create fresh symlink
-sudo rm -f /etc/nginx/sites-enabled/maula.ai
-sudo ln -s /etc/nginx/sites-available/maula.ai /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/onelastai.co
+sudo ln -s /etc/nginx/sites-available/onelastai.co /etc/nginx/sites-enabled/
 
 echo "✅ Testing NGINX config..."
 sudo nginx -t
@@ -47,12 +47,12 @@ echo "📊 NGINX status:"
 sudo systemctl status nginx --no-pager -l
 
 echo "🧹 Cleaning up..."
-rm ~/maula.ai.conf
+rm ~/onelastai.co.conf
 
 EOF
 
 echo "✅ NGINX deployment complete!"
 echo ""
 echo "🧪 Test the API routing:"
-echo "   curl https://maula.ai/api/agent/subscriptions/user/test-user"
-echo "   curl https://maula.ai/api/subscriptions/user/test-user"
+echo "   curl https://onelastai.co/api/status"
+echo "   curl https://onelastai.co/api/health"

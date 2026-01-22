@@ -166,7 +166,7 @@ export default function TestimonialSection() {
           className="text-center mt-16"
         >
           <p className="text-slate-400 mb-6">
-            Join 10,000+ companies transforming their business with Maula AI
+            Join 10,000+ companies transforming their business with One Last AI
           </p>
           <button className="relative inline-block group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
