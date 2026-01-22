@@ -473,7 +473,7 @@ router.post('/cancel', async (req, res) => {
 });
 
 // ============================================
-// 11. Verify Stripe Session
+// 11. Verify Stripe Session (ONE-TIME PAYMENT)
 // ============================================
 router.post('/verify-session', async (req, res) => {
   try {
@@ -490,7 +490,7 @@ router.post('/verify-session', async (req, res) => {
 
     // Retrieve the session from Stripe
     const session = await getStripe().checkout.sessions.retrieve(sessionId, {
-      expand: ['subscription', 'customer'],
+      expand: ['payment_intent', 'customer'],
     });
 
     if (!session) {
@@ -510,17 +510,6 @@ router.post('/verify-session', async (req, res) => {
       });
     }
 
-    // Get payment period object
-    const subscriptionData = session.subscription;
-
-    if (!subscriptionData) {
-      console.error('❌ No subscription found in session');
-      return res.status(400).json({
-        success: false,
-        error: 'Subscription not found',
-      });
-    }
-
     // Get customer email
     const customer = session.customer;
     const customerEmail = customer?.email || session.customer_email;
@@ -533,10 +522,10 @@ router.post('/verify-session', async (req, res) => {
       });
     }
 
-    // Extract metadata
-    const agentId = subscriptionData.metadata?.agentId || session.metadata?.agentId;
-    const agentName = subscriptionData.metadata?.agentName || session.metadata?.agentName;
-    const plan = subscriptionData.metadata?.plan || session.metadata?.plan;
+    // Extract metadata from session (for one-time payments, metadata is on session)
+    const agentId = session.metadata?.agentId;
+    const agentName = session.metadata?.agentName;
+    const plan = session.metadata?.plan;
     const userId = session.metadata?.userId;
 
     if (!agentId || !agentName || !plan) {
@@ -555,6 +544,27 @@ router.post('/verify-session', async (req, res) => {
       });
     }
 
+    // Calculate expiry date based on plan (one-time payment)
+    const startDate = new Date();
+    let expiryDate = new Date();
+    
+    switch (plan) {
+      case 'daily':
+        expiryDate.setDate(expiryDate.getDate() + 1);
+        break;
+      case 'weekly':
+        expiryDate.setDate(expiryDate.getDate() + 7);
+        break;
+      case 'monthly':
+        expiryDate.setDate(expiryDate.getDate() + 30);
+        break;
+      default:
+        expiryDate.setDate(expiryDate.getDate() + 30); // Default to 30 days
+    }
+
+    const price = session.amount_total ? session.amount_total / 100 : 0;
+    const paymentIntentId = session.payment_intent?.id || session.payment_intent;
+
     console.log('✅ Payment verified successfully:', {
       sessionId,
       customerEmail,
@@ -562,67 +572,64 @@ router.post('/verify-session', async (req, res) => {
       agentName,
       plan,
       amount: session.amount_total,
-      subscriptionId: subscriptionData.id,
+      paymentIntentId,
     });
 
-    // Use subscription period dates
-    const startDate = new Date(subscriptionData.current_period_start * 1000);
-    const expiryDate = new Date(subscriptionData.current_period_end * 1000);
-    const price = session.amount_total ? session.amount_total / 100 : 0;
-
-    // Check if subscription already exists by Stripe ID
+    // Check if subscription already exists by Stripe session ID (to prevent duplicates)
     const existingByStripeId = await prisma.agentSubscription.findFirst({
-      where: { stripeSubscriptionId: subscriptionData.id }
+      where: { stripeSubscriptionId: sessionId }
     });
 
     if (existingByStripeId) {
-      // Update existing subscription
-      const updated = await prisma.agentSubscription.update({
-        where: { id: existingByStripeId.id },
-        data: {
-          status: 'active',
-          startDate,
-          expiryDate,
-          ...(existingByStripeId.userId ? {} : { userId })
-        }
-      });
-
+      // Already processed this session
       const daysRemaining = Math.ceil(
-        (updated.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        (existingByStripeId.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
       );
 
       return res.json({
         success: true,
         hasAccess: true,
         subscription: {
-          id: updated.id,
-          agentId: updated.agentId,
-          plan: updated.plan,
+          id: existingByStripeId.id,
+          agentId: existingByStripeId.agentId,
+          plan: existingByStripeId.plan,
           status: 'active',
-          expiryDate: updated.expiryDate,
+          expiryDate: existingByStripeId.expiryDate,
           daysRemaining: daysRemaining > 0 ? daysRemaining : 0,
-          price: updated.price,
+          price: existingByStripeId.price,
         },
       });
     }
 
-    // Check if user already has subscription for this agent
+    // Check if user already has active subscription for this agent
     const existingSubscription = await prisma.agentSubscription.findFirst({
-      where: { userId, agentId }
+      where: { userId, agentId, status: 'active' }
     });
 
     let subscriptionRecord;
     if (existingSubscription) {
-      // Update existing record
+      // Extend existing subscription
+      const newExpiry = new Date(Math.max(existingSubscription.expiryDate.getTime(), Date.now()));
+      switch (plan) {
+        case 'daily':
+          newExpiry.setDate(newExpiry.getDate() + 1);
+          break;
+        case 'weekly':
+          newExpiry.setDate(newExpiry.getDate() + 7);
+          break;
+        case 'monthly':
+          newExpiry.setDate(newExpiry.getDate() + 30);
+          break;
+      }
+      
       subscriptionRecord = await prisma.agentSubscription.update({
         where: { id: existingSubscription.id },
         data: {
           status: 'active',
           plan,
           price,
-          startDate,
-          expiryDate,
-          stripeSubscriptionId: subscriptionData.id,
+          expiryDate: newExpiry,
+          stripeSubscriptionId: sessionId, // Store session ID to prevent reuse
         }
       });
     } else {
@@ -636,7 +643,7 @@ router.post('/verify-session', async (req, res) => {
           status: 'active',
           startDate,
           expiryDate,
-          stripeSubscriptionId: subscriptionData.id,
+          stripeSubscriptionId: sessionId, // Store session ID to prevent reuse
         }
       });
     }
