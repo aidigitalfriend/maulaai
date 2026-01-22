@@ -1,7 +1,7 @@
 /**
  * UNIVERSAL TRACKING MIDDLEWARE
  * Automatically tracks ALL requests, visitors, sessions, and interactions
- * Stores everything in MongoDB Atlas
+ * Stores everything in PostgreSQL via Prisma
  */
 
 import { Request, Response, NextFunction } from 'express'

@@ -334,7 +334,7 @@ GET /api/marketplace/plugins
 - **Runtime**: Node.js / Browser
 - **Framework**: Next.js (for API routes)
 - **Frontend**: React 18
-- **Storage**: In-memory (ready for MongoDB/PostgreSQL)
+- **Storage**: In-memory (ready for PostgreSQL via Prisma)
 - **Testing**: Integrated test framework
 - **Dependencies**: None (pure TypeScript)
 

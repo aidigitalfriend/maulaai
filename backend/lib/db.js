@@ -1,6 +1,6 @@
 /**
  * DATABASE SERVICE - PRISMA/POSTGRESQL
- * Complete replacement for Mongoose models
+ * PostgreSQL database operations via Prisma ORM
  * All database operations go through this service
  */
 

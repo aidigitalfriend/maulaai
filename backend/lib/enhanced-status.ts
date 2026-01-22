@@ -1,6 +1,6 @@
 /**
  * Real-time Metrics Integration for Status API
- * Updates the existing status endpoints to use real MongoDB-tracked metrics
+ * Updates the existing status endpoints to use real PostgreSQL-tracked metrics
  */
 
 import * as os from 'os'
@@ -12,7 +12,7 @@ import { sessionTrackingMiddleware, apiMetricsMiddleware, initializeMetrics } fr
  */
 export async function getEnhancedStatus(fallbackMetrics, providers, dbStatus) {
   try {
-    // Get real metrics from MongoDB
+    // Get real metrics from PostgreSQL
     const [activeUsers, agentMetrics, apiStats, historical] = await Promise.all([
       metricsTracker.getActiveUsers(),
       metricsTracker.getAgentMetrics(),

@@ -59,9 +59,9 @@ payment_credentials.*
 aws-credentials.json
 **/aws-config.json
 
-# MongoDB connection strings
-mongodb_uri.txt
-mongo-credentials.json
+# Database connection strings
+database_url.txt
+db-credentials.json
 
 # Database files
 *.db

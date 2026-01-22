@@ -1,7 +1,7 @@
 /**
  * PRISMA MODEL ADAPTERS
- * Provides Mongoose-like interface for existing routes while using Prisma underneath
- * This allows gradual migration without rewriting all routes at once
+ * Provides consistent interface for database operations using Prisma
+ * All models use PostgreSQL via Prisma ORM
  */
 
 import { prisma } from '../lib/prisma.js';

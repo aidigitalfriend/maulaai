@@ -1,7 +1,7 @@
 /**
  * UNIVERSAL ANALYTICS TRACKER
  * Tracks EVERYTHING: visitors, sessions, chats, tools, events
- * Stores ALL data in MongoDB Atlas for complete analytics
+ * Stores ALL data in PostgreSQL via Prisma for complete analytics
  */
 
 import { 
