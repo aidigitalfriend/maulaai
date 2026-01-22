@@ -7,8 +7,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 // Allowed base directories for security
 const ALLOWED_BASES = [
   process.cwd(),
@@ -29,6 +27,14 @@ class FileSystemAgent {
       'Delete files (with caution)',
       'Analyze file structure',
     ];
+  }
+
+  // Lazy initialization of Anthropic client
+  get anthropic() {
+    if (!this._anthropic) {
+      this._anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    }
+    return this._anthropic;
   }
 
   /**
@@ -393,7 +399,7 @@ Return a JSON response:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         messages: [

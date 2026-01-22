@@ -5,8 +5,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 class UIAgent {
   constructor() {
     this.name = 'UI Agent';
@@ -22,6 +20,14 @@ class UIAgent {
     ];
     this.frameworks = ['react', 'vue', 'svelte', 'html', 'nextjs'];
     this.styling = ['tailwind', 'css', 'scss', 'styled-components'];
+  }
+
+  // Lazy initialization of Anthropic client
+  get anthropic() {
+    if (!this._anthropic) {
+      this._anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    }
+    return this._anthropic;
   }
 
   /**
@@ -73,7 +79,7 @@ Respond in JSON format:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
@@ -183,7 +189,7 @@ Return the improved component in JSON format:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [

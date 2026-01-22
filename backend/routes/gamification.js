@@ -1,8 +1,6 @@
 import express from 'express';
+import db from '../lib/db.js';
 const router = express.Router();
-
-// In-memory storage for gamification data (in production, use PostgreSQL via Prisma)
-const gamificationData = new Map();
 
 // GET /api/gamification/metrics/:userId - Get user metrics
 router.get('/metrics/:userId', async (req, res) => {
@@ -16,41 +14,16 @@ router.get('/metrics/:userId', async (req, res) => {
       });
     }
 
-    let metrics = gamificationData.get(userId);
+    let gamification = await db.Gamification.getUserGamification(userId);
     
     // Initialize if doesn't exist
-    if (!metrics) {
-      metrics = {
-        userId,
-        username: 'User',
-        totalMessagesEarned: 0,
-        perfectResponseCount: 0,
-        highScoreCount: 0,
-        agentsUsed: [],
-        agentUsageCount: {},
-        longestConversation: 0,
-        totalConversationLength: 0,
-        conversationSessions: [],
-        usageByHour: {},
-        usageByDay: {},
-        firstUsageToday: null,
-        lastActivityTime: new Date().toISOString(),
-        currentStreak: 0,
-        longestStreak: 0,
-        lastChallengeTime: null,
-        completedChallengesCount: 0,
-        averageResponseTime: 0,
-        averageConversationLength: 0,
-        accountCreatedAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
-      };
-      
-      gamificationData.set(userId, metrics);
+    if (!gamification) {
+      gamification = await db.Gamification.createUserGamification(userId);
     }
 
     res.json({
       success: true,
-      data: metrics
+      data: gamification
     });
   } catch (error) {
     console.error('Get gamification metrics error:', error);
@@ -74,53 +47,19 @@ router.post('/metrics/:userId', async (req, res) => {
       });
     }
 
-    let currentMetrics = gamificationData.get(userId);
+    let gamification = await db.Gamification.getUserGamification(userId);
     
     // Initialize if doesn't exist
-    if (!currentMetrics) {
-      currentMetrics = {
-        userId,
-        username: metricsUpdate.username || 'User',
-        totalMessagesEarned: 0,
-        perfectResponseCount: 0,
-        highScoreCount: 0,
-        agentsUsed: [],
-        agentUsageCount: {},
-        longestConversation: 0,
-        totalConversationLength: 0,
-        conversationSessions: [],
-        usageByHour: {},
-        usageByDay: {},
-        firstUsageToday: null,
-        lastActivityTime: new Date().toISOString(),
-        currentStreak: 0,
-        longestStreak: 0,
-        lastChallengeTime: null,
-        completedChallengesCount: 0,
-        averageResponseTime: 0,
-        averageConversationLength: 0,
-        accountCreatedAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
-      };
+    if (!gamification) {
+      gamification = await db.Gamification.createUserGamification(userId);
     }
 
-    // Merge updates
-    const updatedMetrics = {
-      ...currentMetrics,
-      ...metricsUpdate,
-      lastUpdated: new Date().toISOString()
-    };
-
-    // Handle Set conversion for agentsUsed
-    if (metricsUpdate.agentsUsed && Array.isArray(metricsUpdate.agentsUsed)) {
-      updatedMetrics.agentsUsed = [...new Set([...currentMetrics.agentsUsed, ...metricsUpdate.agentsUsed])];
-    }
-
-    gamificationData.set(userId, updatedMetrics);
+    // Update the gamification record
+    const updatedGamification = await db.Gamification.updateUserGamification(userId, metricsUpdate);
 
     res.json({
       success: true,
-      data: updatedMetrics
+      data: updatedGamification
     });
   } catch (error) {
     console.error('Update gamification metrics error:', error);
@@ -144,82 +83,78 @@ router.post('/events/:userId', async (req, res) => {
       });
     }
 
-    // Process the event and update metrics accordingly
-    let metrics = gamificationData.get(userId);
-    if (!metrics) {
-      // Initialize if doesn't exist
-      metrics = {
-        userId,
-        username: data.username || 'User',
-        totalMessagesEarned: 0,
-        perfectResponseCount: 0,
-        highScoreCount: 0,
-        agentsUsed: [],
-        agentUsageCount: {},
-        longestConversation: 0,
-        totalConversationLength: 0,
-        conversationSessions: [],
-        usageByHour: {},
-        usageByDay: {},
-        firstUsageToday: null,
-        lastActivityTime: new Date().toISOString(),
-        currentStreak: 0,
-        longestStreak: 0,
-        lastChallengeTime: null,
-        completedChallengesCount: 0,
-        averageResponseTime: 0,
-        averageConversationLength: 0,
-        accountCreatedAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
-      };
+    // Get or create user gamification record
+    let userGamification = await db.Gamification.getUserGamification(userId);
+    if (!userGamification) {
+      userGamification = await db.Gamification.initializeUserGamification(userId, data.username || 'User');
     }
 
-    // Process different event types
+    // Define points for different event types
+    const eventPoints = {
+      'message-sent': 1,
+      'perfect-response': 5,
+      'high-score': 10,
+      'session-end': 2,
+      'streak-update': 3,
+      'challenge-completed': 15,
+      'agent-created': 20,
+      'first-login': 5
+    };
+
+    const pointsToAward = eventPoints[type] || 0;
+
+    // Award points if applicable
+    if (pointsToAward > 0) {
+      await db.Gamification.addPoints(userId, pointsToAward, `Event: ${type}`, data);
+    }
+
+    // Update specific metrics based on event type
     switch (type) {
       case 'message-sent':
-        metrics.totalMessagesEarned += 1;
         if (data.agentId) {
-          metrics.agentUsageCount[data.agentId] = (metrics.agentUsageCount[data.agentId] || 0) + 1;
-          if (!metrics.agentsUsed.includes(data.agentId)) {
-            metrics.agentsUsed.push(data.agentId);
-          }
+          await db.Gamification.updateAgentUsage(userId, data.agentId);
         }
         break;
 
       case 'perfect-response':
-        metrics.perfectResponseCount += 1;
+        await db.Gamification.incrementPerfectResponses(userId);
         break;
 
       case 'high-score':
-        metrics.highScoreCount += 1;
+        await db.Gamification.incrementHighScores(userId);
         break;
 
       case 'session-end':
         if (data.messageCount) {
-          metrics.longestConversation = Math.max(metrics.longestConversation, data.messageCount);
-          metrics.totalConversationLength += data.messageCount;
+          await db.Gamification.updateConversationStats(userId, data.messageCount);
         }
         break;
 
       case 'streak-update':
         if (data.streakCount) {
-          metrics.currentStreak = data.streakCount;
-          metrics.longestStreak = Math.max(metrics.longestStreak, data.streakCount);
+          await db.Gamification.updateStreak(userId, data.streakCount);
         }
+        break;
+
+      case 'challenge-completed':
+        await db.Gamification.incrementCompletedChallenges(userId);
         break;
     }
 
-    metrics.lastActivityTime = new Date().toISOString();
-    metrics.lastUpdated = new Date().toISOString();
+    // Check for new badges/achievements
+    await db.Gamification.checkAndAwardBadges(userId);
+    await db.Gamification.checkAndCompleteAchievements(userId);
 
-    gamificationData.set(userId, metrics);
+    // Get updated gamification data
+    const updatedGamification = await db.Gamification.getUserGamification(userId);
 
     res.json({
       success: true,
       data: {
         eventProcessed: true,
         type,
-        metrics
+        pointsAwarded: pointsToAward,
+        gamification: updatedGamification
       }
     });
   } catch (error) {
@@ -243,14 +178,18 @@ router.get('/sync/:userId', async (req, res) => {
       });
     }
 
-    const metrics = gamificationData.get(userId);
-    const pendingEvents = []; // In real implementation, get from events queue
+    const gamification = await db.Gamification.getUserGamification(userId);
+    const recentPoints = await db.Gamification.getRecentPointsHistory(userId, 10);
+    const badges = await db.Gamification.getUserBadges(userId);
+    const achievements = await db.Gamification.getUserAchievements(userId);
 
     res.json({
       success: true,
       data: {
-        metrics: metrics || null,
-        pendingEvents,
+        gamification: gamification || null,
+        recentPoints,
+        badges,
+        achievements,
         lastSyncTime: new Date().toISOString()
       }
     });
@@ -276,26 +215,32 @@ router.post('/bulk-sync/:userId', async (req, res) => {
       });
     }
 
-    // Store metrics
+    let metricsUpdated = false;
+    let eventsProcessed = 0;
+
+    // Update metrics if provided
     if (metrics) {
-      gamificationData.set(userId, {
-        ...metrics,
-        lastUpdated: new Date().toISOString()
-      });
+      await db.Gamification.updateUserGamification(userId, metrics);
+      metricsUpdated = true;
     }
 
-    // Process events (in real implementation, add to events queue)
-    let processedEvents = 0;
+    // Process events
     for (const event of events) {
-      // Process each event
-      processedEvents++;
+      if (event.type) {
+        await db.Gamification.processEvent(userId, event.type, event.data || {});
+        eventsProcessed++;
+      }
     }
+
+    // Check for new badges/achievements after bulk sync
+    await db.Gamification.checkAndAwardBadges(userId);
+    await db.Gamification.checkAndCompleteAchievements(userId);
 
     res.json({
       success: true,
       data: {
-        metricsUpdated: !!metrics,
-        eventsProcessed: processedEvents,
+        metricsUpdated,
+        eventsProcessed,
         syncTime: new Date().toISOString()
       }
     });

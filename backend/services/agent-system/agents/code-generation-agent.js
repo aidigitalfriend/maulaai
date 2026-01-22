@@ -6,9 +6,6 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 class CodeGenerationAgent {
   constructor() {
     this.name = 'Code Generation Agent';
@@ -21,6 +18,22 @@ class CodeGenerationAgent {
       'Implement algorithms',
       'Generate TypeScript interfaces',
     ];
+  }
+
+  // Lazy initialization of OpenAI client
+  get openai() {
+    if (!this._openai) {
+      this._openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    }
+    return this._openai;
+  }
+
+  // Lazy initialization of Anthropic client
+  get anthropic() {
+    if (!this._anthropic) {
+      this._anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    }
+    return this._anthropic;
   }
 
   /**
@@ -60,7 +73,7 @@ Respond in JSON format:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [

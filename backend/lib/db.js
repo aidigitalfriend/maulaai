@@ -925,6 +925,635 @@ export const ContactService = {
 };
 
 // ============================================
+// GAMIFICATION OPERATIONS
+// ============================================
+
+export const GamificationService = {
+  // Initialize user gamification if it doesn't exist
+  initializeUserGamification: async (userId, username = 'User') => {
+    return prisma.userGamification.upsert({
+      where: { userId },
+      update: {},
+      create: {
+        userId,
+        username,
+        totalPoints: 0,
+        availablePoints: 0,
+        totalPointsEarned: 0,
+        totalPointsRedeemed: 0,
+        totalBadgesEarned: 0,
+        totalAchievements: 0,
+        totalRewardsRedeemed: 0,
+        totalMessagesSent: 0,
+        perfectResponses: 0,
+        highScores: 0,
+        longestConversation: 0,
+        totalConversationLength: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        completedChallenges: 0,
+        agentsUsed: [],
+        agentUsageCount: {},
+        lastActivityAt: new Date(),
+      },
+    });
+  },
+
+  // Update agent usage
+  updateAgentUsage: async (userId, agentId) => {
+    return withTransaction(async (tx) => {
+      // Get current gamification
+      const gamification = await tx.userGamification.findUnique({
+        where: { userId },
+      });
+
+      if (!gamification) {
+        throw new Error('User gamification not found');
+      }
+
+      const agentsUsed = gamification.agentsUsed || [];
+      const agentUsageCount = gamification.agentUsageCount || {};
+
+      // Update agents used array
+      if (!agentsUsed.includes(agentId)) {
+        agentsUsed.push(agentId);
+      }
+
+      // Update usage count
+      agentUsageCount[agentId] = (agentUsageCount[agentId] || 0) + 1;
+
+      // Update gamification
+      return tx.userGamification.update({
+        where: { userId },
+        data: {
+          agentsUsed,
+          agentUsageCount,
+          totalMessagesSent: { increment: 1 },
+          lastActivityAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+    });
+  },
+
+  // Increment perfect responses
+  incrementPerfectResponses: async (userId) => {
+    return prisma.userGamification.update({
+      where: { userId },
+      data: {
+        perfectResponses: { increment: 1 },
+        lastActivityAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  },
+
+  // Increment high scores
+  incrementHighScores: async (userId) => {
+    return prisma.userGamification.update({
+      where: { userId },
+      data: {
+        highScores: { increment: 1 },
+        lastActivityAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  },
+
+  // Update conversation stats
+  updateConversationStats: async (userId, messageCount) => {
+    return withTransaction(async (tx) => {
+      const gamification = await tx.userGamification.findUnique({
+        where: { userId },
+      });
+
+      if (!gamification) {
+        throw new Error('User gamification not found');
+      }
+
+      const newLongestConversation = Math.max(gamification.longestConversation || 0, messageCount);
+
+      return tx.userGamification.update({
+        where: { userId },
+        data: {
+          longestConversation: newLongestConversation,
+          totalConversationLength: { increment: messageCount },
+          lastActivityAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+    });
+  },
+
+  // Update streak
+  updateStreak: async (userId, streakCount) => {
+    return withTransaction(async (tx) => {
+      const gamification = await tx.userGamification.findUnique({
+        where: { userId },
+      });
+
+      if (!gamification) {
+        throw new Error('User gamification not found');
+      }
+
+      const newLongestStreak = Math.max(gamification.longestStreak || 0, streakCount);
+
+      return tx.userGamification.update({
+        where: { userId },
+        data: {
+          currentStreak: streakCount,
+          longestStreak: newLongestStreak,
+          lastActivityAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+    });
+  },
+
+  // Increment completed challenges
+  incrementCompletedChallenges: async (userId) => {
+    return prisma.userGamification.update({
+      where: { userId },
+      data: {
+        completedChallenges: { increment: 1 },
+        lastActivityAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  },
+
+  // Get recent points history
+  getRecentPointsHistory: async (userId, limit = 10) => {
+    return prisma.pointsHistory.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  },
+
+  // Process event (combines event processing logic)
+  processEvent: async (userId, eventType, eventData = {}) => {
+    // Get or create user gamification record
+    let userGamification = await GamificationService.getUserGamification(userId);
+    if (!userGamification) {
+      userGamification = await GamificationService.initializeUserGamification(userId, eventData.username || 'User');
+    }
+
+    // Define points for different event types
+    const eventPoints = {
+      'message-sent': 1,
+      'perfect-response': 5,
+      'high-score': 10,
+      'session-end': 2,
+      'streak-update': 3,
+      'challenge-completed': 15,
+      'agent-created': 20,
+      'first-login': 5
+    };
+
+    const pointsToAward = eventPoints[eventType] || 0;
+
+    // Award points if applicable
+    if (pointsToAward > 0) {
+      await GamificationService.addPoints(userId, pointsToAward, `Event: ${eventType}`, eventData);
+    }
+
+    // Update specific metrics based on event type
+    switch (eventType) {
+      case 'message-sent':
+        if (eventData.agentId) {
+          await GamificationService.updateAgentUsage(userId, eventData.agentId);
+        }
+        break;
+
+      case 'perfect-response':
+        await GamificationService.incrementPerfectResponses(userId);
+        break;
+
+      case 'high-score':
+        await GamificationService.incrementHighScores(userId);
+        break;
+
+      case 'session-end':
+        if (eventData.messageCount) {
+          await GamificationService.updateConversationStats(userId, eventData.messageCount);
+        }
+        break;
+
+      case 'streak-update':
+        if (eventData.streakCount) {
+          await GamificationService.updateStreak(userId, eventData.streakCount);
+        }
+        break;
+
+      case 'challenge-completed':
+        await GamificationService.incrementCompletedChallenges(userId);
+        break;
+    }
+
+    return { pointsAwarded: pointsToAward, eventType };
+  },
+
+  // Check and award badges based on user activity
+  checkAndAwardBadges: async (userId) => {
+    const gamification = await GamificationService.getUserGamification(userId);
+    if (!gamification) return [];
+
+    const awardedBadges = [];
+
+    // Get all available badges
+    const badges = await prisma.badge.findMany();
+
+    for (const badge of badges) {
+      // Check if user already has this badge
+      const existing = await prisma.userBadge.findUnique({
+        where: { userId_badgeId: { userId, badgeId: badge.badgeId } },
+      });
+
+      if (existing) continue;
+
+      // Check badge criteria
+      let shouldAward = false;
+
+      switch (badge.criteriaType) {
+        case 'totalPoints':
+          shouldAward = gamification.totalPoints >= badge.criteriaValue;
+          break;
+        case 'totalMessages':
+          shouldAward = gamification.totalMessagesSent >= badge.criteriaValue;
+          break;
+        case 'perfectResponses':
+          shouldAward = gamification.perfectResponses >= badge.criteriaValue;
+          break;
+        case 'highScores':
+          shouldAward = gamification.highScores >= badge.criteriaValue;
+          break;
+        case 'streak':
+          shouldAward = gamification.longestStreak >= badge.criteriaValue;
+          break;
+        case 'agentsUsed':
+          shouldAward = gamification.agentsUsed?.length >= badge.criteriaValue;
+          break;
+      }
+
+      if (shouldAward) {
+        try {
+          const awardedBadge = await GamificationService.awardBadge(userId, badge.badgeId);
+          awardedBadges.push(awardedBadge);
+        } catch (error) {
+          // Badge might have been awarded already, continue
+          console.log(`Badge ${badge.badgeId} already awarded or error:`, error.message);
+        }
+      }
+    }
+
+    return awardedBadges;
+  },
+
+  // Check and complete achievements based on user activity
+  checkAndCompleteAchievements: async (userId) => {
+    const gamification = await GamificationService.getUserGamification(userId);
+    if (!gamification) return [];
+
+    const completedAchievements = [];
+
+    // Get all available achievements
+    const achievements = await prisma.achievement.findMany();
+
+    for (const achievement of achievements) {
+      // Check if user already completed this achievement
+      const existing = await prisma.userAchievement.findUnique({
+        where: { userId_achievementId: { userId, achievementId: achievement.achievementId } },
+      });
+
+      if (existing?.completed) continue;
+
+      // Check achievement criteria
+      let shouldComplete = false;
+      let currentValue = 0;
+
+      switch (achievement.criteriaType) {
+        case 'totalPoints':
+          currentValue = gamification.totalPoints;
+          shouldComplete = currentValue >= achievement.criteriaValue;
+          break;
+        case 'totalMessages':
+          currentValue = gamification.totalMessagesSent;
+          shouldComplete = currentValue >= achievement.criteriaValue;
+          break;
+        case 'perfectResponses':
+          currentValue = gamification.perfectResponses;
+          shouldComplete = currentValue >= achievement.criteriaValue;
+          break;
+        case 'highScores':
+          currentValue = gamification.highScores;
+          shouldComplete = currentValue >= achievement.criteriaValue;
+          break;
+        case 'streak':
+          currentValue = gamification.longestStreak;
+          shouldComplete = currentValue >= achievement.criteriaValue;
+          break;
+        case 'agentsUsed':
+          currentValue = gamification.agentsUsed?.length || 0;
+          shouldComplete = currentValue >= achievement.criteriaValue;
+          break;
+      }
+
+      if (shouldComplete) {
+        try {
+          // Update progress first if not completed
+          if (!existing) {
+            await GamificationService.updateAchievementProgress(userId, achievement.achievementId, currentValue);
+          }
+
+          // Complete achievement
+          const completedAchievement = await GamificationService.completeAchievement(userId, achievement.achievementId);
+          completedAchievements.push(completedAchievement);
+        } catch (error) {
+          console.log(`Achievement ${achievement.achievementId} completion error:`, error.message);
+        }
+      } else if (!existing || !existing.completed) {
+        // Update progress
+        await GamificationService.updateAchievementProgress(userId, achievement.achievementId, currentValue);
+      }
+    }
+
+    return completedAchievements;
+  },
+
+  // Points Management
+  addPoints: async (userId, amount, description, category = 'chat', relatedType = null, relatedId = null) => {
+    return withTransaction(async (tx) => {
+      // Update user gamification
+      const gamification = await tx.userGamification.update({
+        where: { userId },
+        data: {
+          totalPoints: { increment: amount },
+          availablePoints: { increment: amount },
+          totalPointsEarned: { increment: amount },
+          updatedAt: new Date(),
+        },
+      });
+
+      // Add points history
+      await tx.pointsHistory.create({
+        data: {
+          userId,
+          type: 'earned',
+          amount,
+          description,
+          category,
+          relatedType,
+          relatedId,
+        },
+      });
+
+      return gamification;
+    });
+  },
+
+  redeemPoints: async (userId, amount, rewardId, description = 'Reward redemption') => {
+    return withTransaction(async (tx) => {
+      // Check if user has enough points
+      const gamification = await tx.userGamification.findUnique({
+        where: { userId },
+      });
+
+      if (!gamification || gamification.availablePoints < amount) {
+        throw new Error('Insufficient points');
+      }
+
+      // Update user gamification
+      const updatedGamification = await tx.userGamification.update({
+        where: { userId },
+        data: {
+          availablePoints: { decrement: amount },
+          totalPointsRedeemed: { increment: amount },
+          updatedAt: new Date(),
+        },
+      });
+
+      // Add points history
+      await tx.pointsHistory.create({
+        data: {
+          userId,
+          type: 'redeemed',
+          amount: -amount,
+          description,
+          category: 'redemption',
+          relatedType: 'reward',
+          relatedId: rewardId,
+        },
+      });
+
+      return updatedGamification;
+    });
+  },
+
+  // Badges
+  getUserBadges: async (userId) => {
+    return prisma.userBadge.findMany({
+      where: { userId },
+      include: { badge: true },
+      orderBy: { earnedAt: 'desc' },
+    });
+  },
+
+  awardBadge: async (userId, badgeId) => {
+    return withTransaction(async (tx) => {
+      // Check if user already has this badge
+      const existing = await tx.userBadge.findUnique({
+        where: { userId_badgeId: { userId, badgeId } },
+      });
+
+      if (existing) {
+        throw new Error('Badge already earned');
+      }
+
+      // Get badge details
+      const badge = await tx.badge.findUnique({
+        where: { badgeId },
+      });
+
+      if (!badge) {
+        throw new Error('Badge not found');
+      }
+
+      // Award badge
+      const userBadge = await tx.userBadge.create({
+        data: { userId, badgeId },
+        include: { badge: true },
+      });
+
+      // Update user gamification
+      await tx.userGamification.update({
+        where: { userId },
+        data: {
+          totalBadgesEarned: { increment: 1 },
+          totalPoints: { increment: badge.points },
+          availablePoints: { increment: badge.points },
+          totalPointsEarned: { increment: badge.points },
+          updatedAt: new Date(),
+        },
+      });
+
+      // Add points history
+      await tx.pointsHistory.create({
+        data: {
+          userId,
+          type: 'earned',
+          amount: badge.points,
+          description: `Earned badge: ${badge.name}`,
+          category: 'badge',
+          relatedType: 'badge',
+          relatedId: badgeId,
+        },
+      });
+
+      return userBadge;
+    });
+  },
+
+  // Achievements
+  getUserAchievements: async (userId) => {
+    return prisma.userAchievement.findMany({
+      where: { userId },
+      include: { achievement: true },
+      orderBy: { completedAt: 'desc' },
+    });
+  },
+
+  updateAchievementProgress: async (userId, achievementId, progress) => {
+    return prisma.userAchievement.upsert({
+      where: { userId_achievementId: { userId, achievementId } },
+      update: {
+        currentValue: progress,
+        completed: false,
+        updatedAt: new Date(),
+      },
+      create: {
+        userId,
+        achievementId,
+        currentValue: progress,
+      },
+    });
+  },
+
+  completeAchievement: async (userId, achievementId) => {
+    return withTransaction(async (tx) => {
+      // Get achievement details
+      const achievement = await tx.achievement.findUnique({
+        where: { achievementId },
+      });
+
+      if (!achievement) {
+        throw new Error('Achievement not found');
+      }
+
+      // Update achievement
+      const userAchievement = await tx.userAchievement.update({
+        where: { userId_achievementId: { userId, achievementId } },
+        data: {
+          completed: true,
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        },
+        include: { achievement: true },
+      });
+
+      // Update user gamification
+      await tx.userGamification.update({
+        where: { userId },
+        data: {
+          totalAchievements: { increment: 1 },
+          totalPoints: { increment: achievement.points },
+          availablePoints: { increment: achievement.points },
+          totalPointsEarned: { increment: achievement.points },
+          updatedAt: new Date(),
+        },
+      });
+
+      // Add points history
+      await tx.pointsHistory.create({
+        data: {
+          userId,
+          type: 'earned',
+          amount: achievement.points,
+          description: `Completed achievement: ${achievement.name}`,
+          category: 'achievement',
+          relatedType: 'achievement',
+          relatedId: achievementId,
+        },
+      });
+
+      return userAchievement;
+    });
+  },
+
+  // Rewards
+  getAvailableRewards: async () => {
+    return prisma.reward.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' },
+    });
+  },
+
+  redeemReward: async (userId, rewardId) => {
+    return withTransaction(async (tx) => {
+      // Get reward details
+      const reward = await tx.reward.findUnique({
+        where: { rewardId },
+      });
+
+      if (!reward) {
+        throw new Error('Reward not found');
+      }
+
+      if (!reward.isActive) {
+        throw new Error('Reward not available');
+      }
+
+      // Check stock
+      if (reward.availability === 'limited' && reward.stock !== null && reward.stock <= 0) {
+        throw new Error('Reward out of stock');
+      }
+
+      // Create redemption
+      const redemption = await tx.rewardRedemption.create({
+        data: {
+          userId,
+          rewardId,
+          pointsSpent: reward.cost,
+          status: 'pending',
+        },
+        include: { reward: true },
+      });
+
+      // Deduct points
+      await tx.userGamification.update({
+        where: { userId },
+        data: {
+          availablePoints: { decrement: reward.cost },
+          totalPointsRedeemed: { increment: reward.cost },
+          totalRewardsRedeemed: { increment: 1 },
+          updatedAt: new Date(),
+        },
+      });
+
+      // Update stock if limited
+      if (reward.availability === 'limited' && reward.stock !== null) {
+        await tx.reward.update({
+          where: { rewardId },
+          data: { stock: { decrement: 1 } },
+        });
+      }
+
+      return redemption;
+    });
+  },
+};
+
+// ============================================
 // EXPORT ALL SERVICES
 // ============================================
 
@@ -945,6 +1574,7 @@ export default {
   Webinar: WebinarService,
   Canvas: CanvasService,
   Contact: ContactService,
+  Gamification: GamificationService,
   // Raw prisma access for complex queries
   prisma,
   withTransaction,

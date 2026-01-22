@@ -5,8 +5,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 class DocumentationAgent {
   constructor() {
     this.name = 'Documentation Agent';
@@ -20,6 +18,14 @@ class DocumentationAgent {
       'Create architecture docs',
       'Write inline documentation',
     ];
+  }
+
+  // Lazy initialization of Anthropic client
+  get anthropic() {
+    if (!this._anthropic) {
+      this._anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    }
+    return this._anthropic;
   }
 
   /**
@@ -63,7 +69,7 @@ Respond in JSON format:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [

@@ -5,8 +5,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 class TestAgent {
   constructor() {
     this.name = 'Test Agent';
@@ -20,6 +18,14 @@ class TestAgent {
       'Coverage analysis',
     ];
     this.frameworks = ['jest', 'mocha', 'vitest', 'pytest', 'playwright', 'cypress'];
+  }
+
+  // Lazy initialization of Anthropic client
+  get anthropic() {
+    if (!this._anthropic) {
+      this._anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    }
+    return this._anthropic;
   }
 
   /**
@@ -68,7 +74,7 @@ Respond in JSON format:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
@@ -156,7 +162,7 @@ Return a JSON analysis:
 }`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
