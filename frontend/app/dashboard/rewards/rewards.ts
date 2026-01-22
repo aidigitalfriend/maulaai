@@ -431,7 +431,8 @@ export class RewardsLogic {
   }
 
   /**
-   * Award points to user
+   * Award points to user (local state update only)
+   * Points are primarily earned through chat activity
    */
   async awardPoints(
     userId: string,
@@ -440,41 +441,33 @@ export class RewardsLogic {
     category: string = 'activity'
   ): Promise<void> {
     try {
-      const response = await fetch('/api/rewards/award-points', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, points, reason, category }),
+      // Update local state - actual points are calculated from activity
+      const multiplier = this.state.userRewards.streak.multiplier;
+      const actualPoints = Math.floor(points * multiplier);
+
+      this.state.userRewards.totalPoints += actualPoints;
+      this.state.userRewards.availablePoints += actualPoints;
+      this.state.userRewards.statistics.totalEarned += actualPoints;
+
+      // Add transaction
+      const transaction: PointsTransaction = {
+        id: Date.now().toString(),
+        type: 'earned',
+        amount: actualPoints,
+        description: reason,
+        category,
+        timestamp: new Date().toISOString(),
+      };
+      this.state.pointsHistory.unshift(transaction);
+
+      // Check for level up
+      this.checkLevelUp();
+
+      this.trackRewardsEvent('points_awarded', {
+        points: actualPoints,
+        reason,
+        category,
       });
-
-      if (response.ok) {
-        // Update local state
-        const multiplier = this.state.userRewards.streak.multiplier;
-        const actualPoints = Math.floor(points * multiplier);
-
-        this.state.userRewards.totalPoints += actualPoints;
-        this.state.userRewards.availablePoints += actualPoints;
-        this.state.userRewards.statistics.totalEarned += actualPoints;
-
-        // Add transaction
-        const transaction: PointsTransaction = {
-          id: Date.now().toString(),
-          type: 'earned',
-          amount: actualPoints,
-          description: reason,
-          category,
-          timestamp: new Date().toISOString(),
-        };
-        this.state.pointsHistory.unshift(transaction);
-
-        // Check for level up
-        this.checkLevelUp();
-
-        this.trackRewardsEvent('points_awarded', {
-          points: actualPoints,
-          reason,
-          category,
-        });
-      }
     } catch (error) {
       console.error('Error awarding points:', error);
     }
