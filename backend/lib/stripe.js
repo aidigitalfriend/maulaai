@@ -175,6 +175,91 @@ const AGENT_PRODUCTS = {
       priceId: process.env.STRIPE_PRICE_PROFESSOR_ASTROLOGY_MONTHLY || '',
     },
   },
+  // New Agents
+  'nid-gaming': {
+    daily: {
+      productId: process.env.STRIPE_PRODUCT_NID_GAMING_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_NID_GAMING_DAILY || '',
+    },
+    weekly: {
+      productId: process.env.STRIPE_PRODUCT_NID_GAMING_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_NID_GAMING_WEEKLY || '',
+    },
+    monthly: {
+      productId: process.env.STRIPE_PRODUCT_NID_GAMING_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_NID_GAMING_MONTHLY || '',
+    },
+  },
+  'ben-sega': {
+    daily: {
+      productId: process.env.STRIPE_PRODUCT_BEN_SEGA_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_BEN_SEGA_DAILY || '',
+    },
+    weekly: {
+      productId: process.env.STRIPE_PRODUCT_BEN_SEGA_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_BEN_SEGA_WEEKLY || '',
+    },
+    monthly: {
+      productId: process.env.STRIPE_PRODUCT_BEN_SEGA_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_BEN_SEGA_MONTHLY || '',
+    },
+  },
+  'bishop-burger': {
+    daily: {
+      productId: process.env.STRIPE_PRODUCT_BISHOP_BURGER_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_BISHOP_BURGER_DAILY || '',
+    },
+    weekly: {
+      productId: process.env.STRIPE_PRODUCT_BISHOP_BURGER_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_BISHOP_BURGER_WEEKLY || '',
+    },
+    monthly: {
+      productId: process.env.STRIPE_PRODUCT_BISHOP_BURGER_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_BISHOP_BURGER_MONTHLY || '',
+    },
+  },
+  'knight-logic': {
+    daily: {
+      productId: process.env.STRIPE_PRODUCT_KNIGHT_LOGIC_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_KNIGHT_LOGIC_DAILY || '',
+    },
+    weekly: {
+      productId: process.env.STRIPE_PRODUCT_KNIGHT_LOGIC_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_KNIGHT_LOGIC_WEEKLY || '',
+    },
+    monthly: {
+      productId: process.env.STRIPE_PRODUCT_KNIGHT_LOGIC_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_KNIGHT_LOGIC_MONTHLY || '',
+    },
+  },
+  'lazy-pawn': {
+    daily: {
+      productId: process.env.STRIPE_PRODUCT_LAZY_PAWN_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_LAZY_PAWN_DAILY || '',
+    },
+    weekly: {
+      productId: process.env.STRIPE_PRODUCT_LAZY_PAWN_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_LAZY_PAWN_WEEKLY || '',
+    },
+    monthly: {
+      productId: process.env.STRIPE_PRODUCT_LAZY_PAWN_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_LAZY_PAWN_MONTHLY || '',
+    },
+  },
+  'rook-jokey': {
+    daily: {
+      productId: process.env.STRIPE_PRODUCT_ROOK_JOKEY_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_ROOK_JOKEY_DAILY || '',
+    },
+    weekly: {
+      productId: process.env.STRIPE_PRODUCT_ROOK_JOKEY_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_ROOK_JOKEY_WEEKLY || '',
+    },
+    monthly: {
+      productId: process.env.STRIPE_PRODUCT_ROOK_JOKEY_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_ROOK_JOKEY_MONTHLY || '',
+    },
+  },
 };
 function getAgentSubscriptionPlan(agentId, plan) {
   const agentProducts = AGENT_PRODUCTS[agentId];
@@ -204,26 +289,24 @@ const SUBSCRIPTION_PLANS = {
     name: 'Daily Agent Access',
     price: 1,
     interval: 'day',
-    productId: process.env.STRIPE_PRODUCT_DAILY || 'prod_Ta7WUJhUHlt1NN',
-    priceId: process.env.STRIPE_PRICE_DAILY || 'price_1ScxHQGuJK0wquDUzUYWbr7K',
+    productId: process.env.STRIPE_PRODUCT_DAILY || 'prod_TbZO0rzMhIt9NJ',
+    priceId: process.env.STRIPE_PRICE_DAILY || 'price_1SeMFLKFZS9GJlvabsNzQPSJ',
   },
   weekly: {
     id: 'weekly',
     name: 'Weekly Agent Access',
     price: 5,
     interval: 'week',
-    productId: process.env.STRIPE_PRODUCT_WEEKLY || 'prod_Ta7Wq9Imowrm91',
-    priceId:
-      process.env.STRIPE_PRICE_WEEKLY || 'price_1ScxHRGuJK0wquDUsjsnoEVM',
+    productId: process.env.STRIPE_PRODUCT_WEEKLY || 'prod_TbZOafTW8O3IOz',
+    priceId: process.env.STRIPE_PRICE_WEEKLY || 'price_1SeMFLKFZS9GJlvaYDMon8k6',
   },
   monthly: {
     id: 'monthly',
     name: 'Monthly Agent Access',
     price: 15,
     interval: 'month',
-    productId: process.env.STRIPE_PRODUCT_MONTHLY || 'prod_Ta7WCiX1iu9g6C',
-    priceId:
-      process.env.STRIPE_PRICE_MONTHLY || 'price_1ScxHSGuJK0wquDUkoLh3te9',
+    productId: process.env.STRIPE_PRODUCT_MONTHLY || 'prod_TbZO7jC7Iyn0gu',
+    priceId: process.env.STRIPE_PRICE_MONTHLY || 'price_1SeMFMKFZS9GJlvaGgm63W9i',
   },
 };
 async function createCheckoutSession(params) {
