@@ -22,10 +22,34 @@ export async function POST(request: NextRequest) {
     // Create response with the same status
     const nextResponse = NextResponse.json(data, { status: response.status });
 
-    // Forward Set-Cookie headers from backend
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      nextResponse.headers.set('set-cookie', setCookie);
+    // If login was successful, set the session cookie properly
+    // The backend returns the session in the response, but we need to set
+    // the cookie from the frontend domain for it to work correctly
+    if (response.ok && data.success) {
+      // Parse the Set-Cookie header to get the session ID
+      const setCookieHeader = response.headers.get('set-cookie');
+      if (setCookieHeader) {
+        // Extract sessionId value from the cookie header
+        const sessionMatch = setCookieHeader.match(/sessionId=([^;]+)/);
+        if (sessionMatch) {
+          const sessionId = sessionMatch[1];
+          // Set both cookie names for compatibility
+          nextResponse.cookies.set('sessionId', sessionId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+            path: '/',
+          });
+          nextResponse.cookies.set('session_id', sessionId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+            path: '/',
+          });
+        }
+      }
     }
 
     return nextResponse;

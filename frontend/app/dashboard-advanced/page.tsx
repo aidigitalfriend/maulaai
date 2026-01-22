@@ -115,7 +115,6 @@ export default function AdvancedDashboard() {
           headers: {
             'Content-Type': 'application/json',
           },
-          credentials: 'include',
           cache: 'no-store',
         });
 
