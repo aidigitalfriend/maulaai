@@ -1,6 +1,6 @@
 /**
  * ANALYTICS TRACKER - PRISMA VERSION
- * PostgreSQL-based analytics tracking for Maula AI
+ * PostgreSQL-based analytics tracking for One Last AI
  * Replaces Mongoose-based analytics-tracker.js
  */
 

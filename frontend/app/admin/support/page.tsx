@@ -96,9 +96,9 @@ const categoryLabels: Record<string, string> = {
 
 // Support team members (in production, fetch from database)
 const supportAgents = [
-  { id: 'agent1', name: 'Support Team', email: 'support@maula.ai' },
-  { id: 'agent2', name: 'Technical Support', email: 'tech@maula.ai' },
-  { id: 'agent3', name: 'Billing Support', email: 'billing@maula.ai' },
+  { id: 'agent1', name: 'Support Team', email: 'support@onelastai.co' },
+  { id: 'agent2', name: 'Technical Support', email: 'tech@onelastai.co' },
+  { id: 'agent3', name: 'Billing Support', email: 'billing@onelastai.co' },
 ];
 
 export default function AdminSupportPage() {

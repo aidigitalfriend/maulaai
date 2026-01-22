@@ -147,7 +147,7 @@ export default function SupportHelpCenter() {
             Help Center
           </h1>
           <p className="text-xl text-neural-600 leading-relaxed">
-            Find everything you need to get the most out of Maula AI. Browse
+            Find everything you need to get the most out of One Last AI. Browse
             our documentation, tutorials, community resources, and support options.
           </p>
         </div>
@@ -243,7 +243,7 @@ export default function SupportHelpCenter() {
             <h2 className="text-3xl font-bold mb-4">Still Need Help?</h2>
             <p className="text-lg opacity-90 mb-8">
               Can't find what you're looking for? Our dedicated support team is
-              ready to help you succeed with Maula AI.
+              ready to help you succeed with One Last AI.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

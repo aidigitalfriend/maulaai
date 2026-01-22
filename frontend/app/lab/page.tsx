@@ -22,7 +22,7 @@ import {
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { LockedCard } from '@/components/LockedCard';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://maula.ai';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://onelastai.co';
 
 interface Experiment {
   id: string;

@@ -22,7 +22,7 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 // S3 CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════
 
-const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
+const S3_BUCKET = process.env.S3_BUCKET || 'onelastai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({
@@ -746,7 +746,7 @@ export async function fetchUrl(url) {
 
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MaulaAI/1.0; +https://maula.ai)',
+        'User-Agent': 'Mozilla/5.0 (compatible; OnelastAI/1.0; +https://onelastai.co)',
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
       redirect: 'follow',

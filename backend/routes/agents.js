@@ -1,6 +1,6 @@
 /**
  * AGENTS ROUTES - PRISMA VERSION
- * PostgreSQL-based agent management for Maula AI
+ * PostgreSQL-based agent management for One Last AI
  */
 
 import express from 'express';

@@ -177,7 +177,7 @@ export default function PaymentsRefundsPage() {
                   2.2 No Free Tier
                 </h3>
                 <p className="text-gray-700">
-                  Maula AI does not offer a free tier. All agent access
+                  One Last AI does not offer a free tier. All agent access
                   requires a one-time payment starting at $1/day. This low-cost
                   model ensures:
                 </p>
@@ -398,12 +398,12 @@ export default function PaymentsRefundsPage() {
                 </h3>
                 <p className="text-gray-700 leading-relaxed mb-4 text-lg">
                   <strong className="text-red-600">
-                    MAULA AI DOES NOT OFFER REFUNDS FOR ANY REASON.
+                    ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.
                   </strong>
                 </p>
                 <p className="text-gray-700 leading-relaxed">
                   {' '}
-                  All payments made to Maula AI are{' '}
+                  All payments made to One Last AI are{' '}
                   <strong className="text-gray-900">
                     final, non-refundable, and non-transferable
                   </strong>
@@ -545,10 +545,10 @@ export default function PaymentsRefundsPage() {
                     <strong className="text-gray-900">Contact Support:</strong>{' '}
                     Email{' '}
                     <a
-                      href="mailto:support@maula.ai"
+                      href="mailto:support@onelastai.co"
                       className="text-blue-600 hover:text-blue-700 underline"
                     >
-                      support@maula.ai
+                      support@onelastai.co
                     </a>{' '}
                     for technical assistance
                   </li>
@@ -567,10 +567,10 @@ export default function PaymentsRefundsPage() {
                     </strong>{' '}
                     Explore guides and tutorials at{' '}
                     <a
-                      href="https://maula.ai/docs"
+                      href="https://onelastai.co/docs"
                       className="text-blue-600 hover:text-blue-700 underline"
                     >
-                      maula.ai/docs
+                      onelastai.co/docs
                     </a>
                   </li>
                 </ul>
@@ -626,10 +626,10 @@ export default function PaymentsRefundsPage() {
                     <p className="text-gray-700 text-sm">
                       Email{' '}
                       <a
-                        href="mailto:support@maula.ai"
+                        href="mailto:support@onelastai.co"
                         className="text-blue-600 hover:text-blue-700 underline"
                       >
-                        support@maula.ai
+                        support@onelastai.co
                       </a>{' '}
                       with your account email, agent name, and "CANCEL ACCESS"
                       in the subject line
@@ -706,10 +706,10 @@ export default function PaymentsRefundsPage() {
                   Before filing a chargeback or payment dispute with your bank,
                   please contact us at{' '}
                   <a
-                    href="mailto:billing@maula.ai"
+                    href="mailto:billing@onelastai.co"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    billing@maula.ai
+                    billing@onelastai.co
                   </a>
                   . We're committed to resolving billing issues quickly.
                 </p>
@@ -792,28 +792,28 @@ export default function PaymentsRefundsPage() {
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:billing@maula.ai"
+                  href="mailto:billing@onelastai.co"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  billing@maula.ai
+                  billing@onelastai.co
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@maula.ai"
+                  href="mailto:support@onelastai.co"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@maula.ai
+                  support@onelastai.co
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://maula.ai"
+                  href="https://onelastai.co"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://maula.ai
+                  https://onelastai.co
                 </a>
               </p>
 

@@ -118,7 +118,7 @@ export default function SuggestionsPage() {
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Share Your Ideas</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Help shape the future of Maula AI. Submit your feature requests, improvements, and ideas to make our platform even better.
+            Help shape the future of One Last AI. Submit your feature requests, improvements, and ideas to make our platform even better.
           </p>
         </div>
       </section>
@@ -366,7 +366,7 @@ export default function SuggestionsPage() {
                       maxLength={2000}
                       rows={6}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                      placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve Maula AI?"
+                      placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve One Last AI?"
                     />
                     <p className="text-xs text-gray-400 mt-1">{formData.description.length}/2000</p>
                   </div>
@@ -458,7 +458,7 @@ export default function SuggestionsPage() {
                     <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve Maula AI.
+                    By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve One Last AI.
                   </p>
                 </div>
 

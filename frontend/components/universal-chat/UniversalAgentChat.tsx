@@ -1604,7 +1604,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       settings={settings}
       onUpdateSettings={handleUpdateSettings}
       onResetSettings={handleResetSettings}
-      externalUrl="https://maula.ai/dashboard/overview"
+      externalUrl="https://onelastai.co/dashboard/overview"
     >
       <div className="flex flex-col h-full">
         {/* Messages Area */}

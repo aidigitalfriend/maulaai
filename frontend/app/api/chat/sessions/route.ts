@@ -49,7 +49,7 @@ async function authenticateUser(
 
   try {
     const client = await getClientPromise();
-    const db = client.db(process.env.MONGODB_DB || 'maulaai');
+    const db = client.db(process.env.MONGODB_DB || 'onelastai');
     const users = db.collection('users');
 
     const sessionUser = await users.findOne({

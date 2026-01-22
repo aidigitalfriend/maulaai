@@ -404,7 +404,7 @@ export default function SecuritySettingsPage() {
   const handleDownloadBackupCodes = () => {
     if (backupCodes.length === 0) return;
 
-    const content = `Maula AI - Two-Factor Authentication Backup Codes
+    const content = `One Last AI - Two-Factor Authentication Backup Codes
 ================================================
 Generated: ${new Date().toLocaleString()}
 Account: ${state.user?.email || 'Unknown'}
@@ -425,7 +425,7 @@ use one of these codes to sign in.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `maulaai-backup-codes-${
+    a.download = `onelastai-backup-codes-${
       new Date().toISOString().split('T')[0]
     }.txt`;
     document.body.appendChild(a);

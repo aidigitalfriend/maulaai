@@ -575,7 +575,7 @@ function PaymentContent() {
             <p className="text-xs text-gray-500 text-center mt-6">
               Questions? Contact us at{' '}
               <span className="font-semibold text-brand-600">
-                support@maula.aim
+                support@onelastai.com
               </span>
             </p>
           </div>

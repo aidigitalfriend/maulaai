@@ -768,7 +768,7 @@ export default function DataGeneratorPage() {
                     {/* Terminal prompt line */}
                     <div className="flex items-center gap-2 text-xs font-mono mb-3 text-[#6c7086]">
                       <span className="text-[#a6e3a1]">→</span>
-                      <span className="text-[#89dceb]">maulaai</span>
+                      <span className="text-[#89dceb]">onelastai</span>
                       <span className="text-[#585b70]">$</span>
                       <span className="text-[#bac2de]">
                         generate --template {selectedTemplate} --count{' '}

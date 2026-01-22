@@ -1,5 +1,5 @@
 /**
- * MAULA AI - PRODUCTION SERVER
+ * ONE LAST AI - PRODUCTION SERVER
  * PostgreSQL/Prisma Backend
  * Migrated from MongoDB to PostgreSQL
  */
@@ -42,8 +42,8 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://maula.ai',
-      'https://www.maula.ai',
+      'https://onelastai.co',
+      'https://www.onelastai.co',
     ],
     credentials: true,
   },
@@ -56,8 +56,8 @@ app.use(helmet());
 // CORS configuration
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(',') || [
-    'https://maula.ai',
-    'https://www.maula.ai',
+    'https://onelastai.co',
+    'https://www.onelastai.co',
   ],
   credentials: true,
   optionsSuccessStatus: 200,
@@ -807,7 +807,7 @@ const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 async function initializeServer() {
   try {
-    console.log('🔧 Initializing Maula AI Server...');
+    console.log('🔧 Initializing One Last AI Server...');
     console.log('📦 Database: PostgreSQL via Prisma');
 
     // Connect to PostgreSQL
@@ -819,7 +819,7 @@ async function initializeServer() {
 
     // Start server
     server.listen(PORT, host, () => {
-      console.log(`🚀 Maula AI Backend running on ${host}:${PORT}`);
+      console.log(`🚀 One Last AI Backend running on ${host}:${PORT}`);
       console.log(`📊 Health check: http://${host}:${PORT}/health`);
       console.log(`🔗 API: http://${host}:${PORT}/api`);
 
