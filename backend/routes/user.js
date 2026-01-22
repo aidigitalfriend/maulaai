@@ -685,26 +685,87 @@ router.get('/analytics', async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Return user analytics data
+    // Get user's agent subscriptions count
+    let activeAgents = 0;
+    try {
+      const subscriptions = await db.AgentSubscription.findByUser(userId);
+      activeAgents = subscriptions?.filter(s => s.status === 'active')?.length || 0;
+    } catch (e) {
+      // Ignore if agent subscriptions table doesn't exist yet
+    }
+
+    // Calculate account age in days
+    const accountAgeDays = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+
+    // Return analytics data matching frontend AnalyticsData interface
     const analytics = {
+      subscription: {
+        plan: 'Free',
+        status: 'active',
+        price: 0,
+        period: 'month',
+        renewalDate: 'N/A',
+        daysUntilRenewal: 0,
+      },
+      usage: {
+        conversations: {
+          current: user.totalMessages || 0,
+          limit: 1000,
+          percentage: Math.min(100, ((user.totalMessages || 0) / 1000) * 100),
+          unit: 'messages',
+        },
+        agents: {
+          current: activeAgents,
+          limit: 10,
+          percentage: Math.min(100, (activeAgents / 10) * 100),
+          unit: 'agents',
+        },
+        apiCalls: {
+          current: user.totalAgentInteractions || 0,
+          limit: 10000,
+          percentage: Math.min(100, ((user.totalAgentInteractions || 0) / 10000) * 100),
+          unit: 'calls',
+        },
+        storage: {
+          current: 0,
+          limit: 1000,
+          percentage: 0,
+          unit: 'MB',
+        },
+        messages: {
+          current: user.totalMessages || 0,
+          limit: 10000,
+          percentage: Math.min(100, ((user.totalMessages || 0) / 10000) * 100),
+          unit: 'messages',
+        },
+      },
+      dailyUsage: [],
+      weeklyTrend: {
+        conversationsChange: '+0%',
+        messagesChange: '+0%',
+        apiCallsChange: '+0%',
+        responseTimeChange: '+0%',
+      },
+      agentPerformance: [],
+      recentActivity: user.activityHistory?.slice(0, 10) || [],
+      costAnalysis: {
+        currentMonth: 0,
+        projectedMonth: 0,
+        breakdown: [],
+      },
+      topAgents: [],
+      agentStatus: activeAgents > 0 ? 'active' : 'inactive',
+      // Legacy fields for backwards compatibility
       totalLogins: user.totalLogins || 0,
       lastLogin: user.lastLogin || user.updatedAt,
-      accountAge: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
+      accountAge: accountAgeDays,
       totalMessages: user.totalMessages || 0,
       totalAgentInteractions: user.totalAgentInteractions || 0,
       favoriteAgents: user.favoriteAgents || [],
       activityHistory: user.activityHistory || [],
-      usageStats: {
-        daily: user.usageStats?.daily || [],
-        weekly: user.usageStats?.weekly || [],
-        monthly: user.usageStats?.monthly || [],
-      },
     };
 
-    res.json({
-      success: true,
-      analytics,
-    });
+    res.json(analytics);
   } catch (error) {
     console.error('Get analytics error:', error);
     res.status(500).json({ success: false, error: 'Failed to get analytics' });
