@@ -7,7 +7,7 @@
  */
 
 import cron from 'node-cron';
-import prisma from '../lib/prisma.js';
+import { prisma } from '../lib/prisma.js';
 
 /**
  * Start the subscription expiration cron job
