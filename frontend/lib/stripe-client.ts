@@ -363,10 +363,10 @@ export async function createCheckoutSession({
   // Get agent-specific plan details
   const planDetails = getAgentSubscriptionPlan(agentId, plan);
 
-  // Create checkout session for subscription with auto-cancel (NO auto-renewal)
-  // Uses recurring prices but cancels at period end = one-time purchase behavior
+  // Create checkout session for ONE-TIME PAYMENT (not recurring subscription)
+  // Users pay once for access period (daily/weekly/monthly) - NO auto-renewal
   const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
+    mode: 'payment',
     payment_method_types: ['card'],
     customer_email: userEmail,
     line_items: [
@@ -375,14 +375,12 @@ export async function createCheckoutSession({
         quantity: 1,
       },
     ],
-    subscription_data: {
-      // This is the key: subscription cancels at end of period = NO auto-renewal
+    payment_intent_data: {
       metadata: {
         userId,
         agentId,
         agentName,
         plan,
-        cancelAtPeriodEnd: 'true',
       },
     },
     success_url: successUrl,
