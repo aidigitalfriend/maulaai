@@ -1,5 +1,5 @@
 // Prisma schema for One Last AI
-// Migrated from MongoDB/Mongoose to PostgreSQL
+// PostgreSQL Database Schema
 
 generator client {
   provider = "prisma-client-js"

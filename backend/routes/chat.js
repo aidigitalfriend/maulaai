@@ -445,7 +445,7 @@ router.put(
     body('fontSize').optional().isIn(['small', 'medium', 'large']),
     body('notifications').optional().isObject(),
     body('autoSave').optional().isBoolean(),
-    body('defaultAgent').optional().isMongoId(),
+    body('defaultAgent').optional().isString(),
     body('quickActions').optional().isObject(),
     body('privacy').optional().isObject(),
     body('accessibility').optional().isObject(),
@@ -512,7 +512,7 @@ router.post(
         'technical',
       ]),
     body('messageId').optional().isString(),
-    body('agentId').optional().isMongoId(),
+    body('agentId').optional().isString(),
   ],
   validateRequest,
   async (req, res) => {

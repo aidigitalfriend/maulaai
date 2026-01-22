@@ -86,7 +86,7 @@ export default function CareersPage() {
         'Strong JavaScript/TypeScript skills',
         'Experience with React and Next.js',
         'Node.js and backend development experience',
-        'Proficiency with databases (PostgreSQL, MongoDB)',
+        'Proficiency with PostgreSQL and Prisma ORM',
         'Git and version control',
         'Understanding of REST APIs and GraphQL'
       ],

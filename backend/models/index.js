@@ -742,7 +742,7 @@ class ConsultationAdapter {
 }
 
 // ============================================
-// EXPORTS - MONGOOSE-COMPATIBLE INTERFACE
+// EXPORTS - PRISMA MODEL INTERFACE
 // ============================================
 
 export const User = UserAdapter;

@@ -435,8 +435,8 @@ router.use((error, req, res, next) => {
     });
   }
 
-  // Handle MongoDB errors
-  if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+  // Handle Prisma/database errors
+  if (error.name === 'PrismaClientKnownRequestError' || error.name === 'PrismaClientValidationError') {
     return res.status(500).json({
       success: false,
       message: 'Database error',

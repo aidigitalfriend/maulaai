@@ -10,8 +10,8 @@ import { body, param, query } from 'express-validator';
 // ============================================
 
 export const commonValidation = {
-  // ID validation
-  id: param('id').isMongoId().withMessage('Invalid ID format'),
+  // ID validation (PostgreSQL CUIDs)
+  id: param('id').isString().notEmpty().withMessage('Invalid ID format'),
 
   // Pagination
   pagination: [
@@ -189,7 +189,7 @@ export const analyticsValidation = {
     body('event')
       .isLength({ min: 1, max: 100 })
       .withMessage('Event name required (1-100 chars)'),
-    body('userId').optional().isMongoId().withMessage('Invalid user ID'),
+    body('userId').optional().isString().withMessage('Invalid user ID'),
     body('sessionId')
       .optional()
       .isLength({ min: 1, max: 100 })
@@ -209,7 +209,7 @@ export const analyticsValidation = {
       .optional()
       .isLength({ min: 1, max: 100 })
       .withMessage('Event name max 100 chars'),
-    query('userId').optional().isMongoId().withMessage('Invalid user ID'),
+    query('userId').optional().isString().withMessage('Invalid user ID'),
     query('startDate').optional().isISO8601().withMessage('Invalid start date'),
     query('endDate').optional().isISO8601().withMessage('Invalid end date'),
     ...commonValidation.pagination,
@@ -265,7 +265,7 @@ export const communityValidation = {
       .withMessage('Comment required (max 2k chars)'),
     body('parentId')
       .optional()
-      .isMongoId()
+      .isString()
       .withMessage('Invalid parent comment ID'),
   ],
 };

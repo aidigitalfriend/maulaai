@@ -39,7 +39,6 @@ const PORT_SERVICES: { [key: number]: string } = {
   8080: 'HTTP Proxy',
   8443: 'HTTPS Alt',
   8888: 'HTTP Alt',
-  27017: 'MongoDB',
 };
 
 function parsePortRange(portRange: string): number[] {

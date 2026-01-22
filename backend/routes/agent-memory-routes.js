@@ -278,7 +278,7 @@ router.get('/tools/available', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// FILE OPERATION ROUTES - MongoDB + S3 Hybrid Storage
+// FILE OPERATION ROUTES - PostgreSQL + S3 Hybrid Storage
 // ═══════════════════════════════════════════════════════════════════
 
 import AgentFile from '../models/AgentFile.js';
@@ -297,7 +297,7 @@ const s3Client = new S3Client({
 
 /**
  * GET /api/agents/files/download
- * Download a file from MongoDB or S3 storage
+ * Download a file from PostgreSQL or S3 storage
  */
 router.get('/files/download', async (req, res) => {
   try {
@@ -307,7 +307,7 @@ router.get('/files/download', async (req, res) => {
       return res.status(400).json({ success: false, error: 'File path or filename required' });
     }
 
-    // Find file in MongoDB
+    // Find file in database
     const searchPath = filePath || (filename.startsWith('/') ? filename : `/${filename}`);
     const file = await AgentFile.findOne({
       userId,
@@ -345,7 +345,7 @@ router.get('/files/download', async (req, res) => {
         return res.status(500).json({ success: false, error: 'Failed to download from S3' });
       }
     } else {
-      // Serve from MongoDB
+      // Serve from database
       res.setHeader('Content-Length', file.size);
       res.send(file.content);
     }
