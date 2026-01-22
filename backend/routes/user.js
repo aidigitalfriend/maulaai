@@ -433,4 +433,175 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
+// ============================================
+// USER REWARDS
+// ============================================
+router.get('/rewards/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Get user's gamification/rewards data
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Return rewards data (with defaults for new users)
+    const rewards = {
+      points: user.points || 0,
+      level: user.level || 1,
+      badges: user.badges || [],
+      achievements: user.achievements || [],
+      streakDays: user.streakDays || 0,
+      totalRewards: user.totalRewards || 0,
+      lastActivityDate: user.lastActivityDate || new Date(),
+    };
+
+    res.json({
+      success: true,
+      rewards,
+    });
+  } catch (error) {
+    console.error('Get rewards error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get rewards' });
+  }
+});
+
+// ============================================
+// USER PREFERENCES
+// ============================================
+router.get('/preferences/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Return preferences with defaults
+    const preferences = user.preferences || {
+      language: 'en',
+      theme: 'auto',
+      notifications: {
+        email: true,
+        push: true,
+        sms: false,
+        marketing: false,
+      },
+      privacy: {
+        profileVisibility: 'public',
+        showEmail: false,
+        showPhone: false,
+        showActivity: true,
+      },
+      accessibility: {
+        reduceMotion: false,
+        highContrast: false,
+        fontSize: 'medium',
+      },
+    };
+
+    res.json({
+      success: true,
+      preferences,
+    });
+  } catch (error) {
+    console.error('Get preferences error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get preferences' });
+  }
+});
+
+router.put('/preferences/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const preferences = req.body;
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Merge new preferences with existing
+    const updatedPreferences = {
+      ...(user.preferences || {}),
+      ...preferences,
+    };
+
+    await db.User.update(userId, { preferences: updatedPreferences });
+
+    res.json({
+      success: true,
+      message: 'Preferences updated',
+      preferences: updatedPreferences,
+    });
+  } catch (error) {
+    console.error('Update preferences error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update preferences' });
+  }
+});
+
+// ============================================
+// USER SECURITY
+// ============================================
+router.get('/security/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Return security settings (never include actual password)
+    const security = {
+      twoFactorEnabled: user.twoFactorEnabled || false,
+      lastPasswordChange: user.lastPasswordChange || user.createdAt,
+      activeSessions: user.activeSessions || 1,
+      loginHistory: user.loginHistory || [],
+      securityQuestions: user.securityQuestions ? true : false,
+      trustedDevices: user.trustedDevices || [],
+    };
+
+    res.json({
+      success: true,
+      security,
+    });
+  } catch (error) {
+    console.error('Get security error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get security settings' });
+  }
+});
+
+router.put('/security/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const securitySettings = req.body;
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Update security settings
+    const updates = {};
+    if (securitySettings.twoFactorEnabled !== undefined) {
+      updates.twoFactorEnabled = securitySettings.twoFactorEnabled;
+    }
+    if (securitySettings.securityQuestions) {
+      updates.securityQuestions = securitySettings.securityQuestions;
+    }
+
+    await db.User.update(userId, updates);
+
+    res.json({
+      success: true,
+      message: 'Security settings updated',
+    });
+  } catch (error) {
+    console.error('Update security error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update security settings' });
+  }
+});
+
 export default router;

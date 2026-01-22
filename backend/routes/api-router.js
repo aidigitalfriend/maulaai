@@ -169,8 +169,11 @@ const authValidation = {
 // USER MANAGEMENT ROUTES
 // ============================================
 
+// Support both /api/users/* and /api/user/* (frontend uses /api/user/*)
 router.use('/users', apiLimiter);
 router.use('/users', userRouter);
+router.use('/user', apiLimiter);
+router.use('/user', userRouter);
 
 // ============================================
 // AGENT ROUTES
