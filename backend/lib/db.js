@@ -205,6 +205,15 @@ export const AgentSubscriptionService = {
     });
   },
 
+  // Alias for backwards compatibility
+  findByUserId: async (userId) => {
+    return prisma.agentSubscription.findMany({
+      where: { userId },
+      include: { agent: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  },
+
   findActiveByUserAndAgent: async (userId, agentId) => {
     return prisma.agentSubscription.findFirst({
       where: {
@@ -924,6 +933,7 @@ export default {
   User: UserService,
   Agent: AgentService,
   AgentSubscription: AgentSubscriptionService,
+  Subscription: AgentSubscriptionService, // Alias for backwards compatibility
   ChatSession: ChatSessionService,
   ChatSettings: ChatSettingsService,
   Transaction: TransactionService,
