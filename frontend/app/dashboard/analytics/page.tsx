@@ -181,7 +181,7 @@ export default function DashboardAnalyticsPage() {
 
   const dailyUsageMax =
     analyticsData?.dailyUsage?.reduce((max, day) => {
-      const total = day.conversations + day.messages + day.apiCalls;
+      const total = (day.conversations || 0) + (day.messages || 0) + (day.apiCalls || 0);
       return Math.max(max, total);
     }, 0) || 1;
 
@@ -189,26 +189,26 @@ export default function DashboardAnalyticsPage() {
     ? [
         {
           label: 'Conversations',
-          value: analyticsData.usage.conversations.current.toLocaleString(),
-          delta: analyticsData.weeklyTrend.conversationsChange,
+          value: (analyticsData.usage?.conversations?.current ?? 0).toLocaleString(),
+          delta: analyticsData.weeklyTrend?.conversationsChange ?? 0,
           icon: MessageSquare,
         },
         {
           label: 'API Calls',
-          value: analyticsData.usage.apiCalls.current.toLocaleString(),
-          delta: analyticsData.weeklyTrend.apiCallsChange,
+          value: (analyticsData.usage?.apiCalls?.current ?? 0).toLocaleString(),
+          delta: analyticsData.weeklyTrend?.apiCallsChange ?? 0,
           icon: Zap,
         },
         {
           label: 'Active Agents',
-          value: analyticsData.usage.agents.current.toString(),
-          delta: `${analyticsData.usage.agents.current}/${analyticsData.usage.agents.limit} in use`,
+          value: (analyticsData.usage?.agents?.current ?? 0).toString(),
+          delta: `${analyticsData.usage?.agents?.current ?? 0}/${analyticsData.usage?.agents?.limit ?? 0} in use`,
           icon: Users,
         },
         {
           label: 'Messages Sent',
-          value: analyticsData.usage.messages.current.toLocaleString(),
-          delta: analyticsData.weeklyTrend.messagesChange,
+          value: (analyticsData.usage?.messages?.current ?? 0).toLocaleString(),
+          delta: analyticsData.weeklyTrend?.messagesChange ?? 0,
           icon: Activity,
         },
       ]
@@ -251,7 +251,7 @@ export default function DashboardAnalyticsPage() {
     );
   }
 
-  const recentDailyUsage = analyticsData.dailyUsage.slice(-7);
+  const recentDailyUsage = analyticsData?.dailyUsage?.slice(-7) || [];
 
   return (
     <ProtectedRoute>
@@ -346,13 +346,13 @@ export default function DashboardAnalyticsPage() {
                   </div>
                   <span className="inline-flex items-center gap-1 text-sm text-green-600">
                     <TrendingUp className="w-4 h-4" />
-                    {analyticsData.weeklyTrend.conversationsChange} vs last week
+                    {analyticsData.weeklyTrend?.conversationsChange ?? 0}% vs last week
                   </span>
                 </div>
                 <div className="mt-8 flex items-end gap-4">
                   {recentDailyUsage.map((day) => {
                     const total =
-                      day.conversations + day.messages + day.apiCalls;
+                      (day.conversations || 0) + (day.messages || 0) + (day.apiCalls || 0);
                     const height = Math.min(
                       100,
                       Math.max(6, (total / dailyUsageMax) * 100)
@@ -369,7 +369,7 @@ export default function DashboardAnalyticsPage() {
                           {formatDateLabel(day.date)}
                         </p>
                         <p className="text-xs text-neural-500 text-center">
-                          {total.toLocaleString()} events
+                          {(total ?? 0).toLocaleString()} events
                         </p>
                       </div>
                     );
@@ -379,25 +379,25 @@ export default function DashboardAnalyticsPage() {
                   <div>
                     <p className="text-neural-500">Conversations</p>
                     <p className="text-lg font-semibold text-neural-900">
-                      {analyticsData.usage.conversations.current.toLocaleString()}
+                      {(analyticsData.usage?.conversations?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
                     <p className="text-neural-500">Messages</p>
                     <p className="text-lg font-semibold text-neural-900">
-                      {analyticsData.usage.messages.current.toLocaleString()}
+                      {(analyticsData.usage?.messages?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
                     <p className="text-neural-500">API Calls</p>
                     <p className="text-lg font-semibold text-neural-900">
-                      {analyticsData.usage.apiCalls.current.toLocaleString()}
+                      {(analyticsData.usage?.apiCalls?.current ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
                     <p className="text-neural-500">Total messages (30d)</p>
                     <p className="text-lg font-semibold text-neural-900">
-                      {totalMessages.toLocaleString()}
+                      {(totalMessages ?? 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -419,20 +419,20 @@ export default function DashboardAnalyticsPage() {
                       Current month
                     </p>
                     <p className="text-3xl font-bold text-neural-900">
-                      {formatCurrency(analyticsData.costAnalysis.currentMonth)}
+                      {formatCurrency(analyticsData.costAnalysis?.currentMonth ?? 0)}
                     </p>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neural-500">Projected spend</span>
                     <span className="font-semibold">
                       {formatCurrency(
-                        analyticsData.costAnalysis.projectedMonth
+                        analyticsData.costAnalysis?.projectedMonth ?? 0
                       )}
                     </span>
                   </div>
                 </div>
                 <ul className="mt-6 space-y-4">
-                  {analyticsData.costAnalysis.breakdown.map((item) => (
+                  {(analyticsData.costAnalysis?.breakdown || []).map((item) => (
                     <li
                       key={item.category}
                       className="flex items-center justify-between text-sm"
@@ -486,21 +486,21 @@ export default function DashboardAnalyticsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {analyticsData.agentPerformance.map((agent) => (
+                      {(analyticsData.agentPerformance || []).map((agent) => (
                         <tr
                           key={agent.name}
                           className="border-t border-neural-100"
                         >
                           <td className="py-3">
                             <p className="font-medium text-neural-900">
-                              {agent.name}
+                              {agent.name || 'Unknown'}
                             </p>
                             <p className="text-xs text-neural-500">
-                              {agent.messages.toLocaleString()} messages
+                              {(agent.messages ?? 0).toLocaleString()} messages
                             </p>
                           </td>
                           <td className="py-3 text-neural-900">
-                            {agent.conversations.toLocaleString()}
+                            {(agent.conversations ?? 0).toLocaleString()}
                           </td>
                           <td className="py-3 text-neural-900">
                             {(agent.avgResponseTime / 1000).toFixed(1)}s
@@ -541,7 +541,7 @@ export default function DashboardAnalyticsPage() {
                   <TrendingDown className="w-5 h-5 text-brand-500" />
                 </div>
                 <ul className="space-y-4">
-                  {analyticsData.recentActivity.slice(0, 6).map((activity) => {
+                  {(analyticsData.recentActivity || []).slice(0, 6).map((activity) => {
                     const statusKey = activity.status
                       ? activity.status.toLowerCase()
                       : '';
