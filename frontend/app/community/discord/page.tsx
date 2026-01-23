@@ -32,10 +32,10 @@ export default function DiscordPage() {
       {/* Main CTA */}
       <section className="py-16 md:py-20">
         <div className="container-custom max-w-4xl">
-          <div className="bg-white rounded-3xl p-10 md:p-12 text-center mb-12 shadow-2xl border border-gray-200">
+          <div className="bg-white rounded-3xl p-10 md:p-12 text-center mb-12 shadow-2xl border border-neural-200">
             <div className="text-7xl mb-6 animate-bounce">💜</div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Active Discord Community</h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Our Active Discord Community</h2>
+            <p className="text-lg text-neural-600 mb-8 max-w-2xl mx-auto">
               Join thousands of AI enthusiasts, developers, and innovators sharing tips, asking questions, and connecting with fellow Maula AI users worldwide.
             </p>
             <a
@@ -52,22 +52,22 @@ export default function DiscordPage() {
 
           {/* Benefits Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:border-purple-300 hover:shadow-xl transition-all">
               <div className="text-5xl mb-4">💡</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Share Ideas</h3>
-              <p className="text-gray-600">Discuss new features, improvements, and innovative use cases with the community</p>
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Share Ideas</h3>
+              <p className="text-neural-600">Discuss new features, improvements, and innovative use cases with the community</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:border-indigo-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:border-indigo-300 hover:shadow-xl transition-all">
               <div className="text-5xl mb-4">❓</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Get Help</h3>
-              <p className="text-gray-600">Connect with experts, get quick answers, and learn from experienced community members</p>
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Get Help</h3>
+              <p className="text-neural-600">Connect with experts, get quick answers, and learn from experienced community members</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:border-pink-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:border-pink-300 hover:shadow-xl transition-all">
               <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Events & Updates</h3>
-              <p className="text-gray-600">Participate in live events, competitions, and stay updated with latest platform news</p>
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Events & Updates</h3>
+              <p className="text-neural-600">Participate in live events, competitions, and stay updated with latest platform news</p>
             </div>
           </div>
         </div>
@@ -80,57 +80,57 @@ export default function DiscordPage() {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl mb-3">
               <Star className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">Why Join Our Discord?</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Why Join Our Discord?</h2>
           </div>
 
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 flex gap-4 hover:border-purple-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-purple-300 hover:shadow-xl transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Real-Time Support</h3>
-                <p className="text-gray-600">Get instant help from community members and Maula AI team members</p>
+                <h3 className="text-lg font-bold text-neural-900 mb-1">Real-Time Support</h3>
+                <p className="text-neural-600">Get instant help from community members and Maula AI team members</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 flex gap-4 hover:border-indigo-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-indigo-300 hover:shadow-xl transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Network & Collaborate</h3>
-                <p className="text-gray-600">Build connections with fellow developers, entrepreneurs, and AI enthusiasts</p>
+                <h3 className="text-lg font-bold text-neural-900 mb-1">Network & Collaborate</h3>
+                <p className="text-neural-600">Build connections with fellow developers, entrepreneurs, and AI enthusiasts</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 flex gap-4 hover:border-pink-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-pink-300 hover:shadow-xl transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Learn & Grow</h3>
-                <p className="text-gray-600">Access tutorials, case studies, and best practices shared by experts</p>
+                <h3 className="text-lg font-bold text-neural-900 mb-1">Learn & Grow</h3>
+                <p className="text-neural-600">Access tutorials, case studies, and best practices shared by experts</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 flex gap-4 hover:border-green-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-green-300 hover:shadow-xl transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Award className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Exclusive Opportunities</h3>
-                <p className="text-gray-600">Get early access to features, special events, and community recognition programs</p>
+                <h3 className="text-lg font-bold text-neural-900 mb-1">Exclusive Opportunities</h3>
+                <p className="text-neural-600">Get early access to features, special events, and community recognition programs</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 flex gap-4 hover:border-amber-300 hover:shadow-xl transition-all">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 flex gap-4 hover:border-amber-300 hover:shadow-xl transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Flame className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Active Channels</h3>
-                <p className="text-gray-600">Dedicated channels for different topics, agent types, and use cases</p>
+                <h3 className="text-lg font-bold text-neural-900 mb-1">Active Channels</h3>
+                <p className="text-neural-600">Dedicated channels for different topics, agent types, and use cases</p>
               </div>
             </div>
           </div>
@@ -141,28 +141,28 @@ export default function DiscordPage() {
       <section className="py-16 md:py-20 bg-white/50">
         <div className="container-custom max-w-4xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Community Stats</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Community Stats</h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-2">10K+</div>
-              <p className="text-gray-600">Active Members</p>
+              <p className="text-neural-600">Active Members</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent mb-2">50+</div>
-              <p className="text-gray-600">Active Channels</p>
+              <p className="text-neural-600">Active Channels</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent mb-2">1K+</div>
-              <p className="text-gray-600">Daily Messages</p>
+              <p className="text-neural-600">Daily Messages</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-2">24/7</div>
-              <p className="text-gray-600">Community Support</p>
+              <p className="text-neural-600">Community Support</p>
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function DiscordPage() {
       <section className="py-16 md:py-20">
         <div className="container-custom max-w-4xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Community Guidelines</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Community Guidelines</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -180,7 +180,7 @@ export default function DiscordPage() {
               <h3 className="text-lg font-bold text-green-700 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">✓</span> Do's
               </h3>
-              <ul className="space-y-3 text-gray-700">
+              <ul className="space-y-3 text-neural-700">
                 <li className="flex gap-2">
                   <span className="text-green-500 font-bold">•</span>
                   <span>Be respectful and inclusive to all members</span>
@@ -204,7 +204,7 @@ export default function DiscordPage() {
               <h3 className="text-lg font-bold text-red-700 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600">✗</span> Don'ts
               </h3>
-              <ul className="space-y-3 text-gray-700">
+              <ul className="space-y-3 text-neural-700">
                 <li className="flex gap-2">
                   <span className="text-red-500 font-bold">•</span>
                   <span>Spam or post promotional content</span>
@@ -231,38 +231,38 @@ export default function DiscordPage() {
       <section className="py-16 md:py-20 bg-white/50">
         <div className="container-custom max-w-4xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Popular Channels</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Popular Channels</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">💬 #general</h3>
-              <p className="text-gray-600 text-sm">General discussion about Maula AI and the community</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-purple-300 hover:shadow-xl transition-all">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">💬 #general</h3>
+              <p className="text-neural-600 text-sm">General discussion about Maula AI and the community</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-indigo-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">❓ #help</h3>
-              <p className="text-gray-600 text-sm">Ask questions and get support from the community</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-indigo-300 hover:shadow-xl transition-all">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">❓ #help</h3>
+              <p className="text-neural-600 text-sm">Ask questions and get support from the community</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">🤖 #agents</h3>
-              <p className="text-gray-600 text-sm">Discuss agents, features, and agent-specific topics</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">🤖 #agents</h3>
+              <p className="text-neural-600 text-sm">Discuss agents, features, and agent-specific topics</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-amber-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">💡 #ideas</h3>
-              <p className="text-gray-600 text-sm">Share ideas and vote on feature requests</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-amber-300 hover:shadow-xl transition-all">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">💡 #ideas</h3>
+              <p className="text-neural-600 text-sm">Share ideas and vote on feature requests</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">📰 #announcements</h3>
-              <p className="text-gray-600 text-sm">Official updates and important announcements</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-green-300 hover:shadow-xl transition-all">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">📰 #announcements</h3>
+              <p className="text-neural-600 text-sm">Official updates and important announcements</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-pink-300 hover:shadow-xl transition-all">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">🎉 #events</h3>
-              <p className="text-gray-600 text-sm">Community events, competitions, and activities</p>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-pink-300 hover:shadow-xl transition-all">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">🎉 #events</h3>
+              <p className="text-neural-600 text-sm">Community events, competitions, and activities</p>
             </div>
           </div>
         </div>

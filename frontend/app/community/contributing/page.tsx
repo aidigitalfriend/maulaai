@@ -127,21 +127,21 @@ export default function ContributingPage() {
       <section className="py-16 md:py-20">
         <div className="container-custom max-w-5xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-2">15K+</div>
-              <p className="text-gray-600">Active Contributors</p>
+              <p className="text-neural-600">Active Contributors</p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-2">2.5K+</div>
-              <p className="text-gray-600">Discussions</p>
+              <p className="text-neural-600">Discussions</p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-2">5.2K+</div>
-              <p className="text-gray-600">Posts This Month</p>
+              <p className="text-neural-600">Posts This Month</p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 text-center">
               <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-pink-500 bg-clip-text text-transparent mb-2">89%</div>
-              <p className="text-gray-600">Community Satisfaction</p>
+              <p className="text-neural-600">Community Satisfaction</p>
             </div>
           </div>
         </div>
@@ -154,20 +154,20 @@ export default function ContributingPage() {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl mb-3">
               <Star className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Ways to Contribute</h2>
-            <p className="text-gray-600">Choose how you'd like to contribute to Maula AI</p>
+            <h2 className="text-3xl font-bold text-neural-900 mb-2">Ways to Contribute</h2>
+            <p className="text-neural-600">Choose how you'd like to contribute to Maula AI</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {contributionTypes.map((contribution) => (
               <div
                 key={contribution.id}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all group"
+                className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all group"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{contribution.title}</h3>
-                    <p className="text-gray-600 text-sm">{contribution.description}</p>
+                    <h3 className="text-xl font-bold text-neural-900 mb-2">{contribution.title}</h3>
+                    <p className="text-neural-600 text-sm">{contribution.description}</p>
                   </div>
                   <button
                     onClick={() => toggleLike(contribution.id)}
@@ -182,14 +182,14 @@ export default function ContributingPage() {
 
                 <div className="space-y-2 mb-4">
                   {contribution.details.map((detail, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-gray-600 text-sm">
+                    <div key={idx} className="flex items-center gap-2 text-neural-600 text-sm">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                       <span>{detail}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-4 border-t border-neural-100">
                   <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full text-xs text-blue-700 font-medium">
                     <Zap className="w-3 h-3" />
                     Impact: {contribution.impact}
@@ -211,7 +211,7 @@ export default function ContributingPage() {
       <section className="py-16 md:py-20">
         <div className="container-custom max-w-4xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Community Contribution Guidelines</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Community Contribution Guidelines</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -222,7 +222,7 @@ export default function ContributingPage() {
                 </span>
                 Do's
               </h3>
-              <ul className="space-y-3 text-gray-700">
+              <ul className="space-y-3 text-neural-700">
                 <li className="flex gap-2">
                   <span className="text-green-500 font-bold">✓</span>
                   <span>Be respectful and constructive in all interactions</span>
@@ -257,7 +257,7 @@ export default function ContributingPage() {
                 </span>
                 Don'ts
               </h3>
-              <ul className="space-y-3 text-gray-700">
+              <ul className="space-y-3 text-neural-700">
                 <li className="flex gap-2">
                   <span className="text-red-500 font-bold">✗</span>
                   <span>Post spam or promotional content</span>
@@ -292,35 +292,35 @@ export default function ContributingPage() {
       <section className="py-16 md:py-20 bg-white/50">
         <div className="container-custom max-w-4xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Contributor Recognition</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Contributor Recognition</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl hover:border-amber-300 transition-all">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 text-center hover:shadow-xl hover:border-amber-300 transition-all">
               <div className="text-5xl mb-3">🌟</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Featured Contributor</h3>
-              <p className="text-gray-600 text-sm mb-4">
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Featured Contributor</h3>
+              <p className="text-neural-600 text-sm mb-4">
                 Top contributors are featured on our community page and recognized monthly.
               </p>
-              <div className="text-xs text-gray-500 bg-amber-50 rounded-full px-3 py-1 inline-block">Awarded after 10+ impactful contributions</div>
+              <div className="text-xs text-neural-500 bg-amber-50 rounded-full px-3 py-1 inline-block">Awarded after 10+ impactful contributions</div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl hover:border-purple-300 transition-all">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 text-center hover:shadow-xl hover:border-purple-300 transition-all">
               <div className="text-5xl mb-3">🎖️</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Community Badge</h3>
-              <p className="text-gray-600 text-sm mb-4">
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Community Badge</h3>
+              <p className="text-neural-600 text-sm mb-4">
                 Earn special badges in your profile for contributions to specific areas.
               </p>
-              <div className="text-xs text-gray-500 bg-purple-50 rounded-full px-3 py-1 inline-block">Badges include Helper, Innovator, Mentor</div>
+              <div className="text-xs text-neural-500 bg-purple-50 rounded-full px-3 py-1 inline-block">Badges include Helper, Innovator, Mentor</div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 text-center hover:shadow-xl hover:border-blue-300 transition-all">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 text-center hover:shadow-xl hover:border-blue-300 transition-all">
               <div className="text-5xl mb-3">🏆</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Top Contributors</h3>
-              <p className="text-gray-600 text-sm mb-4">
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Top Contributors</h3>
+              <p className="text-neural-600 text-sm mb-4">
                 Top community members get perks like early access and special features.
               </p>
-              <div className="text-xs text-gray-500 bg-blue-50 rounded-full px-3 py-1 inline-block">Exclusive to top 1% of contributors</div>
+              <div className="text-xs text-neural-500 bg-blue-50 rounded-full px-3 py-1 inline-block">Exclusive to top 1% of contributors</div>
             </div>
           </div>
         </div>
@@ -330,20 +330,20 @@ export default function ContributingPage() {
       <section className="py-16 md:py-20">
         <div className="container-custom max-w-4xl">
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Where to Contribute</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Where to Contribute</h2>
           </div>
 
           <div className="space-y-4">
             <Link
               href="/community?category=ideas"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">💡</div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">Ideas & Suggestions</h3>
-                    <p className="text-gray-600">Share feature ideas and vote on platform improvements</p>
+                    <h3 className="text-xl font-bold text-neural-900 mb-1">Ideas & Suggestions</h3>
+                    <p className="text-neural-600">Share feature ideas and vote on platform improvements</p>
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-blue-500 group-hover:translate-x-1 transition-transform" />
@@ -352,14 +352,14 @@ export default function ContributingPage() {
 
             <Link
               href="/community?category=help"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-green-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl">❓</div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">Help & Support</h3>
-                    <p className="text-gray-600">Answer questions and help community members solve problems</p>
+                    <h3 className="text-xl font-bold text-neural-900 mb-1">Help & Support</h3>
+                    <p className="text-neural-600">Answer questions and help community members solve problems</p>
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-green-500 group-hover:translate-x-1 transition-transform" />
@@ -368,14 +368,14 @@ export default function ContributingPage() {
 
             <Link
               href="/community?category=agents"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-purple-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl">🤖</div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">Agents & Features</h3>
-                    <p className="text-gray-600">Share success stories and discuss agent implementations</p>
+                    <h3 className="text-xl font-bold text-neural-900 mb-1">Agents & Features</h3>
+                    <p className="text-neural-600">Share success stories and discuss agent implementations</p>
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-purple-500 group-hover:translate-x-1 transition-transform" />
@@ -384,14 +384,14 @@ export default function ContributingPage() {
 
             <Link
               href="/community"
-              className="block bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:border-pink-300 hover:shadow-xl transition-all group"
+              className="block bg-white rounded-2xl p-6 shadow-lg border border-neural-200 hover:border-pink-300 hover:shadow-xl transition-all group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center text-2xl">🌍</div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">General Discussion</h3>
-                    <p className="text-gray-600">Chat about AI, technology trends, and industry insights</p>
+                    <h3 className="text-xl font-bold text-neural-900 mb-1">General Discussion</h3>
+                    <p className="text-neural-600">Chat about AI, technology trends, and industry insights</p>
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-pink-500 group-hover:translate-x-1 transition-transform" />
@@ -437,45 +437,45 @@ export default function ContributingPage() {
       <section className="py-16 md:py-20">
         <div className="container-custom max-w-3xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
+            <h2 className="text-3xl font-bold text-neural-900">Frequently Asked Questions</h2>
           </div>
 
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: Do I need special skills to contribute?</h3>
-              <p className="text-gray-600">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: Do I need special skills to contribute?</h3>
+              <p className="text-neural-600">
                 No! Everyone can contribute. Whether you're a beginner or expert, there are ways to help. Share your experiences,
                 ask questions, or help others learn.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: How often should I post?</h3>
-              <p className="text-gray-600">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: How often should I post?</h3>
+              <p className="text-neural-600">
                 Contribute at your own pace. Quality matters more than quantity. Post meaningful contributions whenever you have
                 something valuable to share.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: Can I get rewarded for contributions?</h3>
-              <p className="text-gray-600">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: Can I get rewarded for contributions?</h3>
+              <p className="text-neural-600">
                 Yes! Active contributors earn badges, get featured on our page, and may qualify for perks like early access to new
                 features or premium benefits.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: What if I disagree with someone?</h3>
-              <p className="text-gray-600">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: What if I disagree with someone?</h3>
+              <p className="text-neural-600">
                 Respectful disagreement is encouraged! We value diverse perspectives. Engage constructively, focus on ideas rather
                 than people, and maintain professionalism.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Q: How do I report inappropriate content?</h3>
-              <p className="text-gray-600">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Q: How do I report inappropriate content?</h3>
+              <p className="text-neural-600">
                 Use the report feature on any post or contact our moderation team through the Support page. We take community
                 safety seriously and respond to reports quickly.
               </p>

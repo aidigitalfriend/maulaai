@@ -364,13 +364,13 @@ export default function CommunityPage() {
             {stats.map((stat, idx) => (
               <div
                 key={idx}
-                className="text-center p-6 bg-white rounded-2xl shadow-lg border border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all"
+                className="text-center p-6 bg-white rounded-2xl shadow-lg border border-neural-200 hover:border-blue-300 hover:shadow-xl transition-all"
               >
                 <div className="text-4xl mb-3">{stat.icon}</div>
                 <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1">
                   {stat.number}
                 </div>
-                <div className="text-gray-600 text-sm">{stat.label}</div>
+                <div className="text-neural-600 text-sm">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -384,8 +384,8 @@ export default function CommunityPage() {
             {/* Sidebar - Categories & Top Members */}
             <div className="lg:col-span-1 space-y-8">
               {/* Category Navigation */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-2xl shadow-lg border border-neural-200 p-6">
+                <h3 className="text-lg font-bold text-neural-900 mb-4 flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                     <Filter size={16} className="text-white" />
                   </div>
@@ -399,7 +399,7 @@ export default function CommunityPage() {
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all ${
                         selectedCategory === cat.id
                           ? `bg-gradient-to-r ${cat.color} text-white shadow-lg`
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          : 'bg-gray-50 text-neural-700 hover:bg-gray-100 border border-neural-200'
                       }`}
                     >
                       <span className="text-lg mr-2">{cat.icon}</span>
@@ -410,8 +410,8 @@ export default function CommunityPage() {
               </div>
 
               {/* Top Members */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="bg-white rounded-2xl shadow-lg border border-neural-200 p-6">
+                <h3 className="text-lg font-bold text-neural-900 mb-4 flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                     <Users size={16} className="text-white" />
                   </div>
@@ -419,21 +419,21 @@ export default function CommunityPage() {
                 </h3>
                 <div className="space-y-4">
                   {topMembers.length === 0 ? (
-                    <div className="text-center py-4 text-gray-500 text-sm">
+                    <div className="text-center py-4 text-neural-500 text-sm">
                       No members yet
                     </div>
                   ) : (
                     topMembers.map((member) => (
                       <div
                         key={member.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer"
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 border border-neural-200 transition-colors cursor-pointer"
                       >
                         <div className="text-2xl">{member.avatar}</div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-gray-900">
+                          <div className="font-semibold text-sm text-neural-900">
                             {member.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-neural-500">
                             {member.title}
                           </div>
                           <div className="text-xs text-gray-400">
@@ -462,17 +462,17 @@ export default function CommunityPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search discussions..."
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg"
+                    className="w-full bg-white border border-neural-200 rounded-xl pl-12 pr-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg"
                   />
                 </div>
               </div>
 
               {/* Messages Feed */}
-              <div className="space-y-4 max-h-96 overflow-y-auto mb-8 pr-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-lg">
+              <div className="space-y-4 max-h-96 overflow-y-auto mb-8 pr-4 bg-white p-6 rounded-2xl border border-neural-200 shadow-lg">
                 {filteredMessages.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="text-4xl mb-4">💭</div>
-                    <p className="text-gray-500">
+                    <p className="text-neural-500">
                       {loadingPosts
                         ? 'Loading discussions…'
                         : 'No discussions found. Be the first to start one!'}
@@ -485,14 +485,14 @@ export default function CommunityPage() {
                       className={`p-5 rounded-xl border transition-all ${
                         message.isPinned
                           ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
-                          : 'bg-gray-50 border-gray-200 hover:border-blue-300 hover:shadow-md'
+                          : 'bg-gray-50 border-neural-200 hover:border-blue-300 hover:shadow-md'
                       }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className="text-3xl">{message.avatar}</div>
                           <div>
-                            <div className="font-bold text-gray-900 flex items-center gap-2">
+                            <div className="font-bold text-neural-900 flex items-center gap-2">
                               {message.author}
                               {message.isPinned && (
                                 <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
@@ -500,7 +500,7 @@ export default function CommunityPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-neural-500">
                               {Math.round(
                                 (Date.now() - message.timestamp.getTime()) /
                                   60000
@@ -509,7 +509,7 @@ export default function CommunityPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="px-3 py-1 bg-gray-200 rounded-full text-xs font-medium text-gray-700">
+                        <div className="px-3 py-1 bg-gray-200 rounded-full text-xs font-medium text-neural-700">
                           {
                             categories.find((c) => c.id === message.category)
                               ?.icon
@@ -517,10 +517,10 @@ export default function CommunityPage() {
                           {message.category}
                         </div>
                       </div>
-                      <p className="text-gray-700 mb-4 whitespace-pre-wrap">
+                      <p className="text-neural-700 mb-4 whitespace-pre-wrap">
                         {message.content}
                       </p>
-                      <div className="flex gap-6 text-sm text-gray-500">
+                      <div className="flex gap-6 text-sm text-neural-500">
                         <button
                           onClick={() => handleLike(message.id)}
                           className={`flex items-center gap-2 transition-colors ${
@@ -552,10 +552,10 @@ export default function CommunityPage() {
               {/* Message Input */}
               <form
                 onSubmit={handleSendMessage}
-                className="bg-white p-6 rounded-2xl border border-gray-200 shadow-lg"
+                className="bg-white p-6 rounded-2xl border border-neural-200 shadow-lg"
               >
                 <div className="mb-4">
-                  <label className="text-sm text-gray-600 mb-2 block font-medium">
+                  <label className="text-sm text-neural-600 mb-2 block font-medium">
                     Select Category
                   </label>
                   <div className="relative">
@@ -570,7 +570,7 @@ export default function CommunityPage() {
                             | 'help'
                         )
                       }
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 appearance-none cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-10"
+                      className="w-full bg-gray-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 appearance-none cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 pr-10"
                     >
                       <option value="general">🌍 General</option>
                       <option value="agents">🤖 Agents & Features</option>
@@ -589,7 +589,7 @@ export default function CommunityPage() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Share your thoughts, ask questions, or join the discussion..."
-                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                    className="flex-1 bg-gray-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   />
                   <button
                     type="submit"
@@ -608,40 +608,40 @@ export default function CommunityPage() {
       <section className="py-16 md:py-20 bg-white/50">
         <div className="container-custom">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-neural-900">
               Community Guidelines
             </h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-300 transition-all">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-blue-300 transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🤝</div>
-              <h3 className="font-bold text-gray-900 mb-2">Be Respectful</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="font-bold text-neural-900 mb-2">Be Respectful</h3>
+              <p className="text-neural-600 text-sm">
                 Harassment, hate speech, doxxing, and threats are strictly
                 prohibited. Disagreements are fine—keep them civil and on-topic.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-amber-300 transition-all">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-amber-300 transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-4 text-2xl">💡</div>
-              <h3 className="font-bold text-gray-900 mb-2">Share Knowledge</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="font-bold text-neural-900 mb-2">Share Knowledge</h3>
+              <p className="text-neural-600 text-sm">
                 Provide constructive, good-faith contributions. Don't post spam,
                 scams, or misleading content.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-green-300 transition-all">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-green-300 transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🎯</div>
-              <h3 className="font-bold text-gray-900 mb-2">Stay On Topic</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="font-bold text-neural-900 mb-2">Stay On Topic</h3>
+              <p className="text-neural-600 text-sm">
                 Keep discussions relevant to Maula AI and applicable law.
                 Don't share illegal content or proprietary data without
                 permission.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-purple-300 transition-all">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-neural-200 hover:shadow-xl hover:border-purple-300 transition-all">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 text-2xl">✨</div>
-              <h3 className="font-bold text-gray-900 mb-2">Be Authentic</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="font-bold text-neural-900 mb-2">Be Authentic</h3>
+              <p className="text-neural-600 text-sm">
                 Protect your account. Don't impersonate others. By
                 participating, you agree to our Terms and applicable policies.
               </p>
@@ -654,34 +654,34 @@ export default function CommunityPage() {
       <section className="py-16 md:py-20">
         <div className="container-custom">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-neural-900">
               Community Activity
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-neural-200">
               <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
                 {metrics?.postsThisWeek ?? '—'}
               </div>
-              <p className="text-gray-600">Posts This Week</p>
+              <p className="text-neural-600">Posts This Week</p>
               <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 w-3/4 rounded-full"></div>
               </div>
             </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-neural-200">
               <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
                 {metrics?.activeReplies ?? '—'}
               </div>
-              <p className="text-gray-600">Active Replies</p>
+              <p className="text-neural-600">Active Replies</p>
               <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 w-4/5 rounded-full"></div>
               </div>
             </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-neural-200">
               <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
                 {metrics?.newMembersWeek ?? '—'}
               </div>
-              <p className="text-gray-600">New Members</p>
+              <p className="text-neural-600">New Members</p>
               <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-green-600 to-emerald-600 w-2/3 rounded-full"></div>
               </div>
