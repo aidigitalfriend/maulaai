@@ -329,17 +329,17 @@ export default function FAQsPage() {
                   {category.questions.map((item, qIdx) => (
                     <details
                       key={qIdx}
-                      className="group bg-white rounded-xl border border-neural-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                      className="group bg-white rounded-xl border border-neural-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all [&[open]]:border-blue-400 [&[open]]:shadow-lg"
                     >
-                      <summary className="font-semibold text-neural-900 p-5 flex items-center justify-between cursor-pointer group-open:text-blue-600 group-open:border-b group-open:border-neural-100">
-                        <span className="pr-4">{item.q}</span>
-                        <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-blue-100 group-open:bg-blue-600 group-open:text-white transition-all">
+                      <summary className="font-semibold text-neural-800 p-5 flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden group-open:text-blue-600 group-open:border-b group-open:border-neural-100">
+                        <span className="pr-4 group-open:text-blue-600">{item.q}</span>
+                        <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-neural-100 group-hover:bg-blue-100 group-open:bg-blue-600 group-open:text-white transition-all">
                           <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </span>
                       </summary>
-                      <p className="text-neural-600 p-5 pt-4 leading-relaxed">
+                      <p className="text-neural-700 p-5 pt-4 leading-relaxed bg-blue-50/50">
                         {item.a}
                       </p>
                     </details>
