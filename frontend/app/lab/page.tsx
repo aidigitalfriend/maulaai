@@ -340,7 +340,7 @@ export default function AILabPage() {
                 <Link href={experiment.href}>
                   <motion.div
                     whileHover={{ scale: 1.03, y: -5 }}
-                    className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl hover:border-gray-300 transition-all cursor-pointer h-full relative overflow-hidden group"
+                    className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg hover:shadow-xl hover:border-neural-300 transition-all cursor-pointer h-full relative overflow-hidden group"
                   >
                     {/* Background Gradient Effect */}
                     <div
@@ -350,17 +350,17 @@ export default function AILabPage() {
                     {/* Status Badge */}
                     <div className="absolute top-4 right-4">
                       {experiment.status === 'live' && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 border border-green-200 font-medium">
+                        <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 border border-green-300 font-medium">
                           LIVE
                         </span>
                       )}
                       {experiment.status === 'beta' && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 border border-yellow-200 font-medium">
+                        <span className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 border border-yellow-300 font-medium">
                           BETA
                         </span>
                       )}
                       {experiment.status === 'coming-soon' && (
-                        <span className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-600 border border-gray-200 font-medium">
+                        <span className="px-3 py-1 rounded-full text-xs bg-neural-100 text-neural-600 border border-neural-200 font-medium">
                           SOON
                         </span>
                       )}
@@ -374,15 +374,15 @@ export default function AILabPage() {
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-2xl font-bold mb-3 text-gray-900">
+                    <h3 className="text-2xl font-bold mb-3 text-neural-900">
                       {experiment.name}
                     </h3>
-                    <p className="text-gray-600 mb-6 line-clamp-3">
+                    <p className="text-neural-600 mb-6 line-clamp-3">
                       {experiment.description}
                     </p>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-2 text-sm text-neural-500">
                       <Users className="w-4 h-4" />
                       <span>{getTestCount(experiment.id).toLocaleString()} tests</span>
                     </div>
