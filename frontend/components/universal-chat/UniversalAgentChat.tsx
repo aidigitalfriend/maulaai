@@ -200,14 +200,14 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const ttsAbortControllerRef = useRef<AbortController | null>(null);
   const ttsStoppedIntentionallyRef = useRef<boolean>(false);
 
-  // Settings state - use agent's AI provider config if available
+  // Settings state - use agent's AI provider config if available, default to cerebras
   const [settings, setSettings] = useState<AgentSettings>({
     temperature: 0.7,
     maxTokens: 2000,
     mode: 'balanced',
     systemPrompt: '',
-    provider: agent.aiProvider?.primary || 'mistral',
-    model: agent.aiProvider?.model || 'mistral-large-latest',
+    provider: agent.aiProvider?.primary || 'cerebras',
+    model: agent.aiProvider?.model || 'llama3.1-8b',
   });
 
   // Load persisted settings per agent
