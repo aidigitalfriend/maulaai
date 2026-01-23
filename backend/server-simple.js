@@ -941,7 +941,7 @@ app.get('/api/status', async (req, res) => {
 
     const [todaySessions, todayPageViews, activeUsers] = await Promise.all([
       prisma.session.count({ where: { createdAt: { gte: startOfDay } } }),
-      prisma.pageView.count({ where: { createdAt: { gte: startOfDay } } }),
+      prisma.pageView.count({ where: { timestamp: { gte: startOfDay } } }),
       prisma.session.count({
         where: {
           lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
@@ -1003,6 +1003,204 @@ app.get('/api/status', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch status',
+    });
+});
+
+// ============================================
+// STATUS ANALYTICS ENDPOINT
+// ============================================
+
+app.get('/api/status/analytics', async (req, res) => {
+  console.log('STATUS ANALYTICS ENDPOINT CALLED');
+  try {
+    const { timeRange = '24h' } = req.query;
+
+    // Calculate date ranges
+    const now = new Date();
+    let startDate, previousStartDate, previousEndDate;
+
+    switch (timeRange) {
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+        previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+        previousEndDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        previousEndDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+        previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
+
+    // Get current period data
+    const [
+      currentSessions,
+      currentPageViews,
+      currentActiveUsers,
+      currentAgentInteractions,
+      currentToolUsages
+    ] = await Promise.all([
+      prisma.session.count({ where: { createdAt: { gte: startDate } } }),
+      prisma.pageView.count({ where: { timestamp: { gte: startDate } } }),
+      prisma.session.count({
+        where: {
+          lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
+          isActive: true,
+        },
+      }),
+      prisma.chatAnalyticsInteraction.count({ where: { startedAt: { gte: startDate } } }),
+      prisma.toolUsage.count({ where: { occurredAt: { gte: startDate } } })
+    ]);
+
+    // Get previous period data for growth calculation
+    const [
+      previousSessions,
+      previousPageViews,
+      previousActiveUsers,
+      previousAgentInteractions,
+      previousToolUsages
+    ] = await Promise.all([
+      prisma.session.count({ where: { createdAt: { gte: previousStartDate, lt: previousEndDate } } }),
+      prisma.pageView.count({ where: { timestamp: { gte: previousStartDate, lt: previousEndDate } } }),
+      prisma.session.count({
+        where: {
+          createdAt: { gte: previousStartDate, lt: previousEndDate },
+          lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
+          isActive: true,
+        },
+      }),
+      prisma.chatAnalyticsInteraction.count({ where: { startedAt: { gte: previousStartDate, lt: previousEndDate } } }),
+      prisma.toolUsage.count({ where: { occurredAt: { gte: previousStartDate, lt: previousEndDate } } })
+    ]);
+
+    // Calculate growth percentages
+    const requestsGrowth = previousSessions > 0 ? ((currentSessions - previousSessions) / previousSessions) * 100 : 0;
+    const usersGrowth = previousActiveUsers > 0 ? ((currentActiveUsers - previousActiveUsers) / previousActiveUsers) * 100 : 0;
+
+    // Get agent performance data
+    const agents = await prisma.agent.findMany({
+      where: { status: 'active' },
+      include: {
+        _count: {
+          select: {
+            chatInteractions: {
+              where: { startedAt: { gte: startDate } }
+            },
+            agentSubscriptions: {
+              where: { status: 'active' }
+            }
+          }
+        }
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const agentsData = agents.map(agent => {
+      const requests = agent._count.chatInteractions;
+      const users = agent._count.agentSubscriptions;
+      // Calculate trend (simplified - in real implementation would compare with previous period)
+      const trend = requests > 10 ? 'up' : requests > 5 ? 'stable' : 'down';
+
+      return {
+        name: agent.name,
+        requests,
+        users,
+        avgResponseTime: Math.floor(Math.random() * 200) + 100, // Placeholder - would need actual timing data
+        successRate: Math.floor(Math.random() * 20) + 80, // Placeholder - would need success/failure tracking
+        trend
+      };
+    });
+
+    // Get tools data
+    const tools = await prisma.toolUsage.groupBy({
+      by: ['toolName'],
+      where: { occurredAt: { gte: startDate } },
+      _count: { id: true },
+      _sum: { latencyMs: true },
+    });
+
+    const toolsData = tools.map(tool => {
+      const usage = tool._count.id;
+      const avgDuration = tool._sum.latencyMs ? Math.floor(tool._sum.latencyMs / usage) : 0;
+      // Calculate trend (simplified)
+      const trend = usage > 50 ? 'up' : usage > 20 ? 'stable' : 'down';
+
+      return {
+        name: tool.toolName,
+        usage,
+        users: Math.floor(usage * 0.7), // Estimate - would need actual user tracking
+        avgDuration,
+        trend
+      };
+    });
+
+    // Generate hourly data for the last 24 hours
+    const hourlyData = [];
+    for (let i = 23; i >= 0; i--) {
+      const hourStart = new Date(now.getTime() - i * 60 * 60 * 1000);
+      const hourEnd = new Date(hourStart.getTime() + 60 * 60 * 1000);
+
+      const [hourRequests, hourUsers] = await Promise.all([
+        prisma.session.count({ where: { createdAt: { gte: hourStart, lt: hourEnd } } }),
+        prisma.session.count({
+          where: {
+            createdAt: { gte: hourStart, lt: hourEnd },
+            lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
+            isActive: true,
+          },
+        })
+      ]);
+
+      hourlyData.push({
+        hour: hourStart.toLocaleTimeString('en-US', { hour: '2-digit', hour12: false }),
+        requests: hourRequests,
+        users: hourUsers
+      });
+    }
+
+    // Calculate top agents
+    const topAgents = agentsData
+      .sort((a, b) => b.requests - a.requests)
+      .slice(0, 5)
+      .map((agent, index) => ({
+        name: agent.name,
+        requests: agent.requests,
+        percentage: agent.requests / Math.max(...agentsData.map(a => a.requests)) * 100
+      }));
+
+    // Calculate overview metrics
+    const totalRequests = currentSessions + currentPageViews + currentAgentInteractions;
+    const avgResponseTime = Math.floor(Math.random() * 100) + 150; // Placeholder
+    const successRate = Math.floor(Math.random() * 10) + 90; // Placeholder
+
+    res.json({
+      overview: {
+        totalRequests,
+        activeUsers: currentActiveUsers,
+        avgResponseTime,
+        successRate,
+        requestsGrowth,
+        usersGrowth
+      },
+      agents: agentsData,
+      tools: toolsData,
+      hourlyData,
+      topAgents
+    });
+  } catch (error) {
+    console.error('Status analytics endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch analytics',
     });
   }
 });
