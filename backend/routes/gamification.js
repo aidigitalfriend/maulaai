@@ -111,33 +111,34 @@ router.post('/events/:userId', async (req, res) => {
     // Update specific metrics based on event type
     switch (type) {
       case 'message-sent':
-        if (data.agentId) {
-          await db.Gamification.updateAgentUsage(userId, data.agentId);
-        }
+        // Temporarily disabled - schema needs agent usage fields
+        // if (data.agentId) {
+        //   await db.Gamification.updateAgentUsage(userId, data.agentId);
+        // }
         break;
 
       case 'perfect-response':
-        await db.Gamification.incrementPerfectResponses(userId);
+        // await db.Gamification.incrementPerfectResponses(userId);
         break;
 
       case 'high-score':
-        await db.Gamification.incrementHighScores(userId);
+        // await db.Gamification.incrementHighScores(userId);
         break;
 
       case 'session-end':
-        if (data.messageCount) {
-          await db.Gamification.updateConversationStats(userId, data.messageCount);
-        }
+        // if (data.messageCount) {
+        //   await db.Gamification.updateConversationStats(userId, data.messageCount);
+        // }
         break;
 
       case 'streak-update':
-        if (data.streakCount) {
-          await db.Gamification.updateStreak(userId, data.streakCount);
-        }
+        // if (data.streakCount) {
+        //   await db.Gamification.updateStreak(userId, data.streakCount);
+        // }
         break;
 
       case 'challenge-completed':
-        await db.Gamification.incrementCompletedChallenges(userId);
+        // await db.Gamification.incrementCompletedChallenges(userId);
         break;
     }
 
