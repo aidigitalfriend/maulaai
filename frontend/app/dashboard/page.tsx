@@ -36,6 +36,7 @@ function DashboardContent() {
     slug: string;
     plan: string;
   } | null>(null);
+  const [showAllActivities, setShowAllActivities] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasLoadedRef = useRef(false);
 
@@ -847,41 +848,68 @@ function DashboardContent() {
             </div>
             <div className="space-y-3">
               {analyticsData.recentActivity && analyticsData.recentActivity.length > 0 ? (
-                analyticsData.recentActivity.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-neural-50 rounded-lg hover:bg-neural-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          activity.status === 'success' || activity.status === 'completed'
-                            ? 'bg-green-500'
-                            : activity.status === 'active'
-                            ? 'bg-blue-500 animate-pulse'
-                            : activity.status === 'warning'
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                        }`}
-                      ></div>
-                      <div>
-                        <p className="text-sm font-medium text-neural-800">
-                          {activity.action}
-                        </p>
-                        <p className="text-xs text-neural-600">
-                          {activity.agent}
-                        </p>
+                <>
+                  {(showAllActivities 
+                    ? analyticsData.recentActivity 
+                    : analyticsData.recentActivity.slice(0, 3)
+                  ).map((activity, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-neural-50 rounded-lg hover:bg-neural-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            activity.status === 'success' || activity.status === 'completed'
+                              ? 'bg-green-500'
+                              : activity.status === 'active'
+                              ? 'bg-blue-500 animate-pulse'
+                              : activity.status === 'warning'
+                              ? 'bg-yellow-500'
+                              : 'bg-red-500'
+                          }`}
+                        ></div>
+                        <div>
+                          <p className="text-sm font-medium text-neural-900">
+                            {activity.action}
+                          </p>
+                          <p className="text-xs text-neural-700">
+                            {activity.agent}
+                          </p>
+                        </div>
                       </div>
+                      <span className="text-xs text-neural-600 font-medium">
+                        {new Date(activity.timestamp).toLocaleTimeString()}
+                      </span>
                     </div>
-                    <span className="text-xs text-neural-500">
-                      {new Date(activity.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                ))
+                  ))}
+                  {analyticsData.recentActivity.length > 3 && (
+                    <button
+                      onClick={() => setShowAllActivities(!showAllActivities)}
+                      className="w-full mt-4 py-3 px-4 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      {showAllActivities ? (
+                        <>
+                          Show Less
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          View All Activities ({analyticsData.recentActivity.length})
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </>
               ) : (
-                <div className="text-center py-8 text-neural-500">
+                <div className="text-center py-8 text-neural-600">
                   <p className="text-sm">No recent activity in the last 30 minutes.</p>
-                  <p className="text-xs mt-2">Activity will appear here when you use the platform.</p>
+                  <p className="text-xs mt-2 text-neural-500">Activity will appear here when you use the platform.</p>
                 </div>
               )}
             </div>
