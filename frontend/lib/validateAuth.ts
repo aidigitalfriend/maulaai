@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Verify request using HttpOnly session_id cookie.
+ * Get session ID from cookies.
+ * Checks both 'sessionId' (backend auth) and 'session_id' (legacy) for compatibility.
+ */
+function getSessionIdFromRequest(request: NextRequest): string | undefined {
+  // Check camelCase first (backend sets this)
+  const sessionIdCamel = request.cookies.get('sessionId')?.value;
+  if (sessionIdCamel) return sessionIdCamel;
+  
+  // Fall back to snake_case (legacy)
+  const sessionIdSnake = request.cookies.get('session_id')?.value;
+  return sessionIdSnake;
+}
+
+/**
+ * Verify request using HttpOnly session cookie.
  * This checks if the session cookie exists - actual validation happens on backend.
  */
 export function verifyRequest(request: NextRequest) {
-  // Check for session_id cookie (HttpOnly session-based auth)
-  const sessionId = request.cookies.get('session_id')?.value;
+  // Check for session cookie (HttpOnly session-based auth)
+  const sessionId = getSessionIdFromRequest(request);
 
   if (!sessionId) {
     return { ok: false, error: 'No session found' };
@@ -21,7 +35,7 @@ export function verifyRequest(request: NextRequest) {
  * Use this when you need to get user data from the session.
  */
 export async function verifyRequestAsync(request: NextRequest) {
-  const sessionId = request.cookies.get('session_id')?.value;
+  const sessionId = getSessionIdFromRequest(request);
 
   if (!sessionId) {
     return { ok: false, error: 'No session found' };
