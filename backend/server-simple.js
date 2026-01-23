@@ -394,7 +394,7 @@ app.get('/api/status', async (req, res) => {
     ]);
 
     res.json({
-      status: 'success',
+      success: true,
       data: {
         system: {
           cpuPercent: 0, // Not available in current implementation
@@ -444,7 +444,7 @@ app.get('/api/status', async (req, res) => {
   } catch (error) {
     console.error('Status endpoint error:', error);
     res.status(500).json({
-      status: 'error',
+      success: false,
       error: 'Failed to fetch status',
     });
   }
@@ -892,7 +892,6 @@ app.use('/api', apiRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/subscriptions', agentSubscriptionsRouter);
 
-// ============================================
 // STATUS ENDPOINT (defined after routers to ensure it takes precedence)
 // ============================================
 
@@ -952,7 +951,7 @@ app.get('/api/status', async (req, res) => {
     ]);
 
     res.json({
-      status: 'success',
+      success: true,
       data: {
         system: {
           cpuPercent: 0, // Not available in current implementation
@@ -972,10 +971,10 @@ app.get('/api/status', async (req, res) => {
           version: process.env.APP_VERSION || '2.0.0',
         },
         api: {
-          status: metrics.apiStatus,
+          status: apiStatus,
           responseTime: metrics.avgResponseMs,
           uptime: 100, // Placeholder
-          requestsToday: metrics.requestsToday,
+          requestsToday: todaySessions,
           requestsPerMinute: metrics.rps,
           errorRate: metrics.errorRate,
           errorsToday: 0, // Not tracked
@@ -1002,7 +1001,7 @@ app.get('/api/status', async (req, res) => {
   } catch (error) {
     console.error('Status endpoint error:', error);
     res.status(500).json({
-      status: 'error',
+      success: false,
       error: 'Failed to fetch status',
     });
   }
