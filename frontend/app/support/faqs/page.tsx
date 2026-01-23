@@ -299,14 +299,14 @@ export default function FAQsPage() {
       </section>
 
       {/* Quick Links */}
-      <section className="py-8 border-b border-gray-200 bg-white">
+      <section className="py-8 border-b border-neural-200 bg-white">
         <div className="container-custom max-w-4xl">
           <div className="flex flex-wrap justify-center gap-3">
             {faqs.map((category, idx) => (
               <a
                 key={idx}
                 href={`#${category.category.toLowerCase().replace(/\s+/g, '-')}`}
-                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-blue-100 hover:text-blue-600 rounded-full transition-colors"
+                className="px-4 py-2 text-sm font-medium text-neural-600 bg-gray-100 hover:bg-blue-100 hover:text-blue-600 rounded-full transition-colors"
               >
                 {category.category}
               </a>
@@ -321,7 +321,7 @@ export default function FAQsPage() {
           <div className="space-y-12">
             {faqs.map((category, catIdx) => (
               <div key={catIdx} id={category.category.toLowerCase().replace(/\s+/g, '-')}>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-blue-200 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-neural-900 mb-6 pb-3 border-b-2 border-blue-200 flex items-center gap-3">
                   <span className="w-2 h-8 bg-blue-600 rounded-full"></span>
                   {category.category}
                 </h2>
@@ -329,9 +329,9 @@ export default function FAQsPage() {
                   {category.questions.map((item, qIdx) => (
                     <details
                       key={qIdx}
-                      className="group bg-white rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                      className="group bg-white rounded-xl border border-neural-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
                     >
-                      <summary className="font-semibold text-gray-900 p-5 flex items-center justify-between cursor-pointer group-open:text-blue-600 group-open:border-b group-open:border-gray-100">
+                      <summary className="font-semibold text-neural-900 p-5 flex items-center justify-between cursor-pointer group-open:text-blue-600 group-open:border-b group-open:border-neural-100">
                         <span className="pr-4">{item.q}</span>
                         <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-blue-100 group-open:bg-blue-600 group-open:text-white transition-all">
                           <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,7 +339,7 @@ export default function FAQsPage() {
                           </svg>
                         </span>
                       </summary>
-                      <p className="text-gray-600 p-5 pt-4 leading-relaxed">
+                      <p className="text-neural-600 p-5 pt-4 leading-relaxed">
                         {item.a}
                       </p>
                     </details>

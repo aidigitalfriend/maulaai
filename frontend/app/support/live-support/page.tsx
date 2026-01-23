@@ -45,7 +45,7 @@ const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
 const SupportButton = ({ icon: Icon, label, href, onClick }: any) => (
   <button
     onClick={onClick}
-    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 text-gray-700 group"
+    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-white border border-neural-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 text-neural-700 group"
   >
     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
       <Icon size={16} className="text-white" />
@@ -473,12 +473,12 @@ export default function LiveSupportPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-xl">
+          <div className="bg-white rounded-2xl p-8 border border-neural-200 shadow-xl">
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
               <Phone size={32} className="text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Live Support</h1>
-            <p className="text-gray-600 mb-8">
+            <h1 className="text-3xl font-bold text-neural-900 mb-4">Live Support</h1>
+            <p className="text-neural-600 mb-8">
               Please log in to access our real-time AI support agent with
               personalized assistance based on your account.
             </p>
@@ -491,7 +491,7 @@ export default function LiveSupportPage() {
                 <AlertCircle size={18} />
                 Sign In Now
               </Link>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neural-500">
                 Don't have an account?{' '}
                 <Link
                   href="/auth/signup"
@@ -513,14 +513,14 @@ export default function LiveSupportPage() {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white/80 backdrop-blur-xl border-b border-neural-200 px-6 py-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
                 <MessageCircle size={20} className="text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-lg text-gray-900">Live Support</h1>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <h1 className="font-bold text-lg text-neural-900">Live Support</h1>
+                <p className="text-sm text-neural-500 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   AI-Powered Support Agent
                 </p>
@@ -528,9 +528,9 @@ export default function LiveSupportPage() {
             </div>
 
             {userProfile && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl">
-                <span className="text-sm text-gray-700">
-                  <span className="text-gray-500">Account:</span>{' '}
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-neural-200 rounded-xl">
+                <span className="text-sm text-neural-700">
+                  <span className="text-neural-500">Account:</span>{' '}
                   <span className="font-medium">{userProfile.name}</span>
                 </span>
               </div>
@@ -555,13 +555,13 @@ export default function LiveSupportPage() {
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-sm'
                       : message.role === 'system'
                       ? 'bg-amber-50 border border-amber-200 text-amber-800'
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm'
+                      : 'bg-white border border-neural-200 text-neural-800 rounded-bl-sm'
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap break-words">
                     {message.content}
                   </p>
-                  <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
+                  <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-neural-400'}`}>
                     {message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
@@ -570,7 +570,7 @@ export default function LiveSupportPage() {
 
             {isStreamingResponse && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                <div className="bg-white border border-neural-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                   <div className="flex gap-2">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
@@ -584,7 +584,7 @@ export default function LiveSupportPage() {
           </div>
 
           {/* Input Area */}
-          <div className="bg-white/80 backdrop-blur-xl border-t border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl border-t border-neural-200 p-6">
             {ticketGenerated && (
               <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ export default function LiveSupportPage() {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Describe your issue or ask a question..."
                 disabled={isLoading}
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
+                className="flex-1 bg-gray-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
               />
               <button
                 type="submit"
@@ -631,14 +631,14 @@ export default function LiveSupportPage() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <button
                 onClick={downloadChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-neural-200 rounded-lg text-sm text-neural-700 transition-colors"
               >
                 <DownloadCloud size={16} />
                 Download
               </button>
               <button
                 onClick={copyChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-neural-200 rounded-lg text-sm text-neural-700 transition-colors"
               >
                 <Copy size={16} />
                 Copy
@@ -648,51 +648,51 @@ export default function LiveSupportPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden lg:block">
+        <div className="w-80 bg-white border-l border-neural-200 p-6 overflow-y-auto hidden lg:block">
           {/* User Profile Section */}
           {userProfile && (
-            <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
+            <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-neural-200">
+              <h3 className="font-bold mb-3 text-sm uppercase text-neural-500">
                 Your Profile
               </h3>
               <div className="space-y-2 text-sm">
                 <div>
-                  <span className="text-gray-500">Name:</span>
-                  <p className="text-gray-900 font-medium">{userProfile.name}</p>
+                  <span className="text-neural-500">Name:</span>
+                  <p className="text-neural-900 font-medium">{userProfile.name}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Email:</span>
-                  <p className="text-gray-900 font-medium">{userProfile.email}</p>
+                  <span className="text-neural-500">Email:</span>
+                  <p className="text-neural-900 font-medium">{userProfile.email}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Status:</span>
-                  <p className="text-gray-900 font-medium flex items-center gap-2">
+                  <span className="text-neural-500">Status:</span>
+                  <p className="text-neural-900 font-medium flex items-center gap-2">
                     {userProfile.subscription === 'Active' ? (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-neural-600 text-xs font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                         Inactive
                       </span>
                     )}
                     {userProfile.activeAgents > 0 && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-neural-500">
                         ({userProfile.activeAgents} agent{userProfile.activeAgents > 1 ? 's' : ''})
                       </span>
                     )}
                   </p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Member Since:</span>
-                  <p className="text-gray-900 font-medium">
+                  <span className="text-neural-500">Member Since:</span>
+                  <p className="text-neural-900 font-medium">
                     {new Date(userProfile.joinedDate).toLocaleDateString()}
                   </p>
                 </div>
                 {userProfile.subscription === 'Inactive' && (
-                  <div className="pt-2 mt-2 border-t border-gray-200">
+                  <div className="pt-2 mt-2 border-t border-neural-200">
                     <Link
                       href="/pricing"
                       className="block w-full text-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
@@ -717,7 +717,7 @@ export default function LiveSupportPage() {
                 </h3>
               </div>
               <p className="text-sm text-green-700 mb-2">Ticket ID:</p>
-              <p className="font-mono text-xs bg-white border border-green-200 p-2 rounded-lg mb-3 break-all text-gray-800">
+              <p className="font-mono text-xs bg-white border border-green-200 p-2 rounded-lg mb-3 break-all text-neural-800">
                 {supportTicket.id}
               </p>
               <p className="text-xs text-green-600 mb-3">
@@ -734,7 +734,7 @@ export default function LiveSupportPage() {
 
           {/* Quick Actions */}
           <div className="mb-8">
-            <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
+            <h3 className="font-bold mb-3 text-sm uppercase text-neural-500">
               Quick Actions
             </h3>
             <div className="space-y-2">
@@ -767,7 +767,7 @@ export default function LiveSupportPage() {
 
           {/* Social Media */}
           <div>
-            <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
+            <h3 className="font-bold mb-3 text-sm uppercase text-neural-500">
               Follow Us
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -789,9 +789,9 @@ export default function LiveSupportPage() {
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Clock size={16} className="text-blue-600" />
               </div>
-              <h3 className="font-bold text-sm text-gray-900">Support Hours</h3>
+              <h3 className="font-bold text-sm text-neural-900">Support Hours</h3>
             </div>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-neural-600">
               24/7 AI Support • Human team Monday-Friday, 9AM-6PM EST
             </p>
           </div>
