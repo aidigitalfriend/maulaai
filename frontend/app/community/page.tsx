@@ -436,7 +436,7 @@ export default function CommunityPage() {
                           <div className="text-xs text-neural-500">
                             {member.title}
                           </div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-neural-400">
                             Joined{' '}
                             {new Date(member.joinedDate).toLocaleDateString()}
                           </div>
@@ -454,7 +454,7 @@ export default function CommunityPage() {
               <div className="mb-6">
                 <div className="relative">
                   <Search
-                    className="absolute left-4 top-3 text-gray-400"
+                    className="absolute left-4 top-3 text-neural-400"
                     size={20}
                   />
                   <input
@@ -578,7 +578,7 @@ export default function CommunityPage() {
                       <option value="help">❓ Help & Support</option>
                     </select>
                     <ChevronDown
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neural-400 pointer-events-none"
                       size={20}
                     />
                   </div>
