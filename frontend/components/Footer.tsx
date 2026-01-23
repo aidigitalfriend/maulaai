@@ -73,6 +73,7 @@ export default function Footer() {
     { name: 'Dev Utils', href: '/tools/developer-utils' },
     { name: 'Status', href: '/status' },
     { name: 'Rewards', href: '/rewards' },
+    { name: 'Careers', href: '/resources/careers' },
   ]
 
   const bottomLinks = [
