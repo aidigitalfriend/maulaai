@@ -82,14 +82,6 @@ const EINSTEIN_OPTIONS = createAgentOptions('Albert Einstein', [
       { value: 'grok-2', label: 'Deep Analysis' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-      { value: 'gemini-1.5-pro', label: 'Smart Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -117,13 +109,6 @@ const CHESS_PLAYER_OPTIONS = createAgentOptions('Chess Player', [
     label: 'Research Helper',
     models: [
       { value: 'grok-2', label: 'Deep Analysis' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -155,13 +140,6 @@ const COMEDY_KING_OPTIONS = createAgentOptions('Comedy King', [
       { value: 'grok-2', label: 'Clever Humor' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -184,13 +162,6 @@ const DRAMA_QUEEN_OPTIONS = createAgentOptions('Drama Queen', [
       { value: 'mistral-small-latest', label: 'Quick Scenes' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -203,13 +174,6 @@ const LAZY_PAWN_OPTIONS = createAgentOptions('Lazy Pawn', [
     models: [
       { value: 'mistral-small-latest', label: 'Low Effort' },
       { value: 'mistral-medium-latest', label: 'Slightly More Effort' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -241,13 +205,6 @@ const KNIGHT_LOGIC_OPTIONS = createAgentOptions('Knight Logic', [
       { value: 'grok-2', label: 'Deep Analysis' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -267,13 +224,6 @@ const ROOK_JOKEY_OPTIONS = createAgentOptions('Rook Jokey', [
     label: 'Direct Talker',
     models: [
       { value: 'grok-2', label: 'Straight Talk' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -298,13 +248,6 @@ const BISHOP_BURGER_OPTIONS = createAgentOptions('Bishop Burger', [
       { value: 'mistral-small-latest', label: 'Quick Recipes' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -327,13 +270,6 @@ const EMMA_EMOTIONAL_OPTIONS = createAgentOptions('Emma Emotional', [
       { value: 'mistral-small-latest', label: 'Quick Comfort' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -354,13 +290,6 @@ const JULIE_GIRLFRIEND_OPTIONS = createAgentOptions('Julie Girlfriend', [
     models: [
       { value: 'mistral-medium-latest', label: 'Romantic Stories' },
       { value: 'mistral-small-latest', label: 'Quick Chat' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -392,13 +321,6 @@ const MRS_BOSS_OPTIONS = createAgentOptions('Mrs Boss', [
       { value: 'grok-2', label: 'Market Analysis' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -419,13 +341,6 @@ const PROFESSOR_ASTROLOGY_OPTIONS = createAgentOptions('Professor Astrology', [
     models: [
       { value: 'mistral-medium-latest', label: 'Horoscope Writing' },
       { value: 'mistral-small-latest', label: 'Quick Readings' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -457,13 +372,6 @@ const NID_GAMING_OPTIONS = createAgentOptions('Nid Gaming', [
       { value: 'grok-2', label: 'Game Analysis' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -484,13 +392,6 @@ const CHEF_BIEW_OPTIONS = createAgentOptions('Chef Biew', [
     models: [
       { value: 'mistral-medium-latest', label: 'Detailed Recipes' },
       { value: 'mistral-small-latest', label: 'Quick Recipes' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -520,13 +421,6 @@ const BEN_SEGA_OPTIONS = createAgentOptions('Ben Sega', [
     label: 'Gaming Expert',
     models: [
       { value: 'grok-2', label: 'Game Analysis' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -566,13 +460,6 @@ const TECH_WIZARD_OPTIONS = createAgentOptions('Tech Wizard', [
       { value: 'grok-2', label: 'Tech Research' },
     ],
   },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-    ],
-  },
 ]);
 
 // ============================================================================
@@ -593,13 +480,6 @@ const FITNESS_GURU_OPTIONS = createAgentOptions('Fitness Guru', [
     models: [
       { value: 'mistral-medium-latest', label: 'Workout Plans' },
       { value: 'mistral-small-latest', label: 'Quick Routines' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -629,13 +509,6 @@ const TRAVEL_BUDDY_OPTIONS = createAgentOptions('Travel Buddy', [
     label: 'Research Helper',
     models: [
       { value: 'grok-2', label: 'Destination Research' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
     ],
   },
 ]);
@@ -836,14 +709,6 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     label: 'Research Helper',
     models: [
       { value: 'grok-2', label: 'Deep Analysis' },
-    ],
-  },
-  {
-    provider: 'gemini',
-    label: 'Fallback AI',
-    models: [
-      { value: 'gemini-1.5-flash', label: 'Fast Fallback' },
-      { value: 'gemini-1.5-pro', label: 'Smart Fallback' },
     ],
   },
 ];
