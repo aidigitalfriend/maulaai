@@ -43,24 +43,28 @@ export async function POST(request: NextRequest) {
     // ✅ CRITICAL: Check if user already has active subscription for this agent
     // Proxy this check to backend - only forward safe headers
     const checkUrl = `${BACKEND_BASE}/api/agent/subscriptions/check/${userId}/${agentId}`;
-    const checkRes = await fetch(checkUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        cookie: request.headers.get('cookie') || '',
-      },
-      cache: 'no-store',
-    });
+    let hasActive = false;
+    let checkData: { hasAccess?: boolean; hasActiveSubscription?: boolean; subscription?: { plan: string; expiryDate: string; daysRemaining: number } } = {};
+    
+    try {
+      const checkRes = await fetch(checkUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          cookie: request.headers.get('cookie') || '',
+        },
+        cache: 'no-store',
+      });
 
-    if (!checkRes.ok) {
-      const checkData = await checkRes.json();
-      return NextResponse.json(checkData, { status: checkRes.status });
+      if (checkRes.ok) {
+        checkData = await checkRes.json();
+        // Check both possible field names for backwards compatibility
+        hasActive = checkData.hasAccess || checkData.hasActiveSubscription || false;
+      }
+    } catch (checkError) {
+      console.warn('Subscription check failed, proceeding:', checkError);
+      // Continue with checkout if check fails
     }
-
-    const checkData = await checkRes.json();
-
-    // Check both possible field names for backwards compatibility
-    const hasActive = checkData.hasAccess || checkData.hasActiveSubscription;
 
     if (hasActive && checkData.subscription) {
       return NextResponse.json(
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build success and cancel URLs
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://maula.ai';
     const successUrl = `${baseUrl}/subscription-success?session_id={CHECKOUT_SESSION_ID}&agent=${encodeURIComponent(
       agentName
     )}&slug=${agentId}`;
