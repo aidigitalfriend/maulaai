@@ -12,17 +12,18 @@ export interface ProviderModelOption {
 // ============================================================================
 // AGENT-SPECIFIC AI PROVIDER OPTIONS
 // ============================================================================
-// Structure for ALL agents:
+// Standard Structure for ALL agents (7 options):
 // 1. [Agent Name] - Cerebras (Primary Default)
-// 2. Maula AI - Groq (Secondary Default)
-// 3. Specialized options based on agent personality
+// 2. Maula AI - Groq
+// 3. Image Generator - OpenAI
+// 4. Code Writing - Anthropic
+// 5. Planner - Mistral
+// 6. Research Helper - XAI
+// 7. Creative Mind - Gemini
 // ============================================================================
 
-// Helper to create standard agent options
-function createAgentOptions(
-  agentName: string,
-  specialOptions: ProviderModelOption[] = []
-): ProviderModelOption[] {
+// Helper to create standard agent options (all 7)
+function createAgentOptions(agentName: string): ProviderModelOption[] {
   return [
     // 1. Agent Primary - Cerebras
     {
@@ -42,476 +43,143 @@ function createAgentOptions(
         { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
       ],
     },
-    // 3+ Agent-specific specialized options
-    ...specialOptions,
+    // 3. Image Generator - OpenAI
+    {
+      provider: 'openai',
+      label: 'Image Generator',
+      models: [
+        { value: 'gpt-4o', label: 'Best Quality' },
+        { value: 'gpt-4o-mini', label: 'Fast Mode' },
+      ],
+    },
+    // 4. Code Writing - Anthropic
+    {
+      provider: 'anthropic',
+      label: 'Code Writing',
+      models: [
+        { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
+        { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
+      ],
+    },
+    // 5. Planner - Mistral
+    {
+      provider: 'mistral',
+      label: 'Planner',
+      models: [
+        { value: 'mistral-medium-latest', label: 'Detailed Planning' },
+        { value: 'mistral-small-latest', label: 'Quick Planning' },
+      ],
+    },
+    // 6. Research Helper - XAI
+    {
+      provider: 'xai',
+      label: 'Research Helper',
+      models: [
+        { value: 'grok-2', label: 'Deep Analysis' },
+        { value: 'grok-3', label: 'Advanced Research' },
+      ],
+    },
+    // 7. Creative Mind - Gemini
+    {
+      provider: 'gemini',
+      label: 'Creative Mind',
+      models: [
+        { value: 'gemini-1.5-flash', label: 'Fast Creative' },
+        { value: 'gemini-1.5-pro', label: 'Deep Creative' },
+      ],
+    },
   ];
 }
 
 // ============================================================================
 // 1. EINSTEIN - Theoretical Physicist (Education)
 // ============================================================================
-const EINSTEIN_OPTIONS = createAgentOptions('Albert Einstein', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Best Quality' },
-      { value: 'gpt-4o-mini', label: 'Fast Mode' },
-    ],
-  },
-  {
-    provider: 'anthropic',
-    label: 'Code Builder',
-    models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Detailed Planning' },
-      { value: 'mistral-small-latest', label: 'Quick Planning' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Research Helper',
-    models: [
-      { value: 'grok-2', label: 'Deep Analysis' },
-    ],
-  },
-]);
+const EINSTEIN_OPTIONS = createAgentOptions('Albert Einstein');
 
 // ============================================================================
 // 2. CHESS PLAYER - Strategic Thinker (Business)
 // ============================================================================
-const CHESS_PLAYER_OPTIONS = createAgentOptions('Chess Player', [
-  {
-    provider: 'anthropic',
-    label: 'Strategic Thinker',
-    models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Deep Strategy' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Tactics' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Game Analysis' },
-      { value: 'mistral-small-latest', label: 'Quick Moves' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Research Helper',
-    models: [
-      { value: 'grok-2', label: 'Deep Analysis' },
-    ],
-  },
-]);
+const CHESS_PLAYER_OPTIONS = createAgentOptions('Chess Player');
 
 // ============================================================================
 // 3. COMEDY KING - Humor & Entertainment
 // ============================================================================
-const COMEDY_KING_OPTIONS = createAgentOptions('Comedy King', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Meme Creator' },
-      { value: 'gpt-4o-mini', label: 'Quick Jokes' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Story Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Comedy Scripts' },
-      { value: 'mistral-small-latest', label: 'Quick Jokes' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Wit Master',
-    models: [
-      { value: 'grok-2', label: 'Clever Humor' },
-    ],
-  },
-]);
+const COMEDY_KING_OPTIONS = createAgentOptions('Comedy King');
 
 // ============================================================================
 // 4. DRAMA QUEEN - Emotional Expression (Entertainment)
 // ============================================================================
-const DRAMA_QUEEN_OPTIONS = createAgentOptions('Drama Queen', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Dramatic Scenes' },
-      { value: 'gpt-4o-mini', label: 'Quick Drama' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Story Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Drama Scripts' },
-      { value: 'mistral-small-latest', label: 'Quick Scenes' },
-    ],
-  },
-]);
+const DRAMA_QUEEN_OPTIONS = createAgentOptions('Drama Queen');
 
 // ============================================================================
-// 5. LAZY PAWN - Casual & Relaxed (Entertainment)
+// 5. LAZY PAWN - Casual & Relaxed
 // ============================================================================
-const LAZY_PAWN_OPTIONS = createAgentOptions('Lazy Pawn', [
-  {
-    provider: 'mistral',
-    label: 'Chill Helper',
-    models: [
-      { value: 'mistral-small-latest', label: 'Low Effort' },
-      { value: 'mistral-medium-latest', label: 'Slightly More Effort' },
-    ],
-  },
-]);
+const LAZY_PAWN_OPTIONS = createAgentOptions('Lazy Pawn');
 
 // ============================================================================
-// 6. KNIGHT LOGIC - Problem Solver (Business)
+// 6. KNIGHT LOGIC - Logical Thinking (Business)
 // ============================================================================
-const KNIGHT_LOGIC_OPTIONS = createAgentOptions('Knight Logic', [
-  {
-    provider: 'anthropic',
-    label: 'Code Builder',
-    models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Advanced Logic' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Logic' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Strategic Planning' },
-      { value: 'mistral-small-latest', label: 'Quick Planning' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Research Helper',
-    models: [
-      { value: 'grok-2', label: 'Deep Analysis' },
-    ],
-  },
-]);
+const KNIGHT_LOGIC_OPTIONS = createAgentOptions('Knight Logic');
 
 // ============================================================================
-// 7. ROOK JOKEY - Direct Communication (Companion)
+// 7. ROOK JOKEY - Humor & Games
 // ============================================================================
-const ROOK_JOKEY_OPTIONS = createAgentOptions('Rook Jokey', [
-  {
-    provider: 'mistral',
-    label: 'Witty Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Clever Responses' },
-      { value: 'mistral-small-latest', label: 'Quick Wit' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Direct Talker',
-    models: [
-      { value: 'grok-2', label: 'Straight Talk' },
-    ],
-  },
-]);
+const ROOK_JOKEY_OPTIONS = createAgentOptions('Rook Jokey');
 
 // ============================================================================
-// 8. BISHOP BURGER - Culinary Arts (Home & Lifestyle)
+// 8. BISHOP BURGER - Food & Cooking
 // ============================================================================
-const BISHOP_BURGER_OPTIONS = createAgentOptions('Bishop Burger', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Food Photos' },
-      { value: 'gpt-4o-mini', label: 'Quick Food Pics' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Recipe Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Detailed Recipes' },
-      { value: 'mistral-small-latest', label: 'Quick Recipes' },
-    ],
-  },
-]);
+const BISHOP_BURGER_OPTIONS = createAgentOptions('Bishop Burger');
 
 // ============================================================================
-// 9. EMMA EMOTIONAL - Emotional Intelligence (Health & Wellness)
+// 9. EMMA EMOTIONAL - Emotional Support (Companion)
 // ============================================================================
-const EMMA_EMOTIONAL_OPTIONS = createAgentOptions('Emma Emotional', [
-  {
-    provider: 'openai',
-    label: 'Empathy Expert',
-    models: [
-      { value: 'gpt-4o', label: 'Deep Understanding' },
-      { value: 'gpt-4o-mini', label: 'Quick Support' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Story Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Emotional Stories' },
-      { value: 'mistral-small-latest', label: 'Quick Comfort' },
-    ],
-  },
-]);
+const EMMA_EMOTIONAL_OPTIONS = createAgentOptions('Emma Emotional');
 
 // ============================================================================
-// 10. JULIE GIRLFRIEND - Companion & Chat
+// 10. JULIE GIRLFRIEND - Virtual Companion
 // ============================================================================
-const JULIE_GIRLFRIEND_OPTIONS = createAgentOptions('Julie Girlfriend', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Best Quality' },
-      { value: 'gpt-4o-mini', label: 'Quick Pics' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Story Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Romantic Stories' },
-      { value: 'mistral-small-latest', label: 'Quick Chat' },
-    ],
-  },
-]);
+const JULIE_GIRLFRIEND_OPTIONS = createAgentOptions('Julie Girlfriend');
 
 // ============================================================================
-// 11. MRS BOSS - Leadership & Management (Business)
+// 11. MRS BOSS - Business Leadership
 // ============================================================================
-const MRS_BOSS_OPTIONS = createAgentOptions('Mrs Boss', [
-  {
-    provider: 'anthropic',
-    label: 'Strategic Advisor',
-    models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Executive Strategy' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Decisions' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Business Planning' },
-      { value: 'mistral-small-latest', label: 'Quick Tasks' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Research Helper',
-    models: [
-      { value: 'grok-2', label: 'Market Analysis' },
-    ],
-  },
-]);
+const MRS_BOSS_OPTIONS = createAgentOptions('Mrs Boss');
 
 // ============================================================================
-// 12. PROFESSOR ASTROLOGY - Mysticism (Entertainment)
+// 12. PROFESSOR ASTROLOGY - Mystical & Astrology
 // ============================================================================
-const PROFESSOR_ASTROLOGY_OPTIONS = createAgentOptions('Professor Astrology', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Cosmic Art' },
-      { value: 'gpt-4o-mini', label: 'Quick Stars' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Story Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Horoscope Writing' },
-      { value: 'mistral-small-latest', label: 'Quick Readings' },
-    ],
-  },
-]);
+const PROFESSOR_ASTROLOGY_OPTIONS = createAgentOptions('Professor Astrology');
 
 // ============================================================================
-// 13. NID GAMING - Gaming Expert (Entertainment)
+// 13. NID GAMING - Gaming & Esports
 // ============================================================================
-const NID_GAMING_OPTIONS = createAgentOptions('Nid Gaming', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Game Art' },
-      { value: 'gpt-4o-mini', label: 'Quick Graphics' },
-    ],
-  },
-  {
-    provider: 'anthropic',
-    label: 'Code Builder',
-    models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Game Code' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Scripts' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Strategy Helper',
-    models: [
-      { value: 'grok-2', label: 'Game Analysis' },
-    ],
-  },
-]);
+const NID_GAMING_OPTIONS = createAgentOptions('Nid Gaming');
 
 // ============================================================================
-// 14. CHEF BIEW - Cooking Expert (Home & Lifestyle)
+// 14. CHEF BIEW - Cooking & Recipes
 // ============================================================================
-const CHEF_BIEW_OPTIONS = createAgentOptions('Chef Biew', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Food Photography' },
-      { value: 'gpt-4o-mini', label: 'Quick Food Pics' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Recipe Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Detailed Recipes' },
-      { value: 'mistral-small-latest', label: 'Quick Recipes' },
-    ],
-  },
-]);
+const CHEF_BIEW_OPTIONS = createAgentOptions('Chef Biew');
 
 // ============================================================================
-// 15. BEN SEGA - Retro Gaming (Entertainment)
+// 15. BEN SEGA - Retro Gaming
 // ============================================================================
-const BEN_SEGA_OPTIONS = createAgentOptions('Ben Sega', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Retro Art' },
-      { value: 'gpt-4o-mini', label: 'Quick Pixels' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Story Writer',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Retro Stories' },
-      { value: 'mistral-small-latest', label: 'Quick Nostalgia' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Gaming Expert',
-    models: [
-      { value: 'grok-2', label: 'Game Analysis' },
-    ],
-  },
-]);
+const BEN_SEGA_OPTIONS = createAgentOptions('Ben Sega');
 
 // ============================================================================
-// 16. TECH WIZARD - Technology Expert (Technology)
+// 16. TECH WIZARD - Technology & Coding
 // ============================================================================
-const TECH_WIZARD_OPTIONS = createAgentOptions('Tech Wizard', [
-  {
-    provider: 'anthropic',
-    label: 'Code Builder',
-    models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
-    ],
-  },
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Tech Diagrams' },
-      { value: 'gpt-4o-mini', label: 'Quick Visuals' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Tech Planning' },
-      { value: 'mistral-small-latest', label: 'Quick Specs' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Research Helper',
-    models: [
-      { value: 'grok-2', label: 'Tech Research' },
-    ],
-  },
-]);
+const TECH_WIZARD_OPTIONS = createAgentOptions('Tech Wizard');
 
 // ============================================================================
-// 17. FITNESS GURU - Health & Fitness (Health & Wellness)
+// 17. FITNESS GURU - Health & Fitness
 // ============================================================================
-const FITNESS_GURU_OPTIONS = createAgentOptions('Fitness Guru', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Workout Visuals' },
-      { value: 'gpt-4o-mini', label: 'Quick Diagrams' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Workout Plans' },
-      { value: 'mistral-small-latest', label: 'Quick Routines' },
-    ],
-  },
-]);
+const FITNESS_GURU_OPTIONS = createAgentOptions('Fitness Guru');
 
 // ============================================================================
-// 18. TRAVEL BUDDY - Travel Expert (Home & Lifestyle)
+// 18. TRAVEL BUDDY - Travel & Adventure
 // ============================================================================
-const TRAVEL_BUDDY_OPTIONS = createAgentOptions('Travel Buddy', [
-  {
-    provider: 'openai',
-    label: 'Image Generator',
-    models: [
-      { value: 'gpt-4o', label: 'Destination Photos' },
-      { value: 'gpt-4o-mini', label: 'Quick Pics' },
-    ],
-  },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Trip Planning' },
-      { value: 'mistral-small-latest', label: 'Quick Itinerary' },
-    ],
-  },
-  {
-    provider: 'xai',
-    label: 'Research Helper',
-    models: [
-      { value: 'grok-2', label: 'Destination Research' },
-    ],
-  },
-]);
+const TRAVEL_BUDDY_OPTIONS = createAgentOptions('Travel Buddy');
 
 // ============================================================================
 // GET AGENT-SPECIFIC PROVIDER OPTIONS
@@ -690,7 +358,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
   },
   {
     provider: 'anthropic',
-    label: 'Code Builder',
+    label: 'Code Writing',
     models: [
       { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
       { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
@@ -709,6 +377,14 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     label: 'Research Helper',
     models: [
       { value: 'grok-2', label: 'Deep Analysis' },
+    ],
+  },
+  {
+    provider: 'gemini',
+    label: 'Creative Mind',
+    models: [
+      { value: 'gemini-2.0-flash', label: 'Fast Creative' },
+      { value: 'gemini-1.5-pro', label: 'Deep Creative' },
     ],
   },
 ];
