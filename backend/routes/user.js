@@ -1032,4 +1032,178 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
+// GET /api/user/conversations/:userId - Get user's conversation history
+router.get('/conversations/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search || '';
+    const skip = (page - 1) * limit;
+
+    // Import prisma for direct database access
+    const prisma = db.prisma;
+
+    // Build where clause
+    const where = {
+      userId,
+      isArchived: false,
+    };
+
+    // Add search filter if provided
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Get total count and conversations in parallel
+    const [totalCount, conversations] = await Promise.all([
+      prisma.chatSession.count({ where }),
+      prisma.chatSession.findMany({
+        where,
+        include: {
+          agent: {
+            select: {
+              agentId: true,
+              name: true,
+              avatar: true,
+            },
+          },
+          messages: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              content: true,
+              role: true,
+              createdAt: true,
+            },
+          },
+          _count: {
+            select: {
+              messages: true,
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    // Transform conversations for response
+    const formattedConversations = conversations.map((conv) => ({
+      id: conv.id,
+      sessionId: conv.sessionId,
+      name: conv.name || 'Untitled Conversation',
+      description: conv.description,
+      agentId: conv.agentId,
+      agentName: conv.agent?.name || 'AI Assistant',
+      agentAvatar: conv.agent?.avatar,
+      messageCount: conv._count.messages,
+      lastMessage: conv.messages[0]?.content?.substring(0, 100) || '',
+      lastMessageRole: conv.messages[0]?.role,
+      lastMessageAt: conv.messages[0]?.createdAt || conv.updatedAt,
+      tags: conv.tags || [],
+      stats: conv.stats,
+      createdAt: conv.createdAt,
+      updatedAt: conv.updatedAt,
+    }));
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.json({
+      success: true,
+      conversations: formattedConversations,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasMore: page < totalPages,
+      },
+    });
+  } catch (error) {
+    console.error('Get conversations error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get conversations' });
+  }
+});
+
+// GET /api/user/conversations/:userId/export - Export user's conversations
+router.get('/conversations/:userId/export', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const format = req.query.format || 'json';
+
+    const prisma = db.prisma;
+
+    // Get all conversations with messages
+    const conversations = await prisma.chatSession.findMany({
+      where: {
+        userId,
+        isArchived: false,
+      },
+      include: {
+        agent: {
+          select: {
+            agentId: true,
+            name: true,
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            role: true,
+            content: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvRows = ['Conversation,Agent,Role,Message,Timestamp'];
+      conversations.forEach((conv) => {
+        conv.messages.forEach((msg) => {
+          const escapedContent = `"${msg.content.replace(/"/g, '""')}"`;
+          csvRows.push(
+            `"${conv.name}","${conv.agent?.name || 'AI'}","${msg.role}",${escapedContent},"${msg.createdAt.toISOString()}"`
+          );
+        });
+      });
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="conversations-${userId}.csv"`);
+      return res.send(csvRows.join('\n'));
+    }
+
+    // Default to JSON format
+    const exportData = conversations.map((conv) => ({
+      name: conv.name,
+      agent: conv.agent?.name || 'AI Assistant',
+      createdAt: conv.createdAt,
+      messages: conv.messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.createdAt,
+      })),
+    }));
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="conversations-${userId}.json"`);
+    res.json({
+      success: true,
+      exportedAt: new Date().toISOString(),
+      totalConversations: exportData.length,
+      conversations: exportData,
+    });
+  } catch (error) {
+    console.error('Export conversations error:', error);
+    res.status(500).json({ success: false, error: 'Failed to export conversations' });
+  }
+});
+
 export default router;
