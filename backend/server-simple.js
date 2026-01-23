@@ -375,7 +375,7 @@ app.get('/api/status', async (req, res) => {
       totalUsers: agent.totalUsers || 0,
       totalSessions: agent.totalSessions || 0,
       averageRating: agent.averageRating || 0,
-      aiProvider: agent.aiProvider?.model || 'gpt-4',
+      aiProvider: agent.aiProvider ? agent.aiProvider.model : "gpt-4" || 'gpt-4',
     }));
 
     // Get analytics summary
@@ -428,12 +428,7 @@ app.get('/api/status', async (req, res) => {
           responseTime: dbCheck.latencyMs,
           uptime: 100, // Placeholder
         },
-        aiServices: Object.entries(providers).map(([name, enabled]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          status: enabled ? 'operational' : 'degraded',
-          responseTime: 100, // Placeholder
-          uptime: 100, // Placeholder
-        })),
+        aiServices: [],
         agents: agentsData,
         tools: [], // Not implemented yet
         historical: [], // Not implemented yet
@@ -506,7 +501,7 @@ app.get('/api/status/stream', (req, res) => {
         totalUsers: agent.totalUsers || 0,
         totalSessions: agent.totalSessions || 0,
         averageRating: agent.averageRating || 0,
-        aiProvider: agent.aiProvider?.model || 'gpt-4',
+        aiProvider: agent.aiProvider ? agent.aiProvider.model : "gpt-4" || 'gpt-4',
       }));
 
       // Get analytics summary
@@ -559,13 +554,8 @@ app.get('/api/status/stream', (req, res) => {
             responseTime: dbCheck.latencyMs,
             uptime: 100, // Placeholder
           },
-          aiServices: Object.entries(providers).map(([name, enabled]) => ({
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            status: enabled ? 'operational' : 'degraded',
-            responseTime: 100, // Placeholder
-            uptime: 100, // Placeholder
-          })),
-          agents: agentsData,
+          aiServices: [],
+        agents: agentsData,
           tools: [], // Not implemented yet
           historical: [], // Not implemented yet
           incidents: [], // Not implemented yet
@@ -895,120 +885,73 @@ app.use('/api/subscriptions', agentSubscriptionsRouter);
 // STATUS ENDPOINT (defined after routers to ensure it takes precedence)
 // ============================================
 
-app.get('/api/status', async (req, res) => {
-  console.log('STATUS ENDPOINT CALLED - NEW VERSION');
-  try {
-    const metrics = calcMetricsSnapshot();
-    const providers = providerStatusFromEnv();
-    const dbCheck = await checkPostgresFast();
-    
-    const apiStatus = metrics.errorRate < 1 && metrics.avgResponseMs < 800 ? 'operational' : 'degraded';
-    const dbStatus = dbCheck.ok ? 'operational' : 'outage';
-    const platformStatus = apiStatus === 'operational' && dbCheck.ok ? 'operational' : 'degraded';
-
-    // Get real agent data from PostgreSQL
-    const agents = await prisma.agent.findMany({
-      where: { status: 'active' },
-      orderBy: { name: 'asc' },
-    });
-
-    // Get subscription counts per agent
-    const subscriptionCounts = await prisma.agentSubscription.groupBy({
-      by: ['agentId'],
-      where: { status: 'active' },
-      _count: { id: true },
-    });
-
-    const subscriptionMap = new Map(
-      subscriptionCounts.map(s => [s.agentId, s._count.id])
-    );
-
-    const agentsData = agents.map(agent => ({
-      name: agent.name,
-      slug: agent.agentId,
-      status: agent.status === 'active' ? 'operational' : 'degraded',
-      responseTime: metrics.avgResponseMs || 100,
-      activeUsers: subscriptionMap.get(agent.agentId) || 0,
-      totalUsers: agent.totalUsers || 0,
-      totalSessions: agent.totalSessions || 0,
-      averageRating: agent.averageRating || 0,
-      aiProvider: agent.aiProvider?.model || 'gpt-4',
-    }));
-
-    // Get analytics summary
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const [todaySessions, todayPageViews, activeUsers] = await Promise.all([
-      prisma.session.count({ where: { createdAt: { gte: startOfDay } } }),
-      prisma.pageView.count({ where: { timestamp: { gte: startOfDay } } }),
-      prisma.session.count({
-        where: {
-          lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
-          isActive: true,
-        },
-      }),
-    ]);
-
-    res.json({
-      success: true,
-      data: {
-        system: {
-          cpuPercent: 0, // Not available in current implementation
-          memoryPercent: buildCpuMem().memPct,
-          totalMem: 0, // Not available
-          freeMem: 0, // Not available  
-          usedMem: 0, // Not available
-          load1: buildCpuMem().load1,
-          load5: 0, // Not available
-          load15: 0, // Not available
-          cores: 0, // Not available
-        },
-        platform: {
-          status: platformStatus,
-          uptime: 100, // Placeholder
-          lastUpdated: new Date().toISOString(),
-          version: process.env.APP_VERSION || '2.0.0',
-        },
-        api: {
-          status: apiStatus,
-          responseTime: metrics.avgResponseMs,
-          uptime: 100, // Placeholder
-          requestsToday: todaySessions,
-          requestsPerMinute: metrics.rps,
-          errorRate: metrics.errorRate,
-          errorsToday: 0, // Not tracked
-        },
-        database: {
-          status: dbStatus,
-          connectionPool: 1, // Placeholder
-          responseTime: dbCheck.latencyMs,
-          uptime: 100, // Placeholder
-        },
-        aiServices: Object.entries(providers).map(([name, enabled]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          status: enabled ? 'operational' : 'degraded',
-          responseTime: 100, // Placeholder
-          uptime: 100, // Placeholder
-        })),
-        agents: agentsData,
-        tools: [], // Not implemented yet
-        historical: [], // Not implemented yet
-        incidents: [], // Not implemented yet
-        totalActiveUsers: activeUsers,
-      },
-    });
-  } catch (error) {
-    console.error('Status endpoint error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch status',
-    });
-});
-
-// ============================================
-// STATUS ANALYTICS ENDPOINT
-// ============================================
+// app.get('/api/status', async (req, res) => {
+//   console.log('STATUS ENDPOINT CALLED - NEW VERSION');
+//   try {
+//     const metrics = calcMetricsSnapshot();
+//     const providers = providerStatusFromEnv();
+//     const dbCheck = await checkPostgresFast();
+//     
+//     const apiStatus = metrics.errorRate < 1 && metrics.avgResponseMs < 800 ? 'operational' : 'degraded';
+//     const dbStatus = dbCheck.ok ? 'operational' : 'outage';
+//     const platformStatus = apiStatus === 'operational' && dbCheck.ok ? 'operational' : 'degraded';
+// 
+//     // Get real agent data from PostgreSQL
+//     const agents = await prisma.agent.findMany({
+//       where: { status: 'active' },
+//       orderBy: { name: 'asc' },
+//     });
+// 
+//     // Get subscription counts per agent
+//     const subscriptionCounts = await prisma.agentSubscription.groupBy({
+//       by: ['agentId'],
+//       where: { status: 'active' },
+//       _count: { id: true },
+//     });
+// 
+//     const subscriptionMap = new Map(
+//       subscriptionCounts.map(s => [s.agentId, s._count.id])
+//     );
+// 
+//     const agentsData = agents.map(agent => ({
+//       name: agent.name,
+//       slug: agent.agentId,
+//       status: agent.status === 'active' ? 'operational' : 'degraded',
+//       responseTime: metrics.avgResponseMs || 100,
+//       activeUsers: subscriptionMap.get(agent.agentId) || 0,
+//       totalUsers: agent.totalUsers || 0,
+//       totalSessions: agent.totalSessions || 0,
+//       averageRating: agent.averageRating || 0,
+//       aiProvider: agent.aiProvider ? agent.aiProvider.model : "gpt-4" || 'gpt-4',
+//     }));
+// 
+//     // Get analytics summary
+//     const startOfDay = new Date();
+//     startOfDay.setHours(0, 0, 0, 0);
+// 
+//     const [todaySessions, todayPageViews, activeUsers] = await Promise.all([
+//       prisma.session.count({ where: { createdAt: { gte: startOfDay } } }),
+//       prisma.pageView.count({ where: { timestamp: { gte: startOfDay } } }),
+//       prisma.session.count({
+//         where: {
+//           lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
+//           isActive: true,
+//         },
+//       }),
+//     ]);
+// 
+//     res.json({ success: true, data: {} });
+//   } catch (error) {
+//     console.error('Status endpoint error:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Failed to fetch status',
+//     });
+// });
+// 
+// // ============================================
+// // STATUS ANALYTICS ENDPOINT
+// // ============================================
 
 app.get('/api/status/analytics', async (req, res) => {
   console.log('STATUS ANALYTICS ENDPOINT CALLED');
@@ -1125,12 +1068,11 @@ app.get('/api/status/analytics', async (req, res) => {
       by: ['toolName'],
       where: { occurredAt: { gte: startDate } },
       _count: { id: true },
-      _sum: { latencyMs: true },
     });
 
     const toolsData = tools.map(tool => {
       const usage = tool._count.id;
-      const avgDuration = tool._sum.latencyMs ? Math.floor(tool._sum.latencyMs / usage) : 0;
+      const avgDuration = 100; // Placeholder
       // Calculate trend (simplified)
       const trend = usage > 50 ? 'up' : usage > 20 ? 'stable' : 'down';
 
@@ -1171,7 +1113,7 @@ app.get('/api/status/analytics', async (req, res) => {
     const topAgents = agentsData
       .sort((a, b) => b.requests - a.requests)
       .slice(0, 5)
-      .map((agent, index) => ({
+      .map((agent) => ({
         name: agent.name,
         requests: agent.requests,
         percentage: agent.requests / Math.max(...agentsData.map(a => a.requests)) * 100
