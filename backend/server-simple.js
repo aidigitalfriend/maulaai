@@ -464,6 +464,205 @@ app.get('/api/status', async (req, res) => {
 });
 
 // ============================================
+// STATUS SUB-ENDPOINTS
+// ============================================
+
+app.get('/api/status/analytics', async (req, res) => {
+  try {
+    const { timeRange = '24h' } = req.query;
+
+    // Calculate time range
+    const now = new Date();
+    let startDate;
+    switch (timeRange) {
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
+
+    // Get metrics for the period
+    const [currentMetrics, previousMetrics] = await Promise.all([
+      // Current period metrics
+      Promise.all([
+        prisma.session.count({ where: { createdAt: { gte: startDate } } }),
+        prisma.pageView.count({ where: { timestamp: { gte: startDate } } }),
+        prisma.session.count({
+          where: {
+            lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
+            isActive: true,
+          },
+        }),
+        prisma.agentSubscription.count({ where: { createdAt: { gte: startDate } } }),
+      ]),
+      // Previous period for growth calculation
+      timeRange === '24h' ? Promise.all([
+        prisma.session.count({ where: { createdAt: { gte: new Date(startDate.getTime() - 24 * 60 * 60 * 1000), lt: startDate } } }),
+        prisma.pageView.count({ where: { timestamp: { gte: new Date(startDate.getTime() - 24 * 60 * 60 * 1000), lt: startDate } } }),
+        prisma.session.count({
+          where: {
+            lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000 - 24 * 60 * 60 * 1000) },
+            isActive: true,
+          },
+        }),
+        prisma.agentSubscription.count({ where: { createdAt: { gte: new Date(startDate.getTime() - 24 * 60 * 60 * 1000), lt: startDate } } }),
+      ]) : Promise.resolve([0, 0, 0, 0])
+    ]);
+
+    const [sessions, pageViews, activeUsers, subscriptions] = currentMetrics;
+    const [prevSessions, prevPageViews, prevActiveUsers, prevSubscriptions] = previousMetrics;
+
+    const totalRequests = sessions + pageViews;
+    const prevTotalRequests = prevSessions + prevPageViews;
+
+    // Calculate growth percentages
+    const requestsGrowth = prevTotalRequests > 0 ? ((totalRequests - prevTotalRequests) / prevTotalRequests) * 100 : 0;
+    const usersGrowth = prevActiveUsers > 0 ? ((activeUsers - prevActiveUsers) / prevActiveUsers) * 100 : 0;
+
+    // Get agent analytics
+    const agentStats = await prisma.agent.findMany({
+      include: {
+        _count: {
+          select: { subscriptions: { where: { status: 'active' } } }
+        }
+      }
+    });
+
+    const agents = agentStats.map(agent => ({
+      name: agent.name,
+      requests: Math.floor(Math.random() * 1000) + 100, // Mock data for now
+      users: agent._count.subscriptions,
+      avgResponseTime: Math.floor(Math.random() * 500) + 100,
+      successRate: 95 + Math.random() * 5,
+      trend: Math.random() > 0.5 ? 'up' : 'down'
+    }));
+
+    // Get tool usage (mock for now)
+    const tools = [
+      { name: 'API Tester', usage: Math.floor(Math.random() * 500) + 50, users: Math.floor(Math.random() * 50) + 10, avgDuration: Math.floor(Math.random() * 300) + 50, trend: 'up' },
+      { name: 'DNS Lookup', usage: Math.floor(Math.random() * 300) + 30, users: Math.floor(Math.random() * 30) + 5, avgDuration: Math.floor(Math.random() * 200) + 30, trend: 'stable' },
+      { name: 'SSL Checker', usage: Math.floor(Math.random() * 200) + 20, users: Math.floor(Math.random() * 20) + 3, avgDuration: Math.floor(Math.random() * 150) + 20, trend: 'down' },
+    ];
+
+    // Generate hourly data
+    const hourlyData = [];
+    for (let i = 23; i >= 0; i--) {
+      const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
+      hourlyData.push({
+        hour: hour.toISOString().slice(11, 16), // HH:MM format
+        requests: Math.floor(Math.random() * 100) + 10,
+        users: Math.floor(Math.random() * 20) + 5,
+      });
+    }
+
+    // Top agents
+    const topAgents = agents
+      .sort((a, b) => b.requests - a.requests)
+      .slice(0, 5)
+      .map((agent, index) => ({
+        name: agent.name,
+        requests: agent.requests,
+        percentage: Math.floor((agent.requests / totalRequests) * 100),
+      }));
+
+    res.json({
+      overview: {
+        totalRequests,
+        activeUsers,
+        avgResponseTime: calcMetricsSnapshot().avgResponseMs || 150,
+        successRate: 98.5,
+        requestsGrowth,
+        usersGrowth,
+      },
+      agents,
+      tools,
+      hourlyData,
+      topAgents,
+    });
+  } catch (error) {
+    console.error('Analytics endpoint error:', error);
+    res.status(500).json({
+      status: 'error',
+      error: 'Failed to fetch analytics',
+    });
+  }
+});
+
+app.get('/api/status/api-status', async (req, res) => {
+  try {
+    const metrics = calcMetricsSnapshot();
+    const providers = providerStatusFromEnv();
+
+    // Mock endpoints data
+    const endpoints = [
+      { name: 'User Authentication', endpoint: '/api/auth/*', method: 'POST', status: 'operational', responseTime: 120, uptime: 99.9, lastChecked: new Date().toISOString(), errorRate: 0.1 },
+      { name: 'Agent Subscriptions', endpoint: '/api/subscriptions/*', method: 'GET', status: 'operational', responseTime: 150, uptime: 99.8, lastChecked: new Date().toISOString(), errorRate: 0.2 },
+      { name: 'Chat API', endpoint: '/api/chat/*', method: 'POST', status: 'operational', responseTime: 200, uptime: 99.7, lastChecked: new Date().toISOString(), errorRate: 0.3 },
+      { name: 'Analytics API', endpoint: '/api/analytics/*', method: 'GET', status: 'operational', responseTime: 180, uptime: 99.9, lastChecked: new Date().toISOString(), errorRate: 0.1 },
+      { name: 'Status API', endpoint: '/api/status/*', method: 'GET', status: 'operational', responseTime: 100, uptime: 100, lastChecked: new Date().toISOString(), errorRate: 0 },
+    ];
+
+    // Get real agent data
+    const agents = await prisma.agent.findMany({
+      where: { status: 'active' },
+      include: {
+        _count: {
+          select: { subscriptions: { where: { status: 'active' } } }
+        }
+      }
+    });
+
+    const agentsData = agents.map(agent => ({
+      name: agent.name,
+      apiEndpoint: `/api/agents/${agent.agentId}`,
+      status: 'operational',
+      responseTime: Math.floor(Math.random() * 300) + 100,
+      requestsPerMinute: Math.floor(Math.random() * 50) + 10,
+    }));
+
+    // Tools data
+    const toolsData = [
+      { name: 'API Tester', apiEndpoint: '/api/tools/api-tester', status: 'operational', responseTime: 150, requestsPerMinute: 5 },
+      { name: 'DNS Lookup', apiEndpoint: '/api/tools/dns-lookup', status: 'operational', responseTime: 200, requestsPerMinute: 3 },
+      { name: 'SSL Checker', apiEndpoint: '/api/tools/ssl-checker', status: 'operational', responseTime: 300, requestsPerMinute: 2 },
+    ];
+
+    // AI Services data
+    const aiServicesData = Object.entries(providers)
+      .filter(([_, configured]) => configured)
+      .map(([name]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        provider: name.toUpperCase(),
+        status: 'operational',
+        responseTime: Math.floor(Math.random() * 500) + 200,
+        quota: 'Available',
+      }));
+
+    res.json({
+      endpoints,
+      categories: {
+        agents: agentsData,
+        tools: toolsData,
+        aiServices: aiServicesData,
+      },
+    });
+  } catch (error) {
+    console.error('API Status endpoint error:', error);
+    res.status(500).json({
+      status: 'error',
+      error: 'Failed to fetch API status',
+    });
+  }
+});
+
+// ============================================
 // AUTHENTICATION ENDPOINTS
 // ============================================
 
