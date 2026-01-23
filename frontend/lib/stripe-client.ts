@@ -369,6 +369,8 @@ export async function createCheckoutSession({
     mode: 'subscription',
     payment_method_types: ['card'],
     customer_email: userEmail,
+    // Remove locale to let Stripe auto-detect, or try 'auto'
+    // locale: 'auto', // Let Stripe auto-detect locale
     line_items: [
       {
         price: planDetails.priceId,

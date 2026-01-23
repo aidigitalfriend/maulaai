@@ -157,7 +157,7 @@ function PaymentContent() {
 
       if (data.success && data.url) {
         // Redirect to Stripe checkout
-        window.location.href = data.url;
+        window.location.replace(data.url);
       } else {
         console.error('Checkout error:', data.error);
         alert('Failed to create checkout session. Please try again.');
