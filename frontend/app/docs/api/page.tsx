@@ -134,8 +134,8 @@ console.log(result.reply);`
         
         {/* API Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+            <h3 className="text-xl font-bold text-neural-900 mb-4 flex items-center">
               <span className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center mr-3 text-brand-600">
                 📡
               </span>
@@ -144,13 +144,13 @@ console.log(result.reply);`
             <code className="block bg-gray-900 p-4 rounded-lg text-gray-200 text-sm">
               https://api.maulaai.co/v1
             </code>
-            <p className="text-gray-600 text-sm mt-3">
+            <p className="text-neural-600 text-sm mt-3">
               All API requests should be made to this base URL with proper versioning.
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+            <h3 className="text-xl font-bold text-neural-900 mb-4 flex items-center">
               <span className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center mr-3 text-brand-600">
                 🔑
               </span>
@@ -159,7 +159,7 @@ console.log(result.reply);`
             <code className="block bg-gray-900 p-4 rounded-lg text-gray-200 text-sm">
               Authorization: Bearer YOUR_API_KEY
             </code>
-            <p className="text-gray-600 text-sm mt-3">
+            <p className="text-neural-600 text-sm mt-3">
               Include your API key in the Authorization header for all requests.
             </p>
           </div>
@@ -167,19 +167,19 @@ console.log(result.reply);`
 
         {/* Quick Reference */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">API Reference</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">API Reference</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {apiEndpoints.map((endpoint, index) => (
-              <div key={index} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300">
+              <div key={index} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-200 hover:shadow-lg transition-all duration-300">
                 <div className="mb-4">
                   <span className="text-xs font-medium text-brand-600 bg-brand-100 px-3 py-1 rounded-full">
                     {endpoint.category}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-brand-600 transition-colors">
+                <h3 className="text-lg font-bold text-neural-900 mb-3 group-hover:text-brand-600 transition-colors">
                   {endpoint.title}
                 </h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">
+                <p className="text-neural-600 mb-4 leading-relaxed">
                   {endpoint.description}
                 </p>
                 <a href={endpoint.href} className="text-brand-600 hover:text-brand-700 text-sm font-medium transition-colors">
@@ -192,29 +192,29 @@ console.log(result.reply);`
 
         {/* Authentication Section */}
         <div id="authentication" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Authentication</h2>
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Getting Your API Key</h3>
+          <h2 className="text-3xl font-bold text-neural-900 mb-6">Authentication</h2>
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
+            <h3 className="text-xl font-bold text-neural-900 mb-4">Getting Your API Key</h3>
             <ol className="space-y-4 mb-6">
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Sign in to your account</p>
-                  <p className="text-gray-600 text-sm">Log in to the Maula AI dashboard</p>
+                  <p className="font-semibold text-neural-900">Sign in to your account</p>
+                  <p className="text-neural-600 text-sm">Log in to the Maula AI dashboard</p>
                 </div>
               </li>
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Navigate to API Settings</p>
-                  <p className="text-gray-600 text-sm">Go to Settings → Developer → API Keys</p>
+                  <p className="font-semibold text-neural-900">Navigate to API Settings</p>
+                  <p className="text-neural-600 text-sm">Go to Settings → Developer → API Keys</p>
                 </div>
               </li>
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Generate a new API key</p>
-                  <p className="text-gray-600 text-sm">Click "Create New Key" and copy your key</p>
+                  <p className="font-semibold text-neural-900">Generate a new API key</p>
+                  <p className="text-neural-600 text-sm">Click "Create New Key" and copy your key</p>
                 </div>
               </li>
             </ol>
@@ -229,18 +229,18 @@ console.log(result.reply);`
 
         {/* Agents Endpoints */}
         <div id="agents" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Agents Endpoints</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-6">Agents Endpoints</h2>
           
           <div className="space-y-6">
             {/* GET Agents */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-4">
                 <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-mono text-sm font-semibold">GET</span>
-                <code className="text-gray-700">/agents</code>
+                <code className="text-neural-700">/agents</code>
               </div>
-              <p className="text-gray-600 mb-4">Retrieve a list of all your agents</p>
+              <p className="text-neural-600 mb-4">Retrieve a list of all your agents</p>
               <div className="bg-gray-900 p-4 rounded-lg mb-4">
-                <p className="text-gray-500 text-xs mb-2">Response:</p>
+                <p className="text-neural-500 text-xs mb-2">Response:</p>
                 <code className="text-gray-200 text-sm">
                   {`{
   "data": [
@@ -258,14 +258,14 @@ console.log(result.reply);`
             </div>
 
             {/* POST Create Agent */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-4">
                 <span className="bg-green-100 text-green-600 px-3 py-1 rounded font-mono text-sm font-semibold">POST</span>
-                <code className="text-gray-700">/agents</code>
+                <code className="text-neural-700">/agents</code>
               </div>
-              <p className="text-gray-600 mb-4">Create a new AI agent</p>
+              <p className="text-neural-600 mb-4">Create a new AI agent</p>
               <div className="bg-gray-900 p-4 rounded-lg">
-                <p className="text-gray-500 text-xs mb-2">Request:</p>
+                <p className="text-neural-500 text-xs mb-2">Request:</p>
                 <code className="text-gray-200 text-sm">
                   {`{
   "name": "New Agent",
@@ -278,30 +278,30 @@ console.log(result.reply);`
             </div>
 
             {/* GET Agent by ID */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-4">
                 <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-mono text-sm font-semibold">GET</span>
-                <code className="text-gray-700">/agents/[agent_id]</code>
+                <code className="text-neural-700">/agents/[agent_id]</code>
               </div>
-              <p className="text-gray-600 mb-4">Retrieve details of a specific agent</p>
+              <p className="text-neural-600 mb-4">Retrieve details of a specific agent</p>
             </div>
           </div>
         </div>
 
         {/* Conversations API */}
         <div id="conversations" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Conversations API</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-6">Conversations API</h2>
           
           <div className="space-y-6">
             {/* POST Send Message */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-4">
                 <span className="bg-green-100 text-green-600 px-3 py-1 rounded font-mono text-sm font-semibold">POST</span>
-                <code className="text-gray-700">/conversations</code>
+                <code className="text-neural-700">/conversations</code>
               </div>
-              <p className="text-gray-600 mb-4">Send a message to an agent and get a response</p>
+              <p className="text-neural-600 mb-4">Send a message to an agent and get a response</p>
               <div className="bg-gray-900 p-4 rounded-lg">
-                <p className="text-gray-500 text-xs mb-2">Request:</p>
+                <p className="text-neural-500 text-xs mb-2">Request:</p>
                 <code className="text-gray-200 text-sm">
                   {`{
   "agent_id": "agent_123",
@@ -313,50 +313,50 @@ console.log(result.reply);`
             </div>
 
             {/* GET Conversation History */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-4">
                 <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-mono text-sm font-semibold">GET</span>
-                <code className="text-gray-700">/conversations/[conversation_id]</code>
+                <code className="text-neural-700">/conversations/[conversation_id]</code>
               </div>
-              <p className="text-gray-600 mb-4">Retrieve the full conversation history</p>
+              <p className="text-neural-600 mb-4">Retrieve the full conversation history</p>
             </div>
           </div>
         </div>
 
         {/* Rate Limits */}
         <div id="rate-limits" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Rate Limits</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-6">Rate Limits</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Standard Plan</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Standard Plan</h3>
               <ul className="space-y-3">
                 <li className="flex justify-between">
-                  <span className="text-gray-600">Requests/minute:</span>
+                  <span className="text-neural-600">Requests/minute:</span>
                   <span className="font-bold text-brand-600">100</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-600">Daily limit:</span>
+                  <span className="text-neural-600">Daily limit:</span>
                   <span className="font-bold text-brand-600">100,000</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-600">Concurrent requests:</span>
+                  <span className="text-neural-600">Concurrent requests:</span>
                   <span className="font-bold text-brand-600">10</span>
                 </li>
               </ul>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Pro Plan</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Pro Plan</h3>
               <ul className="space-y-3">
                 <li className="flex justify-between">
-                  <span className="text-gray-600">Requests/minute:</span>
+                  <span className="text-neural-600">Requests/minute:</span>
                   <span className="font-bold text-brand-600">500</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-600">Daily limit:</span>
+                  <span className="text-neural-600">Daily limit:</span>
                   <span className="font-bold text-brand-600">1,000,000</span>
                 </li>
                 <li className="flex justify-between">
-                  <span className="text-gray-600">Concurrent requests:</span>
+                  <span className="text-neural-600">Concurrent requests:</span>
                   <span className="font-bold text-brand-600">50</span>
                 </li>
               </ul>
@@ -366,12 +366,12 @@ console.log(result.reply);`
 
         {/* Code Examples */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Code Examples</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Code Examples</h2>
           <div className="grid grid-cols-1 gap-6">
             {codeExamples.map((example, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-900">{example.title}</h3>
+                  <h3 className="text-lg font-bold text-neural-900">{example.title}</h3>
                   <span className="text-xs font-medium text-brand-600 bg-brand-100 px-3 py-1 rounded-full">
                     {example.language}
                   </span>
@@ -388,9 +388,9 @@ console.log(result.reply);`
 
         {/* Error Handling */}
         <div id="errors" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Error Handling</h2>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-            <p className="text-gray-700 mb-6">
+          <h2 className="text-3xl font-bold text-neural-900 mb-6">Error Handling</h2>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+            <p className="text-neural-700 mb-6">
               All API errors follow a standard format. Handle errors gracefully in your applications:
             </p>
             <div className="bg-gray-900 p-4 rounded-lg mb-6">
@@ -409,29 +409,29 @@ console.log(result.reply);`
               <div className="flex gap-4">
                 <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">400</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Bad Request</p>
-                  <p className="text-gray-600 text-sm">Invalid parameters or missing required fields</p>
+                  <p className="font-semibold text-neural-900">Bad Request</p>
+                  <p className="text-neural-600 text-sm">Invalid parameters or missing required fields</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">401</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Unauthorized</p>
-                  <p className="text-gray-600 text-sm">API key is missing or invalid</p>
+                  <p className="font-semibold text-neural-900">Unauthorized</p>
+                  <p className="text-neural-600 text-sm">API key is missing or invalid</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">429</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Rate Limit Exceeded</p>
-                  <p className="text-gray-600 text-sm">You've exceeded the rate limit for your plan</p>
+                  <p className="font-semibold text-neural-900">Rate Limit Exceeded</p>
+                  <p className="text-neural-600 text-sm">You've exceeded the rate limit for your plan</p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <span className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold">500</span>
                 <div>
-                  <p className="font-semibold text-gray-900">Server Error</p>
-                  <p className="text-gray-600 text-sm">Internal server error - try again later</p>
+                  <p className="font-semibold text-neural-900">Server Error</p>
+                  <p className="text-neural-600 text-sm">Internal server error - try again later</p>
                 </div>
               </div>
             </div>
@@ -440,28 +440,28 @@ console.log(result.reply);`
 
         {/* Webhooks */}
         <div id="webhooks" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Webhooks</h2>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
-            <p className="text-gray-700 mb-6">
+          <h2 className="text-3xl font-bold text-neural-900 mb-6">Webhooks</h2>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 mb-6">
+            <p className="text-neural-700 mb-6">
               Subscribe to real-time events from your agents. Webhooks are triggered when specific events occur:
             </p>
             
             <div className="space-y-4">
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold text-gray-900 mb-2">agent.created</h3>
-                <p className="text-gray-600 text-sm">Triggered when a new agent is created</p>
+                <h3 className="font-bold text-neural-900 mb-2">agent.created</h3>
+                <p className="text-neural-600 text-sm">Triggered when a new agent is created</p>
               </div>
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold text-gray-900 mb-2">agent.updated</h3>
-                <p className="text-gray-600 text-sm">Triggered when an agent is updated</p>
+                <h3 className="font-bold text-neural-900 mb-2">agent.updated</h3>
+                <p className="text-neural-600 text-sm">Triggered when an agent is updated</p>
               </div>
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold text-gray-900 mb-2">message.received</h3>
-                <p className="text-gray-600 text-sm">Triggered when an agent receives a message</p>
+                <h3 className="font-bold text-neural-900 mb-2">message.received</h3>
+                <p className="text-neural-600 text-sm">Triggered when an agent receives a message</p>
               </div>
               <div className="border-l-4 border-brand-500 pl-4">
-                <h3 className="font-bold text-gray-900 mb-2">conversation.completed</h3>
-                <p className="text-gray-600 text-sm">Triggered when a conversation ends</p>
+                <h3 className="font-bold text-neural-900 mb-2">conversation.completed</h3>
+                <p className="text-neural-600 text-sm">Triggered when a conversation ends</p>
               </div>
             </div>
           </div>

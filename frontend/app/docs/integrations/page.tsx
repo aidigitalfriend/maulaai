@@ -105,24 +105,24 @@ export default function DocsIntegrations() {
         {/* Integration Overview */}
         <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
               <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Easy Setup</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Easy Setup</h3>
+              <p className="text-neural-600 text-sm">
                 Most integrations can be set up in minutes with step-by-step guides
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
               <div className="text-4xl mb-4">🔄</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Real-time Sync</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Real-time Sync</h3>
+              <p className="text-neural-600 text-sm">
                 Keep your data synchronized across all platforms instantly
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
               <div className="text-4xl mb-4">🛡️</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Secure</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Secure</h3>
+              <p className="text-neural-600 text-sm">
                 Enterprise-grade security with encrypted credentials and tokens
               </p>
             </div>
@@ -131,20 +131,20 @@ export default function DocsIntegrations() {
 
         {/* Available Integrations */}
         <div id="available" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Available Integrations</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Available Integrations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {integrations.map((integration, index) => (
-              <div key={index} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-300">
+              <div key={index} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-200 hover:shadow-md hover:border-blue-200 transition-all duration-300">
                 <div className="text-3xl mb-4">{integration.icon}</div>
                 <div className="mb-4">
                   <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
                     {integration.category}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                <h3 className="text-lg font-bold text-neural-900 mb-3 group-hover:text-blue-600 transition-colors">
                   {integration.title}
                 </h3>
-                <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                <p className="text-neural-600 mb-4 text-sm leading-relaxed">
                   {integration.description}
                 </p>
                 <a href={integration.href} className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
@@ -157,22 +157,22 @@ export default function DocsIntegrations() {
 
         {/* Featured Integrations */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Integrations</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Featured Integrations</h2>
 
           {/* Slack Section */}
           <div id="slack" className="mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">💬</div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Slack</h3>
-                  <p className="text-gray-600">Connect agents directly to Slack channels and DMs</p>
+                  <h3 className="text-2xl font-bold text-neural-900">Slack</h3>
+                  <p className="text-neural-600">Connect agents directly to Slack channels and DMs</p>
                 </div>
               </div>
 
               <div className="prose max-w-none mb-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-gray-700">
+                <h4 className="text-lg font-bold text-neural-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-neural-700">
                   <li>✓ Respond to channel messages automatically</li>
                   <li>✓ Handle direct messages from team members</li>
                   <li>✓ Create slash commands for quick agent access</li>
@@ -192,18 +192,18 @@ export default function DocsIntegrations() {
 
           {/* Discord Section */}
           <div id="discord" className="mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">🎮</div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Discord</h3>
-                  <p className="text-gray-600">Deploy AI agents as Discord bots for your community</p>
+                  <h3 className="text-2xl font-bold text-neural-900">Discord</h3>
+                  <p className="text-neural-600">Deploy AI agents as Discord bots for your community</p>
                 </div>
               </div>
 
               <div className="prose max-w-none mb-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-gray-700">
+                <h4 className="text-lg font-bold text-neural-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-neural-700">
                   <li>✓ Create interactive Discord bots</li>
                   <li>✓ Respond to messages in channels and DMs</li>
                   <li>✓ Use slash commands for quick interactions</li>
@@ -223,18 +223,18 @@ export default function DocsIntegrations() {
 
           {/* Teams Section */}
           <div id="teams" className="mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">💼</div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Microsoft Teams</h3>
-                  <p className="text-gray-600">Enterprise-ready AI agents for Microsoft Teams</p>
+                  <h3 className="text-2xl font-bold text-neural-900">Microsoft Teams</h3>
+                  <p className="text-neural-600">Enterprise-ready AI agents for Microsoft Teams</p>
                 </div>
               </div>
 
               <div className="prose max-w-none mb-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-gray-700">
+                <h4 className="text-lg font-bold text-neural-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-neural-700">
                   <li>✓ Deploy agents as Teams apps</li>
                   <li>✓ Integrate with enterprise directory</li>
                   <li>✓ Support for Teams channels and group chats</li>
@@ -247,18 +247,18 @@ export default function DocsIntegrations() {
 
           {/* Webhooks Section */}
           <div id="webhooks" className="mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">🔗</div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Webhooks</h3>
-                  <p className="text-gray-600">Trigger custom actions with real-time webhooks</p>
+                  <h3 className="text-2xl font-bold text-neural-900">Webhooks</h3>
+                  <p className="text-neural-600">Trigger custom actions with real-time webhooks</p>
                 </div>
               </div>
 
               <div className="prose max-w-none mb-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-gray-700">
+                <h4 className="text-lg font-bold text-neural-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-neural-700">
                   <li>✓ Send events to custom endpoints</li>
                   <li>✓ Trigger workflows and automation</li>
                   <li>✓ Log conversations and analytics</li>
@@ -284,18 +284,18 @@ export default function DocsIntegrations() {
 
           {/* Email Section */}
           <div id="email" className="mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">📧</div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Email</h3>
-                  <p className="text-gray-600">Respond to incoming emails automatically with AI agents</p>
+                  <h3 className="text-2xl font-bold text-neural-900">Email</h3>
+                  <p className="text-neural-600">Respond to incoming emails automatically with AI agents</p>
                 </div>
               </div>
 
               <div className="prose max-w-none mb-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">What You Can Do:</h4>
-                <ul className="space-y-2 text-gray-700">
+                <h4 className="text-lg font-bold text-neural-900 mb-3">What You Can Do:</h4>
+                <ul className="space-y-2 text-neural-700">
                   <li>✓ Auto-respond to incoming emails</li>
                   <li>✓ Categorize and route emails</li>
                   <li>✓ Draft intelligent replies</li>
@@ -308,18 +308,18 @@ export default function DocsIntegrations() {
 
           {/* Custom APIs Section */}
           <div id="custom" className="mb-12">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-4xl">⚙️</div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Custom Integrations</h3>
-                  <p className="text-gray-600">Build custom integrations with any third-party service</p>
+                  <h3 className="text-2xl font-bold text-neural-900">Custom Integrations</h3>
+                  <p className="text-neural-600">Build custom integrations with any third-party service</p>
                 </div>
               </div>
 
               <div className="prose max-w-none mb-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-3">Popular Services:</h4>
-                <ul className="space-y-2 text-gray-700">
+                <h4 className="text-lg font-bold text-neural-900 mb-3">Popular Services:</h4>
+                <ul className="space-y-2 text-neural-700">
                   <li>✓ CRM Systems (Salesforce, HubSpot)</li>
                   <li>✓ Project Management (Jira, Asana)</li>
                   <li>✓ Analytics Platforms (Google Analytics, Mixpanel)</li>
@@ -333,18 +333,18 @@ export default function DocsIntegrations() {
 
         {/* Setup Guides */}
         <div id="setup" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Setup Guides</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Setup Guides</h2>
           
           {setupSteps.map((guide, index) => (
-            <div key={index} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Setting up {guide.platform}</h3>
+            <div key={index} className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-6">
+              <h3 className="text-2xl font-bold text-neural-900 mb-6">Setting up {guide.platform}</h3>
               <ol className="space-y-4">
                 {guide.steps.map((step, stepIndex) => (
                   <li key={stepIndex} className="flex gap-4">
                     <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {stepIndex + 1}
                     </span>
-                    <span className="pt-1 text-gray-700">{step}</span>
+                    <span className="pt-1 text-neural-700">{step}</span>
                   </li>
                 ))}
               </ol>
@@ -354,93 +354,93 @@ export default function DocsIntegrations() {
 
         {/* Best Practices */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Integration Best Practices</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Integration Best Practices</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Security</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Security</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
                   <span className="text-blue-600">🔐</span>
-                  <span className="text-gray-700">Keep API keys and tokens secure</span>
+                  <span className="text-neural-700">Keep API keys and tokens secure</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">✓</span>
-                  <span className="text-gray-700">Use environment variables for secrets</span>
+                  <span className="text-neural-700">Use environment variables for secrets</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">🛡️</span>
-                  <span className="text-gray-700">Rotate credentials regularly</span>
+                  <span className="text-neural-700">Rotate credentials regularly</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">📋</span>
-                  <span className="text-gray-700">Audit integration logs frequently</span>
+                  <span className="text-neural-700">Audit integration logs frequently</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Performance</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Performance</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
                   <span className="text-blue-600">⚡</span>
-                  <span className="text-gray-700">Implement rate limiting</span>
+                  <span className="text-neural-700">Implement rate limiting</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">🔄</span>
-                  <span className="text-gray-700">Use webhooks instead of polling</span>
+                  <span className="text-neural-700">Use webhooks instead of polling</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">💾</span>
-                  <span className="text-gray-700">Cache responses when possible</span>
+                  <span className="text-neural-700">Cache responses when possible</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">📊</span>
-                  <span className="text-gray-700">Monitor integration metrics</span>
+                  <span className="text-neural-700">Monitor integration metrics</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Reliability</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Reliability</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
                   <span className="text-blue-600">🔁</span>
-                  <span className="text-gray-700">Implement retry logic</span>
+                  <span className="text-neural-700">Implement retry logic</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">⚠️</span>
-                  <span className="text-gray-700">Handle errors gracefully</span>
+                  <span className="text-neural-700">Handle errors gracefully</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">📝</span>
-                  <span className="text-gray-700">Log all integration events</span>
+                  <span className="text-neural-700">Log all integration events</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">🧪</span>
-                  <span className="text-gray-700">Test integrations thoroughly</span>
+                  <span className="text-neural-700">Test integrations thoroughly</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Maintenance</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Maintenance</h3>
               <ul className="space-y-3">
                 <li className="flex gap-3">
                   <span className="text-blue-600">🔄</span>
-                  <span className="text-gray-700">Keep dependencies updated</span>
+                  <span className="text-neural-700">Keep dependencies updated</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">📚</span>
-                  <span className="text-gray-700">Document integration setup</span>
+                  <span className="text-neural-700">Document integration setup</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">👥</span>
-                  <span className="text-gray-700">Train team on integration usage</span>
+                  <span className="text-neural-700">Train team on integration usage</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-blue-600">🎯</span>
-                  <span className="text-gray-700">Regular integration audits</span>
+                  <span className="text-neural-700">Regular integration audits</span>
                 </li>
               </ul>
             </div>

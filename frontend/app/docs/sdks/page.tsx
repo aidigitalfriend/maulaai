@@ -300,24 +300,24 @@ for await (const chunk of stream) {
         {/* SDK Overview */}
         <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
               <div className="text-4xl mb-4">⚙️</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Easy to Use</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Easy to Use</h3>
+              <p className="text-neural-600 text-sm">
                 Simple APIs that make it easy to integrate Maula AI into your apps
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
               <div className="text-4xl mb-4">📦</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Well-Maintained</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Well-Maintained</h3>
+              <p className="text-neural-600 text-sm">
                 Regularly updated with bug fixes and new features
               </p>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 text-center">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
               <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Fully Documented</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Fully Documented</h3>
+              <p className="text-neural-600 text-sm">
                 Comprehensive documentation with examples for every feature
               </p>
             </div>
@@ -326,20 +326,20 @@ for await (const chunk of stream) {
 
         {/* Available SDKs */}
         <div id="available" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Available SDKs</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Available SDKs</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sdks.map((sdk, index) => (
-              <a key={index} href={sdk.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-brand-300 transition-all duration-300 cursor-pointer">
+              <a key={index} href={sdk.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-200 hover:shadow-md hover:border-brand-300 transition-all duration-300 cursor-pointer">
                 <div className="flex items-start justify-between mb-4">
                   <div className="text-3xl">{sdk.icon}</div>
                   <span className="text-xs font-bold text-brand-600 bg-brand-100 px-2 py-1 rounded">
                     v{sdk.version}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
+                <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-brand-600 transition-colors">
                   {sdk.name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-4 flex-grow">
+                <p className="text-neural-600 text-sm mb-4 flex-grow">
                   {sdk.description}
                 </p>
                 <span className="text-brand-600 hover:text-brand-700 text-sm font-medium transition-colors">
@@ -352,125 +352,125 @@ for await (const chunk of stream) {
 
         {/* Installation Guide */}
         <div id="quickstart" className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Installation Guide</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Installation Guide</h2>
 
           {/* JavaScript */}
-          <div id="javascript" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+          <div id="javascript" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">📘</div>
-              <h3 className="text-2xl font-bold text-gray-900">JavaScript/TypeScript</h3>
+              <h3 className="text-2xl font-bold text-neural-900">JavaScript/TypeScript</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
               <CodeBlock code={jsInstallNpm} language="bash" title="npm" />
-              <p className="text-gray-600 text-sm my-3">or with yarn:</p>
+              <p className="text-neural-600 text-sm my-3">or with yarn:</p>
               <CodeBlock code={jsInstallYarn} language="bash" title="yarn" />
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
               <CodeBlock code={jsBasicUsage} language="javascript" showLineNumbers />
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Creating an Agent</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Creating an Agent</h4>
               <CodeBlock code={jsCreateAgent} language="javascript" showLineNumbers />
             </div>
           </div>
 
           {/* Python */}
-          <div id="python" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+          <div id="python" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">🐍</div>
-              <h3 className="text-2xl font-bold text-gray-900">Python</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Python</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
               <CodeBlock code={pyInstall} language="bash" title="pip" />
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
               <CodeBlock code={pyBasicUsage} language="python" showLineNumbers />
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Async Support</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Async Support</h4>
               <CodeBlock code={pyAsyncUsage} language="python" showLineNumbers />
             </div>
           </div>
 
           {/* Go */}
-          <div id="go" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+          <div id="go" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">🐹</div>
-              <h3 className="text-2xl font-bold text-gray-900">Go</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Go</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
               <CodeBlock code={goInstall} language="bash" title="go get" />
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
               <CodeBlock code={goBasicUsage} language="go" showLineNumbers />
             </div>
           </div>
 
           {/* PHP */}
-          <div id="php" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+          <div id="php" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">🚀</div>
-              <h3 className="text-2xl font-bold text-gray-900">PHP</h3>
+              <h3 className="text-2xl font-bold text-neural-900">PHP</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
               <CodeBlock code={phpInstall} language="bash" title="composer" />
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
               <CodeBlock code={phpBasicUsage} language="php" showLineNumbers />
             </div>
           </div>
 
           {/* Ruby */}
-          <div id="ruby" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+          <div id="ruby" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">💎</div>
-              <h3 className="text-2xl font-bold text-gray-900">Ruby</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Ruby</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
               <CodeBlock code={rubyInstall} language="bash" title="gem" />
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
               <CodeBlock code={rubyBasicUsage} language="ruby" showLineNumbers />
             </div>
           </div>
 
           {/* Java */}
-          <div id="java" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+          <div id="java" className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
             <div className="flex items-center gap-3 mb-6">
               <div className="text-3xl">☕</div>
-              <h3 className="text-2xl font-bold text-gray-900">Java</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Java</h3>
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Installation</h4>
-              <p className="text-gray-600 mb-3">Add to your pom.xml:</p>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Installation</h4>
+              <p className="text-neural-600 mb-3">Add to your pom.xml:</p>
               <CodeBlock code={javaInstall} language="xml" title="pom.xml" />
             </div>
 
             <div>
-              <h4 className="text-lg font-bold text-gray-900 mb-3">Basic Usage</h4>
+              <h4 className="text-lg font-bold text-neural-900 mb-3">Basic Usage</h4>
               <CodeBlock code={javaBasicUsage} language="java" showLineNumbers />
             </div>
           </div>
@@ -478,23 +478,23 @@ for await (const chunk of stream) {
 
         {/* Feature Comparison */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">SDK Feature Comparison</h2>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">SDK Feature Comparison</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-neural-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left py-4 px-4 font-bold text-gray-900">Feature</th>
-                    <th className="text-center py-4 px-4 font-bold text-gray-900">JavaScript</th>
-                    <th className="text-center py-4 px-4 font-bold text-gray-900">Python</th>
-                    <th className="text-center py-4 px-4 font-bold text-gray-900">Go</th>
-                    <th className="text-center py-4 px-4 font-bold text-gray-900">PHP</th>
+                  <tr className="border-b border-neural-200 bg-gray-50">
+                    <th className="text-left py-4 px-4 font-bold text-neural-900">Feature</th>
+                    <th className="text-center py-4 px-4 font-bold text-neural-900">JavaScript</th>
+                    <th className="text-center py-4 px-4 font-bold text-neural-900">Python</th>
+                    <th className="text-center py-4 px-4 font-bold text-neural-900">Go</th>
+                    <th className="text-center py-4 px-4 font-bold text-neural-900">PHP</th>
                   </tr>
                 </thead>
                 <tbody>
                   {featureComparison.map((row, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-4 text-gray-700">{row.feature}</td>
+                    <tr key={index} className="border-b border-neural-100 hover:bg-gray-50">
+                      <td className="py-4 px-4 text-neural-700">{row.feature}</td>
                       <td className="text-center py-4 px-4">
                         {row.js ? <span className="text-green-600">✓</span> : <span className="text-gray-400">✗</span>}
                       </td>
@@ -517,26 +517,26 @@ for await (const chunk of stream) {
 
         {/* Common Patterns */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Common Patterns</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8">Common Patterns</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Error Handling</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Error Handling</h3>
               <CodeBlock code={errorHandling} language="javascript" />
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Retry Logic</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Retry Logic</h3>
               <CodeBlock code={retryLogic} language="javascript" />
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Pagination</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Pagination</h3>
               <CodeBlock code={pagination} language="javascript" />
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Streaming Responses</h3>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
+              <h3 className="text-lg font-bold text-neural-900 mb-4">Streaming Responses</h3>
               <CodeBlock code={streaming} language="javascript" />
             </div>
           </div>

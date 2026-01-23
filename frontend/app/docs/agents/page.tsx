@@ -110,7 +110,7 @@ export default function DocsAgents() {
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
             Agent Documentation
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-neural-600 mb-8">
             Comprehensive guides and documentation for working with AI agents
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function DocsAgents() {
           {agentDocs.map((doc, index) => {
             const IconComponent = doc.icon
             return (
-              <Link key={index} href={doc.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300">
+              <Link key={index} href={doc.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300">
                 <div className="flex items-start gap-4 mb-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getIconColor(doc.color)}`}>
                     <IconComponent className="w-6 h-6" />
@@ -129,14 +129,14 @@ export default function DocsAgents() {
                     {doc.category}
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-brand-600 transition-colors">
+                <h3 className="text-xl font-bold text-neural-900 mb-3 group-hover:text-brand-600 transition-colors">
                   {doc.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
+                <p className="text-neural-600 leading-relaxed mb-4">
                   {doc.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">📖 {doc.readTime} read</span>
+                  <span className="text-sm text-neural-500">📖 {doc.readTime} read</span>
                   <ArrowRight className="w-5 h-5 text-brand-500 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
                 </div>
               </Link>
@@ -146,15 +146,15 @@ export default function DocsAgents() {
 
         {/* Available Agents */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Available Agents</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8 text-center">Available Agents</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableAgents.map((agent, index) => (
-              <Link key={index} href={`/agents/${agent.slug}`} className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300">
+              <Link key={index} href={`/agents/${agent.slug}`} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300">
                 <div className="text-3xl mb-3">{agent.emoji}</div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">
+                <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-brand-600 transition-colors">
                   {agent.name}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-neural-500">
                   {agent.specialty}
                 </p>
               </Link>
@@ -163,9 +163,9 @@ export default function DocsAgents() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <p className="text-gray-600 mb-6">Ready to start building with AI agents?</p>
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 text-center">
+          <h2 className="text-2xl font-bold text-neural-900 mb-4">Quick Actions</h2>
+          <p className="text-neural-600 mb-6">Ready to start building with AI agents?</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/agents" className="inline-flex items-center justify-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-brand-700 transition-colors">
               View All Agents
@@ -174,7 +174,7 @@ export default function DocsAgents() {
             <Link href="/agents/random" className="inline-flex items-center justify-center gap-2 bg-accent-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors">
               Try Random Agent
             </Link>
-            <Link href="/support" className="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+            <Link href="/support" className="inline-flex items-center justify-center gap-2 bg-gray-100 text-neural-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors">
               Get Support
             </Link>
           </div>
