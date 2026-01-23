@@ -22,6 +22,11 @@ const AGENT_MAP: Record<
     type: 'Gaming & Entertainment',
     avatar: '🎮',
   },
+  'chess-player': {
+    name: 'Chess Player',
+    type: 'Strategy & Games',
+    avatar: '♟️',
+  },
   default: { name: 'AI Assistant', type: 'General Purpose', avatar: '🤖' },
 };
 
@@ -34,7 +39,7 @@ function resolveAgent(agentId?: string) {
 
 function calculateTrend(current: number, previous: number) {
   if (previous === 0) {
-    return { change: '+100%', trend: 'up' as const };
+    return { change: current > 0 ? '+100%' : '+0%', trend: 'up' as const };
   }
   const percentChange = ((current - previous) / previous) * 100;
   const change = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}%`;
@@ -70,6 +75,8 @@ export async function GET(
       );
     }
 
+    const userId = sessionUser.id;
+    const agentIdParam = params.agentId;
     const timeRange = request.nextUrl.searchParams.get('timeRange') || '7d';
     const now = new Date();
     let startDate: Date;
@@ -90,124 +97,163 @@ export async function GET(
       startDate.getTime() - (now.getTime() - startDate.getTime())
     );
 
-    const agentInfo = resolveAgent(params.agentId);
+    const agentInfo = resolveAgent(agentIdParam);
 
-    // Get current period stats using Prisma
-    const currentInteractions = await prisma.chatAnalyticsInteraction.findMany({
+    // Build the where clause for agent filtering
+    // 'default' means all agents (AI Assistant / Studio)
+    const agentFilter = agentIdParam === 'default' 
+      ? {} 
+      : { 
+          OR: [
+            { agentId: { contains: agentIdParam, mode: 'insensitive' as const } },
+            { name: { contains: agentInfo.name, mode: 'insensitive' as const } }
+          ]
+        };
+
+    // Get current period chat sessions for THIS USER
+    const currentSessions = await prisma.chatSession.findMany({
       where: {
-        OR: [
-          { agentId: { contains: params.agentId, mode: 'insensitive' } }
-        ],
-        startedAt: { gte: startDate }
+        userId,
+        createdAt: { gte: startDate },
+        ...agentFilter
+      },
+      include: {
+        messages: true,
+        agent: true
       }
     });
 
-    // Calculate stats from interactions
-    const totalConversations = currentInteractions.length;
+    // Calculate stats from actual chat sessions
+    const totalConversations = currentSessions.length;
     let totalMessages = 0;
-    let totalResponseTime = 0;
-    const uniqueUserIds = new Set<string>();
+    let totalDurationMs = 0;
 
-    currentInteractions.forEach((interaction: typeof currentInteractions[0]) => {
-      const messages = interaction.messages as any[];
-      totalMessages += messages?.length || 0;
-      totalResponseTime += interaction.durationMs || 0;
-      if (interaction.userId) {
-        uniqueUserIds.add(interaction.userId);
+    currentSessions.forEach((session) => {
+      totalMessages += session.messages?.length || 0;
+      // Get duration from stats if available
+      const stats = session.stats as any;
+      if (stats?.durationMs) {
+        totalDurationMs += stats.durationMs;
+      } else {
+        // Estimate based on message count
+        totalDurationMs += (session.messages?.length || 0) * 2000;
       }
     });
 
     const avgResponseTime = totalConversations > 0 
-      ? totalResponseTime / totalConversations / 1000 // Convert to seconds
+      ? totalDurationMs / totalConversations / 1000 // Convert to seconds
       : 1.2;
 
-    // Get previous period stats
-    const previousInteractions = await prisma.chatAnalyticsInteraction.findMany({
+    // Get previous period stats for comparison
+    const previousSessions = await prisma.chatSession.findMany({
       where: {
-        OR: [
-          { agentId: { contains: params.agentId, mode: 'insensitive' } }
-        ],
-        startedAt: { gte: previousPeriodStart, lt: startDate }
+        userId,
+        createdAt: { gte: previousPeriodStart, lt: startDate },
+        ...agentFilter
+      },
+      include: {
+        messages: true
       }
     });
 
-    const prevTotalConversations = previousInteractions.length;
+    const prevTotalConversations = previousSessions.length;
     let prevTotalMessages = 0;
-    let prevTotalResponseTime = 0;
+    let prevTotalDurationMs = 0;
 
-    previousInteractions.forEach((interaction: typeof previousInteractions[0]) => {
-      const messages = interaction.messages as any[];
-      prevTotalMessages += messages?.length || 0;
-      prevTotalResponseTime += interaction.durationMs || 0;
+    previousSessions.forEach((session) => {
+      prevTotalMessages += session.messages?.length || 0;
+      const stats = session.stats as any;
+      if (stats?.durationMs) {
+        prevTotalDurationMs += stats.durationMs;
+      } else {
+        prevTotalDurationMs += (session.messages?.length || 0) * 2000;
+      }
     });
 
     const prevAvgResponseTime = prevTotalConversations > 0 
-      ? prevTotalResponseTime / prevTotalConversations / 1000
+      ? prevTotalDurationMs / prevTotalConversations / 1000
       : 1.2;
 
     const conversationTrend = calculateTrend(totalConversations, prevTotalConversations);
     const messageTrend = calculateTrend(totalMessages, prevTotalMessages);
+    // For response time, lower is better, so we reverse the comparison
     const responseTimeTrend = calculateTrend(prevAvgResponseTime, avgResponseTime);
 
-    // Get recent activity
-    const recentActivity = await prisma.chatAnalyticsInteraction.findMany({
+    // Get recent activity from chat sessions
+    const recentSessions = await prisma.chatSession.findMany({
       where: {
-        OR: [
-          { agentId: { contains: params.agentId, mode: 'insensitive' } }
-        ],
-        startedAt: { gte: startDate }
+        userId,
+        createdAt: { gte: startDate },
+        ...agentFilter
       },
-      orderBy: { startedAt: 'desc' },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        agent: true
+      },
+      orderBy: { updatedAt: 'desc' },
       take: 10
     });
 
-    const transformedActivity = recentActivity.map((activity: typeof recentActivity[0]) => {
-      const timestampValue = activity.startedAt;
+    const transformedActivity = recentSessions.map((session) => {
+      const lastUpdate = session.updatedAt || session.createdAt;
       const minutesAgo = Math.floor(
-        (now.getTime() - timestampValue.getTime()) / (1000 * 60)
+        (now.getTime() - lastUpdate.getTime()) / (1000 * 60)
       );
-      const timeAgo =
-        minutesAgo < 60
-          ? `${minutesAgo} min ago`
-          : `${Math.floor(minutesAgo / 60)} hours ago`;
+      
+      let timeAgo: string;
+      if (minutesAgo < 1) {
+        timeAgo = 'Just now';
+      } else if (minutesAgo < 60) {
+        timeAgo = `${minutesAgo} min ago`;
+      } else if (minutesAgo < 1440) {
+        timeAgo = `${Math.floor(minutesAgo / 60)} hours ago`;
+      } else {
+        timeAgo = `${Math.floor(minutesAgo / 1440)} days ago`;
+      }
 
-      const messages = activity.messages as any[];
-      const firstMessage = messages?.find(
-        (msg: any) => msg.role === 'user'
-      );
-
-      const description = firstMessage?.content
-        ? `${firstMessage.content.substring(0, 60)}${
-            firstMessage.content.length > 60 ? '...' : ''
+      const lastMessage = session.messages?.[0];
+      const description = lastMessage?.content
+        ? `${lastMessage.content.substring(0, 60)}${
+            lastMessage.content.length > 60 ? '...' : ''
           }`
-        : 'New conversation started';
+        : session.name || 'Conversation started';
 
       return {
         timestamp: timeAgo,
         type: 'conversation',
         description,
-        user: activity.userId || 'Anonymous',
+        user: sessionUser.username || sessionUser.email || 'You',
       };
     });
 
+    // Calculate satisfaction score based on activity
     const satisfactionScore = Math.min(
       5,
-      4 + (totalConversations / 100) * 0.5
+      4 + (totalConversations / 50) * 0.5 + (totalMessages / 200) * 0.3
     );
+
+    // Determine agent status
+    const hasRecentActivity = currentSessions.some(s => {
+      const lastUpdate = s.updatedAt || s.createdAt;
+      return (now.getTime() - lastUpdate.getTime()) < 30 * 60 * 1000; // 30 minutes
+    });
 
     const performanceData = {
       agent: {
         name: agentInfo.name,
         type: agentInfo.type,
         avatar: agentInfo.avatar,
-        status: totalConversations > 0 ? 'active' : 'idle',
+        status: hasRecentActivity ? 'active' : (totalConversations > 0 ? 'idle' : 'idle'),
       },
       metrics: {
         totalConversations,
         totalMessages,
         averageResponseTime: Math.round(avgResponseTime * 10) / 10,
         satisfactionScore: Math.round(satisfactionScore * 10) / 10,
-        activeUsers: uniqueUserIds.size,
+        activeUsers: totalConversations > 0 ? 1 : 0, // For individual user dashboard
         uptime: 99.9,
       },
       trends: {
@@ -229,11 +275,12 @@ export async function GET(
         satisfaction: {
           value: Math.round(satisfactionScore * 10) / 10,
           change: '+0.1',
-          trend: 'up',
+          trend: 'up' as const,
         },
       },
       recentActivity: transformedActivity,
       timeRange,
+      conversationsInWindow: `${totalConversations} conversations in this window`,
       dataRefreshed: new Date().toISOString(),
     };
 
@@ -241,7 +288,7 @@ export async function GET(
   } catch (error) {
     console.error('Agent performance error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: 'Internal server error', error: String(error) },
       { status: 500 }
     );
   }
