@@ -866,12 +866,17 @@ router.get('/analytics', async (req, res) => {
     }));
 
     // Sort by conversations for top agents
+    // Calculate total conversations for percentage calculation
+    const totalAgentConversations = agentPerformance.reduce((sum, a) => sum + a.conversations, 0) || 1;
     const topAgents = [...agentPerformance]
       .sort((a, b) => b.conversations - a.conversations)
       .slice(0, 5)
       .map((agent, index) => ({
         rank: index + 1,
-        ...agent
+        name: agent.name,
+        usage: Math.round((agent.conversations / totalAgentConversations) * 100),
+        conversations: agent.conversations,
+        messages: agent.messages
       }));
 
     // Get recent activity (last 30 minutes)
@@ -895,12 +900,17 @@ router.get('/analytics', async (req, res) => {
       recentActivity = recentMessages.map(msg => ({
         id: msg.id,
         type: msg.role === 'user' ? 'message_sent' : 'message_received',
+        action: msg.role === 'user' 
+          ? `Sent message`
+          : `Received response`,
         description: msg.role === 'user' 
           ? `Sent message to ${msg.session.agent?.name || 'AI Studio'}`
           : `Received response from ${msg.session.agent?.name || 'AI Studio'}`,
+        agent: msg.session.agent?.name || 'AI Studio',
         timestamp: msg.createdAt,
         agentId: msg.session.agentId,
-        agentName: msg.session.agent?.name || 'AI Studio'
+        agentName: msg.session.agent?.name || 'AI Studio',
+        status: 'success'
       }));
     } catch (e) {
       console.log('Recent activity error:', e.message);
@@ -997,9 +1007,10 @@ router.get('/analytics', async (req, res) => {
       recentActivity,
       costAnalysis: {
         currentMonth: currentMonthCost,
-        projectedMonth: currentMonthCost * 1.1,
+        projectedMonth: Math.round(currentMonthCost * 1.1 * 100) / 100,
         breakdown: agentPerformance.map(agent => ({
           name: agent.name,
+          category: agent.name,
           cost: Math.round(agent.messages * estimatedCostPerMessage * 100) / 100,
           percentage: totalMessages > 0 ? Math.round((agent.messages / totalMessages) * 100) : 0
         }))
