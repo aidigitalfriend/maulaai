@@ -1068,7 +1068,7 @@ router.get('/conversations/:userId', async (req, res) => {
             select: {
               agentId: true,
               name: true,
-              avatar: true,
+              avatarUrl: true,
             },
           },
           messages: {
@@ -1116,7 +1116,7 @@ router.get('/conversations/:userId', async (req, res) => {
         } : null,
         // Additional fields for compatibility
         agentId: conv.agentId,
-        agentAvatar: conv.agent?.avatar,
+        agentAvatar: conv.agent?.avatarUrl,
         tags: conv.tags || [],
         createdAt: conv.createdAt.toISOString(),
         updatedAt: conv.updatedAt.toISOString(),
