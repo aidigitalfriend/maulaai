@@ -1059,14 +1059,14 @@ router.get('/analytics', async (req, res) => {
         messages: agent.messages
       }));
 
-    // Get recent activity (last 30 minutes)
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    // Get recent activity (last 24 hours for audit trail)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     let recentActivity = [];
     try {
       const recentMessages = await prisma.chatMessage.findMany({
         where: {
           session: { userId },
-          createdAt: { gte: thirtyMinutesAgo }
+          createdAt: { gte: twentyFourHoursAgo }
         },
         include: {
           session: {
@@ -1074,7 +1074,7 @@ router.get('/analytics', async (req, res) => {
           }
         },
         orderBy: { createdAt: 'desc' },
-        take: 10
+        take: 20
       });
 
       recentActivity = recentMessages.map(msg => ({

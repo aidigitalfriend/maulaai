@@ -541,7 +541,8 @@ export default function DashboardAnalyticsPage() {
                   <TrendingDown className="w-5 h-5 text-brand-500" />
                 </div>
                 <ul className="space-y-4">
-                  {analyticsData.recentActivity.slice(0, 6).map((activity) => {
+                  {analyticsData.recentActivity.length > 0 ? (
+                    analyticsData.recentActivity.slice(0, 6).map((activity) => {
                     const statusKey = activity.status
                       ? activity.status.toLowerCase()
                       : '';
@@ -573,7 +574,18 @@ export default function DashboardAnalyticsPage() {
                         </div>
                       </li>
                     );
-                  })}
+                  })
+                  ) : (
+                    <li className="text-center py-8">
+                      <div className="text-neural-400 mb-2">
+                        <Activity className="w-12 h-12 mx-auto opacity-50" />
+                      </div>
+                      <p className="text-neural-500 font-medium">No recent activity</p>
+                      <p className="text-sm text-neural-400 mt-1">
+                        Start chatting with AI agents to see your activity here
+                      </p>
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>

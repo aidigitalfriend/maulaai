@@ -57,29 +57,32 @@ export default function AdvancedCharts({ analyticsData }: AdvancedChartsProps) {
         const layout = {
           title: {
             text: 'Usage Trends (Last 14 Days)',
-            font: { size: 16, color: '#1f2937' },
+            font: { size: 16, color: '#ffffff' },
           },
           xaxis: {
             title: 'Date',
             tickangle: -45,
-            tickfont: { size: 10 },
+            tickfont: { size: 10, color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           yaxis: {
             title: 'Count',
-            gridcolor: '#f3f4f6',
+            gridcolor: '#374151',
+            tickfont: { color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           margin: { l: 50, r: 50, t: 50, b: 80 },
           paper_bgcolor: 'rgba(0,0,0,0)',
           plot_bgcolor: 'rgba(0,0,0,0)',
           showlegend: true,
-          legend: { x: 0, y: 1.1, orientation: 'h' },
+          legend: { x: 0, y: 1.1, orientation: 'h', font: { color: '#9ca3af' } },
         };
 
         PlotlyLib.newPlot(
           usageChartRef.current,
           [usageTrace, conversationsTrace, messagesTrace],
           layout,
-          { responsive: true }
+          { responsive: true, displayModeBar: false }
         );
 
         return () => {
@@ -137,35 +140,40 @@ export default function AdvancedCharts({ analyticsData }: AdvancedChartsProps) {
         const performanceLayout = {
           title: {
             text: 'Agent Performance Overview',
-            font: { size: 16, color: '#1f2937' },
+            font: { size: 16, color: '#ffffff' },
           },
           xaxis: {
             title: 'Agent',
             tickangle: -45,
-            tickfont: { size: 10 },
+            tickfont: { size: 10, color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           yaxis: {
             title: 'Success Rate (%)',
-            gridcolor: '#f3f4f6',
+            gridcolor: '#374151',
+            tickfont: { color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           yaxis2: {
             title: 'Response Time (ms)',
             overlaying: 'y' as const,
             side: 'right' as const,
             showgrid: false,
+            tickfont: { color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           margin: { l: 60, r: 60, t: 50, b: 100 },
           paper_bgcolor: 'rgba(0,0,0,0)',
           plot_bgcolor: 'rgba(0,0,0,0)',
           showlegend: true,
-          legend: { x: 0, y: 1.1, orientation: 'h' },
+          legend: { x: 0, y: 1.1, orientation: 'h', font: { color: '#9ca3af' } },
         };
 
         PlotlyLib.newPlot(
           performanceChartRef.current,
           [performanceTrace, responseTimeTrace],
           performanceLayout,
-          { responsive: true }
+          { responsive: true, displayModeBar: false }
         );
 
         return () => {
@@ -201,17 +209,20 @@ export default function AdvancedCharts({ analyticsData }: AdvancedChartsProps) {
         const revenueLayout = {
           title: {
             text: 'Revenue Trends (Last 14 Days)',
-            font: { size: 16, color: '#1f2937' },
+            font: { size: 16, color: '#ffffff' },
           },
           xaxis: {
             title: 'Date',
             tickangle: -45,
-            tickfont: { size: 10 },
+            tickfont: { size: 10, color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           yaxis: {
             title: 'Revenue ($)',
-            gridcolor: '#f3f4f6',
+            gridcolor: '#374151',
             tickformat: '$.2f',
+            tickfont: { color: '#9ca3af' },
+            titlefont: { color: '#9ca3af' },
           },
           margin: { l: 50, r: 50, t: 50, b: 80 },
           paper_bgcolor: 'rgba(0,0,0,0)',
@@ -222,7 +233,7 @@ export default function AdvancedCharts({ analyticsData }: AdvancedChartsProps) {
           revenueChartRef.current,
           [revenueTrace],
           revenueLayout,
-          { responsive: true }
+          { responsive: true, displayModeBar: false }
         );
 
         return () => {
