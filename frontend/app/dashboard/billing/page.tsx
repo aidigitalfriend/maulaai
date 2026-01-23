@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { CreditCard, CheckCircle, XCircle, Clock, ArrowRight, Wallet } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,12 +82,11 @@ export default function BillingPage() {
           subscriptionId: selectedSub._id,
           userId: state.user?.id,
           agentId: selectedSub.agentId,
-          immediate: true, // Cancel immediately, not at period end
+          immediate: true,
         }),
       });
 
       if (response.ok) {
-        // Refresh subscriptions list
         await fetchSubscriptions();
       } else {
         const errorData = await response.json();
@@ -135,26 +135,26 @@ export default function BillingPage() {
   const getPlanColor = (plan: string) => {
     switch (plan) {
       case 'daily':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'weekly':
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'monthly':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 text-green-700 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-neural-100 text-neural-700 border-neural-200';
     }
   };
 
   if (!state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
+          <h1 className="text-2xl font-bold text-neural-900 mb-4">
             Please log in to view billing
           </h1>
           <Link
             href="/auth/login"
-            className="px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-semibold transition-colors"
+            className="px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-lg font-semibold transition-colors inline-block"
           >
             Log In
           </Link>
@@ -165,37 +165,39 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading your subscriptions...</p>
+          <p className="text-neural-600">Loading your subscriptions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Cancel Confirmation Modal */}
       {showCancelModal && selectedSub && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neural-200 rounded-2xl p-6 max-w-md w-full shadow-xl">
             <div className="text-center mb-6">
-              <div className="text-5xl mb-4">⚠️</div>
-              <h3 className="text-xl font-bold mb-2">Cancel Access?</h3>
-              <p className="text-slate-400">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-neural-900 mb-2">Cancel Access?</h3>
+              <p className="text-neural-600">
                 Are you sure you want to cancel access to{' '}
-                <span className="text-white font-semibold">
+                <span className="text-neural-900 font-semibold">
                   {selectedSub.agentName || selectedSub.agentId}
                 </span>
                 ?
               </p>
             </div>
 
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
-              <p className="text-red-400 text-sm">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <p className="text-red-700 text-sm">
                 ⚠️ This will <strong>immediately</strong> revoke your access.
-                You won't be able to chat with this agent until you purchase
+                You won&apos;t be able to chat with this agent until you purchase
                 again.
               </p>
             </div>
@@ -206,13 +208,13 @@ export default function BillingPage() {
                   setShowCancelModal(false);
                   setSelectedSub(null);
                 }}
-                className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-neural-100 hover:bg-neural-200 text-neural-800 font-medium rounded-xl transition-colors"
               >
                 Keep Access
               </button>
               <button
                 onClick={handleConfirmCancel}
-                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors"
               >
                 Yes, Cancel Now
               </button>
@@ -221,72 +223,79 @@ export default function BillingPage() {
         </div>
       )}
 
-      <div className="container mx-auto max-w-5xl">
+      <div className="container-custom section-padding-lg">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Agent Subscriptions</h1>
-          <p className="text-slate-400">Manage your purchased agent access</p>
+        <div className="text-center max-w-4xl mx-auto mb-12">
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-20 h-20 bg-brand-100 rounded-2xl flex items-center justify-center">
+              <CreditCard className="w-10 h-10 text-brand-600" />
+            </div>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+            Billing & Subscriptions
+          </h1>
+          <p className="text-xl text-neural-600 leading-relaxed">
+            Manage your AI agent subscriptions and payment history
+          </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">✅</span>
-              <span className="text-slate-400">Active Agents</span>
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="text-3xl font-bold text-green-600">{activeSubscriptions.length}</div>
+                <div className="text-sm text-neural-600">Active Agents</div>
+              </div>
+              <div className="text-center p-4 bg-neural-50 rounded-xl border border-neural-100">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Clock className="w-5 h-5 text-neural-500" />
+                </div>
+                <div className="text-3xl font-bold text-neural-600">{inactiveSubscriptions.length}</div>
+                <div className="text-sm text-neural-600">Inactive</div>
+              </div>
+              <div className="text-center p-4 bg-brand-50 rounded-xl border border-brand-100">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Wallet className="w-5 h-5 text-brand-600" />
+                </div>
+                <div className="text-3xl font-bold text-brand-600">${totalSpent.toFixed(2)}</div>
+                <div className="text-sm text-neural-600">Total Spent</div>
+              </div>
             </div>
-            <p className="text-3xl font-bold text-green-400">
-              {activeSubscriptions.length}
-            </p>
-          </div>
-
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">📦</span>
-              <span className="text-slate-400">Inactive</span>
-            </div>
-            <p className="text-3xl font-bold text-slate-400">
-              {inactiveSubscriptions.length}
-            </p>
-          </div>
-
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">💰</span>
-              <span className="text-slate-400">Total Spent</span>
-            </div>
-            <p className="text-3xl font-bold text-brand-400">
-              ${totalSpent.toFixed(2)}
-            </p>
           </div>
         </div>
 
         {/* Pricing Reminder */}
-        <div className="bg-brand-500/10 border border-brand-500/30 rounded-xl p-4 mb-8">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">💡</span>
-            <div>
-              <p className="font-semibold text-brand-300">
-                Simple One-Time Pricing
-              </p>
-              <p className="text-sm text-slate-400">
-                <span className="text-blue-400">$1/day</span> •
-                <span className="text-purple-400 mx-2">$5/week</span> •
-                <span className="text-green-400">$15/month</span> — No
-                auto-renewal. Cancel anytime or let it expire.
-              </p>
+        <div className="max-w-4xl mx-auto mb-8">
+          <div className="bg-gradient-to-r from-brand-500 to-accent-500 rounded-2xl p-6 text-white">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <span className="text-2xl">💡</span>
+              </div>
+              <div>
+                <p className="font-semibold text-lg mb-1">Simple One-Time Pricing</p>
+                <p className="text-white/90">
+                  <span className="font-medium">$1/day</span> •{' '}
+                  <span className="font-medium">$5/week</span> •{' '}
+                  <span className="font-medium">$15/month</span> — No
+                  auto-renewal. Cancel anytime or let it expire.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Active Subscriptions */}
         {activeSubscriptions.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+          <div className="max-w-4xl mx-auto mb-8">
+            <h2 className="text-2xl font-bold text-neural-800 mb-4 flex items-center gap-3">
+              <span className="w-3 h-3 bg-green-500 rounded-full"></span>
               Active Subscriptions ({activeSubscriptions.length})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {activeSubscriptions.map((sub) => {
                 const daysRemaining = getDaysRemaining(sub.expiryDate);
                 const isExpiringSoon = daysRemaining <= 3;
@@ -295,27 +304,27 @@ export default function BillingPage() {
                 return (
                   <div
                     key={sub._id}
-                    className={`bg-slate-800/50 border rounded-xl p-5 ${
+                    className={`bg-white border rounded-2xl p-6 shadow-sm transition-all hover:shadow-md ${
                       isExpiringSoon
-                        ? 'border-orange-500/50'
-                        : 'border-slate-700'
+                        ? 'border-orange-300 bg-orange-50/30'
+                        : 'border-neural-100'
                     }`}
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">
+                          <h3 className="font-bold text-lg text-neural-900">
                             {sub.agentName || sub.agentId}
                           </h3>
                           <span
-                            className={`text-xs font-medium px-2 py-1 rounded-full ${getPlanColor(
+                            className={`text-xs font-semibold px-3 py-1 rounded-full border ${getPlanColor(
                               sub.plan
                             )}`}
                           >
                             {getPlanLabel(sub.plan)}
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-neural-600">
                           <span>
                             Started:{' '}
                             {new Date(sub.startDate).toLocaleDateString()}
@@ -324,7 +333,7 @@ export default function BillingPage() {
                           <span
                             className={
                               isExpiringSoon
-                                ? 'text-orange-400 font-medium'
+                                ? 'text-orange-600 font-semibold'
                                 : ''
                             }
                           >
@@ -337,22 +346,22 @@ export default function BillingPage() {
 
                       <div className="flex items-center gap-3">
                         {isExpiringSoon && (
-                          <span className="text-xs bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full">
+                          <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded-full border border-orange-200 font-medium">
                             ⚠️ Expiring Soon
                           </span>
                         )}
                         <button
                           onClick={() => handleCancelClick(sub)}
                           disabled={isCancelling}
-                          className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 text-sm font-medium rounded-lg transition-colors border border-red-600/30 disabled:opacity-50"
+                          className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition-colors border border-red-200 disabled:opacity-50"
                         >
                           {isCancelling ? 'Cancelling...' : 'Cancel Access'}
                         </button>
                         <Link
                           href={`/agents/${sub.agentId}`}
-                          className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors"
+                          className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
                         >
-                          Chat Now
+                          Chat Now <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>
                     </div>
@@ -363,39 +372,39 @@ export default function BillingPage() {
           </div>
         )}
 
-        {/* Inactive Subscriptions (Expired + Cancelled) */}
+        {/* Inactive Subscriptions */}
         {inactiveSubscriptions.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-slate-400">
-              <span className="w-2 h-2 bg-slate-500 rounded-full"></span>
+          <div className="max-w-4xl mx-auto mb-8">
+            <h2 className="text-2xl font-bold text-neural-500 mb-4 flex items-center gap-3">
+              <span className="w-3 h-3 bg-neural-400 rounded-full"></span>
               Inactive Subscriptions ({inactiveSubscriptions.length})
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {inactiveSubscriptions.map((sub) => (
                 <div
                   key={sub._id}
-                  className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5"
+                  className="bg-white/60 border border-neural-200 rounded-2xl p-6"
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg text-slate-300">
+                        <h3 className="font-bold text-lg text-neural-600">
                           {sub.agentName || sub.agentId}
                         </h3>
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-slate-700 text-slate-400">
+                        <span className="text-xs font-medium px-3 py-1 rounded-full bg-neural-100 text-neural-500 border border-neural-200">
                           {getPlanLabel(sub.plan)}
                         </span>
                         <span
-                          className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          className={`text-xs font-medium px-3 py-1 rounded-full ${
                             sub.status === 'cancelled'
-                              ? 'bg-red-500/20 text-red-400'
-                              : 'bg-slate-600 text-slate-300'
+                              ? 'bg-red-100 text-red-600 border border-red-200'
+                              : 'bg-neural-100 text-neural-600 border border-neural-200'
                           }`}
                         >
                           {sub.status === 'cancelled' ? 'Cancelled' : 'Expired'}
                         </span>
                       </div>
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-neural-500">
                         {sub.status === 'cancelled' ? 'Cancelled' : 'Expired'}:{' '}
                         {new Date(sub.expiryDate).toLocaleDateString()}
                       </div>
@@ -405,7 +414,7 @@ export default function BillingPage() {
                       href={`/subscribe?agent=${encodeURIComponent(
                         sub.agentName || sub.agentId
                       )}&slug=${sub.agentId}`}
-                      className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors"
                     >
                       Purchase Again
                     </Link>
@@ -418,56 +427,62 @@ export default function BillingPage() {
 
         {/* No Subscriptions */}
         {subscriptions.length === 0 && !error && (
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-12 text-center">
-            <div className="text-6xl mb-4">🤖</div>
-            <h3 className="text-xl font-semibold mb-2">
-              No Agent Subscriptions Yet
-            </h3>
-            <p className="text-slate-400 mb-6">
-              Purchase access to any of our AI agents to get started
-            </p>
-            <Link
-              href="/agents"
-              className="inline-block px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg transition-colors"
-            >
-              Browse Agents
-            </Link>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-neural-100">
+              <div className="w-20 h-20 bg-brand-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-4xl">🤖</span>
+              </div>
+              <h3 className="text-2xl font-bold text-neural-800 mb-3">
+                No Agent Subscriptions Yet
+              </h3>
+              <p className="text-neural-600 mb-8 max-w-md mx-auto">
+                Purchase access to any of our AI agents to get started with personalized conversations
+              </p>
+              <Link
+                href="/agents"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl transition-colors"
+              >
+                Browse Agents <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
-            <p className="text-red-400 mb-4">{error}</p>
-            <button
-              onClick={fetchSubscriptions}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
-            >
-              Try Again
-            </button>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+              <p className="text-red-700 mb-4">{error}</p>
+              <button
+                onClick={fetchSubscriptions}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
           </div>
         )}
 
         {/* Quick Links */}
-        <div className="mt-8 pt-8 border-t border-slate-700">
-          <div className="flex flex-wrap gap-4 justify-center">
+        <div className="max-w-4xl mx-auto mt-12 pt-8 border-t border-neural-200">
+          <div className="flex flex-wrap gap-6 justify-center">
             <Link
               href="/agents"
-              className="text-brand-400 hover:text-brand-300 text-sm font-medium"
+              className="text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
             >
-              Browse All Agents →
+              Browse All Agents <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/pricing"
-              className="text-brand-400 hover:text-brand-300 text-sm font-medium"
+              className="text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
             >
-              View Pricing →
+              View Pricing <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/dashboard"
-              className="text-brand-400 hover:text-brand-300 text-sm font-medium"
+              className="text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
             >
-              Back to Dashboard →
+              Back to Dashboard <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
