@@ -71,15 +71,15 @@ export default function RoadmapPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
             {roadmap.map((phase, idx) => (
-              <div key={idx} className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+              <div key={idx} className="bg-white rounded-2xl border border-neural-200 shadow-lg overflow-hidden">
                 {/* Phase Header */}
-                <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-100">
+                <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-neural-100">
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg">
                       {phase.icon}
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-gray-900">{phase.quarter}</h2>
+                      <h2 className="text-2xl font-bold text-neural-900">{phase.quarter}</h2>
                     </div>
                     <span className={`px-4 py-1.5 rounded-full text-sm font-semibold border ${phase.statusColor}`}>
                       {phase.status}
@@ -91,8 +91,8 @@ export default function RoadmapPage() {
                 <div className="p-6">
                   <div className="space-y-4">
                     {phase.features.map((feature, fIdx) => (
-                      <div key={fIdx} className={`flex items-start gap-4 p-4 rounded-xl transition ${feature.completed ? 'bg-green-50 border border-green-100' : 'bg-gray-50 border border-gray-100'}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${feature.completed ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                      <div key={fIdx} className={`flex items-start gap-4 p-4 rounded-xl transition ${feature.completed ? 'bg-green-50 border border-green-100' : 'bg-neural-50 border border-neural-100'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${feature.completed ? 'bg-green-500 text-white' : 'bg-neural-200 text-neural-500'}`}>
                           {feature.completed ? (
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -104,8 +104,8 @@ export default function RoadmapPage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className={`font-semibold ${feature.completed ? 'text-green-800' : 'text-gray-900'}`}>{feature.name}</h3>
-                          <p className={`text-sm mt-0.5 ${feature.completed ? 'text-green-600' : 'text-gray-500'}`}>{feature.description}</p>
+                          <h3 className={`font-semibold ${feature.completed ? 'text-green-800' : 'text-neural-900'}`}>{feature.name}</h3>
+                          <p className={`text-sm mt-0.5 ${feature.completed ? 'text-green-600' : 'text-neural-500'}`}>{feature.description}</p>
                         </div>
                         {feature.completed && (
                           <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">Done</span>
@@ -119,26 +119,26 @@ export default function RoadmapPage() {
           </div>
 
           {/* Progress Summary */}
-          <div className="mt-12 bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Overall Progress</h3>
+          <div className="mt-12 bg-white rounded-2xl border border-neural-200 shadow-lg p-6">
+            <h3 className="text-lg font-bold text-neural-900 mb-4">Overall Progress</h3>
             <div className="flex items-center gap-4">
-              <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+              <div className="flex-1 bg-neural-100 rounded-full h-4 overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style={{ width: '45%' }}></div>
               </div>
-              <span className="text-sm font-semibold text-gray-700">45% Complete</span>
+              <span className="text-sm font-semibold text-neural-700">45% Complete</span>
             </div>
             <div className="flex flex-wrap gap-4 mt-4 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-gray-600">Completed: 6 features</span>
+                <span className="text-neural-600">Completed: 6 features</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                <span className="text-gray-600">In Progress: 2 features</span>
+                <span className="text-neural-600">In Progress: 2 features</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                <span className="text-gray-600">Planned: 6 features</span>
+                <div className="w-3 h-3 rounded-full bg-neural-200"></div>
+                <span className="text-neural-600">Planned: 6 features</span>
               </div>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function RoadmapPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-white border-t border-gray-200">
+      <section className="py-16 bg-white border-t border-neural-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-12 border border-blue-100">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -154,8 +154,8 @@ export default function RoadmapPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Have an Idea?</h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
+            <h2 className="text-3xl font-bold text-neural-900 mb-4">Have an Idea?</h2>
+            <p className="text-lg text-neural-600 mb-8 max-w-xl mx-auto">
               We love hearing from our community. Share your feature requests and help shape the future of One Last AI.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -165,7 +165,7 @@ export default function RoadmapPage() {
                 </svg>
                 Submit Your Idea
               </Link>
-              <Link href="/community" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition">
+              <Link href="/community" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-neural-100 hover:bg-gray-200 text-neural-700 rounded-xl font-semibold transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
