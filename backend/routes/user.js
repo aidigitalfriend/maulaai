@@ -659,6 +659,186 @@ router.get('/billing/:userId', async (req, res) => {
 });
 
 // ============================================
+// USER CONVERSATIONS
+// ============================================
+router.get('/conversations/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+    const skip = (page - 1) * limit;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required' });
+    }
+
+    // Import prisma for direct queries
+    const { prisma } = await import('../lib/prisma.js');
+
+    // Build where clause
+    const whereClause = {
+      userId,
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    // Get total count
+    const total = await prisma.chatSession.count({ where: whereClause });
+
+    // Get conversations with messages
+    const chatSessions = await prisma.chatSession.findMany({
+      where: whereClause,
+      include: {
+        agent: {
+          select: {
+            name: true,
+            agentId: true,
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            content: true,
+            createdAt: true,
+          },
+        },
+        _count: {
+          select: { messages: true },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      skip,
+      take: limit,
+    });
+
+    // Transform to expected format
+    const conversations = chatSessions.map((session) => {
+      const lastMsg = session.messages[0];
+      const createdAt = new Date(session.createdAt);
+      const updatedAt = new Date(session.updatedAt);
+      const durationMs = updatedAt.getTime() - createdAt.getTime();
+      const durationMinutes = Math.max(1, Math.floor(durationMs / 60000));
+
+      return {
+        id: session.sessionId || session.id,
+        agent: session.agent?.name || session.agentId || 'Unknown Agent',
+        topic: session.name || 'Untitled Conversation',
+        date: session.createdAt.toISOString(),
+        duration: durationMinutes < 60 
+          ? `${durationMinutes} min` 
+          : `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`,
+        messageCount: session._count.messages || 0,
+        lastMessage: lastMsg ? {
+          content: lastMsg.content?.substring(0, 150) + (lastMsg.content?.length > 150 ? '...' : ''),
+          timestamp: lastMsg.createdAt.toISOString(),
+        } : null,
+      };
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      data: {
+        conversations,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get conversations error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get conversations' });
+  }
+});
+
+// GET /api/user/conversations/:userId/export - Export user conversations
+router.get('/conversations/:userId/export', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const format = req.query.format || 'json';
+
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required' });
+    }
+
+    // Import prisma for direct queries
+    const { prisma } = await import('../lib/prisma.js');
+
+    // Get all conversations with messages
+    const chatSessions = await prisma.chatSession.findMany({
+      where: { userId },
+      include: {
+        agent: {
+          select: {
+            name: true,
+            agentId: true,
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            role: true,
+            content: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Transform data for export
+    const exportData = chatSessions.map((session) => ({
+      id: session.sessionId || session.id,
+      agent: session.agent?.name || session.agentId || 'Unknown Agent',
+      topic: session.name || 'Untitled Conversation',
+      createdAt: session.createdAt.toISOString(),
+      updatedAt: session.updatedAt.toISOString(),
+      messageCount: session.messages.length,
+      messages: session.messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.createdAt.toISOString(),
+      })),
+    }));
+
+    if (format === 'csv') {
+      // Build CSV content
+      const csvRows = ['ID,Agent,Topic,Date,Messages'];
+      exportData.forEach((conv) => {
+        csvRows.push(
+          `"${conv.id}","${conv.agent}","${conv.topic.replace(/"/g, '""')}","${conv.createdAt}",${conv.messageCount}`
+        );
+      });
+      const csvContent = csvRows.join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=conversations.csv');
+      return res.send(csvContent);
+    }
+
+    // Default to JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=conversations.json');
+    return res.json({ conversations: exportData });
+  } catch (error) {
+    console.error('Export conversations error:', error);
+    res.status(500).json({ success: false, error: 'Failed to export conversations' });
+  }
+});
+
+// ============================================
 // USER ANALYTICS
 // ============================================
 router.get('/analytics', async (req, res) => {
