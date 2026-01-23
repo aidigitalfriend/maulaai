@@ -37,6 +37,7 @@ function SubscriptionContent() {
           const response = await fetch('/api/subscriptions/check', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
               userId: user.id,
               email: user.email,
