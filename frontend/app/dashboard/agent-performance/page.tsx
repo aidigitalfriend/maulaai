@@ -50,12 +50,13 @@ interface AgentPerformanceData {
 }
 
 const agentOptions = [
+  { id: 'default', name: 'All Agents (AI Studio)', icon: '🤖' },
   { id: 'einstein', name: 'Einstein', icon: '🧠' },
   { id: 'tech-wizard', name: 'Tech Wizard', icon: '🧙‍♂️' },
   { id: 'comedy-king', name: 'Comedy King', icon: '😄' },
   { id: 'chef-biew', name: 'Chef Biew', icon: '👨‍🍳' },
   { id: 'ben-sega', name: 'Ben Sega', icon: '🎮' },
-  { id: 'default', name: 'AI Assistant', icon: '🤖' },
+  { id: 'chess-player', name: 'Chess Player', icon: '♟️' },
 ];
 
 const timeRangeOptions = [
@@ -79,7 +80,7 @@ const getTrendIcon = (trend: TrendDirection) =>
 
 function AgentPerformanceDashboard() {
   const { state } = useAuth();
-  const [selectedAgent, setSelectedAgent] = useState(agentOptions[0].id);
+  const [selectedAgent, setSelectedAgent] = useState('default');
   const [timeRange, setTimeRange] = useState('7d');
   const [data, setData] = useState<AgentPerformanceData | null>(null);
   const [loading, setLoading] = useState(true);

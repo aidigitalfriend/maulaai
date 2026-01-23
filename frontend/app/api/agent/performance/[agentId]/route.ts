@@ -99,29 +99,31 @@ export async function GET(
 
     const agentInfo = resolveAgent(agentIdParam);
 
-    // Build the where clause for agent filtering
-    // 'default' means all agents (AI Assistant / Studio)
-    const agentFilter = agentIdParam === 'default' 
-      ? {} 
-      : { 
-          OR: [
-            { agentId: { contains: agentIdParam, mode: 'insensitive' as const } },
-            { name: { contains: agentInfo.name, mode: 'insensitive' as const } }
-          ]
-        };
+    // Build the where clause - for 'default', show ALL user sessions
+    // For specific agents, filter by agentId or session name
+    const baseWhere = {
+      userId,
+      createdAt: { gte: startDate },
+    };
 
     // Get current period chat sessions for THIS USER
     const currentSessions = await prisma.chatSession.findMany({
-      where: {
-        userId,
-        createdAt: { gte: startDate },
-        ...agentFilter
-      },
+      where: agentIdParam === 'default' 
+        ? baseWhere
+        : {
+            ...baseWhere,
+            OR: [
+              { agentId: { contains: agentIdParam, mode: 'insensitive' } },
+              { name: { contains: agentInfo.name, mode: 'insensitive' } }
+            ]
+          },
       include: {
         messages: true,
         agent: true
       }
     });
+
+    console.log(`[Agent Performance] User: ${userId}, Agent: ${agentIdParam}, Sessions found: ${currentSessions.length}`);
 
     // Calculate stats from actual chat sessions
     const totalConversations = currentSessions.length;
@@ -144,13 +146,23 @@ export async function GET(
       ? totalDurationMs / totalConversations / 1000 // Convert to seconds
       : 1.2;
 
+    // Build previous period where clause
+    const prevBaseWhere = {
+      userId,
+      createdAt: { gte: previousPeriodStart, lt: startDate },
+    };
+
     // Get previous period stats for comparison
     const previousSessions = await prisma.chatSession.findMany({
-      where: {
-        userId,
-        createdAt: { gte: previousPeriodStart, lt: startDate },
-        ...agentFilter
-      },
+      where: agentIdParam === 'default'
+        ? prevBaseWhere
+        : {
+            ...prevBaseWhere,
+            OR: [
+              { agentId: { contains: agentIdParam, mode: 'insensitive' } },
+              { name: { contains: agentInfo.name, mode: 'insensitive' } }
+            ]
+          },
       include: {
         messages: true
       }
@@ -181,11 +193,15 @@ export async function GET(
 
     // Get recent activity from chat sessions
     const recentSessions = await prisma.chatSession.findMany({
-      where: {
-        userId,
-        createdAt: { gte: startDate },
-        ...agentFilter
-      },
+      where: agentIdParam === 'default'
+        ? baseWhere
+        : {
+            ...baseWhere,
+            OR: [
+              { agentId: { contains: agentIdParam, mode: 'insensitive' } },
+              { name: { contains: agentInfo.name, mode: 'insensitive' } }
+            ]
+          },
       include: {
         messages: {
           orderBy: { createdAt: 'desc' },
