@@ -1006,19 +1006,48 @@ router.get('/analytics', async (req, res) => {
 
     // Calculate agent performance from chat sessions
     const agentUsageMap = new Map();
+    
+    // First, get per-agent feedback ratings for real success rate
+    let agentFeedbackMap = new Map();
+    try {
+      const agentFeedbacks = await prisma.chatFeedback.groupBy({
+        by: ['agentId'],
+        where: { userId },
+        _avg: { rating: true },
+        _count: true
+      });
+      agentFeedbacks.forEach(fb => {
+        if (fb.agentId) {
+          agentFeedbackMap.set(fb.agentId, {
+            avgRating: fb._avg.rating || 0,
+            count: fb._count || 0
+          });
+        }
+      });
+    } catch (e) {
+      console.log('Agent feedback query error:', e.message);
+    }
+    
     chatSessions.forEach(session => {
       const agentId = session.agentId || 'studio';
       const agentName = session.agent?.name || 'AI Studio';
       
       if (!agentUsageMap.has(agentId)) {
+        // Get real feedback-based success rate for this agent
+        const feedback = agentFeedbackMap.get(agentId);
+        const realSuccessRate = feedback && feedback.avgRating > 0 
+          ? (feedback.avgRating / 5) * 100 
+          : 0; // 0 if no feedback yet
+        
         agentUsageMap.set(agentId, {
           agentId,
           name: agentName,
           conversations: 0,
           messages: 0,
           avgResponseTime: 0,
-          successRate: 95 + Math.random() * 5, // Simulated success rate
-          totalResponseTime: 0
+          successRate: realSuccessRate, // Real success rate from feedback
+          totalResponseTime: 0,
+          responseTimeCount: 0
         });
       }
       
@@ -1030,19 +1059,20 @@ router.get('/analytics', async (req, res) => {
       const stats = session.stats;
       if (stats && typeof stats === 'object' && stats.durationMs) {
         agent.totalResponseTime += stats.durationMs;
+        agent.responseTimeCount++;
       }
     });
 
-    // Convert to array and calculate averages
+    // Convert to array and calculate averages - use 0 for no data, not random
     const agentPerformance = Array.from(agentUsageMap.values()).map(agent => ({
       agentId: agent.agentId,
       name: agent.name,
       conversations: agent.conversations,
       messages: agent.messages,
-      avgResponseTime: agent.conversations > 0 
-        ? Math.round((agent.totalResponseTime / agent.conversations) / 1000) || Math.floor(Math.random() * 3 + 1)
-        : 2,
-      successRate: Math.round(agent.successRate * 10) / 10
+      avgResponseTime: agent.responseTimeCount > 0 
+        ? Math.round((agent.totalResponseTime / agent.responseTimeCount) / 1000)
+        : 0, // 0 if no response time data available
+      successRate: Math.round(agent.successRate * 10) / 10 // Real calculated rate
     }));
 
     // Sort by conversations for top agents

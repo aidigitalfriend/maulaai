@@ -251,24 +251,24 @@ function DashboardContent() {
   const quickStats = [
     {
       label: 'Active Agents',
-      value: analyticsData.usage.agents.current.toString(),
-      change: analyticsData.weeklyTrend.conversationsChange,
+      value: (analyticsData?.usage?.agents?.current ?? 0).toString(),
+      change: analyticsData?.weeklyTrend?.conversationsChange ?? '+0%',
       trend: 'up',
       icon: Users,
       color: 'blue',
     },
     {
       label: 'Total Conversations',
-      value: analyticsData.usage.conversations.current.toLocaleString(),
-      change: analyticsData.weeklyTrend.conversationsChange,
+      value: (analyticsData?.usage?.conversations?.current ?? 0).toLocaleString(),
+      change: analyticsData?.weeklyTrend?.conversationsChange ?? '+0%',
       trend: 'up',
       icon: MessageSquare,
       color: 'green',
     },
     {
       label: 'API Calls',
-      value: analyticsData.usage.apiCalls.current.toLocaleString(),
-      change: analyticsData.weeklyTrend.apiCallsChange,
+      value: (analyticsData?.usage?.apiCalls?.current ?? 0).toLocaleString(),
+      change: analyticsData?.weeklyTrend?.apiCallsChange ?? '+0%',
       trend: 'up',
       icon: Zap,
       color: 'purple',
@@ -549,23 +549,23 @@ function DashboardContent() {
                       </span>
                       <span
                         className={`text-sm font-semibold ${getStatusColor(
-                          value.percentage
+                          value?.percentage ?? 0
                         )}`}
                       >
-                        {value.current.toLocaleString()} /{' '}
-                        {value.limit.toLocaleString()} {value.unit || ''}
+                        {(value?.current ?? 0).toLocaleString()} /{' '}
+                        {(value?.limit ?? 0).toLocaleString()} {value?.unit || ''}
                       </span>
                     </div>
                     <div className="w-full bg-neural-200 rounded-full h-3 overflow-hidden">
                       <div
                         className={`h-3 rounded-full transition-all duration-500 ${getProgressColor(
-                          value.percentage
+                          value?.percentage ?? 0
                         )}`}
-                        style={{ width: `${Math.min(value.percentage, 100)}%` }}
+                        style={{ width: `${Math.min(value?.percentage ?? 0, 100)}%` }}
                       ></div>
                     </div>
                     <p className="text-xs text-neural-500 mt-1">
-                      {value.percentage.toFixed(1)}% used
+                      {(value?.percentage ?? 0).toFixed(1)}% used
                     </p>
                   </div>
                 ))}
@@ -780,32 +780,32 @@ function DashboardContent() {
                       >
                         <td className="py-4 px-4">
                           <span className="font-medium text-neural-800">
-                            {agent.name}
+                            {agent.name || 'Unknown Agent'}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-neural-700">
-                          {agent.conversations.toLocaleString()}
+                          {(agent.conversations ?? 0).toLocaleString()}
                         </td>
                         <td className="py-4 px-4 text-neural-700">
-                          {agent.messages.toLocaleString()}
+                          {(agent.messages ?? 0).toLocaleString()}
                         </td>
                         <td className="py-4 px-4">
                           <span className="flex items-center gap-1 text-neural-700">
                             <Clock className="w-4 h-4" />
-                            {agent.avgResponseTime}s
+                            {agent.avgResponseTime ?? 0}s
                           </span>
                         </td>
                         <td className="py-4 px-4">
                           <span
                             className={`font-semibold ${
-                              agent.successRate >= 95
+                              (agent.successRate ?? 0) >= 95
                                 ? 'text-green-600'
-                                : agent.successRate >= 90
+                                : (agent.successRate ?? 0) >= 90
                                 ? 'text-yellow-600'
                                 : 'text-red-600'
                             }`}
                           >
-                            {agent.successRate}%
+                            {agent.successRate ?? 0}%
                           </span>
                         </td>
                       </tr>
