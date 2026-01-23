@@ -68,6 +68,7 @@ export default function Footer() {
     { name: 'Dashboard', href: '/dashboard/overview' },
     { name: 'Documentation', href: '/docs' },
     { name: 'Community', href: '/community/overview' },
+    { name: 'Resources', href: '/resources' },
     { name: 'Network Tools', href: '/tools/network-tools' },
     { name: 'Dev Utils', href: '/tools/developer-utils' },
     { name: 'Status', href: '/status' },

@@ -56,7 +56,7 @@ export default function WebinarsPage() {
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-2 ${
                     webinar.status === 'Upcoming' 
                       ? 'bg-green-100 text-green-700' 
-                      : 'bg-neutral-100 text-neutral-700'
+                      : 'bg-neural-100 text-neural-700'
                   }`}>
                     {webinar.status}
                   </span>

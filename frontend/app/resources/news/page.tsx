@@ -229,34 +229,34 @@ export default function NewsPage() {
       </section>
 
       {/* Agent Updates Hero Section */}
-      <section className="py-12 bg-white border-b border-gray-200">
+      <section className="py-12 bg-white border-b border-neural-200">
         <div className="container-custom text-center max-w-3xl">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl mb-4">
             <span className="text-4xl">🤖</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Discover Our AI Agents</h2>
-          <p className="text-lg text-gray-600 mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Discover Our AI Agents</h2>
+          <p className="text-lg text-neural-600 mb-8">
             One Last AI offers a diverse collection of AI agents designed to help you with virtually anything. From scientific experts to lifestyle coaches, our agents are ready to assist you. Explore our current agents and stay tuned for exciting new additions coming soon!
           </p>
           <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
               <p className="text-3xl font-bold text-blue-600">{agentSlugs.length}</p>
-              <p className="text-sm text-gray-600">Available Agents</p>
+              <p className="text-sm text-neural-600">Available Agents</p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
               <p className="text-3xl font-bold text-purple-600">{comingSoonAgents.length}</p>
-              <p className="text-sm text-gray-600">Coming Soon</p>
+              <p className="text-sm text-neural-600">Coming Soon</p>
             </div>
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
               <p className="text-3xl font-bold text-amber-600">{agentSlugs.length + comingSoonAgents.length}</p>
-              <p className="text-sm text-gray-600">Total Agents</p>
+              <p className="text-sm text-neural-600">Total Agents</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Category Filter */}
-      <section className="py-8 bg-white border-b border-gray-200">
+      <section className="py-8 bg-white border-b border-neural-200">
         <div className="container-custom">
           <div className="flex flex-wrap gap-3 justify-center">
             {categories.map((cat) => {
@@ -268,7 +268,7 @@ export default function NewsPage() {
                   className={`px-5 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                     selectedCategory === cat.id
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                      : 'bg-neural-100 text-neural-700 hover:bg-neural-200 border border-neural-200'
                   }`}
                 >
                   {cat.label}
@@ -287,11 +287,11 @@ export default function NewsPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white">
                 <Zap className="w-5 h-5" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured News</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Featured News</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map((article) => (
-                <div key={article.id} className="group bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-blue-300 overflow-hidden transition-all">
+                <div key={article.id} className="group bg-white rounded-2xl border border-neural-200 shadow-lg hover:shadow-xl hover:border-blue-300 overflow-hidden transition-all">
                   {/* Image Area */}
                   <div className="h-40 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform">
                     {article.image}
@@ -299,7 +299,7 @@ export default function NewsPage() {
 
                   {/* Content */}
                   <div className="p-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <div className="flex items-center gap-2 text-sm text-neural-500 mb-3">
                       <Calendar className="w-4 h-4" />
                       <span>{article.date}</span>
                       <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
@@ -307,10 +307,10 @@ export default function NewsPage() {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
+                    <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
                       {article.title}
                     </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    <p className="text-neural-600 text-sm mb-4 line-clamp-3">
                       {article.description}
                     </p>
 
@@ -331,13 +331,13 @@ export default function NewsPage() {
       )}
 
       {/* All Articles */}
-      <section className="py-12 bg-white border-t border-gray-200">
+      <section className="py-12 bg-white border-t border-neural-200">
         <div className="container-custom">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white">
               <Newspaper className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">
               {selectedCategory === 'all' ? 'All News' : 'Latest News'}
             </h2>
           </div>
@@ -345,7 +345,7 @@ export default function NewsPage() {
           {regularArticles.length > 0 ? (
             <div className="space-y-4">
               {regularArticles.map((article) => (
-                <div key={article.id} className="group bg-gradient-to-r from-gray-50 to-white border border-gray-200 hover:border-blue-300 rounded-2xl p-6 transition-all hover:shadow-lg">
+                <div key={article.id} className="group bg-gradient-to-r from-neural-50 to-white border border-neural-200 hover:border-blue-300 rounded-2xl p-6 transition-all hover:shadow-lg">
                   <div className="flex gap-6 items-start">
                     {/* Icon */}
                     <div className="text-4xl flex-shrink-0 bg-gradient-to-br from-blue-100 to-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -354,7 +354,7 @@ export default function NewsPage() {
 
                     {/* Content */}
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                      <div className="flex items-center gap-2 text-sm text-neural-500 mb-2">
                         <Calendar className="w-4 h-4" />
                         <span>{article.date}</span>
                         <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
@@ -362,10 +362,10 @@ export default function NewsPage() {
                         </span>
                       </div>
 
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
+                      <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
                         {article.title}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      <p className="text-neural-600 text-sm mb-3 line-clamp-2">
                         {article.description}
                       </p>
 
@@ -384,7 +384,7 @@ export default function NewsPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No news articles in this category yet.</p>
+              <p className="text-neural-500 text-lg">No news articles in this category yet.</p>
             </div>
           )}
         </div>
@@ -397,31 +397,31 @@ export default function NewsPage() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowArticleModal(false)} />
 
           {/* Modal */}
-          <div className="relative bg-white border border-gray-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
+          <div className="relative bg-white border border-neural-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
             {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/95 backdrop-blur">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neural-200 bg-white/95 backdrop-blur">
               <div className="flex items-center gap-3">
                 <div className="text-3xl bg-gradient-to-br from-blue-100 to-indigo-100 w-12 h-12 rounded-xl flex items-center justify-center">{selectedArticle.image}</div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedArticle.title}</h2>
-                  <p className="text-gray-500 text-sm flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-neural-900">{selectedArticle.title}</h2>
+                  <p className="text-neural-500 text-sm flex items-center gap-2">
                     <Calendar className="w-4 h-4" /> {selectedArticle.date}
                     <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full ml-2">{selectedArticle.readTime}</span>
                   </p>
                 </div>
               </div>
-              <button aria-label="Close" onClick={() => setShowArticleModal(false)} className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm text-gray-700">
+              <button aria-label="Close" onClick={() => setShowArticleModal(false)} className="px-3 py-2 rounded-xl bg-neural-100 hover:bg-neural-200 border border-neural-200 text-sm text-neural-700">
                 Close
               </button>
             </div>
 
             {/* Scrollable Content */}
             <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[calc(85vh-64px)]">
-              <p className="whitespace-pre-line text-gray-700 leading-relaxed">{selectedArticle.content || selectedArticle.description}</p>
+              <p className="whitespace-pre-line text-neural-700 leading-relaxed">{selectedArticle.content || selectedArticle.description}</p>
 
               {/* Bottom actions including Close button */}
-              <div className="pt-4 border-t border-gray-200 flex justify-end">
-                <button onClick={() => setShowArticleModal(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-sm text-gray-700">
+              <div className="pt-4 border-t border-neural-200 flex justify-end">
+                <button onClick={() => setShowArticleModal(false)} className="px-4 py-2 bg-neural-100 hover:bg-neural-200 border border-neural-200 rounded-xl text-sm text-neural-700">
                   Close
                 </button>
               </div>
@@ -431,20 +431,20 @@ export default function NewsPage() {
       )}
 
       {/* Available Agents Section */}
-      <section className="py-12 border-t border-gray-200">
+      <section className="py-12 border-t border-neural-200">
         <div className="container-custom">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center text-white">
               <MessageSquare className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Available Agents</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Available Agents</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {availableAgents.map((agent) => (
-              <div key={agent.id} className="group bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-blue-300 p-6 transition-all">
+              <div key={agent.id} className="group bg-white rounded-2xl border border-neural-200 shadow-lg hover:shadow-xl hover:border-blue-300 p-6 transition-all">
                 <div className="text-5xl mb-4 bg-gradient-to-br from-blue-100 to-indigo-100 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">{agent.emoji}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition">{agent.name}</h3>
-                <p className="text-gray-600 text-sm mb-6">{agent.description}</p>
+                <h3 className="text-xl font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">{agent.name}</h3>
+                <p className="text-neural-600 text-sm mb-6">{agent.description}</p>
                 <div className="flex gap-2">
                   <Link href={agent.path} className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl font-semibold text-center transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-blue-500/25">
                     <MessageSquare className="w-4 h-4" />
@@ -453,7 +453,7 @@ export default function NewsPage() {
                   <button onClick={() => {
                     setSelectedAgent(agent)
                     setShowAgentDetails(true)
-                  }} className="bg-gray-100 hover:bg-gray-200 border border-gray-200 px-4 py-2 rounded-xl transition flex items-center justify-center text-gray-700">
+                  }} className="bg-neural-100 hover:bg-neural-200 border border-neural-200 px-4 py-2 rounded-xl transition flex items-center justify-center text-neural-700">
                     <Info className="w-5 h-5" />
                   </button>
                 </div>
@@ -464,20 +464,20 @@ export default function NewsPage() {
       </section>
 
       {/* Coming Soon Agents Section */}
-      <section className="py-12 bg-white border-t border-gray-200">
+      <section className="py-12 bg-white border-t border-neural-200">
         <div className="container-custom">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white">
               <Zap className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Coming Soon Agents</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Coming Soon Agents</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {comingSoonAgents.map((agent) => (
-              <div key={agent.id} className="group bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:border-purple-300 rounded-2xl p-6 transition-all hover:shadow-lg opacity-80 hover:opacity-100">
+              <div key={agent.id} className="group bg-gradient-to-br from-neural-50 to-white border border-neural-200 hover:border-purple-300 rounded-2xl p-6 transition-all hover:shadow-lg opacity-80 hover:opacity-100">
                 <div className="text-5xl mb-4 bg-gradient-to-br from-purple-100 to-pink-100 w-16 h-16 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">{agent.emoji}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition">{agent.name}</h3>
-                <p className="text-gray-600 text-sm mb-6">{agent.description}</p>
+                <h3 className="text-xl font-bold text-neural-900 mb-2 group-hover:text-purple-600 transition">{agent.name}</h3>
+                <p className="text-neural-600 text-sm mb-6">{agent.description}</p>
                 <div className="flex gap-2">
                   <button className="flex-1 bg-purple-100 text-purple-600 px-4 py-2 rounded-xl font-semibold text-center cursor-not-allowed opacity-75 text-sm border border-purple-200">
                     Available Soon
@@ -485,7 +485,7 @@ export default function NewsPage() {
                   <button onClick={() => {
                     setSelectedAgent(agent)
                     setShowAgentDetails(true)
-                  }} className="bg-gray-100 hover:bg-gray-200 border border-gray-200 px-4 py-2 rounded-xl transition flex items-center justify-center text-gray-700">
+                  }} className="bg-neural-100 hover:bg-neural-200 border border-neural-200 px-4 py-2 rounded-xl transition flex items-center justify-center text-neural-700">
                     <Info className="w-5 h-5" />
                   </button>
                 </div>
@@ -502,17 +502,17 @@ export default function NewsPage() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgentDetails(false)} />
 
           {/* Modal */}
-          <div className="relative bg-white border border-gray-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
+          <div className="relative bg-white border border-neural-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden">
             {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/95 backdrop-blur">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neural-200 bg-white/95 backdrop-blur">
               <div className="flex items-center gap-3">
                 <div className="text-4xl bg-gradient-to-br from-blue-100 to-indigo-100 w-14 h-14 rounded-xl flex items-center justify-center">{selectedAgent.emoji}</div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedAgent.name}</h2>
-                  <p className="text-gray-500 text-sm">{selectedAgent.description}</p>
+                  <h2 className="text-xl font-bold text-neural-900">{selectedAgent.name}</h2>
+                  <p className="text-neural-500 text-sm">{selectedAgent.description}</p>
                 </div>
               </div>
-              <button aria-label="Close" onClick={() => setShowAgentDetails(false)} className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-sm text-gray-700">
+              <button aria-label="Close" onClick={() => setShowAgentDetails(false)} className="px-3 py-2 rounded-xl bg-neural-100 hover:bg-neural-200 border border-neural-200 text-sm text-neural-700">
                 Close
               </button>
             </div>
@@ -522,7 +522,7 @@ export default function NewsPage() {
               {/* Specialties */}
               {selectedAgent.specialties?.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Specialties</h3>
+                  <h3 className="text-lg font-semibold text-neural-900 mb-2">Specialties</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedAgent.specialties.map((s: string, idx: number) => (
                       <span key={idx} className="text-xs bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-full text-blue-700">
@@ -536,22 +536,22 @@ export default function NewsPage() {
               {/* How they work / Details */}
               {selectedAgent.details?.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">How this agent works</h3>
+                  <h3 className="text-lg font-semibold text-neural-900 mb-3">How this agent works</h3>
                   <div className="space-y-4">
                     {selectedAgent.details.map((section: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                      <div key={idx} className="bg-neural-50 border border-neural-200 rounded-xl p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-xl" aria-hidden>{section.icon}</span>
-                          <h4 className="font-semibold text-gray-900">{section.title}</h4>
+                          <h4 className="font-semibold text-neural-900">{section.title}</h4>
                         </div>
                         {section.items?.length ? (
-                          <ul className="list-disc list-inside text-gray-600 space-y-1">
+                          <ul className="list-disc list-inside text-neural-600 space-y-1">
                             {section.items.map((item: string, i: number) => (
                               <li key={i}>{item}</li>
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-gray-600">{section.content}</p>
+                          <p className="text-neural-600">{section.content}</p>
                         )}
                       </div>
                     ))}
@@ -561,19 +561,19 @@ export default function NewsPage() {
 
               {/* Getting Started */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-neural-900 mb-2">
                   {selectedAgent.path ? 'How to Get Started' : 'Coming Soon'}
                 </h3>
                 {selectedAgent.path ? (
                   <>
-                    <ol className="list-decimal list-inside text-gray-600 space-y-1">
+                    <ol className="list-decimal list-inside text-neural-600 space-y-1">
                       <li>Open the agent and try a conversation using the Launch button.</li>
                       <li>Create an account or sign in when prompted.</li>
                       <li>Choose a subscription to unlock full features. You can manage or cancel anytime.</li>
                     </ol>
                     <div className="mt-3 flex gap-3">
                       <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25">View Plans</Link>
-                      <Link href={selectedAgent.path} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-sm text-gray-700">Launch Agent</Link>
+                      <Link href={selectedAgent.path} className="px-4 py-2 bg-neural-100 hover:bg-neural-200 border border-neural-200 rounded-xl text-sm text-neural-700">Launch Agent</Link>
                     </div>
                     <p className="text-amber-600 text-sm mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">💡 Pro tip: Our lowest subscription is just $1 — test an agent before committing to a larger plan.</p>
                   </>
@@ -584,7 +584,7 @@ export default function NewsPage() {
                     </p>
                     <div className="flex gap-3">
                       <Link href="/pricing" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-purple-500/25">View Current Plans</Link>
-                      <Link href="/agents" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-sm text-gray-700">Browse Available Agents</Link>
+                      <Link href="/agents" className="px-4 py-2 bg-neural-100 hover:bg-neural-200 border border-neural-200 rounded-xl text-sm text-neural-700">Browse Available Agents</Link>
                     </div>
                     <p className="text-purple-600 text-sm mt-3">🔔 Sign up for our newsletter to be notified when new agents launch!</p>
                   </div>
@@ -609,7 +609,7 @@ export default function NewsPage() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 placeholder-gray-500"
+              className="flex-1 px-4 py-3 bg-white border border-neural-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-neural-900 placeholder-gray-500"
             />
             <button className="px-6 py-3 bg-white hover:bg-gray-100 text-blue-600 rounded-xl font-semibold transition shadow-lg">
               Subscribe
@@ -626,33 +626,33 @@ export default function NewsPage() {
             <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-white">
               <TrendingUp className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Explore More</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-neural-900">Explore More</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/resources/blog" className="group bg-white border border-gray-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
+            <Link href="/resources/blog" className="group bg-white border border-neural-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
               <div className="text-3xl mb-3 bg-gradient-to-br from-blue-100 to-indigo-100 w-12 h-12 rounded-xl flex items-center justify-center">📖</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition">Read Blog Articles</h3>
-              <p className="text-gray-600 text-sm mb-4">Explore in-depth articles on AI, agents, and technology trends.</p>
+              <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">Read Blog Articles</h3>
+              <p className="text-neural-600 text-sm mb-4">Explore in-depth articles on AI, agents, and technology trends.</p>
               <div className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
                 Read Blog
                 <ArrowRight className="w-4 h-4 ml-2" />
               </div>
             </Link>
 
-            <Link href="/community" className="group bg-white border border-gray-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
+            <Link href="/community" className="group bg-white border border-neural-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
               <div className="text-3xl mb-3 bg-gradient-to-br from-purple-100 to-pink-100 w-12 h-12 rounded-xl flex items-center justify-center">👥</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition">Join Community</h3>
-              <p className="text-gray-600 text-sm mb-4">Connect with other users and share insights with the community.</p>
+              <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">Join Community</h3>
+              <p className="text-neural-600 text-sm mb-4">Connect with other users and share insights with the community.</p>
               <div className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
                 Go to Community
                 <ArrowRight className="w-4 h-4 ml-2" />
               </div>
             </Link>
 
-            <Link href="/resources/documentation" className="group bg-white border border-gray-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
+            <Link href="/resources/documentation" className="group bg-white border border-neural-200 hover:border-blue-300 p-6 rounded-2xl transition shadow-lg hover:shadow-xl">
               <div className="text-3xl mb-3 bg-gradient-to-br from-green-100 to-emerald-100 w-12 h-12 rounded-xl flex items-center justify-center">📚</div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition">View Documentation</h3>
-              <p className="text-gray-600 text-sm mb-4">Check out our comprehensive documentation and guides.</p>
+              <h3 className="text-lg font-bold text-neural-900 mb-2 group-hover:text-blue-600 transition">View Documentation</h3>
+              <p className="text-neural-600 text-sm mb-4">Check out our comprehensive documentation and guides.</p>
               <div className="flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
                 Read Docs
                 <ArrowRight className="w-4 h-4 ml-2" />
