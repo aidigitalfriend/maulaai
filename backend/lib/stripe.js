@@ -9,16 +9,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 const AGENT_PRODUCTS = {
   'julie-girlfriend': {
     daily: {
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY'] || '',
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY'] || '',
+      productId: process.env.STRIPE_PRODUCT_JULIE_GIRLFRIEND_DAILY || '',
+      priceId: process.env.STRIPE_PRICE_JULIE_GIRLFRIEND_DAILY || '',
     },
     weekly: {
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY'] || '',
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY'] || '',
+      productId: process.env.STRIPE_PRODUCT_JULIE_GIRLFRIEND_WEEKLY || '',
+      priceId: process.env.STRIPE_PRICE_JULIE_GIRLFRIEND_WEEKLY || '',
     },
     monthly: {
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY'] || '',
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY'] || '',
+      productId: process.env.STRIPE_PRODUCT_JULIE_GIRLFRIEND_MONTHLY || '',
+      priceId: process.env.STRIPE_PRICE_JULIE_GIRLFRIEND_MONTHLY || '',
     },
   },
   'emma-emotional': {

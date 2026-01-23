@@ -7,309 +7,73 @@ import Stripe from 'stripe';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-11-20.acacia',
 });
 
-// Agent-specific product mappings
-const AGENT_PRODUCTS: Record<
-  string,
-  Record<string, { productId: string; priceId: string }>
-> = {
-  'julie-girlfriend': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_MONTHLY']!,
-    },
-  },
-  'emma-emotional': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_EMMA-EMOTIONAL_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_EMMA-EMOTIONAL_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_EMMA-EMOTIONAL_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_EMMA-EMOTIONAL_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_EMMA-EMOTIONAL_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_EMMA-EMOTIONAL_MONTHLY']!,
-    },
-  },
-  einstein: {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_EINSTEIN_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_EINSTEIN_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_EINSTEIN_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_EINSTEIN_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_EINSTEIN_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_EINSTEIN_MONTHLY']!,
-    },
-  },
-  'tech-wizard': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_TECH-WIZARD_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_TECH-WIZARD_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_TECH-WIZARD_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_TECH-WIZARD_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_TECH-WIZARD_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_TECH-WIZARD_MONTHLY']!,
-    },
-  },
-  'mrs-boss': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_MRS-BOSS_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_MRS-BOSS_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_MRS-BOSS_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_MRS-BOSS_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_MRS-BOSS_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_MRS-BOSS_MONTHLY']!,
-    },
-  },
-  'comedy-king': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_COMEDY-KING_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_COMEDY-KING_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_COMEDY-KING_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_COMEDY-KING_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_COMEDY-KING_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_COMEDY-KING_MONTHLY']!,
-    },
-  },
-  'chess-player': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_CHESS-PLAYER_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_CHESS-PLAYER_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_CHESS-PLAYER_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_CHESS-PLAYER_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_CHESS-PLAYER_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_CHESS-PLAYER_MONTHLY']!,
-    },
-  },
-  'fitness-guru': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_FITNESS-GURU_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_FITNESS-GURU_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_FITNESS-GURU_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_FITNESS-GURU_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_FITNESS-GURU_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_FITNESS-GURU_MONTHLY']!,
-    },
-  },
-  'travel-buddy': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_TRAVEL-BUDDY_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_TRAVEL-BUDDY_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_TRAVEL-BUDDY_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_TRAVEL-BUDDY_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_TRAVEL-BUDDY_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_TRAVEL-BUDDY_MONTHLY']!,
-    },
-  },
-  'drama-queen': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_DRAMA-QUEEN_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_DRAMA-QUEEN_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_DRAMA-QUEEN_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_DRAMA-QUEEN_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_DRAMA-QUEEN_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_DRAMA-QUEEN_MONTHLY']!,
-    },
-  },
-  'chef-biew': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_CHEF-BIEW_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_CHEF-BIEW_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_CHEF-BIEW_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_CHEF-BIEW_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_CHEF-BIEW_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_CHEF-BIEW_MONTHLY']!,
-    },
-  },
-  'professor-astrology': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_PROFESSOR-ASTROLOGY_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_PROFESSOR-ASTROLOGY_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_PROFESSOR-ASTROLOGY_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_PROFESSOR-ASTROLOGY_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_PROFESSOR-ASTROLOGY_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_PROFESSOR-ASTROLOGY_MONTHLY']!,
-    },
-  },
-  // ✅ ALL 18 AGENTS NOW HAVE DEDICATED STRIPE PRODUCTS
-  'nid-gaming': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_NID-GAMING_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_NID-GAMING_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_NID-GAMING_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_NID-GAMING_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_NID-GAMING_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_NID-GAMING_MONTHLY']!,
-    },
-  },
-  'ben-sega': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_BEN-SEGA_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_BEN-SEGA_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_BEN-SEGA_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_BEN-SEGA_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_BEN-SEGA_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_BEN-SEGA_MONTHLY']!,
-    },
-  },
-  'bishop-burger': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_BISHOP-BURGER_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_BISHOP-BURGER_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_BISHOP-BURGER_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_BISHOP-BURGER_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_BISHOP-BURGER_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_BISHOP-BURGER_MONTHLY']!,
-    },
-  },
-  'knight-logic': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_KNIGHT-LOGIC_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_KNIGHT-LOGIC_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_KNIGHT-LOGIC_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_KNIGHT-LOGIC_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_KNIGHT-LOGIC_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_KNIGHT-LOGIC_MONTHLY']!,
-    },
-  },
-  'lazy-pawn': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_LAZY-PAWN_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_LAZY-PAWN_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_LAZY-PAWN_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_LAZY-PAWN_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_LAZY-PAWN_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_LAZY-PAWN_MONTHLY']!,
-    },
-  },
-  'rook-jokey': {
-    daily: {
-      productId: process.env['STRIPE_PRODUCT_ROOK-JOKEY_DAILY']!,
-      priceId: process.env['STRIPE_PRICE_ROOK-JOKEY_DAILY']!,
-    },
-    weekly: {
-      productId: process.env['STRIPE_PRODUCT_ROOK-JOKEY_WEEKLY']!,
-      priceId: process.env['STRIPE_PRICE_ROOK-JOKEY_WEEKLY']!,
-    },
-    monthly: {
-      productId: process.env['STRIPE_PRODUCT_ROOK-JOKEY_MONTHLY']!,
-      priceId: process.env['STRIPE_PRICE_ROOK-JOKEY_MONTHLY']!,
-    },
-  },
+// All supported agents - single source of truth
+const AGENT_IDS = [
+  'julie-girlfriend',
+  'emma-emotional',
+  'einstein',
+  'tech-wizard',
+  'mrs-boss',
+  'comedy-king',
+  'chess-player',
+  'fitness-guru',
+  'travel-buddy',
+  'drama-queen',
+  'chef-biew',
+  'professor-astrology',
+  'nid-gaming',
+  'ben-sega',
+  'bishop-burger',
+  'knight-logic',
+  'lazy-pawn',
+  'rook-jokey',
+] as const;
+
+type AgentId = (typeof AGENT_IDS)[number];
+
+// Convert agent-id to ENV_VAR format: julie-girlfriend -> JULIE_GIRLFRIEND
+function agentIdToEnvKey(agentId: string): string {
+  return agentId.toUpperCase().replace(/-/g, '_');
+}
+
+// Pricing configuration
+const PLAN_CONFIG = {
+  daily: { price: 1, interval: 'day' as const },
+  weekly: { price: 5, interval: 'week' as const },
+  monthly: { price: 15, interval: 'month' as const },
 };
 
 /**
- * Get agent-specific subscription plan
+ * Get agent-specific subscription plan - dynamically reads env vars
  */
 export function getAgentSubscriptionPlan(
   agentId: string,
   plan: 'daily' | 'weekly' | 'monthly'
 ) {
-  const agentProducts = AGENT_PRODUCTS[agentId];
-  if (!agentProducts) {
-    console.warn(
-      `Agent ${agentId} not found in product mappings, using fallback products`
-    );
-    // Fallback to generic products if agent not configured
-    return {
-      name: `${agentId} ${plan.charAt(0).toUpperCase() + plan.slice(1)} Access`,
-      price: plan === 'daily' ? 1 : plan === 'weekly' ? 5 : 19,
-      interval: plan === 'daily' ? 'day' : plan === 'weekly' ? 'week' : 'month',
-      productId:
-        process.env['STRIPE_PRODUCT_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
-      priceId:
-        process.env['STRIPE_PRICE_JULIE-GIRLFRIEND_' + plan.toUpperCase()]!,
-    };
-  }
+  const envKey = agentIdToEnvKey(agentId);
+  const planUpper = plan.toUpperCase();
 
-  const planData = agentProducts[plan];
-  if (!planData.productId || !planData.priceId) {
+  const productId = process.env[`STRIPE_PRODUCT_${envKey}_${planUpper}`];
+  const priceId = process.env[`STRIPE_PRICE_${envKey}_${planUpper}`];
+
+  if (!productId || !priceId) {
     throw new Error(
-      `Product/price IDs not configured for agent ${agentId} plan ${plan}`
+      `Product/price IDs not configured for agent ${agentId} plan ${plan}. ` +
+        `Expected env vars: STRIPE_PRODUCT_${envKey}_${planUpper}, STRIPE_PRICE_${envKey}_${planUpper}`
     );
   }
 
-  const intervals = { daily: 'day', weekly: 'week', monthly: 'month' } as const;
-  const prices = { daily: 1, weekly: 5, monthly: 15 };
+  const config = PLAN_CONFIG[plan];
 
   return {
     name: `${agentId} ${plan.charAt(0).toUpperCase() + plan.slice(1)} Access`,
-    price: prices[plan],
-    interval: intervals[plan],
-    productId: planData.productId,
-    priceId: planData.priceId,
+    price: config.price,
+    interval: config.interval,
+    productId,
+    priceId,
   };
 }
 
