@@ -80,24 +80,24 @@ export default function AboutOverviewPage() {
             <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl mb-4">
               <Lightbulb className="w-7 h-7 text-white" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-gray-900">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-neural-900">
               About AI Digital Friend
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-neural-600 max-w-2xl mx-auto">
               Building emotionally intelligent, human-centric AI systems that redefine digital companionship
             </p>
           </div>
 
           {/* Intro Section */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">The Initiative</h3>
-            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 mb-8">
+            <h3 className="text-2xl font-bold text-neural-900 mb-4">The Initiative</h3>
+            <p className="text-lg text-neural-700 mb-4 leading-relaxed">
               <span className="font-semibold">AI Digital Friend</span> is a product of <span className="font-semibold">Grand Pa United™</span>, a global alliance of innovators from the UAE, UK, and USA, united by a shared mission: to build emotionally intelligent, human-centric AI systems that redefine digital companionship.
             </p>
-            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
+            <p className="text-lg text-neural-700 mb-4 leading-relaxed">
               This initiative is led by the visionary leadership of <span className="font-semibold">Mr. Chaudhary Mumtaz & Sons</span>, whose commitment to innovation, community empowerment, and ethical technology has shaped the foundation of the platform.
             </p>
-            <p className="text-lg text-gray-700 leading-relaxed">
+            <p className="text-lg text-neural-700 leading-relaxed">
               The focus is not just on tools, but on creating intelligent allies designed to support, understand, and evolve with users across cultures and contexts.
             </p>
           </div>
@@ -109,42 +109,42 @@ export default function AboutOverviewPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
                   <Zap className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Our Mission</h3>
+                <h3 className="text-2xl font-bold text-neural-900">Our Mission</h3>
               </div>
-              <p className="text-gray-700 mb-4 leading-relaxed">
+              <p className="text-neural-700 mb-4 leading-relaxed">
                 To develop modular, adaptive, and emotionally aware AI agents that enhance human life through intuitive interaction, deep learning, and ethical design.
               </p>
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Modular</span>
-                    <p className="text-sm text-gray-600">Easily integrated and customized</p>
+                    <span className="font-semibold text-neural-900">Modular</span>
+                    <p className="text-sm text-neural-600">Easily integrated and customized</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Intuitive</span>
-                    <p className="text-sm text-gray-600">Seamless user experience across skill levels</p>
+                    <span className="font-semibold text-neural-900">Intuitive</span>
+                    <p className="text-sm text-neural-600">Seamless user experience across skill levels</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Intelligent</span>
-                    <p className="text-sm text-gray-600">Advanced frameworks for real-time learning</p>
+                    <span className="font-semibold text-neural-900">Intelligent</span>
+                    <p className="text-sm text-neural-600">Advanced frameworks for real-time learning</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Companionable</span>
-                    <p className="text-sm text-gray-600">Engages with empathy, not just efficiency</p>
+                    <span className="font-semibold text-neural-900">Companionable</span>
+                    <p className="text-sm text-neural-600">Engages with empathy, not just efficiency</p>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 font-semibold mt-6 pt-6 border-t border-purple-200">
+              <p className="text-sm text-neural-600 font-semibold mt-6 pt-6 border-t border-purple-200">
                 Bridging the gap between AI and human connection — making technology smarter and more relatable.
               </p>
             </div>
@@ -154,42 +154,42 @@ export default function AboutOverviewPage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
                   <Lightbulb className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Why AI Digital Friend?</h3>
+                <h3 className="text-2xl font-bold text-neural-900">Why AI Digital Friend?</h3>
               </div>
-              <p className="text-gray-700 mb-4 leading-relaxed">
+              <p className="text-neural-700 mb-4 leading-relaxed">
                 In a world full of automation, the future belongs to human-aware AI — systems that understand context, emotion, and intent.
               </p>
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Approachable</span>
-                    <p className="text-sm text-gray-600">Friendly and natural interactions</p>
+                    <span className="font-semibold text-neural-900">Approachable</span>
+                    <p className="text-sm text-neural-600">Friendly and natural interactions</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Adaptive</span>
-                    <p className="text-sm text-gray-600">Continuously learning from user behavior</p>
+                    <span className="font-semibold text-neural-900">Adaptive</span>
+                    <p className="text-sm text-neural-600">Continuously learning from user behavior</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Secure</span>
-                    <p className="text-sm text-gray-600">Built with privacy and ethical safeguards</p>
+                    <span className="font-semibold text-neural-900">Secure</span>
+                    <p className="text-sm text-neural-600">Built with privacy and ethical safeguards</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Scalable</span>
-                    <p className="text-sm text-gray-600">Enterprise-ready, global expansion possible</p>
+                    <span className="font-semibold text-neural-900">Scalable</span>
+                    <p className="text-sm text-neural-600">Enterprise-ready, global expansion possible</p>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 font-semibold mt-6 pt-6 border-t border-green-200">
+              <p className="text-sm text-neural-600 font-semibold mt-6 pt-6 border-t border-green-200">
                 Building timeless technology that serves real needs, not just trends.
               </p>
             </div>
@@ -251,12 +251,12 @@ export default function AboutOverviewPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
                 <Globe className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Our Vision</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Our Vision</h3>
             </div>
-            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
+            <p className="text-lg text-neural-700 mb-4 leading-relaxed">
               A future where AI and humanity co-create solutions, govern systems, and elevate global well-being.
             </p>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-neural-700 leading-relaxed">
               AI Digital Friend will be a trusted ally as AI becomes part of daily life. One day, AI could play a role in governance, education, and diplomacy — and this platform is preparing that infrastructure now.
             </p>
           </div>
@@ -267,20 +267,20 @@ export default function AboutOverviewPage() {
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl mb-3">
                 <Shield className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900">Strategic Platforms Overview</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-neural-900">Strategic Platforms Overview</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl hover:border-orange-300 transition-all">
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:shadow-xl hover:border-orange-300 transition-all">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
                     <Shield className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900">OneManArmy.ai</h4>
+                  <h4 className="text-xl font-bold text-neural-900">OneManArmy.ai</h4>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-neural-600 text-sm mb-4">
                   Tactical platform for ethical hacking education
                 </p>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <ul className="space-y-2 text-sm text-neural-600">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
                     Real-world labs & AI-powered mentors
@@ -296,17 +296,17 @@ export default function AboutOverviewPage() {
                 </ul>
               </div>
 
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 hover:shadow-xl hover:border-purple-300 transition-all">
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-neural-200 hover:shadow-xl hover:border-purple-300 transition-all">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                     <Users className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900">Maula AI</h4>
+                  <h4 className="text-xl font-bold text-neural-900">Maula AI</h4>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-neural-600 text-sm mb-4">
                   Cinematic AI multiverse with 50+ modular agents
                 </p>
-                <ul className="space-y-2 text-sm text-gray-600">
+                <ul className="space-y-2 text-sm text-neural-600">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                     Memory, emotion, voice, and personality
@@ -330,45 +330,45 @@ export default function AboutOverviewPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
                 <Heart className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Public Manifesto</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Public Manifesto</h3>
             </div>
-            <p className="text-gray-700 mb-6 font-semibold">
+            <p className="text-neural-700 mb-6 font-semibold">
               This is built for the public — the real stakeholders.
             </p>
             <ul className="space-y-3 mb-6">
               <li className="flex items-start gap-3">
                 <span className="text-pink-600 font-bold text-lg">→</span>
-                <span className="text-gray-700">Every learner cracking their first exploit</span>
+                <span className="text-neural-700">Every learner cracking their first exploit</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-pink-600 font-bold text-lg">→</span>
-                <span className="text-gray-700">Every creator launching with an AI co-pilot</span>
+                <span className="text-neural-700">Every creator launching with an AI co-pilot</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-pink-600 font-bold text-lg">→</span>
-                <span className="text-gray-700">Every dreamer who sees tech as a story, not just a tool</span>
+                <span className="text-neural-700">Every dreamer who sees tech as a story, not just a tool</span>
               </li>
             </ul>
             
             <div className="bg-pink-50/60 rounded-xl p-6 border border-pink-100">
-              <p className="text-gray-700 font-semibold mb-3">Our Belief:</p>
+              <p className="text-neural-700 font-semibold mb-3">Our Belief:</p>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
                   <span className="text-pink-600">◆</span>
-                  <span className="text-gray-700"><span className="font-semibold">Platforms should feel personal</span></span>
+                  <span className="text-neural-700"><span className="font-semibold">Platforms should feel personal</span></span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-pink-600">◆</span>
-                  <span className="text-gray-700"><span className="font-semibold">Agents should feel alive</span></span>
+                  <span className="text-neural-700"><span className="font-semibold">Agents should feel alive</span></span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-pink-600">◆</span>
-                  <span className="text-gray-700"><span className="font-semibold">Every launch should feel cinematic</span></span>
+                  <span className="text-neural-700"><span className="font-semibold">Every launch should feel cinematic</span></span>
                 </li>
               </ul>
             </div>
 
-            <p className="text-gray-700 font-bold mt-6 text-lg">
+            <p className="text-neural-700 font-bold mt-6 text-lg">
               Royal AI™: Every limitation becomes a legend. Every user becomes a collaborator.
             </p>
           </div>
@@ -379,12 +379,12 @@ export default function AboutOverviewPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Acknowledgments</h3>
+              <h3 className="text-2xl font-bold text-neural-900">Acknowledgments</h3>
             </div>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-neural-700 leading-relaxed">
               Special thanks to <span className="font-semibold">Professor Johnny</span>, whose technical brilliance, creative direction, and strategic insight shaped the platform's architecture, branding, and strategy.
             </p>
-            <p className="text-gray-600 mt-4 italic">
+            <p className="text-neural-600 mt-4 italic">
               His work embodies guerrilla-grade innovation — turning constraints into creativity, and ideas into impact.
             </p>
           </div>
@@ -446,12 +446,12 @@ export default function AboutOverviewPage() {
       {/* Join Team */}
       <section className="py-20 md:py-28 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="container-custom max-w-3xl">
-          <div className="bg-white rounded-3xl p-10 md:p-12 text-center shadow-2xl border border-gray-200">
+          <div className="bg-white rounded-3xl p-10 md:p-12 text-center shadow-2xl border border-neural-200">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Users className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Join Our Growing Team</h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-neural-900">Join Our Growing Team</h2>
+            <p className="text-lg text-neural-600 mb-8 max-w-xl mx-auto">
               We're hiring talented people who share our passion for AI innovation and human-centric technology.
             </p>
             <Link href="/resources/careers" className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-xl shadow-lg shadow-blue-500/25 transition-all transform hover:scale-105">
