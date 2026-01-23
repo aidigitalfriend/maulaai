@@ -215,6 +215,7 @@ function SubscriptionContent() {
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           agentId: agentSlug,
           agentName,
