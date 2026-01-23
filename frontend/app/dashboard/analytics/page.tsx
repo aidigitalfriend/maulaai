@@ -124,7 +124,7 @@ export default function DashboardAnalyticsPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [state.user]);
 
   const handleExportPDF = useCallback(async () => {
     if (!analyticsData) return;

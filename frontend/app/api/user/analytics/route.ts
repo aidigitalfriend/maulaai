@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic';
 // running on the Express backend at /api/user/analytics. This avoids
 // maintaining two separate analytics systems.
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     const backendBase = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
 
@@ -18,6 +20,12 @@ export async function GET(request: NextRequest) {
       targetUrl.searchParams.append(key, value);
     });
 
+    console.log(`[Analytics Proxy] Fetching from: ${targetUrl.toString()}`);
+    
+    // Add timeout with AbortController
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const response = await fetch(targetUrl.toString(), {
       method: 'GET',
       headers: {
@@ -25,9 +33,14 @@ export async function GET(request: NextRequest) {
         cookie: request.headers.get('cookie') || '',
       },
       cache: 'no-store',
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     const body = await response.text();
+    
+    console.log(`[Analytics Proxy] Response status: ${response.status}, took ${Date.now() - startTime}ms`);
 
     return new NextResponse(body, {
       status: response.status,
@@ -37,7 +50,20 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error proxying /api/user/analytics:', error);
+    const elapsed = Date.now() - startTime;
+    console.error(`[Analytics Proxy] Error after ${elapsed}ms:`, error);
+    
+    // Check if it was a timeout
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Analytics request timed out. Please try again.',
+        },
+        { status: 504 }
+      );
+    }
+    
     return NextResponse.json(
       {
         success: false,
