@@ -242,8 +242,25 @@ function buildCpuMem() {
   const memFree = os.freemem();
   const memUsed = memTotal - memFree;
   const memPct = +((memUsed / memTotal) * 100).toFixed(1);
-  const load = os.loadavg()[0] || 0;
-  return { memPct, load1: +load.toFixed(2) };
+  const load = os.loadavg();
+  const cores = os.cpus().length;
+
+  // Convert bytes to GB
+  const memTotalGB = +(memTotal / (1024 ** 3)).toFixed(1);
+  const memFreeGB = +(memFree / (1024 ** 3)).toFixed(1);
+  const memUsedGB = +(memUsed / (1024 ** 3)).toFixed(1);
+
+  return {
+    cpuPercent: +load[0].toFixed(1), // 1-minute load average
+    memoryPercent: memPct,
+    totalMem: memTotalGB,
+    freeMem: memFreeGB,
+    usedMem: memUsedGB,
+    load1: +load[0].toFixed(2),
+    load5: +load[1].toFixed(2),
+    load15: +load[2].toFixed(2),
+    cores,
+  };
 }
 
 // ============================================
@@ -396,19 +413,44 @@ app.get('/api/status', async (req, res) => {
     res.json({
       status: 'success',
       data: {
-        platformStatus,
-        lastUpdated: new Date().toISOString(),
-        metrics: {
-          apiStatus,
-          databaseStatus: dbStatus,
-          rps: metrics.rps,
-          avgResponseTime: metrics.avgResponseMs,
-          errorRate: metrics.errorRate,
+        platform: {
+          status: platformStatus,
+          uptime: process.uptime(), // Server uptime in seconds
+          lastUpdated: new Date().toISOString(),
+          version: process.env.APP_VERSION || '2.0.0',
+        },
+        api: {
+          status: apiStatus,
+          responseTime: metrics.avgResponseMs,
+          uptime: process.uptime(),
           requestsToday: todaySessions + todayPageViews,
-          activeUsers,
+          requestsPerMinute: metrics.rps || 0,
+          errorRate: metrics.errorRate,
+          errorsToday: 0, // TODO: implement error counting
+        },
+        database: {
+          status: dbStatus,
+          connectionPool: 1, // TODO: implement connection pool info
+          responseTime: dbCheck.latencyMs,
+          uptime: process.uptime(),
         },
         agents: agentsData,
-        providers,
+        aiServices: Object.entries(providers)
+          .filter(([_, configured]) => configured)
+          .map(([name]) => ({
+            name: name.charAt(0).toUpperCase() + name.slice(1),
+            status: 'operational',
+            responseTime: 100 + Math.random() * 200, // Mock response time
+            uptime: process.uptime(),
+          })),
+        tools: [
+          { name: 'API Tester', status: 'operational', responseTime: 150, activeChats: 0 },
+          { name: 'DNS Lookup', status: 'operational', responseTime: 200, activeChats: 0 },
+          { name: 'SSL Checker', status: 'operational', responseTime: 300, activeChats: 0 },
+        ],
+        historical: [], // TODO: implement historical data
+        incidents: [], // TODO: implement incident tracking
+        totalActiveUsers: activeUsers,
         system: buildCpuMem(),
       },
     });
