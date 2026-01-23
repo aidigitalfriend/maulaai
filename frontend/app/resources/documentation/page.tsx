@@ -42,15 +42,15 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to Maula AI</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-bold text-neural-900 mb-3">Welcome to Maula AI</h3>
+            <p className="text-neural-600 leading-relaxed">
               Maula AI is a powerful platform that lets you interact with specialized AI agents for various purposes. Whether you need help with physics, cooking advice, emotional support, or entertainment, our 18 unique AI personalities are ready to assist you.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Getting Your First Agent Running</h4>
-            <ol className="space-y-3 list-decimal list-inside text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Getting Your First Agent Running</h4>
+            <ol className="space-y-3 list-decimal list-inside text-neural-600">
               <li>Browse our library of 18 specialized AI agents</li>
               <li>Choose an agent that matches your needs</li>
               <li>Start a conversation directly or use our API</li>
@@ -59,37 +59,37 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Key Concepts</h4>
-            <ul className="space-y-3 text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Key Concepts</h4>
+            <ul className="space-y-3 text-neural-600">
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 text-sm">🤖</span>
                 </span>
-                <div><strong className="text-gray-900">Agents:</strong> 18 pre-built AI personalities with specialized knowledge</div>
+                <div><strong className="text-neural-900">Agents:</strong> 18 pre-built AI personalities with specialized knowledge</div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-indigo-600 text-sm">🎨</span>
                 </span>
-                <div><strong className="text-gray-900">Studio:</strong> Enhanced chat interface with advanced features</div>
+                <div><strong className="text-neural-900">Studio:</strong> Enhanced chat interface with advanced features</div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-purple-600 text-sm">🖼️</span>
                 </span>
-                <div><strong className="text-gray-900">Canvas:</strong> AI-powered code and content generation workspace</div>
+                <div><strong className="text-neural-900">Canvas:</strong> AI-powered code and content generation workspace</div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-green-600 text-sm">🔑</span>
                 </span>
-                <div><strong className="text-gray-900">API Keys:</strong> Credentials to authenticate your API requests</div>
+                <div><strong className="text-neural-900">API Keys:</strong> Credentials to authenticate your API requests</div>
               </li>
             </ul>
           </div>
 
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100">
-            <p className="text-gray-700 text-sm">
+            <p className="text-neural-700 text-sm">
               💡 <strong>Tip:</strong> Start with the &quot;Integration Guide&quot; section to learn how to connect Maula AI to your platform.
             </p>
           </div>
@@ -102,48 +102,48 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">API Reference</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-bold text-neural-900 mb-3">API Reference</h3>
+            <p className="text-neural-600 leading-relaxed">
               The Maula AI API provides RESTful endpoints for managing agents, conversations, and more.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Base URL</h4>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Base URL</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400">
               https://api.maula.ai/v1
             </div>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Core Endpoints</h4>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Core Endpoints</h4>
             <div className="space-y-3">
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <p className="font-mono"><span className="text-blue-600 font-bold">GET</span> <span className="text-gray-700">/agents</span></p>
-                <p className="text-gray-500 text-sm mt-1">List all available agents</p>
+              <div className="bg-gray-50 p-4 rounded-xl border border-neural-200">
+                <p className="font-mono"><span className="text-blue-600 font-bold">GET</span> <span className="text-neural-700">/agents</span></p>
+                <p className="text-neural-500 text-sm mt-1">List all available agents</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <p className="font-mono"><span className="text-green-600 font-bold">POST</span> <span className="text-gray-700">/conversations</span></p>
-                <p className="text-gray-500 text-sm mt-1">Create a new conversation with an agent</p>
+              <div className="bg-gray-50 p-4 rounded-xl border border-neural-200">
+                <p className="font-mono"><span className="text-green-600 font-bold">POST</span> <span className="text-neural-700">/conversations</span></p>
+                <p className="text-neural-500 text-sm mt-1">Create a new conversation with an agent</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <p className="font-mono"><span className="text-blue-600 font-bold">GET</span> <span className="text-gray-700">/conversations/:id</span></p>
-                <p className="text-gray-500 text-sm mt-1">Retrieve conversation history</p>
+              <div className="bg-gray-50 p-4 rounded-xl border border-neural-200">
+                <p className="font-mono"><span className="text-blue-600 font-bold">GET</span> <span className="text-neural-700">/conversations/:id</span></p>
+                <p className="text-neural-500 text-sm mt-1">Retrieve conversation history</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <p className="font-mono"><span className="text-green-600 font-bold">POST</span> <span className="text-gray-700">/conversations/:id/messages</span></p>
-                <p className="text-gray-500 text-sm mt-1">Send a message to an agent</p>
+              <div className="bg-gray-50 p-4 rounded-xl border border-neural-200">
+                <p className="font-mono"><span className="text-green-600 font-bold">POST</span> <span className="text-neural-700">/conversations/:id/messages</span></p>
+                <p className="text-neural-500 text-sm mt-1">Send a message to an agent</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <p className="font-mono"><span className="text-green-600 font-bold">POST</span> <span className="text-gray-700">/canvas/generate</span></p>
-                <p className="text-gray-500 text-sm mt-1">Generate code or content via Canvas</p>
+              <div className="bg-gray-50 p-4 rounded-xl border border-neural-200">
+                <p className="font-mono"><span className="text-green-600 font-bold">POST</span> <span className="text-neural-700">/canvas/generate</span></p>
+                <p className="text-neural-500 text-sm mt-1">Generate code or content via Canvas</p>
               </div>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Rate Limits</h4>
-            <p className="text-gray-600">API requests are limited to 1000 requests per hour per API key. Premium plans have higher limits.</p>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Rate Limits</h4>
+            <p className="text-neural-600">API requests are limited to 1000 requests per hour per API key. Premium plans have higher limits.</p>
           </div>
         </div>
       )
@@ -154,15 +154,15 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Authentication</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-bold text-neural-900 mb-3">Authentication</h3>
+            <p className="text-neural-600 leading-relaxed">
               All Maula AI API requests require authentication using an API key.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Getting Your API Key</h4>
-            <ol className="space-y-3 list-decimal list-inside text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Getting Your API Key</h4>
+            <ol className="space-y-3 list-decimal list-inside text-neural-600">
               <li>Navigate to your dashboard settings</li>
               <li>Go to &quot;API Keys&quot; section</li>
               <li>Click &quot;Generate New Key&quot;</li>
@@ -171,15 +171,15 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Using Your API Key</h4>
-            <p className="text-gray-600 mb-3">Include your API key in the Authorization header:</p>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Using Your API Key</h4>
+            <p className="text-neural-600 mb-3">Include your API key in the Authorization header:</p>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400 overflow-x-auto">
               Authorization: Bearer YOUR_API_KEY
             </div>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Example Request</h4>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Example Request</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-green-400 overflow-x-auto">
               <pre>{`curl -X GET https://api.maula.ai/v1/agents \\
   -H "Authorization: Bearer YOUR_API_KEY"`}</pre>
@@ -200,15 +200,15 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Integration Guide</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-bold text-neural-900 mb-3">Integration Guide</h3>
+            <p className="text-neural-600 leading-relaxed">
               Learn how to integrate Maula AI with your applications.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Web Integration</h4>
-            <p className="text-gray-600 mb-3">Add a chat widget to your website:</p>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Web Integration</h4>
+            <p className="text-neural-600 mb-3">Add a chat widget to your website:</p>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-blue-400 overflow-x-auto">
               <pre>{`<script src="https://cdn.maula.ai/widget.js"></script>
 <script>
@@ -221,8 +221,8 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Slack Integration</h4>
-            <ol className="space-y-2 list-decimal list-inside text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Slack Integration</h4>
+            <ol className="space-y-2 list-decimal list-inside text-neural-600">
               <li>Go to your workspace settings</li>
               <li>Connect Maula AI to your Slack workspace</li>
               <li>Authorize the required permissions</li>
@@ -231,12 +231,12 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Discord Integration</h4>
-            <p className="text-gray-600">Similar to Slack, you can integrate Maula AI with Discord to make your agents available as bots in your servers.</p>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Discord Integration</h4>
+            <p className="text-neural-600">Similar to Slack, you can integrate Maula AI with Discord to make your agents available as bots in your servers.</p>
           </div>
 
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100">
-            <p className="text-gray-700 text-sm">
+            <p className="text-neural-700 text-sm">
               💡 <strong>Tip:</strong> Use webhooks to trigger custom actions when agents respond.
             </p>
           </div>
@@ -249,15 +249,15 @@ export default function DocumentationPage() {
       content: (
         <div className="space-y-6">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Webhook Troubleshooting</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-bold text-neural-900 mb-3">Webhook Troubleshooting</h3>
+            <p className="text-neural-600 leading-relaxed">
               Webhooks allow you to receive real-time updates about agent activities.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Setting Up Webhooks</h4>
-            <div className="space-y-2 text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Setting Up Webhooks</h4>
+            <div className="space-y-2 text-neural-600">
               <p>1. Configure a webhook URL in your dashboard</p>
               <p>2. Choose which events to subscribe to</p>
               <p>3. Maula AI will POST to your URL when events occur</p>
@@ -265,30 +265,30 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Common Issues</h4>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Common Issues</h4>
             <div className="space-y-4">
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                 <p className="font-bold text-amber-700">Webhook not triggering?</p>
-                <p className="text-gray-600 text-sm mt-1">Check that your URL is publicly accessible and returns a 200 status code.</p>
+                <p className="text-neural-600 text-sm mt-1">Check that your URL is publicly accessible and returns a 200 status code.</p>
               </div>
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                 <p className="font-bold text-amber-700">Timeouts occurring?</p>
-                <p className="text-gray-600 text-sm mt-1">Ensure your webhook endpoint processes requests within 30 seconds.</p>
+                <p className="text-neural-600 text-sm mt-1">Ensure your webhook endpoint processes requests within 30 seconds.</p>
               </div>
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                 <p className="font-bold text-amber-700">Missing payload data?</p>
-                <p className="text-gray-600 text-sm mt-1">Verify you&apos;re subscribing to the correct event types in your dashboard.</p>
+                <p className="text-neural-600 text-sm mt-1">Verify you&apos;re subscribing to the correct event types in your dashboard.</p>
               </div>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Webhook Events</h4>
-            <ul className="space-y-2 text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Webhook Events</h4>
+            <ul className="space-y-2 text-neural-600">
               <li className="flex items-center gap-2"><span className="text-green-500">●</span> <strong>message.sent:</strong> When an agent sends a message</li>
               <li className="flex items-center gap-2"><span className="text-blue-500">●</span> <strong>message.received:</strong> When an agent receives a message</li>
               <li className="flex items-center gap-2"><span className="text-purple-500">●</span> <strong>conversation.started:</strong> When a conversation begins</li>
-              <li className="flex items-center gap-2"><span className="text-gray-500">●</span> <strong>conversation.ended:</strong> When a conversation ends</li>
+              <li className="flex items-center gap-2"><span className="text-neural-500">●</span> <strong>conversation.ended:</strong> When a conversation ends</li>
             </ul>
           </div>
 
@@ -308,7 +308,7 @@ export default function DocumentationPage() {
       return {
         title: 'Agent Not Found',
         icon: '❓',
-        content: <p className="text-gray-600">This agent could not be found.</p>
+        content: <p className="text-neural-600">This agent could not be found.</p>
       }
     }
     return {
@@ -329,15 +329,15 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Overview</h4>
-            <p className="text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Overview</h4>
+            <p className="text-neural-600">
               {agent.name} is a specialized AI agent designed to provide expert guidance and assistance. This agent brings unique expertise and personality to every conversation.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Capabilities</h4>
-            <ul className="space-y-2 text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Capabilities</h4>
+            <ul className="space-y-2 text-neural-600">
               <li className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -366,7 +366,7 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">API Integration</h4>
+            <h4 className="text-xl font-bold text-neural-900 mb-3">API Integration</h4>
             <div className="bg-gray-900 p-4 rounded-xl font-mono text-sm text-blue-400 overflow-x-auto">
               <pre>{`POST /conversations
 {
@@ -377,8 +377,8 @@ export default function DocumentationPage() {
           </div>
 
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-3">Use Cases</h4>
-            <ul className="space-y-2 text-gray-600">
+            <h4 className="text-xl font-bold text-neural-900 mb-3">Use Cases</h4>
+            <ul className="space-y-2 text-neural-600">
               <li className="flex items-center gap-2">
                 <span className="text-blue-500">•</span> Customer support
               </li>
@@ -430,10 +430,10 @@ export default function DocumentationPage() {
         <div className="flex flex-col lg:flex-row gap-6 lg:min-h-[600px]">
           
           {/* Left Sidebar / Top Panel - Navigation */}
-          <div className="w-full lg:w-72 bg-white rounded-2xl border border-gray-200 shadow-lg p-5 lg:overflow-y-auto lg:flex-shrink-0 lg:max-h-[calc(100vh-200px)] lg:sticky lg:top-8">
+          <div className="w-full lg:w-72 bg-white rounded-2xl border border-neural-200 shadow-lg p-5 lg:overflow-y-auto lg:flex-shrink-0 lg:max-h-[calc(100vh-200px)] lg:sticky lg:top-8">
             {/* Documentation Sections */}
             <div className="mb-6">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <h3 className="text-xs font-bold text-neural-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
@@ -453,7 +453,7 @@ export default function DocumentationPage() {
                     className={`w-full text-left px-3 py-2.5 rounded-xl transition flex items-center gap-2 ${
                       activeSection === item.id
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        : 'text-neural-600 hover:bg-gray-100 hover:text-neural-900'
                     }`}
                   >
                     <span className="text-base">{item.icon}</span>
@@ -464,8 +464,8 @@ export default function DocumentationPage() {
             </div>
 
             {/* Agents Section */}
-            <div className="border-t border-gray-200 pt-5">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <div className="border-t border-neural-200 pt-5">
+              <h3 className="text-xs font-bold text-neural-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -479,7 +479,7 @@ export default function DocumentationPage() {
                     className={`w-full text-left px-3 py-2 rounded-lg transition flex items-center gap-2 ${
                       activeSection === `agent-${agent.id}`
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        : 'text-neural-600 hover:bg-gray-100 hover:text-neural-900'
                     }`}
                   >
                     <span className="text-base">{agent.avatar}</span>
@@ -493,11 +493,11 @@ export default function DocumentationPage() {
           {/* Right Panel / Bottom Content - Content Display */}
           <div 
             ref={contentRef}
-            className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-lg p-6 lg:p-8 lg:overflow-y-auto scroll-mt-4"
+            className="flex-1 bg-white rounded-2xl border border-neural-200 shadow-lg p-6 lg:p-8 lg:overflow-y-auto scroll-mt-4"
           >
-            <div className="flex items-center gap-4 mb-6 pb-5 border-b border-gray-200">
+            <div className="flex items-center gap-4 mb-6 pb-5 border-b border-neural-200">
               <span className="text-4xl lg:text-5xl">{currentContent.icon}</span>
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">{currentContent.title}</h2>
+              <h2 className="text-2xl lg:text-3xl font-bold text-neural-900">{currentContent.title}</h2>
             </div>
             {currentContent.content}
           </div>
@@ -505,10 +505,10 @@ export default function DocumentationPage() {
       </div>
 
       {/* CTA Section */}
-      <section className="py-16 bg-white border-t border-gray-200">
+      <section className="py-16 bg-white border-t border-neural-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Get Started?</h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-neural-900 mb-4">Ready to Get Started?</h2>
+          <p className="text-neural-600 mb-8 max-w-2xl mx-auto">
             Browse our collection of 18 specialized AI agents or dive into our API documentation to start building.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -518,7 +518,7 @@ export default function DocumentationPage() {
               </svg>
               Browse All Agents
             </Link>
-            <Link href="/support" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition">
+            <Link href="/support" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-100 hover:bg-gray-200 text-neural-700 rounded-xl font-semibold transition">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
