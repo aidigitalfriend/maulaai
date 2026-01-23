@@ -948,7 +948,6 @@ export const GamificationService = {
       update: {},
       create: {
         userId,
-        username,
         totalPoints: 0,
         availablePoints: 0,
         totalPointsEarned: 0,
