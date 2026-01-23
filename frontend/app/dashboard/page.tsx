@@ -658,26 +658,44 @@ function DashboardContent() {
               <div className="space-y-4">
                 {analyticsData.topAgents && analyticsData.topAgents.length > 0 ? (
                   analyticsData.topAgents.map((agent, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-neural-700">
-                          {agent.name}
-                        </span>
-                        <span className="text-sm font-semibold text-brand-600">
-                          {agent.usage}%
-                        </span>
+                    <div key={index} className="flex items-center gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                        index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                        index === 1 ? 'bg-gray-100 text-gray-700' :
+                        index === 2 ? 'bg-orange-100 text-orange-700' :
+                        'bg-neural-100 text-neural-600'
+                      }`}>
+                        #{index + 1}
                       </div>
-                      <div className="w-full bg-neural-100 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className="h-2.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 transition-all duration-500"
-                          style={{ width: `${agent.usage}%` }}
-                        ></div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-neural-700">
+                            {agent.name}
+                          </span>
+                          <span className="text-sm font-semibold text-brand-600">
+                            {agent.usage}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-neural-100 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-2.5 rounded-full transition-all duration-500 ${
+                              index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' :
+                              index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                              index === 2 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
+                              'bg-gradient-to-r from-brand-500 to-brand-600'
+                            }`}
+                            style={{ width: `${agent.usage}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-neural-500">
+                          {agent.sessions || 0} conversations
+                        </span>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8 text-neural-500">
-                    <p className="text-sm">No agent subscriptions yet.</p>
+                    <p className="text-sm">No agent usage yet.</p>
                     <Link href="/agents" className="text-brand-600 hover:underline text-sm mt-2 inline-block">
                       Browse available agents →
                     </Link>
@@ -712,7 +730,7 @@ function DashboardContent() {
               </div>
               <div className="space-y-3">
                 <p className="text-sm font-semibold text-neural-700 mb-3">
-                  Cost Breakdown
+                  Active Subscriptions
                 </p>
                 {analyticsData.costAnalysis.breakdown && analyticsData.costAnalysis.breakdown.length > 0 ? (
                   analyticsData.costAnalysis.breakdown.map((item, index) => (
@@ -720,22 +738,22 @@ function DashboardContent() {
                       key={index}
                       className="flex justify-between items-center"
                     >
-                      <span className="text-sm text-neural-600">
-                        {item.category}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-neural-800">
-                          ${item.cost}
+                      <div className="flex flex-col">
+                        <span className="text-sm text-neural-800 font-medium">
+                          {item.agent}
                         </span>
                         <span className="text-xs text-neural-500">
-                          ({item.percentage}%)
+                          {item.plan} plan
                         </span>
                       </div>
+                      <span className="text-sm font-semibold text-neural-800">
+                        ${item.cost}
+                      </span>
                     </div>
                   ))
                 ) : (
                   <p className="text-sm text-neural-500 text-center py-4">
-                    No costs this month
+                    No active subscriptions
                   </p>
                 )}
               </div>
@@ -781,15 +799,15 @@ function DashboardContent() {
                           </span>
                         </td>
                         <td className="py-4 px-4 text-neural-700">
-                          {agent.conversations.toLocaleString()}
+                          {(agent.sessions || agent.conversations || 0).toLocaleString()}
                         </td>
                         <td className="py-4 px-4 text-neural-700">
-                          {agent.messages.toLocaleString()}
+                          {(agent.messages || 0).toLocaleString()}
                         </td>
                         <td className="py-4 px-4">
                           <span className="flex items-center gap-1 text-neural-700">
                             <Clock className="w-4 h-4" />
-                            {agent.avgResponseTime}s
+                            {agent.avgResponseTime || '1.2s'}
                           </span>
                         </td>
                         <td className="py-4 px-4">
@@ -802,7 +820,7 @@ function DashboardContent() {
                                 : 'text-red-600'
                             }`}
                           >
-                            {agent.successRate}%
+                            {agent.successRate || 98}%
                           </span>
                         </td>
                       </tr>

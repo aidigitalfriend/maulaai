@@ -659,7 +659,7 @@ router.get('/billing/:userId', async (req, res) => {
 });
 
 // ============================================
-// USER ANALYTICS
+// USER ANALYTICS - REAL DATABASE DATA
 // ============================================
 router.get('/analytics', async (req, res) => {
   try {
@@ -685,32 +685,288 @@ router.get('/analytics', async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Get active subscriptions count for user
+    // Import prisma for direct queries
+    const { prisma } = await import('../lib/prisma.js');
+
+    // ============================================
+    // 1. Get Active Subscriptions
+    // ============================================
     let activeAgentsCount = 0;
+    let activeSubscriptions = [];
     try {
-      const subscriptions = await db.AgentSubscription.findByUserId(userId);
-      activeAgentsCount = subscriptions?.filter(s => s.status === 'active')?.length || 0;
+      activeSubscriptions = await prisma.agentSubscription.findMany({
+        where: { 
+          userId, 
+          status: 'active',
+          expiryDate: { gte: new Date() }
+        },
+        include: { agent: true }
+      });
+      activeAgentsCount = activeSubscriptions.length;
     } catch (e) {
       console.warn('Could not fetch subscriptions for analytics:', e.message);
     }
 
-    // Calculate usage stats
-    const totalMessages = user.totalMessages || 0;
-    const totalConversations = user.totalAgentInteractions || 0;
-    const apiCalls = totalMessages + totalConversations;
+    // ============================================
+    // 2. Get Real Conversation & Message Counts
+    // ============================================
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    // Return user analytics data in the format expected by frontend
-    const analyticsData = {
-      // Subscription info (defaults, will be merged with billing data on frontend)
-      subscription: {
-        plan: 'Free',
-        status: 'active',
-        price: 0,
-        period: 'month',
-        renewalDate: 'N/A',
-        daysUntilRenewal: 0,
+    // Total conversations (chat sessions) for user
+    const totalConversations = await prisma.chatSession.count({
+      where: { userId }
+    });
+
+    // Total messages for user
+    const totalMessagesResult = await prisma.chatMessage.count({
+      where: {
+        session: { userId }
+      }
+    });
+    const totalMessages = totalMessagesResult || 0;
+
+    // API calls count (from ApiUsage table)
+    const totalApiCalls = await prisma.apiUsage.count({
+      where: { userId }
+    });
+
+    // ============================================
+    // 3. Get 7-Day Activity Data (Real)
+    // ============================================
+    const dailyUsage = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now);
+      dayStart.setDate(dayStart.getDate() - i);
+      dayStart.setHours(0, 0, 0, 0);
+      
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const [dayConversations, dayMessages, dayApiCalls] = await Promise.all([
+        prisma.chatSession.count({
+          where: {
+            userId,
+            createdAt: { gte: dayStart, lte: dayEnd }
+          }
+        }),
+        prisma.chatMessage.count({
+          where: {
+            session: { userId },
+            createdAt: { gte: dayStart, lte: dayEnd }
+          }
+        }),
+        prisma.apiUsage.count({
+          where: {
+            userId,
+            timestamp: { gte: dayStart, lte: dayEnd }
+          }
+        })
+      ]);
+
+      dailyUsage.push({
+        date: dayStart.toISOString().split('T')[0],
+        conversations: dayConversations,
+        messages: dayMessages,
+        apiCalls: dayApiCalls
+      });
+    }
+
+    // ============================================
+    // 4. Calculate Weekly Trends
+    // ============================================
+    const thisWeekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const lastWeekStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const lastWeekEnd = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [thisWeekConversations, lastWeekConversations] = await Promise.all([
+      prisma.chatSession.count({
+        where: { userId, createdAt: { gte: thisWeekStart } }
+      }),
+      prisma.chatSession.count({
+        where: { userId, createdAt: { gte: lastWeekStart, lt: lastWeekEnd } }
+      })
+    ]);
+
+    const [thisWeekMessages, lastWeekMessages] = await Promise.all([
+      prisma.chatMessage.count({
+        where: { session: { userId }, createdAt: { gte: thisWeekStart } }
+      }),
+      prisma.chatMessage.count({
+        where: { session: { userId }, createdAt: { gte: lastWeekStart, lt: lastWeekEnd } }
+      })
+    ]);
+
+    const conversationsChange = lastWeekConversations > 0 
+      ? Math.round(((thisWeekConversations - lastWeekConversations) / lastWeekConversations) * 100) 
+      : thisWeekConversations > 0 ? 100 : 0;
+    const messagesChange = lastWeekMessages > 0 
+      ? Math.round(((thisWeekMessages - lastWeekMessages) / lastWeekMessages) * 100) 
+      : thisWeekMessages > 0 ? 100 : 0;
+
+    // ============================================
+    // 5. Top Agents by Usage (Real)
+    // ============================================
+    const agentUsageStats = await prisma.chatSession.groupBy({
+      by: ['agentId'],
+      where: { 
+        userId,
+        agentId: { not: null }
       },
-      // Usage metrics
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5
+    });
+
+    const totalAgentSessions = agentUsageStats.reduce((sum, a) => sum + a._count.id, 0);
+    
+    // Get agent names for the top agents
+    const topAgentIds = agentUsageStats.map(a => a.agentId).filter(Boolean);
+    const agents = topAgentIds.length > 0 ? await prisma.agent.findMany({
+      where: { agentId: { in: topAgentIds } }
+    }) : [];
+    
+    const agentNameMap = {};
+    agents.forEach(a => { agentNameMap[a.agentId] = a.name; });
+
+    const topAgents = agentUsageStats.map(stat => ({
+      id: stat.agentId,
+      name: agentNameMap[stat.agentId] || stat.agentId || 'Unknown',
+      sessions: stat._count.id,
+      usage: totalAgentSessions > 0 ? Math.round((stat._count.id / totalAgentSessions) * 100) : 0
+    }));
+
+    // ============================================
+    // 6. Agent Performance Stats
+    // ============================================
+    const agentPerformance = [];
+    for (const sub of activeSubscriptions.slice(0, 5)) {
+      const agentSessions = await prisma.chatSession.count({
+        where: { userId, agentId: sub.agentId }
+      });
+      const agentMessages = await prisma.chatMessage.count({
+        where: { session: { userId, agentId: sub.agentId } }
+      });
+      
+      // Calculate success rate from feedback
+      const feedbackStats = await prisma.chatFeedback.aggregate({
+        where: {
+          userId,
+          session: { agentId: sub.agentId }
+        },
+        _avg: { rating: true },
+        _count: { id: true }
+      });
+
+      const avgRating = feedbackStats._avg.rating || 4.5;
+      const successRate = Math.min(100, Math.round((avgRating / 5) * 100));
+
+      agentPerformance.push({
+        agentId: sub.agentId,
+        name: sub.agent?.name || sub.agentId,
+        sessions: agentSessions,
+        messages: agentMessages,
+        successRate,
+        avgResponseTime: '1.2s', // TODO: Calculate from actual latency data
+        status: 'active'
+      });
+    }
+
+    // ============================================
+    // 7. Recent Activity (Last 30 minutes)
+    // ============================================
+    const [recentSessions, recentEvents, recentApiCalls] = await Promise.all([
+      prisma.chatSession.findMany({
+        where: { userId, updatedAt: { gte: thirtyMinutesAgo } },
+        include: { agent: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 10
+      }),
+      prisma.userEvent.findMany({
+        where: { userId, occurredAt: { gte: thirtyMinutesAgo } },
+        orderBy: { occurredAt: 'desc' },
+        take: 10
+      }),
+      prisma.apiUsage.findMany({
+        where: { userId, timestamp: { gte: thirtyMinutesAgo } },
+        orderBy: { timestamp: 'desc' },
+        take: 10
+      })
+    ]);
+
+    const recentActivity = [
+      ...recentSessions.map(s => ({
+        timestamp: s.updatedAt.toISOString(),
+        agent: s.agent?.name || s.agentId || 'Chat',
+        action: 'Chat Session',
+        status: s.isActive ? 'active' : 'completed',
+        type: 'conversation'
+      })),
+      ...recentEvents.map(e => ({
+        timestamp: e.occurredAt.toISOString(),
+        agent: 'System',
+        action: e.action || e.eventType,
+        status: e.success !== false ? 'completed' : 'failed',
+        type: e.category || 'event'
+      })),
+      ...recentApiCalls.map(a => ({
+        timestamp: a.timestamp.toISOString(),
+        agent: 'API',
+        action: `${a.method} ${a.endpoint}`,
+        status: a.statusCode < 400 ? 'completed' : 'failed',
+        type: 'api_call'
+      }))
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 15);
+
+    // ============================================
+    // 8. Cost Analysis (from subscriptions)
+    // ============================================
+    const thisMonthCost = activeSubscriptions.reduce((sum, sub) => {
+      if (new Date(sub.startDate) >= thisMonthStart) {
+        return sum + (sub.price || 0);
+      }
+      return sum;
+    }, 0);
+
+    const totalSubscriptionCost = activeSubscriptions.reduce((sum, sub) => sum + (sub.price || 0), 0);
+
+    const costBreakdown = activeSubscriptions.map(sub => ({
+      agent: sub.agent?.name || sub.agentId,
+      plan: sub.plan,
+      cost: sub.price,
+      startDate: sub.startDate.toISOString()
+    }));
+
+    // ============================================
+    // 9. Success Rate Calculation
+    // ============================================
+    const totalFeedback = await prisma.chatFeedback.aggregate({
+      where: { userId },
+      _avg: { rating: true },
+      _count: { id: true }
+    });
+    const overallSuccessRate = totalFeedback._avg.rating 
+      ? Math.min(100, Math.round((totalFeedback._avg.rating / 5) * 100))
+      : 98.5; // Default if no feedback
+
+    // ============================================
+    // Build Analytics Response
+    // ============================================
+    const analyticsData = {
+      subscription: {
+        plan: activeSubscriptions.length > 0 ? `${activeSubscriptions.length} Active Agent${activeSubscriptions.length > 1 ? 's' : ''}` : 'No Active Plan',
+        status: activeSubscriptions.length > 0 ? 'active' : 'inactive',
+        price: totalSubscriptionCost,
+        period: 'current',
+        renewalDate: activeSubscriptions[0]?.expiryDate?.toISOString() || 'N/A',
+        daysUntilRenewal: activeSubscriptions[0]?.expiryDate 
+          ? Math.ceil((new Date(activeSubscriptions[0].expiryDate) - now) / (1000 * 60 * 60 * 24))
+          : 0,
+      },
       usage: {
         conversations: {
           current: totalConversations,
@@ -725,9 +981,9 @@ router.get('/analytics', async (req, res) => {
           unit: 'agents',
         },
         apiCalls: {
-          current: apiCalls,
+          current: totalApiCalls,
           limit: 10000,
-          percentage: Math.min(100, Math.round((apiCalls / 10000) * 100)),
+          percentage: Math.min(100, Math.round((totalApiCalls / 10000) * 100)),
           unit: 'calls',
         },
         storage: {
@@ -743,55 +999,29 @@ router.get('/analytics', async (req, res) => {
           unit: 'messages',
         },
       },
-      // Daily usage (last 7 days placeholder)
-      dailyUsage: Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
-        return {
-          date: date.toISOString().split('T')[0],
-          conversations: Math.floor(Math.random() * 10),
-          messages: Math.floor(Math.random() * 50),
-          apiCalls: Math.floor(Math.random() * 100),
-        };
-      }),
-      // Weekly trends
+      dailyUsage,
       weeklyTrend: {
-        conversationsChange: '+5%',
-        messagesChange: '+12%',
-        apiCallsChange: '+8%',
-        responseTimeChange: '-3%',
+        conversationsChange: `${conversationsChange >= 0 ? '+' : ''}${conversationsChange}%`,
+        messagesChange: `${messagesChange >= 0 ? '+' : ''}${messagesChange}%`,
+        apiCallsChange: '+0%', // TODO: Calculate
+        responseTimeChange: '-0%', // TODO: Calculate
       },
-      // Agent performance (placeholder)
-      agentPerformance: [],
-      // Recent activity
-      recentActivity: (user.activityHistory || []).slice(0, 10).map(activity => ({
-        timestamp: activity.timestamp || new Date().toISOString(),
-        agent: activity.agent || 'System',
-        action: activity.action || 'Activity',
-        status: activity.status || 'completed',
-        type: activity.type || 'interaction',
-      })),
-      // Cost analysis
+      agentPerformance,
+      recentActivity,
       costAnalysis: {
-        currentMonth: 0,
-        projectedMonth: 0,
-        breakdown: [],
+        currentMonth: thisMonthCost,
+        projectedMonth: totalSubscriptionCost,
+        breakdown: costBreakdown,
       },
-      // Top agents
-      topAgents: (user.favoriteAgents || []).slice(0, 5).map(agent => ({
-        name: agent,
-        usage: Math.floor(Math.random() * 100),
-      })),
-      // Summary
+      topAgents,
       summary: {
         totalConversations,
         totalMessages,
-        totalApiCalls: apiCalls,
+        totalApiCalls,
         activeAgents: activeAgentsCount,
         averageResponseTime: '1.2s',
-        successRate: 98.5,
+        successRate: overallSuccessRate,
       },
-      // Agent status
       agentStatus: activeAgentsCount > 0 ? 'active' : 'inactive',
     };
 
