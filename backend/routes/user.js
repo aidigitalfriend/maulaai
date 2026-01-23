@@ -1092,36 +1092,52 @@ router.get('/conversations/:userId', async (req, res) => {
       }),
     ]);
 
-    // Transform conversations for response
-    const formattedConversations = conversations.map((conv) => ({
-      id: conv.id,
-      sessionId: conv.sessionId,
-      name: conv.name || 'Untitled Conversation',
-      description: conv.description,
-      agentId: conv.agentId,
-      agentName: conv.agent?.name || 'AI Assistant',
-      agentAvatar: conv.agent?.avatar,
-      messageCount: conv._count.messages,
-      lastMessage: conv.messages[0]?.content?.substring(0, 100) || '',
-      lastMessageRole: conv.messages[0]?.role,
-      lastMessageAt: conv.messages[0]?.createdAt || conv.updatedAt,
-      tags: conv.tags || [],
-      stats: conv.stats,
-      createdAt: conv.createdAt,
-      updatedAt: conv.updatedAt,
-    }));
+    // Transform conversations for response - match frontend expected format
+    const formattedConversations = conversations.map((conv) => {
+      // Calculate duration from session stats if available
+      const stats = conv.stats || {};
+      const durationMs = stats.durationMs || 0;
+      const durationMinutes = Math.round(durationMs / 60000);
+      const duration = durationMinutes > 60 
+        ? `${Math.round(durationMinutes / 60)}h ${durationMinutes % 60}m`
+        : `${durationMinutes}m`;
+
+      return {
+        id: conv.id,
+        sessionId: conv.sessionId,
+        agent: conv.agent?.name || 'AI Assistant',
+        topic: conv.name || 'Untitled Conversation',
+        date: conv.updatedAt.toISOString(),
+        duration: duration || '0m',
+        messageCount: conv._count.messages,
+        lastMessage: conv.messages[0] ? {
+          content: conv.messages[0].content?.substring(0, 150) || '',
+          timestamp: conv.messages[0].createdAt?.toISOString(),
+        } : null,
+        // Additional fields for compatibility
+        agentId: conv.agentId,
+        agentAvatar: conv.agent?.avatar,
+        tags: conv.tags || [],
+        createdAt: conv.createdAt.toISOString(),
+        updatedAt: conv.updatedAt.toISOString(),
+      };
+    });
 
     const totalPages = Math.ceil(totalCount / limit);
 
+    // Response format matching frontend expectations
     res.json({
       success: true,
-      conversations: formattedConversations,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages,
-        hasMore: page < totalPages,
+      data: {
+        conversations: formattedConversations,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
       },
     });
   } catch (error) {
