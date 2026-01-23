@@ -175,26 +175,26 @@ export default function ReportsPage() {
       <section className="section-padding">
         <div className="container-custom max-w-4xl">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-red-400 transition-all shadow-lg">
+            <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-red-400 transition-all shadow-lg">
               <Shield className="w-8 h-8 text-red-500 mb-3" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Your Safety Matters</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Your Safety Matters</h3>
+              <p className="text-neural-600">
                 We take all reports seriously and investigate them thoroughly to protect our community.
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-orange-400 transition-all shadow-lg">
+            <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-orange-400 transition-all shadow-lg">
               <FileText className="w-8 h-8 text-orange-500 mb-3" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Detailed Documentation</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Detailed Documentation</h3>
+              <p className="text-neural-600">
                 Provide as much detail as possible to help us understand and resolve the issue quickly.
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-yellow-400 transition-all shadow-lg">
+            <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-yellow-400 transition-all shadow-lg">
               <Mail className="w-8 h-8 text-yellow-500 mb-3" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Confidential Handling</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-bold text-neural-900 mb-2">Confidential Handling</h3>
+              <p className="text-neural-600">
                 Your report will be handled confidentially and processed by our trust and safety team.
               </p>
             </div>
@@ -205,7 +205,7 @@ export default function ReportsPage() {
       {/* Report Form Section */}
       <section className="section-padding">
         <div className="container-custom max-w-3xl">
-          <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-lg">
+          <div className="bg-white border border-neural-200 rounded-lg p-8 shadow-lg">
             {submitted && (
               <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-lg flex gap-4">
                 <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
@@ -232,7 +232,7 @@ export default function ReportsPage() {
               {/* Name and Email */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="name" className="block text-sm font-semibold text-neural-900 mb-2">
                     Full Name *
                   </label>
                   <input
@@ -244,7 +244,7 @@ export default function ReportsPage() {
                     placeholder="Your full name"
                     className={`w-full px-4 py-3 bg-gray-50 border ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
-                    } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition`}
+                    } rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition`}
                   />
                   {errors.name && (
                     <p className="text-red-600 text-sm mt-1">{errors.name}</p>
@@ -252,7 +252,7 @@ export default function ReportsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="email" className="block text-sm font-semibold text-neural-900 mb-2">
                     Email Address *
                   </label>
                   <input
@@ -264,7 +264,7 @@ export default function ReportsPage() {
                     placeholder="your.email@example.com"
                     className={`w-full px-4 py-3 bg-gray-50 border ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
-                    } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition`}
+                    } rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition`}
                   />
                   {errors.email && (
                     <p className="text-red-600 text-sm mt-1">{errors.email}</p>
@@ -275,7 +275,7 @@ export default function ReportsPage() {
               {/* Report Type and Severity */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="reportType" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="reportType" className="block text-sm font-semibold text-neural-900 mb-2">
                     Report Type *
                   </label>
                   <select
@@ -283,7 +283,7 @@ export default function ReportsPage() {
                     name="reportType"
                     value={formData.reportType}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
                   >
                     {reportTypes.map(type => (
                       <option key={type.value} value={type.value} className="bg-white">
@@ -294,7 +294,7 @@ export default function ReportsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="severity" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="severity" className="block text-sm font-semibold text-neural-900 mb-2">
                     Severity Level *
                   </label>
                   <select
@@ -302,7 +302,7 @@ export default function ReportsPage() {
                     name="severity"
                     value={formData.severity}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
                   >
                     {severityLevels.map(level => (
                       <option key={level.value} value={level.value} className="bg-white">
@@ -316,7 +316,7 @@ export default function ReportsPage() {
               {/* Agent Name and Timestamp */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="agentName" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="agentName" className="block text-sm font-semibold text-neural-900 mb-2">
                     Agent Name Involved (if applicable)
                   </label>
                   <input
@@ -326,12 +326,12 @@ export default function ReportsPage() {
                     value={formData.agentName}
                     onChange={handleInputChange}
                     placeholder="e.g., Tech Wizard, Chef Biew"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="timestamp" className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label htmlFor="timestamp" className="block text-sm font-semibold text-neural-900 mb-2">
                     When Did This Occur?
                   </label>
                   <input
@@ -340,15 +340,15 @@ export default function ReportsPage() {
                     name="timestamp"
                     value={formData.timestamp}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
                   />
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
-                  Detailed Description of the Issue * <span className="text-gray-500">(minimum 50 characters)</span>
+                <label htmlFor="description" className="block text-sm font-semibold text-neural-900 mb-2">
+                  Detailed Description of the Issue * <span className="text-neural-500">(minimum 50 characters)</span>
                 </label>
                 <textarea
                   id="description"
@@ -359,10 +359,10 @@ export default function ReportsPage() {
                   rows={5}
                   className={`w-full px-4 py-3 bg-gray-50 border ${
                     errors.description ? 'border-red-500' : 'border-gray-300'
-                  } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none`}
+                  } rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none`}
                 />
                 <div className="flex justify-between items-center mt-2">
-                  <p className={`text-sm ${errors.description ? 'text-red-600' : 'text-gray-500'}`}>
+                  <p className={`text-sm ${errors.description ? 'text-red-600' : 'text-neural-500'}`}>
                     {formData.description.length} characters
                   </p>
                   {errors.description && (
@@ -373,7 +373,7 @@ export default function ReportsPage() {
 
               {/* Evidence */}
               <div>
-                <label htmlFor="evidence" className="block text-sm font-semibold text-gray-900 mb-2">
+                <label htmlFor="evidence" className="block text-sm font-semibold text-neural-900 mb-2">
                   Evidence or Screenshots (URLs or descriptions)
                 </label>
                 <textarea
@@ -383,13 +383,13 @@ export default function ReportsPage() {
                   onChange={handleInputChange}
                   placeholder="Provide links to screenshots, chat logs, or other evidence that supports your report. You can also describe what you saw or provide relevant details."
                   rows={4}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
                 />
               </div>
 
               {/* Previous Actions */}
               <div>
-                <label htmlFor="actions" className="block text-sm font-semibold text-gray-900 mb-2">
+                <label htmlFor="actions" className="block text-sm font-semibold text-neural-900 mb-2">
                   Actions Already Taken (if any)
                 </label>
                 <textarea
@@ -399,13 +399,13 @@ export default function ReportsPage() {
                   onChange={handleInputChange}
                   placeholder="Have you already blocked the user, reported them elsewhere, or taken any other action? Please describe."
                   rows={3}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
                 />
               </div>
 
               {/* Contact Preference */}
               <div>
-                <label htmlFor="contactPreference" className="block text-sm font-semibold text-gray-900 mb-2">
+                <label htmlFor="contactPreference" className="block text-sm font-semibold text-neural-900 mb-2">
                   Preferred Contact Method
                 </label>
                 <select
@@ -413,7 +413,7 @@ export default function ReportsPage() {
                   name="contactPreference"
                   value={formData.contactPreference}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-neural-900 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
                 >
                   <option value="email" className="bg-white">Email</option>
                   <option value="phone" className="bg-white">Phone</option>
@@ -473,7 +473,7 @@ export default function ReportsPage() {
                   onChange={handleInputChange}
                   className="mt-1 w-4 h-4 accent-red-600 cursor-pointer"
                 />
-                <label htmlFor="agreeToTerms" className="text-sm text-gray-700 cursor-pointer flex-1">
+                <label htmlFor="agreeToTerms" className="text-sm text-neural-700 cursor-pointer flex-1">
                   <span className="text-red-600 font-semibold">I acknowledge and agree</span> that I understand the legal disclaimer above and certify that the information I have provided in this report is true and accurate to the best of my knowledge. I understand the legal consequences of submitting false information. *
                 </label>
               </div>
@@ -500,7 +500,7 @@ export default function ReportsPage() {
                 )}
               </button>
 
-              <p className="text-center text-gray-500 text-sm">
+              <p className="text-center text-neural-500 text-sm">
                 Your report will be reviewed by our trust and safety team within 24-48 hours.
               </p>
             </form>
@@ -511,65 +511,65 @@ export default function ReportsPage() {
       {/* FAQ Section */}
       <section className="section-padding">
         <div className="container-custom max-w-3xl">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-neural-900 mb-8 text-center">Frequently Asked Questions</h2>
 
           <div className="space-y-4">
-            <details className="bg-white border border-gray-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-gray-900 cursor-pointer">
+            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
+              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
                 <span className="text-red-500 text-lg">+</span>
                 <span>Will my identity be kept confidential?</span>
               </summary>
-              <p className="text-gray-600 mt-4">
+              <p className="text-neural-600 mt-4">
                 Yes, we handle all reports confidentially. Your identity will only be shared with law enforcement if required by law, and only after thorough investigation. We keep reporter information strictly private.
               </p>
             </details>
 
-            <details className="bg-white border border-gray-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-gray-900 cursor-pointer">
+            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
+              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
                 <span className="text-red-500 text-lg">+</span>
                 <span>What happens after I submit a report?</span>
               </summary>
-              <p className="text-gray-600 mt-4">
+              <p className="text-neural-600 mt-4">
                 Our trust and safety team reviews each report within 24-48 hours. We investigate the details provided and may contact you for additional information if needed. Based on our findings, we take appropriate action which may include warnings, suspensions, or permanent bans.
               </p>
             </details>
 
-            <details className="bg-white border border-gray-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-gray-900 cursor-pointer">
+            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
+              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
                 <span className="text-red-500 text-lg">+</span>
                 <span>Can I report anonymously?</span>
               </summary>
-              <p className="text-gray-600 mt-4">
+              <p className="text-neural-600 mt-4">
                 Yes! You can select "Anonymous Report (No Follow-up Needed)" as your contact preference. However, providing your contact information helps us reach out if we need clarification or can provide you with updates on the investigation.
               </p>
             </details>
 
-            <details className="bg-white border border-gray-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-gray-900 cursor-pointer">
+            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
+              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
                 <span className="text-red-500 text-lg">+</span>
                 <span>What types of issues can I report?</span>
               </summary>
-              <p className="text-gray-600 mt-4">
+              <p className="text-neural-600 mt-4">
                 You can report inappropriate content, abuse/harassment, service misuse, security vulnerabilities, false information, scams, fraud, or any other policy violations. Please be as specific as possible about the issue you're reporting.
               </p>
             </details>
 
-            <details className="bg-white border border-gray-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-gray-900 cursor-pointer">
+            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
+              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
                 <span className="text-red-500 text-lg">+</span>
                 <span>What if I file a false report?</span>
               </summary>
-              <p className="text-gray-600 mt-4">
+              <p className="text-neural-600 mt-4">
                 Filing a false report is a serious matter. By submitting this form, you certify that your information is truthful. We take false reporting very seriously and may pursue legal action against individuals who knowingly file false reports or provide false information, including civil and criminal prosecution.
               </p>
             </details>
 
-            <details className="bg-white border border-gray-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
-              <summary className="flex items-center gap-3 font-semibold text-gray-900 cursor-pointer">
+            <details className="bg-white border border-neural-200 rounded-lg p-6 open:border-red-400 cursor-pointer shadow-sm">
+              <summary className="flex items-center gap-3 font-semibold text-neural-900 cursor-pointer">
                 <span className="text-red-500 text-lg">+</span>
                 <span>How will you use my report information?</span>
               </summary>
-              <p className="text-gray-600 mt-4">
+              <p className="text-neural-600 mt-4">
                 Your report will be used solely for investigation and prevention purposes. We may share information with law enforcement if required by law and if the report involves illegal activity. Your personal information will not be shared with third parties without your consent, except as required by law.
               </p>
             </details>
