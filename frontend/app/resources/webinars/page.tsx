@@ -35,7 +35,7 @@ export default function WebinarsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-neural-900 to-neural-800 text-white">
       <section className="section-padding bg-gradient-to-r from-brand-600 to-purple-600 text-white">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Webinars</h1>
@@ -49,24 +49,24 @@ export default function WebinarsPage() {
             {webinars.map((webinar, idx) => (
               <div
                 key={idx}
-                className="p-6 border border-neural-200 rounded-lg hover:shadow-lg transition-all bg-white"
+                className="p-6 border border-neural-700 rounded-lg hover:border-brand-500 transition-all bg-neural-800"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-semibold flex-1">{webinar.title}</h3>
+                  <h3 className="text-lg font-semibold text-white flex-1">{webinar.title}</h3>
                   <span className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ml-2 ${
                     webinar.status === 'Upcoming' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-neutral-100 text-neutral-700'
+                      ? 'bg-green-900/50 text-green-400' 
+                      : 'bg-neural-700 text-neural-300'
                   }`}>
                     {webinar.status}
                   </span>
                 </div>
-                <div className="space-y-2 text-sm text-neural-600 mb-4">
+                <div className="space-y-2 text-sm text-neural-300 mb-4">
                   <p>📅 {webinar.date}</p>
                   <p>🕐 {webinar.time}</p>
                   <p>👤 Speaker: {webinar.speaker}</p>
                 </div>
-                <Link href="/webinars/register-now" className="text-brand-600 font-semibold hover:text-brand-700">
+                <Link href="/webinars/register-now" className="text-brand-400 font-semibold hover:text-brand-300">
                   {webinar.status === 'Upcoming' ? 'Register Now →' : 'Watch Recording →'}
                 </Link>
               </div>
@@ -75,13 +75,13 @@ export default function WebinarsPage() {
         </div>
       </section>
 
-      <section className="section-padding bg-blue-400">
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-purple-600">
         <div className="container-custom max-w-3xl text-center">
           <h2 className="text-3xl font-bold mb-4 text-white">Stay Updated</h2>
-          <p className="text-lg text-white mb-8">
+          <p className="text-lg text-white/90 mb-8">
             Subscribe to our newsletter to get notifications about upcoming webinars and events.
           </p>
-          <Link href="/subscribe" className="inline-block px-8 py-3 bg-white hover:bg-gray-100 text-blue-400 rounded-lg font-semibold transition-colors">
+          <Link href="/subscribe" className="inline-block px-8 py-3 bg-white hover:bg-neural-100 text-brand-600 rounded-lg font-semibold transition-colors">
             Subscribe Now
           </Link>
         </div>
