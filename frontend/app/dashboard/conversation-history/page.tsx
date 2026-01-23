@@ -244,7 +244,7 @@ export default function ConversationHistoryPage() {
                   <button
                     onClick={() => handleExport('json')}
                     disabled={exporting}
-                    className="flex items-center gap-2 px-4 py-2 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-neural-800 text-white border border-neural-600 rounded-lg hover:bg-neural-700 disabled:opacity-50 transition-colors"
                     title="Export as JSON"
                   >
                     <DocumentTextIcon className="w-4 h-4" />
@@ -253,7 +253,7 @@ export default function ConversationHistoryPage() {
                   <button
                     onClick={() => handleExport('csv')}
                     disabled={exporting}
-                    className="flex items-center gap-2 px-4 py-2 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-neural-800 text-white border border-neural-600 rounded-lg hover:bg-neural-700 disabled:opacity-50 transition-colors"
                     title="Export as CSV"
                   >
                     <TableCellsIcon className="w-4 h-4" />
