@@ -74,219 +74,205 @@ export default function PartnershipsPage() {
   ]
 
   const PartnerCard = ({ partner }: { partner: typeof technologyPartners[0] }) => (
-    <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 hover:border-blue-500 transition-all group">
+    <div className="bg-white border border-neural-100 rounded-2xl p-6 hover:shadow-lg hover:border-brand-200 transition-all group">
       <div className="text-4xl mb-3">{partner.icon}</div>
-      <h3 className="text-lg font-bold text-white mb-2">{partner.name}</h3>
-      <p className="text-blue-400 text-sm font-semibold mb-3">{partner.description}</p>
-      <p className="text-neutral-300 text-sm">{partner.details}</p>
+      <h3 className="text-lg font-bold text-neural-800 mb-2 group-hover:text-brand-600 transition-colors">{partner.name}</h3>
+      <p className="text-brand-600 text-sm font-semibold mb-3">{partner.description}</p>
+      <p className="text-neural-600 text-sm">{partner.details}</p>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neural-900 via-neural-800 to-neural-900">
-      {/* Header */}
-      <section className="section-padding-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Our Partnerships</h1>
-          <p className="text-xl opacity-90 mb-2">Strategic alliances driving innovation in AI</p>
-          <p className="text-lg opacity-75">Together with industry leaders, we're building the future of intelligent automation</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="container-custom section-padding-lg">
+        {/* Header */}
+        <div className="text-center max-w-4xl mx-auto mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+            Our Partnerships
+          </h1>
+          <p className="text-xl text-neural-600 leading-relaxed mb-4">
+            Strategic alliances driving innovation in AI
+          </p>
+          <p className="text-neural-500">
+            Together with industry leaders, we're building the future of intelligent automation
+          </p>
         </div>
-      </section>
 
-      {/* Partnership Overview */}
-      <section className="section-padding">
-        <div className="container-custom max-w-5xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <Cloud className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Technology Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Infrastructure and cloud services powering Maula AI</p>
-            </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <Zap className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Integration Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Tools and platforms that enhance Maula AI capabilities</p>
-            </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <Users className="w-10 h-10 text-pink-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Reseller Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Consulting firms helping enterprises implement solutions</p>
-            </div>
+        {/* Partnership Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <div className="bg-white border border-neural-100 rounded-2xl p-6 text-center shadow-sm">
+            <Cloud className="w-10 h-10 text-brand-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-neural-800 mb-2">Technology Partnerships</h3>
+            <p className="text-neural-600 text-sm">Infrastructure and cloud services powering Maula AI</p>
+          </div>
+          <div className="bg-white border border-neural-100 rounded-2xl p-6 text-center shadow-sm">
+            <Zap className="w-10 h-10 text-accent-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-neural-800 mb-2">Integration Partnerships</h3>
+            <p className="text-neural-600 text-sm">Tools and platforms that enhance Maula AI capabilities</p>
+          </div>
+          <div className="bg-white border border-neural-100 rounded-2xl p-6 text-center shadow-sm">
+            <Users className="w-10 h-10 text-pink-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-neural-800 mb-2">Reseller Partnerships</h3>
+            <p className="text-neural-600 text-sm">Consulting firms helping enterprises implement solutions</p>
           </div>
         </div>
-      </section>
 
-      {/* Technology Partners */}
-      <section className="section-padding">
-        <div className="container-custom max-w-5xl">
-          <div className="mb-4">
+        {/* Technology Partners */}
+        <div className="mb-16">
+          <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <Cloud className="w-6 h-6 text-blue-400" />
-              <h2 className="text-3xl font-bold text-white">Technology Partners</h2>
+              <Cloud className="w-6 h-6 text-brand-600" />
+              <h2 className="text-3xl font-bold text-neural-800">Technology Partners</h2>
             </div>
-            <p className="text-neutral-300">Strategic partnerships with leading tech companies providing world-class infrastructure</p>
+            <p className="text-neural-600">Strategic partnerships with leading tech companies providing world-class infrastructure</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {technologyPartners.map((partner, idx) => (
               <PartnerCard key={idx} partner={partner} />
             ))}
           </div>
 
-          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-6 mb-12">
-            <h4 className="text-white font-bold mb-2">Why These Partners?</h4>
-            <p className="text-neutral-300">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+            <h4 className="text-neural-800 font-bold mb-2">Why These Partners?</h4>
+            <p className="text-neural-600">
               We partner with Google Cloud, AWS, and Microsoft Azure to ensure Maula AI runs on best-in-class infrastructure. 
               These partnerships guarantee reliability, security, and scalability for enterprises of all sizes.
             </p>
           </div>
         </div>
-      </section>
 
-      {/* Integration Partners */}
-      <section className="section-padding">
-        <div className="container-custom max-w-5xl">
-          <div className="mb-4">
+        {/* Integration Partners */}
+        <div className="mb-16">
+          <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <Link2 className="w-6 h-6 text-purple-400" />
-              <h2 className="text-3xl font-bold text-white">Integration Partners</h2>
+              <Link2 className="w-6 h-6 text-accent-600" />
+              <h2 className="text-3xl font-bold text-neural-800">Integration Partners</h2>
             </div>
-            <p className="text-neutral-300">Companies we integrate with to enhance your workflow and maximize productivity</p>
+            <p className="text-neural-600">Companies we integrate with to enhance your workflow and maximize productivity</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {integrationPartners.map((partner, idx) => (
               <PartnerCard key={idx} partner={partner} />
             ))}
           </div>
 
-          <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-6 mb-12">
-            <h4 className="text-white font-bold mb-2">Seamless Integrations</h4>
-            <p className="text-neutral-300">
+          <div className="bg-purple-50 border border-purple-200 rounded-2xl p-6">
+            <h4 className="text-neural-800 font-bold mb-2">Seamless Integrations</h4>
+            <p className="text-neural-600">
               Our integration partnerships enable Maula AI to work seamlessly with tools your team already uses. 
               From communication platforms to automation tools, we're constantly expanding our ecosystem to enhance your productivity.
             </p>
           </div>
         </div>
-      </section>
 
-      {/* Reseller Partners */}
-      <section className="section-padding">
-        <div className="container-custom max-w-5xl">
-          <div className="mb-4">
+        {/* Reseller Partners */}
+        <div className="mb-16">
+          <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
-              <Award className="w-6 h-6 text-pink-400" />
-              <h2 className="text-3xl font-bold text-white">Reseller Partners</h2>
+              <Award className="w-6 h-6 text-pink-600" />
+              <h2 className="text-3xl font-bold text-neural-800">Reseller Partners</h2>
             </div>
-            <p className="text-neutral-300">Global consulting firms helping organizations implement Maula AI solutions</p>
+            <p className="text-neural-600">Global consulting firms helping organizations implement Maula AI solutions</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {resellerPartners.map((partner, idx) => (
               <PartnerCard key={idx} partner={partner} />
             ))}
           </div>
 
-          <div className="bg-pink-900/20 border border-pink-600/30 rounded-lg p-6 mb-12">
-            <h4 className="text-white font-bold mb-2">Enterprise Implementation</h4>
-            <p className="text-neutral-300">
+          <div className="bg-pink-50 border border-pink-200 rounded-2xl p-6">
+            <h4 className="text-neural-800 font-bold mb-2">Enterprise Implementation</h4>
+            <p className="text-neural-600">
               Our reseller partners bring deep enterprise expertise and global reach. They help organizations of all sizes 
               successfully implement, customize, and optimize Maula AI for their specific business needs.
             </p>
           </div>
         </div>
-      </section>
 
-      {/* Partnership Benefits */}
-      <section className="section-padding bg-neural-800/50">
-        <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Partnership Benefits</h2>
+        {/* Partnership Benefits */}
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 mb-16">
+          <h2 className="text-3xl font-bold text-neural-800 mb-8 text-center">Partnership Benefits</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">🛡️ Enterprise Reliability</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50 border border-neural-100 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">🛡️ Enterprise Reliability</h3>
+              <p className="text-neural-600">
                 Backed by industry-leading infrastructure providers ensuring 99.99% uptime and enterprise-grade security.
               </p>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">🔌 Seamless Integrations</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gradient-to-br from-slate-50 to-purple-50 border border-neural-100 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">🔌 Seamless Integrations</h3>
+              <p className="text-neural-600">
                 Connect with tools your teams already use, reducing friction and accelerating adoption across your organization.
               </p>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">📈 Advanced Capabilities</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gradient-to-br from-slate-50 to-green-50 border border-neural-100 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">📈 Advanced Capabilities</h3>
+              <p className="text-neural-600">
                 Access cutting-edge AI and ML capabilities through our technology partnerships with innovation leaders.
               </p>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">🚀 Expert Implementation</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gradient-to-br from-slate-50 to-orange-50 border border-neural-100 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">🚀 Expert Implementation</h3>
+              <p className="text-neural-600">
                 Get support from world-class consulting firms with deep experience implementing enterprise AI solutions.
               </p>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Become a Partner */}
-      <section className="section-padding">
-        <div className="container-custom max-w-3xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Interested in Partnering?</h2>
-          <p className="text-neutral-300 mb-4 text-lg">
+        {/* Partner Statistics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          <div className="text-center">
+            <div className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent mb-2">50+</div>
+            <p className="text-neural-600 font-medium">Active Partnerships</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent mb-2">150+</div>
+            <p className="text-neural-600 font-medium">Countries Reached</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent mb-2">10K+</div>
+            <p className="text-neural-600 font-medium">Enterprises Supported</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent mb-2">99.99%</div>
+            <p className="text-neural-600 font-medium">Uptime SLA</p>
+          </div>
+        </div>
+
+        {/* Become a Partner CTA */}
+        <div className="bg-gradient-to-r from-brand-600 to-accent-600 rounded-2xl p-8 text-white text-center">
+          <h2 className="text-3xl font-bold mb-4">Interested in Partnering?</h2>
+          <p className="text-white/90 mb-4 text-lg max-w-2xl mx-auto">
             We're always looking for innovative companies and consulting firms to partner with Maula AI.
           </p>
-          <p className="text-neutral-300 mb-8">
+          <p className="text-white/80 mb-8 max-w-2xl mx-auto">
             Whether you're interested in technology partnerships, integrations, or reselling, we'd love to explore opportunities together.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/support/contact-us"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-brand-600 font-bold rounded-lg hover:shadow-lg transition-all"
             >
               Contact Partnership Team
             </Link>
             <Link
-              href="/support/contact-us"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-neural-700 hover:bg-neural-600 text-white font-bold rounded-lg transition-all border border-neural-600"
+              href="/about"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/20 hover:bg-white/30 text-white font-bold rounded-lg transition-all border border-white/30"
             >
-              Learn More
+              Learn More About Us
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Partner Statistics */}
-      <section className="section-padding bg-neural-800/50">
-        <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Partnership Impact</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-blue-400 mb-2">50+</div>
-              <p className="text-neutral-300">Active Partnerships</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-400 mb-2">150+</div>
-              <p className="text-neutral-300">Countries Reached</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-pink-400 mb-2">10K+</div>
-              <p className="text-neutral-300">Enterprises Supported</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-400 mb-2">99.99%</div>
-              <p className="text-neutral-300">Uptime SLA</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   )
 }
