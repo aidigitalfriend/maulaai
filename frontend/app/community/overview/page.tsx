@@ -112,11 +112,11 @@ export default function CommunityOverviewPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-white border-b border-gray-200">
+      <section className="py-12 bg-white border-b border-neural-200">
         <div className="container-custom">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Community Stats</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Community Stats</h2>
+            <p className="text-lg text-neural-600 max-w-2xl mx-auto">
               A growing community of passionate individuals making AI accessible to everyone.
             </p>
           </div>
@@ -128,7 +128,7 @@ export default function CommunityOverviewPage() {
               >
                 <div className="text-4xl mb-2">{stat.emoji}</div>
                 <div className={`text-3xl md:text-4xl font-bold ${stat.color} mb-1`}>{stat.number}</div>
-                <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                <p className="text-neural-600 text-sm font-medium">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -142,8 +142,8 @@ export default function CommunityOverviewPage() {
             <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl mb-4">
               <Sparkles className="w-7 h-7 text-blue-600" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Get Involved</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Get Involved</h2>
+            <p className="text-lg text-neural-600 max-w-2xl mx-auto">
               There are many ways to be part of our community. Find what works best for you.
             </p>
           </div>
@@ -162,10 +162,10 @@ export default function CommunityOverviewPage() {
                       {item.emoji}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-xl font-bold text-neural-900 mb-2 group-hover:text-brand-600 transition-colors">
                         {item.title}
                       </h3>
-                      <p className="text-gray-600 mb-4">{item.description}</p>
+                      <p className="text-neural-600 mb-4">{item.description}</p>
                       <div className={`inline-flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r ${item.color} font-semibold group-hover:gap-3 transition-all`}>
                         {item.linkText}
                         <ArrowRight className={`w-4 h-4 text-current opacity-70`} style={{color: 'currentColor'}} />
@@ -180,11 +180,11 @@ export default function CommunityOverviewPage() {
       </section>
 
       {/* Highlights Section */}
-      <section className="py-16 bg-white border-t border-gray-200">
+      <section className="py-16 bg-white border-t border-neural-200">
         <div className="container-custom">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Join Us?</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-neural-900 mb-4">Why Join Us?</h2>
+            <p className="text-lg text-neural-600 max-w-2xl mx-auto">
               Be part of a community that values collaboration, learning, and innovation.
             </p>
           </div>
@@ -197,8 +197,8 @@ export default function CommunityOverviewPage() {
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/25">
                     <Icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-gray-600">{item.description}</p>
+                  <h3 className="text-xl font-bold text-neural-900 mb-2">{item.title}</h3>
+                  <p className="text-neural-600">{item.description}</p>
                 </div>
               )
             })}
