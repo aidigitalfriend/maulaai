@@ -3,11 +3,11 @@ import Link from 'next/link'
 export default function Resources() {
   const resourceCategories = [
     {
-      title: "Blog & News",
-      description: "Stay updated with the latest insights, trends, and announcements in AI technology.",
-      icon: "📰",
+      title: "Blog",
+      description: "89+ articles on AI history, technology trends, and expert insights.",
+      icon: "📝",
       href: "/resources/blog",
-      items: ["Industry Insights", "Product Updates", "Expert Articles", "Company News"]
+      items: ["AI History & Evolution", "Technology Deep Dives", "Expert Opinions", "Industry Analysis"]
     },
     {
       title: "Case Studies",
@@ -17,11 +17,11 @@ export default function Resources() {
       items: ["Customer Success", "ROI Analysis", "Implementation Stories", "Before & After"]
     },
     {
-      title: "Whitepapers",
-      description: "In-depth research and analysis on AI trends, technologies, and best practices.",
-      icon: "📄",
-      href: "/resources/whitepapers",
-      items: ["Technical Research", "Market Analysis", "Best Practices", "Future Trends"]
+      title: "News",
+      description: "Latest news, product updates, and announcements from One Last AI.",
+      icon: "📰",
+      href: "/resources/news",
+      items: ["Product Updates", "Company Announcements", "Industry News", "Feature Releases"]
     },
     {
       title: "Webinars",
