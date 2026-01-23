@@ -146,7 +146,7 @@ export default function StatusPage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
-      if (result.success) {
+      if (result.status === 'success') {
         // Use real data directly without any mock fallbacks
         setData(result.data);
         setLastUpdate(new Date());
@@ -167,71 +167,14 @@ export default function StatusPage() {
   };
 
   useEffect(() => {
-    let es: EventSource | null = null;
-    let pollTimer: any = null;
-
-    const startSSE = () => {
-      try {
-        es = new EventSource('/api/status/stream');
-        es.onmessage = (e) => {
-          try {
-            const payload = JSON.parse(e.data);
-            if (payload?.success && payload?.data) {
-              // Use real data directly without mock fallbacks
-              setData(payload.data);
-              if (payload.data.system) {
-                setCpuHistory((h) => {
-                  const next = [...h, payload.data.system.cpuPercent];
-                  return next.slice(-30);
-                });
-                setMemHistory((h) => {
-                  const next = [...h, payload.data.system.memoryPercent];
-                  return next.slice(-30);
-                });
-              }
-              if (payload.data.api) {
-                setRpmHistory((h) => {
-                  const next = [...h, payload.data.api.requestsPerMinute];
-                  return next.slice(-60);
-                });
-                if (typeof payload.data.api.errorRate === 'number') {
-                  setErrRateHistory((h) => {
-                    const next = [...h, payload.data.api.errorRate as number];
-                    return next.slice(-60);
-                  });
-                }
-              }
-              setLastUpdate(new Date());
-              setIsLoading(false);
-            }
-          } catch (err) {
-            console.error('SSE parse error:', err);
-          }
-        };
-        es.onerror = (e) => {
-          console.warn('SSE error, switching to polling...', e);
-          es?.close();
-          // fallback to polling every 5s for real-time updates
-          pollTimer = setInterval(fetchStatus, 5000);
-        };
-      } catch (e) {
-        console.warn('SSE not available, using polling.', e);
-        pollTimer = setInterval(fetchStatus, 5000);
-      }
-    };
-
-    // initial snapshot to render something fast
+    // Initial fetch
     fetchStatus();
-    // then start live stream
-    startSSE();
 
-    // Also set up a 5-second refresh interval for reliable updates
-    const refreshInterval = setInterval(fetchStatus, 5000);
+    // Set up polling for real-time updates every 5 seconds
+    const pollInterval = setInterval(fetchStatus, 5000);
 
     return () => {
-      es?.close();
-      if (pollTimer) clearInterval(pollTimer);
-      clearInterval(refreshInterval);
+      clearInterval(pollInterval);
     };
   }, []);
 
