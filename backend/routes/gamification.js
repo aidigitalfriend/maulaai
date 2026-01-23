@@ -105,7 +105,7 @@ router.post('/events/:userId', async (req, res) => {
 
     // Award points if applicable
     if (pointsToAward > 0) {
-      await db.Gamification.addPoints(userId, pointsToAward, `Event: ${type}`, data);
+      await db.Gamification.addPoints(userId, pointsToAward, `Event: ${type}`, 'gamification');
     }
 
     // Update specific metrics based on event type
