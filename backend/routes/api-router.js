@@ -16,6 +16,9 @@ import userRouter from './user.js';
 import gamificationRouter from './gamification.js';
 import communityRouter from './community.js';
 
+// Import Advanced Analytics for dashboard
+import advancedAnalyticsRouter from './advanced-analytics.js';
+
 // Import NEW route handlers for complete tracking
 import supportRouter from './support.js';
 import billingRouter from './billing.js';
@@ -224,6 +227,10 @@ router.use('/marketplace', marketplaceRouter);
 
 router.use('/analytics', apiLimiter);
 router.use('/analytics', analyticsRouter);
+
+// Advanced Analytics (real-time dashboard data)
+router.use('/analytics/advanced', apiLimiter);
+router.use('/analytics/advanced', advancedAnalyticsRouter);
 
 // ============================================
 // GAMIFICATION ROUTES
