@@ -929,6 +929,18 @@ export const ContactService = {
 // ============================================
 
 export const GamificationService = {
+  // Get user gamification data
+  getUserGamification: async (userId) => {
+    return prisma.userGamification.findUnique({
+      where: { userId },
+    });
+  },
+
+  // Create user gamification record
+  createUserGamification: async (userId, username = 'User') => {
+    return GamificationService.initializeUserGamification(userId, username);
+  },
+
   // Initialize user gamification if it doesn't exist
   initializeUserGamification: async (userId, username = 'User') => {
     return prisma.userGamification.upsert({
