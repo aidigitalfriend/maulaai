@@ -28,6 +28,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
+    // Password strength validation
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasLowercase = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      return NextResponse.json({ 
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number' 
+      }, { status: 400 });
+    }
+
     // Verify current password
     if (user.password) {
       const isValidPassword = await bcrypt.compare(currentPassword, user.password);
@@ -36,12 +48,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check if new password is same as old
+    if (user.password) {
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return NextResponse.json({ message: 'New password must be different from current password' }, { status: 400 });
+      }
+    }
+
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: { 
+        password: hashedPassword,
+        passwordChangedAt: new Date(),
+      },
     });
 
     return NextResponse.json({ success: true, message: 'Password changed successfully' });

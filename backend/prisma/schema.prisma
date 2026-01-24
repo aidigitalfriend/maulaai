@@ -50,6 +50,7 @@ model User {
   twoFactorEnabled     Boolean   @default(false)
   twoFactorSecret      String?
   backupCodes          String[]  @default([])
+  passwordChangedAt    DateTime?
   loginAttempts        Int       @default(0)
   lockUntil            DateTime?
 
@@ -77,10 +78,81 @@ model User {
   userEvents           UserEvent[]
   apiUsages            ApiUsage[]
   chatInteractions     ChatAnalyticsInteraction[]
+  loginHistory         LoginHistory[]
+  userDevices          UserDevice[]
+  userSessions         UserSession[]
 
   @@index([email])
   @@index([sessionId])
   @@index([resetPasswordToken])
+}
+
+// Login History for security tracking
+model LoginHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  ipAddress   String
+  userAgent   String
+  device      String?
+  browser     String?
+  os          String?
+  location    String?
+  country     String?
+  city        String?
+  status      String   @default("success") // success, failed, blocked
+  failReason  String?
+  timestamp   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("login_history")
+}
+
+// Trusted/Known Devices
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceId    String   @unique
+  name        String
+  type        String   // desktop, mobile, tablet
+  browser     String?
+  os          String?
+  ipAddress   String?
+  location    String?
+  isTrusted   Boolean  @default(false)
+  lastActive  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceId])
+  @@map("user_devices")
+}
+
+// Active User Sessions
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  ipAddress    String
+  userAgent    String
+  device       String?
+  browser      String?
+  os           String?
+  location     String?
+  isCurrent    Boolean  @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
+  @@map("user_sessions")
 }
 
 enum AuthMethod {

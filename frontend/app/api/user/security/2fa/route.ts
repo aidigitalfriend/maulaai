@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSessionId } from '@/lib/session-utils';
+import { authenticator } from 'otplib';
+import QRCode from 'qrcode';
 
 // GET - Check 2FA status
 export async function GET(request: NextRequest) {
@@ -45,11 +47,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
     }
 
-    // Generate a simple secret (in production, use speakeasy or similar)
-    const secret = Array.from({ length: 32 }, () => 
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[Math.floor(Math.random() * 32)]
-    ).join('');
+    // Generate a proper TOTP secret using otplib
+    const secret = authenticator.generateSecret();
+    
+    // Create the OTP auth URL
+    const otpauthUrl = authenticator.keyuri(user.email, 'Maula AI', secret);
+    
+    // Generate QR code as data URL
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 
+    // Store the secret (not enabled yet - will be enabled after verification)
     await prisma.user.update({
       where: { id: user.id },
       data: { twoFactorSecret: secret },
@@ -59,7 +66,8 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         secret,
-        qrCode: `otpauth://totp/MaulaAI:${user.email}?secret=${secret}&issuer=MaulaAI`,
+        qrCode: qrCodeDataUrl,
+        otpauthUrl,
       },
     });
   } catch (error) {

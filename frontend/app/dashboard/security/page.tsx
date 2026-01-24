@@ -401,6 +401,34 @@ export default function SecuritySettingsPage() {
     setMessage({ type: '', text: '' });
   };
 
+  const handleRegenerateBackupCodes = async () => {
+    if (!confirm('This will invalidate your current backup codes. Continue?')) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch('/api/user/security/backup-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      
+      const data = await res.json();
+      
+      if (data.success && data.data?.backupCodes) {
+        setBackupCodes(data.data.backupCodes);
+        setShowBackupCodes(true);
+        setMessage({ type: 'success', text: 'Backup codes regenerated successfully!' });
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to regenerate backup codes' });
+      }
+    } catch (error) {
+      console.error('Error regenerating backup codes:', error);
+      setMessage({ type: 'error', text: 'Error regenerating backup codes' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownloadBackupCodes = () => {
     if (backupCodes.length === 0) return;
 
@@ -980,7 +1008,7 @@ use one of these codes to sign in.
                               </div>
 
                               {/* Download and Copy buttons */}
-                              <div className="flex gap-3">
+                              <div className="flex gap-3 mb-3">
                                 <button
                                   onClick={handleDownloadBackupCodes}
                                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-medium"
@@ -996,6 +1024,13 @@ use one of these codes to sign in.
                                   Copy All
                                 </button>
                               </div>
+                              <button
+                                onClick={handleRegenerateBackupCodes}
+                                disabled={loading}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors font-medium disabled:opacity-50"
+                              >
+                                {loading ? 'Regenerating...' : 'Generate New Backup Codes'}
+                              </button>
                             </div>
                           )}
                         </div>
