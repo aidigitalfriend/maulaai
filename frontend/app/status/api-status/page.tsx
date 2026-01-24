@@ -101,51 +101,55 @@ export default function APIStatusPage() {
   ].length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-accent-50 to-brand-100 text-neural-800 py-8 md:py-12 px-4">
-      <div className="container-custom max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="flex items-center justify-center mb-4 md:mb-6">
-            <Zap className="w-12 h-12 md:w-16 md:h-16 text-brand-600" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">⚡</span>
+            API Health
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
             API Status
           </h1>
-          <p className="text-base md:text-lg lg:text-xl text-neural-700 mb-4 md:mb-6 max-w-2xl mx-auto">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-6">
             Real-time monitoring of all API endpoints and services
           </p>
 
           {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <Link
               href="/status"
-              className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-white border border-neural-200 hover:bg-neural-100 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all border border-white/20 w-full sm:w-auto"
             >
-              <Activity className="w-4 h-4 md:w-5 md:h-5" />
+              <Activity className="w-5 h-5" />
               Status Dashboard
             </Link>
             <Link
               href="/status/analytics"
-              className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all border border-white/20 w-full sm:w-auto"
             >
-              <BarChart3 className="w-4 h-4 md:w-5 md:h-5" />
+              <BarChart3 className="w-5 h-5" />
               Analytics
             </Link>
           </div>
 
           {/* Overall Status */}
-          <div className="inline-flex flex-col sm:flex-row items-center gap-3 md:gap-4 bg-white rounded-xl md:rounded-full px-5 md:px-6 py-3 border border-neural-200 shadow-sm">
-            <span className="text-neural-700 font-medium text-sm md:text-base">Overall API Health:</span>
+          <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl px-6 py-3 border border-white/20">
+            <span className="text-white/90 font-medium">Overall API Health:</span>
             <StatusBadge status={operationalAPIs === totalAPIs ? 'operational' : 'degraded'} />
-            <span className="text-neural-600 text-sm md:text-base">
+            <span className="text-white/70">
               {operationalAPIs}/{totalAPIs} APIs Operational
             </span>
           </div>
         </div>
+      </section>
 
+      <div className="container-custom max-w-7xl mx-auto px-4 py-8 md:py-12">
         {/* Core API Endpoints */}
         <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md mb-12">
-          <h3 className="text-2xl font-bold mb-6">Core API Endpoints</h3>
+          <h3 className="text-2xl font-bold mb-6 text-neural-800">Core API Endpoints</h3>
           <div className="space-y-4">
             {data.endpoints.map((endpoint, i) => (
               <div key={i} className="bg-white rounded-lg p-4 border border-neural-200">

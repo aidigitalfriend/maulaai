@@ -396,52 +396,55 @@ export default function StatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 md:py-12">
-      <div className="container-custom px-4 md:px-6">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="flex items-center justify-center mb-4 md:mb-6">
-            <Activity className="w-12 h-12 md:w-16 md:h-16 text-brand-600" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">📊</span>
+            Live Monitoring
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
             System Status
           </h1>
-          <p className="text-base md:text-lg lg:text-xl text-neural-600 mb-4 md:mb-6 max-w-2xl mx-auto px-4">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-6">
             Real-time monitoring of all Maula AI services
           </p>
           {usedMock && (
-            <p className="text-xs text-neural-600">
-              Showing demo data to illustrate charts while live data
-              initializes.
+            <p className="text-xs text-white/70 mb-4">
+              Showing demo data to illustrate charts while live data initializes.
             </p>
           )}
-          <div className="flex flex-col items-center gap-3 md:gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
               <StatusBadge status={overallStatus} />
-              <span className="text-neural-600 text-xs md:text-sm">
+              <span className="text-white/70 text-sm">
                 Last updated: {lastUpdate.toLocaleTimeString()}
               </span>
             </div>
             {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-2 md:mt-4 w-full sm:w-auto px-4 sm:px-0">
+            <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
               <a
                 href="/status/analytics"
-                className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-brand-600 hover:bg-brand-700 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all border border-white/20 w-full sm:w-auto"
               >
-                <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
+                <TrendingUp className="w-5 h-5" />
                 View Analytics
               </a>
               <a
                 href="/status/api-status"
-                className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-purple-600 hover:bg-purple-700 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all border border-white/20 w-full sm:w-auto"
               >
-                <Zap className="w-4 h-4 md:w-5 md:h-5" />
+                <Zap className="w-5 h-5" />
                 API Status
               </a>
             </div>
           </div>
         </div>
+      </section>
 
+      <div className="container-custom px-4 md:px-6 py-8 md:py-12">
         {/* System Gauges */}
         {data.system && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
