@@ -1688,24 +1688,44 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                             />
                             <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                               <button
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
+                                  const filename = image.alt || `generated-image-${Date.now()}.png`;
                                   try {
-                                    const [header, base64Data] = image.src.split(',');
-                                    const mimeMatch = header.match(/data:([^;]+)/);
-                                    const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
-                                    const byteCharacters = atob(base64Data);
-                                    const byteNumbers = new Array(byteCharacters.length);
-                                    for (let i = 0; i < byteCharacters.length; i++) {
-                                      byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                    // Method 1: Direct base64 to blob conversion (most reliable for data URLs)
+                                    if (image.src.startsWith('data:')) {
+                                      const [header, base64Data] = image.src.split(',');
+                                      const mimeMatch = header.match(/data:([^;]+)/);
+                                      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                                      const byteCharacters = atob(base64Data);
+                                      const byteNumbers = new Array(byteCharacters.length);
+                                      for (let i = 0; i < byteCharacters.length; i++) {
+                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                      }
+                                      const byteArray = new Uint8Array(byteNumbers);
+                                      const blob = new Blob([byteArray], { type: mimeType });
+                                      const url = window.URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = filename;
+                                      a.style.display = 'none';
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      setTimeout(() => {
+                                        document.body.removeChild(a);
+                                        window.URL.revokeObjectURL(url);
+                                      }, 100);
+                                      return;
                                     }
-                                    const byteArray = new Uint8Array(byteNumbers);
-                                    const blob = new Blob([byteArray], { type: mimeType });
+                                    
+                                    // Method 2: Use fetch for remote URLs
+                                    const response = await fetch(image.src);
+                                    const blob = await response.blob();
                                     const url = window.URL.createObjectURL(blob);
                                     const a = document.createElement('a');
                                     a.href = url;
-                                    a.download = image.alt || `generated-image-${Date.now()}.png`;
+                                    a.download = filename;
                                     a.style.display = 'none';
                                     document.body.appendChild(a);
                                     a.click();
@@ -1715,6 +1735,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                                     }, 100);
                                   } catch (err) {
                                     console.error('Download failed:', err);
+                                    // Fallback: Open in new tab
+                                    window.open(image.src, '_blank');
                                   }
                                 }}
                                 className="bg-black/70 hover:bg-black/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-lg"
