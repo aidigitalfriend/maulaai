@@ -182,10 +182,10 @@ function EnhancedChatLayoutContent({
               </button>
             </div>
 
-            {/* Mobile Dropdown Menu - Icons only, horizontal */}
+            {/* Mobile Dropdown Menu - Icons only, vertical column */}
             {isMobileMenuOpen && (
               <div 
-                className={`absolute top-[44px] right-2 z-50 rounded-xl shadow-xl border p-2 flex items-center space-x-1 transition-all ${
+                className={`absolute top-[44px] right-2 z-50 rounded-xl shadow-xl border p-2 flex flex-col space-y-1 transition-all ${
                   isNeural
                     ? 'bg-gray-900/95 border-cyan-500/30 backdrop-blur-xl'
                     : 'bg-white/95 border-gray-200 backdrop-blur-xl'
@@ -325,8 +325,8 @@ function EnhancedChatLayoutContent({
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0 relative">
-          {/* Children (ChatBox) */}
-          <div className="flex-1 overflow-hidden">{children}</div>
+          {/* Children (ChatBox) - Add top padding on mobile for header */}
+          <div className={`flex-1 overflow-hidden ${isMobile ? 'pt-12' : ''}`}>{children}</div>
         </div>
 
         {/* Right Sidebar Panel - mirrors left panel */}
