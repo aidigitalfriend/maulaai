@@ -508,7 +508,7 @@ export default function LiveSupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen overflow-hidden">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">

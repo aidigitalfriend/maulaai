@@ -149,18 +149,12 @@ export default function CreateTicketPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <section className="py-16 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-            </svg>
-            Support Ticket System
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Create Support Ticket</h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
             Get help from our expert support team. We typically respond within 2-4 hours.
           </p>
         </div>

@@ -285,14 +285,14 @@ export default function FAQsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-16">
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Frequently Asked Questions
           </h1>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
             Find answers to common questions about One Last AI, our agents, Studio, Canvas, and more
           </p>
         </div>
