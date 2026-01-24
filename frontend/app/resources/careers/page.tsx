@@ -238,12 +238,12 @@ export default function CareersPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="section-padding-lg bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Join Our Team</h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Join Our Team</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             We're building the future of AI agents. Come help us create technology that changes the world.
           </p>
         </div>

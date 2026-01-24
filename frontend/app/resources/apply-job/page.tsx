@@ -285,16 +285,23 @@ function ApplyJobPageContent() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Apply for {position}</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">Complete the form below to submit your application</p>
+        </div>
+      </section>
+
+      <div className="section-padding">
+      <div className="max-w-3xl mx-auto px-4">
+        {/* Back Link */}
         <div className="mb-8">
-          <Link href="/resources/careers" className="text-brand-600 hover:text-brand-700 font-semibold mb-4 inline-flex items-center gap-2">
+          <Link href="/resources/careers" className="text-brand-600 hover:text-brand-700 font-semibold inline-flex items-center gap-2">
             <ChevronLeft className="w-4 h-4" />
             Back to Careers
           </Link>
-          <h1 className="text-4xl font-bold text-neural-800 mb-2">Apply for {position}</h1>
-          <p className="text-neural-600">Complete the form below to submit your application</p>
         </div>
 
         {/* Progress Bar */}
@@ -660,6 +667,7 @@ function ApplyJobPageContent() {
             )}
           </div>
         </form>
+      </div>
       </div>
     </div>
   )

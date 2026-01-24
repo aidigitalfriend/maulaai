@@ -203,26 +203,12 @@ export default function NewsPage() {
   const regularArticles = filteredArticles.filter(article => !article.featured)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <section className="relative py-16 md:py-20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
-        {/* Decorative Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <pattern id="news-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="currentColor"/>
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#news-grid)"/>
-          </svg>
-        </div>
-        <div className="container-custom text-center relative z-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
-            <Newspaper className="w-8 h-8" />
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Latest News</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             Stay updated with the latest news, product announcements, and industry insights about AI and One Last AI.
           </p>
         </div>

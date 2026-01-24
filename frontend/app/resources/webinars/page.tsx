@@ -35,11 +35,11 @@ export default function WebinarsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
-      <section className="section-padding bg-gradient-to-r from-brand-600 to-purple-600 text-white">
+    <div className="min-h-screen bg-gray-50">
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Webinars</h1>
-          <p className="text-xl opacity-90">Live training sessions and recorded webinars</p>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">Live training sessions and recorded webinars</p>
         </div>
       </section>
 
