@@ -595,10 +595,19 @@ class AgentMemoryAdapter {
 // AgentFile wrapper class that supports both static methods and instance methods (Mongoose-like)
 class AgentFileDocument {
   constructor(data) {
-    this._data = data;
+    // Clean up the data - handle special agentId values
+    const cleanedData = { ...data };
+    
+    // If agentId is a placeholder like 'general', 'default', 'system', set to null
+    const invalidAgentIds = ['general', 'default', 'system', 'unknown', ''];
+    if (!cleanedData.agentId || invalidAgentIds.includes(cleanedData.agentId)) {
+      delete cleanedData.agentId; // Remove from data to use null
+    }
+    
+    this._data = cleanedData;
     this._isNew = true;
     // Copy data properties to the instance
-    Object.assign(this, data);
+    Object.assign(this, cleanedData);
   }
 
   async save() {
@@ -637,7 +646,13 @@ class AgentFileAdapter {
   }
 
   static async create(data) {
-    return prisma.agentFile.create({ data });
+    // Clean up the data - handle special agentId values
+    const cleanedData = { ...data };
+    const invalidAgentIds = ['general', 'default', 'system', 'unknown', ''];
+    if (!cleanedData.agentId || invalidAgentIds.includes(cleanedData.agentId)) {
+      delete cleanedData.agentId;
+    }
+    return prisma.agentFile.create({ data: cleanedData });
   }
 
   static async findOneAndUpdate(query, update, options = {}) {
