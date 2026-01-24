@@ -1012,11 +1012,11 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               'llama-3.3-70b'
             );
           } else if (provider === 'openai' && apiKeys.openai) {
-            // OpenAI with automatic failover to backup key
+            // OpenAI with automatic failover to backup key - using gpt-4o for best quality/vision
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o-mini'
+              'gpt-4o'
             );
             
             // If primary key failed and we have a backup, try it
@@ -1025,7 +1025,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4o-mini'
+                'gpt-4o'
               );
               if (!hadError) {
                 console.log('[chat-stream] ✅ Backup OpenAI key succeeded!');
@@ -1037,7 +1037,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o-mini'
+              'gpt-4o'
             );
             
             // If primary key failed and we have a backup, try it
@@ -1046,7 +1046,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4o-mini'
+                'gpt-4o'
               );
             }
           } else if (apiKeys.openaiBackup) {
@@ -1055,7 +1055,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openaiBackup,
-              'gpt-4o-mini'
+              'gpt-4o'
             );
           } else if (apiKeys.mistral) {
             // Fallback to Mistral
