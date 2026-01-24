@@ -5,31 +5,23 @@ import { ArrowLeft, CheckCircle, BookOpen, Zap, Rocket, Settings, Code, HelpCirc
 
 export default function GettingStartedContent() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Getting Started with Agents</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Learn the fundamentals of creating, deploying, and managing AI agents on One Last AI.
+          </p>
+        </div>
+      </section>
+
+      <div className="container-custom section-padding">
         {/* Back Button */}
         <Link href="/docs/agents" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Documentation
         </Link>
-
-        {/* Header */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-100 rounded-2xl mb-6">
-            <Rocket className="w-8 h-8 text-brand-600" />
-          </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-4">
-            Getting Started with Agents
-          </h1>
-          <p className="text-xl text-neural-600">
-            Learn the fundamentals of creating, deploying, and managing AI agents on One Last AI.
-          </p>
-          <div className="flex items-center gap-4 mt-6 text-neural-500">
-            <span>📖 Reading time: 8 minutes</span>
-            <span>•</span>
-            <span>Updated: October 2025</span>
-          </div>
-        </div>
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto space-y-8">
