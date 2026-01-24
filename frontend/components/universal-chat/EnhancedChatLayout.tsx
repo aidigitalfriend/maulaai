@@ -127,31 +127,36 @@ function EnhancedChatLayoutContent({
 
         {/* Mobile Header Bar - Only shown on mobile */}
         {isMobile && (
-          <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-2 ${headerBg} border-b`}>
-            {showSidebar && (
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className={`p-2 rounded-lg transition-colors ${
-                  isNeural
-                    ? 'hover:bg-gray-800 text-gray-300'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-                title="Toggle sidebar"
-              >
-                <Bars3Icon className="w-5 h-5" />
-              </button>
-            )}
-            <div className="flex items-center space-x-2">
+          <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1.5 ${headerBg} border-b`}>
+            {/* Left: Logo + Menu button stacked */}
+            <div className="flex flex-col items-center">
               <img
                 src="/images/logos/company-logo.png"
                 alt="OnelastAI"
-                className="h-6 w-auto object-contain"
+                className="h-5 w-5 object-contain"
               />
-              <p className={`text-[10px] ${textSecondary}`}>AI Digital Friend</p>
+              {showSidebar && (
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className={`p-1 rounded transition-colors ${
+                    isNeural
+                      ? 'hover:bg-gray-800 text-gray-400'
+                      : 'hover:bg-gray-100 text-gray-500'
+                  }`}
+                  title="Toggle sidebar"
+                >
+                  <Bars3Icon className="w-4 h-4" />
+                </button>
+              )}
             </div>
+
+            {/* Center: Empty */}
+            <div className="flex-1" />
+
+            {/* Right: Canvas button */}
             <button
               onClick={() => setIsMobileCanvasOpen(true)}
-              className={`p-2 rounded-lg transition-all ${
+              className={`p-1.5 rounded-lg transition-all ${
                 isNeural
                   ? 'hover:bg-purple-500/20 text-cyan-400 hover:text-cyan-300'
                   : 'hover:bg-indigo-100 text-indigo-500 hover:text-indigo-600'
