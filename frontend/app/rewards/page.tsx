@@ -242,57 +242,47 @@ export default function RewardsCenterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
-        <div className="container mx-auto px-4 py-16 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <Trophy className="w-20 h-20 text-yellow-400 animate-bounce" />
-                <div className="absolute -top-2 -right-2 bg-purple-500 rounded-full w-8 h-8 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-white" />
-                </div>
-              </div>
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">🏆</span>
+            Earn & Redeem
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            Rewards Center
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+            Earn points, unlock rewards, and level up your AI Agent experience
+          </p>
+          
+          {/* Coming Soon Banner */}
+          <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm border border-yellow-400/30 rounded-2xl p-6 max-w-2xl mx-auto mb-8">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Gift className="w-6 h-6 text-yellow-400 animate-pulse" />
+              <h3 className="text-2xl font-bold text-yellow-400">Coming Soon!</h3>
+              <Gift className="w-6 h-6 text-yellow-400 animate-pulse" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-              Rewards Center
-            </h1>
-            <p className="text-xl text-purple-200 mb-8 max-w-3xl mx-auto">
-              Earn points, unlock rewards, and level up your AI Agent experience
+            <p className="text-white/90 text-lg">
+              We're working hard on this exciting Rewards Center! Get ready for amazing benefits, exclusive rewards, and gamified experiences.
             </p>
-            
-            {/* Coming Soon Banner */}
-            <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm border border-yellow-400/30 rounded-2xl p-6 max-w-2xl mx-auto mb-8">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                <Gift className="w-6 h-6 text-yellow-400 animate-pulse" />
-                <h3 className="text-2xl font-bold text-yellow-400">Coming Soon!</h3>
-                <Gift className="w-6 h-6 text-yellow-400 animate-pulse" />
-              </div>
-              <p className="text-white/90 text-lg">
-                We're working hard on this exciting Rewards Center! Get ready for amazing benefits, exclusive rewards, and gamified experiences.
-              </p>
-            </div>
+          </div>
 
-            {/* User Stats */}
-            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
-              >
-                <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-                <div className="text-3xl font-bold text-white mb-1">{userPoints.toLocaleString()}</div>
-                <div className="text-purple-200">Total Points</div>
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className={`bg-gradient-to-br ${getCurrentLevel().color} backdrop-blur-md rounded-2xl p-6 border border-white/20`}
+          {/* User Stats */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+            >
+              <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+              <div className="text-3xl font-bold text-white mb-1">{userPoints.toLocaleString()}</div>
+              <div className="text-white/70">Total Points</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className={`bg-gradient-to-br ${getCurrentLevel().color} backdrop-blur-md rounded-2xl p-6 border border-white/20`}
               >
                 {getCurrentLevel().icon}
                 <div className="text-3xl font-bold text-white mb-1 mt-3">{getCurrentLevel().name}</div>
@@ -306,7 +296,7 @@ export default function RewardsCenterPage() {
                 <div className="text-3xl font-bold text-white mb-1">
                   {getNextLevel() ? getNextLevel()!.minPoints - userPoints : 0}
                 </div>
-                <div className="text-purple-200">Points to Next Level</div>
+                <div className="text-white/70">Points to Next Level</div>
               </motion.div>
             </div>
 
@@ -318,22 +308,21 @@ export default function RewardsCenterPage() {
                     initial={{ width: 0 }}
                     animate={{ width: `${getProgressToNextLevel()}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-end px-2"
+                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-end px-2"
                   >
                     <span className="text-xs text-white font-semibold">
                       {Math.round(getProgressToNextLevel())}%
                     </span>
                   </motion.div>
                 </div>
-                <div className="flex justify-between mt-2 text-sm text-purple-200">
+                <div className="flex justify-between mt-2 text-sm text-white/70">
                   <span>{getCurrentLevel().name}</span>
                   <span>{getNextLevel()?.name}</span>
                 </div>
               </div>
             )}
-          </motion.div>
-        </div>
-      </div>
+          </div>
+        </section>
 
       {/* Navigation Tabs */}
       <div className="container mx-auto px-4 py-8">
@@ -349,8 +338,8 @@ export default function RewardsCenterPage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg scale-105'
+                  : 'bg-white text-neural-700 hover:bg-neural-100 border border-neural-200'
               }`}
             >
               {tab.icon}
