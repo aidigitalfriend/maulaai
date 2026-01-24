@@ -240,10 +240,17 @@ export default function CareersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="section-padding-lg bg-gradient-to-r from-brand-600 to-accent-600 text-white">
-        <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Join Our Team</h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">💼</span>
+            We're Hiring
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            Join Our Team
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
             We're building the future of AI agents. Come help us create technology that changes the world.
           </p>
         </div>
