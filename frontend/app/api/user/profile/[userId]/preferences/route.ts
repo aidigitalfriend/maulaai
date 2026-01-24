@@ -69,3 +69,44 @@ export async function PUT(
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Also support PATCH for partial updates
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    const sessionId = getSessionId(request);
+    if (!sessionId) {
+      return NextResponse.json({ message: 'No session ID' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
+      select: { id: true, preferences: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    
+    // Merge existing preferences with new ones
+    const existingPreferences = user.preferences ? 
+      (typeof user.preferences === 'string' ? JSON.parse(user.preferences) : user.preferences) 
+      : {};
+    
+    const mergedPreferences = { ...existingPreferences, ...body };
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { preferences: mergedPreferences },
+    });
+
+    return NextResponse.json({ success: true, message: 'Preferences updated', data: mergedPreferences });
+  } catch (error) {
+    console.error('Profile preferences patch error:', error);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}
