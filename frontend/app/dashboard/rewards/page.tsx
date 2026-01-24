@@ -74,28 +74,39 @@ export default function RewardsCenterPage() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
-      {/* Header */}
-      <section className="py-12 px-4 border-b border-neural-200 bg-white">
-        <div className="container-custom">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
-                My Rewards
-              </h1>
-              <p className="text-neural-600">
-                Track your progress, earn rewards, and unlock achievements
-              </p>
-            </div>
-            <Link href="/dashboard/overview" className="btn-secondary">
-              Back to Dashboard
-            </Link>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="rewards-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#rewards-grid)"/>
+          </svg>
+        </div>
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <TrophyIcon className="w-10 h-10" />
           </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">My Rewards</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+            Track your progress, earn rewards, and unlock achievements
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+          >
+            Back to Dashboard
+          </Link>
         </div>
       </section>
 
       {/* Rewards Content */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-gray-50">
         <div className="container-custom max-w-6xl">
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

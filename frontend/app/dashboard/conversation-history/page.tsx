@@ -219,64 +219,78 @@ export default function ConversationHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
-      {/* Header */}
-      <section className="py-12 px-4 border-b border-neural-200">
-        <div className="container-custom">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
-                Conversation History
-              </h1>
-              <p className="text-neural-600">
-                Review and manage your past interactions
-                {pagination.total > 0 && (
-                  <span className="ml-2 text-brand-600 font-medium">
-                    ({pagination.total} conversations)
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Export Buttons */}
-              {pagination.total > 0 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleExport('json')}
-                    disabled={exporting}
-                    className="flex items-center gap-2 px-4 py-2 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 disabled:opacity-50 transition-colors"
-                    title="Export as JSON"
-                  >
-                    <DocumentTextIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">JSON</span>
-                  </button>
-                  <button
-                    onClick={() => handleExport('csv')}
-                    disabled={exporting}
-                    className="flex items-center gap-2 px-4 py-2 bg-neural-100 text-neural-700 rounded-lg hover:bg-neural-200 disabled:opacity-50 transition-colors"
-                    title="Export as CSV"
-                  >
-                    <TableCellsIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">CSV</span>
-                  </button>
-                </div>
-              )}
-              <Link href="/dashboard/overview" className="btn-secondary">
-                Back to Dashboard
-              </Link>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="conversation-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#conversation-grid)"/>
+          </svg>
+        </div>
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <ChatBubbleLeftRightIcon className="w-10 h-10" />
           </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Conversation History</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+            Review and manage your past interactions
+            {pagination.total > 0 && (
+              <span className="block mt-2 text-white/80">
+                ({pagination.total} conversations)
+              </span>
+            )}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {pagination.total > 0 && (
+              <>
+                <button
+                  onClick={() => handleExport('json')}
+                  disabled={exporting}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+                  title="Export as JSON"
+                >
+                  <DocumentTextIcon className="w-4 h-4" />
+                  <span>JSON</span>
+                </button>
+                <button
+                  onClick={() => handleExport('csv')}
+                  disabled={exporting}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 disabled:opacity-50 transition-colors"
+                  title="Export as CSV"
+                >
+                  <TableCellsIcon className="w-4 h-4" />
+                  <span>CSV</span>
+                </button>
+              </>
+            )}
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center bg-white text-brand-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </section>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="max-w-md">
+      {/* Search Section */}
+      <section className="py-8 px-4 bg-white border-b border-gray-200">
+        <div className="container-custom">
+          <form onSubmit={handleSearch} className="max-w-md mx-auto">
             <div className="relative">
-              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-neural-400" />
+              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search conversations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-neural-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               <button
                 type="submit"
@@ -291,7 +305,7 @@ export default function ConversationHistoryPage() {
       </section>
 
       {/* Conversations List */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-gray-50">
         <div className="container-custom max-w-4xl">
           {loading ? (
             <div className="text-center py-12">

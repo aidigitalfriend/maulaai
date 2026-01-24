@@ -255,61 +255,74 @@ export default function DashboardAnalyticsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
-        <section className="py-12 px-4 border-b border-neural-200">
-          <div className="container-custom">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
-                  Analytics & Insights
-                </h1>
-                <p className="text-neural-600">
-                  Real-time visibility into usage, performance, and costs
-                </p>
-                {lastUpdated && (
-                  <p className="text-xs text-neural-500 mt-2">
-                    Last updated{' '}
-                    {lastUpdated.toLocaleTimeString([], {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Link href="/dashboard" className="btn-secondary">
-                  Back to Dashboard
-                </Link>
-                <button
-                  onClick={handleExportPDF}
-                  className="btn-secondary inline-flex items-center gap-2"
-                  disabled={!analyticsData}
-                >
-                  <Download className="w-4 h-4" />
-                  Export PDF
-                </button>
-                <button
-                  onClick={() => fetchAnalytics()}
-                  className="btn-primary inline-flex items-center gap-2"
-                  disabled={isRefreshing}
-                >
-                  <RefreshCcw
-                    className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
-                  />
-                  {isRefreshing ? 'Refreshing…' : 'Refresh data'}
-                </button>
-              </div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero Section */}
+        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+          {/* Decorative Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <pattern id="analytics-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r="1" fill="currentColor"/>
+                </pattern>
+              </defs>
+              <rect width="100" height="100" fill="url(#analytics-grid)"/>
+            </svg>
+          </div>
+          <div className="container-custom text-center relative z-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+              <Activity className="w-10 h-10" />
             </div>
-            {error && (
-              <div className="mt-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4">
-                <p className="font-medium">Live data warning</p>
-                <p className="text-sm mt-1">{error}</p>
-              </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Analytics & Insights</h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+              Real-time visibility into usage, performance, and costs
+            </p>
+            {lastUpdated && (
+              <p className="text-sm text-white/70 mb-6">
+                Last updated{' '}
+                {lastUpdated.toLocaleTimeString([], {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </p>
             )}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                disabled={!analyticsData}
+              >
+                <Download className="w-4 h-4" />
+                Export PDF
+              </button>
+              <button
+                onClick={() => fetchAnalytics()}
+                className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors"
+                disabled={isRefreshing}
+              >
+                <RefreshCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing…' : 'Refresh'}
+              </button>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center bg-white text-brand-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-all shadow-lg"
+              >
+                Back to Dashboard
+              </Link>
+            </div>
           </div>
         </section>
 
-        <section className="py-12 px-4">
+        {error && (
+          <section className="py-4 px-4 bg-yellow-50 border-b border-yellow-200">
+            <div className="container-custom">
+              <p className="font-medium text-yellow-800">Live data warning</p>
+              <p className="text-sm mt-1 text-yellow-700">{error}</p>
+            </div>
+          </section>
+        )}
+
+        <section className="py-12 px-4 bg-gray-50">
           <div className="container-custom space-y-10">
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
               {metricCards.map((metric, index) => (

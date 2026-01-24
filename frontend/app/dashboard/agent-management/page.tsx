@@ -242,57 +242,59 @@ export default function AgentManagementPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="container-custom section-padding-lg space-y-10">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <p className="text-sm uppercase tracking-widest text-brand-500 font-semibold mb-2">
-                  Subscription Hub
-                </p>
-                <h1 className="text-4xl md:text-5xl font-bold text-neural-900">
-                  Agent Management
-                </h1>
-                <p className="text-neural-600 max-w-2xl mt-3">
-                  Purchase access to specialized agents on a per-agent basis.
-                  Cards stay locked until you subscribe, keeping billing under
-                  your control.
-                </p>
-              </div>
-              <div className="bg-white shadow-sm border border-neural-100 rounded-xl p-5 max-w-sm w-full">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="w-6 h-6 text-brand-600" />
-                    <div>
-                      <p className="text-sm text-neural-500">
-                        Current Active Agents
-                      </p>
-                      <p className="text-3xl font-bold text-neural-900">
-                        {activeAgentCount}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleRefreshSubscriptions}
-                    disabled={isLoading}
-                    className="p-2 rounded-lg hover:bg-neural-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Refresh subscription status"
-                  >
-                    <RefreshCw
-                      className={`w-5 h-5 text-neural-500 ${
-                        isLoading ? 'animate-spin' : ''
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero Section */}
+        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+          {/* Decorative Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <pattern id="agent-mgmt-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r="1" fill="currentColor"/>
+                </pattern>
+              </defs>
+              <rect width="100" height="100" fill="url(#agent-mgmt-grid)"/>
+            </svg>
+          </div>
+          <div className="container-custom text-center relative z-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+              <ShieldCheck className="w-10 h-10" />
             </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">Agent Management</h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+              Purchase access to specialized agents on a per-agent basis
+            </p>
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+                <p className="text-sm text-white/80">Active Agents</p>
+                <p className="text-3xl font-bold">{activeAgentCount}</p>
+              </div>
+              <button
+                onClick={handleRefreshSubscriptions}
+                disabled={isLoading}
+                className="p-3 rounded-xl bg-white/20 backdrop-blur-sm hover:bg-white/30 disabled:opacity-50 transition-colors"
+                title="Refresh subscription status"
+              >
+                <RefreshCw className={`w-6 h-6 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+        </section>
+
+        {/* Agent Cards Section */}
+        <section className="py-16 px-4 bg-gray-50">
+          <div className="container-custom space-y-10">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
                 {error}
               </div>
             )}
-          </div>
 
           {isLoading && (
             <div className="flex items-center justify-center py-16">

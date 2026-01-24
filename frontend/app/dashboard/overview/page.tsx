@@ -218,36 +218,33 @@ export default function DashboardOverviewPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section with Dashboard Overview */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-16">
-        {/* Background Pattern */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        {/* Decorative Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
+              <pattern id="overview-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="1.5" fill="currentColor" />
               </pattern>
             </defs>
-            <rect width="100" height="100" fill="url(#grid)" />
+            <rect width="100%" height="100%" fill="url(#overview-grid)" />
           </svg>
         </div>
-        
-        <div className="container mx-auto px-6 text-center relative z-10">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <UserIcon className="w-8 h-8 text-white" />
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <UserIcon className="w-10 h-10" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Dashboard Overview
           </h1>
-          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
             Get started with your analytics and insights
           </p>
-
-          {/* Go to Dashboard button in hero section */}
           <Link
             href="/dashboard"
-            className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg shadow-blue-900/25"
+            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
           >
             Go to Dashboard
           </Link>
@@ -255,8 +252,8 @@ export default function DashboardOverviewPage() {
       </section>
 
       {/* Main Dashboard Sections */}
-      <section className="py-16 px-6">
-        <div className="container mx-auto max-w-6xl">
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="container-custom">
           {error && (
             <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
               <div>

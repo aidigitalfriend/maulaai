@@ -208,32 +208,98 @@ function AgentPerformanceDashboard() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="container-custom section-padding">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
-            <div>
-              <p className="text-sm text-neural-500">Agent performance</p>
-              <h1 className="text-3xl font-bold text-neural-900">
-                {data?.agent?.name ?? 'AI Agent'}
-              </h1>
-              <p className="text-neural-600">
-                Monitoring {data?.agent?.type ?? 'Assistant'} ·{' '}
-                {timeRangeOptions.find((t) => t.id === timeRange)?.name}
-              </p>
-              {lastUpdated && (
-                <p className="text-xs text-neural-500 mt-2">
-                  Last updated{' '}
-                  {lastUpdated.toLocaleTimeString([], {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
-                </p>
-              )}
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero Section */}
+        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+          {/* Decorative Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <pattern id="agent-perf-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r="1" fill="currentColor"/>
+                </pattern>
+              </defs>
+              <rect width="100" height="100" fill="url(#agent-perf-grid)"/>
+            </svg>
+          </div>
+          <div className="container-custom text-center relative z-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+              <Activity className="w-10 h-10" />
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link href="/dashboard" className="btn-secondary">
-                Back to Dashboard
-              </Link>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+              {data?.agent?.name ?? 'AI Agent'}
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-2">
+              Monitoring {data?.agent?.type ?? 'Assistant'} ·{' '}
+              {timeRangeOptions.find((t) => t.id === timeRange)?.name}
+            </p>
+            {lastUpdated && (
+              <p className="text-sm text-white/70 mb-6">
+                Last updated{' '}
+                {lastUpdated.toLocaleTimeString([], {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </p>
+            )}
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+        </section>
+
+        {/* Controls Section */}
+        <section className="py-6 px-4 bg-white border-b border-gray-200">
+          <div className="container-custom">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    Select agent
+                  </label>
+                  <select
+                    value={selectedAgent}
+                    onChange={(event) => setSelectedAgent(event.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                  >
+                    {agentOptions.map((agentOption) => (
+                      <option key={agentOption.id} value={agentOption.id}>
+                        {agentOption.icon} {agentOption.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    Time range
+                  </label>
+                  <select
+                    value={timeRange}
+                    onChange={(event) => setTimeRange(event.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                  >
+                    {timeRangeOptions.map((range) => (
+                      <option key={range.id} value={range.id}>
+                        {range.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col justify-end">
+                  <span className="text-xs uppercase text-gray-500 mb-1">
+                    Status
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusBadge}`}
+                  >
+                    {(data?.agent?.status ?? 'idle').charAt(0).toUpperCase() +
+                      (data?.agent?.status ?? 'idle').slice(1)}
+                  </span>
+                </div>
+              </div>
               <button
                 onClick={() => fetchPerformance()}
                 className="btn-primary inline-flex items-center gap-2"
@@ -246,87 +312,47 @@ function AgentPerformanceDashboard() {
               </button>
             </div>
           </div>
+        </section>
 
-          {error && (
-            <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4">
-              <p className="font-medium">Real-time fetch warning</p>
-              <p className="text-sm mt-1">{error}</p>
+        {error && (
+          <section className="py-4 px-4 bg-yellow-50 border-b border-yellow-200">
+            <div className="container-custom">
+              <p className="font-medium text-yellow-800">Real-time fetch warning</p>
+              <p className="text-sm mt-1 text-yellow-700">{error}</p>
             </div>
-          )}
+          </section>
+        )}
 
-          <div className="bg-white rounded-2xl border border-neural-200 p-6 mb-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div>
-                <label className="block text-sm font-medium text-neural-600 mb-2">
-                  Select agent
-                </label>
-                <select
-                  value={selectedAgent}
-                  onChange={(event) => setSelectedAgent(event.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-neural-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+        {/* Performance Content */}
+        <section className="py-12 px-4 bg-gray-50">
+          <div className="container-custom">
+            {/* Agent Info Card */}
+            <div className="bg-white rounded-3xl border border-gray-200 p-6 mb-8">
+              <div className="flex items-center gap-4">
+                <div
+                  className="text-5xl"
+                  role="img"
+                  aria-label={data?.agent?.name ?? 'AI Agent'}
                 >
-                  {agentOptions.map((agentOption) => (
-                    <option key={agentOption.id} value={agentOption.id}>
-                      {agentOption.icon} {agentOption.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neural-600 mb-2">
-                  Time range
-                </label>
-                <select
-                  value={timeRange}
-                  onChange={(event) => setTimeRange(event.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-neural-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-                >
-                  {timeRangeOptions.map((range) => (
-                    <option key={range.id} value={range.id}>
-                      {range.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col justify-end">
-                <span className="text-xs uppercase text-neural-500 mb-1">
-                  Status
-                </span>
-                <span
-                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${statusBadge}`}
-                >
-                  {(data?.agent?.status ?? 'idle').charAt(0).toUpperCase() +
-                    (data?.agent?.status ?? 'idle').slice(1)}
-                </span>
+                  {data?.agent?.avatar ?? '🤖'}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900">
+                    {data?.agent?.name ?? 'AI Agent'}
+                  </h2>
+                  <p className="text-gray-600">
+                    {data?.agent?.type ?? 'Assistant'}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {(data?.metrics?.totalConversations ?? 0).toLocaleString()}{' '}
+                    conversations in this window
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-3xl border border-neural-200 p-6 mb-8">
-            <div className="flex items-center gap-4">
-              <div
-                className="text-5xl"
-                role="img"
-                aria-label={data?.agent?.name ?? 'AI Agent'}
-              >
-                {data?.agent?.avatar ?? '🤖'}
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-neural-900">
-                  {data?.agent?.name ?? 'AI Agent'}
-                </h2>
-                <p className="text-neural-600">
-                  {data?.agent?.type ?? 'Assistant'}
-                </p>
-                <p className="text-sm text-neural-500 mt-2">
-                  {(data?.metrics?.totalConversations ?? 0).toLocaleString()}{' '}
-                  conversations in this window
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 mb-8">
+            {/* Stats Grid */}
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 mb-8">
             {[
               {
                 label: 'Total conversations',

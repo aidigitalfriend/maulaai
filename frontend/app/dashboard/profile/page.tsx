@@ -236,7 +236,7 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neural-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Hidden file input for avatar upload */}
       <input
         type="file"
@@ -246,22 +246,39 @@ export default function UserProfilePage() {
         className="hidden"
       />
 
-      {/* Header */}
-      <section className="py-12 px-4 border-b border-neural-200 bg-white">
-        <div className="container-custom">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-neural-900 mb-2">
-                User Profile
-              </h1>
-              <p className="text-neural-600">
-                Manage your personal information and preferences
-              </p>
-            </div>
-            <Link href="/dashboard/overview" className="btn-secondary">
-              Back to Dashboard
-            </Link>
+      {/* Hero Section */}
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="profile-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor"/>
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#profile-grid)"/>
+          </svg>
+        </div>
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <UserIcon className="w-10 h-10" />
           </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">User Profile</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+            Manage your personal information and preferences
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+          >
+            Back to Dashboard
+          </Link>
+        </div>
+      </section>
+
+      {/* Status Messages Section */}
+      <section className="py-6 px-4 bg-white border-b border-gray-200">
+        <div className="container-custom">
 
           {/* Status Messages */}
           {error && (
@@ -283,7 +300,7 @@ export default function UserProfilePage() {
           )}
 
           {hasChanges && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex">
                   <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mr-2" />
@@ -312,7 +329,7 @@ export default function UserProfilePage() {
       </section>
 
       {/* Profile Content */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-gray-50">
         <div className="container-custom max-w-4xl">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Profile Card */}

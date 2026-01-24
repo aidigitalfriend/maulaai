@@ -373,8 +373,40 @@ function DashboardContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="container-custom section-padding-lg">
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero Section */}
+        <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+          {/* Decorative Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="dashboard-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <circle cx="20" cy="20" r="1.5" fill="currentColor" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dashboard-grid)" />
+            </svg>
+          </div>
+          <div className="container-custom text-center relative z-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+              <Activity className="w-10 h-10" />
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              Your Dashboard
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-4">
+              Monitor your AI agents, track usage, and manage your subscription in real-time.
+            </p>
+            {lastUpdated && (
+              <p className="text-sm text-white/70">
+                Last updated {lastUpdated.toLocaleTimeString()}
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Dashboard Content */}
+        <div className="container-custom py-12">
           {error && analyticsData && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 flex items-center justify-between">
               <div>
@@ -422,28 +454,22 @@ function DashboardContent() {
               </div>
             </div>
           )}
+
+          {/* Agent Status Summary Card */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-3">
-                Your Dashboard
-              </h1>
-              <p className="text-lg text-neural-600">
-                Monitor your AI agents, track usage, and manage your
-                subscription in real-time.
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Quick Overview</h2>
+              <p className="text-gray-600">
+                Your current agent status and resource summary at a glance.
               </p>
-              {lastUpdated && (
-                <p className="text-sm text-neural-500 mt-2">
-                  Last updated {lastUpdated.toLocaleTimeString()}
-                </p>
-              )}
             </div>
 
             {/* Agent Status Summary */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-neural-200 min-w-[280px]">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 min-w-[280px]">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-sm text-neural-600">Agent Status</p>
-                  <p className="text-2xl font-bold text-neural-800">
+                  <p className="text-sm text-gray-600">Agent Status</p>
+                  <p className="text-2xl font-bold text-gray-800">
                     {isAgentActive ? 'Active' : 'Inactive'}
                   </p>
                   {/* Real-time Agent Status */}
@@ -469,11 +495,11 @@ function DashboardContent() {
                   {isAgentActive ? 'ACTIVE' : 'INACTIVE'}
                 </span>
               </div>
-              <div className="mt-2 mb-4 text-sm text-neural-600">
+              <div className="mt-2 mb-4 text-sm text-gray-600">
                 {hasActiveAgents ? (
                   <>
                     You currently have{' '}
-                    <span className="font-semibold text-neural-900">
+                    <span className="font-semibold text-gray-900">
                       {analyticsData.usage.agents.current} active agent
                       {analyticsData.usage.agents.current === 1 ? '' : 's'}
                     </span>
