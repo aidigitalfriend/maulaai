@@ -31,6 +31,9 @@ import agentMemoryRouter from './agent-memory-routes.js';
 // Import Media Processing routes
 import mediaRouter from './media-routes.js';
 
+// Import Uploads routes (file uploads, proxy downloads)
+import uploadsRouter from './uploads.js';
+
 // Import Agent System (Orchestrator + Specialized Agents)
 import agentSystemRouter from './agent-system-routes.js';
 
@@ -196,6 +199,13 @@ router.use('/agent/subscriptions', agentSubscriptionsRouter);
 
 router.use('/media', apiLimiter);
 router.use('/media', mediaRouter);
+
+// ============================================
+// UPLOADS ROUTES (File uploads, proxy downloads)
+// ============================================
+
+router.use('/uploads', apiLimiter);
+router.use('/uploads', uploadsRouter);
 
 // ============================================
 // AI AGENT SYSTEM ROUTES (Orchestrator + Specialized Agents)
