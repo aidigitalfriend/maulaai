@@ -277,16 +277,16 @@ export default function DashboardOverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* User Profile Section */}
             <Link href="/dashboard/profile" className="group">
-              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-blue-300 transition-all">
+              <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500 transition-all">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-blue-500/25">
                     <UserIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       User Profile
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-300">
                       Manage your personal information
                     </p>
                   </div>
@@ -299,15 +299,15 @@ export default function DashboardOverviewPage() {
                         {userProfile.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-gray-900 dark:text-white">
                           {userProfile.name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                           {userProfile.email}
                         </p>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-700 space-y-1">
+                    <div className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
                       <p>📍 {userProfile.location}</p>
                       <p>
                         💼 {userProfile.profession} at {userProfile.company}
@@ -320,7 +320,7 @@ export default function DashboardOverviewPage() {
                   </div>
                 )}
 
-                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-indigo-700">
+                <div className="mt-4 text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
                   View and edit profile →
                 </div>
               </div>
@@ -328,16 +328,16 @@ export default function DashboardOverviewPage() {
 
             {/* Security Settings Section */}
             <Link href="/dashboard/security" className="group">
-              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-green-300 transition-all">
+              <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl hover:border-green-300 dark:hover:border-green-500 transition-all">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-green-500/25">
                     <ShieldCheckIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       Security Settings
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-300">
                       Password, 2FA, and security options
                     </p>
                   </div>
@@ -346,7 +346,7 @@ export default function DashboardOverviewPage() {
                 {securitySettings && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-gray-700 dark:text-gray-200">
                         Two-Factor Authentication
                       </span>
                       <span
@@ -361,7 +361,7 @@ export default function DashboardOverviewPage() {
                           : 'Disabled'}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-gray-700 dark:text-gray-200">
                       <p>
                         🔐 Password last changed:{' '}
                         {new Date(
@@ -376,7 +376,7 @@ export default function DashboardOverviewPage() {
                   </div>
                 )}
 
-                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent group-hover:from-green-700 group-hover:to-emerald-700">
+                <div className="mt-4 text-sm font-medium text-green-600 dark:text-green-400 group-hover:text-green-700 dark:group-hover:text-green-300">
                   Manage security settings →
                 </div>
               </div>
@@ -384,16 +384,16 @@ export default function DashboardOverviewPage() {
 
             {/* Preferences Section */}
             <Link href="/dashboard/preferences" className="group">
-              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-purple-300 transition-all">
+              <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl hover:border-purple-300 dark:hover:border-purple-500 transition-all">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-purple-500/25">
                     <CogIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       Preferences
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-300">
                       Themes, languages, and settings
                     </p>
                   </div>
@@ -403,26 +403,26 @@ export default function DashboardOverviewPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-500">Theme</p>
-                        <p className="font-medium text-gray-900 capitalize">
+                        <p className="text-gray-500 dark:text-gray-400">Theme</p>
+                        <p className="font-medium text-gray-900 dark:text-white capitalize">
                           {preferences.theme}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Language</p>
-                        <p className="font-medium text-gray-900">
+                        <p className="text-gray-500 dark:text-gray-400">Language</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
                           {formatLanguagePreference(preferences.language)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-gray-700 dark:text-gray-200">
                       <p>🌍 {preferences.timezone}</p>
                       <p>💰 Currency: {preferences.currency}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:to-pink-700">
+                <div className="mt-4 text-sm font-medium text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300">
                   Customize preferences →
                 </div>
               </div>
@@ -430,7 +430,7 @@ export default function DashboardOverviewPage() {
 
             {/* Rewards Center Section */}
             <Link href="/dashboard/rewards" className="group">
-              <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl hover:border-yellow-300 transition-all relative overflow-hidden">
+              <div className="p-8 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl hover:border-yellow-300 dark:hover:border-yellow-500 transition-all relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-bl-[4rem] opacity-10"></div>
 
                 <div className="flex items-center mb-6">
@@ -438,10 +438,10 @@ export default function DashboardOverviewPage() {
                     <GiftIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       Rewards Center
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-300">
                       Points, badges, and achievements
                     </p>
                   </div>
@@ -451,19 +451,19 @@ export default function DashboardOverviewPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                           {rewards?.totalPoints?.toLocaleString() || '0'}
                         </p>
-                        <p className="text-sm text-gray-600">Total Points</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Total Points</p>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center space-x-1">
                           <StarIcon className="w-5 h-5 text-yellow-500" />
-                          <span className="text-lg font-semibold text-gray-900">
+                          <span className="text-lg font-semibold text-gray-900 dark:text-white">
                             Level {rewards?.currentLevel || 1}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           {rewards?.pointsToNextLevel || 0} to next level
                         </p>
                       </div>
@@ -473,16 +473,16 @@ export default function DashboardOverviewPage() {
                       {rewards?.badges
                         ?.slice(0, 3)
                         .map((badge: any, idx: number) => (
-                          <div key={idx} className="text-center p-2 bg-gray-50 rounded-xl">
+                          <div key={idx} className="text-center p-2 bg-gray-50 dark:bg-slate-700 rounded-xl">
                             <div className="text-2xl mb-1">
                               {badge.icon || '🎖️'}
                             </div>
-                            <p className="text-xs text-gray-600 truncate">
+                            <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
                               {badge.name}
                             </p>
                           </div>
                         )) || (
-                        <div className="col-span-3 text-center text-gray-500 p-3 bg-gray-50 rounded-xl">
+                        <div className="col-span-3 text-center text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
                           <div className="text-2xl mb-1">🎖️</div>
                           <p className="text-xs">No badges yet</p>
                         </div>
@@ -490,17 +490,17 @@ export default function DashboardOverviewPage() {
                     </div>
 
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700">
+                      <span className="text-gray-700 dark:text-gray-200">
                         🔥 {rewards?.streaks?.current || 0} day streak
                       </span>
-                      <span className="text-gray-700">
+                      <span className="text-gray-700 dark:text-gray-200">
                         🏆 {rewards?.badges?.length || 0} badges earned
                       </span>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 text-sm font-medium bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent group-hover:from-yellow-700 group-hover:to-orange-700">
+                <div className="mt-4 text-sm font-medium text-yellow-600 dark:text-yellow-400 group-hover:text-yellow-700 dark:group-hover:text-yellow-300">
                   Explore rewards →
                 </div>
               </div>
