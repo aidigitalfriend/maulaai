@@ -5,7 +5,7 @@ import { Heart, Zap, Shield, Lightbulb, Users, Star, Award, Globe } from 'lucide
 
 export default function AboutOverviewPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-50">
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
         {/* Decorative Pattern */}
@@ -89,9 +89,9 @@ export default function AboutOverviewPage() {
           </div>
 
           {/* Intro Section */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">The Initiative</h3>
-            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
+          <div className="bg-white dark:bg-white rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-200 mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-900 mb-4">The Initiative</h3>
+            <p className="text-lg text-gray-700 dark:text-gray-700 mb-4 leading-relaxed">
               <span className="font-semibold">AI Digital Friend</span> is a product of <span className="font-semibold">Grand Pa United™</span>, a global alliance of innovators from the UAE, UK, and USA, united by a shared mission: to build emotionally intelligent, human-centric AI systems that redefine digital companionship.
             </p>
             <p className="text-lg text-gray-700 mb-4 leading-relaxed">
@@ -104,92 +104,92 @@ export default function AboutOverviewPage() {
 
           {/* Mission Statement */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-white rounded-2xl p-8 border border-purple-200 shadow-lg">
+            <div className="bg-white dark:bg-white rounded-2xl p-8 border border-purple-200 dark:border-purple-200 shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
                   <Zap className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Our Mission</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Our Mission</h3>
               </div>
-              <p className="text-gray-700 mb-4 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-700 mb-4 leading-relaxed">
                 To develop modular, adaptive, and emotionally aware AI agents that enhance human life through intuitive interaction, deep learning, and ethical design.
               </p>
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Modular</span>
-                    <p className="text-sm text-gray-600">Easily integrated and customized</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Modular</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Easily integrated and customized</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Intuitive</span>
-                    <p className="text-sm text-gray-600">Seamless user experience across skill levels</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Intuitive</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Seamless user experience across skill levels</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Intelligent</span>
-                    <p className="text-sm text-gray-600">Advanced frameworks for real-time learning</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Intelligent</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Advanced frameworks for real-time learning</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-purple-600 font-bold">▸</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Companionable</span>
-                    <p className="text-sm text-gray-600">Engages with empathy, not just efficiency</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Companionable</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Engages with empathy, not just efficiency</p>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 font-semibold mt-6 pt-6 border-t border-purple-200">
+              <p className="text-sm text-gray-600 dark:text-gray-600 font-semibold mt-6 pt-6 border-t border-purple-200 dark:border-purple-200">
                 Bridging the gap between AI and human connection — making technology smarter and more relatable.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 border border-green-200 shadow-lg">
+            <div className="bg-white dark:bg-white rounded-2xl p-8 border border-green-200 dark:border-green-200 shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
                   <Lightbulb className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900">Why AI Digital Friend?</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-900">Why AI Digital Friend?</h3>
               </div>
-              <p className="text-gray-700 mb-4 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-700 mb-4 leading-relaxed">
                 In a world full of automation, the future belongs to human-aware AI — systems that understand context, emotion, and intent.
               </p>
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Approachable</span>
-                    <p className="text-sm text-gray-600">Friendly and natural interactions</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Approachable</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Friendly and natural interactions</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Adaptive</span>
-                    <p className="text-sm text-gray-600">Continuously learning from user behavior</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Adaptive</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Continuously learning from user behavior</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Secure</span>
-                    <p className="text-sm text-gray-600">Built with privacy and ethical safeguards</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Secure</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Built with privacy and ethical safeguards</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-900">Scalable</span>
-                    <p className="text-sm text-gray-600">Enterprise-ready, global expansion possible</p>
+                    <span className="font-semibold text-gray-900 dark:text-gray-900">Scalable</span>
+                    <p className="text-sm text-gray-600 dark:text-gray-600">Enterprise-ready, global expansion possible</p>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 font-semibold mt-6 pt-6 border-t border-green-200">
+              <p className="text-sm text-gray-600 dark:text-gray-600 font-semibold mt-6 pt-6 border-t border-green-200 dark:border-green-200">
                 Building timeless technology that serves real needs, not just trends.
               </p>
             </div>
