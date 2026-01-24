@@ -972,6 +972,49 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       const maxFileSizeMb = Number(process.env.NEXT_PUBLIC_MAX_FILE_SIZE) || 10;
       const maxBytes = maxFileSizeMb * 1024 * 1024;
 
+      // Resize image to reduce tokens for AI vision (max 1024px on longest side)
+      const resizeImage = (file: File, maxSize = 1024): Promise<string> =>
+        new Promise((resolve, reject) => {
+          const img = new Image();
+          const reader = new FileReader();
+          
+          reader.onload = (e) => {
+            img.onload = () => {
+              // Calculate new dimensions
+              let { width, height } = img;
+              if (width > maxSize || height > maxSize) {
+                if (width > height) {
+                  height = Math.round((height * maxSize) / width);
+                  width = maxSize;
+                } else {
+                  width = Math.round((width * maxSize) / height);
+                  height = maxSize;
+                }
+              }
+              
+              // Create canvas and resize
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) {
+                reject(new Error('Failed to get canvas context'));
+                return;
+              }
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              // Convert to JPEG for better compression
+              const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              console.log(`[resize] ${file.name}: ${img.width}x${img.height} -> ${width}x${height}, size: ${resizedDataUrl.length} chars`);
+              resolve(resizedDataUrl);
+            };
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = e.target?.result as string;
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
+
       const readPreview = (file: File) =>
         new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -1017,13 +1060,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
           let preview: string | undefined;
           try {
-            const result = await readPreview(file);
-            // For images, keep full base64 data URL for AI vision
-            // For text files, truncate to avoid memory issues
+            // For images, resize to reduce tokens for AI vision
             if (file.type.startsWith('image/')) {
-              // Keep full base64 for images (needed for AI vision)
-              preview = result;
+              // Resize image to max 1024px to stay under token limits
+              preview = await resizeImage(file, 1024);
             } else {
+              const result = await readPreview(file);
               const trimmed =
                 result.length > 4000 ? `${result.slice(0, 4000)}...` : result;
               preview = trimmed;

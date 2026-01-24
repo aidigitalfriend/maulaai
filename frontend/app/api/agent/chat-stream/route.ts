@@ -795,11 +795,12 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                 }
                 
                 if (imageUrl) {
+                  // Use 'low' detail to reduce token usage (512x512 = ~85 tokens vs high which can be 65k+)
                   userContent.push({
                     type: 'image_url',
-                    image_url: { url: imageUrl, detail: 'auto' },
+                    image_url: { url: imageUrl, detail: 'low' },
                   });
-                  console.log('[chat-stream] Added image attachment, type:', attachment.type, 'url-prefix:', imageUrl.substring(0, 50));
+                  console.log('[chat-stream] Added image attachment, type:', attachment.type, 'detail: low, url-length:', imageUrl.length);
                 } else {
                   console.log('[chat-stream] Skipping image attachment - no accessible URL. Has data:', !!attachment.data, 'Has url:', !!attachment.url);
                 }
