@@ -90,7 +90,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Technology',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'gemini', 'cohere'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Anthropic Claude excels at coding, technical analysis, and complex problem-solving for development tasks',
     specializedFor: ['Code generation', 'Software development', 'Technical architecture', 'Debugging']
   },
@@ -100,7 +100,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Technology',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'gemini', 'cohere'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Advanced technical knowledge and reasoning capabilities make Anthropic ideal for tech expertise',
     specializedFor: ['Advanced programming', 'System architecture', 'Technology consulting', 'Innovation']
   },
@@ -110,7 +110,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Technology',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'gemini', 'cohere'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Complex logical reasoning and creative problem-solving align perfectly with Anthropic\'s strengths',
     specializedFor: ['Logic puzzles', 'Creative problem solving', 'Strategic thinking', 'Innovation']
   },
@@ -122,7 +122,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Education',
     primaryProvider: 'anthropic',
     fallbackProviders: ['gemini', 'openai', 'mistral', 'cohere'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Complex scientific concepts and educational content require Anthropic\'s advanced reasoning capabilities',
     specializedFor: ['Physics', 'Scientific research', 'Mathematical concepts', 'Educational explanations']
   },
@@ -132,7 +132,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Education',
     primaryProvider: 'gemini',
     fallbackProviders: ['anthropic', 'openai', 'mistral', 'cohere'],
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.0-flash',
     reasoning: 'Gemini\'s access to real-time data and research capabilities make it ideal for astronomical information',
     specializedFor: ['Astronomy', 'Space science', 'Research data', 'Educational content']
   },
@@ -176,7 +176,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Business',
     primaryProvider: 'anthropic',
     fallbackProviders: ['cohere', 'openai', 'mistral', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Professional business advice and leadership guidance require Anthropic\'s analytical and safety-focused approach',
     specializedFor: ['Leadership', 'Business strategy', 'Management', 'Professional development']
   },
@@ -186,7 +186,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Business',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'gemini', 'cohere'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Strategic thinking and complex game analysis benefit from Anthropic\'s reasoning capabilities',
     specializedFor: ['Strategic thinking', 'Game analysis', 'Pattern recognition', 'Tactical planning']
   },
@@ -218,7 +218,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Health & Wellness',
     primaryProvider: 'anthropic',
     fallbackProviders: ['gemini', 'openai', 'mistral', 'cohere'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     reasoning: 'Health and fitness advice requires accurate, responsible information that Anthropic provides safely',
     specializedFor: ['Fitness training', 'Health advice', 'Wellness coaching', 'Exercise science']
   },
@@ -240,7 +240,7 @@ export const AGENT_PROVIDER_ASSIGNMENTS: AgentProviderConfig[] = [
     category: 'Home & Lifestyle',
     primaryProvider: 'gemini',
     fallbackProviders: ['mistral', 'anthropic', 'openai', 'cohere'],
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.0-flash',
     reasoning: 'Travel advice benefits from Gemini\'s access to current information and real-time data about destinations',
     specializedFor: ['Travel planning', 'Destination information', 'Cultural insights', 'Current travel data']
   },

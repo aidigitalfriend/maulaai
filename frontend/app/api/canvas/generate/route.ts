@@ -427,10 +427,10 @@ async function generateWithGemini(
 
   contents.push({ role: 'user', parts: [{ text: prompt }] });
 
-  // Map model IDs to actual Gemini model names
-  let actualModel = 'gemini-1.5-flash';
+  // Map model IDs to actual Gemini model names - using latest 2.0 models
+  let actualModel = 'gemini-2.0-flash';
   if (modelId.includes('pro')) {
-    actualModel = 'gemini-1.5-pro';
+    actualModel = 'gemini-2.0-flash-thinking-exp';
   }
 
   const model = genAI.getGenerativeModel({
@@ -588,10 +588,10 @@ async function generateWithAnthropic(
 
   messages.push({ role: 'user', content: prompt });
 
-  // Map model IDs
-  let actualModel = 'claude-3-5-sonnet-20241022';
-  if (modelId === 'claude-3-opus') actualModel = 'claude-3-opus-20240229';
-  if (modelId === 'claude-3-haiku') actualModel = 'claude-3-haiku-20240307';
+  // Map model IDs - using latest Claude models
+  let actualModel = 'claude-sonnet-4-20250514';
+  if (modelId === 'claude-3-opus') actualModel = 'claude-opus-4-20250514';
+  if (modelId === 'claude-3-haiku') actualModel = 'claude-3-5-haiku-20241022';
 
   const response = await anthropic.messages.create({
     model: actualModel,

@@ -448,8 +448,9 @@ async function streamWithGemini(
 
     contents.push({ role: 'user', parts: [{ text: prompt }] });
 
-    let actualModel = 'gemini-1.5-flash';
-    if (modelId && modelId.includes('pro')) actualModel = 'gemini-1.5-pro';
+    // Using latest Gemini 2.0 models for best quality
+    let actualModel = 'gemini-2.0-flash';
+    if (modelId && modelId.includes('pro')) actualModel = 'gemini-2.0-flash-thinking-exp';
 
     const model = genAI.getGenerativeModel({
       model: actualModel,

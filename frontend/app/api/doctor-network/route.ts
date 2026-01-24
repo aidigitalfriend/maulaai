@@ -263,7 +263,7 @@ class AIProvider {
     if (!apiKey) throw new Error('Gemini API key not configured');
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -307,7 +307,7 @@ class AIProvider {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 500,
         system: systemMessage?.content || getDoctorNetworkPrompt('en'),
         messages: conversationMessages.map((msg) => ({
@@ -339,7 +339,7 @@ class AIProvider {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: messages,
         max_tokens: 500,
         temperature: 0.7,
@@ -371,7 +371,7 @@ class AIProvider {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'mistral-small-latest',
+            model: 'mistral-large-latest',
             messages: messages.map((msg) => ({
               role: msg.role,
               content: msg.content,

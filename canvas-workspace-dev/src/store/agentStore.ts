@@ -3,63 +3,63 @@ import { immer } from 'zustand/middleware/immer'
 import { nanoid } from 'nanoid'
 import type { AgentState, AgentSession, ChatMessage, ModelOption } from '../types'
 
-// Available AI Models
+// Available AI Models - Using LATEST versions for best quality
 export const AVAILABLE_MODELS: ModelOption[] = [
-  // Anthropic Claude Models
+  // Anthropic Claude Models - Latest Claude 4 series
   {
-    id: 'claude-3-5-sonnet',
-    name: 'Claude 3.5 Sonnet',
+    id: 'claude-sonnet-4',
+    name: 'Claude Sonnet 4',
     provider: 'Anthropic',
-    description: 'Best for coding - highly recommended',
+    description: 'Best for coding - latest & most capable',
     icon: '🎭',
+    maxTokens: 16384,
+  },
+  {
+    id: 'claude-opus-4',
+    name: 'Claude Opus 4',
+    provider: 'Anthropic',
+    description: 'Most powerful Claude model ever',
+    icon: '🎯',
     maxTokens: 8192,
   },
-  {
-    id: 'claude-3-opus',
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
-    description: 'Most powerful Claude model',
-    icon: '🎯',
-    maxTokens: 4096,
-  },
   
-  // OpenAI Models
+  // OpenAI Models - Latest GPT-4o and o1
   {
     id: 'gpt-4o',
     name: 'GPT-4o',
     provider: 'OpenAI',
-    description: 'Most capable OpenAI model',
+    description: 'Most capable multimodal model',
     icon: '🌟',
-    maxTokens: 4096,
+    maxTokens: 16384,
   },
   {
-    id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
+    id: 'o1',
+    name: 'o1 Reasoning',
     provider: 'OpenAI',
-    description: 'Fast and cost-effective',
-    icon: '⚡',
-    maxTokens: 4096,
-  },
-  
-  // Google Gemini Models
-  {
-    id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    provider: 'Google',
-    description: 'High reasoning for complex apps',
+    description: 'Advanced reasoning capabilities',
     icon: '🧠',
-    maxTokens: 8192,
-  },
-  {
-    id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    provider: 'Google',
-    description: 'Fast and efficient',
-    icon: '💨',
-    maxTokens: 8192,
+    maxTokens: 32768,
   },
   
-  // Groq Models (Fast Inference)
+  // Google Gemini Models - Latest 2.0 series
+  {
+    id: 'gemini-2.0-flash',
+    name: 'Gemini 2.0 Flash',
+    provider: 'Google',
+    description: 'Fast and highly capable',
+    icon: '⚡',
+    maxTokens: 32768,
+  },
+  {
+    id: 'gemini-2.0-flash-thinking',
+    name: 'Gemini 2.0 Thinking',
+    provider: 'Google',
+    description: 'Advanced reasoning mode',
+    icon: '💭',
+    maxTokens: 32768,
+  },
+  
+  // Groq Models (Ultra-Fast Inference)
   {
     id: 'llama-3.3-70b',
     name: 'Llama 3.3 70B',
@@ -77,24 +77,24 @@ export const AVAILABLE_MODELS: ModelOption[] = [
     maxTokens: 4096,
   },
   
-  // xAI Grok
+  // xAI Grok - Latest
   {
     id: 'grok-3',
     name: 'Grok 3',
     provider: 'xAI',
     description: 'Strong reasoning and coding',
     icon: '🚀',
-    maxTokens: 4096,
+    maxTokens: 8192,
   },
   
-  // Mistral Models
+  // Mistral Models - Latest
   {
-    id: 'codestral',
+    id: 'codestral-latest',
     name: 'Codestral',
     provider: 'Mistral',
     description: 'Specialized for code generation',
     icon: '💻',
-    maxTokens: 8192,
+    maxTokens: 16384,
   },
 ]
 

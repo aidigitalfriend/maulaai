@@ -105,7 +105,7 @@ const mistralProvider: AIProvider = {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'mistral-small-latest', messages, max_tokens: 150, temperature: 0.9 }),
+      body: JSON.stringify({ model: 'mistral-large-latest', messages, max_tokens: 150, temperature: 0.9 }),
     });
     if (!response.ok) throw new Error(`Mistral API returned ${response.status}`);
     const data = await response.json();
@@ -120,7 +120,7 @@ const geminiProvider: AIProvider = {
     if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured');
     const conversationText = conversationHistory.length > 0 ? conversationHistory.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n') : '';
     const fullPrompt = conversationText ? `${systemPrompt || 'You are a helpful AI assistant.'}\n\nPrevious conversation:\n${conversationText}\n\nUser: ${message}\nAssistant:` : `${systemPrompt || 'You are a helpful AI assistant.'}\n\nUser: ${message}\nAssistant:`;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 1000, topK: 40, topP: 0.95 } }),

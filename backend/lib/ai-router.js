@@ -230,7 +230,7 @@ class AIRouter {
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: this.config.providers.anthropic.model || "claude-3-sonnet-20240229",
+        model: this.config.providers.anthropic.model || "claude-sonnet-4-20250514",
         max_tokens: 1e3,
         messages: [{ role: "user", content: prompt }]
       })
@@ -255,7 +255,7 @@ class AIRouter {
         "Authorization": `Bearer ${this.config.providers.openai.apiKey}`
       },
       body: JSON.stringify({
-        model: this.config.providers.openai.model || "gpt-3.5-turbo",
+        model: this.config.providers.openai.model || "gpt-4o",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1e3
       })
