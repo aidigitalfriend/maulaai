@@ -2515,6 +2515,35 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                   e.stopPropagation();
                   const filename = previewImage.alt || `generated-image-${Date.now()}.png`;
                   try {
+                    // Handle base64 data URLs directly (no proxy needed)
+                    if (previewImage.src.startsWith('data:')) {
+                      const [header, base64Data] = previewImage.src.split(',');
+                      const mimeMatch = header.match(/data:([^;]+)/);
+                      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                      
+                      const byteCharacters = atob(base64Data);
+                      const byteNumbers = new Array(byteCharacters.length);
+                      for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                      }
+                      const byteArray = new Uint8Array(byteNumbers);
+                      const blob = new Blob([byteArray], { type: mimeType });
+                      
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = filename;
+                      a.style.display = 'none';
+                      document.body.appendChild(a);
+                      a.click();
+                      setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                      }, 100);
+                      return;
+                    }
+
+                    // Use proxy for remote URLs
                     const proxyUrl = `/api/uploads/proxy-download?url=${encodeURIComponent(previewImage.src)}&filename=${encodeURIComponent(filename)}`;
                     const response = await fetch(proxyUrl);
                     if (!response.ok) throw new Error('Proxy failed');
@@ -2532,6 +2561,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     }, 100);
                   } catch (error) {
                     console.error('Download failed:', error);
+                    // Last resort: open image in new tab for manual save
+                    window.open(previewImage.src, '_blank');
                   }
                 }}
                 className="bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg"
