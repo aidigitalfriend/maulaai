@@ -526,7 +526,7 @@ export default function DataGeneratorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="py-12 border-b border-gray-200">
         <div className="container-custom">

@@ -49,9 +49,9 @@ export default function WebsiteCategorizationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-12">
+      <div className="bg-gradient-to-r from-brand-600 to-accent-600 py-12">
         <div className="container-custom">
           <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" />

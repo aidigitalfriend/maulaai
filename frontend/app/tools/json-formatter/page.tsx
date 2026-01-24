@@ -50,8 +50,8 @@ export default function JsonFormatterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-gradient-to-r from-brand-600 to-accent-600">
         <div className="container-custom py-6">
           <Link href="/tools/developer-utils" className="text-blue-100 hover:text-white">← Back to Developer Utils</Link>
           <div className="mt-3 flex items-center gap-3">

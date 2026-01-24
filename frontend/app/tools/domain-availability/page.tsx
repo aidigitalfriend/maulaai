@@ -60,9 +60,9 @@ export default function DomainAvailabilityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+      <div className="bg-gradient-to-r from-brand-600 to-accent-600">
         <div className="container mx-auto px-4 py-6">
           <Link 
             href="/tools" 
