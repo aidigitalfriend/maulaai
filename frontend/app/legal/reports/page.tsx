@@ -156,17 +156,13 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="section-padding-lg bg-gradient-to-r from-red-600 to-orange-600 text-white">
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <AlertTriangle className="w-10 h-10" />
-            <h1 className="text-5xl md:text-6xl font-bold">Report Inappropriate Activity</h1>
-          </div>
-          <p className="text-xl opacity-90 mb-2">Help us maintain a safe and trustworthy platform</p>
-          <p className="text-lg opacity-75">
-            Report any misuse, inappropriate content, or violations of our policies
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Report Inappropriate Activity</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Help us maintain a safe and trustworthy platform. Report any misuse, inappropriate content, or violations of our policies.
           </p>
         </div>
       </section>

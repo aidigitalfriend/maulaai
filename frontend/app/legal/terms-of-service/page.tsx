@@ -127,21 +127,16 @@ Many services allow users to opt out of arbitration within a specified period (t
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
-        <div className="container-custom section-padding max-w-5xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">
-            Terms of Service
-          </h1>
-          <p className="text-blue-100 text-lg">
-            Last updated: November 6, 2025
-          </p>
-          <p className="text-blue-100 mt-2">
-            Effective Date: November 6, 2025
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Terms of Service</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Last updated: November 6, 2025 • Effective Date: November 6, 2025
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
       <div className="container-custom section-padding max-w-5xl">
