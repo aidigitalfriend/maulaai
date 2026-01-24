@@ -78,29 +78,28 @@ export default function DocsIntegrations() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 border-b border-blue-500/20">
-        <div className="container-custom section-padding-lg">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Integrations
-            </h1>
-            <p className="text-xl text-blue-100 mb-6 leading-relaxed">
-              Connect your AI agents to the tools and platforms you already use. From Slack and Discord to enterprise solutions, integrate seamlessly with our ecosystem.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#setup" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
-                Get Started
-              </a>
-              <a href="#available" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-                Browse Integrations
-              </a>
-            </div>
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">🔗</span>
+            Connect Everything
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Integrations</h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">Connect your AI agents to the tools and platforms you already use</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#setup" className="px-6 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-gray-100 transition">
+              Get Started
+            </a>
+            <a href="#available" className="px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition">
+              Browse Integrations
+            </a>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Main Content */}
-      <div className="container-custom section-padding-lg">
+      <div className="container-custom py-12">
         
         {/* Integration Overview */}
         <div className="mb-16">

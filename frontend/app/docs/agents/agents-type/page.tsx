@@ -6,27 +6,31 @@ import { ArrowLeft, Brain, Zap } from 'lucide-react';
 export default function AgentTypesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
-        {/* Back Button */}
-        <Link href="/docs/agents" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Documentation
-        </Link>
-
-        {/* Header */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h1 className="text-5xl font-bold mb-4 text-neural-900">
-            Available Agent Types
-          </h1>
-          <p className="text-xl text-neural-600">
-            Explore the diverse range of specialized agents available on Maula AI.
-          </p>
-          <div className="flex items-center gap-4 mt-6 text-neural-500">
-            <span>📖 Reading time: 10 minutes</span>
-            <span>•</span>
-            <span>Updated: October 2025</span>
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Agent Docs
+          </Link>
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+              <span className="text-xl">🤖</span>
+              Agent Catalog
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Available Agent Types</h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">Explore the diverse range of specialized agents available on Maula AI</p>
+            <div className="flex items-center justify-center gap-4 mt-6 text-white/70 text-sm">
+              <span>📖 10 min read</span>
+              <span>•</span>
+              <span>Updated: January 2026</span>
+            </div>
           </div>
         </div>
+      </section>
+
+      <div className="container-custom py-12">
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto space-y-8">

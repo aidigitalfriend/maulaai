@@ -78,28 +78,26 @@ export default function CanvasDocsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
-        {/* Back Link */}
-        <Link href="/docs" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 mb-8 transition">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Documentation
-        </Link>
-
-        {/* Header */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-2xl flex items-center justify-center">
-              <Layout className="w-10 h-10 text-white" />
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <Link href="/docs" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Documentation
+          </Link>
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+              <span className="text-xl">🎨</span>
+              AI App Builder
             </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-fuchsia-400 to-purple-400 bg-clip-text text-transparent">Canvas Builder</h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">Build complete web applications with AI-powered code generation</p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-fuchsia-500 to-purple-700 bg-clip-text text-transparent mb-6">
-            Canvas Builder
-          </h1>
-          <p className="text-xl text-neural-600 leading-relaxed">
-            Build complete web applications with AI-powered code generation. 
-            Describe what you want, and watch it come to life.
-          </p>
         </div>
+      </section>
+
+      <div className="container-custom py-12">
 
         {/* Quick Start CTA */}
         <div className="max-w-4xl mx-auto mb-16">
