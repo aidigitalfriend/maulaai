@@ -121,20 +121,22 @@ Maula AI does not knowingly collect information from children under 13. Our serv
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
-        <div className="container-custom section-padding max-w-5xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">🔒</span>
+            Your Data, Protected
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
             Privacy Policy
           </h1>
-          <p className="text-blue-100 text-lg">
-            Last updated: November 6, 2025
-          </p>
-          <p className="text-blue-100 mt-2">
-            Effective Date: November 6, 2025
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            Last updated: November 6, 2025 • Effective Date: November 6, 2025
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
       <div className="container-custom section-padding max-w-5xl">

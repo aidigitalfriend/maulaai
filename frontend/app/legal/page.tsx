@@ -76,16 +76,24 @@ export default function Legal() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">⚖️</span>
+            Legal & Compliance
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
             Legal Information
           </h1>
-          <p className="text-xl text-neural-600 leading-relaxed mb-8">
-            Important legal documents and policies governing your use of our AI
-            agent platform.
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            Important legal documents and policies governing your use of our AI agent platform.
           </p>
         </div>
+      </section>
+
+      <div className="container-custom section-padding-lg">
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           {legalDocuments.map((document, index) => (

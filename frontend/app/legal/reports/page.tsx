@@ -158,15 +158,18 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="section-padding-lg bg-gradient-to-r from-red-600 to-orange-600 text-white">
-        <div className="container-custom text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <AlertTriangle className="w-10 h-10" />
-            <h1 className="text-5xl md:text-6xl font-bold">Report Inappropriate Activity</h1>
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">⚠️</span>
+            Trust & Safety
           </div>
-          <p className="text-xl opacity-90 mb-2">Help us maintain a safe and trustworthy platform</p>
-          <p className="text-lg opacity-75">
-            Report any misuse, inappropriate content, or violations of our policies
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            Report Inappropriate Activity
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            Help us maintain a safe and trustworthy platform by reporting misuse or violations.
           </p>
         </div>
       </section>
