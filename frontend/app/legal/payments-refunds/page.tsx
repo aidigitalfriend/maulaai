@@ -14,7 +14,7 @@ export default function PaymentsRefundsPage() {
             Last updated: November 6, 2025 • Effective Date: November 6, 2025
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
       <div className="container-custom section-padding max-w-5xl">
