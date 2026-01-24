@@ -43,8 +43,9 @@ function LoginPageContent() {
     setIsSubmitting(true);
 
     try {
-      await login(formData.email, formData.password);
-      // Redirect handled by useEffect
+      const result = await login(formData.email, formData.password);
+      // If 2FA is required, the AuthContext will redirect
+      // Otherwise, redirect is handled by useEffect when isAuthenticated changes
     } catch (error) {
       console.error('Login error:', error);
     } finally {

@@ -758,6 +758,25 @@ app.post('/api/auth/login', rateLimiters.auth, async (req, res) => {
       });
     }
 
+    // Check if 2FA is enabled
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      // Generate temp token for 2FA verification
+      const tempToken = crypto.randomBytes(32).toString('hex');
+      const tempTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await db.User.update(user.id, {
+        resetPasswordToken: tempToken,
+        resetPasswordExpires: tempTokenExpiry,
+      });
+
+      return res.json({
+        requires2FA: true,
+        tempToken,
+        userId: user.id,
+        message: 'Please enter your 2FA code',
+      });
+    }
+
     // Generate session
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -789,6 +808,108 @@ app.post('/api/auth/login', rateLimiters.auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to login',
+    });
+  }
+});
+
+// 2FA Verification during login
+app.post('/api/auth/verify-2fa', rateLimiters.auth, async (req, res) => {
+  try {
+    const { tempToken, userId, code } = req.body;
+
+    if (!tempToken || !userId || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+      });
+    }
+
+    // Import otplib dynamically
+    const { authenticator } = await import('otplib');
+
+    // Find user with matching temp token
+    const user = await db.User.findById(userId);
+    if (!user || user.resetPasswordToken !== tempToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired verification session',
+      });
+    }
+
+    // Check if token expired
+    if (user.resetPasswordExpires && new Date(user.resetPasswordExpires) < new Date()) {
+      return res.status(401).json({
+        success: false,
+        message: 'Verification session expired. Please login again.',
+      });
+    }
+
+    if (!user.twoFactorSecret) {
+      return res.status(400).json({
+        success: false,
+        message: '2FA not configured',
+      });
+    }
+
+    // Verify TOTP code
+    const isValid = authenticator.verify({
+      token: code,
+      secret: user.twoFactorSecret,
+    });
+
+    // Also check backup codes if TOTP fails
+    let usedBackupCode = false;
+    if (!isValid && user.backupCodes && user.backupCodes.length > 0) {
+      const backupCodeIndex = user.backupCodes.indexOf(code.toUpperCase());
+      if (backupCodeIndex !== -1) {
+        const updatedBackupCodes = [...user.backupCodes];
+        updatedBackupCodes.splice(backupCodeIndex, 1);
+        await db.User.update(user.id, { backupCodes: updatedBackupCodes });
+        usedBackupCode = true;
+      }
+    }
+
+    if (!isValid && !usedBackupCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code',
+      });
+    }
+
+    // 2FA verified - create session
+    const sessionId = crypto.randomBytes(32).toString('hex');
+    const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await db.User.update(user.id, {
+      sessionId,
+      sessionExpiry,
+      lastLoginAt: new Date(),
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    });
+
+    res.cookie('sessionId', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      success: true,
+      message: usedBackupCode ? 'Login successful (backup code used)' : 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error('2FA verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Verification failed',
     });
   }
 });

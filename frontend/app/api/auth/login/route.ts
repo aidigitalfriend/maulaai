@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { checkEnvironmentVariables } from '@/lib/environment-checker';
+import { authenticator } from 'otplib';
 
 /**
  * POST /api/auth/login
@@ -56,6 +57,29 @@ export async function POST(request: NextRequest) {
         { message: 'Invalid email or password' },
         { status: 401 }
       );
+    }
+
+    // Check if 2FA is enabled - require verification before creating session
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      // Generate a temporary token for 2FA verification
+      const tempToken = crypto.randomBytes(32).toString('hex');
+      const tempTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Store temp token in user record
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken: tempToken, // Reuse this field for temp 2FA token
+          resetPasswordExpires: tempTokenExpiry,
+        },
+      });
+
+      return NextResponse.json({
+        requires2FA: true,
+        tempToken,
+        userId: user.id,
+        message: 'Please enter your 2FA code',
+      }, { status: 200 });
     }
 
     // Generate secure session ID
