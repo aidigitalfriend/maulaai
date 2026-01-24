@@ -1091,9 +1091,8 @@ export async function readFile(filename, userId = 'default') {
       };
     }
     
-    // Update last accessed time
-    file.lastAccessedAt = new Date();
-    await file.save();
+    // Note: lastAccessedAt tracking removed for Prisma compatibility
+    // The field isn't in the current schema anyway
     
     // Get content based on storage type
     let content = file.content;
@@ -1123,8 +1122,8 @@ export async function readFile(filename, userId = 'default') {
       content,
       size: file.size,
       mimeType: file.mimeType,
-      modified: file.updatedAt.toISOString(),
-      created: file.createdAt.toISOString(),
+      modified: file.updatedAt?.toISOString?.() || file.updatedAt,
+      created: file.createdAt?.toISOString?.() || file.createdAt,
       version: file.version,
       storageType: file.storageType,
       s3Url: file.s3Url || undefined,
