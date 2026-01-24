@@ -1000,8 +1000,6 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               apiKeys.cerebras,
               'llama-3.3-70b'  // Fast inference
             );
-              'llama-3.3-70b'
-            );
           } else if (provider === 'openai' && apiKeys.openai) {
             // OpenAI with automatic failover to backup key
             hadError = await streamOpenAICompatible(
