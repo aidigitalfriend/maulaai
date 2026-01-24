@@ -137,6 +137,15 @@ export default function ChatSessionSidebar({
       <div
         className={`w-12 flex-shrink-0 flex flex-col border-r ${sidebarBg} transition-all duration-300`}
       >
+        {/* Company Logo - Collapsed */}
+        <div className="p-2 flex justify-center border-b border-gray-700/30">
+          <img
+            src="/images/logos/company-logo.png"
+            alt="OnelastAI"
+            className="h-6 w-6 object-contain"
+          />
+        </div>
+
         {/* Toggle button */}
         <button
           onClick={onToggleCollapse}
@@ -200,29 +209,41 @@ export default function ChatSessionSidebar({
     <div
       className={`w-72 flex-shrink-0 flex flex-col h-full border-r ${sidebarBg} transition-all duration-300`}
     >
-      {/* Header - Fixed */}
+      {/* Company Logo Header - Expanded */}
+      <div className={`px-4 py-3 border-b ${isNeural ? 'border-gray-700/50' : 'border-gray-200'} flex items-center justify-between`}>
+        <div className="flex items-center space-x-2">
+          <img
+            src="/images/logos/company-logo.png"
+            alt="OnelastAI"
+            className="h-7 w-auto object-contain"
+          />
+          <p className={`text-[11px] ${textSecondary}`}>
+            AI Digital Friend
+          </p>
+        </div>
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className={`p-1.5 rounded-lg transition-colors ${
+              isNeural ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
+            }`}
+            title="Collapse sidebar"
+          >
+            <ChevronLeftIcon className={`w-4 h-4 ${textSecondary}`} />
+          </button>
+        )}
+      </div>
+
+      {/* Agent Header - Fixed */}
       <div className={`${headerBg} p-4 flex-shrink-0`}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">{agentIcon}</span>
-            <div>
-              <h3 className={`font-bold ${textPrimary}`}>{agentName}</h3>
-              <p className={`text-xs ${textSecondary}`}>
-                {sessions.length} conversation{sessions.length !== 1 ? 's' : ''}
-              </p>
-            </div>
+        <div className="flex items-center space-x-2 mb-3">
+          <span className="text-2xl">{agentIcon}</span>
+          <div>
+            <h3 className={`font-bold ${textPrimary}`}>{agentName}</h3>
+            <p className={`text-xs ${textSecondary}`}>
+              {sessions.length} conversation{sessions.length !== 1 ? 's' : ''}
+            </p>
           </div>
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              className={`p-1.5 rounded-lg transition-colors ${
-                isNeural ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
-              }`}
-              title="Collapse sidebar"
-            >
-              <ChevronLeftIcon className={`w-4 h-4 ${textSecondary}`} />
-            </button>
-          )}
         </div>
 
         {/* New Chat Button */}

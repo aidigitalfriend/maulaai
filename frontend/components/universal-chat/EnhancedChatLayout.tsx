@@ -115,11 +115,19 @@ function EnhancedChatLayoutContent({
     <div
       className={`h-screen flex flex-col ${containerBg} relative overflow-hidden`}
     >
-      {/* Top Header Bar */}
-      <div className={`flex-shrink-0 border-b ${headerBg} z-40`}>
-        <div className="flex items-center justify-between px-4 py-2">
-          {/* Left: Mobile menu + Platform branding */}
-          <div className="flex items-center space-x-3">
+      {/* Main Content Area - No top header needed, logo is in sidebar */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Overlay */}
+        {isMobile && isSidebarOpen && (
+          <div
+            className="absolute inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Mobile Header Bar - Only shown on mobile */}
+        {isMobile && (
+          <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-2 ${headerBg} border-b`}>
             {showSidebar && (
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -127,31 +135,23 @@ function EnhancedChatLayoutContent({
                   isNeural
                     ? 'hover:bg-gray-800 text-gray-300'
                     : 'hover:bg-gray-100 text-gray-600'
-                } md:hidden`}
+                }`}
+                title="Toggle sidebar"
               >
                 <Bars3Icon className="w-5 h-5" />
               </button>
             )}
-
             <div className="flex items-center space-x-2">
-              {/* Platform Logo */}
               <img
                 src="/images/logos/company-logo.png"
                 alt="OnelastAI"
-                className="h-8 w-auto object-contain"
+                className="h-6 w-auto object-contain"
               />
-              <p className={`text-[11px] ${textSecondary}`}>
-                AI Digital Friend
-              </p>
+              <p className={`text-[10px] ${textSecondary}`}>AI Digital Friend</p>
             </div>
-          </div>
-
-          {/* Right: Canvas button for mobile only */}
-          <div className="flex items-center space-x-2">
-            {/* Canvas Button - Mobile Only */}
             <button
               onClick={() => setIsMobileCanvasOpen(true)}
-              className={`p-2 rounded-lg transition-all md:hidden ${
+              className={`p-2 rounded-lg transition-all ${
                 isNeural
                   ? 'hover:bg-purple-500/20 text-cyan-400 hover:text-cyan-300'
                   : 'hover:bg-indigo-100 text-indigo-500 hover:text-indigo-600'
@@ -161,17 +161,6 @@ function EnhancedChatLayoutContent({
               <CodeBracketIcon className="w-5 h-5" />
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Mobile Overlay */}
-        {isMobile && isSidebarOpen && (
-          <div
-            className="absolute inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
         )}
 
         {/* Left Sidebar - Sessions or Settings */}
