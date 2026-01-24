@@ -110,9 +110,21 @@ export async function GET(
 
     // Auto-create session if it doesn't exist
     if (!session) {
+      // Check if sessionId is already used by another user
+      const existingSession = await prisma.chatSession.findUnique({
+        where: { sessionId }
+      });
+      
+      let actualSessionId = sessionId;
+      if (existingSession && existingSession.userId !== userId) {
+        // Generate new unique session ID to avoid conflict
+        actualSessionId = `${userId.slice(0, 8)}-${sessionId}-${Date.now()}`;
+        console.log('[chat/sessions/id] SessionId conflict, using new ID:', actualSessionId);
+      }
+      
       session = await prisma.chatSession.create({
         data: {
-          sessionId,
+          sessionId: actualSessionId,
           userId,
           name: 'New Conversation',
         },
@@ -122,7 +134,7 @@ export async function GET(
       });
       console.log(
         '[chat/sessions/id] Auto-created session in PostgreSQL:',
-        sessionId
+        actualSessionId
       );
     }
 
@@ -213,6 +225,52 @@ export async function POST(
         { success: false, error: 'Session not found' },
         { status: 404 }
       );
+    }
+
+    // Check if session exists for different user (sessionId conflict)
+    if (!session) {
+      const existingSession = await prisma.chatSession.findUnique({
+        where: { sessionId }
+      });
+      
+      if (existingSession && existingSession.userId !== userId) {
+        // SessionId already used by another user - generate a new unique one
+        const newSessionId = `${userId.slice(0, 8)}-${sessionId}-${Date.now()}`;
+        console.log('[chat/sessions/POST] SessionId conflict, using new ID:', newSessionId);
+        
+        // Create session with new unique ID
+        const sessionCount = await prisma.chatSession.count({ where: { userId } });
+        
+        session = await prisma.chatSession.create({
+          data: {
+            sessionId: newSessionId,
+            userId,
+            name: role === 'user'
+              ? content.slice(0, 50) + (content.length > 50 ? '...' : '')
+              : `Conversation ${sessionCount + 1}`,
+            agentId: agentId || null,
+            messages: {
+              create: {
+                role: messageRole,
+                content,
+                metadata: attachments ? { attachments } : {},
+              }
+            }
+          },
+          include: { messages: { orderBy: { createdAt: 'desc' }, take: 1 } }
+        });
+        
+        return NextResponse.json({
+          success: true,
+          newSessionId, // Tell client to update their session ID
+          message: {
+            id: session.messages[0].id,
+            role: session.messages[0].role,
+            content: session.messages[0].content,
+            timestamp: session.messages[0].createdAt.toISOString(),
+          },
+        });
+      }
     }
 
     // Map role to Prisma enum
