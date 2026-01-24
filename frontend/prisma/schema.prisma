@@ -52,6 +52,12 @@ model User {
   backupCodes          String[]  @default([])
   loginAttempts        Int       @default(0)
   lockUntil            DateTime?
+  passwordChangedAt    DateTime?
+
+  // Security relations
+  loginHistory         LoginHistory[]
+  userDevices          UserDevice[]
+  userSessions         UserSession[]
 
   // Relations
   subscriptions        AgentSubscription[]
@@ -81,6 +87,70 @@ model User {
   @@index([email])
   @@index([sessionId])
   @@index([resetPasswordToken])
+}
+
+// Security-related models
+model LoginHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  ipAddress   String?
+  userAgent   String?
+  device      String?
+  browser     String?
+  os          String?
+  location    String?
+  country     String?
+  city        String?
+  status      String   @default("success") // success, failed, blocked
+  failReason  String?
+  timestamp   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceId    String   // Fingerprint or unique identifier
+  name        String   // e.g., "Chrome on macOS"
+  type        String   @default("desktop") // desktop, mobile, tablet
+  browser     String?
+  os          String?
+  ipAddress   String?
+  location    String?
+  isTrusted   Boolean  @default(false)
+  lastActive  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, deviceId])
+  @@index([userId])
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  ipAddress    String?
+  userAgent    String?
+  device       String?
+  browser      String?
+  os           String?
+  location     String?
+  isCurrent    Boolean  @default(false)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([sessionToken])
+  @@index([expiresAt])
 }
 
 enum AuthMethod {
