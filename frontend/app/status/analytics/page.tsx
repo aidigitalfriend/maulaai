@@ -77,48 +77,42 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-neural-800 py-8 md:py-12 px-4">
-      <div className="container-custom max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="flex items-center justify-center mb-4 md:mb-6">
-            <BarChart3 className="w-12 h-12 md:w-16 md:h-16 text-brand-600" />
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Real-Time Analytics
           </h1>
-          <p className="text-base md:text-lg lg:text-xl text-neural-700 mb-4 md:mb-6 max-w-2xl mx-auto">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
             Comprehensive insights into platform performance and usage
           </p>
-
-          {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-6">
             <Link
               href="/status"
-              className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-white border border-neural-200 hover:bg-neural-100 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-brand-600 hover:bg-gray-100 font-semibold rounded-lg transition-all w-full sm:w-auto"
             >
-              <Activity className="w-4 h-4 md:w-5 md:h-5" />
+              <Activity className="w-5 h-5" />
               Status Dashboard
             </Link>
             <Link
               href="/status/api-status"
-              className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
+              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-all w-full sm:w-auto"
             >
-              <Zap className="w-4 h-4 md:w-5 md:h-5" />
+              <Zap className="w-5 h-5" />
               API Status
             </Link>
           </div>
-
           {/* Time Range Selector */}
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {(['24h', '7d', '30d'] as const).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
-                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-semibold transition-all text-sm md:text-base ${
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                   timeRange === range
-                    ? 'bg-brand-600 text-white shadow-md'
-                    : 'bg-white border border-neural-200 text-neural-700 hover:bg-neural-100'
+                    ? 'bg-white text-brand-600 shadow-md'
+                    : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
                 {range === '24h' ? 'Last 24 Hours' : range === '7d' ? 'Last 7 Days' : 'Last 30 Days'}
@@ -126,6 +120,9 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <div className="container-custom max-w-7xl mx-auto px-4 py-8 md:py-12">
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

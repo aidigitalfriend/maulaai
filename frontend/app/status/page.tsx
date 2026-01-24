@@ -453,51 +453,42 @@ export default function StatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 md:py-12">
-      <div className="container-custom px-4 md:px-6">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="flex items-center justify-center mb-4 md:mb-6">
-            <Activity className="w-12 h-12 md:w-16 md:h-16 text-brand-600" />
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
             System Status
           </h1>
-          <p className="text-base md:text-lg lg:text-xl text-neural-600 mb-4 md:mb-6 max-w-2xl mx-auto px-4">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
             Real-time monitoring of all One Last AI services
           </p>
-          {usedMock && (
-            <p className="text-xs text-neural-600">
-              Showing demo data to illustrate charts while live data
-              initializes.
-            </p>
-          )}
-          <div className="flex flex-col items-center gap-3 md:gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
-              <StatusBadge status={overallStatus} />
-              <span className="text-neural-600 text-xs md:text-sm">
-                Last updated: {lastUpdate.toLocaleTimeString()}
-              </span>
-            </div>
-            {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mt-2 md:mt-4 w-full sm:w-auto px-4 sm:px-0">
-              <a
-                href="/status/analytics"
-                className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-brand-600 hover:bg-brand-700 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
-              >
-                <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
-                View Analytics
-              </a>
-              <a
-                href="/status/api-status"
-                className="flex items-center justify-center gap-2 px-5 md:px-6 py-2.5 md:py-3 bg-purple-600 hover:bg-purple-700 text-neural-800 font-semibold rounded-lg transition-all transform hover:scale-105 shadow-sm w-full sm:w-auto text-sm md:text-base"
-              >
-                <Zap className="w-4 h-4 md:w-5 md:h-5" />
-                API Status
-              </a>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
+            <StatusBadge status={overallStatus} />
+            <span className="text-white/80 text-sm">
+              Last updated: {lastUpdate.toLocaleTimeString()}
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mt-6">
+            <a
+              href="/status/analytics"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-brand-600 hover:bg-gray-100 font-semibold rounded-lg transition-all w-full sm:w-auto"
+            >
+              <TrendingUp className="w-5 h-5" />
+              View Analytics
+            </a>
+            <a
+              href="/status/api-status"
+              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-all w-full sm:w-auto"
+            >
+              <Zap className="w-5 h-5" />
+              API Status
+            </a>
           </div>
         </div>
+      </section>
+
+      <div className="container-custom px-4 md:px-6 py-8 md:py-12">
 
         {/* System Gauges */}
         {data.system && (
