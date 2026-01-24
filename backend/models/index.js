@@ -627,18 +627,85 @@ class AgentFileDocument {
   }
 }
 
+// Query builder to support Mongoose-style chaining (e.g., .sort())
+class PrismaQueryBuilder {
+  constructor(model, baseQuery = {}) {
+    this.model = model;
+    this.whereClause = baseQuery;
+    this.orderByClause = { createdAt: 'desc' };
+  }
+
+  sort(sortObj) {
+    // Convert Mongoose-style sort to Prisma orderBy
+    // e.g., { filename: 1 } -> { filename: 'asc' }
+    const orderBy = {};
+    for (const [key, value] of Object.entries(sortObj)) {
+      orderBy[key] = value === 1 || value === 'asc' ? 'asc' : 'desc';
+    }
+    this.orderByClause = orderBy;
+    return this;
+  }
+
+  async then(resolve, reject) {
+    try {
+      // Convert MongoDB-style query operators to Prisma
+      const prismaWhere = this.convertToPrismaWhere(this.whereClause);
+      const results = await prisma.agentFile.findMany({
+        where: prismaWhere,
+        orderBy: this.orderByClause,
+      });
+      resolve(results);
+    } catch (error) {
+      reject(error);
+    }
+  }
+
+  convertToPrismaWhere(query) {
+    const prismaWhere = {};
+    for (const [key, value] of Object.entries(query)) {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        // Handle MongoDB operators
+        if (value.$regex) {
+          prismaWhere[key] = { startsWith: value.$regex.replace('^', '').replace('$', '') };
+        } else if (value.$ne !== undefined) {
+          prismaWhere[key] = { not: value.$ne };
+        } else if (value.$in) {
+          prismaWhere[key] = { in: value.$in };
+        } else if (value.$gt !== undefined) {
+          prismaWhere[key] = { gt: value.$gt };
+        } else if (value.$gte !== undefined) {
+          prismaWhere[key] = { gte: value.$gte };
+        } else if (value.$lt !== undefined) {
+          prismaWhere[key] = { lt: value.$lt };
+        } else if (value.$lte !== undefined) {
+          prismaWhere[key] = { lte: value.$lte };
+        } else {
+          prismaWhere[key] = value;
+        }
+      } else {
+        prismaWhere[key] = value;
+      }
+    }
+    return prismaWhere;
+  }
+}
+
 class AgentFileAdapter {
   // Constructor to support `new AgentFile({...})` syntax
   constructor(data) {
     return new AgentFileDocument(data);
   }
 
-  static async find(query = {}) {
-    return prisma.agentFile.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+  static find(query = {}) {
+    // Return a query builder that supports .sort() chaining
+    return new PrismaQueryBuilder('agentFile', query);
   }
 
   static async findOne(query = {}) {
-    return prisma.agentFile.findFirst({ where: query });
+    // Convert MongoDB-style query to Prisma
+    const builder = new PrismaQueryBuilder('agentFile', query);
+    const prismaWhere = builder.convertToPrismaWhere(query);
+    return prisma.agentFile.findFirst({ where: prismaWhere });
   }
 
   static async findById(id) {
@@ -657,7 +724,9 @@ class AgentFileAdapter {
 
   static async findOneAndUpdate(query, update, options = {}) {
     // First find the record
-    const record = await prisma.agentFile.findFirst({ where: query });
+    const builder = new PrismaQueryBuilder('agentFile', query);
+    const prismaWhere = builder.convertToPrismaWhere(query);
+    const record = await prisma.agentFile.findFirst({ where: prismaWhere });
     if (!record) {
       if (options.upsert) {
         return prisma.agentFile.create({ data: { ...query, ...update.$set } });
@@ -676,14 +745,18 @@ class AgentFileAdapter {
   }
 
   static async updateMany(query, update) {
+    const builder = new PrismaQueryBuilder('agentFile', query);
+    const prismaWhere = builder.convertToPrismaWhere(query);
     return prisma.agentFile.updateMany({
-      where: query,
+      where: prismaWhere,
       data: update.$set || update,
     });
   }
 
   static async deleteMany(query) {
-    return prisma.agentFile.deleteMany({ where: query });
+    const builder = new PrismaQueryBuilder('agentFile', query);
+    const prismaWhere = builder.convertToPrismaWhere(query);
+    return prisma.agentFile.deleteMany({ where: prismaWhere });
   }
 }
 
