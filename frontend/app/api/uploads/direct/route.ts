@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,30 +26,24 @@ const bucket =
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-const s3Client = new S3Client({
-  region,
-  credentials:
-    accessKeyId && secretAccessKey
-      ? { accessKeyId, secretAccessKey }
-      : undefined,
-});
+// Only create S3 client if credentials exist
+let s3Client: S3Client | null = null;
+if (accessKeyId && secretAccessKey) {
+  s3Client = new S3Client({
+    region,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+}
 
 function sanitizeFilename(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
 /**
- * Server-side file upload to S3 (bypasses CORS issues)
+ * Server-side file upload with S3 or local fallback
  * Accepts multipart/form-data with 'file' field
  */
 export async function POST(request: NextRequest) {
-  if (!bucket || !accessKeyId || !secretAccessKey) {
-    return NextResponse.json(
-      { success: false, message: 'S3 is not configured on this environment.' },
-      { status: 500 }
-    );
-  }
-
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -78,42 +74,94 @@ export async function POST(request: NextRequest) {
     }
 
     const sanitizedFilename = sanitizeFilename(file.name);
-    const key = `chat-uploads/${Date.now()}-${crypto.randomUUID()}-${sanitizedFilename}`;
+    const uniqueId = `${Date.now()}-${crypto.randomUUID()}`;
     
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to S3
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: file.type,
-      })
-    );
+    // Try S3 upload first, fall back to local storage
+    let fileUrl: string;
+    let storageType: 'S3' | 'local' | 'base64' = 'S3';
 
-    // Generate a signed URL for reading the file (valid for 7 days)
-    const { GetObjectCommand } = await import('@aws-sdk/client-s3');
-    const fileUrl = await getSignedUrl(
-      s3Client,
-      new GetObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      }),
-      { expiresIn: 60 * 60 * 24 * 7 } // 7 days
-    );
+    if (s3Client && bucket) {
+      try {
+        const key = `chat-uploads/${uniqueId}-${sanitizedFilename}`;
+        
+        // Upload to S3
+        await s3Client.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            Body: buffer,
+            ContentType: file.type,
+          })
+        );
 
-    console.log(`[upload] File uploaded: ${key}, size: ${file.size} bytes`);
+        // Generate a signed URL for reading the file (valid for 7 days)
+        const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+        fileUrl = await getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: bucket,
+            Key: key,
+          }),
+          { expiresIn: 60 * 60 * 24 * 7 } // 7 days
+        );
+
+        console.log(`[upload] S3 upload success: ${key}, size: ${file.size} bytes`);
+      } catch (s3Error: unknown) {
+        const errorMessage = s3Error instanceof Error ? s3Error.message : 'Unknown S3 error';
+        console.warn(`[upload] S3 upload failed, using local fallback: ${errorMessage}`);
+        storageType = 'local';
+      }
+    } else {
+      storageType = 'local';
+    }
+
+    // Fallback to local storage
+    if (storageType === 'local') {
+      try {
+        // Create uploads directory in public folder
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'chat');
+        await fs.mkdir(uploadsDir, { recursive: true });
+
+        const localFilename = `${uniqueId}-${sanitizedFilename}`;
+        const localPath = path.join(uploadsDir, localFilename);
+        
+        await fs.writeFile(localPath, buffer);
+        
+        // URL for the uploaded file
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://maula.ai';
+        fileUrl = `${baseUrl}/uploads/chat/${localFilename}`;
+        
+        console.log(`[upload] Local upload success: ${localPath}, size: ${file.size} bytes`);
+      } catch (localError: unknown) {
+        const errorMessage = localError instanceof Error ? localError.message : 'Unknown local error';
+        console.warn(`[upload] Local storage failed, using base64 fallback: ${errorMessage}`);
+        storageType = 'base64';
+      }
+    }
+
+    // Final fallback: base64 data URL (for small files only)
+    if (storageType === 'base64') {
+      if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json(
+          { success: false, message: 'File too large for base64 storage (max 5MB without S3)' },
+          { status: 400 }
+        );
+      }
+      fileUrl = `data:${file.type};base64,${buffer.toString('base64')}`;
+      console.log(`[upload] Base64 fallback used for: ${sanitizedFilename}`);
+    }
 
     return NextResponse.json({
       success: true,
-      fileUrl,
-      key,
+      fileUrl: fileUrl!,
       filename: sanitizedFilename,
       size: file.size,
       contentType: file.type,
+      storageType,
     });
   } catch (error) {
     console.error('Upload error:', error);
