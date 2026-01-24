@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useState } from 'react'
-import { Send, Plus, Trash2, Copy, Clock } from 'lucide-react'
+import { Send, Plus, Trash2, Copy, Clock, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 interface Header {
@@ -220,27 +220,26 @@ export default function ApiTesterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
-        <div className="container-custom py-6">
-          <Link 
-            href="/tools/network-tools"
-            className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-4 transition-colors"
-          >
-            <span></span>
-            <span>Back to Network Tools</span>
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Network Tools
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-              <Send className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">API Tester</h1>
-              <p className="text-blue-100">Professional API testing with presets and advanced options</p>
-            </div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">🧪</span>
+            API Tester
           </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            API Tester
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            Professional API testing with presets and advanced options
+          </p>
         </div>
-      </header>
+      </section>
 
       {/* Main Content */}
       <div className="container-custom py-8">

@@ -20,6 +20,7 @@ import {
   Calendar,
   Hash,
   Sparkles,
+  ArrowLeft,
 } from 'lucide-react';
 
 // Template definitions
@@ -528,25 +529,21 @@ export default function DataGeneratorPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="py-12 border-b border-gray-200">
-        <div className="container-custom">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/20">
-              <Database className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                AI Data Generator
-              </h1>
-              <p className="text-gray-600">
-                Generate realistic test data in seconds
-              </p>
-            </div>
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <Link href="/tools/developer-utils" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
+            ← Back to Developer Utils
+          </Link>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">📊</span>
+            Data Generator
           </div>
-          <p className="text-gray-700 max-w-2xl">
-            Choose a template, set the number of records, and generate realistic
-            test data for your databases, APIs, and applications. Export as
-            JSON, CSV, or SQL.
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            AI Data Generator
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            Generate realistic test data in seconds. Choose a template, set the number of records, and export as JSON, CSV, or SQL.
           </p>
         </div>
       </section>

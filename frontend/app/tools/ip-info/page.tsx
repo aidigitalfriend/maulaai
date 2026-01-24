@@ -535,19 +535,26 @@ export default function IPInfoPage() {
       )}
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="text-xl">🌍</span>
+            IP Info
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            IP Address Lookup Tool
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            Get detailed information about any IP address including location, ISP details, 
+            security flags, and network information.
+          </p>
+        </div>
+      </section>
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Globe2 className="w-8 h-8 text-contrast-high" />
-              <h1 className="text-3xl font-bold">IP Address Lookup Tool</h1>
-            </div>
-            <p className="text-lg text-contrast-medium max-w-2xl mx-auto">
-              Get detailed information about any IP address including location, ISP details, 
-              security flags, and network information.
-            </p>
-          </div>
 
           {/* Manual Search */}
           <div className="card card-padding mb-8">
