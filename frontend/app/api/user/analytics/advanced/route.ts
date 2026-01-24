@@ -6,12 +6,15 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     // Call the backend API for real analytics data
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005';
+    // Use BACKEND_BASE_URL (server-side) which points to the Express backend
+    const backendUrl = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3005';
     
+    // Forward cookies for authentication
     const response = await fetch(`${backendUrl}/api/analytics/advanced`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'cookie': request.headers.get('cookie') || '',
       },
       cache: 'no-store',
     });
@@ -22,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // If backend fails, return structured empty data
-    console.warn('Backend analytics not available, returning empty structure');
+    console.warn('Backend analytics not available, returning empty structure. Status:', response.status);
     return NextResponse.json({
       stats: {
         totalRequests: 0,
