@@ -663,6 +663,20 @@ class PrismaQueryBuilder {
   convertToPrismaWhere(query) {
     const prismaWhere = {};
     for (const [key, value] of Object.entries(query)) {
+      // Handle MongoDB logical operators
+      if (key === '$or' && Array.isArray(value)) {
+        prismaWhere.OR = value.map(item => this.convertToPrismaWhere(item));
+        continue;
+      }
+      if (key === '$and' && Array.isArray(value)) {
+        prismaWhere.AND = value.map(item => this.convertToPrismaWhere(item));
+        continue;
+      }
+      if (key === '$not' && value) {
+        prismaWhere.NOT = this.convertToPrismaWhere(value);
+        continue;
+      }
+      
       if (value && typeof value === 'object' && !Array.isArray(value)) {
         // Handle MongoDB operators
         if (value.$regex) {
