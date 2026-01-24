@@ -271,31 +271,27 @@ for await (const chunk of stream) {
 }`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 border-b border-brand-500/20">
-        <div className="container-custom section-padding-lg">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              SDKs & Libraries
-            </h1>
-            <p className="text-xl text-white/80 mb-6 leading-relaxed">
-              Official SDKs for popular programming languages. Simplify your integration with our well-documented, production-ready libraries.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#quickstart" className="bg-white text-brand-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                Quick Start
-              </a>
-              <a href="#available" className="border-2 border-white/30 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
-                View All SDKs
-              </a>
-            </div>
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">SDKs & Libraries</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
+            Official SDKs for popular programming languages. Simplify your integration with our well-documented, production-ready libraries.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#quickstart" className="bg-white text-brand-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors">
+              Quick Start
+            </a>
+            <a href="#available" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
+              View All SDKs
+            </a>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Main Content */}
-      <div className="container-custom section-padding-lg">
+      <div className="container-custom section-padding">
         
         {/* SDK Overview */}
         <div className="mb-16">

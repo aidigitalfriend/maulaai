@@ -111,29 +111,19 @@ const { data } = await response.json();
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
-        {/* Back Link */}
-        <Link href="/docs" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 mb-8 transition">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Documentation
-        </Link>
-
-        {/* Header */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center">
-              <Database className="w-10 h-10 text-white" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent mb-6">
-            AI Data Generator
-          </h1>
-          <p className="text-xl text-neural-600 leading-relaxed">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">AI Data Generator</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             Generate realistic test data instantly. Perfect for development, testing, 
             demos, and prototyping.
           </p>
         </div>
+      </section>
+
+      <div className="container-custom section-padding">
 
         {/* Quick Features */}
         <div className="max-w-4xl mx-auto mb-16">

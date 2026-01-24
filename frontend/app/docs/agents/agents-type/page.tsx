@@ -5,28 +5,23 @@ import { ArrowLeft, Brain, Zap } from 'lucide-react';
 
 export default function AgentTypesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Available Agent Types</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Explore the diverse range of specialized agents available on One Last AI.
+          </p>
+        </div>
+      </section>
+
+      <div className="container-custom section-padding">
         {/* Back Button */}
         <Link href="/docs/agents" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Documentation
         </Link>
-
-        {/* Header */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h1 className="text-5xl font-bold mb-4 text-neural-900">
-            Available Agent Types
-          </h1>
-          <p className="text-xl text-neural-600">
-            Explore the diverse range of specialized agents available on One Last AI.
-          </p>
-          <div className="flex items-center gap-4 mt-6 text-neural-500">
-            <span>📖 Reading time: 10 minutes</span>
-            <span>•</span>
-            <span>Updated: October 2025</span>
-          </div>
-        </div>
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto space-y-8">

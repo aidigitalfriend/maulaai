@@ -62,28 +62,24 @@ export default function DocsTutorials() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 border-b border-blue-500/20">
-        <div className="container-custom section-padding-lg">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Tutorials & Guides
-            </h1>
-            <p className="text-xl text-blue-100 mb-6 leading-relaxed">
-              Learn how to build, configure, and deploy AI agents. From beginner guides to advanced techniques, find the knowledge you need.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#getting-started" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
-                Start Learning
-              </a>
-              <a href="#browse" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-                Browse All Tutorials
-              </a>
-            </div>
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Tutorials & Guides</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-6">
+            Learn how to build, configure, and deploy AI agents. From beginner guides to advanced techniques, find the knowledge you need.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#getting-started" className="bg-white text-brand-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-colors">
+              Start Learning
+            </a>
+            <a href="#browse" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
+              Browse All Tutorials
+            </a>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Main Content */}
       <div className="container-custom section-padding-lg">
