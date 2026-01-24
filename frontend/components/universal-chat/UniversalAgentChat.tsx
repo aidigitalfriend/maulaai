@@ -988,38 +988,22 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         }
 
         try {
-          const presignResp = await fetch('/api/uploads/presign', {
+          // Use direct server-side upload to bypass CORS issues
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const uploadResp = await fetch('/api/uploads/direct', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              filename: file.name,
-              contentType: file.type || 'application/octet-stream',
-            }),
-          });
-
-          if (!presignResp.ok) {
-            console.error('Failed to get upload URL', await presignResp.text());
-            continue;
-          }
-
-          const { uploadUrl, fileUrl } = await presignResp.json();
-
-          const uploadResp = await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': file.type || 'application/octet-stream',
-            },
-            body: file,
+            body: formData,
           });
 
           if (!uploadResp.ok) {
-            console.error(
-              `Upload failed for ${file.name}:`,
-              uploadResp.status,
-              await uploadResp.text()
-            );
+            const errText = await uploadResp.text();
+            console.error(`Upload failed for ${file.name}:`, uploadResp.status, errText);
             continue;
           }
+
+          const { fileUrl } = await uploadResp.json();
 
           let preview: string | undefined;
           try {
