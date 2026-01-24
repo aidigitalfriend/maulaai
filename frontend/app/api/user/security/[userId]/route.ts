@@ -34,7 +34,11 @@ export async function GET(
         lastLogin: user.lastLoginAt,
         accountCreated: user.createdAt,
         passwordLastChanged: null,
-        activeSessions: 1,
+        activeSessions: [],
+        trustedDevices: [],
+        loginHistory: [],
+        recommendations: [],
+        securityScore: user.twoFactorEnabled ? 80 : 40,
       },
     });
   } catch (error) {

@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
   // Fetch real-time stats from API
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/lab/stats`, {
+      const response = await fetch(`${API_BASE}/analytics/lab/stats`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       })
@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
   // Fetch activity feed
   const fetchActivity = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/lab/activity?limit=10`, {
+      const response = await fetch(`${API_BASE}/analytics/lab/activity?limit=10`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       })

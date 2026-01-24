@@ -53,7 +53,7 @@ export default function AILabPage() {
   // Fetch real stats from API
   const fetchLabStats = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/lab/stats`, {
+      const response = await fetch(`${API_BASE}/analytics/lab/stats`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
