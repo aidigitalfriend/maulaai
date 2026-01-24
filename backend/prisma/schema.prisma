@@ -259,7 +259,7 @@ enum SubscriptionStatus {
 
 model AgentFile {
   id           String   @id @default(cuid())
-  agentId      String
+  agentId      String?
   userId       String
   filename     String
   originalName String?
@@ -278,8 +278,8 @@ model AgentFile {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // Relations
-  agent        Agent    @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
+  // Relations (optional - user can create files without an agent)
+  agent        Agent?   @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
 
   @@index([agentId])
   @@index([userId])
