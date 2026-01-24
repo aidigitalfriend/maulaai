@@ -67,7 +67,7 @@ export default function AnalyticsPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-accent-50 to-brand-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 md:h-16 md:w-16 border-t-2 border-b-2 border-brand-600"></div>
           <p className="text-neural-800 text-base md:text-lg font-medium">Loading Analytics...</p>
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-accent-50 to-brand-100 text-neural-800 py-8 md:py-12 px-4">
+    <div className="min-h-screen bg-gray-50 text-neural-800 py-8 md:py-12 px-4">
       <div className="container-custom max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">

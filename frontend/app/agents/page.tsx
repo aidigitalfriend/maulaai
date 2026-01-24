@@ -6,7 +6,7 @@ export default function AgentsPage() {
   const agents = allAgents
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="container-custom section-padding-sm">
         <div className="text-center max-w-4xl mx-auto mb-12">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">

@@ -237,7 +237,7 @@ export default function StatusPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-600"></div>
           <p className="text-neural-800 text-lg font-medium">
@@ -250,7 +250,7 @@ export default function StatusPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-lg border border-red-200">
           <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
             <XCircle className="w-8 h-8 text-red-600" />
@@ -276,7 +276,7 @@ export default function StatusPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <AlertTriangle className="w-16 h-16 text-yellow-600" />
           <p className="text-neural-800 text-lg font-medium">
@@ -453,7 +453,7 @@ export default function StatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 md:py-12">
+    <div className="min-h-screen bg-gray-50 py-8 md:py-12">
       <div className="container-custom px-4 md:px-6">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
