@@ -361,9 +361,9 @@ function SubscriptionContent() {
                 className={`rounded-2xl p-8 relative shadow-lg border-2 transition-all duration-300 ${
                   plan.recommended
                     ? 'border-blue-500 transform scale-105 shadow-xl shadow-blue-500/10'
-                    : 'border-gray-200 hover:border-blue-300 hover:shadow-xl'
+                    : 'border-gray-600 hover:border-blue-400 hover:shadow-xl'
                 }`}
-                style={{ backgroundColor: '#ffffff' }}
+                style={{ backgroundColor: '#1e293b' }}
               >
                 {plan.recommended && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -374,12 +374,12 @@ function SubscriptionContent() {
                 )}
 
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>{plan.type}</h3>
+                  <h3 className="text-2xl font-bold mb-2" style={{ color: '#ffffff' }}>{plan.type}</h3>
                   <div className="mb-4">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
                       {plan.price}
                     </span>
-                    <span className="ml-2" style={{ color: '#4b5563' }}>{plan.period}</span>
+                    <span className="ml-2" style={{ color: '#94a3b8' }}>{plan.period}</span>
                   </div>
                 </div>
 
@@ -388,9 +388,9 @@ function SubscriptionContent() {
                     <li
                       key={featureIndex}
                       className="flex items-center text-sm"
-                      style={{ color: '#374151' }}
+                      style={{ color: '#e2e8f0' }}
                     >
-                      <span className="text-green-500 mr-3 font-bold">✓</span>
+                      <span className="text-green-400 mr-3 font-bold">✓</span>
                       {feature}
                     </li>
                   ))}
@@ -421,45 +421,45 @@ function SubscriptionContent() {
         )}
 
         {/* Important Notes */}
-        <div className="rounded-2xl p-8 max-w-4xl mx-auto mb-8 shadow-lg border border-gray-200" style={{ backgroundColor: '#ffffff' }}>
-          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: '#111827' }}>
+        <div className="rounded-2xl p-8 max-w-4xl mx-auto mb-8 shadow-lg border border-gray-600" style={{ backgroundColor: '#1e293b' }}>
+          <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: '#ffffff' }}>
             Important Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 rounded-xl border border-gray-200" style={{ backgroundColor: '#f9fafb' }}>
-              <h3 className="font-bold text-blue-600 mb-3">
+            <div className="p-4 rounded-xl border border-gray-600" style={{ backgroundColor: '#334155' }}>
+              <h3 className="font-bold text-blue-400 mb-3">
                 🔒 Individual Purchases
               </h3>
-              <p className="text-sm" style={{ color: '#4b5563' }}>
+              <p className="text-sm" style={{ color: '#cbd5e1' }}>
                 Each agent requires its own purchase. You can buy access to
                 multiple agents individually, but each purchase is separate. No
                 auto-renewal.
               </p>
             </div>
-            <div className="p-4 rounded-xl border border-gray-200" style={{ backgroundColor: '#f9fafb' }}>
-              <h3 className="font-bold text-blue-600 mb-3">
+            <div className="p-4 rounded-xl border border-gray-600" style={{ backgroundColor: '#334155' }}>
+              <h3 className="font-bold text-blue-400 mb-3">
                 💳 Unified Pricing
               </h3>
-              <p className="text-sm" style={{ color: '#4b5563' }}>
+              <p className="text-sm" style={{ color: '#cbd5e1' }}>
                 All agents use the same simple pricing: $1/day, $5/week, or
                 $15/month. Each purchase is one-time with no recurring charges.
               </p>
             </div>
-            <div className="p-4 rounded-xl border border-gray-200" style={{ backgroundColor: '#f9fafb' }}>
-              <h3 className="font-bold text-blue-600 mb-3">
+            <div className="p-4 rounded-xl border border-gray-600" style={{ backgroundColor: '#334155' }}>
+              <h3 className="font-bold text-blue-400 mb-3">
                 🔄 Easy Cancellation
               </h3>
-              <p className="text-sm" style={{ color: '#4b5563' }}>
+              <p className="text-sm" style={{ color: '#cbd5e1' }}>
                 Cancel your access anytime. Since there's no auto-renewal,
                 you're never charged again. Access expires naturally at the end
                 of your chosen period.
               </p>
             </div>
-            <div className="p-4 rounded-xl border border-gray-200" style={{ backgroundColor: '#f9fafb' }}>
-              <h3 className="font-bold text-blue-600 mb-3">
+            <div className="p-4 rounded-xl border border-gray-600" style={{ backgroundColor: '#334155' }}>
+              <h3 className="font-bold text-blue-400 mb-3">
                 ⚡ Instant Access
               </h3>
-              <p className="text-sm" style={{ color: '#4b5563' }}>
+              <p className="text-sm" style={{ color: '#cbd5e1' }}>
                 Once you purchase, you'll have immediate access to unlimited
                 conversations with {agentName} for your chosen period.
               </p>
