@@ -143,22 +143,23 @@ export default function SecuritySettingsPage() {
     }));
 
   function detectBrowser(userAgent: string): string {
+    if (userAgent.includes('Edg')) return 'Edge';
+    if (userAgent.includes('OPR') || userAgent.includes('Opera')) return 'Opera';
     if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Safari') && !userAgent.includes('Chrome'))
-      return 'Safari';
+    if (userAgent.includes('Safari')) return 'Safari';
     if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Edge')) return 'Edge';
-    return 'Unknown Browser';
+    return 'Browser';
   }
 
   function detectDevice(userAgent: string): string {
     if (userAgent.includes('iPhone')) return 'iPhone';
     if (userAgent.includes('iPad')) return 'iPad';
-    if (userAgent.includes('Android')) return 'Android Device';
-    if (userAgent.includes('Macintosh')) return 'Mac';
-    if (userAgent.includes('Windows')) return 'Windows PC';
-    if (userAgent.includes('Linux')) return 'Linux Computer';
-    return 'Computer';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS')) return 'Mac';
+    if (userAgent.includes('Windows')) return 'Windows';
+    if (userAgent.includes('CrOS')) return 'Chromebook';
+    if (userAgent.includes('Linux')) return 'Linux';
+    return 'Device';
   }
 
   const fetchSecurityData = useCallback(
@@ -1088,7 +1089,7 @@ use one of these codes to sign in.
                               <div>
                                 <div className="flex items-center">
                                   <h4 className="font-medium text-neural-900">
-                                    {device.name}
+                                    {device.name?.replace(' on Unknown', '').replace('Unknown on ', '') || device.browser || 'Device'}
                                   </h4>
                                   {device.current && (
                                     <span className="ml-2 px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded-full">
@@ -1097,7 +1098,7 @@ use one of these codes to sign in.
                                   )}
                                 </div>
                                 <p className="text-sm text-neural-600">
-                                  {device.browser} • {device.location}
+                                  {device.ipAddress || device.location || 'Unknown location'}
                                 </p>
                                 <p className="text-xs text-neural-500">
                                   Last seen {formatDateTime(device.lastSeen)}

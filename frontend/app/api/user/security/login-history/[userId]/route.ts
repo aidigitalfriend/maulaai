@@ -8,18 +8,25 @@ function parseUserAgent(ua: string) {
   let os = 'Unknown';
   let device = 'desktop';
 
-  if (ua.includes('Chrome') && !ua.includes('Edge')) browser = 'Chrome';
-  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+  // Browser detection (order matters - check more specific first)
+  if (ua.includes('Edg')) browser = 'Edge';
+  else if (ua.includes('OPR') || ua.includes('Opera')) browser = 'Opera';
+  else if (ua.includes('Chrome')) browser = 'Chrome';
+  else if (ua.includes('Safari')) browser = 'Safari';
   else if (ua.includes('Firefox')) browser = 'Firefox';
-  else if (ua.includes('Edge')) browser = 'Edge';
-  else if (ua.includes('Opera') || ua.includes('OPR')) browser = 'Opera';
 
-  if (ua.includes('Windows')) os = 'Windows';
-  else if (ua.includes('Mac OS')) os = 'macOS';
-  else if (ua.includes('Linux')) os = 'Linux';
+  // OS detection (check more specific patterns first)
+  if (ua.includes('Windows NT 10')) os = 'Windows 10/11';
+  else if (ua.includes('Windows NT')) os = 'Windows';
+  else if (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Mac OS X') || ua.includes('Macintosh')) os = 'macOS';
+  else if (ua.includes('CrOS')) os = 'Chrome OS';
   else if (ua.includes('Android')) os = 'Android';
-  else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+  else if (ua.includes('iPhone')) os = 'iOS';
+  else if (ua.includes('iPad')) os = 'iPadOS';
+  else if (ua.includes('Linux')) os = 'Linux';
 
+  // Device type
   if (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) device = 'mobile';
   else if (ua.includes('Tablet') || ua.includes('iPad')) device = 'tablet';
 
