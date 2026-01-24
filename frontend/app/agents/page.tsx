@@ -7,25 +7,26 @@ export default function AgentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container-custom section-padding-sm">
-        <div className="text-center max-w-4xl mx-auto mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Meet Our AI Personalities
           </h1>
-          <p className="text-xl text-neural-600 leading-relaxed mb-8">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto mb-8">
             Choose from 18 specialized AI agents, each bringing unique expertise and personality 
             to help you tackle any challenge. From Einstein's physics to Comedy King's humor!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/agents/random" className="btn-primary">
+            <Link href="/agents/random" className="bg-white text-brand-600 hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg transition-colors">
               Surprise Me
             </Link>
-            <Link href="/docs/agents" className="btn-secondary">
+            <Link href="/docs/agents" className="border-2 border-white text-white hover:bg-white/10 font-semibold py-3 px-6 rounded-lg transition-colors">
               How It Works
             </Link>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="container-custom pb-16">
         <div className="grid-responsive">
