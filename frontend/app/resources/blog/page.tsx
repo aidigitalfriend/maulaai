@@ -15780,20 +15780,27 @@ const BlogPage: React.FC = () => {
   const era = getEra(selectedYear);
 
   return (
-    <div className="min-h-screen bg-dark-bg">
-      {/* Header Spacer */}
-      <div className="h-20"></div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">AI History Blog</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Explore 85+ years of artificial intelligence development through our comprehensive timeline
+          </p>
+        </div>
+      </section>
 
-      <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-5rem)]">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-200px)]">
         {/* Left Sidebar - Years Panel (Mobile: Grid at top, Desktop: Sidebar) */}
-        <div className="w-full lg:w-80 ca-glass-primary border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col max-h-[40vh] lg:max-h-none">
+        <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-neural-200 flex flex-col max-h-[40vh] lg:max-h-none">
           {/* Header */}
-          <div className="p-4 lg:p-6 border-b border-white/10">
-            <h2 className="text-xl lg:text-2xl font-bold ca-text-primary">
+          <div className="p-4 lg:p-6 border-b border-neural-200">
+            <h2 className="text-xl lg:text-2xl font-bold text-neural-800">
               AI History Timeline
             </h2>
-            <p className="text-xs lg:text-sm ca-text-secondary mt-2">
-              Explore 85+ years of artificial intelligence development
+            <p className="text-xs lg:text-sm text-neural-600 mt-2">
+              Select a year to explore
             </p>
           </div>
 
@@ -15810,12 +15817,12 @@ const BlogPage: React.FC = () => {
                     key={entry.year}
                     onClick={() => setSelectedYear(entry.year)}
                     disabled={!hasPost}
-                    className={`w-full p-3 rounded-lg text-left transition-all duration-200 ca-magnetic ${
+                    className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${
                       isSelected
-                        ? 'ca-glass-hover ca-text-primary border border-white/20 shadow-lg'
+                        ? 'bg-brand-600 text-white shadow-lg'
                         : hasPost
-                          ? 'ca-glass-secondary hover:ca-glass-hover ca-text-secondary hover:ca-text-primary'
-                          : 'ca-glass-secondary ca-text-secondary opacity-50 cursor-not-allowed'
+                          ? 'bg-neural-50 hover:bg-brand-50 text-neural-700 hover:text-brand-600'
+                          : 'bg-neural-50 text-neural-400 opacity-50 cursor-not-allowed'
                     }`}
                   >
                     <div className="flex lg:items-center justify-between flex-col lg:flex-row items-start">
@@ -15845,10 +15852,10 @@ const BlogPage: React.FC = () => {
           </div>
 
           {/* Footer */}
-          <div className="p-3 lg:p-4 border-t border-white/10">
+          <div className="p-3 lg:p-4 border-t border-neural-200">
             <button
               onClick={() => router.push('/')}
-              className="w-full ca-btn-secondary ca-magnetic text-center text-sm lg:text-base"
+              className="w-full px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors text-center text-sm lg:text-base"
             >
               <i className="fas fa-home mr-2"></i>Back to Home
             </button>
@@ -15858,12 +15865,12 @@ const BlogPage: React.FC = () => {
         {/* Right Content Area */}
         <div
           ref={contentRef}
-          className="flex-1 flex flex-col scroll-mt-4 min-h-screen lg:min-h-0"
+          className="flex-1 flex flex-col scroll-mt-4 min-h-screen lg:min-h-0 bg-white"
         >
           {currentPost ? (
             <>
               {/* Content Header */}
-              <div className="p-4 lg:p-6 ca-glass-primary border-b border-white/10">
+              <div className="p-4 lg:p-6 bg-neural-50 border-b border-neural-200">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
                   <div className="flex items-center space-x-2 lg:space-x-3 flex-wrap gap-2">
                     <span
@@ -15873,25 +15880,20 @@ const BlogPage: React.FC = () => {
                       <span className="hidden sm:inline">{era.name}</span>
                     </span>
                     <span
-                      className="font-bold text-white px-2 lg:px-3 py-1 rounded-lg text-xs lg:text-sm shadow-md"
-                      style={{
-                        background:
-                          'linear-gradient(135deg, var(--ca-teal), var(--ca-amber))',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                      }}
+                      className="font-bold text-white px-2 lg:px-3 py-1 rounded-lg text-xs lg:text-sm shadow-md bg-gradient-to-r from-brand-600 to-accent-600"
                     >
                       {currentPost.year}
                     </span>
                   </div>
-                  <div className="text-xs lg:text-sm ca-text-secondary">
+                  <div className="text-xs lg:text-sm text-neural-600">
                     {currentPost.date} • By {currentPost.author}
                   </div>
                 </div>
 
-                <h1 className="text-2xl lg:text-3xl font-bold ca-text-primary mb-3 lg:mb-4">
+                <h1 className="text-2xl lg:text-3xl font-bold text-neural-800 mb-3 lg:mb-4">
                   {currentPost.title}
                 </h1>
-                <p className="ca-text-secondary text-base lg:text-lg">
+                <p className="text-neural-600 text-base lg:text-lg">
                   {currentPost.excerpt}
                 </p>
 
@@ -15900,8 +15902,7 @@ const BlogPage: React.FC = () => {
                     {currentPost.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="ca-text-secondary px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm"
-                        style={{ background: 'var(--ca-glass-bg)' }}
+                        className="text-neural-600 px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm bg-neural-100"
                       >
                         {tag}
                       </span>
@@ -15913,21 +15914,21 @@ const BlogPage: React.FC = () => {
               {/* Content Body */}
               <div className="flex-1 overflow-y-auto p-4 lg:p-6">
                 <div
-                  className="prose prose-invert prose-sm lg:prose-lg max-w-none text-gray-300 leading-relaxed"
+                  className="prose prose-sm lg:prose-lg max-w-none text-neural-700 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: currentPost.content }}
                 />
 
                 {currentPost.references &&
                   currentPost.references.length > 0 && (
-                    <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-gray-800">
-                      <h3 className="text-base lg:text-lg font-semibold ca-text-primary mb-3 lg:mb-4">
+                    <div className="mt-8 lg:mt-12 pt-6 lg:pt-8 border-t border-neural-200">
+                      <h3 className="text-base lg:text-lg font-semibold text-neural-800 mb-3 lg:mb-4">
                         References
                       </h3>
                       <ul className="space-y-2">
                         {currentPost.references.map((ref, index) => (
                           <li
                             key={index}
-                            className="text-xs lg:text-sm ca-text-secondary"
+                            className="text-xs lg:text-sm text-neural-600"
                           >
                             {index + 1}. {ref}
                           </li>
@@ -15939,9 +15940,9 @@ const BlogPage: React.FC = () => {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center ca-text-secondary">
+              <div className="text-center text-neural-600">
                 <div className="text-6xl mb-4">🤖</div>
-                <h2 className="text-2xl font-bold mb-2">
+                <h2 className="text-2xl font-bold mb-2 text-neural-800">
                   No Content Available
                 </h2>
                 <p>Content for {selectedYear} is coming soon!</p>
@@ -15950,14 +15951,6 @@ const BlogPage: React.FC = () => {
           )}
         </div>
       </div>
-
-      <style>{`
-        .prose-invert h1, .prose-invert h2, .prose-invert h3, .prose-invert h4, .prose-invert h5, .prose-invert h6, .prose-invert strong { color: #fff; }
-        .prose-invert a { color: #67e8f9; }
-        .prose-invert a:hover { color: #22d3ee; }
-        .prose-invert blockquote { border-left-color: #0891b2; color: #9ca3af; }
-        .prose-invert p { color: #d1d5db; }
-      `}</style>
     </div>
   );
 };
