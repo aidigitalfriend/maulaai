@@ -278,9 +278,10 @@ export default function SecuritySettingsPage() {
         credentials: 'include',
       });
 
-      const data = await res.json();
+      const response = await res.json();
+      const data = response.data || response;
 
-      if (data.success || data.qrCode) {
+      if (response.success || data.qrCode) {
         setQrCodeUrl(data.qrCode);
         setBackupCodes(data.backupCodes || []);
         setShowQRCode(true);
@@ -292,7 +293,7 @@ export default function SecuritySettingsPage() {
       } else {
         setMessage({
           type: 'error',
-          text: data.message || 'Failed to setup 2FA',
+          text: response.message || 'Failed to setup 2FA',
         });
         setSetting2FA(false);
       }
