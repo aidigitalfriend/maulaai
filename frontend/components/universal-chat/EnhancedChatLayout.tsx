@@ -4,6 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Bars3Icon,
   CodeBracketIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ArrowTopRightOnSquareIcon,
+  SunIcon,
+  SparklesIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import ChatSessionSidebar from './ChatSessionSidebar';
 import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
@@ -73,6 +79,7 @@ function EnhancedChatLayoutContent({
     'sessions' | 'settings'
   >('sessions');
   const [isMobileCanvasOpen, setIsMobileCanvasOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Check for mobile
   useEffect(() => {
@@ -127,45 +134,146 @@ function EnhancedChatLayoutContent({
 
         {/* Mobile Header Bar - Only shown on mobile */}
         {isMobile && (
-          <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1.5 ${headerBg} border-b`}>
-            {/* Left: Logo + Menu button stacked */}
-            <div className="flex flex-col items-center">
-              <img
-                src="/images/logos/company-logo.png"
-                alt="OnelastAI"
-                className="h-5 w-5 object-contain"
-              />
-              {showSidebar && (
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className={`p-1 rounded transition-colors ${
-                    isNeural
+          <>
+            <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1.5 ${headerBg} border-b`}>
+              {/* Left: Logo + Menu button stacked */}
+              <div className="flex flex-col items-center">
+                <img
+                  src="/images/logos/company-logo.png"
+                  alt="OnelastAI"
+                  className="h-5 w-5 object-contain"
+                />
+                {showSidebar && (
+                  <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className={`p-1 rounded transition-colors ${
+                      isNeural
+                        ? 'hover:bg-gray-800 text-gray-400'
+                        : 'hover:bg-gray-100 text-gray-500'
+                    }`}
+                    title="Toggle sidebar"
+                  >
+                    <Bars3Icon className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Center: Empty */}
+              <div className="flex-1" />
+
+              {/* Right: Dropdown arrow */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className={`p-1.5 rounded-lg transition-all ${
+                  isMobileMenuOpen
+                    ? isNeural
+                      ? 'bg-cyan-500/20 text-cyan-400'
+                      : 'bg-indigo-100 text-indigo-600'
+                    : isNeural
                       ? 'hover:bg-gray-800 text-gray-400'
                       : 'hover:bg-gray-100 text-gray-500'
-                  }`}
-                  title="Toggle sidebar"
-                >
-                  <Bars3Icon className="w-4 h-4" />
-                </button>
-              )}
+                }`}
+                title="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <ChevronUpIcon className="w-5 h-5" />
+                ) : (
+                  <ChevronDownIcon className="w-5 h-5" />
+                )}
+              </button>
             </div>
 
-            {/* Center: Empty */}
-            <div className="flex-1" />
+            {/* Mobile Dropdown Menu */}
+            {isMobileMenuOpen && (
+              <div 
+                className={`absolute top-[52px] right-2 z-50 rounded-xl shadow-xl border overflow-hidden transition-all ${
+                  isNeural
+                    ? 'bg-gray-900/95 border-cyan-500/30 backdrop-blur-xl'
+                    : 'bg-white/95 border-gray-200 backdrop-blur-xl'
+                }`}
+              >
+                {/* Canvas */}
+                <button
+                  onClick={() => {
+                    setIsMobileCanvasOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                    isNeural
+                      ? 'hover:bg-cyan-500/20 text-gray-300'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <CodeBracketIcon className={`w-5 h-5 ${isNeural ? 'text-cyan-400' : 'text-indigo-500'}`} />
+                  <span className="text-sm font-medium">Canvas</span>
+                </button>
 
-            {/* Right: Canvas button */}
-            <button
-              onClick={() => setIsMobileCanvasOpen(true)}
-              className={`p-1.5 rounded-lg transition-all ${
-                isNeural
-                  ? 'hover:bg-purple-500/20 text-cyan-400 hover:text-cyan-300'
-                  : 'hover:bg-indigo-100 text-indigo-500 hover:text-indigo-600'
-              }`}
-              title="Open Canvas"
-            >
-              <CodeBracketIcon className="w-5 h-5" />
-            </button>
-          </div>
+                {/* External Link */}
+                {externalUrl && (
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                      isNeural
+                        ? 'hover:bg-cyan-500/20 text-gray-300'
+                        : 'hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <ArrowTopRightOnSquareIcon className={`w-5 h-5 ${isNeural ? 'text-gray-400' : 'text-gray-500'}`} />
+                    <span className="text-sm font-medium">External</span>
+                  </a>
+                )}
+
+                {/* Theme Toggle */}
+                {showThemeToggle && (
+                  <button
+                    onClick={() => {
+                      toggleTheme();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                      isNeural
+                        ? 'hover:bg-cyan-500/20 text-gray-300'
+                        : 'hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {isNeural ? (
+                      <SunIcon className="w-5 h-5 text-cyan-400" />
+                    ) : (
+                      <SparklesIcon className="w-5 h-5 text-gray-500" />
+                    )}
+                    <span className="text-sm font-medium">Theme</span>
+                  </button>
+                )}
+
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    handleSettingsToggle();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                    isNeural
+                      ? 'hover:bg-purple-500/20 text-gray-300'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <Cog6ToothIcon className={`w-5 h-5 ${isNeural ? 'text-purple-400' : 'text-gray-500'}`} />
+                  <span className="text-sm font-medium">Settings</span>
+                </button>
+              </div>
+            )}
+
+            {/* Click outside to close mobile menu */}
+            {isMobileMenuOpen && (
+              <div 
+                className="absolute inset-0 z-40"
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+            )}
+          </>
         )}
 
         {/* Left Sidebar - Sessions or Settings */}
