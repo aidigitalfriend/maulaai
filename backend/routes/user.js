@@ -865,13 +865,24 @@ router.get('/analytics', async (req, res) => {
       const avgRating = feedbackStats._avg.rating || 4.5;
       const successRate = Math.min(100, Math.round((avgRating / 5) * 100));
 
+      // Calculate average response time from API usage (in milliseconds)
+      const responseTimeStats = await prisma.apiUsage.aggregate({
+        where: {
+          userId,
+          endpoint: { contains: sub.agentId }
+        },
+        _avg: { responseTime: true }
+      });
+      const avgResponseTime = responseTimeStats._avg?.responseTime || 1200; // Default 1.2s in ms
+
       agentPerformance.push({
         agentId: sub.agentId,
         name: sub.agent?.name || sub.agentId,
         sessions: agentSessions,
+        conversations: agentSessions, // Alias for frontend compatibility
         messages: agentMessages,
         successRate,
-        avgResponseTime: '1.2s', // TODO: Calculate from actual latency data
+        avgResponseTime, // Numeric value in milliseconds
         status: 'active'
       });
     }

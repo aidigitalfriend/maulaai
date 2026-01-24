@@ -500,10 +500,10 @@ export default function DashboardAnalyticsPage() {
                             </p>
                           </td>
                           <td className="py-3 text-neural-900">
-                            {(agent.conversations ?? 0).toLocaleString()}
+                            {(agent.conversations ?? agent.sessions ?? 0).toLocaleString()}
                           </td>
                           <td className="py-3 text-neural-900">
-                            {(agent.avgResponseTime / 1000).toFixed(1)}s
+                            {((agent.avgResponseTime ?? 1200) / 1000).toFixed(1)}s
                           </td>
                           <td className="py-3">
                             <div className="flex items-center gap-2">
@@ -513,13 +513,13 @@ export default function DashboardAnalyticsPage() {
                                   style={{
                                     width: `${Math.min(
                                       100,
-                                      agent.successRate
+                                      agent.successRate ?? 0
                                     )}%`,
                                   }}
                                 ></div>
                               </div>
                               <span className="text-sm font-semibold text-neural-900">
-                                {agent.successRate.toFixed(1)}%
+                                {(agent.successRate ?? 0).toFixed(1)}%
                               </span>
                             </div>
                           </td>
