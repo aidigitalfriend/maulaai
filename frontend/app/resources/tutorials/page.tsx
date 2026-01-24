@@ -287,7 +287,7 @@ export default function TutorialsPage() {
       </section>
 
       <div className="container-custom py-12">
-        {/* Quick Stats */}}
+        {/* Quick Stats */}
         <div className="max-w-4xl mx-auto mb-12">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
             <div className="grid grid-cols-4 gap-4">
