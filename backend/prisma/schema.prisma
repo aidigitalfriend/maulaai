@@ -258,24 +258,34 @@ enum SubscriptionStatus {
 }
 
 model AgentFile {
-  id          String   @id @default(cuid())
-  agentId     String
-  userId      String
-  fileName    String
-  fileType    String
-  fileSize    Int
-  s3Key       String
-  s3Url       String
-  contentType String?
-  metadata    Json?    @default("{}")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  agentId      String
+  userId       String
+  filename     String
+  originalName String?
+  folder       String   @default("/")
+  path         String
+  mimeType     String?
+  size         Int      @default(0)
+  storageType  String   @default("database") // "database" or "s3"
+  content      String?  @db.Text // For database storage
+  s3Key        String?
+  s3Bucket     String?
+  s3Url        String?
+  isDeleted    Boolean  @default(false)
+  deletedAt    DateTime?
+  metadata     Json?    @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
-  agent       Agent    @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
+  agent        Agent    @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
 
   @@index([agentId])
   @@index([userId])
+  @@index([path])
+  @@index([userId, path])
+  @@index([userId, folder])
 }
 
 model AgentPersonalization {

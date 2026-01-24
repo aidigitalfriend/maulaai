@@ -359,7 +359,7 @@ Here's your converted image:
     if (isFileOperation) {
       console.log('[chat-stream] Detected file operation request');
       
-      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005';
+      const backendUrl = process.env.BACKEND_BASE_URL || process.env.BACKEND_URL || 'http://localhost:3005';
       const userId = requestUserId || 'default';
       
       try {

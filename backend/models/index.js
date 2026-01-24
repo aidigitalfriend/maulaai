@@ -592,9 +592,44 @@ class AgentMemoryAdapter {
   }
 }
 
+// AgentFile wrapper class that supports both static methods and instance methods (Mongoose-like)
+class AgentFileDocument {
+  constructor(data) {
+    this._data = data;
+    this._isNew = true;
+    // Copy data properties to the instance
+    Object.assign(this, data);
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.agentFile.create({ data: this._data });
+      this._isNew = false;
+      Object.assign(this, result);
+      return result;
+    } else {
+      const result = await prisma.agentFile.update({
+        where: { id: this.id },
+        data: this._data,
+      });
+      Object.assign(this, result);
+      return result;
+    }
+  }
+}
+
 class AgentFileAdapter {
+  // Constructor to support `new AgentFile({...})` syntax
+  constructor(data) {
+    return new AgentFileDocument(data);
+  }
+
   static async find(query = {}) {
     return prisma.agentFile.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+  }
+
+  static async findOne(query = {}) {
+    return prisma.agentFile.findFirst({ where: query });
   }
 
   static async findById(id) {
@@ -605,8 +640,35 @@ class AgentFileAdapter {
     return prisma.agentFile.create({ data });
   }
 
+  static async findOneAndUpdate(query, update, options = {}) {
+    // First find the record
+    const record = await prisma.agentFile.findFirst({ where: query });
+    if (!record) {
+      if (options.upsert) {
+        return prisma.agentFile.create({ data: { ...query, ...update.$set } });
+      }
+      return null;
+    }
+    // Then update it
+    return prisma.agentFile.update({
+      where: { id: record.id },
+      data: update.$set || update,
+    });
+  }
+
   static async findByIdAndDelete(id) {
     return prisma.agentFile.delete({ where: { id } });
+  }
+
+  static async updateMany(query, update) {
+    return prisma.agentFile.updateMany({
+      where: query,
+      data: update.$set || update,
+    });
+  }
+
+  static async deleteMany(query) {
+    return prisma.agentFile.deleteMany({ where: query });
   }
 }
 
