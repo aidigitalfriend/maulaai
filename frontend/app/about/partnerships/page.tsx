@@ -74,18 +74,18 @@ export default function PartnershipsPage() {
   ]
 
   const PartnerCard = ({ partner }: { partner: typeof technologyPartners[0] }) => (
-    <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 hover:border-blue-500 transition-all group">
+    <div className="bg-white border border-neural-200 rounded-lg p-6 hover:border-brand-500 hover:shadow-lg transition-all group">
       <div className="text-4xl mb-3">{partner.icon}</div>
-      <h3 className="text-lg font-bold text-white mb-2">{partner.name}</h3>
-      <p className="text-blue-400 text-sm font-semibold mb-3">{partner.description}</p>
-      <p className="text-neutral-300 text-sm">{partner.details}</p>
+      <h3 className="text-lg font-bold text-neural-800 mb-2">{partner.name}</h3>
+      <p className="text-brand-600 text-sm font-semibold mb-3">{partner.description}</p>
+      <p className="text-neural-600 text-sm">{partner.details}</p>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neural-900 via-neural-800 to-neural-900">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <section className="section-padding-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+      <section className="section-padding-lg bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-4">Our Partnerships</h1>
           <p className="text-xl opacity-90 mb-2">Strategic alliances driving innovation in AI</p>
@@ -97,20 +97,20 @@ export default function PartnershipsPage() {
       <section className="section-padding">
         <div className="container-custom max-w-5xl">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <Cloud className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Technology Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Infrastructure and cloud services powering One Last AI</p>
+            <div className="bg-white border border-neural-200 rounded-lg p-6 text-center shadow-sm">
+              <Cloud className="w-10 h-10 text-brand-600 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-neural-800 mb-2">Technology Partnerships</h3>
+              <p className="text-neural-600 text-sm">Infrastructure and cloud services powering One Last AI</p>
             </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <Zap className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Integration Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Tools and platforms that enhance One Last AI capabilities</p>
+            <div className="bg-white border border-neural-200 rounded-lg p-6 text-center shadow-sm">
+              <Zap className="w-10 h-10 text-accent-600 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-neural-800 mb-2">Integration Partnerships</h3>
+              <p className="text-neural-600 text-sm">Tools and platforms that enhance One Last AI capabilities</p>
             </div>
-            <div className="bg-neural-800/50 border border-neural-700 rounded-lg p-6 text-center">
-              <Users className="w-10 h-10 text-pink-400 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Reseller Partnerships</h3>
-              <p className="text-neutral-300 text-sm">Consulting firms helping enterprises implement solutions</p>
+            <div className="bg-white border border-neural-200 rounded-lg p-6 text-center shadow-sm">
+              <Users className="w-10 h-10 text-pink-500 mx-auto mb-3" />
+              <h3 className="text-lg font-bold text-neural-800 mb-2">Reseller Partnerships</h3>
+              <p className="text-neural-600 text-sm">Consulting firms helping enterprises implement solutions</p>
             </div>
           </div>
         </div>
@@ -121,10 +121,10 @@ export default function PartnershipsPage() {
         <div className="container-custom max-w-5xl">
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Cloud className="w-6 h-6 text-blue-400" />
-              <h2 className="text-3xl font-bold text-white">Technology Partners</h2>
+              <Cloud className="w-6 h-6 text-brand-600" />
+              <h2 className="text-3xl font-bold text-neural-800">Technology Partners</h2>
             </div>
-            <p className="text-neutral-300">Strategic partnerships with leading tech companies providing world-class infrastructure</p>
+            <p className="text-neural-600">Strategic partnerships with leading tech companies providing world-class infrastructure</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -133,9 +133,9 @@ export default function PartnershipsPage() {
             ))}
           </div>
 
-          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-6 mb-12">
-            <h4 className="text-white font-bold mb-2">Why These Partners?</h4>
-            <p className="text-neutral-300">
+          <div className="bg-brand-50 border border-brand-200 rounded-lg p-6 mb-12">
+            <h4 className="text-neural-800 font-bold mb-2">Why These Partners?</h4>
+            <p className="text-neural-600">
               We partner with Google Cloud, AWS, and Microsoft Azure to ensure One Last AI runs on best-in-class infrastructure. 
               These partnerships guarantee reliability, security, and scalability for enterprises of all sizes.
             </p>
@@ -148,10 +148,10 @@ export default function PartnershipsPage() {
         <div className="container-custom max-w-5xl">
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Link2 className="w-6 h-6 text-purple-400" />
-              <h2 className="text-3xl font-bold text-white">Integration Partners</h2>
+              <Link2 className="w-6 h-6 text-accent-600" />
+              <h2 className="text-3xl font-bold text-neural-800">Integration Partners</h2>
             </div>
-            <p className="text-neutral-300">Companies we integrate with to enhance your workflow and maximize productivity</p>
+            <p className="text-neural-600">Companies we integrate with to enhance your workflow and maximize productivity</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -160,9 +160,9 @@ export default function PartnershipsPage() {
             ))}
           </div>
 
-          <div className="bg-purple-900/20 border border-purple-600/30 rounded-lg p-6 mb-12">
-            <h4 className="text-white font-bold mb-2">Seamless Integrations</h4>
-            <p className="text-neutral-300">
+          <div className="bg-accent-50 border border-accent-200 rounded-lg p-6 mb-12">
+            <h4 className="text-neural-800 font-bold mb-2">Seamless Integrations</h4>
+            <p className="text-neural-600">
               Our integration partnerships enable One Last AI to work seamlessly with tools your team already uses. 
               From communication platforms to automation tools, we're constantly expanding our ecosystem to enhance your productivity.
             </p>
@@ -175,10 +175,10 @@ export default function PartnershipsPage() {
         <div className="container-custom max-w-5xl">
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Award className="w-6 h-6 text-pink-400" />
-              <h2 className="text-3xl font-bold text-white">Reseller Partners</h2>
+              <Award className="w-6 h-6 text-pink-500" />
+              <h2 className="text-3xl font-bold text-neural-800">Reseller Partners</h2>
             </div>
-            <p className="text-neutral-300">Global consulting firms helping organizations implement One Last AI solutions</p>
+            <p className="text-neural-600">Global consulting firms helping organizations implement One Last AI solutions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -187,9 +187,9 @@ export default function PartnershipsPage() {
             ))}
           </div>
 
-          <div className="bg-pink-900/20 border border-pink-600/30 rounded-lg p-6 mb-12">
-            <h4 className="text-white font-bold mb-2">Enterprise Implementation</h4>
-            <p className="text-neutral-300">
+          <div className="bg-pink-50 border border-pink-200 rounded-lg p-6 mb-12">
+            <h4 className="text-neural-800 font-bold mb-2">Enterprise Implementation</h4>
+            <p className="text-neural-600">
               Our reseller partners bring deep enterprise expertise and global reach. They help organizations of all sizes 
               successfully implement, customize, and optimize One Last AI for their specific business needs.
             </p>
@@ -198,35 +198,35 @@ export default function PartnershipsPage() {
       </section>
 
       {/* Partnership Benefits */}
-      <section className="section-padding bg-neural-800/50">
+      <section className="section-padding bg-white">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Partnership Benefits</h2>
+          <h2 className="text-3xl font-bold text-neural-800 mb-8 text-center">Partnership Benefits</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">🛡️ Enterprise Reliability</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gray-50 border border-neural-200 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">🛡️ Enterprise Reliability</h3>
+              <p className="text-neural-600">
                 Backed by industry-leading infrastructure providers ensuring 99.99% uptime and enterprise-grade security.
               </p>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">🔌 Seamless Integrations</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gray-50 border border-neural-200 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">🔌 Seamless Integrations</h3>
+              <p className="text-neural-600">
                 Connect with tools your teams already use, reducing friction and accelerating adoption across your organization.
               </p>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">📈 Advanced Capabilities</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gray-50 border border-neural-200 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">📈 Advanced Capabilities</h3>
+              <p className="text-neural-600">
                 Access cutting-edge AI and ML capabilities through our technology partnerships with innovation leaders.
               </p>
             </div>
 
-            <div className="bg-neural-700/50 border border-neural-600 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-3">🚀 Expert Implementation</h3>
-              <p className="text-neutral-300">
+            <div className="bg-gray-50 border border-neural-200 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-neural-800 mb-3">🚀 Expert Implementation</h3>
+              <p className="text-neural-600">
                 Get support from world-class consulting firms with deep experience implementing enterprise AI solutions.
               </p>
             </div>
@@ -237,24 +237,24 @@ export default function PartnershipsPage() {
       {/* Become a Partner */}
       <section className="section-padding">
         <div className="container-custom max-w-3xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Interested in Partnering?</h2>
-          <p className="text-neutral-300 mb-4 text-lg">
+          <h2 className="text-3xl font-bold text-neural-800 mb-4">Interested in Partnering?</h2>
+          <p className="text-neural-600 mb-4 text-lg">
             We're always looking for innovative companies and consulting firms to partner with One Last AI.
           </p>
-          <p className="text-neutral-300 mb-8">
+          <p className="text-neural-600 mb-8">
             Whether you're interested in technology partnerships, integrations, or reselling, we'd love to explore opportunities together.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/support/contact-us"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-all"
             >
               Contact Partnership Team
             </Link>
             <Link
               href="/support/contact-us"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-neural-700 hover:bg-neural-600 text-white font-bold rounded-lg transition-all border border-neural-600"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-neural-800 font-bold rounded-lg transition-all border border-neural-300"
             >
               Learn More
             </Link>
@@ -263,26 +263,26 @@ export default function PartnershipsPage() {
       </section>
 
       {/* Partner Statistics */}
-      <section className="section-padding bg-neural-800/50">
+      <section className="section-padding bg-white">
         <div className="container-custom max-w-4xl">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Partnership Impact</h2>
+          <h2 className="text-3xl font-bold text-neural-800 mb-8 text-center">Partnership Impact</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-400 mb-2">50+</div>
-              <p className="text-neutral-300">Active Partnerships</p>
+              <div className="text-4xl font-bold text-brand-600 mb-2">50+</div>
+              <p className="text-neural-600">Active Partnerships</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-400 mb-2">150+</div>
-              <p className="text-neutral-300">Countries Reached</p>
+              <div className="text-4xl font-bold text-accent-600 mb-2">150+</div>
+              <p className="text-neural-600">Countries Reached</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-pink-400 mb-2">10K+</div>
-              <p className="text-neutral-300">Enterprises Supported</p>
+              <div className="text-4xl font-bold text-pink-500 mb-2">10K+</div>
+              <p className="text-neural-600">Enterprises Supported</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-green-400 mb-2">99.99%</div>
-              <p className="text-neutral-300">Uptime SLA</p>
+              <div className="text-4xl font-bold text-green-500 mb-2">99.99%</div>
+              <p className="text-neural-600">Uptime SLA</p>
             </div>
           </div>
         </div>
