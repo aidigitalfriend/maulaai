@@ -16,7 +16,7 @@ function getApiKeys() {
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
-const RATE_LIMIT_MAX_MESSAGES = 50; // 50 messages per hour
+const RATE_LIMIT_MAX_MESSAGES = 200; // 200 messages per hour - increased for better UX
 
 function getRateLimitKey(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -903,7 +903,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                     'anthropic-version': '2023-06-01',
                   },
                   body: JSON.stringify({
-                    model: model || 'claude-sonnet-4-20250514',
+                    model: model || 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
                     max_tokens: maxTokens,
                     temperature,
                     system:
@@ -977,27 +977,29 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
-              'mistral-large-latest'
+              'mistral-large-2411'  // Latest Mistral Large 2
             );
           } else if (provider === 'xai' && apiKeys.xai) {
             // xAI Grok uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.x.ai/v1/chat/completions',
               apiKeys.xai,
-              'grok-3'
+              'grok-3'  // Latest Grok 3
             );
           } else if (provider === 'groq' && apiKeys.groq) {
             // Groq uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.groq.com/openai/v1/chat/completions',
               apiKeys.groq,
-              'llama-3.3-70b-versatile'
+              'llama-3.3-70b-specdec'  // Ultra-fast with speculative decoding
             );
           } else if (provider === 'cerebras' && apiKeys.cerebras) {
             // Cerebras uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.cerebras.ai/v1/chat/completions',
               apiKeys.cerebras,
+              'llama-3.3-70b'  // Fast inference
+            );
               'llama-3.3-70b'
             );
           } else if (provider === 'openai' && apiKeys.openai) {
@@ -1005,7 +1007,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o-mini'
+              'gpt-4.1'  // Latest GPT-4.1
             );
             
             // If primary key failed and we have a backup, try it
@@ -1014,7 +1016,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4o-mini'
+                'gpt-4.1'  // Latest GPT-4.1
               );
               if (!hadError) {
                 console.log('[chat-stream] ✅ Backup OpenAI key succeeded!');
@@ -1026,7 +1028,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o-mini'
+              'gpt-4.1'  // Latest GPT-4.1
             );
             
             // If primary key failed and we have a backup, try it
@@ -1035,7 +1037,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4o-mini'
+                'gpt-4.1'  // Latest GPT-4.1
               );
             }
           } else if (apiKeys.openaiBackup) {
@@ -1044,7 +1046,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openaiBackup,
-              'gpt-4o-mini'
+              'gpt-4.1'  // Latest GPT-4.1
             );
           } else if (apiKeys.mistral) {
             // Fallback to Mistral
@@ -1052,7 +1054,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
-              'mistral-large-latest'
+              'mistral-large-2411'  // Latest Mistral Large 2
             );
           } else {
             controller.enqueue(

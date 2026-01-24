@@ -7,7 +7,7 @@ const AGENT_AI_ASSIGNMENTS = {
     primaryProvider: 'openai',
     // Fallback: Anthropic → xAI → Mistral → Gemini
     fallbackProviders: ['anthropic', 'xai', 'mistral', 'gemini'],
-    model: 'gpt-4o',
+    model: 'gpt-4.1',  // Latest GPT-4.1 model
     specializedFor: [
       'Emotional support',
       'Relationship advice',
@@ -18,7 +18,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'emma-emotional',
     primaryProvider: 'openai',
     fallbackProviders: ['anthropic', 'xai', 'mistral', 'gemini'],
-    model: 'gpt-4o',
+    model: 'gpt-4.1',  // Latest GPT-4.1 model
     specializedFor: [
       'Emotional support',
       'Mental wellness',
@@ -31,7 +31,7 @@ const AGENT_AI_ASSIGNMENTS = {
     primaryProvider: 'anthropic',
     // Anthropic primary, then OpenAI → Mistral → xAI → Gemini
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: [
       'Code generation',
       'Software development',
@@ -42,7 +42,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'tech-wizard',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: [
       'Advanced programming',
       'System architecture',
@@ -53,7 +53,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'knight-logic',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: [
       'Logic puzzles',
       'Creative problem solving',
@@ -65,14 +65,14 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'einstein',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: ['Physics', 'Scientific research', 'Mathematical concepts'],
   },
   'professor-astrology': {
     agentId: 'professor-astrology',
     primaryProvider: 'mistral',
     fallbackProviders: ['anthropic', 'openai', 'xai'],
-    model: 'mistral-large-latest',
+    model: 'mistral-large-2411',  // Latest Mistral Large 2
     specializedFor: ['Astrology', 'Mystical guidance', 'Cosmic wisdom'],
   },
   // Entertainment Category - Mistral (Creative & Fun)
@@ -81,14 +81,14 @@ const AGENT_AI_ASSIGNMENTS = {
     primaryProvider: 'mistral',
     // Mistral primary, then OpenAI → Anthropic → xAI → Gemini
     fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    model: 'mistral-large-2411',  // Latest Mistral Large 2
     specializedFor: ['Humor generation', 'Entertainment', 'Creative comedy'],
   },
   'drama-queen': {
     agentId: 'drama-queen',
     primaryProvider: 'mistral',
     fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    model: 'mistral-large-2411',  // Latest Mistral Large 2
     specializedFor: [
       'Dramatic storytelling',
       'Theater arts',
@@ -99,7 +99,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'nid-gaming',
     primaryProvider: 'groq',
     fallbackProviders: ['mistral', 'xai', 'openai'],
-    model: 'llama-3.3-70b-versatile',
+    model: 'llama-3.3-70b-specdec',  // Speculative decoding for ultra-fast responses
     specializedFor: ['Gaming advice', 'Game strategies', 'Gaming culture'],
   },
   // Business Category - Mix of Anthropic & Mistral
@@ -107,14 +107,14 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'mrs-boss',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: ['Leadership', 'Business strategy', 'Management'],
   },
   'chess-player': {
     agentId: 'chess-player',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: [
       'Strategic thinking',
       'Game analysis',
@@ -125,7 +125,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'lazy-pawn',
     primaryProvider: 'groq',
     fallbackProviders: ['mistral', 'openai', 'anthropic'],
-    model: 'llama-3.3-70b-versatile',
+    model: 'llama-3.3-70b-specdec',  // Speculative decoding for ultra-fast responses
     specializedFor: [
       'Efficient solutions',
       'Productivity hacks',
@@ -136,7 +136,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'rook-jokey',
     primaryProvider: 'mistral',
     fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    model: 'mistral-large-2411',  // Latest Mistral Large 2
     specializedFor: [
       'Business humor',
       'Light business advice',
@@ -148,7 +148,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'fitness-guru',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
     specializedFor: ['Fitness training', 'Health advice', 'Wellness coaching'],
   },
   // Home & Lifestyle - Mistral First
@@ -156,14 +156,14 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'chef-biew',
     primaryProvider: 'mistral',
     fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    model: 'mistral-large-2411',  // Latest Mistral Large 2
     specializedFor: ['Cooking recipes', 'Culinary creativity', 'Food culture'],
   },
   'travel-buddy': {
     agentId: 'travel-buddy',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'gemini',  // Gemini excels at travel with visual and location data
+    fallbackProviders: ['mistral', 'openai', 'anthropic', 'xai'],
+    model: 'gemini-2.0-flash',  // Latest Gemini 2.0
     specializedFor: [
       'Travel planning',
       'Destination information',
@@ -175,7 +175,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'bishop-burger',
     primaryProvider: 'mistral',
     fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    model: 'mistral-large-2411',  // Latest Mistral Large 2
     specializedFor: [
       'Creative projects',
       'Artistic inspiration',
@@ -266,13 +266,13 @@ class AgentAIProviderService {
    */
   getFallbackModel(provider) {
     const fallbackModels = {
-      mistral: 'mistral-large-latest',
-      anthropic: 'claude-3-5-sonnet-20241022',
-      openai: 'gpt-4o-mini',
-      gemini: 'gemini-1.5-flash-latest',
-      cohere: 'command-nightly',
-      xai: 'grok-2',
-      groq: 'llama-3.3-70b-versatile',
+      mistral: 'mistral-large-2411',          // Latest Mistral Large 2
+      anthropic: 'claude-sonnet-4-20250514',   // Latest Claude Sonnet 4
+      openai: 'gpt-4.1-mini',                  // Latest GPT-4.1 mini
+      gemini: 'gemini-2.0-flash',              // Latest Gemini 2.0 Flash
+      cohere: 'command-r-plus-08-2024',        // Latest Command R+
+      xai: 'grok-3',                           // Latest Grok 3
+      groq: 'llama-3.3-70b-specdec',           // Ultra-fast with speculative decoding
     };
     return fallbackModels[provider];
   }

@@ -12,7 +12,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 30 * 60 * 1000; // 30 minutes
-const RATE_LIMIT_MAX_MESSAGES = 18; // 18 messages per 30 min window
+const RATE_LIMIT_MAX_MESSAGES = 100; // 100 messages per 30 min window for better UX
 
 function getRateLimitKey(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -87,9 +87,9 @@ const openaiProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4.1',
         messages,
-        max_tokens: 1000,
+        max_tokens: 4096,
         temperature: 0.7,
       }),
     });
@@ -130,10 +130,10 @@ const anthropicProvider: AIProvider = {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         system: systemPrompt || 'You are a helpful AI assistant.',
         messages: [...userMessages, { role: 'user', content: message }],
-        max_tokens: 1000,
+        max_tokens: 4096,
         temperature: 0.7,
       }),
     });
@@ -186,9 +186,9 @@ const xaiProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-beta',
+        model: 'grok-3',
         messages,
-        max_tokens: 1000,
+        max_tokens: 4096,
         temperature: 0.7,
       }),
     });
@@ -241,10 +241,10 @@ const mistralProvider: AIProvider = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'mistral-small-latest',
+        model: 'mistral-large-2411',
         messages,
-        max_tokens: 150,
-        temperature: 0.9,
+        max_tokens: 4096,
+        temperature: 0.7,
       }),
     });
 
@@ -285,7 +285,7 @@ const geminiProvider: AIProvider = {
       : `${systemPrompt || 'You are a helpful AI assistant.'}\n\nUser: ${message}\nAssistant:`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -297,7 +297,7 @@ const geminiProvider: AIProvider = {
           ],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 4096,
             topK: 40,
             topP: 0.95,
           },
@@ -411,9 +411,9 @@ const groqProvider: AIProvider = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'llama-3.3-70b-specdec',
           messages,
-          max_tokens: 1000,
+          max_tokens: 4096,
           temperature: 0.7,
         }),
       }

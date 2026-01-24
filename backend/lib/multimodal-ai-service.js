@@ -307,7 +307,7 @@ class MultiModalAIService {
   async getChatGemini(message, systemPrompt, config, startTime) {
     if (!this.gemini) throw new Error('Gemini not initialized');
     const model = this.gemini.getGenerativeModel({
-      model: config.model || 'gemini-2.0-flash-exp',
+      model: config.model || 'gemini-2.0-flash',  // Latest Gemini 2.0 Flash
       systemInstruction: systemPrompt,
     });
     const result = await model.generateContent({
@@ -328,7 +328,7 @@ class MultiModalAIService {
   async getChatOpenAI(message, systemPrompt, config, startTime) {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const response = await this.openai.chat.completions.create({
-      model: config.model || 'gpt-4o',
+      model: config.model || 'gpt-4.1',  // Latest GPT-4.1
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message },
@@ -340,7 +340,7 @@ class MultiModalAIService {
     return {
       text: response.choices[0]?.message?.content || '',
       provider: 'openai',
-      model: config.model || 'gpt-4o',
+      model: config.model || 'gpt-4.1',
       tokensUsed: response.usage?.total_tokens,
       latency: Date.now() - startTime,
     };
@@ -348,7 +348,7 @@ class MultiModalAIService {
   async getChatMistral(message, systemPrompt, config, startTime) {
     if (!this.mistral) throw new Error('Mistral not initialized');
     const response = await this.mistral.chat.complete({
-      model: config.model || 'mistral-large-latest',
+      model: config.model || 'mistral-large-2411',  // Latest Mistral Large 2
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message },
@@ -360,7 +360,7 @@ class MultiModalAIService {
     return {
       text: response.choices?.[0]?.message?.content || '',
       provider: 'mistral',
-      model: config.model || 'mistral-large',
+      model: config.model || 'mistral-large-2411',
       tokensUsed: response.usage?.totalTokens,
       latency: Date.now() - startTime,
     };
@@ -368,8 +368,8 @@ class MultiModalAIService {
   async getChatAnthropic(message, systemPrompt, config, startTime) {
     if (!this.anthropic) throw new Error('Anthropic not initialized');
     const response = await this.anthropic.messages.create({
-      model: config.model || 'claude-3-5-sonnet-20241022',
-      max_tokens: config.maxTokens || 2e3,
+      model: config.model || 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
+      max_tokens: config.maxTokens || 4096,  // Increased max tokens
       temperature: config.temperature,
       system: systemPrompt,
       messages: [{ role: 'user', content: message }],
@@ -378,7 +378,7 @@ class MultiModalAIService {
     return {
       text: textContent && 'text' in textContent ? textContent.text : '',
       provider: 'anthropic',
-      model: config.model || 'claude-3-5-sonnet',
+      model: config.model || 'claude-sonnet-4',
       tokensUsed: response.usage.input_tokens + response.usage.output_tokens,
       latency: Date.now() - startTime,
     };
@@ -386,7 +386,7 @@ class MultiModalAIService {
   async getChatCohere(message, systemPrompt, config, startTime) {
     if (!this.cohere) throw new Error('Cohere not initialized');
     const response = await this.cohere.chat({
-      model: config.model || 'command-r-plus',
+      model: config.model || 'command-r-plus-08-2024',  // Latest Command R+
       message,
       preamble: systemPrompt,
       temperature: config.temperature,
@@ -404,7 +404,7 @@ class MultiModalAIService {
    */
   async getChatGroq(message, systemPrompt, config, startTime) {
     if (!this.groq) throw new Error('Groq not initialized');
-    const model = config.model || 'llama-3.3-70b-versatile';
+    const model = config.model || 'llama-3.3-70b-specdec';  // Ultra-fast with speculative decoding
     const response = await this.groq.chat.completions.create({
       model,
       messages: [
@@ -412,7 +412,7 @@ class MultiModalAIService {
         { role: 'user', content: message },
       ],
       temperature: config.temperature ?? 0.7,
-      max_tokens: config.maxTokens ?? 2000,
+      max_tokens: config.maxTokens ?? 4096,  // Increased max tokens
     });
     const text = response.choices?.[0]?.message?.content || '';
     const latency = Date.now() - startTime;
@@ -429,7 +429,7 @@ class MultiModalAIService {
    */
   async getChatXAI(message, systemPrompt, config, startTime) {
     if (!this.xaiApiKey) throw new Error('xAI not initialized');
-    const model = config.model || 'grok-2';
+    const model = config.model || 'grok-3';  // Latest Grok 3
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -443,7 +443,7 @@ class MultiModalAIService {
           { role: 'user', content: message },
         ],
         temperature: config.temperature ?? 0.7,
-        max_tokens: config.maxTokens ?? 2e3,
+        max_tokens: config.maxTokens ?? 4096,  // Increased max tokens
       }),
     });
     if (!response.ok) {

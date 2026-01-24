@@ -14,7 +14,7 @@ export const rateLimiters = {
   // Global rate limiter
   global: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: 500, // limit each IP to 500 requests per windowMs (increased for better UX)
     message: {
       success: false,
       message: 'Too many requests from this IP, please try again later.',
@@ -31,7 +31,7 @@ export const rateLimiters = {
   // API rate limiter
   api: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // limit each IP to 500 API requests per windowMs
+    max: 2000, // limit each IP to 2000 API requests per windowMs (increased for heavy usage)
     message: {
       success: false,
       message: 'API rate limit exceeded, please try again later.',
@@ -58,7 +58,7 @@ export const rateLimiters = {
   // File upload rate limiter
   upload: rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 20, // limit each IP to 20 uploads per hour
+    max: 100, // limit each IP to 100 uploads per hour (increased for power users)
     message: {
       success: false,
       message: 'Upload rate limit exceeded, please try again later.',
@@ -71,7 +71,7 @@ export const rateLimiters = {
   // Search rate limiter
   search: rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 30, // limit each IP to 30 searches per minute
+    max: 100, // limit each IP to 100 searches per minute (increased for better UX)
     message: {
       success: false,
       message: 'Search rate limit exceeded, please try again later.',
@@ -84,7 +84,7 @@ export const rateLimiters = {
   // AI agent interaction rate limiter
   agent: rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 20, // limit each IP to 20 agent interactions per minute
+    max: 60, // limit each IP to 60 agent interactions per minute (increased for advanced AI usage)
     message: {
       success: false,
       message: 'Agent interaction rate limit exceeded, please try again later.',
@@ -97,7 +97,7 @@ export const rateLimiters = {
   // Community posting rate limiter
   community: rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // limit each IP to 10 posts per hour
+    max: 50, // limit each IP to 50 posts per hour (increased for active users)
     message: {
       success: false,
       message: 'Posting rate limit exceeded, please try again later.',

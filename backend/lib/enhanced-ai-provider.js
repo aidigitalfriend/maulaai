@@ -17,16 +17,16 @@ class EnhancedAIProviderService {
     const configs = {
       "julie-girlfriend": {
         agentId: "julie-girlfriend",
-        primaryProvider: "mistral",
-        fallbackProviders: ["anthropic", "openai", "gemini", "cohere"],
-        model: "mistral-large-latest",
+        primaryProvider: "openai",
+        fallbackProviders: ["anthropic", "mistral", "gemini", "cohere"],
+        model: "gpt-4.1",  // Latest GPT-4.1
         specializedFor: ["Emotional support", "Relationship advice", "Conversational companionship"],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: false,
           supportsImageGeneration: true,
-          maxFileSize: 10,
+          maxFileSize: 25,  // Increased file size
           supportedFileTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf", "text/plain"]
         },
         formatting: {
@@ -40,14 +40,14 @@ class EnhancedAIProviderService {
         agentId: "ben-sega",
         primaryProvider: "anthropic",
         fallbackProviders: ["openai", "mistral", "gemini", "cohere"],
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",  // Latest Claude Sonnet 4
         specializedFor: ["Code generation", "Software development", "Technical architecture"],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: true,
           supportsImageGeneration: true,
-          maxFileSize: 25,
+          maxFileSize: 50,  // Increased for code files
           supportedFileTypes: ["image/jpeg", "image/png", "application/pdf", "text/plain", "application/json", "text/javascript", "text/typescript"]
         },
         formatting: {
@@ -61,14 +61,14 @@ class EnhancedAIProviderService {
         agentId: "einstein",
         primaryProvider: "anthropic",
         fallbackProviders: ["gemini", "openai", "mistral", "cohere"],
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-sonnet-4-20250514",  // Latest Claude Sonnet 4
         specializedFor: ["Physics", "Scientific research", "Mathematical concepts"],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: true,
           supportsImageGeneration: true,
-          maxFileSize: 20,
+          maxFileSize: 30,  // Increased for research documents
           supportedFileTypes: ["image/jpeg", "image/png", "application/pdf", "text/plain", "application/json"]
         },
         formatting: {
@@ -82,14 +82,14 @@ class EnhancedAIProviderService {
         agentId: "comedy-king",
         primaryProvider: "mistral",
         fallbackProviders: ["openai", "anthropic", "gemini", "cohere"],
-        model: "mistral-large-latest",
+        model: "mistral-large-2411",  // Latest Mistral Large 2
         specializedFor: ["Humor generation", "Entertainment", "Creative comedy"],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: false,
           supportsImageGeneration: true,
-          maxFileSize: 15,
+          maxFileSize: 25,  // Increased file size
           supportedFileTypes: ["image/jpeg", "image/png", "image/gif", "application/pdf", "text/plain"]
         },
         formatting: {
@@ -103,14 +103,14 @@ class EnhancedAIProviderService {
         agentId: "travel-buddy",
         primaryProvider: "gemini",
         fallbackProviders: ["mistral", "anthropic", "openai", "cohere"],
-        model: "gemini-1.5-pro-latest",
+        model: "gemini-2.0-flash",  // Latest Gemini 2.0
         specializedFor: ["Travel planning", "Destination information", "Cultural insights"],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: false,
           supportsImageGeneration: true,
-          maxFileSize: 20,
+          maxFileSize: 30,  // Increased for travel documents
           supportedFileTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf", "text/plain"]
         },
         formatting: {
