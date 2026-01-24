@@ -499,7 +499,8 @@ function AgentPerformanceDashboard() {
               </ul>
             )}
           </div>
-        </div>
+          </div>
+        </section>
       </div>
     </ProtectedRoute>
   );

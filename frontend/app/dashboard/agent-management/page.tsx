@@ -450,7 +450,8 @@ export default function AgentManagementPage() {
               ))}
             </div>
           </div>
-        </div>
+          </div>
+        </section>
       </div>
     </ProtectedRoute>
   );

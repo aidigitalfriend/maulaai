@@ -508,7 +508,7 @@ export default function BillingPage() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
