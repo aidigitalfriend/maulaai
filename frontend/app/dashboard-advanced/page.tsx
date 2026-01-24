@@ -727,6 +727,7 @@ export default function AdvancedDashboard() {
             </p>
           </div>
         </div>
+        </div>
       </section>
     </div>
   );
