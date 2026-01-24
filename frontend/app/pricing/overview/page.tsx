@@ -54,18 +54,22 @@ export default function PricingOverview() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container-custom section-padding-lg">
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-brand-600 via-accent-500 to-brand-700 bg-clip-text text-transparent mb-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-neural-600 leading-relaxed mb-8">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             Simple per-agent pricing. Each purchase gives you unlimited access
             to one AI agent for your chosen period. No auto-renewal—pay only
             when you want access.
           </p>
         </div>
+      </section>
+
+      <div className="container-custom section-padding-lg">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan) => (
