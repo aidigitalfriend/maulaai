@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
       </section>
 
       <div className="container-custom max-w-7xl mx-auto px-4 py-8 md:py-12">
-        {/* Overview Cards */}}
+        {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md">
             <div className="flex items-center justify-between mb-4">
