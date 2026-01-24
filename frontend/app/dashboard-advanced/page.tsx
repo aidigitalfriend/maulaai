@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { BarChart3 } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -194,60 +196,83 @@ export default function AdvancedDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div className="container mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-12 text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
-            <span className="text-3xl">📊</span>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-          <p className="text-gray-600">
-            Monitor your AI API usage and performance metrics
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="relative py-20 md:py-28 bg-gradient-to-r from-brand-600 to-accent-600 text-white overflow-hidden">
+        {/* Decorative Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="advanced-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="1.5" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#advanced-grid)" />
+          </svg>
         </div>
+        <div className="container-custom text-center relative z-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
+            <BarChart3 className="w-10 h-10" />
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            Advanced Analytics
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
+            Monitor your AI API usage, performance metrics, and cost analysis
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center bg-white text-brand-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-lg"
+          >
+            Back to Dashboard
+          </Link>
+        </div>
+      </section>
 
-        {/* Key Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[
-            {
-              icon: '📊',
-              label: 'Total Requests (7d)',
-              value: stats.totalRequests.toLocaleString(),
-              change: `${stats.requestChange > 0 ? '+' : ''}${
-                stats.requestChange
-              }%`,
-              positive: stats.requestChange >= 0,
-              gradient: 'from-blue-500 to-indigo-500',
-            },
-            {
-              icon: '⚡',
-              label: 'Avg Latency',
-              value: `${stats.avgLatency}ms`,
-              change: `${stats.latencyChange > 0 ? '+' : ''}${
-                stats.latencyChange
-              }%`,
-              positive: stats.latencyChange <= 0,
-              gradient: 'from-purple-500 to-pink-500',
-            },
-            {
-              icon: '✅',
-              label: 'Success Rate',
-              value: `${stats.avgSuccessRate}%`,
-              change: `${stats.successChange > 0 ? '+' : ''}${
-                stats.successChange
-              }%`,
-              positive: stats.successChange >= 0,
-              gradient: 'from-green-500 to-emerald-500',
-            },
-            {
-              icon: '💰',
-              label: 'Est. Weekly Cost',
-              value: `$${stats.totalCost.toFixed(2)}`,
-              change: 'Last 7 days',
-              positive: true,
-              gradient: 'from-yellow-500 to-orange-500',
-            },
+      {/* Analytics Content */}
+      <section className="py-12 px-4 bg-gray-50">
+        <div className="container-custom">
+          {/* Key Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[
+              {
+                icon: '📊',
+                label: 'Total Requests (7d)',
+                value: stats.totalRequests.toLocaleString(),
+                change: `${stats.requestChange > 0 ? '+' : ''}${
+                  stats.requestChange
+                }%`,
+                positive: stats.requestChange >= 0,
+                gradient: 'from-blue-500 to-indigo-500',
+              },
+              {
+                icon: '⚡',
+                label: 'Avg Latency',
+                value: `${stats.avgLatency}ms`,
+                change: `${stats.latencyChange > 0 ? '+' : ''}${
+                  stats.latencyChange
+                }%`,
+                positive: stats.latencyChange <= 0,
+                gradient: 'from-purple-500 to-pink-500',
+              },
+              {
+                icon: '✅',
+                label: 'Success Rate',
+                value: `${stats.avgSuccessRate}%`,
+                change: `${stats.successChange > 0 ? '+' : ''}${
+                  stats.successChange
+                }%`,
+                positive: stats.successChange >= 0,
+                gradient: 'from-green-500 to-emerald-500',
+              },
+              {
+                icon: '💰',
+                label: 'Est. Weekly Cost',
+                value: `$${stats.totalCost.toFixed(2)}`,
+                change: 'Last 7 days',
+                positive: true,
+                gradient: 'from-yellow-500 to-orange-500',
+              },
           ].map((stat, idx) => (
             <div
               key={idx}
@@ -702,7 +727,7 @@ export default function AdvancedDashboard() {
             </p>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
