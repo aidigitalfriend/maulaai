@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { CodeBracketIcon } from '@heroicons/react/24/outline';
+import {
+  CodeBracketIcon,
+  ArrowTopRightOnSquareIcon,
+  SunIcon,
+  SparklesIcon,
+  Cog6ToothIcon,
+} from '@heroicons/react/24/outline';
 import CanvasMode from './canvas-build/CanvasMode';
 
 interface ChatRightPanelProps {
@@ -10,6 +16,10 @@ interface ChatRightPanelProps {
   theme?: 'default' | 'neural';
   agentId?: string;
   agentName?: string;
+  externalUrl?: string;
+  onToggleTheme?: () => void;
+  onToggleSettings?: () => void;
+  isSettingsActive?: boolean;
 }
 
 export default function ChatRightPanel({
@@ -18,6 +28,10 @@ export default function ChatRightPanel({
   theme = 'default',
   agentId,
   agentName,
+  externalUrl,
+  onToggleTheme,
+  onToggleSettings,
+  isSettingsActive = false,
 }: ChatRightPanelProps) {
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const isNeural = theme === 'neural';
@@ -36,28 +50,108 @@ export default function ChatRightPanel({
 
   return (
     <>
-      {/* Canvas Trigger Panel */}
+      {/* Right Sidebar Panel */}
       <div
-        className={`w-12 flex-shrink-0 flex flex-col border-l ${sidebarBg} transition-all duration-300`}
+        className={`w-14 flex-shrink-0 flex flex-col border-l ${sidebarBg} transition-all duration-300`}
       >
-        {/* Canvas Icon Button */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <button
-            onClick={handleOpenCanvas}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group ${
-              isNeural
-                ? 'bg-gradient-to-br from-purple-600/20 to-cyan-600/20 hover:from-purple-600/40 hover:to-cyan-600/40 ring-1 ring-purple-500/30 hover:ring-purple-500/50'
-                : 'bg-indigo-100 hover:bg-indigo-200 ring-1 ring-indigo-200 hover:ring-indigo-300'
-            }`}
-            title="Open Canvas"
-          >
-            <CodeBracketIcon
-              className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-                isNeural ? 'text-cyan-400' : 'text-indigo-600'
+        {/* Icon buttons container */}
+        <div className="flex-1 flex flex-col items-center pt-4 space-y-4">
+          {/* Canvas Icon Button */}
+          <div className="flex flex-col items-center">
+            <button
+              onClick={handleOpenCanvas}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group ${
+                isNeural
+                  ? 'bg-gradient-to-br from-purple-600/20 to-cyan-600/20 hover:from-purple-600/40 hover:to-cyan-600/40 ring-1 ring-purple-500/30 hover:ring-purple-500/50'
+                  : 'bg-indigo-100 hover:bg-indigo-200 ring-1 ring-indigo-200 hover:ring-indigo-300'
               }`}
-            />
-          </button>
-          <span className={`mt-2 text-[10px] ${textMuted}`}>Canvas</span>
+              title="Open Canvas"
+            >
+              <CodeBracketIcon
+                className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                  isNeural ? 'text-cyan-400' : 'text-indigo-600'
+                }`}
+              />
+            </button>
+            <span className={`mt-1 text-[9px] ${textMuted}`}>Canvas</span>
+          </div>
+
+          {/* Divider */}
+          <div className={`w-8 h-px ${isNeural ? 'bg-gray-700' : 'bg-gray-200'}`} />
+
+          {/* External Link */}
+          {externalUrl && (
+            <div className="flex flex-col items-center">
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group ${
+                  isNeural
+                    ? 'hover:bg-gray-800 ring-1 ring-gray-700 hover:ring-cyan-500/30'
+                    : 'hover:bg-gray-100 ring-1 ring-gray-200 hover:ring-gray-300'
+                }`}
+                title="Open in new tab"
+              >
+                <ArrowTopRightOnSquareIcon
+                  className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                    isNeural ? 'text-gray-400 group-hover:text-cyan-400' : 'text-gray-500 group-hover:text-indigo-600'
+                  }`}
+                />
+              </a>
+              <span className={`mt-1 text-[9px] ${textMuted}`}>External</span>
+            </div>
+          )}
+
+          {/* Theme Toggle */}
+          {onToggleTheme && (
+            <div className="flex flex-col items-center">
+              <button
+                onClick={onToggleTheme}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group ${
+                  isNeural
+                    ? 'hover:bg-cyan-500/20 ring-1 ring-gray-700 hover:ring-cyan-500/30'
+                    : 'hover:bg-gray-100 ring-1 ring-gray-200 hover:ring-gray-300'
+                }`}
+                title={isNeural ? 'Switch to Light Mode' : 'Switch to Neural Mode'}
+              >
+                {isNeural ? (
+                  <SunIcon className={`w-5 h-5 transition-transform group-hover:scale-110 text-cyan-400`} />
+                ) : (
+                  <SparklesIcon className={`w-5 h-5 transition-transform group-hover:scale-110 text-gray-500 group-hover:text-indigo-600`} />
+                )}
+              </button>
+              <span className={`mt-1 text-[9px] ${textMuted}`}>Theme</span>
+            </div>
+          )}
+
+          {/* Settings */}
+          {onToggleSettings && (
+            <div className="flex flex-col items-center">
+              <button
+                onClick={onToggleSettings}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group ${
+                  isSettingsActive
+                    ? isNeural
+                      ? 'bg-purple-500/20 ring-1 ring-purple-500/50'
+                      : 'bg-indigo-100 ring-1 ring-indigo-300'
+                    : isNeural
+                      ? 'hover:bg-purple-500/20 ring-1 ring-gray-700 hover:ring-purple-500/30'
+                      : 'hover:bg-gray-100 ring-1 ring-gray-200 hover:ring-gray-300'
+                }`}
+                title="Agent Settings"
+              >
+                <Cog6ToothIcon
+                  className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                    isSettingsActive
+                      ? isNeural ? 'text-purple-400' : 'text-indigo-600'
+                      : isNeural ? 'text-gray-400 group-hover:text-purple-400' : 'text-gray-500 group-hover:text-indigo-600'
+                  }`}
+                />
+              </button>
+              <span className={`mt-1 text-[9px] ${textMuted}`}>Settings</span>
+            </div>
+          )}
         </div>
 
         {/* Bottom indicator */}

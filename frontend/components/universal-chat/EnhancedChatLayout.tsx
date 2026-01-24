@@ -3,10 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Bars3Icon,
-  SunIcon,
-  SparklesIcon,
-  Cog6ToothIcon,
-  ArrowTopRightOnSquareIcon,
   CodeBracketIcon,
 } from '@heroicons/react/24/outline';
 import ChatSessionSidebar from './ChatSessionSidebar';
@@ -150,25 +146,8 @@ function EnhancedChatLayoutContent({
             </div>
           </div>
 
-          {/* Right: External link + Canvas (mobile) + Theme toggle + Settings */}
+          {/* Right: Canvas button for mobile only */}
           <div className="flex items-center space-x-2">
-            {/* External Link */}
-            {externalUrl && (
-              <a
-                href={externalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`p-2 rounded-lg transition-all ${
-                  isNeural
-                    ? 'hover:bg-gray-800 text-gray-400 hover:text-cyan-400'
-                    : 'hover:bg-gray-100 text-gray-500 hover:text-indigo-600'
-                }`}
-                title="Open in new tab"
-              >
-                <ArrowTopRightOnSquareIcon className="w-5 h-5" />
-              </a>
-            )}
-
             {/* Canvas Button - Mobile Only */}
             <button
               onClick={() => setIsMobileCanvasOpen(true)}
@@ -180,44 +159,6 @@ function EnhancedChatLayoutContent({
               title="Open Canvas"
             >
               <CodeBracketIcon className="w-5 h-5" />
-            </button>
-
-            {/* Theme Toggle */}
-            {showThemeToggle && (
-              <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-all ${
-                  isNeural
-                    ? 'hover:bg-cyan-500/20 text-cyan-400'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-                title={
-                  isNeural ? 'Switch to Light Mode' : 'Switch to Neural Mode'
-                }
-              >
-                {isNeural ? (
-                  <SunIcon className="w-5 h-5" />
-                ) : (
-                  <SparklesIcon className="w-5 h-5" />
-                )}
-              </button>
-            )}
-
-            {/* Settings Button */}
-            <button
-              onClick={handleSettingsToggle}
-              className={`p-2 rounded-lg transition-all ${
-                activeLeftPanel === 'settings'
-                  ? isNeural
-                    ? 'bg-purple-500/20 text-purple-400'
-                    : 'bg-indigo-100 text-indigo-600'
-                  : isNeural
-                    ? 'hover:bg-purple-500/20 text-purple-400'
-                    : 'hover:bg-gray-100 text-gray-600'
-              }`}
-              title="Agent Settings"
-            >
-              <Cog6ToothIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -297,6 +238,10 @@ function EnhancedChatLayoutContent({
             theme={theme}
             agentId={agentId}
             agentName={agentName}
+            externalUrl={externalUrl}
+            onToggleTheme={showThemeToggle ? toggleTheme : undefined}
+            onToggleSettings={handleSettingsToggle}
+            isSettingsActive={activeLeftPanel === 'settings'}
           />
         </div>
       </div>
