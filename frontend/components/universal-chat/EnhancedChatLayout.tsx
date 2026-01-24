@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Bars3Icon,
   CodeBracketIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -132,11 +131,11 @@ function EnhancedChatLayoutContent({
           />
         )}
 
-        {/* Mobile Header Bar - Only shown on mobile */}
+        {/* Mobile Header Bar - Only shown on mobile - Transparent */}
         {isMobile && (
           <>
-            <div className={`absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1.5 ${headerBg} border-b`}>
-              {/* Left: Logo + Menu button stacked */}
+            <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1.5">
+              {/* Left: Logo + Arrow to open sidebar */}
               <div className="flex flex-col items-center">
                 <img
                   src="/images/logos/company-logo.png"
@@ -148,12 +147,12 @@ function EnhancedChatLayoutContent({
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     className={`p-1 rounded transition-colors ${
                       isNeural
-                        ? 'hover:bg-gray-800 text-gray-400'
-                        : 'hover:bg-gray-100 text-gray-500'
+                        ? 'hover:bg-gray-800/50 text-gray-400'
+                        : 'hover:bg-gray-100/50 text-gray-500'
                     }`}
                     title="Toggle sidebar"
                   >
-                    <Bars3Icon className="w-4 h-4" />
+                    <ChevronDownIcon className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -168,10 +167,10 @@ function EnhancedChatLayoutContent({
                   isMobileMenuOpen
                     ? isNeural
                       ? 'bg-cyan-500/20 text-cyan-400'
-                      : 'bg-indigo-100 text-indigo-600'
+                      : 'bg-indigo-100/80 text-indigo-600'
                     : isNeural
-                      ? 'hover:bg-gray-800 text-gray-400'
-                      : 'hover:bg-gray-100 text-gray-500'
+                      ? 'hover:bg-gray-800/50 text-gray-400'
+                      : 'hover:bg-gray-100/50 text-gray-500'
                 }`}
                 title="Toggle menu"
               >
@@ -183,10 +182,10 @@ function EnhancedChatLayoutContent({
               </button>
             </div>
 
-            {/* Mobile Dropdown Menu */}
+            {/* Mobile Dropdown Menu - Icons only, horizontal */}
             {isMobileMenuOpen && (
               <div 
-                className={`absolute top-[52px] right-2 z-50 rounded-xl shadow-xl border overflow-hidden transition-all ${
+                className={`absolute top-[44px] right-2 z-50 rounded-xl shadow-xl border p-2 flex items-center space-x-1 transition-all ${
                   isNeural
                     ? 'bg-gray-900/95 border-cyan-500/30 backdrop-blur-xl'
                     : 'bg-white/95 border-gray-200 backdrop-blur-xl'
@@ -198,14 +197,14 @@ function EnhancedChatLayoutContent({
                     setIsMobileCanvasOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                     isNeural
-                      ? 'hover:bg-cyan-500/20 text-gray-300'
-                      : 'hover:bg-gray-100 text-gray-700'
+                      ? 'hover:bg-cyan-500/20 ring-1 ring-gray-700'
+                      : 'hover:bg-gray-100 ring-1 ring-gray-200'
                   }`}
+                  title="Canvas"
                 >
                   <CodeBracketIcon className={`w-5 h-5 ${isNeural ? 'text-cyan-400' : 'text-indigo-500'}`} />
-                  <span className="text-sm font-medium">Canvas</span>
                 </button>
 
                 {/* External Link */}
@@ -215,14 +214,14 @@ function EnhancedChatLayoutContent({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                       isNeural
-                        ? 'hover:bg-cyan-500/20 text-gray-300'
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'hover:bg-cyan-500/20 ring-1 ring-gray-700'
+                        : 'hover:bg-gray-100 ring-1 ring-gray-200'
                     }`}
+                    title="External"
                   >
                     <ArrowTopRightOnSquareIcon className={`w-5 h-5 ${isNeural ? 'text-gray-400' : 'text-gray-500'}`} />
-                    <span className="text-sm font-medium">External</span>
                   </a>
                 )}
 
@@ -233,18 +232,18 @@ function EnhancedChatLayoutContent({
                       toggleTheme();
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                       isNeural
-                        ? 'hover:bg-cyan-500/20 text-gray-300'
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'hover:bg-cyan-500/20 ring-1 ring-gray-700'
+                        : 'hover:bg-gray-100 ring-1 ring-gray-200'
                     }`}
+                    title="Theme"
                   >
                     {isNeural ? (
                       <SunIcon className="w-5 h-5 text-cyan-400" />
                     ) : (
                       <SparklesIcon className="w-5 h-5 text-gray-500" />
                     )}
-                    <span className="text-sm font-medium">Theme</span>
                   </button>
                 )}
 
@@ -254,14 +253,14 @@ function EnhancedChatLayoutContent({
                     handleSettingsToggle();
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 transition-colors ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                     isNeural
-                      ? 'hover:bg-purple-500/20 text-gray-300'
-                      : 'hover:bg-gray-100 text-gray-700'
+                      ? 'hover:bg-purple-500/20 ring-1 ring-gray-700'
+                      : 'hover:bg-gray-100 ring-1 ring-gray-200'
                   }`}
+                  title="Settings"
                 >
                   <Cog6ToothIcon className={`w-5 h-5 ${isNeural ? 'text-purple-400' : 'text-gray-500'}`} />
-                  <span className="text-sm font-medium">Settings</span>
                 </button>
               </div>
             )}
