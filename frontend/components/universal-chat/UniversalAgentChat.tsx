@@ -449,6 +449,16 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       }
 
       try {
+        // Strip base64 image data to prevent 413 errors
+        // Replace inline base64 images with just the alt text reference
+        let contentToSave = message.content;
+        if (contentToSave && typeof contentToSave === 'string') {
+          // Replace markdown images with base64 data: ![alt](data:image/...) -> [Image: alt]
+          contentToSave = contentToSave.replace(/!\[([^\]]*)\]\(data:image\/[^)]+\)/g, '[Generated Image: $1]');
+          // Also replace any standalone base64 data URLs
+          contentToSave = contentToSave.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]{100,}/g, '[base64 image data]');
+        }
+
         const response = await fetch(`/api/chat/sessions/${sessionId}`, {
           method: 'POST',
           headers: {
@@ -457,7 +467,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           credentials: 'include',
           body: JSON.stringify({
             role: message.role,
-            content: message.content,
+            content: contentToSave,
             agentId: agent.id, // Always include agentId for proper session association
           }),
         });
@@ -1008,9 +1018,16 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           let preview: string | undefined;
           try {
             const result = await readPreview(file);
-            const trimmed =
-              result.length > 4000 ? `${result.slice(0, 4000)}...` : result;
-            preview = trimmed;
+            // For images, keep full base64 data URL for AI vision
+            // For text files, truncate to avoid memory issues
+            if (file.type.startsWith('image/')) {
+              // Keep full base64 for images (needed for AI vision)
+              preview = result;
+            } else {
+              const trimmed =
+                result.length > 4000 ? `${result.slice(0, 4000)}...` : result;
+              preview = trimmed;
+            }
           } catch (err) {
             console.warn(
               'Preview read failed, skipping preview for',

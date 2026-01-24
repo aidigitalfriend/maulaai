@@ -779,19 +779,29 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
           if (attachments && attachments.length > 0) {
             for (const attachment of attachments) {
               if (attachment.type?.startsWith('image/')) {
-                if (attachment.url) {
+                // Prefer base64 data over URL since OpenAI can't access our server URLs
+                // The 'data' field contains base64 preview, 'url' is the server URL
+                let imageUrl: string | null = null;
+                
+                if (attachment.data && attachment.data.startsWith('data:image/')) {
+                  // Already a base64 data URL
+                  imageUrl = attachment.data;
+                } else if (attachment.data && attachment.data.length > 100 && !attachment.data.startsWith('http') && !attachment.data.startsWith('File available')) {
+                  // Likely raw base64 - convert to data URL
+                  imageUrl = `data:${attachment.type};base64,${attachment.data}`;
+                } else if (attachment.url && (attachment.url.startsWith('data:') || attachment.url.startsWith('https://oaidalleapiprodscus'))) {
+                  // OpenAI can access data URLs and its own Azure blob URLs
+                  imageUrl = attachment.url;
+                }
+                
+                if (imageUrl) {
                   userContent.push({
                     type: 'image_url',
-                    image_url: { url: attachment.url, detail: 'auto' },
+                    image_url: { url: imageUrl, detail: 'auto' },
                   });
-                } else if (attachment.data) {
-                  const base64Data = attachment.data.includes('base64,')
-                    ? attachment.data
-                    : `data:${attachment.type};base64,${attachment.data}`;
-                  userContent.push({
-                    type: 'image_url',
-                    image_url: { url: base64Data, detail: 'auto' },
-                  });
+                  console.log('[chat-stream] Added image attachment, type:', attachment.type, 'url-prefix:', imageUrl.substring(0, 50));
+                } else {
+                  console.log('[chat-stream] Skipping image attachment - no accessible URL. Has data:', !!attachment.data, 'Has url:', !!attachment.url);
                 }
               }
             }
