@@ -367,8 +367,10 @@ settings.local.*
 **/tts-cache/
 **/audio-temp/
 
-# User uploaded files
+# User uploaded files (but not API routes)
 **/uploads/
+!**/app/api/uploads/
+!**/app/api/uploads/**
 **/user-uploads/
 **/user-data/
 public/uploads/
