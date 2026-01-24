@@ -97,11 +97,6 @@ export default function SslCheckerPage() {
           </p>
         </div>
       </section>
-              Verify SSL/TLS certificate validity and security
-            </p>
-          </div>
-        </div>
-      </header>
 
       <main className="container-custom py-12">
 
