@@ -1162,42 +1162,33 @@ export async function modifyFile(filename, content, mode = 'replace', userId = '
       };
     }
     
-    // Save previous version
-    if (file.content) {
-      file.previousVersions.push({
-        version: file.version,
-        content: file.content,
-        modifiedAt: file.updatedAt,
-        size: file.size,
-      });
-      // Keep only last 10 versions
-      if (file.previousVersions.length > 10) {
-        file.previousVersions = file.previousVersions.slice(-10);
-      }
-    }
-    
-    // Update content
+    // Calculate new content
+    let newContent;
     if (mode === 'append') {
-      file.content = (file.content || '') + content;
+      newContent = (file.content || '') + content;
     } else {
-      file.content = content;
+      newContent = content;
     }
     
-    file.size = Buffer.byteLength(file.content, 'utf-8');
-    file.version += 1;
-    file.updatedAt = new Date();
+    const newSize = Buffer.byteLength(newContent, 'utf-8');
     
-    await file.save();
+    // Update the file using findOneAndUpdate
+    await AgentFile.findOneAndUpdate(
+      { id: file.id },
+      { $set: { 
+        content: newContent, 
+        size: newSize 
+      } }
+    );
     
-    console.log(`[AgentFiles] Modified file: ${file.path} (v${file.version}, ${file.size} bytes)`);
+    console.log(`[AgentFiles] Modified file: ${file.path} (${newSize} bytes)`);
     
     return {
       success: true,
       filename: file.filename,
       path: file.path,
       mode,
-      size: file.size,
-      version: file.version,
+      size: newSize,
       message: `File ${mode === 'append' ? 'updated' : 'replaced'} successfully: ${file.filename}`,
     };
   } catch (error) {
@@ -1306,10 +1297,11 @@ export async function deleteFile(filename, userId = 'default') {
       }
     }
     
-    // Soft delete in Database
-    file.isDeleted = true;
-    file.updatedAt = new Date();
-    await file.save();
+    // Soft delete in Database using findOneAndUpdate
+    await AgentFile.findOneAndUpdate(
+      { id: file.id },
+      { $set: { isDeleted: true, deletedAt: new Date() } }
+    );
     
     console.log(`[AgentFiles] Deleted file: ${file.path} (was in ${file.storageType})`);
     
