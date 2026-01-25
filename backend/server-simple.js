@@ -28,6 +28,7 @@ import {
   initializeTracking,
   trackVisitorMiddleware,
   trackPageViewMiddleware,
+  trackApiMiddleware,
 } from './lib/tracking-middleware.js';
 import analyticsRouter from './routes/analytics.js';
 import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
@@ -71,6 +72,7 @@ app.use(cookieParser());
 app.use(initializeTracking);
 app.use(trackVisitorMiddleware);
 app.use(trackPageViewMiddleware);
+app.use(trackApiMiddleware);
 
 // ----------------------------
 // Lightweight metrics tracker
