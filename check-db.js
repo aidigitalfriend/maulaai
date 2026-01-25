@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function checkDatabase() {
@@ -18,11 +18,11 @@ async function checkDatabase() {
     console.log('💬 Chat Sessions:', sessionCount);
 
     // Check chat interactions
-    const interactionCount = await prisma.chatInteraction.count();
+    const interactionCount = await prisma.chatAnalyticsInteraction.count();
     console.log('💭 Chat Interactions:', interactionCount);
 
     // Check subscriptions
-    const subscriptionCount = await prisma.subscription.count();
+    const subscriptionCount = await prisma.agentSubscription.count();
     console.log('💳 Subscriptions:', subscriptionCount);
 
     // Check transactions
@@ -31,26 +31,22 @@ async function checkDatabase() {
 
     // Sample recent chat interactions
     console.log('\n📝 Recent Chat Interactions:');
-    const recentInteractions = await prisma.chatInteraction.findMany({
+    const recentInteractions = await prisma.chatAnalyticsInteraction.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
-        session: {
-          include: {
-            user: true,
-            agent: true
-          }
-        }
+        user: true,
+        agent: true
       }
     });
 
     recentInteractions.forEach((interaction, i) => {
-      console.log(`${i+1}. ${interaction.session.user.email} ↔ ${interaction.session.agent.name}: ${interaction.userMessage?.substring(0, 50)}...`);
+      console.log(`${i+1}. ${interaction.user?.email || 'Anonymous'} ↔ ${interaction.agent?.name || 'Unknown'}: ${interaction.messages?.[0]?.content?.substring(0, 50) || 'No message'}...`);
     });
 
     // Sample recent subscriptions
     console.log('\n💳 Recent Subscriptions:');
-    const recentSubs = await prisma.subscription.findMany({
+    const recentSubs = await prisma.agentSubscription.findMany({
       take: 3,
       orderBy: { createdAt: 'desc' },
       include: {

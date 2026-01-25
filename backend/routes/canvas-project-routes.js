@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import CanvasFileManager from '../canvas/canvas-file-manager.js';
+import CanvasFileManager from '../services/canvas/canvas-file-manager.js';
 
 const router = express.Router();
 const canvasManager = new CanvasFileManager();

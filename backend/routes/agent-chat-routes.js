@@ -530,3 +530,5 @@ function getAgentPersonality(_agentId) {
     systemPrompt: 'You are a helpful AI assistant with access to various tools and capabilities.',
   };
 }
+
+export default router;
