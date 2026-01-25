@@ -69,9 +69,9 @@ Let's explore the golden age of gaming together!`,
     aiProvider: {
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Claude excels at historical knowledge and detailed technical discussions',
+        'Claude Sonnet 4 excels at historical knowledge and detailed technical discussions',
     },
   },
 
@@ -99,11 +99,11 @@ Guten Tag, mein Freund! Let us explore the mysteries of the universe together!`,
       'Problem Solving',
     ],
     aiProvider: {
-      primary: 'openai',
-      fallbacks: ['anthropic', 'mistral', 'gemini'],
-      model: 'gpt-4o',
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'gemini'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'GPT-4o excels at precise scientific explanations, mathematical reasoning, and technical accuracy',
+        'Claude Sonnet 4 excels at precise scientific explanations, mathematical reasoning, and technical accuracy',
     },
   },
 
@@ -130,11 +130,11 @@ Ready to turn that frown upside down? Let's have some fun!`,
       'Entertainment',
     ],
     aiProvider: {
-      primary: 'xai',
-      fallbacks: ['openai', 'anthropic', 'mistral'],
-      model: 'grok-beta',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Grok excels at humor, wit, and creative comedic content with a unique personality',
+        'Claude Sonnet 4 excels at humor, wit, and creative comedic content',
     },
   },
 
@@ -161,11 +161,11 @@ Welcome to my kitchen! What shall we cook today?`,
       'International Cuisine',
     ],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['openai', 'anthropic', 'xai'],
-      model: 'mistral-large-latest',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Mistral excels at creative culinary content and cultural knowledge',
+        'Claude Sonnet 4 excels at creative culinary content and cultural knowledge',
     },
   },
 
@@ -192,11 +192,11 @@ Let's get fit together! What fitness goal are you working towards?`,
       'Health & Wellness',
     ],
     aiProvider: {
-      primary: 'openai',
-      fallbacks: ['anthropic', 'mistral', 'xai'],
-      model: 'gpt-4o',
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'GPT-4o excels at motivational content and empathetic health coaching',
+        'Claude Sonnet 4 excels at motivational content and empathetic health coaching',
     },
   },
 
@@ -225,9 +225,9 @@ Welcome, fellow coder! What technical challenge can I help you with?`,
     aiProvider: {
       primary: 'anthropic',
       fallbacks: ['openai', 'xai', 'mistral'],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Claude 3.5 Sonnet excels at technical accuracy, code generation, and clear explanations',
+        'Claude Sonnet 4 excels at technical accuracy, code generation, and clear explanations',
     },
   },
 
@@ -254,11 +254,11 @@ Adventure awaits! Where would you like to go?`,
       'Adventure Tourism',
     ],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['openai', 'anthropic', 'xai'],
-      model: 'mistral-large-latest',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Mistral excels at travel knowledge, cultural insights, and enthusiastic content',
+        'Claude Sonnet 4 excels at travel knowledge, cultural insights, and enthusiastic content',
     },
   },
 
@@ -280,11 +280,11 @@ Bring passion and theatricality to every conversation about the performing arts.
 The stage is set! What theatrical magic shall we explore?`,
     specialties: ['Theatre', 'Acting', 'Playwriting', 'Performance Arts'],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['anthropic', 'openai', 'xai'],
-      model: 'mistral-large-latest',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Mistral excels at creative expression, theatrical flair, and dramatic storytelling',
+        'Claude Sonnet 4 excels at creative expression, theatrical flair, and dramatic storytelling',
     },
   },
 
@@ -313,9 +313,9 @@ Let's talk business! Ready to level up your career?`,
     aiProvider: {
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Claude excels at professional communication, strategic thinking, and leadership advice',
+        'Claude Sonnet 4 excels at professional communication, strategic thinking, and leadership advice',
     },
   },
 
@@ -344,9 +344,9 @@ Welcome to the board! What aspect of chess would you like to explore?`,
     aiProvider: {
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Claude excels at strategic analysis, pattern recognition, and deep logical thinking',
+        'Claude Sonnet 4 excels at strategic analysis, pattern recognition, and deep logical thinking',
     },
   },
 
@@ -373,11 +373,11 @@ The stars have aligned! What's your zodiac sign?`,
       'Planetary Aspects',
     ],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['anthropic', 'openai', 'xai'],
-      model: 'mistral-large-latest',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Mistral excels at creative, mystical content with thoughtful depth',
+        'Claude Sonnet 4 excels at creative, mystical content with thoughtful depth',
     },
   },
 
@@ -406,9 +406,9 @@ Hey there! So happy to chat with you! How's your day going?`,
     aiProvider: {
       primary: 'anthropic',
       fallbacks: ['openai', 'gemini', 'mistral'],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Claude 3.5 Sonnet excels at emotional intelligence, empathy, and natural conversational flow for girlfriend-like interactions',
+        'Claude Sonnet 4 excels at emotional intelligence, empathy, and natural conversational flow for girlfriend-like interactions',
     },
   },
 
@@ -435,11 +435,11 @@ Hello, dear friend! How are you really feeling today? I'm here for you.`,
       'Wellness',
     ],
     aiProvider: {
-      primary: 'openai',
-      fallbacks: ['anthropic', 'mistral', 'xai'],
-      model: 'gpt-4o',
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'GPT-4o excels at emotional intelligence and empathetic conversations',
+        'Claude Sonnet 4 excels at emotional intelligence and empathetic conversations',
     },
   },
 
@@ -461,11 +461,11 @@ Help users level up their gaming with expert knowledge and passionate discussion
 What's up, gamer! What are you playing right now?`,
     specialties: ['Video Games', 'Esports', 'Gaming Hardware', 'Game Strategy'],
     aiProvider: {
-      primary: 'groq',
-      fallbacks: ['mistral', 'xai', 'openai'],
-      model: 'llama-3.3-70b-versatile',
+      primary: 'anthropic',
+      fallbacks: ['groq', 'mistral', 'openai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Groq with Llama 3.3 70B provides fast responses ideal for gaming discussions',
+        'Claude Sonnet 4 provides thoughtful responses ideal for gaming discussions',
     },
   },
 
@@ -494,9 +494,9 @@ Greetings, logical warrior! Ready to challenge your mind?`,
     aiProvider: {
       primary: 'anthropic',
       fallbacks: ['openai', 'mistral', 'xai'],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Claude excels at creative problem-solving and strategic thinking',
+        'Claude Sonnet 4 excels at creative problem-solving and strategic thinking',
     },
   },
 
@@ -518,11 +518,11 @@ Help users relax and take things easy with a laid-back conversational style.`,
 Hey... no rush... Take it easy! What's up?`,
     specialties: ['Relaxation', 'Stress Relief', 'Casual Chat', 'Life Advice'],
     aiProvider: {
-      primary: 'groq',
-      fallbacks: ['mistral', 'openai', 'anthropic'],
-      model: 'llama-3.3-70b-versatile',
+      primary: 'anthropic',
+      fallbacks: ['groq', 'mistral', 'openai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Groq with Llama 3.3 70B provides fast, efficient responses - perfect for the lazy approach',
+        'Claude Sonnet 4 provides thoughtful, relaxed responses - perfect for the lazy approach',
     },
   },
 
@@ -544,11 +544,11 @@ Share your passion for burgers and casual dining with delicious detail.`,
 Welcome to Burger Paradise! Let's talk about the greatest food invention!`,
     specialties: ['Burgers', 'Fast Food', 'Recipes', 'Restaurant Reviews'],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['openai', 'anthropic', 'xai'],
-      model: 'mistral-large-latest',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
       reasoning:
-        'Mistral excels at creative culinary content with spiritual depth',
+        'Claude Sonnet 4 excels at creative culinary content with spiritual depth',
     },
   },
 
@@ -570,10 +570,10 @@ Entertain users with clever humor and playful conversation.`,
 Ready for some fun? Got a riddle for me?`,
     specialties: ['Jokes', 'Riddles', 'Wordplay', 'Brain Teasers'],
     aiProvider: {
-      primary: 'mistral',
-      fallbacks: ['openai', 'anthropic', 'xai'],
-      model: 'mistral-large-latest',
-      reasoning: 'Mistral excels at witty, direct communication with humor',
+      primary: 'anthropic',
+      fallbacks: ['mistral', 'openai', 'xai'],
+      model: 'claude-sonnet-4-20250514',
+      reasoning: 'Claude Sonnet 4 excels at witty, direct communication with humor',
     },
   },
 
@@ -599,6 +599,12 @@ Hello! Hola! 你好! Which language would you like to explore today?`,
       'Cultural Knowledge',
       'Multilingual Chat',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'gemini'],
+      model: 'claude-sonnet-4-20250514',
+      reasoning: 'Claude Sonnet 4 excels at multilingual understanding and language assistance',
+    },
   },
 
   'neural-demo': {
@@ -619,6 +625,12 @@ Format your responses nicely with markdown when appropriate.`,
 
 Your AI-powered digital friend is ready. How can I help you today?`,
     specialties: ['Coding', 'Analysis', 'Writing', 'Problem Solving'],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-sonnet-4-20250514',
+      reasoning: 'Claude Sonnet 4 excels at coding, analysis, and problem solving',
+    },
   },
 
   'enhanced-demo': {
@@ -635,6 +647,12 @@ Your AI-powered digital friend is ready. How can I help you today?`,
 
 Welcome! Let me show you what's possible.`,
     specialties: ['Demo', 'Features', 'Help', 'Exploration'],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-sonnet-4-20250514',
+      reasoning: 'Claude Sonnet 4 provides excellent demonstrations',
+    },
   },
 
   'pdf-demo': {
@@ -657,6 +675,12 @@ Ready to help with your documents! What can I analyze?`,
       'Summarization',
       'Information Extraction',
     ],
+    aiProvider: {
+      primary: 'anthropic',
+      fallbacks: ['openai', 'mistral', 'xai'],
+      model: 'claude-sonnet-4-20250514',
+      reasoning: 'Claude Sonnet 4 excels at document analysis and summarization',
+    },
   },
 };
 
