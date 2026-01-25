@@ -17,6 +17,22 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
     ? ['query', 'error', 'warn']
     : ['error'],
   errorFormat: 'pretty',
+  
+  // Production optimizations
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  
+  // Connection pooling for production
+  ...(process.env.NODE_ENV === 'production' && {
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL + '?pgbouncer=true&connection_limit=10&pool_timeout=20',
+      },
+    },
+  }),
 });
 
 if (process.env.NODE_ENV !== 'production') {
