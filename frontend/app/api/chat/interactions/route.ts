@@ -37,12 +37,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'messages array is required' }, { status: 400 });
     }
 
+    // Resolve agentId - could be a slug or actual ID
+    let resolvedAgentId: string | undefined = undefined;
+    if (agentId) {
+      // First try to find by ID directly
+      let agent = await prisma.agent.findUnique({ where: { id: agentId } });
+      
+      // If not found, try by slug
+      if (!agent) {
+        agent = await prisma.agent.findFirst({ where: { slug: agentId } });
+      }
+      
+      // If still not found, try by name (case-insensitive)
+      if (!agent) {
+        agent = await prisma.agent.findFirst({ 
+          where: { name: { equals: agentId, mode: 'insensitive' } } 
+        });
+      }
+      
+      resolvedAgentId = agent?.id;
+    }
+
     // Save to ChatAnalyticsInteraction using correct schema fields
     const interaction = await prisma.chatAnalyticsInteraction.create({
       data: {
         conversationId,
         userId: user.id,
-        agentId: agentId || undefined,
+        agentId: resolvedAgentId,
         messages: messages,  // JSON field stores all messages
         turnCount: messages.length,
         durationMs: metrics?.responseTime || 0,
