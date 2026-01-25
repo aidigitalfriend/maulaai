@@ -52,17 +52,19 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
         style={{ animationDelay: `${index * 100}ms` }}
         onClick={handleCardClick}
       >
-        <div className={`agent-avatar bg-gradient-to-r ${agent.color}`}>
+        <div className={`agent-avatar bg-gradient-to-r ${agent.color} relative overflow-hidden`}>
           <Image
             src={agent.avatarUrl}
             alt={`${agent.name} avatar`}
-            fill
-            className="w-12 h-12 rounded-full object-cover"
+            width={64}
+            height={64}
+            className="w-16 h-16 rounded-full object-cover"
+            unoptimized
           />
         </div>
 
-        <div className="flex-1">
-          <h3 className="agent-name">{agent.name}</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="agent-name truncate" title={agent.name}>{agent.name}</h3>
 
           <div className="text-sm font-medium text-brand-600 mb-3">
             {agent.specialty}

@@ -133,6 +133,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: '*.wikimedia.org' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'picsum.photos' },
       // AWS S3 bucket for chat uploads and media
       { protocol: 'https', hostname: 'one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com' },
       { protocol: 'https', hostname: '*.s3.ap-southeast-1.amazonaws.com' },

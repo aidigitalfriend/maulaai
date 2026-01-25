@@ -243,16 +243,20 @@
   .agent-card {
     @apply card card-padding cursor-pointer;
     @apply hover:border-brand-200 transition-all duration-300;
+    overflow: visible;
   }
 
   .agent-avatar {
     @apply w-16 h-16 rounded-full bg-gradient-to-r from-brand-400 to-accent-400;
     @apply flex items-center justify-center text-white text-2xl font-bold mb-4;
     @apply group-hover:scale-110 transition-transform duration-300;
+    flex-shrink: 0;
   }
 
   .agent-name {
     @apply text-lg font-semibold text-neural-800 mb-2;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   .agent-description {
