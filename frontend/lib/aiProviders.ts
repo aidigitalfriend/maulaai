@@ -12,7 +12,7 @@ export interface ProviderModelOption {
 // ============================================================================
 // AGENT-SPECIFIC AI PROVIDER OPTIONS
 // ============================================================================
-// Universal Structure for ALL agents:
+// Universal Structure for ALL agents with MULTIPLE models per provider:
 // 1. [Agent Name] - Anthropic Claude (Character/Personality AI)
 // 2. Maula AI - Mistral (Platform Branding)
 // 3. Image Generator - OpenAI (Best for image generation/vision)
@@ -25,67 +25,86 @@ export interface ProviderModelOption {
 // Helper to create standard agent options with agent-specific name
 function createAgentOptions(agentName: string): ProviderModelOption[] {
   return [
-    // 1. Agent Character - Anthropic Claude (For personality/character AI)
+    // 1. Agent Character - Anthropic Claude (Multiple models)
     {
       provider: 'anthropic',
       label: agentName,
       models: [
-        { value: 'claude-sonnet-4-20250514', label: 'Advanced Mode' },
-        { value: 'claude-3-haiku-20240307', label: 'Quick Mode' },
+        { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4 (Latest)' },
+        { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+        { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Most Capable)' },
+        { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
+        { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fast)' },
       ],
     },
-    // 2. Maula AI - Mistral (Platform Branding)
+    // 2. Maula AI - Mistral (Multiple models)
     {
       provider: 'mistral',
       label: 'Maula AI',
       models: [
-        { value: 'mistral-large-latest', label: 'Advanced Mode' },
-        { value: 'mistral-small-latest', label: 'Quick Mode' },
+        { value: 'mistral-large-latest', label: 'Mistral Large (Best)' },
+        { value: 'mistral-medium-latest', label: 'Mistral Medium' },
+        { value: 'mistral-small-latest', label: 'Mistral Small (Fast)' },
+        { value: 'open-mistral-nemo', label: 'Mistral Nemo' },
+        { value: 'codestral-latest', label: 'Codestral (Code)' },
       ],
     },
-    // 3. Image Generator - OpenAI (Best for vision & image generation)
+    // 3. Image Generator - OpenAI (Multiple models)
     {
       provider: 'openai',
       label: 'Image Generator',
       models: [
-        { value: 'gpt-4o', label: 'Best Quality' },
-        { value: 'gpt-4o-mini', label: 'Fast Mode' },
+        { value: 'gpt-4o', label: 'GPT-4o (Best Vision)' },
+        { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast)' },
+        { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+        { value: 'gpt-4', label: 'GPT-4' },
+        { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (Economy)' },
+        { value: 'o1-preview', label: 'o1 Preview (Reasoning)' },
+        { value: 'o1-mini', label: 'o1 Mini (Fast Reasoning)' },
       ],
     },
-    // 4. Code Builder - Cerebras (Fastest inference for code)
+    // 4. Code Builder - Cerebras (Multiple models)
     {
       provider: 'cerebras',
       label: 'Code Builder',
       models: [
-        { value: 'llama-3.3-70b', label: 'Advanced Code' },
-        { value: 'llama3.1-8b', label: 'Quick Code' },
+        { value: 'llama-3.3-70b', label: 'Llama 3.3 70B (Best)' },
+        { value: 'llama3.1-70b', label: 'Llama 3.1 70B' },
+        { value: 'llama3.1-8b', label: 'Llama 3.1 8B (Fast)' },
       ],
     },
-    // 5. Fast Response - Groq (Ultra-fast inference)
+    // 5. Fast Response - Groq (Multiple models)
     {
       provider: 'groq',
       label: 'Fast Response',
       models: [
-        { value: 'llama-3.3-70b-versatile', label: 'Balanced' },
-        { value: 'llama-3.1-8b-instant', label: 'Instant' },
+        { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Best)' },
+        { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B' },
+        { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant)' },
+        { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
+        { value: 'gemma2-9b-it', label: 'Gemma 2 9B' },
       ],
     },
-    // 6. Planner - xAI Grok (Strategic planning)
+    // 6. Planner - xAI Grok (Multiple models)
     {
       provider: 'xai',
       label: 'Planner',
       models: [
-        { value: 'grok-3', label: 'Deep Planning' },
-        { value: 'grok-2', label: 'Quick Planning' },
+        { value: 'grok-3', label: 'Grok 3 (Latest)' },
+        { value: 'grok-3-mini', label: 'Grok 3 Mini (Fast)' },
+        { value: 'grok-2', label: 'Grok 2' },
+        { value: 'grok-2-mini', label: 'Grok 2 Mini' },
       ],
     },
-    // 7. Research Helper - xAI Grok (Deep analysis & search)
+    // 7. Research Helper - xAI Grok (Multiple models)
     {
       provider: 'xai',
       label: 'Research Helper',
       models: [
-        { value: 'grok-3', label: 'Deep Analysis' },
-        { value: 'grok-2', label: 'Quick Search' },
+        { value: 'grok-3', label: 'Grok 3 (Deep Analysis)' },
+        { value: 'grok-3-mini', label: 'Grok 3 Mini (Quick)' },
+        { value: 'grok-2', label: 'Grok 2' },
+        { value: 'grok-2-mini', label: 'Grok 2 Mini' },
       ],
     },
   ];
@@ -247,58 +266,68 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 // GET AGENT-SPECIFIC CANVAS PROVIDER OPTIONS
 // ============================================================================
-// For Canvas app - same 7 options as chat with agent-specific naming
+// For Canvas app - same 7 options as chat with multiple models
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
   const displayName = agentName || getAgentDisplayName(agentId);
   
   return {
-    // 1. [Agent Name] - Anthropic Claude (character/personality)
+    // 1. [Agent Name] - Anthropic Claude (Multiple models)
     anthropic: {
       name: displayName,
       models: [
-        { id: 'claude-sonnet-4-20250514', name: 'Advanced Mode' },
-        { id: 'claude-3-haiku-20240307', name: 'Quick Mode' },
+        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4 (Latest)' },
+        { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+        { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+        { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku (Fast)' },
       ],
     },
-    // 2. Maula AI - Mistral (Platform Branding)
+    // 2. Maula AI - Mistral (Multiple models)
     mistral: {
       name: 'Maula AI',
       models: [
-        { id: 'mistral-large-latest', name: 'Advanced Mode' },
-        { id: 'mistral-small-latest', name: 'Quick Mode' },
+        { id: 'mistral-large-latest', name: 'Mistral Large' },
+        { id: 'mistral-medium-latest', name: 'Mistral Medium' },
+        { id: 'mistral-small-latest', name: 'Mistral Small' },
+        { id: 'codestral-latest', name: 'Codestral (Code)' },
       ],
     },
-    // 3. Image Generator - OpenAI (Vision & Image)
+    // 3. Image Generator - OpenAI (Multiple models)
     openai: {
       name: 'Image Generator',
       models: [
-        { id: 'gpt-4o', name: 'Best Quality' },
-        { id: 'gpt-4o-mini', name: 'Fast Mode' },
+        { id: 'gpt-4o', name: 'GPT-4o (Best)' },
+        { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+        { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
+        { id: 'o1-mini', name: 'o1 Mini (Reasoning)' },
       ],
     },
-    // 4. Code Builder - Cerebras (Fastest for code)
+    // 4. Code Builder - Cerebras (Multiple models)
     cerebras: {
       name: 'Code Builder',
       models: [
-        { id: 'llama-3.3-70b', name: 'Advanced Code' },
-        { id: 'llama3.1-8b', name: 'Quick Code' },
+        { id: 'llama-3.3-70b', name: 'Llama 3.3 70B (Best)' },
+        { id: 'llama3.1-70b', name: 'Llama 3.1 70B' },
+        { id: 'llama3.1-8b', name: 'Llama 3.1 8B (Fast)' },
       ],
     },
-    // 5. Fast Response - Groq (Ultra-fast inference)
+    // 5. Fast Response - Groq (Multiple models)
     groq: {
       name: 'Fast Response',
       models: [
-        { id: 'llama-3.3-70b-versatile', name: 'Balanced' },
-        { id: 'llama-3.1-8b-instant', name: 'Instant' },
+        { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B' },
+        { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B (Instant)' },
+        { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
       ],
     },
-    // 6. Planner - xAI Grok
+    // 6. Planner - xAI Grok (Multiple models)
     xai: {
       name: 'Planner',
       models: [
-        { id: 'grok-3', name: 'Deep Planning' },
-        { id: 'grok-2', name: 'Quick Planning' },
+        { id: 'grok-3', name: 'Grok 3 (Latest)' },
+        { id: 'grok-3-mini', name: 'Grok 3 Mini' },
+        { id: 'grok-2', name: 'Grok 2' },
       ],
     },
   };
@@ -349,67 +378,86 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
 // DEFAULT USER-FRIENDLY AI OPTIONS (Fallback for unknown agents)
 // ============================================================================
 export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
-  // 1. AI Assistant - Anthropic Claude (Default for character AI)
+  // 1. AI Assistant - Anthropic Claude (Multiple models)
   {
     provider: 'anthropic',
     label: 'AI Assistant',
     models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Advanced Mode' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Mode' },
+      { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4 (Latest)' },
+      { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
+      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Most Capable)' },
+      { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
+      { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fast)' },
     ],
   },
-  // 2. Maula AI - Mistral (Platform Branding)
+  // 2. Maula AI - Mistral (Multiple models)
   {
     provider: 'mistral',
     label: 'Maula AI',
     models: [
-      { value: 'mistral-large-latest', label: 'Advanced Mode' },
-      { value: 'mistral-small-latest', label: 'Quick Mode' },
+      { value: 'mistral-large-latest', label: 'Mistral Large (Best)' },
+      { value: 'mistral-medium-latest', label: 'Mistral Medium' },
+      { value: 'mistral-small-latest', label: 'Mistral Small (Fast)' },
+      { value: 'open-mistral-nemo', label: 'Mistral Nemo' },
+      { value: 'codestral-latest', label: 'Codestral (Code)' },
     ],
   },
-  // 3. Image Generator - OpenAI (Vision & Image)
+  // 3. Image Generator - OpenAI (Multiple models)
   {
     provider: 'openai',
     label: 'Image Generator',
     models: [
-      { value: 'gpt-4o', label: 'Best Quality' },
-      { value: 'gpt-4o-mini', label: 'Fast Mode' },
+      { value: 'gpt-4o', label: 'GPT-4o (Best Vision)' },
+      { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast)' },
+      { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+      { value: 'gpt-4', label: 'GPT-4' },
+      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (Economy)' },
+      { value: 'o1-preview', label: 'o1 Preview (Reasoning)' },
+      { value: 'o1-mini', label: 'o1 Mini (Fast Reasoning)' },
     ],
   },
-  // 4. Code Builder - Cerebras (Fastest for code)
+  // 4. Code Builder - Cerebras (Multiple models)
   {
     provider: 'cerebras',
     label: 'Code Builder',
     models: [
-      { value: 'llama-3.3-70b', label: 'Advanced Code' },
-      { value: 'llama3.1-8b', label: 'Quick Code' },
+      { value: 'llama-3.3-70b', label: 'Llama 3.3 70B (Best)' },
+      { value: 'llama3.1-70b', label: 'Llama 3.1 70B' },
+      { value: 'llama3.1-8b', label: 'Llama 3.1 8B (Fast)' },
     ],
   },
-  // 5. Fast Response - Groq (Ultra-fast inference)
+  // 5. Fast Response - Groq (Multiple models)
   {
     provider: 'groq',
     label: 'Fast Response',
     models: [
-      { value: 'llama-3.3-70b-versatile', label: 'Balanced' },
-      { value: 'llama-3.1-8b-instant', label: 'Instant' },
+      { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Best)' },
+      { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B' },
+      { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B (Instant)' },
+      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
+      { value: 'gemma2-9b-it', label: 'Gemma 2 9B' },
     ],
   },
-  // 6. Planner - xAI Grok (Strategic planning)
+  // 6. Planner - xAI Grok (Multiple models)
   {
     provider: 'xai',
     label: 'Planner',
     models: [
-      { value: 'grok-3', label: 'Deep Planning' },
-      { value: 'grok-2', label: 'Quick Planning' },
+      { value: 'grok-3', label: 'Grok 3 (Latest)' },
+      { value: 'grok-3-mini', label: 'Grok 3 Mini (Fast)' },
+      { value: 'grok-2', label: 'Grok 2' },
+      { value: 'grok-2-mini', label: 'Grok 2 Mini' },
     ],
   },
-  // 7. Research Helper - xAI Grok (Analysis & Search)
+  // 7. Research Helper - xAI Grok (Multiple models)
   {
     provider: 'xai',
     label: 'Research Helper',
     models: [
-      { value: 'grok-3', label: 'Deep Analysis' },
-      { value: 'grok-2', label: 'Quick Search' },
+      { value: 'grok-3', label: 'Grok 3 (Deep Analysis)' },
+      { value: 'grok-3-mini', label: 'Grok 3 Mini (Quick)' },
+      { value: 'grok-2', label: 'Grok 2' },
+      { value: 'grok-2-mini', label: 'Grok 2 Mini' },
     ],
   },
 ];

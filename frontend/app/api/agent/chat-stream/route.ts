@@ -14,6 +14,85 @@ function getApiKeys() {
   };
 }
 
+// ============================================================================
+// FALLBACK MODEL CONFIGURATION
+// ============================================================================
+// When a model fails, automatically try the next one in the list
+// ============================================================================
+const FALLBACK_MODELS: Record<string, string[]> = {
+  // OpenAI fallback chain
+  openai: [
+    'gpt-4o',
+    'gpt-4o-mini',
+    'gpt-4-turbo',
+    'gpt-4',
+    'gpt-3.5-turbo',
+  ],
+  // Anthropic fallback chain
+  anthropic: [
+    'claude-sonnet-4-20250514',
+    'claude-3-5-sonnet-20241022',
+    'claude-3-opus-20240229',
+    'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307',
+  ],
+  // Mistral fallback chain
+  mistral: [
+    'mistral-large-latest',
+    'mistral-medium-latest',
+    'mistral-small-latest',
+    'open-mistral-nemo',
+  ],
+  // Groq fallback chain
+  groq: [
+    'llama-3.3-70b-versatile',
+    'llama-3.1-70b-versatile',
+    'llama-3.1-8b-instant',
+    'mixtral-8x7b-32768',
+    'gemma2-9b-it',
+  ],
+  // Cerebras fallback chain
+  cerebras: [
+    'llama-3.3-70b',
+    'llama3.1-70b',
+    'llama3.1-8b',
+  ],
+  // xAI fallback chain
+  xai: [
+    'grok-3',
+    'grok-3-mini',
+    'grok-2',
+    'grok-2-mini',
+  ],
+};
+
+// Get next fallback model for a provider
+function getNextFallbackModel(provider: string, currentModel: string): string | null {
+  const models = FALLBACK_MODELS[provider];
+  if (!models) return null;
+  
+  const currentIndex = models.indexOf(currentModel);
+  if (currentIndex === -1) {
+    // If current model not in list, return first model
+    return models[0];
+  }
+  if (currentIndex >= models.length - 1) {
+    // No more fallbacks
+    return null;
+  }
+  return models[currentIndex + 1];
+}
+
+// Get all fallback models after current one
+function getRemainingFallbacks(provider: string, currentModel: string): string[] {
+  const models = FALLBACK_MODELS[provider];
+  if (!models) return [];
+  
+  const currentIndex = models.indexOf(currentModel);
+  if (currentIndex === -1) return models;
+  return models.slice(currentIndex + 1);
+}
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX_MESSAGES = 200; // 200 messages per hour - increased for better UX
@@ -823,84 +902,131 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             });
           }
 
-          // Helper function to stream OpenAI-compatible responses
-          // Returns true if controller was closed due to error
+          // Helper function to stream OpenAI-compatible responses with automatic fallback
+          // Returns true if controller was closed due to error (after all fallbacks exhausted)
           async function streamOpenAICompatible(
             apiUrl: string,
             apiKey: string,
             defaultModel: string,
-            supportsVision: boolean = true
+            supportsVision: boolean = true,
+            providerName: string = 'openai'  // For fallback lookup
           ): Promise<boolean> {
             // Use text-only messages for providers that don't support vision
             const messagesToSend = supportsVision ? messages : getTextOnlyMessages();
+            const requestedModel = model || defaultModel;
             
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: model || defaultModel,
-                messages: messagesToSend,
-                temperature,
-                max_tokens: maxTokens,
-                stream: true,
-              }),
-            });
+            // Try the requested model first, then fallbacks
+            const modelsToTry = [requestedModel, ...getRemainingFallbacks(providerName, requestedModel)];
+            
+            for (const currentModel of modelsToTry) {
+              console.log(`[chat-stream] Trying ${providerName} with model: ${currentModel}`);
+              
+              try {
+                const response = await fetch(apiUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${apiKey}`,
+                  },
+                  body: JSON.stringify({
+                    model: currentModel,
+                    messages: messagesToSend,
+                    temperature,
+                    max_tokens: maxTokens,
+                    stream: true,
+                  }),
+                });
 
-            if (!response.ok) {
-              const errorData = await response.text();
-              console.error(`API error (${apiUrl}):`, errorData);
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ error: `API error: ${response.status}` })}\n\n`
-                )
-              );
-              return true; // Indicate error occurred
-            }
+                if (!response.ok) {
+                  const errorData = await response.text();
+                  console.error(`[chat-stream] ${providerName} model ${currentModel} failed:`, errorData);
+                  
+                  // Check if there's a next fallback model
+                  const nextModel = getNextFallbackModel(providerName, currentModel);
+                  if (nextModel) {
+                    console.log(`[chat-stream] Trying fallback model: ${nextModel}`);
+                    continue; // Try next model
+                  }
+                  
+                  // No more fallbacks, report error
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({ error: `API error: ${response.status}` })}\n\n`
+                    )
+                  );
+                  return true; // Indicate error occurred
+                }
 
-            const reader = response.body?.getReader();
-            if (!reader) {
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ error: 'No reader available' })}\n\n`
-                )
-              );
-              return true;
-            }
+                const reader = response.body?.getReader();
+                if (!reader) {
+                  const nextModel = getNextFallbackModel(providerName, currentModel);
+                  if (nextModel) continue;
+                  
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({ error: 'No reader available' })}\n\n`
+                    )
+                  );
+                  return true;
+                }
 
-            const decoder = new TextDecoder();
-            let buffer = '';
+                // Success! Log which model worked
+                if (currentModel !== requestedModel) {
+                  console.log(`[chat-stream] ✅ Fallback successful! Using ${currentModel} instead of ${requestedModel}`);
+                }
 
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
+                const decoder = new TextDecoder();
+                let buffer = '';
 
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
 
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6);
-                  if (data === '[DONE]') continue;
+                  buffer += decoder.decode(value, { stream: true });
+                  const lines = buffer.split('\n');
+                  buffer = lines.pop() || '';
 
-                  try {
-                    const parsed = JSON.parse(data);
-                    const token = parsed.choices?.[0]?.delta?.content;
-                    if (token) {
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
-                      );
+                  for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                      const data = line.slice(6);
+                      if (data === '[DONE]') continue;
+
+                      try {
+                        const parsed = JSON.parse(data);
+                        const token = parsed.choices?.[0]?.delta?.content;
+                        if (token) {
+                          controller.enqueue(
+                            encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
+                          );
+                        }
+                      } catch (e) {
+                        // Skip invalid JSON
+                      }
                     }
-                  } catch (e) {
-                    // Skip invalid JSON
                   }
                 }
+                return false; // No error, successfully streamed
+                
+              } catch (fetchError) {
+                console.error(`[chat-stream] Fetch error for ${currentModel}:`, fetchError);
+                // Try next model if available
+                const nextModel = getNextFallbackModel(providerName, currentModel);
+                if (nextModel) {
+                  console.log(`[chat-stream] Network error, trying fallback: ${nextModel}`);
+                  continue;
+                }
+                // No more fallbacks
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ error: 'Network error' })}\n\n`
+                  )
+                );
+                return true;
               }
             }
-            return false; // No error
+            
+            // All models exhausted
+            return true;
           }
 
           // Route to the appropriate provider
@@ -1035,54 +1161,60 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = true;
             }
           } else if (provider === 'mistral' && apiKeys.mistral) {
-            // Mistral uses OpenAI-compatible API
+            // Mistral uses OpenAI-compatible API with automatic fallback
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
-              'mistral-large-2411',  // Latest Mistral Large 2
-              true  // Mistral supports vision with pixtral models
+              'mistral-large-latest',  // Default to latest large
+              true,  // Mistral supports vision with pixtral models
+              'mistral'  // Provider name for fallback lookup
             );
           } else if (provider === 'xai' && apiKeys.xai) {
-            // xAI Grok uses OpenAI-compatible API
+            // xAI Grok uses OpenAI-compatible API with automatic fallback
             hadError = await streamOpenAICompatible(
               'https://api.x.ai/v1/chat/completions',
               apiKeys.xai,
               'grok-3',  // Latest Grok 3
-              true  // Grok supports vision
+              true,  // Grok supports vision
+              'xai'  // Provider name for fallback lookup
             );
           } else if (provider === 'groq' && apiKeys.groq) {
-            // Groq uses OpenAI-compatible API
+            // Groq uses OpenAI-compatible API with automatic fallback
             hadError = await streamOpenAICompatible(
               'https://api.groq.com/openai/v1/chat/completions',
               apiKeys.groq,
-              'llama-3.3-70b-specdec',  // Ultra-fast with speculative decoding
-              false  // Groq doesn't support vision in streaming mode
+              'llama-3.3-70b-versatile',  // Best quality
+              false,  // Groq doesn't support vision in streaming mode
+              'groq'  // Provider name for fallback lookup
             );
           } else if (provider === 'cerebras' && apiKeys.cerebras) {
-            // Cerebras uses OpenAI-compatible API
+            // Cerebras uses OpenAI-compatible API with automatic fallback
             hadError = await streamOpenAICompatible(
               'https://api.cerebras.ai/v1/chat/completions',
               apiKeys.cerebras,
               'llama-3.3-70b',  // Fast inference
-              false  // Cerebras doesn't support vision
+              false,  // Cerebras doesn't support vision
+              'cerebras'  // Provider name for fallback lookup
             );
           } else if (provider === 'openai' && apiKeys.openai) {
-            // OpenAI with automatic failover to backup key
+            // OpenAI with automatic model fallback AND backup key failover
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4.1',  // Latest GPT-4.1
-              true  // OpenAI supports vision with GPT-4o
+              'gpt-4o',  // Best quality
+              true,  // OpenAI supports vision with GPT-4o
+              'openai'  // Provider name for fallback lookup
             );
             
-            // If primary key failed and we have a backup, try it
+            // If primary key failed completely and we have a backup, try it
             if (hadError && apiKeys.openaiBackup) {
               console.log('[chat-stream] Primary OpenAI key failed, trying backup key...');
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4.1',  // Latest GPT-4.1
-                true
+                'gpt-4o',
+                true,
+                'openai'
               );
               if (!hadError) {
                 console.log('[chat-stream] ✅ Backup OpenAI key succeeded!');
@@ -1094,7 +1226,9 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4.1'  // Latest GPT-4.1
+              'gpt-4o',  // Best quality
+              true,
+              'openai'
             );
             
             // If primary key failed and we have a backup, try it
@@ -1103,7 +1237,9 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4.1'  // Latest GPT-4.1
+                'gpt-4o',  // Best quality
+                true,
+                'openai'
               );
             }
           } else if (apiKeys.openaiBackup) {
@@ -1112,7 +1248,9 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openaiBackup,
-              'gpt-4.1'  // Latest GPT-4.1
+              'gpt-4o',  // Best quality
+              true,
+              'openai'
             );
           } else if (apiKeys.mistral) {
             // Fallback to Mistral
@@ -1120,7 +1258,9 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
-              'mistral-large-2411'  // Latest Mistral Large 2
+              'mistral-large-latest',  // Best quality
+              true,
+              'mistral'
             );
           } else {
             controller.enqueue(
