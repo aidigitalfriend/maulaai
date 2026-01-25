@@ -1,24 +1,24 @@
 import { MultiModalAIService } from './multimodal-ai-service.js';
+
+// All agents now use Anthropic Claude Sonnet 4 as primary for best quality
 const AGENT_AI_ASSIGNMENTS = {
-  // Companion Category - OpenAI (Conversational & Empathetic)
+  // Companion Category - Anthropic (Best for empathy & conversation)
   'julie-girlfriend': {
     agentId: 'julie-girlfriend',
-    // OpenAI primary for girlfriend-style companion
-    primaryProvider: 'openai',
-    // Fallback: Anthropic → xAI → Mistral → Gemini
-    fallbackProviders: ['anthropic', 'xai', 'mistral', 'gemini'],
-    model: 'gpt-4o',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['openai', 'xai', 'mistral', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Emotional support',
-      'Relationship advice',
-      'Conversational companionship',
+      'Relationship conversation',
+      'Intimate companionship',
     ],
   },
   'emma-emotional': {
     agentId: 'emma-emotional',
-    primaryProvider: 'openai',
-    fallbackProviders: ['anthropic', 'xai', 'mistral', 'gemini'],
-    model: 'gpt-4o',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['openai', 'xai', 'mistral', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Emotional support',
       'Mental wellness',
@@ -29,9 +29,8 @@ const AGENT_AI_ASSIGNMENTS = {
   'ben-sega': {
     agentId: 'ben-sega',
     primaryProvider: 'anthropic',
-    // Anthropic primary, then OpenAI → Mistral → xAI → Gemini
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Code generation',
       'Software development',
@@ -42,7 +41,7 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'tech-wizard',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Advanced programming',
       'System architecture',
@@ -53,42 +52,41 @@ const AGENT_AI_ASSIGNMENTS = {
     agentId: 'knight-logic',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Logic puzzles',
       'Creative problem solving',
       'Strategic thinking',
     ],
   },
-  // Education Category - Anthropic First
+  // Education Category - Anthropic
   einstein: {
     agentId: 'einstein',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Physics', 'Scientific research', 'Mathematical concepts'],
   },
   'professor-astrology': {
     agentId: 'professor-astrology',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['anthropic', 'openai', 'xai'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Astrology', 'Mystical guidance', 'Cosmic wisdom'],
   },
-  // Entertainment Category - Mistral (Creative & Fun)
+  // Entertainment Category - Anthropic (Creative & Fun)
   'comedy-king': {
     agentId: 'comedy-king',
-    primaryProvider: 'mistral',
-    // Mistral primary, then OpenAI → Anthropic → xAI → Gemini
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Humor generation', 'Entertainment', 'Creative comedy'],
   },
   'drama-queen': {
     agentId: 'drama-queen',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Dramatic storytelling',
       'Theater arts',
@@ -97,24 +95,24 @@ const AGENT_AI_ASSIGNMENTS = {
   },
   'nid-gaming': {
     agentId: 'nid-gaming',
-    primaryProvider: 'groq',
-    fallbackProviders: ['mistral', 'xai', 'openai'],
-    model: 'llama-3.3-70b-versatile',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['groq', 'mistral', 'xai', 'openai'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Gaming advice', 'Game strategies', 'Gaming culture'],
   },
-  // Business Category - Mix of Anthropic & Mistral
+  // Business Category - Anthropic
   'mrs-boss': {
     agentId: 'mrs-boss',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Leadership', 'Business strategy', 'Management'],
   },
   'chess-player': {
     agentId: 'chess-player',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Strategic thinking',
       'Game analysis',
@@ -123,9 +121,9 @@ const AGENT_AI_ASSIGNMENTS = {
   },
   'lazy-pawn': {
     agentId: 'lazy-pawn',
-    primaryProvider: 'groq',
-    fallbackProviders: ['mistral', 'openai', 'anthropic'],
-    model: 'llama-3.3-70b-versatile',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['groq', 'mistral', 'openai'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Efficient solutions',
       'Productivity hacks',
@@ -134,51 +132,51 @@ const AGENT_AI_ASSIGNMENTS = {
   },
   'rook-jokey': {
     agentId: 'rook-jokey',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
-      'Business humor',
-      'Light business advice',
-      'Workplace comedy',
+      'Witty truth-telling',
+      'Honest feedback',
+      'Sarcastic wisdom',
     ],
   },
-  // Health & Wellness - Anthropic (Safety-focused)
+  // Health & Wellness - Anthropic
   'fitness-guru': {
     agentId: 'fitness-guru',
     primaryProvider: 'anthropic',
     fallbackProviders: ['openai', 'mistral', 'xai', 'gemini'],
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Fitness training', 'Health advice', 'Wellness coaching'],
   },
-  // Home & Lifestyle - Mistral First
+  // Home & Lifestyle - Anthropic
   'chef-biew': {
     agentId: 'chef-biew',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: ['Cooking recipes', 'Culinary creativity', 'Food culture'],
   },
   'travel-buddy': {
     agentId: 'travel-buddy',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
       'Travel planning',
       'Destination information',
       'Cultural insights',
     ],
   },
-  // Creative - Mistral (Creative Excellence)
+  // Creative - Anthropic
   'bishop-burger': {
     agentId: 'bishop-burger',
-    primaryProvider: 'mistral',
-    fallbackProviders: ['openai', 'anthropic', 'xai', 'gemini'],
-    model: 'mistral-large-latest',
+    primaryProvider: 'anthropic',
+    fallbackProviders: ['mistral', 'openai', 'xai', 'gemini'],
+    model: 'claude-sonnet-4-20250514',
     specializedFor: [
-      'Creative projects',
-      'Artistic inspiration',
+      'Burger philosophy',
+      'Food metaphors',
       'Creative problem solving',
     ],
   },
