@@ -76,7 +76,7 @@ const validateRequest = (req, res, next) => {
 // GET /api/chat/sessions - Get user's chat sessions
 router.get('/sessions', requireAuth, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const { agentId, limit = 20, offset = 0, active = true } = req.query;
 
     const query = { userId };
@@ -134,7 +134,7 @@ router.get(
   async (req, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const session = await ChatSession.findOne({
         sessionId,
@@ -208,7 +208,7 @@ router.post(
   async (req, res) => {
     try {
       const { agentId, name, description, tags, settings } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const agent = agentId ? await Agent.findById(agentId) : null;
 
@@ -294,7 +294,7 @@ router.delete(
   async (req, res) => {
     try {
       const { sessionId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Delete the session
       const sessionResult = await ChatSession.deleteOne({
@@ -348,7 +348,7 @@ router.post(
   async (req, res) => {
     try {
       const { conversationId, agentId, messages, summary, metrics } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const agent = agentId ? await Agent.findById(agentId) : null;
 
@@ -391,7 +391,7 @@ router.post(
 // GET /api/chat/settings - Get user chat settings
 router.get('/settings', requireAuth, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     let settings = await ChatSettings.findOne({ userId });
 
@@ -455,7 +455,7 @@ router.put(
   validateRequest,
   async (req, res) => {
     try {
-      const userId = req.user._id;
+      const userId = req.user.id;
       const updates = req.body;
 
       // Verify defaultAgent exists if provided
@@ -529,7 +529,7 @@ router.post(
         category,
         tags,
       } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Verify agent exists if provided
       if (agentId) {
@@ -643,7 +643,7 @@ router.post(
 // GET /api/chat/canvas/projects - List user's canvas projects
 router.get('/canvas/projects', requireAuth, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
     const { limit = 20, offset = 0, status = 'active' } = req.query;
 
     const projects = await ChatCanvasProject.find({
@@ -691,7 +691,7 @@ router.post(
         conversationId,
         settings,
       } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const projectId = `canvas-${Date.now()}-${Math.random()
         .toString(36)
@@ -738,7 +738,7 @@ router.get(
   async (req, res) => {
     try {
       const { projectId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const project = await ChatCanvasProject.findOne({
         projectId,
@@ -775,7 +775,7 @@ router.delete(
   async (req, res) => {
     try {
       const { projectId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const result = await ChatCanvasProject.deleteOne({
         projectId,
@@ -820,7 +820,7 @@ router.get(
   async (req, res) => {
     try {
       const { projectId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Verify project ownership
       const project = await ChatCanvasProject.findOne({ projectId, userId });
@@ -866,7 +866,7 @@ router.post(
   async (req, res) => {
     try {
       const { projectId, name, path, type, content, size, metadata } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Verify project ownership
       const project = await ChatCanvasProject.findOne({ projectId, userId });
@@ -927,7 +927,7 @@ router.get(
   async (req, res) => {
     try {
       const { fileId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       const file = await ChatCanvasFile.findOne({
         fileId,
@@ -968,7 +968,7 @@ router.get(
   async (req, res) => {
     try {
       const { projectId } = req.params;
-      const userId = req.user._id;
+      const userId = req.user.id;
       const { limit = 20, offset = 0 } = req.query;
 
       // Verify project ownership
@@ -1015,7 +1015,7 @@ router.post(
   async (req, res) => {
     try {
       const { projectId, prompt, status, result, error, metadata } = req.body;
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Verify project ownership
       const project = await ChatCanvasProject.findOne({ projectId, userId });

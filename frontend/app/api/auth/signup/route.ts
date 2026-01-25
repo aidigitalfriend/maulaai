@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { checkEnvironmentVariables } from '@/lib/environment-checker';
 import { notifyAdminNewUser, sendWelcomeEmail } from '@/lib/services/emailNotifications';
 
 /**
@@ -12,13 +11,9 @@ import { notifyAdminNewUser, sendWelcomeEmail } from '@/lib/services/emailNotifi
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check environment first
-    const envStatus = checkEnvironmentVariables();
-    if (!envStatus.isValid) {
-      console.error(
-        '❌ Auth signup failed - missing environment variables:',
-        envStatus.missing
-      );
+    // Check only DATABASE_URL is required for signup
+    if (!process.env.DATABASE_URL) {
+      console.error('❌ Auth signup failed - DATABASE_URL not configured');
       return NextResponse.json(
         { message: 'Server configuration error' },
         { status: 503 }
@@ -125,6 +120,14 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Signup error:', error);
+    // Log more details for debugging
+    if (error instanceof Error) {
+      console.error('Signup error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n'),
+      });
+    }
     return NextResponse.json(
       { message: 'Failed to create account' },
       { status: 500 }

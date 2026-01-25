@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { checkEnvironmentVariables } from '@/lib/environment-checker';
 import { authenticator } from 'otplib';
 
 /**
@@ -12,13 +11,9 @@ import { authenticator } from 'otplib';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check environment first
-    const envStatus = checkEnvironmentVariables();
-    if (!envStatus.isValid) {
-      console.error(
-        '❌ Auth login failed - missing environment variables:',
-        envStatus.missing
-      );
+    // Check only DATABASE_URL is required for login
+    if (!process.env.DATABASE_URL) {
+      console.error('❌ Auth login failed - DATABASE_URL not configured');
       return NextResponse.json(
         { message: 'Server configuration error' },
         { status: 503 }
