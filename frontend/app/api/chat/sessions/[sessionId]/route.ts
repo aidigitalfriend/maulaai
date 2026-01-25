@@ -122,23 +122,42 @@ export async function GET(
       );
     }
 
-    // Auto-create session if it doesn't exist
+    // Auto-create session if it doesn't exist (using upsert for race condition safety)
     if (!session) {
-      session = await prisma.chatSession.create({
-        data: {
-          sessionId,
-          userId,
-          name: 'New Conversation',
-          isActive: true
-        },
-        include: {
-          messages: true
+      try {
+        session = await prisma.chatSession.upsert({
+          where: { sessionId },
+          update: {}, // No update needed, just return existing
+          create: {
+            sessionId,
+            userId,
+            name: 'New Conversation',
+            isActive: true
+          },
+          include: {
+            messages: true
+          }
+        });
+        console.log(
+          '[chat/sessions/id] Auto-created session:',
+          sessionId
+        );
+      } catch (upsertError: any) {
+        // If upsert fails due to race condition, fetch the session
+        if (upsertError.code === 'P2002') {
+          session = await prisma.chatSession.findFirst({
+            where: { sessionId, userId },
+            include: {
+              messages: {
+                orderBy: { createdAt: 'asc' }
+              }
+            }
+          });
         }
-      });
-      console.log(
-        '[chat/sessions/id] Auto-created session:',
-        sessionId
-      );
+        if (!session) {
+          throw upsertError;
+        }
+      }
     }
 
     // Transform messages to expected format
@@ -240,30 +259,61 @@ export async function POST(
     const prismaRole = roleMap[role.toLowerCase()] || 'user';
 
     if (!session) {
-      // Create new session with the first message
+      // Create new session with the first message using upsert to handle race conditions
       const sessionCount = await prisma.chatSession.count({ where: { userId } });
       
-      session = await prisma.chatSession.create({
-        data: {
-          sessionId,
-          userId,
-          name: role === 'user'
-            ? content.slice(0, 50) + (content.length > 50 ? '...' : '')
-            : `Conversation ${sessionCount + 1}`,
-          agentId: agentId || null,
-          isActive: true,
-          messages: {
-            create: {
-              role: prismaRole,
-              content,
-              metadata: attachments ? { attachments } : {}
-            }
+      try {
+        // Use upsert to handle concurrent session creation attempts
+        session = await prisma.chatSession.upsert({
+          where: { sessionId },
+          update: {
+            // If session already exists, just update the timestamp
+            updatedAt: now,
+            // Update agentId if not set
+            ...(agentId ? { agentId } : {})
+          },
+          create: {
+            sessionId,
+            userId,
+            name: role === 'user'
+              ? content.slice(0, 50) + (content.length > 50 ? '...' : '')
+              : `Conversation ${sessionCount + 1}`,
+            agentId: agentId || null,
+            isActive: true,
           }
+        });
+
+        console.log(
+          '[chat/sessions/id] Upserted session:',
+          sessionId
+        );
+      } catch (upsertError: any) {
+        // If upsert fails, try to fetch the existing session
+        if (upsertError.code === 'P2002') {
+          session = await prisma.chatSession.findFirst({
+            where: { sessionId, userId }
+          });
+          if (!session) {
+            throw new Error('Session creation race condition - session not found after conflict');
+          }
+          console.log('[chat/sessions/id] Found existing session after race condition:', sessionId);
+        } else {
+          throw upsertError;
+        }
+      }
+
+      // Create the message separately (since upsert can't do nested creates conditionally)
+      await prisma.chatMessage.create({
+        data: {
+          sessionId: session.sessionId,
+          role: prismaRole,
+          content,
+          metadata: attachments ? { attachments } : {}
         }
       });
 
       console.log(
-        '[chat/sessions/id] Created session with first message:',
+        '[chat/sessions/id] Added message to session:',
         sessionId
       );
     } else {
@@ -316,6 +366,11 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error adding message:', error);
+    console.error('[chat/sessions/POST] Error details:', {
+      name: (error as Error)?.name,
+      message: (error as Error)?.message,
+      stack: (error as Error)?.stack?.split('\n').slice(0, 5).join('\n')
+    });
     return NextResponse.json(
       { success: false, error: 'Failed to add message' },
       { status: 500 }

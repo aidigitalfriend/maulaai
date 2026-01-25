@@ -802,13 +802,38 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             content: userContent.length === 1 ? message : userContent,
           });
 
+          // Helper function to convert messages to text-only (for providers that don't support images)
+          function getTextOnlyMessages() {
+            return messages.map(m => {
+              if (typeof m.content === 'string') return m;
+              if (Array.isArray(m.content)) {
+                // Extract only text content, describe images
+                const textParts = m.content
+                  .filter((item: any) => item.type === 'text')
+                  .map((item: any) => item.text);
+                const imageCount = m.content.filter((item: any) => 
+                  item.type === 'image_url' || item.type === 'image'
+                ).length;
+                if (imageCount > 0) {
+                  textParts.push(`[User attached ${imageCount} image(s) - Note: This model does not support image analysis]`);
+                }
+                return { ...m, content: textParts.join('\n') };
+              }
+              return m;
+            });
+          }
+
           // Helper function to stream OpenAI-compatible responses
           // Returns true if controller was closed due to error
           async function streamOpenAICompatible(
             apiUrl: string,
             apiKey: string,
-            defaultModel: string
+            defaultModel: string,
+            supportsVision: boolean = true
           ): Promise<boolean> {
+            // Use text-only messages for providers that don't support vision
+            const messagesToSend = supportsVision ? messages : getTextOnlyMessages();
+            
             const response = await fetch(apiUrl, {
               method: 'POST',
               headers: {
@@ -817,7 +842,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               },
               body: JSON.stringify({
                 model: model || defaultModel,
-                messages,
+                messages: messagesToSend,
                 temperature,
                 max_tokens: maxTokens,
                 stream: true,
@@ -892,6 +917,44 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                 return content && content.trim().length > 0;
               });
 
+            // Convert OpenAI image format to Anthropic format
+            const convertToAnthropicFormat = (content: any): any => {
+              if (typeof content === 'string') return content;
+              if (!Array.isArray(content)) return content;
+              
+              return content.map((item: any) => {
+                if (item.type === 'text') return item;
+                if (item.type === 'image_url' && item.image_url?.url) {
+                  const url = item.image_url.url;
+                  
+                  // Handle base64 data URLs
+                  if (url.startsWith('data:')) {
+                    const matches = url.match(/^data:(image\/[^;]+);base64,(.+)$/);
+                    if (matches) {
+                      return {
+                        type: 'image',
+                        source: {
+                          type: 'base64',
+                          media_type: matches[1],
+                          data: matches[2]
+                        }
+                      };
+                    }
+                  }
+                  
+                  // Handle URL-based images
+                  return {
+                    type: 'image',
+                    source: {
+                      type: 'url',
+                      url: url
+                    }
+                  };
+                }
+                return item;
+              });
+            };
+
             try {
               const response = await fetch(
                 'https://api.anthropic.com/v1/messages',
@@ -910,8 +973,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                       systemMessage?.content || 'You are a helpful AI assistant.',
                     messages: chatMessages.map((m) => ({
                       role: m.role,
-                      content:
-                        typeof m.content === 'string' ? m.content : m.content,
+                      content: convertToAnthropicFormat(m.content),
                     })),
                     stream: true,
                   }),
@@ -977,35 +1039,40 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
-              'mistral-large-2411'  // Latest Mistral Large 2
+              'mistral-large-2411',  // Latest Mistral Large 2
+              true  // Mistral supports vision with pixtral models
             );
           } else if (provider === 'xai' && apiKeys.xai) {
             // xAI Grok uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.x.ai/v1/chat/completions',
               apiKeys.xai,
-              'grok-3'  // Latest Grok 3
+              'grok-3',  // Latest Grok 3
+              true  // Grok supports vision
             );
           } else if (provider === 'groq' && apiKeys.groq) {
             // Groq uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.groq.com/openai/v1/chat/completions',
               apiKeys.groq,
-              'llama-3.3-70b-specdec'  // Ultra-fast with speculative decoding
+              'llama-3.3-70b-specdec',  // Ultra-fast with speculative decoding
+              false  // Groq doesn't support vision in streaming mode
             );
           } else if (provider === 'cerebras' && apiKeys.cerebras) {
             // Cerebras uses OpenAI-compatible API
             hadError = await streamOpenAICompatible(
               'https://api.cerebras.ai/v1/chat/completions',
               apiKeys.cerebras,
-              'llama-3.3-70b'  // Fast inference
+              'llama-3.3-70b',  // Fast inference
+              false  // Cerebras doesn't support vision
             );
           } else if (provider === 'openai' && apiKeys.openai) {
             // OpenAI with automatic failover to backup key
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4.1'  // Latest GPT-4.1
+              'gpt-4.1',  // Latest GPT-4.1
+              true  // OpenAI supports vision with GPT-4o
             );
             
             // If primary key failed and we have a backup, try it
@@ -1014,7 +1081,8 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4.1'  // Latest GPT-4.1
+                'gpt-4.1',  // Latest GPT-4.1
+                true
               );
               if (!hadError) {
                 console.log('[chat-stream] ✅ Backup OpenAI key succeeded!');
