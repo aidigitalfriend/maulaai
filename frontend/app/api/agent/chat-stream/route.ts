@@ -153,6 +153,9 @@ export async function POST(request: NextRequest) {
     const agentConfig = getAgentConfig(agentId);
     const chatMode = (mode === 'advanced' ? 'advanced' : 'quick') as ChatMode;
     
+    // Debug: Log what getAgentConfig returned
+    console.log(`[chat-stream] getAgentConfig(${agentId}) returned: agentId=${agentConfig.agentId}, displayName=${agentConfig.displayName}, provider=${agentConfig.config.provider}`);
+    
     // Use requested provider if specified, otherwise use agent's configured provider
     const provider = requestedProvider || agentConfig.config.provider;
     
