@@ -457,22 +457,22 @@ const anthropicProvider: AIProvider = {
 
       // Handle tool calls (Anthropic format)
       if (content.type === 'tool_use' && enableTools) {
-      return JSON.stringify({
-        content: '',
-        tool_calls: [{
-          id: content.id,
-          type: 'function',
-          function: {
-            name: content.name,
-            arguments: JSON.stringify(content.input),
-          },
-        }],
-        finish_reason: 'tool_calls',
-      });
-    });
-    }
+        return JSON.stringify({
+          content: '',
+          tool_calls: [{
+            id: content.id,
+            type: 'function',
+            function: {
+              name: content.name,
+              arguments: JSON.stringify(content.input),
+            },
+          }],
+          finish_reason: 'tool_calls',
+        });
+      }
 
-    return content.text || "I apologize, but I couldn't generate a response right now.";
+      return content.text || "I apologize, but I couldn't generate a response right now.";
+    });
   },
 };
 

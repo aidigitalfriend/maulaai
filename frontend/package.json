@@ -50,6 +50,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/canvas-confetti": "^1.9.0",
     "@types/cypress": "^0.1.6",
     "@types/html2canvas": "^0.5.35",
@@ -146,7 +147,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
-    "@types/bcryptjs": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^25",
     "@types/nodemailer": "^7.0.5",

@@ -222,7 +222,7 @@ export const detectWithOpenAI = async (text) => {
 }
 
 // Language detection with Cohere
-export const detectWithCohere = async (text: string) => {
+export const detectWithCohere = async (text) => {
   if (!cohere) {
     throw new Error('Cohere API key not configured')
   }

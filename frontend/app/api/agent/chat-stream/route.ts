@@ -1172,7 +1172,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
               PROVIDER_CONFIGS.mistral.advanced,
-              'mistral'
+              'mistral',
               'mistral-large-latest'
             );
           } else {
