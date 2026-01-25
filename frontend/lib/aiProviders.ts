@@ -336,7 +336,7 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
   const options = getAgentProviderOptions(agentId);
   const targetProvider = provider || options[0]?.provider;
   const opt = options.find(o => o.provider === targetProvider);
-  return opt?.models[0]?.value || 'claude-sonnet-4-20250514';
+  return opt?.models[0]?.value || 'claude-opus-4-20250514';
 }
 
 // ============================================================================
@@ -350,7 +350,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'anthropic',
     label: 'AI Assistant',
     models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+      { value: 'claude-opus-4-20250514', label: 'Claude Opus 4' },
     ],
   },
   // 2. Maula AI - Mistral
@@ -358,7 +358,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'mistral',
     label: 'Maula AI',
     models: [
-      { value: 'mistral-large-latest', label: 'Mistral Large' },
+      { value: 'mistral-large-2501', label: 'Mistral Large 2501' },
     ],
   },
   // 3. Image Generator - OpenAI
@@ -366,7 +366,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'openai',
     label: 'Image Generator',
     models: [
-      { value: 'gpt-4o', label: 'GPT-4o (Best Vision)' },
+      { value: 'gpt-4.5-preview', label: 'GPT-4.5 Preview' },
     ],
   },
   // 4. Code Builder - Cerebras
@@ -374,7 +374,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'cerebras',
     label: 'Code Builder',
     models: [
-      { value: 'llama-3.3-70b', label: 'Llama 3.3 70B' },
+      { value: 'llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
     ],
   },
   // 5. Fast Response - Groq
@@ -382,7 +382,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'groq',
     label: 'Fast Response',
     models: [
-      { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B' },
+      { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
     ],
   },
   // 6. Planner - xAI Grok
@@ -390,7 +390,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'xai',
     label: 'Planner',
     models: [
-      { value: 'grok-3', label: 'Grok 3' },
+      { value: 'grok-3-beta', label: 'Grok 3 Beta' },
     ],
   },
   // 7. Research Helper - xAI Grok
@@ -398,7 +398,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     provider: 'xai',
     label: 'Research Helper',
     models: [
-      { value: 'grok-3', label: 'Grok 3' },
+      { value: 'grok-3-beta', label: 'Grok 3 Beta' },
     ],
   },
 ];
