@@ -1019,21 +1019,39 @@ router.get('/analytics', async (req, res) => {
     const agentUsageMap = new Map();
     
     // First, get per-agent feedback ratings for real success rate
+    // ChatFeedback doesn't have agentId - we need to get it through the session relation
     const agentFeedbackMap = new Map();
     try {
-      const agentFeedbacks = await prisma.chatFeedback.groupBy({
-        by: ['agentId'],
+      const feedbacksWithAgent = await prisma.chatFeedback.findMany({
         where: { userId },
-        _avg: { rating: true },
-        _count: true,
-      });
-      agentFeedbacks.forEach(fb => {
-        if (fb.agentId) {
-          agentFeedbackMap.set(fb.agentId, {
-            avgRating: fb._avg.rating || 0,
-            count: fb._count || 0,
-          });
+        select: {
+          rating: true,
+          session: {
+            select: { agentId: true }
+          }
         }
+      });
+      
+      // Group feedbacks by agentId manually
+      const agentFeedbackGroups = new Map();
+      feedbacksWithAgent.forEach(fb => {
+        const agentId = fb.session?.agentId;
+        if (agentId && fb.rating) {
+          if (!agentFeedbackGroups.has(agentId)) {
+            agentFeedbackGroups.set(agentId, { totalRating: 0, count: 0 });
+          }
+          const group = agentFeedbackGroups.get(agentId);
+          group.totalRating += fb.rating;
+          group.count++;
+        }
+      });
+      
+      // Calculate averages
+      agentFeedbackGroups.forEach((data, agentId) => {
+        agentFeedbackMap.set(agentId, {
+          avgRating: data.count > 0 ? data.totalRating / data.count : 0,
+          count: data.count,
+        });
       });
     } catch (e) {
       console.log('Agent feedback query error:', e.message);
