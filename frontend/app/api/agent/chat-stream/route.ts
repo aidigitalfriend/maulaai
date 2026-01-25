@@ -120,16 +120,24 @@ export async function POST(request: NextRequest) {
     const {
       message,
       conversationHistory = [],
-      provider: requestedProvider,
-      model: requestedModel,
-      temperature = 0.7,
-      maxTokens = 32000, // Increased to 32K tokens for long responses
-      systemPrompt,
+      provider: topLevelProvider,
+      model: topLevelModel,
+      temperature: topLevelTemp = 0.7,
+      maxTokens: topLevelMaxTokens = 32000,
+      systemPrompt: topLevelSystemPrompt,
       attachments = [],
       mode = 'quick', // Speed mode: 'quick' or 'advanced'
       userId: requestUserId,
       agentId,
+      settings = {},
     } = body;
+
+    // Support both top-level and settings-nested provider/model
+    const requestedProvider = settings.provider || topLevelProvider;
+    const requestedModel = settings.model || topLevelModel;
+    const temperature = settings.temperature ?? topLevelTemp;
+    const maxTokens = settings.maxTokens ?? topLevelMaxTokens;
+    const systemPrompt = settings.systemPrompt || topLevelSystemPrompt;
 
     if (!message?.trim()) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
@@ -153,6 +161,7 @@ export async function POST(request: NextRequest) {
     
     // Log for debugging
     console.log(`[chat-stream] Agent: ${agentId || 'default'} | Provider: ${provider} | Mode: ${chatMode} | Model: ${model}`);
+    console.log(`[chat-stream] Requested: provider=${requestedProvider}, model=${requestedModel} | Config: provider=${agentConfig.config.provider}, model=${agentConfig.config.quickModel}`);
     console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}, cerebras=${!!apiKeys.cerebras}`);
 
     // Check if user is requesting image generation - flexible patterns
