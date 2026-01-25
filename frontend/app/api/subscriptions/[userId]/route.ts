@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getSessionId } from '@/lib/session-utils';
+import { getAllSessionIds } from '@/lib/session-utils';
+
+// Helper to find valid user from any of the session cookies
+async function getValidSessionUser(request: NextRequest) {
+  const sessionIds = getAllSessionIds(request);
+  if (sessionIds.length === 0) return null;
+  
+  for (const sessionId of sessionIds) {
+    const user = await prisma.user.findFirst({
+      where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
+    });
+    if (user) return user;
+  }
+  return null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -10,15 +24,7 @@ export async function GET(
     const { userId } = await params;
     console.log(`[/api/subscriptions/${userId}] Request received`);
 
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return NextResponse.json({ success: false, error: 'No session' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findFirst({
-      where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
-    });
-
+    const user = await getValidSessionUser(request);
     if (!user) {
       return NextResponse.json({ success: false, error: 'Invalid session' }, { status: 401 });
     }
