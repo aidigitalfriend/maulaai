@@ -719,8 +719,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
-              if (parsed.content) {
-                fullContent += parsed.content;
+              
+              if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+              
+              if (parsed.token) {
+                fullContent += parsed.token;
                 setSessions(prev => prev.map(s =>
                   s.id === activeSessionId
                     ? {
@@ -949,8 +954,13 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
-              if (parsed.content) {
-                fullContent += parsed.content;
+              
+              if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+              
+              if (parsed.token) {
+                fullContent += parsed.token;
                 setSessions(prev => prev.map(s =>
                   s.id === activeSessionId
                     ? {
