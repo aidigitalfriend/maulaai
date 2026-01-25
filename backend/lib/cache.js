@@ -14,7 +14,7 @@ export const rateLimiters = {
   // Global rate limiter - increased for better UX
   global: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // increased from 100 to 500 requests per 15 mins
+    max: 10000, // massively increased to 10000 requests per 15 mins
     message: {
       success: false,
       message: 'Too many requests from this IP, please try again later.',
@@ -31,7 +31,7 @@ export const rateLimiters = {
   // API rate limiter - increased significantly
   api: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 2000, // increased from 500 to 2000 API requests per 15 mins
+    max: 50000, // massively increased to 50000 API requests per 15 mins
     message: {
       success: false,
       message: 'API rate limit exceeded, please try again later.',
@@ -44,7 +44,7 @@ export const rateLimiters = {
   // Authentication rate limiter (stricter for security)
   auth: rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // increased from 10 to 20 auth attempts per 15 mins
+    max: 100, // increased to 100 auth attempts per 15 mins
     message: {
       success: false,
       message: 'Too many authentication attempts, please try again later.',
@@ -58,7 +58,7 @@ export const rateLimiters = {
   // File upload rate limiter - increased
   upload: rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 100, // increased from 20 to 100 uploads per hour
+    max: 500, // massively increased to 500 uploads per hour
     message: {
       success: false,
       message: 'Upload rate limit exceeded, please try again later.',
@@ -71,7 +71,7 @@ export const rateLimiters = {
   // Search rate limiter - increased
   search: rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 100, // increased from 30 to 100 searches per minute
+    max: 500, // massively increased to 500 searches per minute
     message: {
       success: false,
       message: 'Search rate limit exceeded, please try again later.',
@@ -84,7 +84,7 @@ export const rateLimiters = {
   // AI agent interaction rate limiter - significantly increased
   agent: rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 60, // increased from 20 to 60 agent interactions per minute (1 per second)
+    max: 1000, // massively increased to 1000 agent interactions per minute
     message: {
       success: false,
       message: 'Agent interaction rate limit exceeded, please try again later.',

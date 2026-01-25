@@ -231,7 +231,7 @@ class AIRouter {
       },
       body: JSON.stringify({
         model: this.config.providers.anthropic.model || "claude-sonnet-4-20250514",
-        max_tokens: 1e3,
+        max_tokens: 32000,
         messages: [{ role: "user", content: prompt }]
       })
     });
@@ -257,7 +257,7 @@ class AIRouter {
       body: JSON.stringify({
         model: this.config.providers.openai.model || "gpt-4o",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 1e3
+        max_tokens: 32000
       })
     });
     if (!response.ok) {

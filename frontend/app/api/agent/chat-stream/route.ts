@@ -17,7 +17,7 @@ function getApiKeys() {
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
-const RATE_LIMIT_MAX_MESSAGES = 50; // 50 messages per hour
+const RATE_LIMIT_MAX_MESSAGES = 10000; // 10000 messages per hour - essentially unlimited
 
 function getRateLimitKey(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       provider: requestedProvider,
       model: requestedModel,
       temperature = 0.7,
-      maxTokens = 1200,
+      maxTokens = 32000, // Increased to 32K tokens for long responses
       systemPrompt,
       attachments = [],
       mode = 'quick', // Speed mode: 'quick' or 'advanced'

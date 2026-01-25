@@ -13,7 +13,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 30 * 60 * 1000;
-const RATE_LIMIT_MAX_MESSAGES = 18;
+const RATE_LIMIT_MAX_MESSAGES = 10000; // Massively increased - essentially unlimited
 
 function getRateLimitKey(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -299,7 +299,7 @@ const openaiProvider: AIProvider = {
     const requestBody: any = {
       model,
       messages,
-      max_tokens: 1000,
+      max_tokens: 32000,
       temperature: 0.7,
     };
 
@@ -347,7 +347,7 @@ const anthropicProvider: AIProvider = {
       model,
       system: systemPrompt || 'You are a helpful AI assistant.',
       messages: [...userMessages, { role: 'user', content: message }],
-      max_tokens: 1000,
+      max_tokens: 32000,
       temperature: 0.7,
     };
 
@@ -408,7 +408,7 @@ const xaiProvider: AIProvider = {
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${XAI_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`xAI API returned ${response.status}`);
     const data = await response.json();
@@ -428,7 +428,7 @@ const mistralProvider: AIProvider = {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`Mistral API returned ${response.status}`);
     const data = await response.json();
@@ -447,7 +447,7 @@ const geminiProvider: AIProvider = {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 1000, topK: 40, topP: 0.95 } }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 32000, topK: 40, topP: 0.95 } }),
     });
     if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
     const data = await response.json();
@@ -467,7 +467,7 @@ const cerebrasProvider: AIProvider = {
     const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${CEREBRAS_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`Cerebras API returned ${response.status}`);
     const data = await response.json();
@@ -487,7 +487,7 @@ const groqProvider: AIProvider = {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`Groq API returned ${response.status}`);
     const data = await response.json();
