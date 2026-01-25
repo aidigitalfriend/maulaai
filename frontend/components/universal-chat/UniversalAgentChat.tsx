@@ -214,14 +214,21 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   const ttsStoppedIntentionallyRef = useRef<boolean>(false);
 
   // Settings state - use agent's AI provider config if available
-  const [settings, setSettings] = useState<AgentSettings>({
-    temperature: 0.7,
-    maxTokens: 2000,
-    mode: 'balanced',
-    speedMode: 'quick', // Default to quick mode for faster responses
-    systemPrompt: '',
-    provider: agent.aiProvider?.primary || 'anthropic',
-    model: agent.aiProvider?.model || 'claude-sonnet-4-20250514',
+  const [settings, setSettings] = useState<AgentSettings>(() => {
+    console.log(`[UniversalAgentChat] Initializing settings for agent: ${agent.id}`);
+    console.log(`[UniversalAgentChat] agent.aiProvider:`, agent.aiProvider);
+    console.log(`[UniversalAgentChat] Using provider: ${agent.aiProvider?.primary || 'anthropic (fallback)'}`);
+    console.log(`[UniversalAgentChat] Using model: ${agent.aiProvider?.model || 'claude-sonnet-4-20250514 (fallback)'}`);
+    
+    return {
+      temperature: 0.7,
+      maxTokens: 2000,
+      mode: 'balanced',
+      speedMode: 'quick', // Default to quick mode for faster responses
+      systemPrompt: '',
+      provider: agent.aiProvider?.primary || 'anthropic',
+      model: agent.aiProvider?.model || 'claude-sonnet-4-20250514',
+    };
   });
 
   // Load persisted settings per agent (but NEVER override provider/model from config)
