@@ -146,6 +146,88 @@ export default function LiveSupportPage() {
     }, 0);
   }, []);
 
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const userId = auth.state.user?.id;
+      if (!userId) {
+        console.error('No user ID available');
+        return;
+      }
+
+      // Fetch real user profile from backend - cookie auth
+      const profileResponse = await fetch(`/api/user/profile`, {
+        credentials: 'include',  // Required to send session_id cookie for auth
+      });
+
+      // Fetch real subscription data - cookie auth via credentials: include
+      console.log('[Live Support] Fetching subscriptions for userId:', userId);
+      const subscriptionResponse = await fetch(`/api/subscriptions/${userId}`, {
+        credentials: 'include',  // Required to send session_id cookie for auth
+      });
+
+      let subscriptionStatus = 'Inactive';  // Default: no active subscriptions
+      let activeSubCount = 0;
+      let subscriptionDetails: any[] = [];
+
+      console.log('[Live Support] Subscription API response status:', subscriptionResponse.status);
+      
+      if (subscriptionResponse.ok) {
+        const subData = await subscriptionResponse.json();
+        console.log('[Live Support] Subscription data:', subData);
+        
+        if (subData.subscriptions && subData.subscriptions.length > 0) {
+          // Find active subscriptions (status active AND not expired)
+          const activeSubs = subData.subscriptions.filter(
+            (s: any) => s.status === 'active' && new Date(s.expiryDate) > new Date()
+          );
+          console.log('[Live Support] Active subs after filter:', activeSubs.length);
+          activeSubCount = activeSubs.length;
+          subscriptionDetails = activeSubs;
+          
+          if (activeSubCount > 0) {
+            subscriptionStatus = 'Active';
+          }
+        }
+      } else {
+        console.error('[Live Support] Failed to fetch subscriptions:', subscriptionResponse.status);
+      }
+
+      // Set user profile with real data
+      setUserProfile({
+        name: auth.state.user?.name || 'User',
+        email: auth.state.user?.email,
+        subscription: subscriptionStatus,
+        activeAgents: activeSubCount,
+        subscriptionDetails,
+        joinedDate: auth.state.user?.createdAt,
+        supportTickets: 0,
+      });
+    } catch (error) {
+      console.error('[Live Support] Error fetching user profile:', error);
+      // Fallback to basic profile
+      setUserProfile({
+        name: auth.state.user?.name || 'User',
+        email: auth.state.user?.email,
+        subscription: 'Inactive',
+        activeAgents: 0,
+        subscriptionDetails: [],
+        joinedDate: auth.state.user?.createdAt,
+        supportTickets: 0,
+      });
+    }
+  }, [auth.state.user?.id, auth.state.user?.name, auth.state.user?.email, auth.state.user?.createdAt, setUserProfile]);
+
+  const initializeChat = useCallback(() => {
+    const userName = auth.state.user?.name || 'lovely';
+    const welcomeMessage: Message = {
+      id: '0',
+      role: 'assistant',
+      content: `Hey there, ${userName}! 🌙💕\n\nI'm Luna, your personal support companion here at One Last AI! It's so wonderful to have you here, darling!\n\nHow can I make your day better today? 🥰`,
+      timestamp: new Date(),
+    };
+    setMessages([welcomeMessage]);
+  }, [auth.state.user?.name, setMessages]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
