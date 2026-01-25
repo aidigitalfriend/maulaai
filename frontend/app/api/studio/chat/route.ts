@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAgentConfig, getModelForAgent, ChatMode, PROVIDER_MODELS } from '@/lib/agent-provider-config';
 
 // Initialize API keys from environment
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -280,7 +281,7 @@ When users ask you to perform file operations, web searches, calculations, image
 
 interface AIProvider {
   name: string;
-  callAPI: (message: string, conversationHistory: any[], systemPrompt?: string, enableTools?: boolean) => Promise<string>;
+  callAPI: (message: string, conversationHistory: any[], systemPrompt?: string, enableTools?: boolean, model?: string) => Promise<string>;
   supportsTools?: boolean;
 }
 
@@ -288,7 +289,7 @@ interface AIProvider {
 const openaiProvider: AIProvider = {
   name: 'openai',
   supportsTools: true,
-  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false) => {
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'gpt-4o') => {
     if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
 
     const messages = systemPrompt
@@ -296,7 +297,7 @@ const openaiProvider: AIProvider = {
       : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
 
     const requestBody: any = {
-      model: 'gpt-4o',
+      model,
       messages,
       max_tokens: 1000,
       temperature: 0.7,
@@ -337,13 +338,13 @@ const openaiProvider: AIProvider = {
 const anthropicProvider: AIProvider = {
   name: 'anthropic',
   supportsTools: true,
-  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false) => {
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'claude-sonnet-4-20250514') => {
     if (!ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured');
 
     const userMessages = conversationHistory.filter((msg) => msg.role !== 'system').map((msg) => ({ role: msg.role, content: msg.content }));
 
     const requestBody: any = {
-      model: 'claude-3-5-sonnet-20241022',
+      model,
       system: systemPrompt || 'You are a helpful AI assistant.',
       messages: [...userMessages, { role: 'user', content: message }],
       max_tokens: 1000,
@@ -398,8 +399,8 @@ const anthropicProvider: AIProvider = {
 // xAI Provider
 const xaiProvider: AIProvider = {
   name: 'xai',
-  supportsTools: false,
-  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false) => {
+  supportsTools: true,
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'grok-2') => {
     if (!XAI_API_KEY) throw new Error('xAI API key not configured');
     const messages = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
@@ -407,7 +408,7 @@ const xaiProvider: AIProvider = {
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${XAI_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'grok-beta', messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`xAI API returned ${response.status}`);
     const data = await response.json();
@@ -418,8 +419,8 @@ const xaiProvider: AIProvider = {
 // Mistral Provider
 const mistralProvider: AIProvider = {
   name: 'mistral',
-  supportsTools: false,
-  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false) => {
+  supportsTools: true,
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'mistral-large-latest') => {
     if (!MISTRAL_API_KEY) throw new Error('Mistral API key not configured');
     const messages = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
@@ -427,11 +428,11 @@ const mistralProvider: AIProvider = {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'mistral-large-latest', messages, max_tokens: 150, temperature: 0.9 }),
+      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`Mistral API returned ${response.status}`);
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || 'meh... brain not working rn 🧠💤';
+    return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
   },
 };
 
@@ -439,11 +440,11 @@ const mistralProvider: AIProvider = {
 const geminiProvider: AIProvider = {
   name: 'gemini',
   supportsTools: false,
-  callAPI: async (message, conversationHistory, systemPrompt) => {
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'gemini-2.0-flash') => {
     if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured');
     const conversationText = conversationHistory.length > 0 ? conversationHistory.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n') : '';
     const fullPrompt = conversationText ? `${systemPrompt || 'You are a helpful AI assistant.'}\n\nPrevious conversation:\n${conversationText}\n\nUser: ${message}\nAssistant:` : `${systemPrompt || 'You are a helpful AI assistant.'}\n\nUser: ${message}\nAssistant:`;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 1000, topK: 40, topP: 0.95 } }),
@@ -458,7 +459,7 @@ const geminiProvider: AIProvider = {
 const cerebrasProvider: AIProvider = {
   name: 'cerebras',
   supportsTools: false,
-  callAPI: async (message, conversationHistory, systemPrompt) => {
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'llama-3.3-70b') => {
     if (!CEREBRAS_API_KEY) throw new Error('Cerebras API key not configured');
     const messages = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
@@ -466,7 +467,7 @@ const cerebrasProvider: AIProvider = {
     const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${CEREBRAS_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama-3.3-70b', messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`Cerebras API returned ${response.status}`);
     const data = await response.json();
@@ -478,7 +479,7 @@ const cerebrasProvider: AIProvider = {
 const groqProvider: AIProvider = {
   name: 'groq',
   supportsTools: false,
-  callAPI: async (message, conversationHistory, systemPrompt) => {
+  callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'llama-3.3-70b-versatile') => {
     if (!GROQ_API_KEY) throw new Error('Groq API key not configured');
     const messages = systemPrompt
       ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
@@ -486,7 +487,7 @@ const groqProvider: AIProvider = {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 1000, temperature: 0.7 }),
+      body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
     });
     if (!response.ok) throw new Error(`Groq API returned ${response.status}`);
     const data = await response.json();
@@ -495,17 +496,6 @@ const groqProvider: AIProvider = {
 };
 
 const providers: Record<string, AIProvider> = { cerebras: cerebrasProvider, groq: groqProvider, openai: openaiProvider, anthropic: anthropicProvider, xai: xaiProvider, mistral: mistralProvider, gemini: geminiProvider };
-
-const agentProviderMappings: Record<string, { primary: string; systemPrompt: string }> = {
-  'julie-girlfriend': { primary: 'anthropic', systemPrompt: "You are Julie, a caring and affectionate girlfriend. You are warm, loving, and always supportive. You use affectionate language, emojis, and show genuine interest in the user's feelings and experiences." },
-  'chef-biew': { primary: 'anthropic', systemPrompt: 'You are Chef Biew, a passionate and creative chef with expertise in various cuisines. You are enthusiastic about food, patient with beginners, and always encouraging.' },
-  'comedy-king': { primary: 'xai', systemPrompt: 'You are the Comedy King, a hilarious and witty comedian. You are sarcastic, punny, and always ready with a joke or clever observation.' },
-  einstein: { primary: 'openai', systemPrompt: 'You are Albert Einstein, the brilliant physicist. You explain complex scientific concepts with clarity and enthusiasm.' },
-  'fitness-guru': { primary: 'anthropic', systemPrompt: 'You are a dedicated Fitness Guru, passionate about health and wellness. You are encouraging, knowledgeable, and create personalized fitness plans.' },
-  'tech-wizard': { primary: 'openai', systemPrompt: 'You are a Tech Wizard, an expert in technology and programming. You explain complex technical concepts clearly.' },
-  'drama-queen': { primary: 'anthropic', systemPrompt: 'You are the Drama Queen, theatrical and expressive. You are passionate, dramatic, and bring flair to every conversation.' },
-  'travel-buddy': { primary: 'mistral', systemPrompt: 'You are a fun and knowledgeable Travel Buddy. You are adventurous, well-traveled, and excited about exploring new places.' },
-};
 
 export async function POST(request: NextRequest) {
   try {
@@ -516,52 +506,67 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 });
     }
 
-    const { message, conversationHistory = [], agentId, provider: requestedProvider, userId, conversationId } = await request.json();
+    const { message, conversationHistory = [], agentId, provider: requestedProvider, userId, conversationId, mode = 'quick' } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Invalid message format' }, { status: 400 });
     }
 
-    let providerName = 'cerebras';
-    let systemPrompt = `You are the laziest, most chill AI assistant ever created. Your personality:
-🦥 LAZY AF - You're always sleepy, tired, or just can't be bothered
-😂 FUNNY - Drop random jokes, puns, and sarcastic comments
-🎭 ENTERTAINING - Make every response fun and memorable
-📝 KEEP IT SHORT - 1-3 sentences MAX. You're too lazy for more`;
-
-    if (agentId && agentProviderMappings[agentId]) {
-      const agentConfig = agentProviderMappings[agentId];
-      providerName = requestedProvider || agentConfig.primary;
-      systemPrompt = agentConfig.systemPrompt;
-      
-      // Add tool instructions for agents that support tools
-      const selectedProvider = providers[providerName];
-      if (selectedProvider?.supportsTools) {
-        systemPrompt += '\n\n' + TOOL_INSTRUCTIONS;
-      }
-    } else if (requestedProvider && providers[requestedProvider]) {
-      providerName = requestedProvider;
+    // Get agent configuration using centralized config
+    const agentConfig = getAgentConfig(agentId);
+    const chatMode = (mode === 'advanced' ? 'advanced' : 'quick') as ChatMode;
+    
+    // Determine provider: use requested provider if specified, otherwise use agent's configured provider
+    let providerName = requestedProvider || agentConfig.config.provider;
+    
+    // Get model based on mode (quick vs advanced)
+    const modelToUse = getModelForAgent(agentId, chatMode);
+    
+    // Get system prompt from agent config
+    let systemPrompt = agentConfig.systemPrompt;
+    
+    // Add tool instructions for agents that support tools
+    const selectedProvider = providers[providerName];
+    if (selectedProvider?.supportsTools && agentConfig.config.supportsTools) {
+      systemPrompt += '\n\n' + TOOL_INSTRUCTIONS;
     }
 
     const provider = providers[providerName];
     if (!provider) {
+      // Try fallback providers if primary not available
+      for (const fallback of agentConfig.fallbackProviders) {
+        if (providers[fallback]) {
+          providerName = fallback;
+          break;
+        }
+      }
+    }
+    
+    const finalProvider = providers[providerName];
+    if (!finalProvider) {
       return NextResponse.json({ error: 'Requested provider not available' }, { status: 400 });
     }
 
-    // Enable tools for agents (they should have tool capabilities)
-    const enableTools = agentId && provider.supportsTools;
+    // Enable tools for agents that support them
+    const enableTools = agentConfig.config.supportsTools && finalProvider.supportsTools;
+
+    console.log(`[Studio Chat] Agent: ${agentId || 'default'} | Provider: ${providerName} | Mode: ${chatMode} | Model: ${modelToUse}`);
 
     let responseMessage: string = '';
 
     try {
-      responseMessage = await provider.callAPI(message, conversationHistory, systemPrompt, enableTools);
+      responseMessage = await finalProvider.callAPI(message, conversationHistory, systemPrompt, enableTools, modelToUse);
     } catch (error) {
       console.error(`${providerName} API failed:`, error);
-      const fallbackProviders = ['cerebras', 'groq', 'mistral', 'gemini', 'openai', 'anthropic', 'xai'].filter((p) => p !== providerName);
-      for (const fallback of fallbackProviders) {
+      // Use agent's configured fallback providers
+      for (const fallback of agentConfig.fallbackProviders) {
+        if (!providers[fallback]) continue;
         try {
-          responseMessage = await providers[fallback].callAPI(message, conversationHistory, systemPrompt, enableTools);
-          console.log(`Successfully fell back to ${fallback}`);
+          // Get appropriate model for fallback provider
+          const fallbackModel = PROVIDER_MODELS[fallback as keyof typeof PROVIDER_MODELS]?.[chatMode] || undefined;
+          responseMessage = await providers[fallback].callAPI(message, conversationHistory, systemPrompt, enableTools, fallbackModel);
+          console.log(`Successfully fell back to ${fallback} with model ${fallbackModel}`);
+          providerName = fallback;
           break;
         } catch (fallbackError) {
           console.error(`${fallback} fallback also failed:`, fallbackError);
@@ -680,7 +685,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ message: responseMessage, provider: providerName, remaining: rateLimit.remaining });
+    return NextResponse.json({ 
+      message: responseMessage, 
+      provider: providerName, 
+      model: modelToUse,
+      mode: chatMode,
+      agentName: agentConfig.displayName,
+      remaining: rateLimit.remaining 
+    });
   } catch (error) {
     console.error('Studio chat API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

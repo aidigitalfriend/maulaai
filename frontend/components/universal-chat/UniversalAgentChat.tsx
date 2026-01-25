@@ -218,6 +218,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     temperature: 0.7,
     maxTokens: 2000,
     mode: 'balanced',
+    speedMode: 'quick', // Default to quick mode for faster responses
     systemPrompt: '',
     provider: agent.aiProvider?.primary || 'cerebras',
     model: agent.aiProvider?.model || 'llama3.1-8b',
@@ -1477,7 +1478,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
           systemPrompt: settings.systemPrompt,
-          mode: settings.mode,
+          mode: settings.speedMode, // Use speedMode (quick/advanced) for backend model selection
+          styleMode: settings.mode, // Send conversation style mode separately
           attachments,
         }),
         signal: abortControllerRef.current.signal,

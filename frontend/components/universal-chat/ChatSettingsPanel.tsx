@@ -23,6 +23,7 @@ export interface AgentSettings {
   temperature: number;
   maxTokens: number;
   mode: 'professional' | 'balanced' | 'creative' | 'fast' | 'coding';
+  speedMode: 'quick' | 'advanced'; // Quick = faster/smaller models, Advanced = higher quality/larger models
   systemPrompt: string;
   provider: AIProvider;
   model: string;
@@ -271,6 +272,44 @@ export default function ChatSettingsPanel({
                 );
               })}
             </div>
+          </div>
+
+          {/* Speed Mode Toggle - Quick vs Advanced */}
+          <div className={`rounded-xl border p-3 ${sectionStyles}`}>
+            <h4
+              className={`text-xs font-semibold mb-2 ${
+                isNeural ? 'text-cyan-400' : 'text-indigo-600'
+              }`}
+            >
+              Response Mode
+            </h4>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onUpdateSettings({ speedMode: 'quick' })}
+                className={`flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  settings.speedMode === 'quick'
+                    ? `bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md`
+                    : `${isNeural ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200'} border`
+                }`}
+              >
+                <BoltIcon className="w-4 h-4" />
+                <span>Quick</span>
+              </button>
+              <button
+                onClick={() => onUpdateSettings({ speedMode: 'advanced' })}
+                className={`flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  settings.speedMode === 'advanced'
+                    ? `bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md`
+                    : `${isNeural ? 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200'} border`
+                }`}
+              >
+                <BeakerIcon className="w-4 h-4" />
+                <span>Advanced</span>
+              </button>
+            </div>
+            <p className={`text-xs mt-1.5 ${isNeural ? 'text-gray-500' : 'text-gray-500'}`}>
+              {settings.speedMode === 'quick' ? '⚡ Faster responses, good for simple tasks' : '🎯 Higher quality, best for complex tasks'}
+            </p>
           </div>
 
           {/* Temperature */}

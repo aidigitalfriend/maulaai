@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { getAgentConfig, getModelForAgent, ChatMode, PROVIDER_MODELS } from '@/lib/agent-provider-config';
 
 // Helper function to get API keys at request time
 // This ensures environment variables are read dynamically
@@ -72,12 +73,13 @@ export async function POST(request: NextRequest) {
     const {
       message,
       conversationHistory = [],
-      provider = 'openai',
-      model,
+      provider: requestedProvider,
+      model: requestedModel,
       temperature = 0.7,
       maxTokens = 1200,
       systemPrompt,
       attachments = [],
+      mode = 'quick', // Speed mode: 'quick' or 'advanced'
       userId: requestUserId,
       agentId,
     } = body;
@@ -92,8 +94,18 @@ export async function POST(request: NextRequest) {
     // Get API keys at request time
     const apiKeys = getApiKeys();
     
-    // Log available providers for debugging
-    console.log(`[chat-stream] Request provider: ${provider}, model: ${model}`);
+    // Get agent configuration and resolve provider/model
+    const agentConfig = getAgentConfig(agentId);
+    const chatMode = (mode === 'advanced' ? 'advanced' : 'quick') as ChatMode;
+    
+    // Use requested provider if specified, otherwise use agent's configured provider
+    const provider = requestedProvider || agentConfig.config.provider;
+    
+    // Get model based on mode (quick vs advanced)
+    const model = requestedModel || getModelForAgent(agentId, chatMode);
+    
+    // Log for debugging
+    console.log(`[chat-stream] Agent: ${agentId || 'default'} | Provider: ${provider} | Mode: ${chatMode} | Model: ${model}`);
     console.log(`[chat-stream] Available providers: openai=${!!apiKeys.openai}, anthropic=${!!apiKeys.anthropic}, mistral=${!!apiKeys.mistral}, xai=${!!apiKeys.xai}, groq=${!!apiKeys.groq}, cerebras=${!!apiKeys.cerebras}`);
 
     // Check if user is requesting image generation - flexible patterns
