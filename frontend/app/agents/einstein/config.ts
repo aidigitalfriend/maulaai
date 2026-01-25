@@ -1,3 +1,8 @@
+/**
+ * NOTE: The actual system prompt used for chat is in:
+ * @see /frontend/lib/agent-provider-config.ts
+ * This file is for UI/display purposes only.
+ */
 import { AgentConfig } from '../types';
 
 export const einsteinConfig: AgentConfig = {
