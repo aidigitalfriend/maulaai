@@ -133,6 +133,10 @@ const nextConfig = {
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: '*.wikimedia.org' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      // AWS S3 bucket for chat uploads and media
+      { protocol: 'https', hostname: 'one-last-ai-bucket.s3.ap-southeast-1.amazonaws.com' },
+      { protocol: 'https', hostname: '*.s3.ap-southeast-1.amazonaws.com' },
+      { protocol: 'https', hostname: '*.s3.amazonaws.com' },
     ],
     unoptimized: false,
     // Fix CSP for Next.js images - allow inline scripts for Stripe, Cloudflare, Google Maps and other integrations

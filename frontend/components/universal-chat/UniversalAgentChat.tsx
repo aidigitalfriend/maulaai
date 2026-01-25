@@ -1816,12 +1816,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           {attachment.type.startsWith('image/') &&
                           attachment.preview ? (
                             <div className="relative group">
-                              <Image
+                              {/* Use native img for S3 presigned URLs (they have query params that break next/image) */}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
                                 src={attachment.preview}
                                 alt={attachment.name}
-                                width={200}
-                                height={200}
-                                className="rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                className="rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity max-w-[200px] max-h-[200px]"
                                 onClick={() =>
                                   attachment.url &&
                                   window.open(attachment.url, '_blank')
