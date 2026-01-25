@@ -129,7 +129,7 @@
     "tree-sitter-python": "^0.21.0",
     "tree-sitter-typescript": "^0.21.2",
     "twilio": "^5.11.1",
-    "unleash-client": "^6.9.0",
+    "unleash-client": "^6.9.3",
     "unzipper": "^0.12.3",
     "uuid": "^13.0.0",
     "vm2": "^3.10.0",
