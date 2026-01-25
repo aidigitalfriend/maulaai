@@ -77,7 +77,10 @@ export const secureAuthStorage = {
 
     try {
       localStorage.removeItem(USER_KEY);
-      console.log('✅ User data cleared from localStorage');
+      // Also clear any sessionStorage data
+      sessionStorage.removeItem('tempToken');
+      sessionStorage.clear();
+      console.log('✅ User data cleared from localStorage and sessionStorage');
     } catch (error) {
       console.error('❌ Error clearing user data:', error);
     }

@@ -924,7 +924,8 @@ app.post('/api/auth/verify-2fa', rateLimiters.auth, async (req, res) => {
 // Logout
 app.post('/api/auth/logout', async (req, res) => {
   try {
-    const sessionId = req.cookies?.sessionId;
+    // Check both cookie names for compatibility
+    const sessionId = req.cookies?.session_id || req.cookies?.sessionId;
     if (sessionId) {
       const user = await db.User.findBySessionId(sessionId);
       if (user) {
@@ -932,10 +933,13 @@ app.post('/api/auth/logout', async (req, res) => {
           sessionId: null,
           sessionExpiry: null,
         });
+        console.log(`✅ Session cleared for user ${user.id}`);
       }
     }
 
+    // Clear BOTH cookie names for compatibility
     res.clearCookie('sessionId');
+    res.clearCookie('session_id');
     res.json({ success: true });
   } catch (error) {
     console.error('Logout error:', error);
