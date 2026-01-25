@@ -1,4 +1,15 @@
 import { AgentChatConfig } from '../../components/UniversalAgentChat';
+import { getAgentConfig as getProviderAgentConfig } from '../../lib/agent-provider-config';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SYSTEM PROMPT SOURCE: All prompts now come from agent-provider-config.ts
+// This file imports prompts from there to ensure single source of truth
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Helper to get system prompt from central config
+function getSystemPrompt(agentId: string): string {
+  return getProviderAgentConfig(agentId)?.systemPrompt || '';
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // UNIVERSAL AGENT CAPABILITIES - Added to ALL agent system prompts
@@ -650,15 +661,21 @@ Ready to help with your documents! What can I analyze?`,
 };
 
 // Helper function to get agent config by ID
+// Now pulls system prompts from agent-provider-config.ts (single source of truth)
 // Automatically adds universal capabilities to the system prompt
 export function getAgentConfig(agentId: string): AgentChatConfig | null {
   const baseConfig = agentChatConfigs[agentId];
   if (!baseConfig) return null;
   
+  // Get the system prompt from central config (agent-provider-config.ts)
+  // This ensures we use the new poetic "BEING" style prompts
+  const centralPrompt = getSystemPrompt(agentId);
+  const systemPrompt = centralPrompt || baseConfig.systemPrompt;
+  
   // Add universal capabilities to the system prompt
   return {
     ...baseConfig,
-    systemPrompt: UNIVERSAL_CAPABILITIES + baseConfig.systemPrompt,
+    systemPrompt: UNIVERSAL_CAPABILITIES + systemPrompt,
   };
 }
 
