@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getAgentConfig, getModelForAgent, ChatMode, PROVIDER_MODELS } from '@/lib/agent-provider-config';
+import { 
+  getAgentConfig, 
+  getModelForAgent, 
+  ChatMode, 
+  PROVIDER_MODELS, 
+  PROVIDER_CONFIGS,
+  getProviderModels,
+  ProviderName 
+} from '@/lib/agent-provider-config';
 
 // Initialize API keys from environment
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -10,6 +18,38 @@ const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+// Track failed models for automatic fallback
+const failedModelsCache = new Map<string, { timestamp: number; models: Set<string> }>();
+const FAILED_MODEL_COOLDOWN = 60000; // 1 minute cooldown
+
+function getAvailableModelsForProvider(provider: ProviderName, excludeModel?: string): string[] {
+  const cached = failedModelsCache.get(provider);
+  const now = Date.now();
+  
+  if (cached && now - cached.timestamp > FAILED_MODEL_COOLDOWN) {
+    failedModelsCache.delete(provider);
+  }
+  
+  const failedModels = failedModelsCache.get(provider)?.models || new Set();
+  const allModels = getProviderModels(provider).map(m => m.id);
+  
+  return allModels.filter(m => m !== excludeModel && !failedModels.has(m));
+}
+
+function markModelAsFailed(provider: ProviderName, modelId: string) {
+  const existing = failedModelsCache.get(provider);
+  
+  if (existing) {
+    existing.models.add(modelId);
+    existing.timestamp = Date.now();
+  } else {
+    failedModelsCache.set(provider, {
+      timestamp: Date.now(),
+      models: new Set([modelId])
+    });
+  }
+}
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 30 * 60 * 1000;
@@ -285,99 +325,138 @@ interface AIProvider {
   supportsTools?: boolean;
 }
 
-// OpenAI Provider
+// Helper to try multiple models with automatic fallback
+async function tryWithFallback<T>(
+  provider: ProviderName,
+  primaryModel: string,
+  tryFn: (model: string) => Promise<T>
+): Promise<T> {
+  const modelsToTry = [primaryModel];
+  
+  // Add fallback models
+  const availableModels = getAvailableModelsForProvider(provider, primaryModel);
+  modelsToTry.push(...availableModels.slice(0, 3));
+  
+  let lastError: Error | null = null;
+  
+  for (const currentModel of modelsToTry) {
+    try {
+      console.log(`[studio-chat] Trying ${provider} model: ${currentModel}`);
+      const result = await tryFn(currentModel);
+      console.log(`[studio-chat] ✅ ${provider} model ${currentModel} succeeded`);
+      return result;
+    } catch (error) {
+      console.error(`[studio-chat] Model ${currentModel} failed:`, error);
+      lastError = error as Error;
+      markModelAsFailed(provider, currentModel);
+    }
+  }
+  
+  throw lastError || new Error(`All ${provider} models failed`);
+}
+
+// OpenAI Provider with multi-model fallback
 const openaiProvider: AIProvider = {
   name: 'openai',
   supportsTools: true,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'gpt-4o') => {
     if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
 
-    const messages = systemPrompt
-      ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
-      : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
+    return tryWithFallback('openai', model, async (currentModel) => {
+      const messages = systemPrompt
+        ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
+        : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
 
-    const requestBody: any = {
-      model,
-      messages,
-      max_tokens: 32000,
-      temperature: 0.7,
-    };
+      const requestBody: any = {
+        model: currentModel,
+        messages,
+        max_tokens: 32000,
+        temperature: 0.7,
+      };
 
-    // Add tools if enabled
-    if (enableTools) {
-      requestBody.tools = AVAILABLE_TOOLS;
-      requestBody.tool_choice = 'auto';
-    }
+      // Add tools if enabled
+      if (enableTools) {
+        requestBody.tools = AVAILABLE_TOOLS;
+        requestBody.tool_choice = 'auto';
+      }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) throw new Error(`OpenAI API returned ${response.status}`);
-    const data = await response.json();
-
-    const choice = data.choices?.[0];
-    if (!choice) throw new Error('No response from OpenAI');
-
-    // Handle tool calls
-    if (choice.message?.tool_calls && enableTools) {
-      return JSON.stringify({
-        content: choice.message.content || '',
-        tool_calls: choice.message.tool_calls,
-        finish_reason: choice.finish_reason,
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
       });
-    }
 
-    return choice.message?.content || "I apologize, but I couldn't generate a response right now.";
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI API returned ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
+
+      const choice = data.choices?.[0];
+      if (!choice) throw new Error('No response from OpenAI');
+
+      // Handle tool calls
+      if (choice.message?.tool_calls && enableTools) {
+        return JSON.stringify({
+          content: choice.message.content || '',
+          tool_calls: choice.message.tool_calls,
+          finish_reason: choice.finish_reason,
+        });
+      }
+
+      return choice.message?.content || "I apologize, but I couldn't generate a response right now.";
+    });
   },
 };
 
-// Anthropic Provider
+// Anthropic Provider with multi-model fallback
 const anthropicProvider: AIProvider = {
   name: 'anthropic',
   supportsTools: true,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'claude-sonnet-4-20250514') => {
     if (!ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured');
 
-    const userMessages = conversationHistory.filter((msg) => msg.role !== 'system').map((msg) => ({ role: msg.role, content: msg.content }));
+    return tryWithFallback('anthropic', model, async (currentModel) => {
+      const userMessages = conversationHistory.filter((msg) => msg.role !== 'system').map((msg) => ({ role: msg.role, content: msg.content }));
 
-    const requestBody: any = {
-      model,
-      system: systemPrompt || 'You are a helpful AI assistant.',
-      messages: [...userMessages, { role: 'user', content: message }],
-      max_tokens: 32000,
-      temperature: 0.7,
-    };
+      const requestBody: any = {
+        model: currentModel,
+        system: systemPrompt || 'You are a helpful AI assistant.',
+        messages: [...userMessages, { role: 'user', content: message }],
+        max_tokens: 32000,
+        temperature: 0.7,
+      };
 
-    // Add tools if enabled (Anthropic format)
-    if (enableTools) {
-      requestBody.tools = AVAILABLE_TOOLS.map(tool => ({
-        name: tool.function.name,
-        description: tool.function.description,
-        input_schema: tool.function.parameters,
-      }));
-    }
+      // Add tools if enabled (Anthropic format)
+      if (enableTools) {
+        requestBody.tools = AVAILABLE_TOOLS.map(tool => ({
+          name: tool.function.name,
+          description: tool.function.description,
+          input_schema: tool.function.parameters,
+        }));
+      }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(requestBody),
-    });
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_API_KEY,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-    if (!response.ok) throw new Error(`Anthropic API returned ${response.status}`);
-    const data = await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Anthropic API returned ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
 
-    const content = data.content?.[0];
-    if (!content) throw new Error('No response from Anthropic');
+      const content = data.content?.[0];
+      if (!content) throw new Error('No response from Anthropic');
 
-    // Handle tool calls (Anthropic format)
-    if (content.type === 'tool_use' && enableTools) {
+      // Handle tool calls (Anthropic format)
+      if (content.type === 'tool_use' && enableTools) {
       return JSON.stringify({
         content: '',
         tool_calls: [{
@@ -390,108 +469,139 @@ const anthropicProvider: AIProvider = {
         }],
         finish_reason: 'tool_calls',
       });
+    });
     }
 
     return content.text || "I apologize, but I couldn't generate a response right now.";
   },
 };
 
-// xAI Provider
+// xAI Provider with multi-model fallback
 const xaiProvider: AIProvider = {
   name: 'xai',
   supportsTools: true,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'grok-2') => {
     if (!XAI_API_KEY) throw new Error('xAI API key not configured');
-    const messages = systemPrompt
-      ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
-      : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${XAI_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
+    
+    return tryWithFallback('xai', model, async (currentModel) => {
+      const messages = systemPrompt
+        ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
+        : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${XAI_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: currentModel, messages, max_tokens: 32000, temperature: 0.7 }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`xAI API returned ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
     });
-    if (!response.ok) throw new Error(`xAI API returned ${response.status}`);
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
   },
 };
 
-// Mistral Provider
+// Mistral Provider with multi-model fallback
 const mistralProvider: AIProvider = {
   name: 'mistral',
   supportsTools: true,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'mistral-large-latest') => {
     if (!MISTRAL_API_KEY) throw new Error('Mistral API key not configured');
-    const messages = systemPrompt
-      ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
-      : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
-    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
+    
+    return tryWithFallback('mistral', model, async (currentModel) => {
+      const messages = systemPrompt
+        ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
+        : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
+      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: currentModel, messages, max_tokens: 32000, temperature: 0.7 }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Mistral API returned ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
     });
-    if (!response.ok) throw new Error(`Mistral API returned ${response.status}`);
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
   },
 };
 
-// Gemini Provider
+// Gemini Provider with multi-model fallback
 const geminiProvider: AIProvider = {
   name: 'gemini',
   supportsTools: false,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'gemini-2.0-flash') => {
     if (!GEMINI_API_KEY) throw new Error('Gemini API key not configured');
-    const conversationText = conversationHistory.length > 0 ? conversationHistory.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n') : '';
-    const fullPrompt = conversationText ? `${systemPrompt || 'You are a helpful AI assistant.'}\n\nPrevious conversation:\n${conversationText}\n\nUser: ${message}\nAssistant:` : `${systemPrompt || 'You are a helpful AI assistant.'}\n\nUser: ${message}\nAssistant:`;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 32000, topK: 40, topP: 0.95 } }),
+    
+    return tryWithFallback('gemini', model, async (currentModel) => {
+      const conversationText = conversationHistory.length > 0 ? conversationHistory.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n') : '';
+      const fullPrompt = conversationText ? `${systemPrompt || 'You are a helpful AI assistant.'}\n\nPrevious conversation:\n${conversationText}\n\nUser: ${message}\nAssistant:` : `${systemPrompt || 'You are a helpful AI assistant.'}\n\nUser: ${message}\nAssistant:`;
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 32000, topK: 40, topP: 0.95 } }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API error: ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "I apologize, but I couldn't generate a response right now.";
     });
-    if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "I apologize, but I couldn't generate a response right now.";
   },
 };
 
-// Cerebras Provider
+// Cerebras Provider with multi-model fallback
 const cerebrasProvider: AIProvider = {
   name: 'cerebras',
   supportsTools: false,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'llama-3.3-70b') => {
     if (!CEREBRAS_API_KEY) throw new Error('Cerebras API key not configured');
-    const messages = systemPrompt
-      ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
-      : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
-    const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${CEREBRAS_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
+    
+    return tryWithFallback('cerebras', model, async (currentModel) => {
+      const messages = systemPrompt
+        ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
+        : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
+      const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${CEREBRAS_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: currentModel, messages, max_tokens: 32000, temperature: 0.7 }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Cerebras API returned ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
     });
-    if (!response.ok) throw new Error(`Cerebras API returned ${response.status}`);
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
   },
 };
 
-// Groq Provider
+// Groq Provider with multi-model fallback
 const groqProvider: AIProvider = {
   name: 'groq',
   supportsTools: false,
   callAPI: async (message, conversationHistory, systemPrompt, enableTools = false, model = 'llama-3.3-70b-versatile') => {
     if (!GROQ_API_KEY) throw new Error('Groq API key not configured');
-    const messages = systemPrompt
-      ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
-      : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, max_tokens: 32000, temperature: 0.7 }),
+    
+    return tryWithFallback('groq', model, async (currentModel) => {
+      const messages = systemPrompt
+        ? [{ role: 'system', content: systemPrompt }, ...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }]
+        : [...conversationHistory.map((msg) => ({ role: msg.role, content: msg.content })), { role: 'user', content: message }];
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: currentModel, messages, max_tokens: 32000, temperature: 0.7 }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Groq API returned ${response.status}: ${errorText}`);
+      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
     });
-    if (!response.ok) throw new Error(`Groq API returned ${response.status}`);
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response right now.";
   },
 };
 

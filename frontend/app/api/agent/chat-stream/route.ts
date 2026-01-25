@@ -1,5 +1,16 @@
 import { NextRequest } from 'next/server';
-import { getAgentConfig, getModelForAgent, ChatMode, PROVIDER_MODELS } from '@/lib/agent-provider-config';
+import { 
+  getAgentConfig, 
+  getModelForAgent, 
+  ChatMode, 
+  PROVIDER_MODELS,
+  PROVIDER_CONFIGS,
+  getProviderModels,
+  getFallbackModels,
+  getModelWithCapability,
+  getNextModel,
+  ProviderName
+} from '@/lib/agent-provider-config';
 
 // Helper function to get API keys at request time
 // This ensures environment variables are read dynamically
@@ -12,7 +23,43 @@ function getApiKeys() {
     xai: process.env.XAI_API_KEY,
     groq: process.env.GROQ_API_KEY,
     cerebras: process.env.CEREBRAS_API_KEY,
+    gemini: process.env.GEMINI_API_KEY,
   };
+}
+
+// Track failed models to avoid retrying them immediately
+const failedModelsCache = new Map<string, { timestamp: number; models: Set<string> }>();
+const FAILED_MODEL_COOLDOWN = 60000; // 1 minute cooldown for failed models
+
+function getAvailableModels(provider: ProviderName, excludeModel?: string): string[] {
+  const cacheKey = provider;
+  const cached = failedModelsCache.get(cacheKey);
+  const now = Date.now();
+  
+  // Clean up expired failures
+  if (cached && now - cached.timestamp > FAILED_MODEL_COOLDOWN) {
+    failedModelsCache.delete(cacheKey);
+  }
+  
+  const failedModels = failedModelsCache.get(cacheKey)?.models || new Set();
+  const allModels = getProviderModels(provider).map(m => m.id);
+  
+  return allModels.filter(m => m !== excludeModel && !failedModels.has(m));
+}
+
+function markModelFailed(provider: ProviderName, modelId: string) {
+  const cacheKey = provider;
+  const existing = failedModelsCache.get(cacheKey);
+  
+  if (existing) {
+    existing.models.add(modelId);
+    existing.timestamp = Date.now();
+  } else {
+    failedModelsCache.set(cacheKey, {
+      timestamp: Date.now(),
+      models: new Set([modelId])
+    });
+  }
 }
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -825,83 +872,123 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             content: userContent.length === 1 ? message : userContent,
           });
 
-          // Helper function to stream OpenAI-compatible responses
+          // Helper function to stream OpenAI-compatible responses with multi-model fallback
           // Returns true if controller was closed due to error
           async function streamOpenAICompatible(
             apiUrl: string,
             apiKey: string,
-            defaultModel: string
+            defaultModel: string,
+            providerName?: ProviderName
           ): Promise<boolean> {
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: model || defaultModel,
-                messages,
-                temperature,
-                max_tokens: maxTokens,
-                stream: true,
-              }),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.text();
-              console.error(`API error (${apiUrl}):`, errorData);
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ error: `API error: ${response.status}` })}\n\n`
-                )
-              );
-              return true; // Indicate error occurred
+            const modelsToTry = [model || defaultModel];
+            
+            // Add fallback models if provider is specified
+            if (providerName) {
+              const availableModels = getAvailableModels(providerName, model || defaultModel);
+              // Add up to 3 fallback models
+              modelsToTry.push(...availableModels.slice(0, 3));
             }
+            
+            let lastError: string | null = null;
+            
+            for (const currentModel of modelsToTry) {
+              console.log(`[chat-stream] Trying model: ${currentModel}`);
+              
+              try {
+                const response = await fetch(apiUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${apiKey}`,
+                  },
+                  body: JSON.stringify({
+                    model: currentModel,
+                    messages,
+                    temperature,
+                    max_tokens: maxTokens,
+                    stream: true,
+                  }),
+                });
 
-            const reader = response.body?.getReader();
-            if (!reader) {
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ error: 'No reader available' })}\n\n`
-                )
-              );
-              return true;
-            }
+                if (!response.ok) {
+                  const errorData = await response.text();
+                  console.error(`[chat-stream] Model ${currentModel} failed:`, errorData);
+                  lastError = `Model ${currentModel}: ${response.status}`;
+                  
+                  // Mark model as failed for cooldown
+                  if (providerName) {
+                    markModelFailed(providerName, currentModel);
+                  }
+                  
+                  // Try next model
+                  continue;
+                }
 
-            const decoder = new TextDecoder();
-            let buffer = '';
+                console.log(`[chat-stream] ✅ Model ${currentModel} succeeded`);
+                
+                const reader = response.body?.getReader();
+                if (!reader) {
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({ error: 'No reader available' })}\n\n`
+                    )
+                  );
+                  return true;
+                }
 
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
+                const decoder = new TextDecoder();
+                let buffer = '';
 
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split('\n');
-              buffer = lines.pop() || '';
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
 
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6);
-                  if (data === '[DONE]') continue;
+                  buffer += decoder.decode(value, { stream: true });
+                  const lines = buffer.split('\n');
+                  buffer = lines.pop() || '';
 
-                  try {
-                    const parsed = JSON.parse(data);
-                    const token = parsed.choices?.[0]?.delta?.content;
-                    if (token) {
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
-                      );
+                  for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                      const data = line.slice(6);
+                      if (data === '[DONE]') continue;
+
+                      try {
+                        const parsed = JSON.parse(data);
+                        const token = parsed.choices?.[0]?.delta?.content;
+                        if (token) {
+                          controller.enqueue(
+                            encoder.encode(`data: ${JSON.stringify({ token })}\n\n`)
+                          );
+                        }
+                      } catch (e) {
+                        // Skip invalid JSON
+                      }
                     }
-                  } catch (e) {
-                    // Skip invalid JSON
                   }
                 }
+                return false; // Success!
+                
+              } catch (error) {
+                console.error(`[chat-stream] Error with model ${currentModel}:`, error);
+                lastError = `Model ${currentModel}: ${error}`;
+                
+                if (providerName) {
+                  markModelFailed(providerName, currentModel);
+                }
+                // Try next model
               }
             }
-            return false; // No error
+            
+            // All models failed
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ error: `All models failed. Last error: ${lastError}` })}\n\n`
+              )
+            );
+            return true;
           }
 
-          // Route to the appropriate provider
+          // Route to the appropriate provider with multi-model fallback
           let hadError = false;
           
           if (provider === 'anthropic' && apiKeys.anthropic) {
@@ -996,48 +1083,54 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = true;
             }
           } else if (provider === 'mistral' && apiKeys.mistral) {
-            // Mistral uses OpenAI-compatible API
+            // Mistral uses OpenAI-compatible API with multi-model fallback
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
-              'mistral-large-latest'
+              PROVIDER_CONFIGS.mistral.advanced,
+              'mistral'
             );
           } else if (provider === 'xai' && apiKeys.xai) {
-            // xAI Grok uses OpenAI-compatible API
+            // xAI Grok uses OpenAI-compatible API with multi-model fallback
             hadError = await streamOpenAICompatible(
               'https://api.x.ai/v1/chat/completions',
               apiKeys.xai,
-              'grok-3'
+              PROVIDER_CONFIGS.xai.advanced,
+              'xai'
             );
           } else if (provider === 'groq' && apiKeys.groq) {
-            // Groq uses OpenAI-compatible API
+            // Groq uses OpenAI-compatible API with multi-model fallback
             hadError = await streamOpenAICompatible(
               'https://api.groq.com/openai/v1/chat/completions',
               apiKeys.groq,
-              'llama-3.3-70b-versatile'
+              PROVIDER_CONFIGS.groq.advanced,
+              'groq'
             );
           } else if (provider === 'cerebras' && apiKeys.cerebras) {
-            // Cerebras uses OpenAI-compatible API
+            // Cerebras uses OpenAI-compatible API with multi-model fallback
             hadError = await streamOpenAICompatible(
               'https://api.cerebras.ai/v1/chat/completions',
               apiKeys.cerebras,
-              'llama-3.3-70b'
+              PROVIDER_CONFIGS.cerebras.advanced,
+              'cerebras'
             );
           } else if (provider === 'openai' && apiKeys.openai) {
-            // OpenAI with automatic failover to backup key - using gpt-4o for best quality/vision
+            // OpenAI with multi-model fallback
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o'
+              PROVIDER_CONFIGS.openai.advanced,
+              'openai'
             );
             
-            // If primary key failed and we have a backup, try it
+            // If all OpenAI models failed and we have a backup key, try it
             if (hadError && apiKeys.openaiBackup) {
-              console.log('[chat-stream] Primary OpenAI key failed, trying backup key...');
+              console.log('[chat-stream] All OpenAI models failed with primary key, trying backup key...');
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4o'
+                PROVIDER_CONFIGS.openai.advanced,
+                'openai'
               );
               if (!hadError) {
                 console.log('[chat-stream] ✅ Backup OpenAI key succeeded!');
@@ -1045,11 +1138,12 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             }
           } else if (apiKeys.openai) {
             // Fallback to OpenAI if provider not available
-            console.log(`[chat-stream] Provider ${provider} not available, falling back to OpenAI`);
+            console.log(`[chat-stream] Provider ${provider} not available, falling back to OpenAI with multi-model`);
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openai,
-              'gpt-4o'
+              PROVIDER_CONFIGS.openai.advanced,
+              'openai'
             );
             
             // If primary key failed and we have a backup, try it
@@ -1058,23 +1152,27 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               hadError = await streamOpenAICompatible(
                 'https://api.openai.com/v1/chat/completions',
                 apiKeys.openaiBackup,
-                'gpt-4o'
+                PROVIDER_CONFIGS.openai.advanced,
+                'openai'
               );
             }
           } else if (apiKeys.openaiBackup) {
             // Try backup OpenAI key if primary not set
-            console.log('[chat-stream] No primary OpenAI key, using backup key');
+            console.log('[chat-stream] No primary OpenAI key, using backup key with multi-model');
             hadError = await streamOpenAICompatible(
               'https://api.openai.com/v1/chat/completions',
               apiKeys.openaiBackup,
-              'gpt-4o'
+              PROVIDER_CONFIGS.openai.advanced,
+              'openai'
             );
           } else if (apiKeys.mistral) {
-            // Fallback to Mistral
-            console.log(`[chat-stream] No OpenAI key, falling back to Mistral`);
+            // Fallback to Mistral with multi-model
+            console.log(`[chat-stream] No OpenAI key, falling back to Mistral with multi-model`);
             hadError = await streamOpenAICompatible(
               'https://api.mistral.ai/v1/chat/completions',
               apiKeys.mistral,
+              PROVIDER_CONFIGS.mistral.advanced,
+              'mistral'
               'mistral-large-latest'
             );
           } else {

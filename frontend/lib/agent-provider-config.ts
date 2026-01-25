@@ -3,10 +3,29 @@
  * 
  * Maps agents to their AI providers and models.
  * Supports Quick (fast) and Advanced (higher quality) modes.
+ * Supports multiple models per provider with automatic fallback.
  */
 
 export type ProviderName = 'anthropic' | 'mistral' | 'openai' | 'cerebras' | 'xai' | 'groq' | 'gemini';
 export type ChatMode = 'quick' | 'advanced';
+
+export interface ModelInfo {
+  id: string;
+  name: string;
+  maxTokens: number;
+  contextWindow: number;
+  tier: 'quick' | 'advanced' | 'premium';
+  supportsVision: boolean;
+  supportsTools: boolean;
+}
+
+export interface ProviderConfig {
+  name: string;
+  models: ModelInfo[];
+  quick: string;      // Default quick model
+  advanced: string;   // Default advanced model
+  premium?: string;   // Optional premium model
+}
 
 export interface ProviderModelConfig {
   provider: ProviderName;
@@ -24,37 +43,237 @@ export interface AgentProviderMapping {
   fallbackProviders: ProviderName[];
 }
 
-// Provider configurations with their quick and advanced models
-export const PROVIDER_MODELS: Record<ProviderName, { quick: string; advanced: string }> = {
-  anthropic: {
-    quick: 'claude-3-5-haiku-20241022',
-    advanced: 'claude-sonnet-4-20250514',
-  },
-  mistral: {
-    quick: 'mistral-small-latest',
-    advanced: 'mistral-large-latest',
-  },
+// =====================================================
+// COMPREHENSIVE PROVIDER MODEL CONFIGURATIONS
+// All available models per provider with auto-selection
+// =====================================================
+
+export const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   openai: {
+    name: 'OpenAI',
+    models: [
+      { id: 'gpt-4o', name: 'GPT-4o', maxTokens: 16384, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', maxTokens: 16384, contextWindow: 128000, tier: 'quick', supportsVision: true, supportsTools: true },
+      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', maxTokens: 4096, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'gpt-4-turbo-preview', name: 'GPT-4 Turbo Preview', maxTokens: 4096, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'gpt-4', name: 'GPT-4', maxTokens: 8192, contextWindow: 8192, tier: 'premium', supportsVision: false, supportsTools: true },
+      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', maxTokens: 4096, contextWindow: 16385, tier: 'quick', supportsVision: false, supportsTools: true },
+      { id: 'o1', name: 'O1', maxTokens: 100000, contextWindow: 200000, tier: 'premium', supportsVision: true, supportsTools: false },
+      { id: 'o1-mini', name: 'O1 Mini', maxTokens: 65536, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: false },
+      { id: 'o1-preview', name: 'O1 Preview', maxTokens: 32768, contextWindow: 128000, tier: 'premium', supportsVision: false, supportsTools: false },
+      { id: 'o3-mini', name: 'O3 Mini', maxTokens: 100000, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: false },
+    ],
     quick: 'gpt-4o-mini',
     advanced: 'gpt-4o',
+    premium: 'o1',
   },
-  cerebras: {
-    quick: 'llama-3.3-70b',
-    advanced: 'llama-3.3-70b', // Cerebras only has one model currently
+  anthropic: {
+    name: 'Anthropic',
+    models: [
+      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', maxTokens: 64000, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', maxTokens: 8192, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', maxTokens: 8192, contextWindow: 200000, tier: 'quick', supportsVision: true, supportsTools: true },
+      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', maxTokens: 4096, contextWindow: 200000, tier: 'premium', supportsVision: true, supportsTools: true },
+      { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', maxTokens: 4096, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', maxTokens: 4096, contextWindow: 200000, tier: 'quick', supportsVision: true, supportsTools: true },
+    ],
+    quick: 'claude-3-5-haiku-20241022',
+    advanced: 'claude-sonnet-4-20250514',
+    premium: 'claude-3-opus-20240229',
+  },
+  mistral: {
+    name: 'Mistral AI',
+    models: [
+      { id: 'mistral-large-latest', name: 'Mistral Large', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'mistral-medium-latest', name: 'Mistral Medium', maxTokens: 32768, contextWindow: 32000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'mistral-small-latest', name: 'Mistral Small', maxTokens: 32768, contextWindow: 32000, tier: 'quick', supportsVision: false, supportsTools: true },
+      { id: 'open-mistral-nemo', name: 'Open Mistral Nemo', maxTokens: 32768, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: false },
+      { id: 'codestral-latest', name: 'Codestral', maxTokens: 32768, contextWindow: 32000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'pixtral-large-latest', name: 'Pixtral Large', maxTokens: 32768, contextWindow: 128000, tier: 'premium', supportsVision: true, supportsTools: true },
+      { id: 'pixtral-12b-2409', name: 'Pixtral 12B', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: false },
+      { id: 'mistral-embed', name: 'Mistral Embed', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
+    ],
+    quick: 'mistral-small-latest',
+    advanced: 'mistral-large-latest',
+    premium: 'pixtral-large-latest',
   },
   xai: {
+    name: 'xAI',
+    models: [
+      { id: 'grok-2', name: 'Grok 2', maxTokens: 32768, contextWindow: 131072, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'grok-2-mini', name: 'Grok 2 Mini', maxTokens: 32768, contextWindow: 131072, tier: 'quick', supportsVision: false, supportsTools: true },
+      { id: 'grok-2-vision-1212', name: 'Grok 2 Vision', maxTokens: 32768, contextWindow: 32768, tier: 'advanced', supportsVision: true, supportsTools: false },
+      { id: 'grok-beta', name: 'Grok Beta', maxTokens: 131072, contextWindow: 131072, tier: 'premium', supportsVision: false, supportsTools: true },
+    ],
     quick: 'grok-2-mini',
     advanced: 'grok-2',
+    premium: 'grok-beta',
   },
   groq: {
+    name: 'Groq',
+    models: [
+      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'llama-3.1-70b-versatile', name: 'Llama 3.1 70B Versatile', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', maxTokens: 8192, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: true },
+      { id: 'llama3-70b-8192', name: 'Llama 3 70B', maxTokens: 8192, contextWindow: 8192, tier: 'advanced', supportsVision: false, supportsTools: false },
+      { id: 'llama3-8b-8192', name: 'Llama 3 8B', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
+      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', maxTokens: 32768, contextWindow: 32768, tier: 'advanced', supportsVision: false, supportsTools: false },
+      { id: 'gemma2-9b-it', name: 'Gemma 2 9B', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
+      { id: 'llama-3.2-90b-vision-preview', name: 'Llama 3.2 90B Vision', maxTokens: 8192, contextWindow: 128000, tier: 'premium', supportsVision: true, supportsTools: false },
+      { id: 'llama-3.2-11b-vision-preview', name: 'Llama 3.2 11B Vision', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: false },
+    ],
     quick: 'llama-3.1-8b-instant',
     advanced: 'llama-3.3-70b-versatile',
+    premium: 'llama-3.2-90b-vision-preview',
+  },
+  cerebras: {
+    name: 'Cerebras',
+    models: [
+      { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: false },
+      { id: 'llama3.1-8b', name: 'Llama 3.1 8B', maxTokens: 8192, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: false },
+      { id: 'llama3.1-70b', name: 'Llama 3.1 70B', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: false },
+    ],
+    quick: 'llama3.1-8b',
+    advanced: 'llama-3.3-70b',
   },
   gemini: {
+    name: 'Google Gemini',
+    models: [
+      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', maxTokens: 8192, contextWindow: 1048576, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', maxTokens: 8192, contextWindow: 1048576, tier: 'quick', supportsVision: true, supportsTools: false },
+      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', maxTokens: 8192, contextWindow: 2097152, tier: 'premium', supportsVision: true, supportsTools: true },
+      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', maxTokens: 8192, contextWindow: 1048576, tier: 'quick', supportsVision: true, supportsTools: true },
+      { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B', maxTokens: 8192, contextWindow: 1048576, tier: 'quick', supportsVision: true, supportsTools: false },
+      { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro', maxTokens: 8192, contextWindow: 32760, tier: 'advanced', supportsVision: false, supportsTools: true },
+    ],
     quick: 'gemini-1.5-flash',
     advanced: 'gemini-2.0-flash',
+    premium: 'gemini-1.5-pro',
   },
 };
+
+// Legacy format for backward compatibility
+export const PROVIDER_MODELS: Record<ProviderName, { quick: string; advanced: string }> = {
+  anthropic: {
+    quick: PROVIDER_CONFIGS.anthropic.quick,
+    advanced: PROVIDER_CONFIGS.anthropic.advanced,
+  },
+  mistral: {
+    quick: PROVIDER_CONFIGS.mistral.quick,
+    advanced: PROVIDER_CONFIGS.mistral.advanced,
+  },
+  openai: {
+    quick: PROVIDER_CONFIGS.openai.quick,
+    advanced: PROVIDER_CONFIGS.openai.advanced,
+  },
+  cerebras: {
+    quick: PROVIDER_CONFIGS.cerebras.quick,
+    advanced: PROVIDER_CONFIGS.cerebras.advanced,
+  },
+  xai: {
+    quick: PROVIDER_CONFIGS.xai.quick,
+    advanced: PROVIDER_CONFIGS.xai.advanced,
+  },
+  groq: {
+    quick: PROVIDER_CONFIGS.groq.quick,
+    advanced: PROVIDER_CONFIGS.groq.advanced,
+  },
+  gemini: {
+    quick: PROVIDER_CONFIGS.gemini.quick,
+    advanced: PROVIDER_CONFIGS.gemini.advanced,
+  },
+};
+
+// =====================================================
+// HELPER FUNCTIONS FOR MODEL SELECTION
+// =====================================================
+
+/**
+ * Get all models for a provider
+ */
+export function getProviderModels(provider: ProviderName): ModelInfo[] {
+  return PROVIDER_CONFIGS[provider]?.models || [];
+}
+
+/**
+ * Get models by tier for a provider
+ */
+export function getModelsByTier(provider: ProviderName, tier: 'quick' | 'advanced' | 'premium'): ModelInfo[] {
+  return getProviderModels(provider).filter(m => m.tier === tier);
+}
+
+/**
+ * Get a random model from a tier (for load balancing)
+ */
+export function getRandomModelFromTier(provider: ProviderName, tier: 'quick' | 'advanced' | 'premium'): string {
+  const models = getModelsByTier(provider, tier);
+  if (models.length === 0) {
+    // Fall back to default
+    return PROVIDER_CONFIGS[provider]?.[tier] || PROVIDER_CONFIGS[provider]?.advanced || 'gpt-4o-mini';
+  }
+  return models[Math.floor(Math.random() * models.length)].id;
+}
+
+/**
+ * Get next available model (round-robin style)
+ */
+const modelIndexMap = new Map<string, number>();
+export function getNextModel(provider: ProviderName, tier: 'quick' | 'advanced' | 'premium'): string {
+  const models = getModelsByTier(provider, tier);
+  if (models.length === 0) {
+    return PROVIDER_CONFIGS[provider]?.[tier] || PROVIDER_CONFIGS[provider]?.advanced;
+  }
+  
+  const key = `${provider}-${tier}`;
+  const currentIndex = modelIndexMap.get(key) || 0;
+  const nextIndex = (currentIndex + 1) % models.length;
+  modelIndexMap.set(key, nextIndex);
+  
+  return models[currentIndex].id;
+}
+
+/**
+ * Get model with specific capability
+ */
+export function getModelWithCapability(
+  provider: ProviderName, 
+  capability: 'vision' | 'tools',
+  preferredTier: 'quick' | 'advanced' | 'premium' = 'advanced'
+): string | null {
+  const models = getProviderModels(provider);
+  const capabilityKey = capability === 'vision' ? 'supportsVision' : 'supportsTools';
+  
+  // Try to find model with capability in preferred tier first
+  let model = models.find(m => m[capabilityKey] && m.tier === preferredTier);
+  if (model) return model.id;
+  
+  // Try any tier
+  model = models.find(m => m[capabilityKey]);
+  return model?.id || null;
+}
+
+/**
+ * Get fallback models for a provider (other models to try if primary fails)
+ */
+export function getFallbackModels(provider: ProviderName, currentModel: string): string[] {
+  return getProviderModels(provider)
+    .filter(m => m.id !== currentModel)
+    .map(m => m.id);
+}
+
+/**
+ * Get model info by ID
+ */
+export function getModelInfo(provider: ProviderName, modelId: string): ModelInfo | undefined {
+  return getProviderModels(provider).find(m => m.id === modelId);
+}
+
+/**
+ * Check if model exists for provider
+ */
+export function isValidModel(provider: ProviderName, modelId: string): boolean {
+  return getProviderModels(provider).some(m => m.id === modelId);
+}
 
 // =====================================================
 // AGENT TO PROVIDER MAPPINGS
