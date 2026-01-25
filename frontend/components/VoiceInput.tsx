@@ -137,6 +137,21 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   const recordingTimerRef = useRef<NodeJS.Timeout>();
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
 
+  const checkQuota = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/voice-to-voice?userId=${encodeURIComponent(userId)}`);
+      if (response.ok) {
+        const data = await response.json();
+        const agentQuota = data.quotaStatus[agent];
+        if (agentQuota) {
+          setState(prev => ({ ...prev, quotaRemaining: agentQuota.remaining }));
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to check quota:', error);
+    }
+  }, [userId, agent, setState]);
+
   // Initialize audio element
   useEffect(() => {
     audioElementRef.current = new Audio();
@@ -156,21 +171,6 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   useEffect(() => {
     checkQuota();
   }, [agent, userId, checkQuota]);
-
-  const checkQuota = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/voice-to-voice?userId=${encodeURIComponent(userId)}`);
-      if (response.ok) {
-        const data = await response.json();
-        const agentQuota = data.quotaStatus[agent];
-        if (agentQuota) {
-          setState(prev => ({ ...prev, quotaRemaining: agentQuota.remaining }));
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to check quota:', error);
-    }
-  }, [userId, agent, setState]);
 
   const startRecording = async () => {
     try {
