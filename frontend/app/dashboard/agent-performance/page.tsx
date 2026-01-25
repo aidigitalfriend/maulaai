@@ -50,11 +50,24 @@ interface AgentPerformanceData {
 }
 
 const agentOptions = [
+  { id: 'julie-girlfriend', name: 'Julie', icon: '💕' },
   { id: 'einstein', name: 'Einstein', icon: '🧠' },
   { id: 'tech-wizard', name: 'Tech Wizard', icon: '🧙‍♂️' },
-  { id: 'comedy-king', name: 'Comedy King', icon: '😄' },
+  { id: 'comedy-king', name: 'Comedy King', icon: '🎤' },
+  { id: 'drama-queen', name: 'Drama Queen', icon: '👑' },
   { id: 'chef-biew', name: 'Chef Biew', icon: '👨‍🍳' },
-  { id: 'ben-sega', name: 'Ben Sega', icon: '🎮' },
+  { id: 'fitness-guru', name: 'Fitness Guru', icon: '💪' },
+  { id: 'travel-buddy', name: 'Travel Buddy', icon: '✈️' },
+  { id: 'mrs-boss', name: 'Mrs. Boss', icon: '👩‍💼' },
+  { id: 'chess-player', name: 'Chess Master', icon: '♟️' },
+  { id: 'professor-astrology', name: 'Professor Astrology', icon: '🔮' },
+  { id: 'emma-emotional', name: 'Emma', icon: '🤗' },
+  { id: 'ben-sega', name: 'Ben Sega', icon: '🕹️' },
+  { id: 'nid-gaming', name: 'Nid Gaming', icon: '🎮' },
+  { id: 'knight-logic', name: 'Knight Logic', icon: '⚔️' },
+  { id: 'lazy-pawn', name: 'Lazy Pawn', icon: '🐢' },
+  { id: 'bishop-burger', name: 'Bishop Burger', icon: '🍔' },
+  { id: 'rook-jokey', name: 'Rook Jokey', icon: '🃏' },
   { id: 'default', name: 'AI Assistant', icon: '🤖' },
 ];
 

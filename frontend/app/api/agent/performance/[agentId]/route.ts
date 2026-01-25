@@ -3,11 +3,24 @@ import prisma from '@/lib/prisma';
 import { getSessionId } from '@/lib/session-utils';
 
 const AGENT_MAP: Record<string, { name: string; type: string; avatar: string }> = {
+  'julie-girlfriend': { name: 'Julie', type: 'Companion & Conversation', avatar: '💕' },
   einstein: { name: 'Einstein', type: 'Physics & Science', avatar: '🧠' },
   'tech-wizard': { name: 'Tech Wizard', type: 'Technology & Programming', avatar: '🧙‍♂️' },
-  'comedy-king': { name: 'Comedy King', type: 'Entertainment & Humor', avatar: '😄' },
+  'comedy-king': { name: 'Comedy King', type: 'Comedy & Entertainment', avatar: '🎤' },
+  'drama-queen': { name: 'Drama Queen', type: 'Theatre & Performing Arts', avatar: '👑' },
   'chef-biew': { name: 'Chef Biew', type: 'Cooking & Recipes', avatar: '👨‍🍳' },
-  'ben-sega': { name: 'Ben Sega', type: 'Gaming & Entertainment', avatar: '🎮' },
+  'fitness-guru': { name: 'Fitness Guru', type: 'Health & Fitness', avatar: '💪' },
+  'travel-buddy': { name: 'Travel Buddy', type: 'Travel & Adventure', avatar: '✈️' },
+  'mrs-boss': { name: 'Mrs. Boss', type: 'Business & Leadership', avatar: '👩‍💼' },
+  'chess-player': { name: 'Chess Master', type: 'Chess & Strategy', avatar: '♟️' },
+  'professor-astrology': { name: 'Professor Astrology', type: 'Astrology & Cosmic Wisdom', avatar: '🔮' },
+  'emma-emotional': { name: 'Emma', type: 'Emotional Support', avatar: '🤗' },
+  'ben-sega': { name: 'Ben Sega', type: 'Retro Gaming', avatar: '🕹️' },
+  'nid-gaming': { name: 'Nid Gaming', type: 'Modern Gaming & Esports', avatar: '🎮' },
+  'knight-logic': { name: 'Knight Logic', type: 'Logic & Problem Solving', avatar: '⚔️' },
+  'lazy-pawn': { name: 'Lazy Pawn', type: 'Relaxation & Chill', avatar: '🐢' },
+  'bishop-burger': { name: 'Bishop Burger', type: 'Fast Food & Burgers', avatar: '🍔' },
+  'rook-jokey': { name: 'Rook Jokey', type: 'Jokes & Riddles', avatar: '🃏' },
   default: { name: 'AI Assistant', type: 'General Purpose', avatar: '🤖' },
 };
 
