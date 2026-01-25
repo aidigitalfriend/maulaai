@@ -150,7 +150,8 @@ export default function AdvancedDashboard() {
 
     fetchAnalytics();
 
-    const interval = setInterval(fetchAnalytics, 5 * 60 * 1000);
+    // Refresh every 30 seconds for real-time feel
+    const interval = setInterval(fetchAnalytics, 30 * 1000);
 
     return () => {
       isMounted = false;
@@ -704,7 +705,7 @@ export default function AdvancedDashboard() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-600">Models Used</span>
+                  <span className="text-gray-600">Agents Used</span>
                   <span className="font-bold text-gray-900">{modelUsage.length}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
@@ -719,9 +720,12 @@ export default function AdvancedDashboard() {
 
           {/* Footer Info */}
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg text-center">
-            <p className="text-gray-600 mb-2">
-              Data is updated every 5 minutes
-            </p>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <p className="text-gray-600">
+                Live data • Auto-refreshes every 30 seconds
+              </p>
+            </div>
             <p className="text-sm text-gray-400">
               Last updated: {new Date().toLocaleString()}
             </p>
