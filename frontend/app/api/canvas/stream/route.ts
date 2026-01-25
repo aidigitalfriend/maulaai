@@ -3,20 +3,34 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 
-const SYSTEM_INSTRUCTION = `You are a world-class senior frontend engineer and UI/UX designer.
-Generate or modify a complete, production-grade, single-file HTML application that feels bespoke for the user’s prompt.
+const SYSTEM_INSTRUCTION = `You are a world-class senior frontend engineer and UI/UX designer named "Code Builder".
+Your role is to collaborate with users to understand their needs and then generate production-grade code.
 
-Rules for generated code (must follow all):
+**CONVERSATIONAL APPROACH:**
+- When the user's request is vague or high-level, ASK clarifying questions first:
+  • What's the purpose/audience?
+  • Preferred colors/theme (dark/light)?
+  • Key features or sections needed?
+  • Any inspiration or style preferences?
+- Keep questions concise (2-3 at a time max)
+- Once you understand the requirements, generate the code
+
+**WHEN GENERATING CODE:**
 1) Use Tailwind CSS via CDN (<script src="https://cdn.tailwindcss.com"></script>).
 2) Use Lucide icons via CDN (<script src="https://unpkg.com/lucide@latest"></script>).
 3) Ensure the design is modern, professional, accessible, and mobile-responsive.
 4) Include all necessary JavaScript for interactivity.
 5) Output MUST be one valid HTML document with <html>, <head>, <body>.
-6) Return ONLY code (no markdown, no explanations).
+6) Return ONLY code (no markdown wrapping).
 7) Always return the FULL updated file.
 8) Use smooth, subtle animations for polish.
-9) Avoid reusing the same layouts or color systems between requests—produce varied structure, components, and palettes per prompt.
-10) Prefer semantic HTML and ARIA labels for key controls.`;
+9) Produce varied structures and palettes per prompt.
+10) Prefer semantic HTML and ARIA labels.
+
+**ITERATION:**
+- When modifying existing code, acknowledge what you're changing
+- Explain significant changes briefly after the code
+- Ask if user wants any adjustments`;
 
 const IMAGE_TO_CODE_INSTRUCTION = `You are a world-class senior frontend engineer and UI/UX designer specializing in converting visual designs into code.
 
@@ -34,10 +48,9 @@ Rules for generated code (must follow all):
 9) If the image shows a partial design, complete it logically maintaining the same style.
 10) Pay attention to shadows, borders, gradients, and subtle design details.`;
 
-const PROVIDER_PRIORITY: ReadonlyArray<'Mistral' | 'XAI' | 'OpenAI' | 'Gemini' | 'Anthropic'> = [
-  'Mistral',
+const PROVIDER_PRIORITY: ReadonlyArray<'Cerebras' | 'XAI' | 'Gemini' | 'Anthropic'> = [
+  'Cerebras',
   'XAI',
-  'OpenAI',
   'Gemini',
   'Anthropic',
 ];
@@ -117,8 +130,8 @@ export async function POST(request: NextRequest) {
 
         for (const candidate of providersToTry) {
           try {
-            if (candidate === 'Mistral') {
-              await streamWithMistral(
+            if (candidate === 'Cerebras') {
+              await streamWithCerebras(
                 controller,
                 encoder,
                 prompt,
@@ -128,15 +141,6 @@ export async function POST(request: NextRequest) {
               );
             } else if (candidate === 'XAI') {
               await streamWithXAI(
-                controller,
-                encoder,
-                prompt,
-                modelId,
-                currentCode,
-                history
-              );
-            } else if (candidate === 'OpenAI') {
-              await streamWithOpenAI(
                 controller,
                 encoder,
                 prompt,
@@ -155,6 +159,7 @@ export async function POST(request: NextRequest) {
                 history
               );
             } else {
+              // Anthropic fallback
               await streamWithAnthropic(
                 controller,
                 encoder,
@@ -207,6 +212,76 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
+  }
+}
+
+// =============================================================================
+// CEREBRAS - Fast code generation (primary for Canvas)
+// =============================================================================
+async function streamWithCerebras(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
+  prompt: string,
+  modelId: string,
+  currentCode?: string,
+  history?: { role: string; text: string }[]
+) {
+  const apiKey = process.env.CEREBRAS_API_KEY;
+  if (!apiKey) {
+    throw new Error('Cerebras API key is not configured');
+  }
+
+  try {
+    const cerebras = new OpenAI({
+      apiKey,
+      baseURL: 'https://api.cerebras.ai/v1',
+    });
+
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM_INSTRUCTION },
+    ];
+
+    if (currentCode) {
+      messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
+    }
+
+    if (history && history.length > 0) {
+      history.forEach((msg) => {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.text,
+        });
+      });
+    }
+
+    messages.push({ role: 'user', content: prompt });
+
+    const actualModel = modelId && modelId !== 'auto' ? modelId : 'llama-3.3-70b';
+
+    const stream = await cerebras.chat.completions.create({
+      model: actualModel,
+      messages,
+      temperature: 0.7,
+      max_tokens: 8192,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const piece = chunk.choices[0]?.delta?.content;
+      const text = Array.isArray(piece) ? piece.join('') : piece;
+      if (text) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+        );
+      }
+    }
+
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Cerebras stream failed';
+    throw new Error(message);
   }
 }
 

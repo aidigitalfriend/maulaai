@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { getAgentCanvasProviders, getAgentDefaultProvider, getAgentDefaultModel } from '../../../../lib/aiProviders';
+import { getAgentCanvasProviders, getCanvasDefaultProvider, getCanvasDefaultModel } from '../../../../lib/aiProviders';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -987,8 +987,8 @@ export default function CanvasMode({
   
   // Agent-specific provider/model options
   const providerModels = useMemo(() => getAgentCanvasProviders(agentId, agentName), [agentId, agentName]);
-  const defaultProvider = useMemo(() => getAgentDefaultProvider(agentId), [agentId]);
-  const defaultModel = useMemo(() => getAgentDefaultModel(agentId), [agentId]);
+  const defaultProvider = useMemo(() => getCanvasDefaultProvider(), []);
+  const defaultModel = useMemo(() => getCanvasDefaultModel(), []);
   
   const [selectedProvider, setSelectedProvider] = useState<string>(defaultProvider);
   const [selectedModel, setSelectedModel] = useState<string>(defaultModel);
@@ -1035,7 +1035,7 @@ export default function CanvasMode({
       {
         id: '1',
         role: 'assistant',
-        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\n**🎨 Image-to-Code:** Upload a design screenshot and I'll recreate it as code!\n\nI'll ask a few questions to understand your needs, then we can start building!`,
+        content: `Hey! 👋 I'm your **Code Builder** assistant - let's create something amazing together!\n\n**How this works:**\n1. 💬 First, tell me what you want to build\n2. 🤔 I'll ask questions to understand your vision\n3. 🎨 We'll discuss colors, layout, features\n4. ✨ Then I'll generate the code step-by-step\n\n**What would you like to create?**\n- 🚀 Landing page or website\n- 📊 Dashboard or admin panel\n- 🛒 E-commerce or product page\n- 📝 Forms, cards, or components\n- 🎨 Or upload a design screenshot!\n\nLet's start with: **What's your project about?**`,
         timestamp: new Date(),
       },
     ]);

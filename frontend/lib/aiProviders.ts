@@ -247,55 +247,50 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 // GET AGENT-SPECIFIC CANVAS PROVIDER OPTIONS
 // ============================================================================
-// For Canvas app - same 7 options as chat (simplified, backend handles fallbacks)
+// For Canvas app - CODE-FOCUSED providers only for building UI/apps
+// Order: Cerebras (fast code) → Grok (planning) → Gemini → Anthropic (fallback)
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
-  const displayName = agentName || getAgentDisplayName(agentId);
-  
   return {
-    // 1. [Agent Name] - Anthropic Claude
-    anthropic: {
-      name: displayName,
-      models: [
-        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
-      ],
-    },
-    // 2. Maula AI - Mistral
-    mistral: {
-      name: 'Maula AI',
-      models: [
-        { id: 'mistral-large-latest', name: 'Mistral Large' },
-      ],
-    },
-    // 3. Image Generator - OpenAI
-    openai: {
-      name: 'Image Generator',
-      models: [
-        { id: 'gpt-4o', name: 'GPT-4o' },
-      ],
-    },
-    // 4. Code Builder - Cerebras
+    // 1. Code Builder - Cerebras (fastest for code generation)
     cerebras: {
       name: 'Code Builder',
       models: [
         { id: 'llama-3.3-70b', name: 'Llama 3.3 70B' },
       ],
     },
-    // 5. Fast Response - Groq
-    groq: {
-      name: 'Fast Response',
-      models: [
-        { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B' },
-      ],
-    },
-    // 6. Planner - xAI Grok
+    // 2. Grok - xAI (great for planning & reasoning)
     xai: {
-      name: 'Planner',
+      name: 'Grok',
       models: [
         { id: 'grok-3', name: 'Grok 3' },
       ],
     },
+    // 3. Gemini - Google (multimodal, good for UI)
+    gemini: {
+      name: 'Gemini',
+      models: [
+        { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+      ],
+    },
+    // 4. Anthropic - Claude (fallback, high quality)
+    anthropic: {
+      name: 'Claude',
+      models: [
+        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+      ],
+    },
   };
+}
+
+// Canvas default provider is Cerebras (fast code generation)
+export function getCanvasDefaultProvider(): string {
+  return 'cerebras';
+}
+
+// Canvas default model is Llama 3.3 70B
+export function getCanvasDefaultModel(): string {
+  return 'llama-3.3-70b';
 }
 
 // ============================================================================
