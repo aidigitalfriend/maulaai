@@ -272,12 +272,14 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[450px]">
                 <Image
                   src="/images/products/ai-agents.jpeg"
                   alt="AI-Powered Agents"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
+                  priority
                 />
               </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/30">
@@ -302,11 +304,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative order-2 lg:order-1">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[450px]">
                 <Image
                   src="/images/products/analytics-dashboard.jpeg"
                   alt="Real-time Analytics"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -402,11 +405,12 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[450px]">
                 <Image
                   src="/images/products/enterprise-security.jpeg"
                   alt="Enterprise Security"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -432,11 +436,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative order-2 lg:order-1">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[450px]">
                 <Image
                   src="/images/products/environment-config.jpeg"
                   alt="Environment Configuration"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -775,11 +780,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '500px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[500px]">
                 <Image
                   src="/images/products/faq-support.jpeg"
                   alt="FAQ & Support"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -885,11 +891,12 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '500px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[500px]">
                 <Image
                   src="/images/products/news-updates.jpeg"
                   alt="Latest News & Updates"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -914,13 +921,13 @@ export default function HomePage() {
         <div className="container-custom relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
-            <div className="relative">
+            <div className="relative h-[400px] md:h-[450px]">
               <Image
                 src="/images/products/integrations.jpeg"
                 alt="Integrations & Partnerships"
                 fill
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="rounded-2xl shadow-2xl border border-white/10 object-cover"
               />
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">🔗</span>
@@ -1025,11 +1032,12 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[450px]">
                 <Image
                   src="/images/products/roadmap.jpeg"
                   alt="Product Roadmap"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -1054,13 +1062,13 @@ export default function HomePage() {
         <div className="container-custom relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
-            <div className="relative">
+            <div className="relative h-[400px] md:h-[450px]">
               <Image
                 src="/images/products/security-trust.jpeg"
                 alt="Enterprise Security"
                 fill
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="rounded-2xl shadow-2xl border border-white/10 object-cover"
               />
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">🛡️</span>
@@ -1123,13 +1131,13 @@ export default function HomePage() {
         <div className="container-custom relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
-            <div className="relative">
+            <div className="relative h-[400px] md:h-[500px]">
               <Image
                 src="/images/products/pricing-plans.jpeg"
                 alt="Simple Pricing"
                 fill
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '500px' }}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="rounded-2xl shadow-2xl border border-white/10 object-cover"
               />
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">💎</span>
@@ -1237,11 +1245,12 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '500px' }}>
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden h-[400px] md:h-[500px]">
                 <Image
                   src="/images/products/why-choose-us.jpeg"
                   alt="Why Choose One Last AI"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
@@ -1266,13 +1275,13 @@ export default function HomePage() {
         <div className="container-custom relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
-            <div className="relative">
+            <div className="relative h-[350px] md:h-[400px]">
               <Image
                 src="/images/products/transform-workflow.jpeg"
                 alt="Transform Your Workflow"
                 fill
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '400px' }}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="rounded-2xl shadow-2xl border border-white/10 object-cover"
               />
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-brand-500 to-accent-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">✨</span>
