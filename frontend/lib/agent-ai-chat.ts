@@ -7,7 +7,7 @@
  * with optimal AI provider selection
  */
 
-import { AIProvider } from './ai-provider-assignments'
+import type { ProviderName as AIProvider } from './agent-provider-config'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
