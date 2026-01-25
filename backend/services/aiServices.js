@@ -7,7 +7,6 @@ import express from 'express'
 import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-// @ts-ignore
 import { CohereClient } from 'cohere-ai'
 import { 
   getAgentPersonalityConfig, 
@@ -18,10 +17,10 @@ import {
 const app = express()
 
 // Initialize AI clients
-let openai: OpenAI | null = null
-let anthropic: Anthropic | null = null
-let gemini: GoogleGenerativeAI | null = null
-let cohere: CohereClient | null = null
+let openai = null
+let anthropic = null
+let gemini = null
+let cohere = null
 
 // Initialize clients based on available API keys
 if (process.env.OPENAI_API_KEY) {
@@ -48,11 +47,11 @@ if (process.env.COHERE_API_KEY) {
 
 // Real OpenAI implementation with STRICT personality enforcement
 export const getOpenAIResponse = async (
-  message: string,
-  agent: string,
-  language: string,
-  attachments?: any[]
-): Promise<string> => {
+  message,
+  agent,
+  language,
+  attachments
+) => {
   if (!openai) {
     throw new Error('OpenAI API key not configured')
   }
@@ -84,11 +83,11 @@ export const getOpenAIResponse = async (
 
 // Real Anthropic implementation with STRICT personality enforcement
 export const getAnthropicResponse = async (
-  message: string,
-  agent: string,
-  language: string,
-  attachments?: any[]
-): Promise<string> => {
+  message,
+  agent,
+  language,
+  attachments
+) => {
   if (!anthropic) {
     throw new Error('Anthropic API key not configured')
   }
@@ -120,11 +119,11 @@ export const getAnthropicResponse = async (
 
 // Real Gemini implementation with STRICT personality enforcement
 export const getGeminiResponse = async (
-  message: string,
-  agent: string,
-  language: string,
-  attachments?: any[]
-): Promise<string> => {
+  message,
+  agent,
+  language,
+  attachments
+) => {
   if (!gemini) {
     throw new Error('Gemini API key not configured')
   }
@@ -156,11 +155,11 @@ export const getGeminiResponse = async (
 
 // Real Cohere implementation with STRICT personality enforcement
 export const getCohereResponse = async (
-  message: string,
-  agent: string,
-  language: string,
-  attachments?: any[]
-): Promise<string> => {
+  message,
+  agent,
+  language,
+  attachments
+) => {
   if (!cohere) {
     throw new Error('Cohere API key not configured')
   }
@@ -186,7 +185,7 @@ export const getCohereResponse = async (
 }
 
 // Language detection with OpenAI
-export const detectWithOpenAI = async (text: string) => {
+export const detectWithOpenAI = async (text) => {
   if (!openai) {
     throw new Error('OpenAI API key not configured')
   }
@@ -258,10 +257,10 @@ export const detectWithCohere = async (text: string) => {
 
 // Text-to-speech with ElevenLabs
 export const synthesizeWithElevenLabs = async (
-  text: string,
-  voice: string,
-  language: string
-): Promise<string> => {
+  text,
+  voice,
+  language
+) => {
   const apiKey = process.env.ELEVENLABS_API_KEY
   if (!apiKey) {
     throw new Error('ElevenLabs API key not configured')
@@ -302,10 +301,10 @@ export const synthesizeWithElevenLabs = async (
 
 // Translation with Google Translate
 export const translateWithGoogle = async (
-  text: string,
-  targetLang: string,
-  sourceLang: string = 'auto'
-): Promise<string> => {
+  text,
+  targetLang,
+  sourceLang = 'auto'
+) => {
   const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY
   if (!apiKey) {
     throw new Error('Google Translate API key not configured')
@@ -340,10 +339,10 @@ export const translateWithGoogle = async (
 
 // Translation with DeepL
 export const translateWithDeepL = async (
-  text: string,
-  targetLang: string,
-  sourceLang: string = 'auto'
-): Promise<string> => {
+  text,
+  targetLang,
+  sourceLang = 'auto'
+) => {
   const apiKey = process.env.DEEPL_API_KEY
   if (!apiKey) {
     throw new Error('DeepL API key not configured')

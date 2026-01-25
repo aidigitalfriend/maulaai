@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-var ErrorSeverity = /* @__PURE__ */ ((ErrorSeverity2) => {
+const ErrorSeverity = /* @__PURE__ */ ((ErrorSeverity2) => {
   ErrorSeverity2["LOW"] = "low";
   ErrorSeverity2["MEDIUM"] = "medium";
   ErrorSeverity2["HIGH"] = "high";
@@ -76,7 +76,7 @@ function sanitizeError(error) {
     // DO NOT include: stack trace, internal paths, file names
   };
 }
-var security_error_handler_default = createErrorResponse;
+const security_error_handler_default = createErrorResponse;
 export {
   ERROR_MESSAGES,
   ErrorSeverity,

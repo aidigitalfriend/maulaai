@@ -9,6 +9,31 @@ import express from 'express';
 import multer from 'multer';
 import mediaService from '../services/media-service.js';
 
+// Authentication middleware
+const requireAuth = async (req, res, next) => {
+  try {
+    // Check for user session or JWT token
+    const userId = req.session?.userId || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+    }
+
+    // For now, just set a default user ID if not found
+    // TODO: Implement proper user verification
+    req.userId = userId || 'default-user';
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Authentication error',
+    });
+  }
+};
+
 const router = express.Router();
 
 // Configure multer for file uploads
@@ -39,15 +64,16 @@ router.get('/status', (req, res) => {
  * POST /api/media/generate-image
  * Generate image using DALL-E 3
  */
-router.post('/generate-image', async (req, res) => {
+router.post('/generate-image', requireAuth, async (req, res) => {
   try {
     const { prompt, size, quality, style, n } = req.body;
+    const userId = req.userId;
 
     if (!prompt) {
       return res.status(400).json({ success: false, error: 'Prompt is required' });
     }
 
-    const result = await mediaService.generateImage(prompt, { size, quality, style, n });
+    const result = await mediaService.generateImage(prompt, { size, quality, style, n }, userId);
     res.json(result);
   } catch (error) {
     console.error('[MediaAPI] Generate image error:', error);

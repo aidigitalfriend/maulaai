@@ -76,7 +76,7 @@ app.use(trackPageViewMiddleware);
 // Lightweight metrics tracker
 // ----------------------------
 const METRICS_WINDOW_SECONDS = 60;
-let perSecondBuckets = new Map();
+const perSecondBuckets = new Map();
 
 function recordMetric(statusCode, durationMs) {
   const sec = Math.floor(Date.now() / 1000);

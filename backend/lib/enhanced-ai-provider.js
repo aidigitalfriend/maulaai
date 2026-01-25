@@ -527,7 +527,7 @@ ${message}
   }
 }
 const enhancedAIService = new EnhancedAIProviderService();
-var enhanced_ai_provider_default = enhancedAIService;
+const enhanced_ai_provider_default = enhancedAIService;
 export {
   enhanced_ai_provider_default as default,
   enhancedAIService

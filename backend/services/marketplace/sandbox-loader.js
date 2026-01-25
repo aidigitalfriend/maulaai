@@ -205,7 +205,7 @@ class SandboxLoader {
             })(arguments[0]);
           `;
           
-          // eslint-disable-next-line no-new-func
+           
           const fn = new Function(wrappedCode);
           const result = await Promise.race([
             fn(scope),

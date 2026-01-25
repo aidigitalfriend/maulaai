@@ -316,7 +316,7 @@ class AgentAIProviderService {
   }
 }
 const agentAIService = new AgentAIProviderService();
-var agent_ai_provider_service_default = agentAIService;
+const agent_ai_provider_service_default = agentAIService;
 export {
   AgentAIProviderService,
   agentAIService,

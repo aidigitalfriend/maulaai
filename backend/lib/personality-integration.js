@@ -138,7 +138,7 @@ function getAllAgentConfigs() {
   }
   return agents;
 }
-var personality_integration_default = {
+const personality_integration_default = {
   getAgentPersonalityConfig,
   buildAgentSystemMessage,
   preparePersonalizedRequest,

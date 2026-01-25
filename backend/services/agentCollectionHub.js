@@ -215,7 +215,7 @@ class AgentCollectionHub {
   async migrateAgentData(agentId, legacyData) {
     console.log(`Migration for agent ${agentId} - legacy function, not needed`);
     
-    let migratedCount = {
+    const migratedCount = {
       sessions: 0,
       interactions: 0,
       subscriptions: 0

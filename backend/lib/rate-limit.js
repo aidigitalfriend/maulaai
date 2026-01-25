@@ -138,7 +138,7 @@ function getIdentifierFromRequest(req, userId) {
   const ip = forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip");
   return ip || "unknown";
 }
-var rate_limit_default = checkRateLimit;
+const rate_limit_default = checkRateLimit;
 export {
   RATE_LIMIT_CONFIG,
   addRateLimitHeaders,

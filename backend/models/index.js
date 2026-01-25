@@ -494,6 +494,223 @@ class CommunityPostAdapter {
   }
 }
 
+class CommunityCommentAdapter {
+  static async find(query = {}) {
+    const where = {};
+    if (query.postId) where.postId = query.postId;
+    if (query.authorId) where.authorId = query.authorId;
+    return prisma.communityComment.findMany({
+      where,
+      include: { author: true, likes: true },
+      orderBy: { createdAt: 'asc' }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityComment.findUnique({
+      where: { id },
+      include: { author: true, likes: true }
+    });
+  }
+
+  static async create(data) {
+    return prisma.communityComment.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityComment.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityComment.delete({ where: { id } });
+  }
+}
+
+class CommunityLikeAdapter {
+  static async find(query = {}) {
+    const where = {};
+    if (query.userId) where.userId = query.userId;
+    if (query.postId) where.postId = query.postId;
+    if (query.commentId) where.commentId = query.commentId;
+    return prisma.communityLike.findMany({
+      where,
+      include: { user: true }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityLike.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+  }
+
+  static async create(data) {
+    return prisma.communityLike.create({ data });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityLike.delete({ where: { id } });
+  }
+}
+
+class CommunityGroupAdapter {
+  static async find(query = {}) {
+    return prisma.communityGroup.findMany({
+      where: query,
+      include: { memberships: true },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityGroup.findUnique({
+      where: { id },
+      include: { memberships: true }
+    });
+  }
+
+  static async create(data) {
+    return prisma.communityGroup.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityGroup.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityGroup.delete({ where: { id } });
+  }
+}
+
+class CommunityMembershipAdapter {
+  static async find(query = {}) {
+    return prisma.communityMembership.findMany({
+      where: query,
+      include: { user: true, group: true }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityMembership.findUnique({
+      where: { id },
+      include: { user: true, group: true }
+    });
+  }
+
+  static async create(data) {
+    return prisma.communityMembership.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityMembership.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityMembership.delete({ where: { id } });
+  }
+}
+
+class CommunityEventAdapter {
+  static async find(query = {}) {
+    return prisma.communityEvent.findMany({
+      where: query,
+      orderBy: { startDate: 'asc' }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityEvent.findUnique({ where: { id } });
+  }
+
+  static async create(data) {
+    return prisma.communityEvent.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityEvent.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityEvent.delete({ where: { id } });
+  }
+}
+
+class CommunityContentAdapter {
+  static async find(query = {}) {
+    return prisma.communityContent.findMany({
+      where: query,
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityContent.findUnique({ where: { id } });
+  }
+
+  static async create(data) {
+    return prisma.communityContent.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityContent.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityContent.delete({ where: { id } });
+  }
+}
+
+class CommunityModerationAdapter {
+  static async find(query = {}) {
+    return prisma.communityModeration.findMany({
+      where: query,
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityModeration.findUnique({ where: { id } });
+  }
+
+  static async create(data) {
+    return prisma.communityModeration.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityModeration.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityModeration.delete({ where: { id } });
+  }
+}
+
+class CommunityMetricsAdapter {
+  static async find(query = {}) {
+    return prisma.communityMetrics.findMany({
+      where: query,
+      orderBy: { date: 'desc' }
+    });
+  }
+
+  static async findById(id) {
+    return prisma.communityMetrics.findUnique({ where: { id } });
+  }
+
+  static async create(data) {
+    return prisma.communityMetrics.create({ data });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    return prisma.communityMetrics.update({ where: { id }, data: update.$set || update });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityMetrics.delete({ where: { id } });
+  }
+}
+
 // ============================================
 // OTHER MODELS ADAPTERS
 // ============================================
@@ -933,6 +1150,14 @@ export const Consultation = ConsultationAdapter;
 
 // Community  
 export const CommunityPost = CommunityPostAdapter;
+export const CommunityComment = CommunityCommentAdapter;
+export const CommunityLike = CommunityLikeAdapter;
+export const CommunityGroup = CommunityGroupAdapter;
+export const CommunityMembership = CommunityMembershipAdapter;
+export const CommunityEvent = CommunityEventAdapter;
+export const CommunityContent = CommunityContentAdapter;
+export const CommunityModeration = CommunityModerationAdapter;
+export const CommunityMetrics = CommunityMetricsAdapter;
 
 // Lab
 export const LabExperiment = LabExperimentAdapter;
@@ -967,6 +1192,14 @@ export default {
   ContactMessage,
   Consultation,
   CommunityPost,
+  CommunityComment,
+  CommunityLike,
+  CommunityGroup,
+  CommunityMembership,
+  CommunityEvent,
+  CommunityContent,
+  CommunityModeration,
+  CommunityMetrics,
   LabExperiment,
   JobApplication,
   WebinarRegistration,

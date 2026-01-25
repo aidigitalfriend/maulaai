@@ -92,7 +92,7 @@ function createRequestContext(request, userId) {
     }
   };
 }
-var security_request_logger_default = logRequest;
+const security_request_logger_default = logRequest;
 export {
   createRequestContext,
   security_request_logger_default as default,

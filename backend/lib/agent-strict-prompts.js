@@ -665,7 +665,7 @@ const AGENT_TEMPERATURES = {
   "random": 0.9
   // Maximum variety
 };
-var agent_strict_prompts_default = STRICT_AGENT_PROMPTS;
+const agent_strict_prompts_default = STRICT_AGENT_PROMPTS;
 export {
   AGENT_TEMPERATURES,
   STRICT_AGENT_PROMPTS,

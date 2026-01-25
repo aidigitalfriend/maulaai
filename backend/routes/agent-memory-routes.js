@@ -6,10 +6,43 @@
 import express from 'express';
 import { isValidId } from '../lib/validation-utils.js';
 import AgentMemory from '../models/AgentMemory.js';
+import User from '../models/User.js';
 import memoryService from '../lib/agent-memory-service.js';
 import agentTools from '../lib/agent-tools-service.js';
 
 const router = express.Router();
+
+// Authentication middleware
+const requireAuth = async (req, res, next) => {
+  try {
+    // Check for user session or JWT token
+    const userId = req.session?.userId || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+    }
+
+    // Verify user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid user',
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Authentication error',
+    });
+  }
+};
 
 /**
  * GET /api/agents/memory/:userId/:agentId
@@ -351,6 +384,51 @@ router.get('/files/download', async (req, res) => {
     }
   } catch (error) {
     console.error('Error downloading file:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * GET /api/agents/files
+ * Get files for unified file browser
+ */
+router.get('/files', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { folder = '/' } = req.query;
+
+    const result = await agentTools.listFiles(folder, userId);
+
+    if (!result.success) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    // Transform to frontend format
+    const files = result.files.map(file => ({
+      id: file.path,
+      name: file.filename,
+      type: 'file',
+      path: file.path,
+      size: file.size,
+      mimeType: file.mimeType,
+      modifiedAt: file.updatedAt,
+    }));
+
+    // Add folders
+    const folders = result.folders.map(folder => ({
+      id: folder.path,
+      name: folder.name,
+      type: 'folder',
+      path: folder.path,
+      modifiedAt: folder.updatedAt,
+    }));
+
+    res.json({
+      success: true,
+      files: [...folders, ...files],
+    });
+  } catch (error) {
+    console.error('Error getting files:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

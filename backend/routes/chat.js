@@ -79,7 +79,7 @@ router.get('/sessions', requireAuth, async (req, res) => {
     const userId = req.user._id;
     const { agentId, limit = 20, offset = 0, active = true } = req.query;
 
-    let query = { userId };
+    const query = { userId };
     if (agentId) {
       query.agentId = agentId;
     }
@@ -589,7 +589,7 @@ router.get('/quick-actions', requireAuth, async (req, res) => {
   try {
     const { category, limit = 50 } = req.query;
 
-    let query = { isActive: true };
+    const query = { isActive: true };
     if (category) {
       query.category = category;
     }

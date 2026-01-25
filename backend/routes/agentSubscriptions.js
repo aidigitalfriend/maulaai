@@ -545,7 +545,7 @@ router.post('/verify-session', async (req, res) => {
 
     // Calculate expiry date based on plan (one-time payment)
     const startDate = new Date();
-    let expiryDate = new Date();
+    const expiryDate = new Date();
     
     switch (plan) {
       case 'daily':

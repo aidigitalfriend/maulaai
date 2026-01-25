@@ -442,7 +442,7 @@ Return a JSON response:
       /['"]([^'"]+\.[a-zA-Z]+)['"]/,  // Quoted path with extension
       /['"]([^'"\/]+\/[^'"]+)['"]/,     // Quoted path with slash
       /(\S+\.[a-zA-Z]{1,5})/,          // Path with extension
-      /(\/\S+)/,                         // Absolute path
+      /\/(\S+)/,                         // Absolute path
     ];
 
     for (const pattern of patterns) {

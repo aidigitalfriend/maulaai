@@ -12,6 +12,44 @@ import fs from 'fs/promises';
 import { createWriteStream } from 'fs';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+// S3 Configuration
+const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
+const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
+
+const s3Client = new S3Client({
+  region: S3_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+/**
+ * Upload file to S3
+ */
+async function uploadToS3(key, content, mimeType) {
+  try {
+    const buffer = typeof content === 'string' ? Buffer.from(content, 'utf-8') : content;
+
+    await s3Client.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: mimeType,
+      // Note: ACL removed - bucket should have public read policy configured
+    }));
+
+    const url = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
+    console.log(`[MediaService] Uploaded to S3: ${key}`);
+
+    return url;
+  } catch (error) {
+    console.error('[MediaService] S3 upload error:', error);
+    throw error;
+  }
+}
 
 // FFmpeg setup (uses static binaries)
 let ffmpeg;
@@ -57,7 +95,7 @@ async function ensureTempDir() {
  * IMAGE GENERATION - DALL-E 3
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-export async function generateImage(prompt, options = {}) {
+export async function generateImage(prompt, options = {}, userId = 'default') {
   const {
     model = 'dall-e-3',
     size = '1024x1024',
@@ -70,7 +108,7 @@ export async function generateImage(prompt, options = {}) {
     throw new Error('OpenAI API key not configured');
   }
 
-  console.log(`[MediaService] Generating image: "${prompt.substring(0, 50)}..."`);
+  console.log(`[MediaService] Generating image for user ${userId}: "${prompt.substring(0, 50)}..."`);
 
   const response = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
@@ -95,13 +133,59 @@ export async function generateImage(prompt, options = {}) {
   }
 
   const data = await response.json();
-  
+
+  // Download and save images to S3 for persistence
+  const savedImages = [];
+  for (let i = 0; i < data.data.length; i++) {
+    const img = data.data[i];
+    try {
+      // Download the image from DALL-E
+      const imageResponse = await fetch(img.url);
+      if (!imageResponse.ok) {
+        console.error(`[MediaService] Failed to download image ${i}: ${imageResponse.status}`);
+        continue;
+      }
+
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const buffer = Buffer.from(imageBuffer);
+
+      // Determine file extension from content type
+      const contentType = imageResponse.headers.get('content-type') || 'image/png';
+      const extension = contentType.split('/')[1] || 'png';
+
+      // Generate unique filename with user-specific path
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      const filename = `generated-image-${timestamp}-${randomId}.${extension}`;
+      const s3Key = `user-images/${userId}/${filename}`;
+
+      // Upload to S3
+      const s3Url = await uploadToS3(s3Key, buffer, contentType);
+
+      savedImages.push({
+        url: s3Url,
+        filename,
+        s3Key,
+        revisedPrompt: img.revised_prompt,
+        size: buffer.length,
+      });
+
+      console.log(`[MediaService] Saved image to S3: ${s3Key}`);
+
+    } catch (error) {
+      console.error(`[MediaService] Failed to save image ${i}:`, error);
+      // Fallback to original URL if S3 upload fails
+      savedImages.push({
+        url: img.url,
+        revisedPrompt: img.revised_prompt,
+        error: 'Failed to save to persistent storage',
+      });
+    }
+  }
+
   return {
     success: true,
-    images: data.data.map(img => ({
-      url: img.url,
-      revisedPrompt: img.revised_prompt,
-    })),
+    images: savedImages,
     model,
     prompt,
   };

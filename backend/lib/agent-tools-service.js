@@ -225,6 +225,56 @@ export const AVAILABLE_TOOLS = {
   },
 
   // ═══════════════════════════════════════════════════════════════════
+  // 🎨 CANVAS PROJECT TOOLS
+  // ═══════════════════════════════════════════════════════════════════
+  create_canvas_project: {
+    name: 'create_canvas_project',
+    description: 'Create a new canvas project with specified files and settings. Use when user wants to create a new web project, app, or canvas-based application.',
+    parameters: {
+      name: { type: 'string', description: 'Name of the canvas project', required: true },
+      description: { type: 'string', description: 'Description of the project', default: '' },
+      template: { type: 'string', description: 'Project template: react-app, vue-app, html-css-js, nextjs-app, svelte-app', default: 'react-app' },
+      category: { type: 'string', description: 'Project category: web-app, mobile-app, game, tool, landing-page', default: 'web-app' },
+      files: { type: 'array', description: 'Array of file objects with filename and content', default: [] },
+      settings: { type: 'object', description: 'Project settings and configuration', default: {} },
+    },
+  },
+  read_canvas_project: {
+    name: 'read_canvas_project',
+    description: 'Read a canvas project and return its files and settings. Use when user wants to view, examine, or work with an existing canvas project.',
+    parameters: {
+      project_id: { type: 'string', description: 'ID of the canvas project to read', required: true },
+    },
+  },
+  update_canvas_project: {
+    name: 'update_canvas_project',
+    description: 'Update an existing canvas project by adding/modifying files or changing settings. Use when user wants to modify, edit, or update a canvas project.',
+    parameters: {
+      project_id: { type: 'string', description: 'ID of the canvas project to update', required: true },
+      name: { type: 'string', description: 'New name for the project (optional)' },
+      description: { type: 'string', description: 'New description for the project (optional)' },
+      files: { type: 'array', description: 'Array of file objects to add/update (optional)' },
+      settings: { type: 'object', description: 'Updated project settings (optional)' },
+    },
+  },
+  list_canvas_projects: {
+    name: 'list_canvas_projects',
+    description: 'List all canvas projects for the user. Use when user wants to see their projects, browse canvas apps, or find a specific project.',
+    parameters: {
+      limit: { type: 'number', description: 'Maximum number of projects to return', default: 10 },
+      category: { type: 'string', description: 'Filter by category (optional)' },
+    },
+  },
+  save_canvas_to_files: {
+    name: 'save_canvas_to_files',
+    description: 'Save a canvas project files to the agent file system. Use when user wants to export canvas project to regular files or create a backup.',
+    parameters: {
+      project_id: { type: 'string', description: 'ID of the canvas project to save', required: true },
+      folder: { type: 'string', description: 'Folder path to save files (defaults to project name)', default: '' },
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
   // 📁 FILE & FOLDER OPERATIONS (Extended)
   // ═══════════════════════════════════════════════════════════════════
   create_folder: {
@@ -1339,72 +1389,59 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
  */
 export async function generateImage(prompt, style = 'realistic', width = 1024, height = 1024, userId = 'default') {
   try {
-    // Call the frontend API which handles Stability AI
-    const response = await fetch(`${FRONTEND_URL}/api/lab/image-generation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, style, width, height }),
-    });
+    // Import media service dynamically to avoid circular dependencies
+    const mediaService = await import('../services/media-service.js');
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Image generation failed');
-    }
-
-    const data = await response.json();
-
-    // Save the image to Database/S3 using the proper createFile function
-    if (data.image && data.image.startsWith('data:image')) {
-      const base64Data = data.image.split(',')[1];
-      const filename = `generated-image-${Date.now()}.png`;
-      const imageBuffer = Buffer.from(base64Data, 'base64');
-      
-      // Use createFile to properly store in Database/S3
-      const saveResult = await createFile(filename, imageBuffer, '/images', userId, 'image-generator');
-      
-      if (saveResult.success) {
-        return {
-          success: true,
-          prompt,
-          style,
-          dimensions: `${width}x${height}`,
-          image: data.image, // Include base64 for immediate display
-          filename: saveResult.filename,
-          path: saveResult.path,
-          downloadUrl: saveResult.downloadUrl,
-          s3Url: saveResult.s3Url,
-          experimentId: data.experimentId,
-          message: `Image generated and saved successfully! You can view or download it.`,
-        };
-      } else {
-        // Still return the image even if save failed
-        console.error('Failed to save generated image:', saveResult.error);
-        return {
-          success: true,
-          prompt,
-          style,
-          dimensions: `${width}x${height}`,
-          image: data.image,
-          experimentId: data.experimentId,
-          warning: 'Image generated but could not be saved to workspace',
-          message: `Image generated successfully! (Note: Could not save to workspace)`,
-        };
-      }
-    }
-
-    return {
-      success: true,
-      prompt,
-      style,
-      image: data.image,
-      experimentId: data.experimentId,
+    // Map style to DALL-E style options
+    const styleMap = {
+      'realistic': 'vivid',
+      'artistic': 'vivid',
+      'anime': 'natural',
+      'oil-painting': 'vivid',
+      'watercolor': 'natural',
+      'digital-art': 'vivid',
+      '3d-render': 'vivid',
+      'pixel-art': 'natural'
     };
+
+    const dalleStyle = styleMap[style] || 'vivid';
+
+    // Map dimensions to DALL-E size options
+    let size = '1024x1024';
+    if (width === 512 && height === 512) size = '512x512';
+    else if (width === 1024 && height === 1024) size = '1024x1024';
+    else if (width === 1792 && height === 1024) size = '1792x1024';
+    else if (width === 1024 && height === 1792) size = '1024x1792';
+
+    const result = await mediaService.generateImage(prompt, {
+      size,
+      style: dalleStyle,
+      quality: 'standard'
+    }, userId);
+
+    if (result.success && result.images && result.images.length > 0) {
+      const image = result.images[0];
+
+      return {
+        success: true,
+        prompt,
+        style,
+        dimensions: `${width}x${height}`,
+        imageUrl: image.url,
+        filename: image.filename,
+        s3Key: image.s3Key,
+        revisedPrompt: image.revisedPrompt,
+        message: `Image generated and saved successfully! You can view or download it.`,
+      };
+    } else {
+      throw new Error('No images generated');
+    }
   } catch (error) {
     console.error('Image generation error:', error);
     return {
       success: false,
-      prompt,
-      error: error.message || 'Failed to generate image',
+      error: error.message,
+      message: 'Failed to generate image',
     };
   }
 }
@@ -1568,7 +1605,7 @@ export async function convertImage(imageUrl, format = 'png', quality = 90, userI
     
     if (sharp) {
       // Direct conversion with sharp
-      let processor = sharp(imageBuffer);
+      const processor = sharp(imageBuffer);
       
       switch (format.toLowerCase()) {
         case 'jpeg':
@@ -2408,7 +2445,210 @@ export async function ocrImage(imagePath, language = 'eng', userId = 'default') 
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// 🎥 VIDEO OPERATIONS
+// � CANVAS PROJECT OPERATIONS
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Create a new canvas project
+ */
+export async function createCanvasProject(name, description = '', template = 'react-app', category = 'web-app', files = [], settings = {}, userId = 'default') {
+  try {
+    // Import the ChatCanvasProject model
+    const ChatCanvasProject = (await import('../models/ChatCanvasProject.js')).default;
+    
+    const projectId = `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const project = new ChatCanvasProject({
+      projectId,
+      userId,
+      name,
+      description,
+      template,
+      category,
+      files: JSON.stringify(files),
+      settings: JSON.stringify(settings),
+      stats: {
+        filesGenerated: files.length,
+        totalSize: JSON.stringify(files).length,
+        lastModified: new Date(),
+      },
+    });
+    
+    await project.save();
+    
+    return {
+      success: true,
+      projectId,
+      name,
+      message: `Canvas project "${name}" created successfully`,
+    };
+  } catch (error) {
+    console.error('[Canvas] Create project error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Read a canvas project
+ */
+export async function readCanvasProject(projectId, userId = 'default') {
+  try {
+    const ChatCanvasProject = (await import('../models/ChatCanvasProject.js')).default;
+    
+    const project = await ChatCanvasProject.findOne({
+      projectId,
+      userId,
+    });
+    
+    if (!project) {
+      return { success: false, error: `Canvas project not found: ${projectId}` };
+    }
+    
+    return {
+      success: true,
+      project: {
+        id: project.projectId,
+        name: project.name,
+        description: project.description,
+        template: project.template,
+        category: project.category,
+        files: JSON.parse(project.files || '[]'),
+        settings: JSON.parse(project.settings || '{}'),
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+      },
+    };
+  } catch (error) {
+    console.error('[Canvas] Read project error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Update a canvas project
+ */
+export async function updateCanvasProject(projectId, name, description, files, settings, userId = 'default') {
+  try {
+    const ChatCanvasProject = (await import('../models/ChatCanvasProject.js')).default;
+    
+    const project = await ChatCanvasProject.findOne({
+      projectId,
+      userId,
+    });
+    
+    if (!project) {
+      return { success: false, error: `Canvas project not found: ${projectId}` };
+    }
+    
+    // Update fields if provided
+    if (name !== undefined) project.name = name;
+    if (description !== undefined) project.description = description;
+    if (files !== undefined) {
+      project.files = JSON.stringify(files);
+      project.stats.filesGenerated = files.length;
+    }
+    if (settings !== undefined) project.settings = JSON.stringify(settings);
+    
+    project.stats.lastModified = new Date();
+    await project.save();
+    
+    return {
+      success: true,
+      projectId,
+      message: `Canvas project "${project.name}" updated successfully`,
+    };
+  } catch (error) {
+    console.error('[Canvas] Update project error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * List canvas projects
+ */
+export async function listCanvasProjects(limit = 10, category, userId = 'default') {
+  try {
+    const ChatCanvasProject = (await import('../models/ChatCanvasProject.js')).default;
+    
+    const query = { userId };
+    if (category) query.category = category;
+    
+    const projects = await ChatCanvasProject.find(query)
+      .sort({ updatedAt: -1 })
+      .limit(parseInt(limit));
+    
+    return {
+      success: true,
+      projects: projects.map(p => ({
+        id: p.projectId,
+        name: p.name,
+        description: p.description,
+        template: p.template,
+        category: p.category,
+        filesCount: JSON.parse(p.files || '[]').length,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      })),
+    };
+  } catch (error) {
+    console.error('[Canvas] List projects error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Save canvas project files to agent file system
+ */
+export async function saveCanvasToFiles(projectId, folder = '', userId = 'default') {
+  try {
+    const ChatCanvasProject = (await import('../models/ChatCanvasProject.js')).default;
+    
+    const project = await ChatCanvasProject.findOne({
+      projectId,
+      userId,
+    });
+    
+    if (!project) {
+      return { success: false, error: `Canvas project not found: ${projectId}` };
+    }
+    
+    const files = JSON.parse(project.files || '[]');
+    const baseFolder = folder || project.name;
+    
+    const savedFiles = [];
+    for (const file of files) {
+      if (file.filename && file.content) {
+        const result = await createFile(
+          file.filename,
+          file.content,
+          `/${baseFolder}`,
+          userId,
+          'canvas-exporter'
+        );
+        savedFiles.push({
+          filename: file.filename,
+          success: result.success,
+          path: result.path || `/${baseFolder}/${file.filename}`,
+        });
+      }
+    }
+    
+    return {
+      success: true,
+      projectId,
+      folder: baseFolder,
+      filesSaved: savedFiles.length,
+      files: savedFiles,
+      message: `Canvas project "${project.name}" exported to files`,
+    };
+  } catch (error) {
+    console.error('[Canvas] Save to files error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// �🎥 VIDEO OPERATIONS
 // ═══════════════════════════════════════════════════════════════════
 
 /**
@@ -3192,7 +3432,7 @@ export async function saveMemory(key, content, tags = [], userId = 'default', ag
  */
 export async function loadMemory(key = null, tags = [], userId = 'default') {
   try {
-    let query = { userId, folder: '/.memory', isDeleted: false };
+    const query = { userId, folder: '/.memory', isDeleted: false };
     
     if (key) {
       query.path = `/.memory/memory-${key}.json`;
@@ -3330,6 +3570,24 @@ export async function executeTool(toolName, params) {
       return unzipFiles(params.file, params.destination, params.userId);
 
     // ═══════════════════════════════════════════════════════════════
+    // CANVAS PROJECT TOOLS
+    // ═══════════════════════════════════════════════════════════════
+    case 'create_canvas_project':
+      return createCanvasProject(params.name, params.description, params.template, params.category, params.files, params.settings, params.userId);
+
+    case 'read_canvas_project':
+      return readCanvasProject(params.project_id, params.userId);
+
+    case 'update_canvas_project':
+      return updateCanvasProject(params.project_id, params.name, params.description, params.files, params.settings, params.userId);
+
+    case 'list_canvas_projects':
+      return listCanvasProjects(params.limit, params.category, params.userId);
+
+    case 'save_canvas_to_files':
+      return saveCanvasToFiles(params.project_id, params.folder, params.userId);
+
+    // ═══════════════════════════════════════════════════════════════
     // DOCUMENT PARSING
     // ═══════════════════════════════════════════════════════════════
     case 'parse_pdf':
@@ -3428,13 +3686,14 @@ export async function executeTool(toolName, params) {
     case 'semantic_search':
       return semanticSearch(params.query, params.index || params.collection || 'agent_memories', params.limit || 10, params.userId);
 
-    case 'store_vectors':
+    case 'store_vectors': {
       // First embed, then store in Qdrant
       const embedResult = await embedContent(params.content, params.model || 'text-embedding-3-small', params.userId);
       if (embedResult.success) {
         return storeInQdrant(embedResult.embeddings, params.metadata || {}, params.collection || 'agent_memories', params.userId);
       }
       return embedResult;
+    }
 
     case 'cache_set':
       return cacheInRedis(params.key, params.value, params.ttl || 3600, params.userId);
@@ -3750,6 +4009,25 @@ You have access to powerful tools. Use this format:
     [TOOL:delegate_task]{"task": "Review code security", "agent": "security"}
 
 ═══════════════════════════════════════════════════════════════════
+### 🎨 CANVAS PROJECT TOOLS
+═══════════════════════════════════════════════════════════════════
+
+43. **create_canvas_project** - Create new canvas project
+    [TOOL:create_canvas_project]{"name": "My App", "description": "Web application", "template": "react-app", "category": "web-app", "files": [{"filename": "index.html", "content": "<h1>Hello</h1>"}]}
+
+44. **read_canvas_project** - Read canvas project details
+    [TOOL:read_canvas_project]{"project_id": "canvas-123"}
+
+45. **update_canvas_project** - Update canvas project
+    [TOOL:update_canvas_project]{"project_id": "canvas-123", "name": "Updated App", "files": [{"filename": "app.js", "content": "console.log('hi')"}]}
+
+46. **list_canvas_projects** - List user's canvas projects
+    [TOOL:list_canvas_projects]{"limit": 10, "category": "web-app"}
+
+47. **save_canvas_to_files** - Export canvas to file system
+    [TOOL:save_canvas_to_files]{"project_id": "canvas-123", "folder": "my-projects"}
+
+═══════════════════════════════════════════════════════════════════
 
 IMPORTANT:
 - Only use tools when necessary
@@ -3828,6 +4106,13 @@ export default {
   // Memory operations
   saveMemory,
   loadMemory,
+  
+  // Canvas operations
+  createCanvasProject,
+  readCanvasProject,
+  updateCanvasProject,
+  listCanvasProjects,
+  saveCanvasToFiles,
   
   // Agent control
   planTask,

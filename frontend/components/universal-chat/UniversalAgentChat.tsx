@@ -130,16 +130,17 @@ interface ExtractedImage {
 
 const extractBase64Images = (content: string): { cleanContent: string; images: ExtractedImage[] } => {
   const images: ExtractedImage[] = [];
+
   // Match markdown images with data URLs: ![alt](data:image/...)
-  const imageRegex = /!\[([^\]]*)\]\((data:image\/[^)]+)\)/g;
+  const base64ImageRegex = /!\[([^\]]*)\]\((data:image\/[^)]+)\)/g;
   let match;
   let cleanContent = content;
-  
-  while ((match = imageRegex.exec(content)) !== null) {
+
+  while ((match = base64ImageRegex.exec(content)) !== null) {
     const fullMatch = match[0];
     const alt = match[1];
     const src = match[2];
-    
+
     // Only extract if it's a large base64 image (over 1000 chars means it's actual image data)
     if (src.length > 1000) {
       images.push({ src, alt });
@@ -147,7 +148,19 @@ const extractBase64Images = (content: string): { cleanContent: string; images: E
       cleanContent = cleanContent.replace(fullMatch, '');
     }
   }
-  
+
+  // Also match regular image URLs (http/https) that might be in the content
+  const urlImageRegex = /(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg|bmp|ico))/gi;
+  while ((match = urlImageRegex.exec(content)) !== null) {
+    const src = match[1];
+    // Skip if it's already in our images array
+    if (!images.some(img => img.src === src)) {
+      images.push({ src, alt: 'Generated image' });
+      // Remove the URL from content
+      cleanContent = cleanContent.replace(src, '');
+    }
+  }
+
   return { cleanContent, images };
 };
 
