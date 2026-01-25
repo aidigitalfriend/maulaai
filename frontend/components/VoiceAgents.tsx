@@ -74,10 +74,6 @@ const VoiceAgents: React.FC<VoiceAgentsProps> = ({
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadAgents();
-  }, [selectedCategory, loadAgents]);
-
   const loadAgents = useCallback(async () => {
     try {
       setLoading(true);
@@ -109,6 +105,10 @@ const VoiceAgents: React.FC<VoiceAgentsProps> = ({
       setLoading(false);
     }
   }, [userId, selectedCategory, setLoading, setAgents, setUserSubscriptions, setCategories, setError]);
+
+  useEffect(() => {
+    loadAgents();
+  }, [selectedCategory, loadAgents]);
 
   const handleSubscription = async (agentId: string, action: 'subscribe' | 'unsubscribe') => {
     try {
