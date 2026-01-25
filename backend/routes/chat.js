@@ -353,7 +353,7 @@ router.post(
       const agent = agentId ? await Agent.findById(agentId) : null;
 
       // Create interaction
-      const interaction = new ChatInteraction({
+      const interaction = await ChatInteraction.create({
         conversationId,
         userId,
         agentId: isValidId(agentId) ? agentId : undefined,
@@ -362,17 +362,13 @@ router.post(
           content: msg.content,
           createdAt: msg.timestamp || new Date(),
         })),
-        summary,
-        metrics,
         status: 'active',
       });
-
-      await interaction.save();
 
       res.status(201).json({
         success: true,
         interaction: {
-          id: interaction._id,
+          id: interaction.id,
           conversationId: interaction.conversationId,
           messageCount: interaction.messages.length,
           createdAt: interaction.createdAt,
