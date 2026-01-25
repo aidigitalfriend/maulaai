@@ -3,7 +3,8 @@ import prisma from '@/lib/prisma';
 import { getAllSessionIds } from '@/lib/session-utils';
 
 // Helper to find valid user from any of the session cookies
-async function getValidSessionUser(request: NextRequest, select?: Record<string, boolean>) {
+// Returns both user and the sessionId that matched
+async function getValidSessionUser(request: NextRequest, select?: Record<string, boolean>): Promise<{ user: any; sessionId: string } | null> {
   const sessionIds = getAllSessionIds(request);
   if (sessionIds.length === 0) return null;
   
@@ -12,7 +13,7 @@ async function getValidSessionUser(request: NextRequest, select?: Record<string,
       where: { sessionId, sessionExpiry: { gt: new Date() }, isActive: true },
       ...(select && { select }),
     });
-    if (user) return user;
+    if (user) return { user, sessionId };
   }
   return null;
 }
@@ -53,7 +54,7 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const user = await getValidSessionUser(request, {
+    const result = await getValidSessionUser(request, {
       id: true,
       email: true,
       twoFactorEnabled: true,
@@ -63,9 +64,11 @@ export async function GET(
       passwordChangedAt: true,
     });
 
-    if (!user) {
+    if (!result) {
       return NextResponse.json({ message: 'Invalid or expired session' }, { status: 401 });
     }
+
+    const { user, sessionId } = result;
 
     // Get login history
     let loginHistory: any[] = [];
