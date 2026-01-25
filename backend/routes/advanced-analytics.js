@@ -53,7 +53,8 @@ router.get('/', async (req, res) => {
         agent: {
           select: {
             name: true,
-            modelId: true,
+            agentId: true,
+            aiProvider: true,
           },
         },
       },
@@ -173,10 +174,15 @@ router.get('/', async (req, res) => {
       .sort((a, b) => b.requests - a.requests)
       .slice(0, 10);
 
-    // Group by model for model usage (use agent's modelId or agent name)
+    // Group by model for model usage (use agent's aiProvider.model or agent name)
     const modelGroups = chatInteractions.reduce((acc, c) => {
-      // Use agent's model ID, or agent name, or 'unknown'
-      const model = c.agent?.modelId || c.agent?.name || c.agentId || 'unknown';
+      // Try to get model from aiProvider JSON, or use agent name, or agentId
+      let model = 'unknown';
+      if (c.agent?.aiProvider && typeof c.agent.aiProvider === 'object') {
+        model = c.agent.aiProvider.model || c.agent.aiProvider.primary || c.agent.name || c.agentId || 'unknown';
+      } else {
+        model = c.agent?.name || c.agentId || 'unknown';
+      }
       if (!acc[model]) {
         acc[model] = { requests: 0, tokens: 0 };
       }
