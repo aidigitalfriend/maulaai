@@ -455,7 +455,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     isValidObjectId,
   ]);
 
-  // Save message to session in database
+  // Save message to session in database (ChatMessage table)
   const saveMessageToSession = useCallback(
     async (sessionId: string, message: Message) => {
       if (!authState.isAuthenticated || !authState.user) {
@@ -473,20 +473,17 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           contentToSave = contentToSave.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]{100,}/g, '[base64 image data]');
         }
 
-        const response = await fetch('/api/chat/interactions', {
+        // Save to ChatMessage table via sessions endpoint (NOT interactions which is for analytics)
+        const response = await fetch(`/api/chat/sessions/${sessionId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
           body: JSON.stringify({
-            conversationId: sessionId,
+            role: message.role,
+            content: contentToSave,
             agentId: agent.id,
-            messages: [{
-              role: message.role,
-              content: contentToSave,
-              timestamp: new Date(),
-            }],
           }),
         });
 
@@ -497,7 +494,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         console.error('Error saving message:', error);
       }
     },
-    [authState.isAuthenticated, authState.user, agent.id, isValidObjectId]
+    [authState.isAuthenticated, authState.user, agent.id]
   );
 
   // Legacy save session (for analytics/interactions)
