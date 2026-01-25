@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +23,34 @@ export async function POST(request: NextRequest) {
     // Create response with the same status
     const nextResponse = NextResponse.json(data, { status: response.status });
 
-    // Forward Set-Cookie headers from backend
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      nextResponse.headers.set('set-cookie', setCookie);
+    // If login successful, set cookies directly from NextResponse for reliability
+    if (response.ok && data.success) {
+      // Forward all Set-Cookie headers from backend
+      const setCookies = response.headers.getSetCookie?.() || [];
+      
+      // Extract sessionId from backend cookies and set both variants
+      let sessionId: string | null = null;
+      for (const cookie of setCookies) {
+        const match = cookie.match(/sessionId=([^;]+)/);
+        if (match) {
+          sessionId = match[1];
+          break;
+        }
+      }
+      
+      if (sessionId) {
+        // Set both cookie names for maximum compatibility
+        const cookieOptions = {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax' as const,
+          maxAge: 7 * 24 * 60 * 60, // 7 days
+          path: '/',
+        };
+        
+        nextResponse.cookies.set('session_id', sessionId, cookieOptions);
+        nextResponse.cookies.set('sessionId', sessionId, cookieOptions);
+      }
     }
 
     return nextResponse;
