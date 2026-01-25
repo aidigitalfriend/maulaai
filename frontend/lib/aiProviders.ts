@@ -249,33 +249,34 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 // For Canvas app - CODE-FOCUSED providers only for building UI/apps
 // Order: Cerebras (fast code) → Grok (planning) → Gemini → Anthropic (fallback)
+// User-friendly names - no technical AI brand names exposed
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
   return {
     // 1. Code Builder - Cerebras (fastest for code generation)
     cerebras: {
-      name: 'Code Builder',
+      name: '⚡ Fast Code',
       models: [
         { id: 'llama-3.3-70b', name: 'Llama 3.3 70B' },
       ],
     },
     // 2. Grok - xAI (great for planning & reasoning)
     xai: {
-      name: 'Grok',
+      name: '🧠 Planner',
       models: [
         { id: 'grok-3', name: 'Grok 3' },
       ],
     },
     // 3. Gemini - Google (multimodal, good for UI)
     gemini: {
-      name: 'Gemini',
+      name: '🎨 Designer',
       models: [
         { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
       ],
     },
     // 4. Anthropic - Claude (fallback, high quality)
     anthropic: {
-      name: 'Claude',
+      name: '✨ Smart Code',
       models: [
         { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
       ],
