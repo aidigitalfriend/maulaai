@@ -472,16 +472,20 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           contentToSave = contentToSave.replace(/data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]{100,}/g, '[base64 image data]');
         }
 
-        const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+        const response = await fetch('/api/chat/interactions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
           body: JSON.stringify({
-            role: message.role,
-            content: contentToSave,
-            agentId: agent.id, // Always include agentId for proper session association
+            conversationId: sessionId,
+            agentId: agent.id,
+            messages: [{
+              role: message.role,
+              content: contentToSave,
+              timestamp: new Date(),
+            }],
           }),
         });
 
