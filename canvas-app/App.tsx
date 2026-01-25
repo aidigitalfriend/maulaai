@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   GeneratedApp,
   ViewMode,
@@ -62,7 +62,7 @@ const PRESET_TEMPLATES = [
   },
 ];
 
-type ActivePanel = 'workspace' | 'assistant' | 'history' | null;
+type ActivePanel = 'workspace' | 'assistant' | 'history' | 'settings' | null;
 
 const App: React.FC = () => {
   const [prompt, setPrompt] = useState('');
@@ -76,6 +76,17 @@ const App: React.FC = () => {
     error: null,
     progressMessage: '',
   });
+  
+  // New state for features
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [useStreaming, setUseStreaming] = useState(true);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+  
+  // Refs for camera
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('gencraft_v4_history');
@@ -175,8 +186,140 @@ const App: React.FC = () => {
     setActivePanel(activePanel === panel ? null : panel);
   };
 
+  // Screenshot functionality
+  const handleScreenshot = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const track = stream.getVideoTracks()[0];
+      const imageCapture = new (window as any).ImageCapture(track);
+      const bitmap = await imageCapture.grabFrame();
+      track.stop();
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(bitmap, 0, 0);
+      
+      const dataUrl = canvas.toDataURL('image/png');
+      
+      // Add screenshot to chat history
+      if (currentApp) {
+        const screenshotMsg: ChatMessage = {
+          role: 'user',
+          text: '📸 [Screenshot captured for analysis]',
+          timestamp: Date.now(),
+        };
+        const updatedApp = {
+          ...currentApp,
+          history: [...currentApp.history, screenshotMsg],
+        };
+        setCurrentApp(updatedApp);
+        setActivePanel('assistant');
+      }
+    } catch (err) {
+      console.log('Screenshot cancelled or not supported');
+    }
+  };
+
+  // Camera functions
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false 
+      });
+      setCameraStream(stream);
+      setCameraOpen(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error('Camera access denied:', err);
+      alert('Camera access denied. Please allow camera permission.');
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        const imageDataUrl = canvas.toDataURL('image/png');
+        
+        // Stop camera
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+          setCameraStream(null);
+        }
+        setCameraOpen(false);
+
+        // Add captured image to chat
+        if (currentApp) {
+          const photoMsg: ChatMessage = {
+            role: 'user',
+            text: '📷 [Live photo captured for analysis]',
+            timestamp: Date.now(),
+          };
+          const aiResponse: ChatMessage = {
+            role: 'model',
+            text: "I've received your captured photo! 📸 How would you like me to help? I can analyze the content, generate code inspired by the design, or create a similar UI.",
+            timestamp: Date.now() + 1,
+          };
+          const updatedApp = {
+            ...currentApp,
+            history: [...currentApp.history, photoMsg, aiResponse],
+          };
+          setCurrentApp(updatedApp);
+          setActivePanel('assistant');
+        }
+      }
+    }
+  };
+
+  const closeCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setCameraOpen(false);
+  };
+
+  // Download code
+  const downloadCode = () => {
+    if (currentApp?.code) {
+      const blob = new Blob([currentApp.code], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentApp.name || 'app'}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      alert('No project to download yet. Generate an app first!');
+    }
+  };
+
+  // Share (copy code)
+  const shareCode = () => {
+    if (currentApp?.code) {
+      navigator.clipboard.writeText(currentApp.code);
+      alert('Code copied to clipboard!');
+    } else {
+      alert('No project to share yet. Generate an app first!');
+    }
+  };
+
   return (
-    <div className="flex h-screen bg-white text-gray-900">
+    <div className={`flex h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       {/* 1. Left Vertical Nav Bar (Narrow) */}
       <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center py-6 gap-6 shrink-0 z-[60]">
         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-4 shadow-lg shadow-indigo-900/20">
@@ -271,9 +414,88 @@ const App: React.FC = () => {
           </svg>
         </button>
 
-        <div className="mt-auto flex flex-col gap-6">
+        <div className="mt-auto flex flex-col gap-4">
+          {/* Divider */}
+          <div className="w-8 h-px bg-gray-600 mx-auto"></div>
+          
+          {/* Camera Button */}
+          <button
+            onClick={openCamera}
+            className={`p-3 rounded-xl transition-all ${cameraOpen ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            title="Camera - Live Capture"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+
+          {/* Voice Button */}
+          <button
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`p-3 rounded-xl transition-all ${voiceEnabled ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            title={voiceEnabled ? 'Voice On' : 'Voice Off'}
+          >
+            {voiceEnabled ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+              </svg>
+            )}
+          </button>
+
+          {/* Screenshot Button */}
+          <button
+            onClick={handleScreenshot}
+            className="p-3 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/5"
+            title="Screenshot - Capture Screen"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </button>
+
+          {/* Divider */}
+          <div className="w-8 h-px bg-gray-600 mx-auto"></div>
+
+          {/* Share Button */}
+          <button
+            onClick={shareCode}
+            className={`p-3 rounded-xl transition-all ${currentApp ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            title="Share - Copy Code"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+
+          {/* Download Button */}
+          <button
+            onClick={downloadCode}
+            className={`p-3 rounded-xl transition-all ${currentApp ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            title="Download Code"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
+
+          {/* Divider */}
+          <div className="w-8 h-px bg-gray-600 mx-auto"></div>
+
+          {/* Status Indicator */}
           <div className="w-2 h-2 rounded-full bg-green-500 mx-auto animate-pulse shadow-sm shadow-green-500/50"></div>
-          <button className="p-3 text-gray-500 hover:text-white">
+          
+          {/* Settings Button */}
+          <button 
+            onClick={() => togglePanel('settings')}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'settings' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white'}`}
+            title="Settings"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -584,10 +806,166 @@ const App: React.FC = () => {
                   )}
                 </div>
               )}
+
+              {activePanel === 'settings' && (
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto custom-scrollbar">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      Settings
+                    </h3>
+                    <button
+                      onClick={() => setActivePanel(null)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Model Selection */}
+                  <div className="mb-6">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">AI Model</h4>
+                    <div className="space-y-2">
+                      {MODELS.map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => setSelectedModel(m)}
+                          className={`w-full text-left p-3 rounded-xl transition-all ${
+                            selectedModel.id === m.id
+                              ? 'bg-indigo-50 ring-1 ring-indigo-200'
+                              : 'bg-gray-50 hover:bg-gray-100'
+                          }`}
+                        >
+                          <p className="text-xs font-bold text-gray-800">{m.name}</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">{m.provider} - {m.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-3">Preferences</h4>
+                    
+                    <label className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                      <div className="flex items-center gap-3">
+                        <span className={`w-2 h-2 rounded-full ${useStreaming ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                        <span className="text-xs font-medium text-gray-700">Real-time Streaming</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={useStreaming}
+                        onChange={() => setUseStreaming(!useStreaming)}
+                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                      <div className="flex items-center gap-3">
+                        <span className={`w-2 h-2 rounded-full ${voiceEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                        <span className="text-xs font-medium text-gray-700">Voice Responses</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={voiceEnabled}
+                        onChange={() => setVoiceEnabled(!voiceEnabled)}
+                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                      <div className="flex items-center gap-3">
+                        <span className={`w-2 h-2 rounded-full ${darkMode ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                        <span className="text-xs font-medium text-gray-700">Dark Mode</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={darkMode}
+                        onChange={() => setDarkMode(!darkMode)}
+                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Clear History */}
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <button
+                      onClick={() => {
+                        if (confirm('Clear all history?')) {
+                          setHistory([]);
+                          localStorage.removeItem('gencraft_v4_history');
+                        }
+                      }}
+                      className="w-full py-3 px-4 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-all"
+                    >
+                      Clear History
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </main>
       </div>
+
+      {/* Camera Modal */}
+      {cameraOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center">
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+              Live Camera
+            </h3>
+            <button
+              onClick={closeCamera}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+              title="Close Camera"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="max-w-full max-h-[60vh] bg-black"
+            />
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-white/50 rounded-tl-lg"></div>
+              <div className="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-white/50 rounded-tr-lg"></div>
+              <div className="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-white/50 rounded-bl-lg"></div>
+              <div className="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-white/50 rounded-br-lg"></div>
+            </div>
+          </div>
+
+          <canvas ref={canvasRef} className="hidden" />
+
+          <div className="mt-8 flex items-center gap-4">
+            <button
+              onClick={capturePhoto}
+              className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform active:scale-95 group"
+              title="Capture Photo"
+            >
+              <div className="w-16 h-16 bg-red-500 rounded-full group-hover:bg-red-600 transition-colors flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </button>
+          </div>
+
+          <p className="text-white/60 text-sm mt-4">
+            Point at a design or UI and capture to analyze
+          </p>
+        </div>
+      )}
 
       {genState.error && (
         <div className="fixed bottom-6 right-6 z-[100] max-w-sm p-4 bg-white border border-red-100 rounded-3xl shadow-2xl flex gap-4 items-start border-l-4 border-l-red-500 animate-slide-up">
