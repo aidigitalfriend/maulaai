@@ -6,7 +6,6 @@
 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { body, param, query, validationResult } from 'express-validator';
 
 // Import existing route handlers
 import analyticsRouter from './analytics.js';
@@ -28,8 +27,17 @@ import chatRouter from './chat.js';
 // Import Agent Memory & Tools routes
 import agentMemoryRouter from './agent-memory-routes.js';
 
+// Import Agent Chat routes (with tool calling)
+import agentChatRouter from './agent-chat-routes.js';
+
 // Import Media Processing routes
 import mediaRouter from './media-routes.js';
+
+// Import Canvas Generation routes
+import canvasRouter from './canvas-routes.js';
+
+// Import Canvas Project routes
+import canvasProjectRouter from './canvas-project-routes.js';
 
 // Import Uploads routes (file uploads, proxy downloads)
 import uploadsRouter from './uploads.js';
@@ -48,31 +56,6 @@ const router = express.Router();
 // ============================================
 // GLOBAL MIDDLEWARE
 // ============================================
-
-// Input validation middleware
-const validateRequest = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors.array(),
-    });
-  }
-  next();
-};
-
-// Global rate limiting
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    success: false,
-    message: 'Too many requests from this IP, please try again later.',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // API-specific rate limiting
 const apiLimiter = rateLimit({
@@ -139,32 +122,6 @@ router.get('/version', (req, res) => {
 // Apply auth rate limiting to auth routes
 router.use('/auth', authLimiter);
 
-// Auth validation rules
-const authValidation = {
-  signup: [
-    body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 8 }),
-    body('name').optional().isLength({ min: 1, max: 100 }),
-    body('authMethod').optional().isIn(['password', 'google', 'github']),
-  ],
-  login: [
-    body('email').isEmail().normalizeEmail(),
-    body('password').exists(),
-    body('rememberMe').optional().isBoolean(),
-  ],
-  resetPassword: [body('email').isEmail().normalizeEmail()],
-  changePassword: [
-    body('currentPassword').exists(),
-    body('newPassword').isLength({ min: 8 }),
-    body('confirmPassword').custom((value, { req }) => {
-      if (value !== req.body.newPassword) {
-        throw new Error('Password confirmation does not match');
-      }
-      return true;
-    }),
-  ],
-};
-
 // Auth routes will be handled by frontend Next.js API routes
 // These are just placeholders for backend auth if needed
 
@@ -201,11 +158,32 @@ router.use('/media', apiLimiter);
 router.use('/media', mediaRouter);
 
 // ============================================
+// CANVAS GENERATION ROUTES
+// ============================================
+
+router.use('/canvas', apiLimiter);
+router.use('/canvas', canvasRouter);
+
+// ============================================
+// CANVAS PROJECT ROUTES
+// ============================================
+
+router.use('/canvas-projects', apiLimiter);
+router.use('/canvas-projects', canvasProjectRouter);
+
+// ============================================
 // UPLOADS ROUTES (File uploads, proxy downloads)
 // ============================================
 
 router.use('/uploads', apiLimiter);
 router.use('/uploads', uploadsRouter);
+
+// ============================================
+// AGENT CHAT ROUTES (Tool Calling & Multimodal)
+// ============================================
+
+router.use('/agent', apiLimiter);
+router.use('/agent', agentChatRouter);
 
 // ============================================
 // AI AGENT SYSTEM ROUTES (Orchestrator + Specialized Agents)
@@ -418,7 +396,7 @@ router.use((req, res) => {
 });
 
 // Global error handler
-router.use((error, req, res, next) => {
+router.use((error, req, res, _next) => {
   console.error('API Error:', error);
 
   // Handle validation errors

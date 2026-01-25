@@ -31,6 +31,7 @@ import realtimeChatService, {
   CodeBlock,
 } from './realtimeChatService';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 interface MessageAttachment {
   name: string;
@@ -438,7 +439,6 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     authState.user,
     agent.id,
     fetchSessionMessages,
-    isValidObjectId,
   ]);
 
   // Save message to session in database
@@ -469,7 +469,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
         console.error('Error saving message:', error);
       }
     },
-    [authState.isAuthenticated, authState.user, agent.id, isValidObjectId]
+    [authState.isAuthenticated, authState.user, agent.id]
   );
 
   // Legacy save session (for analytics/interactions)
@@ -568,7 +568,6 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     agent.id,
     agent.welcomeMessage,
     sessions.length,
-    isValidObjectId,
     saveMessageToSession,
   ]);
 
@@ -722,6 +721,82 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               const parsed = JSON.parse(data);
               if (parsed.content) {
                 fullContent += parsed.content;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+
+              // Handle tool call events in regenerate
+              if (parsed.event === 'tool_call') {
+                const toolCallInfo = `\n\n🔧 **Tool Call:** ${parsed.tool_name}\n${parsed.tool_args ? JSON.stringify(parsed.tool_args, null, 2) : ''}`;
+                fullContent += toolCallInfo;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+
+              if (parsed.event === 'tool_execution_start') {
+                const executionInfo = `\n\n⚙️ **Executing:** ${parsed.tool_name}...`;
+                fullContent += executionInfo;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+
+              if (parsed.event === 'tool_results') {
+                const resultsInfo = `\n\n✅ **Tool Results:** ${parsed.tool_name}\n\`\`\`\n${parsed.results}\n\`\`\``;
+                fullContent += resultsInfo;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+
+              if (parsed.event === 'follow_up') {
+                const followUpInfo = `\n\n📝 **Follow-up:** ${parsed.content}`;
+                fullContent += followUpInfo;
+                setSessions(prev => prev.map(s =>
+                  s.id === activeSessionId
+                    ? {
+                        ...s,
+                        messages: s.messages.map(m =>
+                          m.id === assistantMessageId ? { ...m, content: fullContent } : m
+                        ),
+                      }
+                    : s
+                ));
+              }
+
+              if (parsed.event === 'error') {
+                const errorInfo = `\n\n❌ **Error:** ${parsed.message}`;
+                fullContent += errorInfo;
                 setSessions(prev => prev.map(s =>
                   s.id === activeSessionId
                     ? {
@@ -1472,6 +1547,102 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                 );
               }
 
+              // Handle tool call events
+              if (data.event === 'tool_call') {
+                const toolCallInfo = `\n\n🔧 **Tool Call:** ${data.tool_name}\n${data.tool_args ? JSON.stringify(data.tool_args, null, 2) : ''}`;
+                fullContent += toolCallInfo;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: fullContent }
+                              : m
+                          ),
+                        }
+                      : s
+                  )
+                );
+              }
+
+              if (data.event === 'tool_execution_start') {
+                const executionInfo = `\n\n⚙️ **Executing:** ${data.tool_name}...`;
+                fullContent += executionInfo;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: fullContent }
+                              : m
+                          ),
+                        }
+                      : s
+                  )
+                );
+              }
+
+              if (data.event === 'tool_results') {
+                const resultsInfo = `\n\n✅ **Tool Results:** ${data.tool_name}\n\`\`\`\n${data.results}\n\`\`\``;
+                fullContent += resultsInfo;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: fullContent }
+                              : m
+                          ),
+                        }
+                      : s
+                  )
+                );
+              }
+
+              if (data.event === 'follow_up') {
+                const followUpInfo = `\n\n📝 **Follow-up:** ${data.content}`;
+                fullContent += followUpInfo;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: fullContent }
+                              : m
+                          ),
+                        }
+                      : s
+                  )
+                );
+              }
+
+              if (data.event === 'error') {
+                const errorInfo = `\n\n❌ **Error:** ${data.message}`;
+                fullContent += errorInfo;
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === activeSessionId
+                      ? {
+                          ...s,
+                          messages: s.messages.map((m) =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: fullContent }
+                              : m
+                          ),
+                        }
+                      : s
+                  )
+                );
+              }
+
               if (data.done) {
                 // Mark streaming as complete
                 setSessions((prev) =>
@@ -1645,10 +1816,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           {attachment.type.startsWith('image/') &&
                           attachment.preview ? (
                             <div className="relative group">
-                              <img
+                              <Image
                                 src={attachment.preview}
                                 alt={attachment.name}
-                                className="max-w-[200px] max-h-[200px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                width={200}
+                                height={200}
+                                className="rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
                                 onClick={() =>
                                   attachment.url &&
                                   window.open(attachment.url, '_blank')
@@ -1680,10 +1853,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                       <div className="mb-3 space-y-3">
                         {images.map((image, idx) => (
                           <div key={idx} className="relative group">
-                            <img
+                            <Image
                               src={image.src}
                               alt={image.alt}
-                              className="max-w-full rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
+                              width={400}
+                              height={400}
+                              className="rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
                               onClick={() => setPreviewImage({ src: image.src, alt: image.alt })}
                             />
                             <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
@@ -1839,10 +2014,12 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
 
                         return (
                           <div className="relative group my-3">
-                            <img
+                            <Image
                               src={src}
                               alt={alt}
-                              className="max-w-full rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
+                              width={600}
+                              height={400}
+                              className="rounded-lg shadow-lg cursor-pointer hover:opacity-95 transition-opacity"
                               onClick={() => setPreviewImage({ src: src || '', alt: alt || '' })}
                               {...props}
                             />
@@ -2525,10 +2702,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
           onClick={() => setPreviewImage(null)}
         >
           <div className="relative max-w-[90vw] max-h-[90vh]">
-            <img
+            <Image
               src={previewImage.src}
               alt={previewImage.alt}
-              className="max-w-full max-h-[85vh] rounded-lg shadow-2xl"
+              fill
+              className="rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
             <div className="absolute top-4 right-4 flex gap-2">

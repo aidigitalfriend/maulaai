@@ -1,7 +1,7 @@
-import nodemailer from 'nodemailer'
+import nodemailer from 'nodemailer';
 
 // Admin notification email
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.co'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.co';
 
 // Namecheap Private Email SMTP Configuration
 const SMTP_CONFIG = {
@@ -13,10 +13,10 @@ const SMTP_CONFIG = {
     pass: process.env.SMTP_PASS || '',
   },
   from: process.env.SMTP_FROM || 'One Last AI <noreply@onelastai.co>',
-}
+};
 
 // Create SMTP transporter
-let smtpTransporter = null
+let smtpTransporter = null;
 function getSmtpTransporter() {
   if (!smtpTransporter && SMTP_CONFIG.auth.user && SMTP_CONFIG.auth.pass) {
     smtpTransporter = nodemailer.createTransport({
@@ -24,21 +24,21 @@ function getSmtpTransporter() {
       port: SMTP_CONFIG.port,
       secure: SMTP_CONFIG.secure,
       auth: SMTP_CONFIG.auth,
-    })
+    });
   }
-  return smtpTransporter
+  return smtpTransporter;
 }
 
 /**
  * Send email to admin via SMTP (for notifications)
  */
 async function sendAdminEmail(subject, html, text) {
-  const transporter = getSmtpTransporter()
+  const transporter = getSmtpTransporter();
   
   if (!transporter) {
-    console.log('[ADMIN EMAIL] SMTP not configured. Would send:', subject)
-    console.log('[ADMIN EMAIL] To:', ADMIN_EMAIL)
-    return
+    console.log('[ADMIN EMAIL] SMTP not configured. Would send:', subject);
+    console.log('[ADMIN EMAIL] To:', ADMIN_EMAIL);
+    return;
   }
   
   try {
@@ -48,10 +48,10 @@ async function sendAdminEmail(subject, html, text) {
       subject,
       html,
       text,
-    })
-    console.log(`[ADMIN EMAIL] Sent: ${subject}`)
+    });
+    console.log(`[ADMIN EMAIL] Sent: ${subject}`);
   } catch (error) {
-    console.error('[ADMIN EMAIL] Failed:', error.message)
+    console.error('[ADMIN EMAIL] Failed:', error.message);
   }
 }
 
@@ -346,7 +346,7 @@ export function getWelcomeEmailTemplate(userName) {
   </div>
 </body>
 </html>
-  `
+  `;
 }
 
 /**
@@ -647,7 +647,7 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
   </div>
 </body>
 </html>
-  `
+  `;
 }
 
 /**
@@ -655,11 +655,11 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
  * Called after successful user signup
  */
 export async function sendWelcomeEmail(email, name) {
-  const transporter = getSmtpTransporter()
+  const transporter = getSmtpTransporter();
   
   if (!transporter) {
-    console.log('[WELCOME EMAIL] SMTP not configured. Would send to:', email)
-    return
+    console.log('[WELCOME EMAIL] SMTP not configured. Would send to:', email);
+    return;
   }
 
   try {
@@ -668,10 +668,10 @@ export async function sendWelcomeEmail(email, name) {
       to: email,
       subject: '🎉 Welcome to One Last AI - Let\'s Get Started!',
       html: getWelcomeEmailTemplate(name),
-    })
-    console.log(`✅ Welcome email sent to ${email}`)
+    });
+    console.log(`✅ Welcome email sent to ${email}`);
   } catch (error) {
-    console.error('❌ Failed to send welcome email:', error.message)
+    console.error('❌ Failed to send welcome email:', error.message);
   }
 }
 
@@ -682,13 +682,13 @@ export async function sendWelcomeEmail(email, name) {
 export async function sendPasswordResetEmail(
   email,
   name,
-  resetUrl
+  resetUrl,
 ) {
-  const transporter = getSmtpTransporter()
+  const transporter = getSmtpTransporter();
   
   if (!transporter) {
-    console.log('[PASSWORD RESET EMAIL] SMTP not configured. Would send to:', email)
-    return
+    console.log('[PASSWORD RESET EMAIL] SMTP not configured. Would send to:', email);
+    return;
   }
 
   try {
@@ -697,10 +697,10 @@ export async function sendPasswordResetEmail(
       to: email,
       subject: '🔐 Reset Your Password - One Last AI',
       html: getPasswordResetEmailTemplate(name, resetUrl),
-    })
-    console.log(`✅ Password reset email sent to ${email}`)
+    });
+    console.log(`✅ Password reset email sent to ${email}`);
   } catch (error) {
-    console.error('❌ Failed to send password reset email:', error.message)
+    console.error('❌ Failed to send password reset email:', error.message);
   }
 }
 
@@ -712,7 +712,7 @@ export async function sendPasswordResetEmail(
  * Notify admin of new contact form submission
  */
 export async function notifyAdminContactForm(data) {
-  const subject = `📬 New Contact Form: ${data.subject}`
+  const subject = `📬 New Contact Form: ${data.subject}`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -755,17 +755,17 @@ export async function notifyAdminContactForm(data) {
     </div>
   </div>
 </body>
-</html>`
-  const text = `New Contact Form\n\nFrom: ${data.name}\nEmail: ${data.email}\nSubject: ${data.subject}\n\nMessage:\n${data.message}`
+</html>`;
+  const text = `New Contact Form\n\nFrom: ${data.name}\nEmail: ${data.email}\nSubject: ${data.subject}\n\nMessage:\n${data.message}`;
   
-  await sendAdminEmail(subject, html, text)
+  await sendAdminEmail(subject, html, text);
 }
 
 /**
  * Notify admin of new job application
  */
 export async function notifyAdminJobApplication(data) {
-  const subject = `💼 New Job Application: ${data.position} - ${data.applicantName}`
+  const subject = `💼 New Job Application: ${data.position} - ${data.applicantName}`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -808,10 +808,10 @@ export async function notifyAdminJobApplication(data) {
     </div>
   </div>
 </body>
-</html>`
-  const text = `New Job Application\n\nPosition: ${data.position}\nApplication #: ${data.applicationNumber}\nName: ${data.applicantName}\nEmail: ${data.applicantEmail}${data.phone ? `\nPhone: ${data.phone}` : ''}`
+</html>`;
+  const text = `New Job Application\n\nPosition: ${data.position}\nApplication #: ${data.applicationNumber}\nName: ${data.applicantName}\nEmail: ${data.applicantEmail}${data.phone ? `\nPhone: ${data.phone}` : ''}`;
   
-  await sendAdminEmail(subject, html, text)
+  await sendAdminEmail(subject, html, text);
 }
 
 /**
@@ -823,10 +823,10 @@ export async function notifyAdminSupportTicket(data) {
     medium: '#ffc107',
     high: '#fd7e14',
     urgent: '#dc3545',
-  }
-  const color = priorityColors[data.priority] || '#667eea'
+  };
+  const color = priorityColors[data.priority] || '#667eea';
   
-  const subject = `🎫 New Support Ticket #${data.ticketNumber}: ${data.subject}`
+  const subject = `🎫 New Support Ticket #${data.ticketNumber}: ${data.subject}`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -870,17 +870,17 @@ export async function notifyAdminSupportTicket(data) {
     </div>
   </div>
 </body>
-</html>`
-  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://onelastai.co/admin/support`
+</html>`;
+  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://onelastai.co/admin/support`;
   
-  await sendAdminEmail(subject, html, text)
+  await sendAdminEmail(subject, html, text);
 }
 
 /**
  * Notify admin of new consultation request
  */
 export async function notifyAdminConsultation(data) {
-  const subject = `📅 New Consultation Request: ${data.consultationType} - ${data.userName}`
+  const subject = `📅 New Consultation Request: ${data.consultationType} - ${data.userName}`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -926,17 +926,17 @@ export async function notifyAdminConsultation(data) {
     </div>
   </div>
 </body>
-</html>`
-  const text = `New Consultation Request\n\nType: ${data.consultationType}\nRef #: ${data.consultationNumber}\nName: ${data.userName}\nEmail: ${data.userEmail}${data.userPhone ? `\nPhone: ${data.userPhone}` : ''}\n\nProject:\n${data.projectDescription}`
+</html>`;
+  const text = `New Consultation Request\n\nType: ${data.consultationType}\nRef #: ${data.consultationNumber}\nName: ${data.userName}\nEmail: ${data.userEmail}${data.userPhone ? `\nPhone: ${data.userPhone}` : ''}\n\nProject:\n${data.projectDescription}`;
   
-  await sendAdminEmail(subject, html, text)
+  await sendAdminEmail(subject, html, text);
 }
 
 /**
  * Notify admin of new user registration
  */
 export async function notifyAdminNewUser(data) {
-  const subject = `👋 New User Registered: ${data.name}`
+  const subject = `👋 New User Registered: ${data.name}`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -963,8 +963,8 @@ export async function notifyAdminNewUser(data) {
     </div>
   </div>
 </body>
-</html>`
-  const text = `New User Registered!\n\nName: ${data.name}\nEmail: ${data.email}`
+</html>`;
+  const text = `New User Registered!\n\nName: ${data.name}\nEmail: ${data.email}`;
   
-  await sendAdminEmail(subject, html, text)
+  await sendAdminEmail(subject, html, text);
 }

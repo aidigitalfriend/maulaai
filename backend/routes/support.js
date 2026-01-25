@@ -106,7 +106,7 @@ router.get('/tickets/user/:userId', async (req, res) => {
 
     const tickets = await SupportTicket.find(filter)
       .select(
-        'ticketId ticketNumber subject category status priority createdAt updatedAt'
+        'ticketId ticketNumber subject category status priority createdAt updatedAt',
       )
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -298,7 +298,7 @@ router.get('/consultations/user/:userId', async (req, res) => {
 
     const consultations = await Consultation.find({ userId })
       .select(
-        'consultationId consultationType status scheduledAt meeting createdAt'
+        'consultationId consultationType status scheduledAt meeting createdAt',
       )
       .sort({ createdAt: -1 });
 
@@ -406,7 +406,7 @@ router.post('/contact', async (req, res) => {
 
     res.json({
       success: true,
-      message: "Thank you for your message! We'll get back to you soon.",
+      message: 'Thank you for your message! We\'ll get back to you soon.',
       ticketId: contactMessage.ticketId,
     });
   } catch (error) {

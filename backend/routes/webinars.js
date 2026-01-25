@@ -98,7 +98,7 @@ router.get('/registrations/user/:userId', async (req, res) => {
 
     const registrations = await WebinarRegistration.find({ userId })
       .select(
-        'registrationId webinarId webinarTitle scheduledDate status attendance.attended'
+        'registrationId webinarId webinarTitle scheduledDate status attendance.attended',
       )
       .sort({ scheduledDate: -1 });
 
@@ -118,7 +118,7 @@ router.get('/registrations/email/:email', async (req, res) => {
 
     const registrations = await WebinarRegistration.find({ email })
       .select(
-        'registrationId webinarId webinarTitle scheduledDate status attendance.attended'
+        'registrationId webinarId webinarTitle scheduledDate status attendance.attended',
       )
       .sort({ scheduledDate: -1 });
 

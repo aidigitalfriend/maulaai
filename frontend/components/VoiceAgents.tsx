@@ -17,6 +17,7 @@ import {
   ThumbsUp,
   ThumbsDown
 } from 'lucide-react';
+import Image from 'next/image';
 import VoiceInput from './VoiceInput';
 
 interface Agent {
@@ -75,9 +76,9 @@ const VoiceAgents: React.FC<VoiceAgentsProps> = ({
 
   useEffect(() => {
     loadAgents();
-  }, [selectedCategory]);
+  }, [selectedCategory, loadAgents]);
 
-  const loadAgents = async () => {
+  const loadAgents = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -107,7 +108,7 @@ const VoiceAgents: React.FC<VoiceAgentsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, selectedCategory, setLoading, setAgents, setUserSubscriptions, setCategories, setError]);
 
   const handleSubscription = async (agentId: string, action: 'subscribe' | 'unsubscribe') => {
     try {
@@ -256,9 +257,11 @@ const VoiceAgents: React.FC<VoiceAgentsProps> = ({
             {/* Agent Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <img 
-                  src={agent.avatarUrl} 
+                <Image
+                  src={agent.avatarUrl}
                   alt={`${agent.name} avatar`}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div>
@@ -410,9 +413,11 @@ const VoiceAgents: React.FC<VoiceAgentsProps> = ({
             {/* Chat Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center space-x-3">
-                <img 
-                  src={activeAgent.avatarUrl} 
+                <Image
+                  src={activeAgent.avatarUrl}
                   alt={`${activeAgent.name} avatar`}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>

@@ -214,7 +214,7 @@ class AgentAIProviderService {
           model,
           temperature: options.temperature || 0.7,
           maxTokens: options.maxTokens || 1500,
-        }
+        },
       );
       return {
         response: response.text,
@@ -229,7 +229,7 @@ class AgentAIProviderService {
       for (const fallbackProvider of config.fallbackProviders) {
         try {
           console.log(
-            `[AgentAI] Trying fallback: ${agentId} -> ${fallbackProvider}`
+            `[AgentAI] Trying fallback: ${agentId} -> ${fallbackProvider}`,
           );
           const fallbackResponse = await this.multiModalService.getChatResponse(
             message,
@@ -239,7 +239,7 @@ class AgentAIProviderService {
               model: this.getFallbackModel(fallbackProvider),
               temperature: options.temperature || 0.7,
               maxTokens: options.maxTokens || 1500,
-            }
+            },
           );
           return {
             response: fallbackResponse.text,
@@ -253,7 +253,7 @@ class AgentAIProviderService {
         } catch (fallbackError) {
           console.error(
             `[AgentAI] Fallback ${fallbackProvider} failed for ${agentId}:`,
-            fallbackError
+            fallbackError,
           );
           continue;
         }
@@ -281,7 +281,7 @@ class AgentAIProviderService {
    */
   getAgentsByProvider(provider) {
     return Object.values(AGENT_AI_ASSIGNMENTS).filter(
-      (config) => config.primaryProvider === provider
+      (config) => config.primaryProvider === provider,
     );
   }
   /**
@@ -314,9 +314,53 @@ class AgentAIProviderService {
   hasAIConfig(agentId) {
     return agentId in AGENT_AI_ASSIGNMENTS;
   }
+
+  /**
+   * Send agent message with tool calling support
+   */
+  async sendAgentMessageWithTools(agentId, message, systemPrompt, tools = [], options = {}) {
+    const config = this.getAgentAIConfig(agentId);
+    if (!config) {
+      throw new Error(`No AI configuration found for agent: ${agentId}`);
+    }
+
+    const provider = options.forceProvider || config.primaryProvider;
+    const model = options.model || config.model;
+
+    try {
+      console.log(`[AgentAI Tools] ${agentId} -> ${provider} (${model}) with ${tools.length} tools`);
+
+      const response = await this.multiModalService.getChatWithTools(
+        message,
+        agentId,
+        {
+          provider,
+          model,
+          temperature: options.temperature || 0.7,
+          maxTokens: options.maxTokens || 1500,
+          tools,
+        },
+      );
+
+      return {
+        response: response.content,
+        toolCalls: response.toolCalls || [],
+        provider,
+        model,
+        tokensUsed: response.usage?.total_tokens,
+        latency: response.duration,
+        agentConfig: config,
+      };
+    } catch (error) {
+      console.error(`[AgentAI Tools] Error with ${provider} for ${agentId}:`, error);
+
+      // Fallback to regular chat without tools
+      return await this.sendAgentMessage(agentId, message, systemPrompt, options);
+    }
+  }
 }
 const agentAIService = new AgentAIProviderService();
-var agent_ai_provider_service_default = agentAIService;
+const agent_ai_provider_service_default = agentAIService;
 export {
   AgentAIProviderService,
   agentAIService,

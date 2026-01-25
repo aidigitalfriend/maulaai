@@ -9,9 +9,10 @@ import sharp from 'sharp';
 import { fileTypeFromBuffer } from 'file-type';
 import path from 'path';
 import fs from 'fs/promises';
-import { createWriteStream } from 'fs';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import crypto from 'crypto';
 
 // FFmpeg setup (uses static binaries)
 let ffmpeg;
@@ -40,6 +41,43 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
+// S3 Configuration for image storage
+const S3_BUCKET = process.env.AWS_S3_BUCKET || 'one-last-ai-bucket';
+const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
+
+const s3Client = new S3Client({
+  region: S3_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+/**
+ * Upload image buffer to S3
+ */
+async function uploadImageToS3(imageBuffer, filename, mimeType = 'image/png') {
+  try {
+    const key = `generated-images/${Date.now()}-${filename}`;
+    
+    await s3Client.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+      Body: imageBuffer,
+      ContentType: mimeType,
+      ACL: 'public-read', // Make images publicly accessible
+    }));
+    
+    const url = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/${key}`;
+    console.log(`[MediaService] Uploaded image to S3: ${key}`);
+    
+    return { success: true, url, key };
+  } catch (error) {
+    console.error('[MediaService] S3 upload error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 // Temp directory for processing
 const TEMP_DIR = '/tmp/media-processing';
 
@@ -47,7 +85,7 @@ const TEMP_DIR = '/tmp/media-processing';
 async function ensureTempDir() {
   try {
     await fs.mkdir(TEMP_DIR, { recursive: true });
-  } catch (err) {
+  } catch {
     // Directory exists
   }
 }
@@ -96,12 +134,53 @@ export async function generateImage(prompt, options = {}) {
 
   const data = await response.json();
   
+  // Download and upload images to S3 for persistent storage
+  const processedImages = [];
+  for (let i = 0; i < data.data.length; i++) {
+    const img = data.data[i];
+    try {
+      console.log(`[MediaService] Downloading image ${i + 1}/${data.data.length} from OpenAI...`);
+      
+      // Download the image from OpenAI
+      const imageResponse = await fetch(img.url);
+      if (!imageResponse.ok) {
+        console.error(`[MediaService] Failed to download image ${i + 1}: ${imageResponse.status}`);
+        continue;
+      }
+      
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const filename = `dalle-${crypto.randomBytes(8).toString('hex')}.png`;
+      
+      // Upload to S3
+      const uploadResult = await uploadImageToS3(Buffer.from(imageBuffer), filename, 'image/png');
+      
+      if (uploadResult.success) {
+        processedImages.push({
+          url: uploadResult.url,
+          revisedPrompt: img.revised_prompt,
+          s3Key: uploadResult.key,
+        });
+      } else {
+        console.error(`[MediaService] Failed to upload image ${i + 1} to S3:`, uploadResult.error);
+        // Fallback to original URL if S3 upload fails
+        processedImages.push({
+          url: img.url,
+          revisedPrompt: img.revised_prompt,
+        });
+      }
+    } catch (error) {
+      console.error(`[MediaService] Error processing image ${i + 1}:`, error);
+      // Fallback to original URL if processing fails
+      processedImages.push({
+        url: img.url,
+        revisedPrompt: img.revised_prompt,
+      });
+    }
+  }
+  
   return {
     success: true,
-    images: data.data.map(img => ({
-      url: img.url,
-      revisedPrompt: img.revised_prompt,
-    })),
+    images: processedImages,
     model,
     prompt,
   };
@@ -193,7 +272,6 @@ export async function createImageVariation(imageBuffer, options = {}) {
   });
 
   if (!response.ok) {
-    const error = await response.text();
     throw new Error(`Image variation failed: ${response.status}`);
   }
 
@@ -225,7 +303,6 @@ export async function processImage(imageBuffer, operations = {}) {
     contrast,         // 0.5-2
     saturation,       // 0.5-2
     crop,             // { left, top, width, height }
-    watermark,        // { text, position }
   } = operations;
 
   let image = sharp(imageBuffer);
@@ -283,25 +360,25 @@ export async function processImage(imageBuffer, operations = {}) {
 
   // Output format
   switch (format) {
-    case 'jpeg':
-    case 'jpg':
-      image = image.jpeg({ quality: quality || 80 });
-      break;
-    case 'png':
-      image = image.png({ compressionLevel: Math.floor((100 - (quality || 80)) / 10) });
-      break;
-    case 'webp':
-      image = image.webp({ quality: quality || 80 });
-      break;
-    case 'gif':
-      image = image.gif();
-      break;
-    case 'avif':
-      image = image.avif({ quality: quality || 50 });
-      break;
-    default:
-      // Keep original format
-      break;
+  case 'jpeg':
+  case 'jpg':
+    image = image.jpeg({ quality: quality || 80 });
+    break;
+  case 'png':
+    image = image.png({ compressionLevel: Math.floor((100 - (quality || 80)) / 10) });
+    break;
+  case 'webp':
+    image = image.webp({ quality: quality || 80 });
+    break;
+  case 'gif':
+    image = image.gif();
+    break;
+  case 'avif':
+    image = image.avif({ quality: quality || 50 });
+    break;
+  default:
+    // Keep original format
+    break;
   }
 
   const outputBuffer = await image.toBuffer();
@@ -370,7 +447,6 @@ export async function processVideo(inputPath, outputPath, options = {}) {
   }
 
   const {
-    format,           // 'mp4' | 'webm' | 'avi' | 'gif'
     resize,           // { width, height }
     fps,              // frames per second
     bitrate,          // '1000k'

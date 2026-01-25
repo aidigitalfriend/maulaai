@@ -1,1 +1,1 @@
-import { Consultation } from "./index.js"; export { Consultation };
+import { Consultation } from './index.js'; export { Consultation };

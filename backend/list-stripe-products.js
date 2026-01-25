@@ -18,11 +18,11 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 console.log(
   '🔑 STRIPE_SECRET_KEY loaded:',
-  process.env.STRIPE_SECRET_KEY ? 'YES' : 'NO'
+  process.env.STRIPE_SECRET_KEY ? 'YES' : 'NO',
 );
 console.log(
   '🔑 Key starts with:',
-  process.env.STRIPE_SECRET_KEY?.substring(0, 10) + '...'
+  process.env.STRIPE_SECRET_KEY?.substring(0, 10) + '...',
 );
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

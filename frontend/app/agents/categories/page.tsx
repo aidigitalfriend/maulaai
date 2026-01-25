@@ -2,6 +2,7 @@
 
 import { getAgentsGroupedByCategory, getAgentCategories } from '@/app/agents/registry'
 import Link from 'next/link'
+import Image from 'next/image'
 import { AgentConfig } from '@/app/agents/types'
 
 export default function CategoriesPage() {
@@ -75,9 +76,11 @@ export default function CategoriesPage() {
                       className="group p-4 border border-gray-200 rounded-xl hover:shadow-md transition-all duration-200 hover:-translate-y-1"
                     >
                       <div className="flex items-start space-x-3">
-                        <img
+                        <Image
                           src={agent.avatarUrl}
                           alt={agent.name}
+                          width={48}
+                          height={48}
                           className="w-12 h-12 rounded-full object-cover"
                         />
                         <div className="flex-1 min-w-0">

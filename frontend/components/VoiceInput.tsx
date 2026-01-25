@@ -155,9 +155,9 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   // Check quota on mount
   useEffect(() => {
     checkQuota();
-  }, [agent, userId]);
+  }, [agent, userId, checkQuota]);
 
-  const checkQuota = async () => {
+  const checkQuota = useCallback(async () => {
     try {
       const response = await fetch(`/api/voice-to-voice?userId=${encodeURIComponent(userId)}`);
       if (response.ok) {
@@ -170,7 +170,7 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
     } catch (error) {
       console.warn('Failed to check quota:', error);
     }
-  };
+  }, [userId, agent, setState]);
 
   const startRecording = async () => {
     try {

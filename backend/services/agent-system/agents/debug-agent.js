@@ -4,10 +4,8 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 class DebugAgent {
   constructor() {
@@ -76,8 +74,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nPROBLEM: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nPROBLEM: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -87,7 +85,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -96,14 +94,14 @@ Respond in JSON format:
 
       return {
         success: true,
-        analysis: content
+        analysis: content,
       };
 
     } catch (error) {
       console.error('[DebugAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -115,14 +113,14 @@ Respond in JSON format:
     return this.execute(`Debug this error: ${errorMessage}`, {
       ...context,
       error: errorMessage,
-      stackTrace
+      stackTrace,
     });
   }
 
   /**
    * Review code for potential bugs
    */
-  async reviewForBugs(code, context = {}) {
+  async reviewForBugs(code, _context = {}) {
     const systemPrompt = `Review this code for potential bugs and issues:
 
 \`\`\`
@@ -149,8 +147,8 @@ Return a JSON analysis:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -159,19 +157,19 @@ Return a JSON analysis:
       if (jsonMatch) {
         return {
           success: true,
-          ...JSON.parse(jsonMatch[0])
+          ...JSON.parse(jsonMatch[0]),
         };
       }
 
       return {
         success: true,
-        review: content
+        review: content,
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

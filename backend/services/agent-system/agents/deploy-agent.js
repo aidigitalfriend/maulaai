@@ -4,10 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 
-const execAsync = promisify(exec);
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 class DeployAgent {
@@ -73,8 +70,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -84,7 +81,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -93,14 +90,14 @@ Respond in JSON format:
 
       return {
         success: true,
-        configuration: content
+        configuration: content,
       };
 
     } catch (error) {
       console.error('[DeployAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -156,8 +153,8 @@ Return a JSON checklist:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -166,19 +163,19 @@ Return a JSON checklist:
       if (jsonMatch) {
         return {
           success: true,
-          ...JSON.parse(jsonMatch[0])
+          ...JSON.parse(jsonMatch[0]),
         };
       }
 
       return {
         success: true,
-        analysis: content
+        analysis: content,
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

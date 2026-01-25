@@ -52,7 +52,7 @@ router.post('/memory/:userId/:agentId/learn', async (req, res) => {
       userId,
       agentId,
       messages,
-      conversationId
+      conversationId,
     );
 
     res.json({ success: true, data: result });
@@ -78,7 +78,7 @@ router.get('/memory/:userId/:agentId/context', async (req, res) => {
     const enhancedPrompt = await memoryService.buildEnhancedSystemPrompt(
       userId,
       agentId,
-      basePrompt || ''
+      basePrompt || '',
     );
 
     res.json({ success: true, data: { enhancedPrompt } });
@@ -313,9 +313,9 @@ router.get('/files/download', async (req, res) => {
       userId,
       $or: [
         { path: searchPath },
-        { filename: filename || searchPath.split('/').pop() }
+        { filename: filename || searchPath.split('/').pop() },
       ],
-      isDeleted: false
+      isDeleted: false,
     });
 
     if (!file) {

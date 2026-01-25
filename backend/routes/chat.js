@@ -73,7 +73,7 @@ router.get('/sessions', requireAuth, async (req, res) => {
     const userId = req.user._id;
     const { agentId, limit = 20, offset = 0, active = true } = req.query;
 
-    let query = { userId };
+    const query = { userId };
     if (agentId) {
       query.agentId = agentId;
     }
@@ -184,7 +184,7 @@ router.get(
         error: 'Failed to fetch chat session',
       });
     }
-  }
+  },
 );
 
 // POST /api/chat/sessions - Create new session
@@ -276,7 +276,7 @@ router.post(
         error: 'Failed to create chat session',
       });
     }
-  }
+  },
 );
 
 // DELETE /api/chat/sessions/:sessionId - Delete session
@@ -320,7 +320,7 @@ router.delete(
         error: 'Failed to delete chat session',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -343,8 +343,6 @@ router.post(
     try {
       const { conversationId, agentId, messages, summary, metrics } = req.body;
       const userId = req.user._id;
-
-      const agent = agentId ? await Agent.findById(agentId) : null;
 
       // Create interaction
       const interaction = new ChatInteraction({
@@ -379,7 +377,7 @@ router.post(
         error: 'Failed to save chat interaction',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -470,7 +468,7 @@ router.put(
       const settings = await ChatSettings.findOneAndUpdate(
         { userId },
         { ...updates, userId },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
 
       res.json({
@@ -485,7 +483,7 @@ router.put(
         error: 'Failed to update chat settings',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -571,7 +569,7 @@ router.post(
         error: 'Failed to submit feedback',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -583,7 +581,7 @@ router.get('/quick-actions', requireAuth, async (req, res) => {
   try {
     const { category, limit = 50 } = req.query;
 
-    let query = { isActive: true };
+    const query = { isActive: true };
     if (category) {
       query.category = category;
     }
@@ -617,7 +615,7 @@ router.post(
 
       await ChatQuickAction.findOneAndUpdate(
         { actionId },
-        { $inc: { usageCount: 1 } }
+        { $inc: { usageCount: 1 } },
       );
 
       res.json({
@@ -631,7 +629,7 @@ router.post(
         error: 'Failed to track usage',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -724,7 +722,7 @@ router.post(
         error: 'Failed to create canvas project',
       });
     }
-  }
+  },
 );
 
 // GET /api/chat/canvas/projects/:projectId - Get specific project
@@ -761,7 +759,7 @@ router.get(
         error: 'Failed to fetch canvas project',
       });
     }
-  }
+  },
 );
 
 // DELETE /api/chat/canvas/projects/:projectId - Delete project
@@ -802,7 +800,7 @@ router.delete(
         error: 'Failed to delete canvas project',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -844,7 +842,7 @@ router.get(
         error: 'Failed to fetch canvas files',
       });
     }
-  }
+  },
 );
 
 // POST /api/chat/canvas/files - Save generated file
@@ -899,7 +897,7 @@ router.post(
         {
           $inc: { 'stats.filesGenerated': 1, 'stats.totalSize': size },
           'stats.lastModified': new Date(),
-        }
+        },
       );
 
       res.status(201).json({
@@ -913,7 +911,7 @@ router.post(
         error: 'Failed to save canvas file',
       });
     }
-  }
+  },
 );
 
 // GET /api/chat/canvas/files/:fileId - Get file content
@@ -950,7 +948,7 @@ router.get(
         error: 'Failed to fetch canvas file',
       });
     }
-  }
+  },
 );
 
 // ============================================
@@ -994,7 +992,7 @@ router.get(
         error: 'Failed to fetch canvas history',
       });
     }
-  }
+  },
 );
 
 // POST /api/chat/canvas/history - Record canvas generation attempt
@@ -1052,7 +1050,7 @@ router.post(
         error: 'Failed to record canvas history',
       });
     }
-  }
+  },
 );
 
 export default router;

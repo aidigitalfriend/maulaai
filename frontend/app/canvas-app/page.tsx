@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import type { AgentSubscription } from '@/services/agentSubscriptionService';
+import Image from 'next/image';
 
 // Types
 interface ChatMessage {
@@ -1309,9 +1310,11 @@ function CanvasAppInner() {
           {/* Micro Logo at Top */}
           <div className="pt-3 pb-2">
             <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
-              <img 
+              <Image 
                 src="/images/logos/company-logo.png" 
                 alt="OneLast.AI" 
+                width={36}
+                height={36}
                 className="w-9 h-9 object-contain"
               />
             </div>

@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
         totalUsers: true,
         totalSessions: true,
         averageRating: true,
-      }
+      },
     });
 
     res.json({
@@ -50,21 +50,21 @@ router.get('/', async (req, res) => {
         pricing: {
           daily: agent.pricingDaily,
           weekly: agent.pricingWeekly,
-          monthly: agent.pricingMonthly
+          monthly: agent.pricingMonthly,
         },
         stats: {
           totalUsers: agent.totalUsers,
           totalSessions: agent.totalSessions,
-          averageRating: agent.averageRating
-        }
-      }))
+          averageRating: agent.averageRating,
+        },
+      })),
     });
 
   } catch (error) {
     console.error('Error fetching agents:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch agents'
+      error: 'Failed to fetch agents',
     });
   }
 });
@@ -82,18 +82,18 @@ router.get('/:agentId', async (req, res) => {
         _count: {
           select: {
             subscriptions: {
-              where: { status: 'active' }
+              where: { status: 'active' },
             },
-            chatSessions: true
-          }
-        }
-      }
+            chatSessions: true,
+          },
+        },
+      },
     });
 
     if (!agent || agent.status !== 'active') {
       return res.status(404).json({
         success: false,
-        error: 'Agent not found'
+        error: 'Agent not found',
       });
     }
 
@@ -113,24 +113,24 @@ router.get('/:agentId', async (req, res) => {
         pricing: {
           daily: agent.pricingDaily,
           weekly: agent.pricingWeekly,
-          monthly: agent.pricingMonthly
+          monthly: agent.pricingMonthly,
         },
         stats: {
           totalUsers: agent.totalUsers,
           totalSessions: agent.totalSessions,
           averageRating: agent.averageRating,
           activeSubscriptions: agent._count.subscriptions,
-          totalChatSessions: agent._count.chatSessions
+          totalChatSessions: agent._count.chatSessions,
         },
-        aiProvider: agent.aiProvider
-      }
+        aiProvider: agent.aiProvider,
+      },
     });
 
   } catch (error) {
     console.error('Error fetching agent:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch agent'
+      error: 'Failed to fetch agent',
     });
   }
 });
@@ -145,7 +145,7 @@ router.get('/category/:category', async (req, res) => {
     const agents = await prisma.agent.findMany({
       where: {
         status: 'active',
-        tags: { has: category }
+        tags: { has: category },
       },
       orderBy: { name: 'asc' },
       select: {
@@ -161,12 +161,12 @@ router.get('/category/:category', async (req, res) => {
         pricingDaily: true,
         pricingWeekly: true,
         pricingMonthly: true,
-      }
+      },
     });
 
     res.json({
       success: true,
-      category: category,
+      category,
       count: agents.length,
       agents: agents.map(agent => ({
         id: agent.agentId,
@@ -179,16 +179,16 @@ router.get('/category/:category', async (req, res) => {
         pricing: {
           daily: agent.pricingDaily,
           weekly: agent.pricingWeekly,
-          monthly: agent.pricingMonthly
-        }
-      }))
+          monthly: agent.pricingMonthly,
+        },
+      })),
     });
 
   } catch (error) {
     console.error('Error fetching agents by category:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch agents by category'
+      error: 'Failed to fetch agents by category',
     });
   }
 });
@@ -207,8 +207,8 @@ router.get('/search/:query', async (req, res) => {
           { name: { contains: query, mode: 'insensitive' } },
           { specialty: { contains: query, mode: 'insensitive' } },
           { description: { contains: query, mode: 'insensitive' } },
-          { tags: { has: query } }
-        ]
+          { tags: { has: query } },
+        ],
       },
       orderBy: { name: 'asc' },
       select: {
@@ -224,12 +224,12 @@ router.get('/search/:query', async (req, res) => {
         pricingDaily: true,
         pricingWeekly: true,
         pricingMonthly: true,
-      }
+      },
     });
 
     res.json({
       success: true,
-      query: query,
+      query,
       count: agents.length,
       agents: agents.map(agent => ({
         id: agent.agentId,
@@ -242,16 +242,16 @@ router.get('/search/:query', async (req, res) => {
         pricing: {
           daily: agent.pricingDaily,
           weekly: agent.pricingWeekly,
-          monthly: agent.pricingMonthly
-        }
-      }))
+          monthly: agent.pricingMonthly,
+        },
+      })),
     });
 
   } catch (error) {
     console.error('Error searching agents:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to search agents'
+      error: 'Failed to search agents',
     });
   }
 });
@@ -275,13 +275,13 @@ router.post('/', async (req, res) => {
       pricingDaily,
       pricingWeekly,
       pricingMonthly,
-      aiProvider
+      aiProvider,
     } = req.body;
 
     if (!agentId || !name || !systemPrompt || !welcomeMessage) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: agentId, name, systemPrompt, welcomeMessage'
+        error: 'Missing required fields: agentId, name, systemPrompt, welcomeMessage',
       });
     }
 
@@ -301,13 +301,13 @@ router.post('/', async (req, res) => {
         pricingWeekly: pricingWeekly || 0,
         pricingMonthly: pricingMonthly || 0,
         aiProvider: aiProvider || {},
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     res.status(201).json({
       success: true,
-      agent
+      agent,
     });
 
   } catch (error) {
@@ -315,12 +315,12 @@ router.post('/', async (req, res) => {
     if (error.code === 'P2002') {
       return res.status(409).json({
         success: false,
-        error: 'Agent with this ID already exists'
+        error: 'Agent with this ID already exists',
       });
     }
     res.status(500).json({
       success: false,
-      error: 'Failed to create agent'
+      error: 'Failed to create agent',
     });
   }
 });
@@ -339,12 +339,12 @@ router.put('/:agentId', async (req, res) => {
 
     const agent = await prisma.agent.update({
       where: { agentId },
-      data: updateData
+      data: updateData,
     });
 
     res.json({
       success: true,
-      agent
+      agent,
     });
 
   } catch (error) {
@@ -352,12 +352,12 @@ router.put('/:agentId', async (req, res) => {
     if (error.code === 'P2025') {
       return res.status(404).json({
         success: false,
-        error: 'Agent not found'
+        error: 'Agent not found',
       });
     }
     res.status(500).json({
       success: false,
-      error: 'Failed to update agent'
+      error: 'Failed to update agent',
     });
   }
 });
@@ -371,13 +371,13 @@ router.delete('/:agentId', async (req, res) => {
 
     const agent = await prisma.agent.update({
       where: { agentId },
-      data: { status: 'deprecated' }
+      data: { status: 'deprecated' },
     });
 
     res.json({
       success: true,
       message: 'Agent deactivated successfully',
-      agent
+      agent,
     });
 
   } catch (error) {
@@ -385,12 +385,12 @@ router.delete('/:agentId', async (req, res) => {
     if (error.code === 'P2025') {
       return res.status(404).json({
         success: false,
-        error: 'Agent not found'
+        error: 'Agent not found',
       });
     }
     res.status(500).json({
       success: false,
-      error: 'Failed to delete agent'
+      error: 'Failed to delete agent',
     });
   }
 });

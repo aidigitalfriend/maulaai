@@ -1,1 +1,1 @@
-import { ChatCanvasHistory } from "./index.js"; export default ChatCanvasHistory;
+import { ChatCanvasHistory } from './index.js'; export default ChatCanvasHistory;

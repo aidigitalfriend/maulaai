@@ -274,7 +274,7 @@ class CacheManager {
         }.bind(this);
 
         next();
-      } catch (error) {
+      } catch (_error) {
         next();
       }
     };

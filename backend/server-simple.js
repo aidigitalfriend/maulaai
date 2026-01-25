@@ -14,13 +14,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import os from 'os';
 import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
 // Prisma database connection
-import { prisma, connectDatabase, disconnectDatabase, healthCheck as dbHealthCheck } from './lib/prisma.js';
+import { prisma, connectDatabase, disconnectDatabase } from './lib/prisma.js';
 import db from './lib/db.js';
 
 // Middleware and services
@@ -33,7 +32,6 @@ import analyticsRouter from './routes/analytics.js';
 import agentSubscriptionsRouter from './routes/agentSubscriptions.js';
 import apiRouter from './routes/api-router.js';
 import { rateLimiters, cache } from './lib/cache.js';
-import agentAIService from './lib/agent-ai-provider-service.js';
 import { startSubscriptionExpirationCron } from './services/subscription-cron.js';
 
 const app = express();
@@ -75,7 +73,7 @@ app.use(trackPageViewMiddleware);
 // Lightweight metrics tracker
 // ----------------------------
 const METRICS_WINDOW_SECONDS = 60;
-let perSecondBuckets = new Map();
+const perSecondBuckets = new Map();
 
 function recordMetric(statusCode, durationMs) {
   const sec = Math.floor(Date.now() / 1000);
@@ -140,101 +138,6 @@ async function checkPostgresFast() {
 }
 
 // Helper functions
-function detectDeviceName(userAgent) {
-  if (userAgent.includes('iPhone')) return 'iPhone';
-  if (userAgent.includes('iPad')) return 'iPad';
-  if (userAgent.includes('Android')) return 'Android Device';
-  if (userAgent.includes('Macintosh')) return 'MacBook';
-  if (userAgent.includes('Windows')) return 'Windows PC';
-  if (userAgent.includes('Linux')) return 'Linux Computer';
-  return 'Unknown Device';
-}
-
-function detectDeviceType(userAgent) {
-  if (userAgent.includes('Mobile') || userAgent.includes('iPhone')) return 'mobile';
-  if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'tablet';
-  return 'desktop';
-}
-
-function detectBrowser(userAgent) {
-  if (userAgent.includes('Chrome')) return 'Chrome';
-  if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
-  if (userAgent.includes('Firefox')) return 'Firefox';
-  if (userAgent.includes('Edge')) return 'Edge';
-  return 'Unknown Browser';
-}
-
-function calculateSecurityScore(userSecurity) {
-  let score = 50;
-  if (userSecurity.twoFactorEnabled) score += 25;
-  const passwordAge = Date.now() - new Date(userSecurity.passwordLastChanged).getTime();
-  const daysOld = passwordAge / (1000 * 60 * 60 * 24);
-  if (daysOld < 90) score += 15;
-  else if (daysOld < 180) score += 10;
-  else if (daysOld < 365) score += 5;
-  if (userSecurity.failedLoginAttempts === 0) score += 5;
-  if (!userSecurity.accountLocked) score += 5;
-  return Math.min(100, Math.max(0, score));
-}
-
-function generateSecurityRecommendations(userSecurity) {
-  const recommendations = [];
-  if (!userSecurity.twoFactorEnabled) {
-    recommendations.push({
-      id: 1,
-      type: 'warning',
-      title: 'Enable Two-Factor Authentication',
-      description: 'Secure your account with 2FA for better protection',
-      priority: 'high',
-    });
-  }
-  const passwordAge = Date.now() - new Date(userSecurity.passwordLastChanged).getTime();
-  const daysOld = passwordAge / (1000 * 60 * 60 * 24);
-  if (daysOld > 180) {
-    recommendations.push({
-      id: 2,
-      type: 'info',
-      title: 'Update Your Password',
-      description: 'Your password is over 6 months old. Consider updating it.',
-      priority: 'medium',
-    });
-  }
-  if (userSecurity.failedLoginAttempts > 3) {
-    recommendations.push({
-      id: 3,
-      type: 'warning',
-      title: 'Recent Failed Login Attempts',
-      description: 'Someone may be trying to access your account',
-      priority: 'high',
-    });
-  }
-  if (recommendations.length === 0) {
-    recommendations.push({
-      id: 4,
-      type: 'success',
-      title: 'Great Security Posture!',
-      description: 'Your account security is well configured',
-      priority: 'low',
-    });
-  }
-  return recommendations;
-}
-
-function providerStatusFromEnv() {
-  return {
-    openai: !!process.env.OPENAI_API_KEY,
-    anthropic: !!process.env.ANTHROPIC_API_KEY,
-    gemini: !!process.env.GEMINI_API_KEY,
-    cohere: !!process.env.COHERE_API_KEY,
-    huggingface: !!process.env.HUGGINGFACE_API_KEY,
-    mistral: !!process.env.MISTRAL_API_KEY,
-    replicate: !!process.env.REPLICATE_API_TOKEN,
-    stability: !!process.env.STABILITY_API_KEY,
-    runway: !!process.env.RUNWAYML_API_KEY,
-    elevenlabs: !!process.env.ELEVENLABS_API_KEY,
-    googleTranslate: !!process.env.GOOGLE_TRANSLATE_API_KEY,
-  };
-}
 
 function buildCpuMem() {
   const memTotal = os.totalmem();
@@ -268,7 +171,7 @@ app.get('/health', async (req, res) => {
     } else if (cache.memoryCache) {
       redisStatus = 'fallback_memory';
     }
-  } catch (e) {
+  } catch {
     redisStatus = 'error';
   }
 
@@ -293,7 +196,7 @@ app.get('/health', async (req, res) => {
       s3Status = 'connected';
       s3Connected = true;
     }
-  } catch (e) {
+  } catch {
     s3Status = s3Bucket ? 'error' : 'not_configured';
   }
 
@@ -342,7 +245,6 @@ app.get('/api/status', async (req, res) => {
   console.log('STATUS ENDPOINT CALLED - NEW VERSION');
   try {
     const metrics = calcMetricsSnapshot();
-    const providers = providerStatusFromEnv();
     const dbCheck = await checkPostgresFast();
     
     const apiStatus = metrics.errorRate < 1 && metrics.avgResponseMs < 800 ? 'operational' : 'degraded';
@@ -363,7 +265,7 @@ app.get('/api/status', async (req, res) => {
     });
 
     const subscriptionMap = new Map(
-      subscriptionCounts.map(s => [s.agentId, s._count.id])
+      subscriptionCounts.map(s => [s.agentId, s._count.id]),
     );
 
     const agentsData = agents.map(agent => ({
@@ -375,14 +277,14 @@ app.get('/api/status', async (req, res) => {
       totalUsers: agent.totalUsers || 0,
       totalSessions: agent.totalSessions || 0,
       averageRating: agent.averageRating || 0,
-      aiProvider: agent.aiProvider ? agent.aiProvider.model : "gpt-4" || 'gpt-4',
+      aiProvider: agent.aiProvider ? agent.aiProvider.model : 'gpt-4' || 'gpt-4',
     }));
 
     // Get analytics summary
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const [todaySessions, todayPageViews, activeUsers] = await Promise.all([
+    const [, , activeUsers] = await Promise.all([
       prisma.session.count({ where: { createdAt: { gte: startOfDay } } }),
       prisma.pageView.count({ where: { timestamp: { gte: startOfDay } } }),
       prisma.session.count({
@@ -468,7 +370,6 @@ app.get('/api/status/stream', (req, res) => {
   const sendStatusUpdate = async () => {
     try {
       const metrics = calcMetricsSnapshot();
-      const providers = providerStatusFromEnv();
       const dbCheck = await checkPostgresFast();
 
       const apiStatus = metrics.errorRate < 1 && metrics.avgResponseMs < 800 ? 'operational' : 'degraded';
@@ -489,7 +390,7 @@ app.get('/api/status/stream', (req, res) => {
       });
 
       const subscriptionMap = new Map(
-        subscriptionCounts.map(s => [s.agentId, s._count.id])
+        subscriptionCounts.map(s => [s.agentId, s._count.id]),
       );
 
       const agentsData = agents.map(agent => ({
@@ -501,14 +402,14 @@ app.get('/api/status/stream', (req, res) => {
         totalUsers: agent.totalUsers || 0,
         totalSessions: agent.totalSessions || 0,
         averageRating: agent.averageRating || 0,
-        aiProvider: agent.aiProvider ? agent.aiProvider.model : "gpt-4" || 'gpt-4',
+        aiProvider: agent.aiProvider ? agent.aiProvider.model : 'gpt-4' || 'gpt-4',
       }));
 
       // Get analytics summary
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
 
-      const [todaySessions, todayPageViews, activeUsers] = await Promise.all([
+      const [todaySessions, , activeUsers] = await Promise.all([
         prisma.session.count({ where: { createdAt: { gte: startOfDay } } }),
         prisma.pageView.count({ where: { timestamp: { gte: startOfDay } } }),
         prisma.session.count({
@@ -555,7 +456,7 @@ app.get('/api/status/stream', (req, res) => {
             uptime: 100, // Placeholder
           },
           aiServices: [],
-        agents: agentsData,
+          agents: agentsData,
           tools: [], // Not implemented yet
           historical: [], // Not implemented yet
           incidents: [], // Not implemented yet
@@ -571,7 +472,7 @@ app.get('/api/status/stream', (req, res) => {
       // Send error event
       res.write(`data: ${JSON.stringify({
         status: 'error',
-        error: 'Failed to fetch status stream'
+        error: 'Failed to fetch status stream',
       })}\n\n`);
     }
   };
@@ -611,25 +512,25 @@ app.get('/api/status/analytics', async (req, res) => {
     let startDate, previousStartDate, previousEndDate;
 
     switch (timeRange) {
-      case '24h':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-        previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-        previousEndDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-        previousEndDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-        previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    case '24h':
+      startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+      previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      break;
+    case '7d':
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+      previousEndDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case '30d':
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+      previousEndDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    default:
+      startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      previousStartDate = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+      previousEndDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     }
 
     // Get current period data
@@ -638,7 +539,6 @@ app.get('/api/status/analytics', async (req, res) => {
       currentPageViews,
       currentActiveUsers,
       currentAgentInteractions,
-      currentToolUsages
     ] = await Promise.all([
       prisma.session.count({ where: { createdAt: { gte: startDate } } }),
       prisma.pageView.count({ where: { timestamp: { gte: startDate } } }),
@@ -649,16 +549,13 @@ app.get('/api/status/analytics', async (req, res) => {
         },
       }),
       prisma.chatAnalyticsInteraction.count({ where: { startedAt: { gte: startDate } } }),
-      prisma.toolUsage.count({ where: { occurredAt: { gte: startDate } } })
+      prisma.toolUsage.count({ where: { occurredAt: { gte: startDate } } }),
     ]);
 
     // Get previous period data for growth calculation
     const [
       previousSessions,
-      previousPageViews,
       previousActiveUsers,
-      previousAgentInteractions,
-      previousToolUsages
     ] = await Promise.all([
       prisma.session.count({ where: { createdAt: { gte: previousStartDate, lt: previousEndDate } } }),
       prisma.pageView.count({ where: { timestamp: { gte: previousStartDate, lt: previousEndDate } } }),
@@ -670,7 +567,7 @@ app.get('/api/status/analytics', async (req, res) => {
         },
       }),
       prisma.chatAnalyticsInteraction.count({ where: { startedAt: { gte: previousStartDate, lt: previousEndDate } } }),
-      prisma.toolUsage.count({ where: { occurredAt: { gte: previousStartDate, lt: previousEndDate } } })
+      prisma.toolUsage.count({ where: { occurredAt: { gte: previousStartDate, lt: previousEndDate } } }),
     ]);
 
     // Calculate growth percentages
@@ -684,13 +581,13 @@ app.get('/api/status/analytics', async (req, res) => {
         _count: {
           select: {
             chatInteractions: {
-              where: { startedAt: { gte: startDate } }
+              where: { startedAt: { gte: startDate } },
             },
             subscriptions: {
-              where: { status: 'active' }
-            }
-          }
-        }
+              where: { status: 'active' },
+            },
+          },
+        },
       },
       orderBy: { name: 'asc' },
     });
@@ -706,7 +603,7 @@ app.get('/api/status/analytics', async (req, res) => {
         users,
         avgResponseTime: Math.floor(Math.random() * 200) + 100,
         successRate: Math.floor(Math.random() * 20) + 80,
-        trend
+        trend,
       };
     });
 
@@ -727,7 +624,7 @@ app.get('/api/status/analytics', async (req, res) => {
         usage,
         users: Math.floor(usage * 0.7),
         avgDuration,
-        trend
+        trend,
       };
     });
 
@@ -745,13 +642,13 @@ app.get('/api/status/analytics', async (req, res) => {
             lastActivity: { gte: new Date(Date.now() - 15 * 60 * 1000) },
             isActive: true,
           },
-        })
+        }),
       ]);
 
       hourlyData.push({
         hour: hourStart.toLocaleTimeString('en-US', { hour: '2-digit', hour12: false }),
         requests: hourRequests,
-        users: hourUsers
+        users: hourUsers,
       });
     }
 
@@ -764,7 +661,7 @@ app.get('/api/status/analytics', async (req, res) => {
         requests: agent.requests,
         percentage: agentsData.length > 0 && Math.max(...agentsData.map(a => a.requests)) > 0 
           ? (agent.requests / Math.max(...agentsData.map(a => a.requests))) * 100 
-          : 0
+          : 0,
       }));
 
     // Calculate overview metrics
@@ -779,12 +676,12 @@ app.get('/api/status/analytics', async (req, res) => {
         avgResponseTime,
         successRate,
         requestsGrowth,
-        usersGrowth
+        usersGrowth,
       },
       agents: agentsData,
       tools: toolsData,
       hourlyData,
-      topAgents
+      topAgents,
     });
   } catch (error) {
     console.error('Status analytics endpoint error:', error);
@@ -817,7 +714,7 @@ app.get('/api/status/api-status', async (req, res) => {
         responseTime: Math.round(metrics.avgResponseMs * 0.8),
         uptime: 99.9,
         lastChecked: now,
-        errorRate: metrics.errorRate
+        errorRate: metrics.errorRate,
       },
       {
         name: 'Status',
@@ -827,7 +724,7 @@ app.get('/api/status/api-status', async (req, res) => {
         responseTime: Math.round(metrics.avgResponseMs),
         uptime: 99.9,
         lastChecked: now,
-        errorRate: metrics.errorRate
+        errorRate: metrics.errorRate,
       },
       {
         name: 'Authentication',
@@ -837,7 +734,7 @@ app.get('/api/status/api-status', async (req, res) => {
         responseTime: Math.round(metrics.avgResponseMs * 1.2),
         uptime: 99.8,
         lastChecked: now,
-        errorRate: metrics.errorRate
+        errorRate: metrics.errorRate,
       },
       {
         name: 'Chat Completions',
@@ -847,7 +744,7 @@ app.get('/api/status/api-status', async (req, res) => {
         responseTime: Math.round(metrics.avgResponseMs * 2.5),
         uptime: 99.5,
         lastChecked: now,
-        errorRate: metrics.errorRate * 1.5
+        errorRate: metrics.errorRate * 1.5,
       },
       {
         name: 'Canvas Generate',
@@ -857,8 +754,8 @@ app.get('/api/status/api-status', async (req, res) => {
         responseTime: Math.round(metrics.avgResponseMs * 3),
         uptime: 99.3,
         lastChecked: now,
-        errorRate: metrics.errorRate * 1.8
-      }
+        errorRate: metrics.errorRate * 1.8,
+      },
     ];
 
     // Agent APIs
@@ -870,7 +767,7 @@ app.get('/api/status/api-status', async (req, res) => {
       { name: 'Code Wizard', apiEndpoint: '/api/agents/code', status: baseStatus, responseTime: 110, requestsPerMinute: Math.round(metrics.rps * 0.1) },
       { name: 'Data Analyst', apiEndpoint: '/api/agents/data', status: baseStatus, responseTime: 155, requestsPerMinute: Math.round(metrics.rps * 0.08) },
       { name: 'Content Writer', apiEndpoint: '/api/agents/writer', status: baseStatus, responseTime: 140, requestsPerMinute: Math.round(metrics.rps * 0.05) },
-      { name: 'Research Bot', apiEndpoint: '/api/agents/research', status: baseStatus, responseTime: 180, requestsPerMinute: Math.round(metrics.rps * 0.04) }
+      { name: 'Research Bot', apiEndpoint: '/api/agents/research', status: baseStatus, responseTime: 180, requestsPerMinute: Math.round(metrics.rps * 0.04) },
     ];
 
     // Tools APIs
@@ -880,7 +777,7 @@ app.get('/api/status/api-status', async (req, res) => {
       { name: 'Image Generation', apiEndpoint: '/api/tools/image', status: baseStatus, responseTime: 2500, requestsPerMinute: Math.round(metrics.rps * 0.08) },
       { name: 'Code Execution', apiEndpoint: '/api/tools/execute', status: baseStatus, responseTime: 450, requestsPerMinute: Math.round(metrics.rps * 0.06) },
       { name: 'Web Search', apiEndpoint: '/api/tools/search', status: baseStatus, responseTime: 180, requestsPerMinute: Math.round(metrics.rps * 0.15) },
-      { name: 'File Upload', apiEndpoint: '/api/tools/upload', status: baseStatus, responseTime: 400, requestsPerMinute: Math.round(metrics.rps * 0.05) }
+      { name: 'File Upload', apiEndpoint: '/api/tools/upload', status: baseStatus, responseTime: 400, requestsPerMinute: Math.round(metrics.rps * 0.05) },
     ];
 
     // AI Service APIs
@@ -890,7 +787,7 @@ app.get('/api/status/api-status', async (req, res) => {
       { name: 'Gemini Pro', provider: 'Google', status: process.env.GEMINI_API_KEY ? 'operational' : 'down', responseTime: 650, quota: '95%' },
       { name: 'Groq LLaMA', provider: 'Groq', status: process.env.GROQ_API_KEY ? 'operational' : 'down', responseTime: 180, quota: '78%' },
       { name: 'Deepseek', provider: 'Deepseek', status: process.env.DEEPSEEK_API_KEY ? 'operational' : 'down', responseTime: 420, quota: '92%' },
-      { name: 'Mistral', provider: 'Mistral AI', status: process.env.MISTRAL_API_KEY ? 'operational' : 'down', responseTime: 380, quota: '88%' }
+      { name: 'Mistral', provider: 'Mistral AI', status: process.env.MISTRAL_API_KEY ? 'operational' : 'down', responseTime: 380, quota: '88%' },
     ];
 
     res.json({
@@ -899,7 +796,7 @@ app.get('/api/status/api-status', async (req, res) => {
       categories: {
         agents,
         tools,
-        aiServices
+        aiServices,
       },
       summary: {
         api: {
@@ -907,15 +804,15 @@ app.get('/api/status/api-status', async (req, res) => {
           responseTime: metrics.avgResponseMs,
           requestsPerMinute: metrics.rps,
           errorRate: metrics.errorRate,
-          uptime: 99.9
+          uptime: 99.9,
         },
         database: {
           status: dbCheck.ok ? 'operational' : 'outage',
           responseTime: dbCheck.latencyMs,
-          message: dbCheck.message
-        }
+          message: dbCheck.message,
+        },
       },
-      timestamp: now
+      timestamp: now,
     });
   } catch (error) {
     console.error('API status endpoint error:', error);
@@ -1286,7 +1183,7 @@ app.use('/api/subscriptions', agentSubscriptionsRouter);
 // ERROR HANDLING
 // ============================================
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Server error:', err);
   res.status(500).json({
     success: false,
@@ -1298,7 +1195,6 @@ app.use((err, req, res, next) => {
 // SOCKET.IO
 // ============================================
 
-const activeUsers = new Map();
 const activeRooms = new Map();
 
 io.on('connection', (socket) => {

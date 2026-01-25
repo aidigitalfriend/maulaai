@@ -164,7 +164,7 @@ export default function AdminSupportPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [statusFilter, priorityFilter, categoryFilter, searchQuery, showSlaBreached]);
+  }, [statusFilter, priorityFilter, categoryFilter, searchQuery, showSlaBreached, stats]);
 
   useEffect(() => {
     fetchTickets();

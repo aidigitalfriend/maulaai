@@ -10,6 +10,7 @@ import Download from 'yet-another-react-lightbox/plugins/download';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/thumbnails.css';
 import { XMarkIcon, ArrowsPointingOutIcon, MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 interface ImageViewerProps {
   src: string | string[];
@@ -67,10 +68,11 @@ export function SimpleImage({
           </div>
         </div>
       ) : (
-        <img
+        <Image
           src={src}
           alt={alt}
-          className={`w-full h-full cursor-pointer transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
+          fill
+          className={`cursor-pointer transition-opacity ${loading ? 'opacity-0' : 'opacity-100'}`}
           style={{ objectFit }}
           onLoad={() => setLoading(false)}
           onError={() => {

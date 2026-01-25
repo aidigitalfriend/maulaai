@@ -318,7 +318,7 @@ export async function retrieveForLLM(query, options = {}) {
 
   // Combine relevant chunks into context
   const contextParts = searchResults.results.map((r, i) => 
-    `[Source ${i + 1}: ${r.title} (relevance: ${(r.score * 100).toFixed(1)}%)]\n${r.content}`
+    `[Source ${i + 1}: ${r.title} (relevance: ${(r.score * 100).toFixed(1)}%)]\n${r.content}`,
   );
 
   const formattedContext = `
@@ -359,7 +359,7 @@ export async function deleteDocument(documentId) {
     if (global.ragMemoryStore) {
       const before = global.ragMemoryStore.length;
       global.ragMemoryStore = global.ragMemoryStore.filter(
-        v => v.metadata?.documentId !== documentId
+        v => v.metadata?.documentId !== documentId,
       );
       const deleted = before - global.ragMemoryStore.length;
       return { success: true, message: `Deleted ${deleted} vectors from memory` };

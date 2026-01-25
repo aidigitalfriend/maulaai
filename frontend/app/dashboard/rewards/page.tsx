@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -17,13 +17,7 @@ export default function RewardsCenterPage() {
   const [rewardsData, setRewardsData] = useState(null);
 
   // Fetch rewards data on mount
-  useEffect(() => {
-    if (state.user?.id) {
-      fetchRewardsData();
-    }
-  }, [state.user]);
-
-  const fetchRewardsData = async () => {
+  const fetchRewardsData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -44,7 +38,13 @@ export default function RewardsCenterPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [state.user?.id, setLoading, setRewardsData]);
+
+  useEffect(() => {
+    if (state.user?.id) {
+      fetchRewardsData();
+    }
+  }, [state.user, fetchRewardsData]);
 
   // Show loading state
   if (loading) {

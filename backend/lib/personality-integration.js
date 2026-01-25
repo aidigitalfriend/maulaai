@@ -33,7 +33,7 @@ function preparePersonalizedRequest(request) {
   const config = getAgentPersonalityConfig(request.agentId);
   const systemPrompt = buildAgentSystemMessage(
     request.agentId,
-    request.context
+    request.context,
   );
   const messages = [];
   if (request.conversationHistory && request.conversationHistory.length > 0) {
@@ -63,14 +63,14 @@ function validatePersonalityMaintenance(agentId, response) {
     if (pattern.test(response.substring(0, 50))) {
       warnings.push(`Response starts with generic pattern: ${pattern.source}`);
       suggestions.push(
-        `Ensure response opens with agent's characteristic style`
+        'Ensure response opens with agent\'s characteristic style',
       );
     }
   }
   if (response.includes('I am an AI') || response.includes('as an AI')) {
     warnings.push('Response explicitly references being an AI');
     suggestions.push(
-      'Stay completely in character - never mention being an AI'
+      'Stay completely in character - never mention being an AI',
     );
   }
   if (agentId === 'lazy-pawn' && response.length > 200) {
@@ -138,7 +138,7 @@ function getAllAgentConfigs() {
   }
   return agents;
 }
-var personality_integration_default = {
+const personality_integration_default = {
   getAgentPersonalityConfig,
   buildAgentSystemMessage,
   preparePersonalizedRequest,

@@ -33,7 +33,7 @@ async function seedAgents() {
 
   for (const agent of agents) {
     try {
-      const result = await prisma.agent.upsert({
+      await prisma.agent.upsert({
         where: { agentId: agent.agentId },
         update: { 
           name: agent.name, 

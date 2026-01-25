@@ -3,8 +3,6 @@
  * Unified interface for multiple AI providers with intelligent routing
  */
 
-import { AIProvider, AIModel } from '../models/Agent.js';
-
 /**
  * @typedef {Object} AIProviderConfig
  * @property {AIProvider} provider - The AI provider to use
@@ -98,18 +96,18 @@ class AIProviderService {
     }
 
     switch (provider) {
-      case 'openai':
-        return this.callOpenAI(model, messages, options);
-      case 'anthropic':
-        return this.callAnthropic(model, messages, options);
-      case 'xai':
-        return this.callXAI(model, messages, options);
-      case 'mistral':
-        return this.callMistral(model, messages, options);
-      case 'gemini':
-        return this.callGemini(model, messages, options);
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
+    case 'openai':
+      return this.callOpenAI(model, messages, options);
+    case 'anthropic':
+      return this.callAnthropic(model, messages, options);
+    case 'xai':
+      return this.callXAI(model, messages, options);
+    case 'mistral':
+      return this.callMistral(model, messages, options);
+    case 'gemini':
+      return this.callGemini(model, messages, options);
+    default:
+      throw new Error(`Unsupported provider: ${provider}`);
     }
   }
 
@@ -260,8 +258,8 @@ class AIProviderService {
       options.systemPrompt || 'You are a helpful AI assistant.';
     const fullPrompt = conversationText
       ? `${systemPrompt}\n\nPrevious conversation:\n${conversationText}\n\nUser: ${
-          messages[messages.length - 1]?.content
-        }\nAssistant:`
+        messages[messages.length - 1]?.content
+      }\nAssistant:`
       : `${systemPrompt}\n\nUser: ${messages[0]?.content}\nAssistant:`;
 
     const response = await fetch(
@@ -282,7 +280,7 @@ class AIProviderService {
             topP: 0.95,
           },
         }),
-      }
+      },
     );
 
     if (response.ok) {

@@ -68,17 +68,17 @@ async function cleanupStripeProducts() {
             }
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // If we can't check subscriptions, be safe and skip
         console.log(
-          `⚠️  SKIPPING: ${product.name} (${product.id}) - Cannot verify subscriptions`
+          `⚠️  SKIPPING: ${product.name} (${product.id}) - Cannot verify subscriptions`,
         );
         continue;
       }
 
       if (hasActiveSubscriptions) {
         console.log(
-          `⚠️  SKIPPING: ${product.name} (${product.id}) - Has active subscriptions!`
+          `⚠️  SKIPPING: ${product.name} (${product.id}) - Has active subscriptions!`,
         );
         continue;
       }
@@ -90,26 +90,26 @@ async function cleanupStripeProducts() {
         deletedCount++;
       } catch (error) {
         console.log(
-          `❌ FAILED to archive: ${product.name} (${product.id}) - ${error.message}`
+          `❌ FAILED to archive: ${product.name} (${product.id}) - ${error.message}`,
         );
       }
     }
 
-    console.log(`\n📊 Cleanup Summary:`);
+    console.log('\n📊 Cleanup Summary:');
     console.log(`   ✅ Kept: ${keptCount} products`);
     console.log(`   🗑️  Archived: ${deletedCount} products`);
     console.log(
       `   ⚠️  Skipped: ${
         products.data.length - keptCount - deletedCount
-      } products (active subscriptions)`
+      } products (active subscriptions)`,
     );
 
-    console.log(`\n🎯 Products kept:`);
+    console.log('\n🎯 Products kept:');
     PRODUCTS_TO_KEEP.forEach((id) => console.log(`   - ${id}`));
   } catch (error) {
     console.error('❌ Error during cleanup:', error.message);
     console.log(
-      '\n💡 Note: Products with active subscriptions were not deleted for safety'
+      '\n💡 Note: Products with active subscriptions were not deleted for safety',
     );
   }
 }

@@ -1,13 +1,13 @@
-import OpenAI from "openai";
+import OpenAI from 'openai';
 class EnhancedAIProviderService {
   openai;
   providers = /* @__PURE__ */ new Map();
   constructor() {
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY
+        apiKey: process.env.OPENAI_API_KEY,
       });
-      this.providers.set("openai", this.openai);
+      this.providers.set('openai', this.openai);
     }
   }
   /**
@@ -15,111 +15,111 @@ class EnhancedAIProviderService {
    */
   getEnhancedAgentConfig(agentId) {
     const configs = {
-      "julie-girlfriend": {
-        agentId: "julie-girlfriend",
-        primaryProvider: "openai",
-        fallbackProviders: ["anthropic", "mistral", "gemini", "cohere"],
-        model: "gpt-4.1",  // Latest GPT-4.1
-        specializedFor: ["Emotional support", "Relationship advice", "Conversational companionship"],
+      'julie-girlfriend': {
+        agentId: 'julie-girlfriend',
+        primaryProvider: 'openai',
+        fallbackProviders: ['anthropic', 'mistral', 'gemini', 'cohere'],
+        model: 'gpt-4.1',  // Latest GPT-4.1
+        specializedFor: ['Emotional support', 'Relationship advice', 'Conversational companionship'],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: false,
           supportsImageGeneration: true,
           maxFileSize: 25,  // Increased file size
-          supportedFileTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf", "text/plain"]
+          supportedFileTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain'],
         },
         formatting: {
           useMarkdown: true,
-          codeStyle: "basic",
-          headingStyle: "markdown",
-          listStyle: "markdown"
-        }
+          codeStyle: 'basic',
+          headingStyle: 'markdown',
+          listStyle: 'markdown',
+        },
       },
-      "ben-sega": {
-        agentId: "ben-sega",
-        primaryProvider: "anthropic",
-        fallbackProviders: ["openai", "mistral", "gemini", "cohere"],
-        model: "claude-sonnet-4-20250514",  // Latest Claude Sonnet 4
-        specializedFor: ["Code generation", "Software development", "Technical architecture"],
+      'ben-sega': {
+        agentId: 'ben-sega',
+        primaryProvider: 'anthropic',
+        fallbackProviders: ['openai', 'mistral', 'gemini', 'cohere'],
+        model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
+        specializedFor: ['Code generation', 'Software development', 'Technical architecture'],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: true,
           supportsImageGeneration: true,
           maxFileSize: 50,  // Increased for code files
-          supportedFileTypes: ["image/jpeg", "image/png", "application/pdf", "text/plain", "application/json", "text/javascript", "text/typescript"]
+          supportedFileTypes: ['image/jpeg', 'image/png', 'application/pdf', 'text/plain', 'application/json', 'text/javascript', 'text/typescript'],
         },
         formatting: {
           useMarkdown: true,
-          codeStyle: "syntax-highlighted",
-          headingStyle: "markdown",
-          listStyle: "markdown"
-        }
+          codeStyle: 'syntax-highlighted',
+          headingStyle: 'markdown',
+          listStyle: 'markdown',
+        },
       },
-      "einstein": {
-        agentId: "einstein",
-        primaryProvider: "anthropic",
-        fallbackProviders: ["gemini", "openai", "mistral", "cohere"],
-        model: "claude-sonnet-4-20250514",  // Latest Claude Sonnet 4
-        specializedFor: ["Physics", "Scientific research", "Mathematical concepts"],
+      'einstein': {
+        agentId: 'einstein',
+        primaryProvider: 'anthropic',
+        fallbackProviders: ['gemini', 'openai', 'mistral', 'cohere'],
+        model: 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
+        specializedFor: ['Physics', 'Scientific research', 'Mathematical concepts'],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: true,
           supportsImageGeneration: true,
           maxFileSize: 30,  // Increased for research documents
-          supportedFileTypes: ["image/jpeg", "image/png", "application/pdf", "text/plain", "application/json"]
+          supportedFileTypes: ['image/jpeg', 'image/png', 'application/pdf', 'text/plain', 'application/json'],
         },
         formatting: {
           useMarkdown: true,
-          codeStyle: "syntax-highlighted",
-          headingStyle: "markdown",
-          listStyle: "markdown"
-        }
+          codeStyle: 'syntax-highlighted',
+          headingStyle: 'markdown',
+          listStyle: 'markdown',
+        },
       },
-      "comedy-king": {
-        agentId: "comedy-king",
-        primaryProvider: "mistral",
-        fallbackProviders: ["openai", "anthropic", "gemini", "cohere"],
-        model: "mistral-large-2411",  // Latest Mistral Large 2
-        specializedFor: ["Humor generation", "Entertainment", "Creative comedy"],
+      'comedy-king': {
+        agentId: 'comedy-king',
+        primaryProvider: 'mistral',
+        fallbackProviders: ['openai', 'anthropic', 'gemini', 'cohere'],
+        model: 'mistral-large-2411',  // Latest Mistral Large 2
+        specializedFor: ['Humor generation', 'Entertainment', 'Creative comedy'],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: false,
           supportsImageGeneration: true,
           maxFileSize: 25,  // Increased file size
-          supportedFileTypes: ["image/jpeg", "image/png", "image/gif", "application/pdf", "text/plain"]
+          supportedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain'],
         },
         formatting: {
           useMarkdown: true,
-          codeStyle: "basic",
-          headingStyle: "markdown",
-          listStyle: "markdown"
-        }
+          codeStyle: 'basic',
+          headingStyle: 'markdown',
+          listStyle: 'markdown',
+        },
       },
-      "travel-buddy": {
-        agentId: "travel-buddy",
-        primaryProvider: "gemini",
-        fallbackProviders: ["mistral", "anthropic", "openai", "cohere"],
-        model: "gemini-2.0-flash",  // Latest Gemini 2.0
-        specializedFor: ["Travel planning", "Destination information", "Cultural insights"],
+      'travel-buddy': {
+        agentId: 'travel-buddy',
+        primaryProvider: 'gemini',
+        fallbackProviders: ['mistral', 'anthropic', 'openai', 'cohere'],
+        model: 'gemini-2.0-flash',  // Latest Gemini 2.0
+        specializedFor: ['Travel planning', 'Destination information', 'Cultural insights'],
         capabilities: {
           supportsVision: true,
           supportsFileUpload: true,
           supportsCodeGeneration: false,
           supportsImageGeneration: true,
           maxFileSize: 30,  // Increased for travel documents
-          supportedFileTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf", "text/plain"]
+          supportedFileTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain'],
         },
         formatting: {
           useMarkdown: true,
-          codeStyle: "basic",
-          headingStyle: "markdown",
-          listStyle: "markdown"
-        }
-      }
+          codeStyle: 'basic',
+          headingStyle: 'markdown',
+          listStyle: 'markdown',
+        },
+      },
     };
     return configs[agentId] || null;
   }
@@ -128,16 +128,16 @@ class EnhancedAIProviderService {
    */
   async processFileUpload(file) {
     try {
-      if (file.type.startsWith("image/")) {
+      if (file.type.startsWith('image/')) {
         return await this.processImageFile(file);
-      } else if (file.type === "application/pdf") {
+      } else if (file.type === 'application/pdf') {
         return await this.processPDFFile(file);
-      } else if (file.type.startsWith("text/")) {
+      } else if (file.type.startsWith('text/')) {
         return await this.processTextFile(file);
       }
       return file;
     } catch (error) {
-      console.error("File processing error:", error);
+      console.error('File processing error:', error);
       return file;
     }
   }
@@ -147,66 +147,66 @@ class EnhancedAIProviderService {
   async processImageFile(file) {
     try {
       if (!this.openai) {
-        throw new Error("OpenAI not configured");
+        throw new Error('OpenAI not configured');
       }
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4o",
+        model: 'gpt-4o',
         messages: [
           {
-            role: "user",
+            role: 'user',
             content: [
               {
-                type: "text",
-                text: "Analyze this image and describe what you see. Extract any text if present. Identify objects, people, scenes, and any relevant details."
+                type: 'text',
+                text: 'Analyze this image and describe what you see. Extract any text if present. Identify objects, people, scenes, and any relevant details.',
               },
               {
-                type: "image_url",
+                type: 'image_url',
                 image_url: {
-                  url: file.data
-                }
-              }
-            ]
-          }
+                  url: file.data,
+                },
+              },
+            ],
+          },
         ],
-        max_tokens: 1e3
+        max_tokens: 1e3,
       });
-      const analysis = response.choices[0]?.message?.content || "";
-      let extractedText = "";
-      if (analysis.toLowerCase().includes("text") || analysis.toLowerCase().includes("writing")) {
+      const analysis = response.choices[0]?.message?.content || '';
+      let extractedText = '';
+      if (analysis.toLowerCase().includes('text') || analysis.toLowerCase().includes('writing')) {
         const textResponse = await this.openai.chat.completions.create({
-          model: "gpt-4o",
+          model: 'gpt-4o',
           messages: [
             {
-              role: "user",
+              role: 'user',
               content: [
                 {
-                  type: "text",
-                  text: "Extract all visible text from this image. Return only the text content, nothing else."
+                  type: 'text',
+                  text: 'Extract all visible text from this image. Return only the text content, nothing else.',
                 },
                 {
-                  type: "image_url",
+                  type: 'image_url',
                   image_url: {
-                    url: file.data
-                  }
-                }
-              ]
-            }
+                    url: file.data,
+                  },
+                },
+              ],
+            },
           ],
-          max_tokens: 500
+          max_tokens: 500,
         });
-        extractedText = textResponse.choices[0]?.message?.content || "";
+        extractedText = textResponse.choices[0]?.message?.content || '';
       }
       return {
         ...file,
         extractedText: extractedText || analysis,
         analysis: {
-          type: "image",
+          type: 'image',
           detectedObjects: this.extractObjects(analysis),
-          ocrConfidence: extractedText ? 0.9 : 0.5
-        }
+          ocrConfidence: extractedText ? 0.9 : 0.5,
+        },
       };
     } catch (error) {
-      console.error("Image processing error:", error);
+      console.error('Image processing error:', error);
       return file;
     }
   }
@@ -220,9 +220,9 @@ class EnhancedAIProviderService {
 
 This is a simulated PDF text extraction. In production, this would use a PDF parsing library to extract actual text content from the uploaded PDF file.`,
       analysis: {
-        type: "pdf",
-        pageCount: 1
-      }
+        type: 'pdf',
+        pageCount: 1,
+      },
     };
   }
   /**
@@ -230,17 +230,17 @@ This is a simulated PDF text extraction. In production, this would use a PDF par
    */
   async processTextFile(file) {
     try {
-      const base64Data = file.data.split(",")[1] || file.data;
-      const textContent = Buffer.from(base64Data, "base64").toString("utf-8");
+      const base64Data = file.data.split(',')[1] || file.data;
+      const textContent = Buffer.from(base64Data, 'base64').toString('utf-8');
       return {
         ...file,
         extractedText: textContent,
         analysis: {
-          type: "document"
-        }
+          type: 'document',
+        },
       };
     } catch (error) {
-      console.error("Text file processing error:", error);
+      console.error('Text file processing error:', error);
       return file;
     }
   }
@@ -249,30 +249,30 @@ This is a simulated PDF text extraction. In production, this would use a PDF par
    */
   extractObjects(analysis) {
     const commonObjects = [
-      "person",
-      "people",
-      "man",
-      "woman",
-      "child",
-      "face",
-      "building",
-      "car",
-      "tree",
-      "dog",
-      "cat",
-      "text",
-      "sign",
-      "book",
-      "computer",
-      "phone",
-      "table",
-      "chair",
-      "food",
-      "bottle",
-      "document"
+      'person',
+      'people',
+      'man',
+      'woman',
+      'child',
+      'face',
+      'building',
+      'car',
+      'tree',
+      'dog',
+      'cat',
+      'text',
+      'sign',
+      'book',
+      'computer',
+      'phone',
+      'table',
+      'chair',
+      'food',
+      'bottle',
+      'document',
     ];
     return commonObjects.filter(
-      (obj) => analysis.toLowerCase().includes(obj)
+      (obj) => analysis.toLowerCase().includes(obj),
     );
   }
   /**
@@ -287,8 +287,8 @@ This is a simulated PDF text extraction. In production, this would use a PDF par
           hasHeadings: false,
           hasLists: false,
           hasImages: false,
-          hasLinks: false
-        }
+          hasLinks: false,
+        },
       };
     }
     let formatted = content;
@@ -297,10 +297,10 @@ This is a simulated PDF text extraction. In production, this would use a PDF par
       hasHeadings: false,
       hasLists: false,
       hasImages: false,
-      hasLinks: false
+      hasLinks: false,
     };
-    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "**$1**");
-    formatted = formatted.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "*$1*");
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '**$1**');
+    formatted = formatted.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '*$1*');
     formatted = formatted.replace(/^\d+\.\s+(.+)$/gm, (match, content2) => {
       formatting.hasLists = true;
       return `1. ${content2}`;
@@ -312,10 +312,10 @@ This is a simulated PDF text extraction. In production, this would use a PDF par
     if (config.capabilities.supportsCodeGeneration) {
       formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
         formatting.hasCodeBlocks = true;
-        return `\`\`\`${lang || "javascript"}
+        return `\`\`\`${lang || 'javascript'}
 ${code.trim()}\`\`\``;
       });
-      formatted = formatted.replace(/`([^`]+)`/g, "`$1`");
+      formatted = formatted.replace(/`([^`]+)`/g, '`$1`');
     }
     formatted = formatted.replace(/^#+\s+(.+)$/gm, (match) => {
       formatting.hasHeadings = true;
@@ -331,7 +331,7 @@ ${code.trim()}\`\`\``;
    * Generate enhanced system prompt with formatting instructions
    */
   generateSystemPrompt(config, hasFiles = false) {
-    let prompt = `You are ${config.agentId}, specialized in: ${config.specializedFor.join(", ")}.
+    let prompt = `You are ${config.agentId}, specialized in: ${config.specializedFor.join(', ')}.
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Always use proper Markdown formatting
@@ -374,7 +374,7 @@ CRITICAL FORMATTING REQUIREMENTS:
   /**
    * Main enhanced chat function
    */
-  async enhancedChat(agentId, message, files = [], options = {}) {
+  async enhancedChat(agentId, message, files = [], _options = {}) {
     const startTime = Date.now();
     try {
       const config = this.getEnhancedAgentConfig(agentId);
@@ -382,24 +382,24 @@ CRITICAL FORMATTING REQUIREMENTS:
         throw new Error(`No configuration found for agent: ${agentId}`);
       }
       const processedFiles = await Promise.all(
-        files.map((file) => this.processFileUpload(file))
+        files.map((file) => this.processFileUpload(file)),
       );
       let contextualMessage = message;
       if (processedFiles.length > 0) {
-        contextualMessage += "\n\nUploaded files:\n";
+        contextualMessage += '\n\nUploaded files:\n';
         processedFiles.forEach((file, index) => {
           contextualMessage += `${index + 1}. ${file.name} (${file.type})`;
           if (file.extractedText) {
             contextualMessage += `
 Content: ${file.extractedText.substring(0, 500)}`;
           }
-          contextualMessage += "\n\n";
+          contextualMessage += '\n\n';
         });
       }
       const response = await this.generateFormattedResponse(
         config,
         contextualMessage,
-        processedFiles
+        processedFiles,
       );
       const { formattedContent, formatting } = this.formatResponse(response, config);
       const processingTime = Date.now() - startTime;
@@ -408,9 +408,9 @@ Content: ${file.extractedText.substring(0, 500)}`;
         formattedContent,
         formatting,
         attachments: processedFiles.length > 0 ? [{
-          type: "document",
-          url: "",
-          description: `Processed ${processedFiles.length} file(s)`
+          type: 'document',
+          url: '',
+          description: `Processed ${processedFiles.length} file(s)`,
         }] : void 0,
         metadata: {
           provider: config.primaryProvider,
@@ -418,11 +418,11 @@ Content: ${file.extractedText.substring(0, 500)}`;
           tokensUsed: Math.floor(response.length / 4),
           // Rough estimate
           processingTime,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        }
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        },
       };
     } catch (error) {
-      console.error("Enhanced chat error:", error);
+      console.error('Enhanced chat error:', error);
       throw error;
     }
   }
@@ -431,8 +431,8 @@ Content: ${file.extractedText.substring(0, 500)}`;
    */
   async generateFormattedResponse(config, message, files) {
     const hasFiles = files.length > 0;
-    const hasImages = files.some((f) => f.type.startsWith("image/"));
-    const hasCode = message.toLowerCase().includes("code") || message.toLowerCase().includes("program");
+    const hasImages = files.some((f) => f.type.startsWith('image/'));
+    const hasCode = message.toLowerCase().includes('code') || message.toLowerCase().includes('program');
     let response = `## ${config.agentId.charAt(0).toUpperCase() + config.agentId.slice(1)} Response
 
 `;
@@ -450,11 +450,11 @@ I've processed **${files.length}** file(s):
 `;
         }
         if (file.analysis?.detectedObjects?.length) {
-          response += `   - Detected: ${file.analysis.detectedObjects.join(", ")}
+          response += `   - Detected: ${file.analysis.detectedObjects.join(', ')}
 `;
         }
       });
-      response += "\n";
+      response += '\n';
     }
     if (hasImages) {
       response += `### Visual Analysis \u{1F5BC}\uFE0F
@@ -462,31 +462,31 @@ I've processed **${files.length}** file(s):
 Based on the uploaded image(s), I can see:
 
 `;
-      files.filter((f) => f.type.startsWith("image/")).forEach((file) => {
-        response += `- **${file.name}**: ${file.extractedText || "Image processed successfully"}
+      files.filter((f) => f.type.startsWith('image/')).forEach((file) => {
+        response += `- **${file.name}**: ${file.extractedText || 'Image processed successfully'}
 `;
       });
-      response += "\n";
+      response += '\n';
     }
-    if (config.agentId === "ben-sega" && hasCode) {
+    if (config.agentId === 'ben-sega' && hasCode) {
       response += `### Code Analysis \u{1F4BB}
 
 `;
-      response += "```javascript\n";
-      response += "// Example enhanced code with proper formatting\n";
-      response += "function processUserRequest(data) {\n";
-      response += "  // Validate input data\n";
+      response += '```javascript\n';
+      response += '// Example enhanced code with proper formatting\n';
+      response += 'function processUserRequest(data) {\n';
+      response += '  // Validate input data\n';
       response += '  if (!data || typeof data !== "object") {\n';
       response += '    throw new Error("Invalid input data");\n';
-      response += "  }\n\n";
-      response += "  // Process the request\n";
-      response += "  return {\n";
-      response += "    success: true,\n";
-      response += "    result: data,\n";
-      response += "    timestamp: new Date().toISOString()\n";
-      response += "  };\n";
-      response += "}\n";
-      response += "```\n\n";
+      response += '  }\n\n';
+      response += '  // Process the request\n';
+      response += '  return {\n';
+      response += '    success: true,\n';
+      response += '    result: data,\n';
+      response += '    timestamp: new Date().toISOString()\n';
+      response += '  };\n';
+      response += '}\n';
+      response += '```\n\n';
     }
     response += `### Response
 
@@ -527,8 +527,8 @@ ${message}
   }
 }
 const enhancedAIService = new EnhancedAIProviderService();
-var enhanced_ai_provider_default = enhancedAIService;
+const enhanced_ai_provider_default = enhancedAIService;
 export {
   enhanced_ai_provider_default as default,
-  enhancedAIService
+  enhancedAIService,
 };

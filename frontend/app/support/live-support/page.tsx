@@ -159,9 +159,9 @@ export default function LiveSupportPage() {
     } else {
       setShowLoginPrompt(true);
     }
-  }, [auth.state.isAuthenticated]);
+  }, [auth.state.isAuthenticated, auth.state.user, fetchUserProfile, initializeChat]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const userId = auth.state.user?.id;
       if (!userId) {
@@ -237,9 +237,9 @@ export default function LiveSupportPage() {
         supportTickets: 0,
       });
     }
-  };
+  }, [auth.state.user?.id, auth.state.user?.name, auth.state.user?.email, auth.state.user?.createdAt, setUserProfile]);
 
-  const initializeChat = () => {
+  const initializeChat = useCallback(() => {
     const userName = auth.state.user?.name || 'lovely';
     const welcomeMessage: Message = {
       id: '0',
@@ -248,7 +248,7 @@ export default function LiveSupportPage() {
       timestamp: new Date(),
     };
     setMessages([welcomeMessage]);
-  };
+  }, [auth.state.user?.name, setMessages]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -94,7 +94,7 @@ router.get('/transactions/user/:userId', async (req, res) => {
 
     const transactions = await Transaction.find(filter)
       .select(
-        'transactionId type amount currency status description invoiceUrl receiptUrl createdAt'
+        'transactionId type amount currency status description invoiceUrl receiptUrl createdAt',
       )
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -166,7 +166,7 @@ router.patch('/transactions/:transactionId/status', async (req, res) => {
     const transaction = await updateTransactionStatus(
       transactionId,
       status,
-      additionalData
+      additionalData,
     );
 
     if (!transaction) {

@@ -9,6 +9,7 @@ import {
 import AgentDetailsModal from './AgentDetailsModal';
 import type { AgentConfig } from '@/app/agents/types';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
+import Image from 'next/image';
 
 interface AgentCardProps {
   agent: AgentConfig;
@@ -52,9 +53,10 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
         onClick={handleCardClick}
       >
         <div className={`agent-avatar bg-gradient-to-r ${agent.color}`}>
-          <img
+          <Image
             src={agent.avatarUrl}
             alt={`${agent.name} avatar`}
+            fill
             className="w-12 h-12 rounded-full object-cover"
           />
         </div>

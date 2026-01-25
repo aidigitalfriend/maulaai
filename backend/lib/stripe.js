@@ -269,7 +269,7 @@ function getAgentSubscriptionPlan(agentId, plan) {
   const planData = agentProducts[plan];
   if (!planData.productId || !planData.priceId) {
     throw new Error(
-      `Product/price IDs not configured for agent ${agentId} plan ${plan}`
+      `Product/price IDs not configured for agent ${agentId} plan ${plan}`,
     );
   }
   const intervals = { daily: 'day', weekly: 'week', monthly: 'month' };
@@ -316,7 +316,7 @@ async function createCheckoutSession(params) {
   const priceId = subscriptionPlan.priceId;
   if (!priceId) {
     throw new Error(
-      `Price ID not configured for agent ${agentId} plan ${plan}`
+      `Price ID not configured for agent ${agentId} plan ${plan}`,
     );
   }
   const session = await stripe.checkout.sessions.create({

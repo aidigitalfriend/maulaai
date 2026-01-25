@@ -80,7 +80,7 @@ export async function initializeLangChain() {
     if (process.env.XAI_API_KEY) {
       xai = new OpenAI({ 
         apiKey: process.env.XAI_API_KEY,
-        baseURL: 'https://api.x.ai/v1'
+        baseURL: 'https://api.x.ai/v1',
       });
       initialized.xai = true;
       console.log('[LangChain] ✅ xAI (Grok) initialized');
@@ -97,7 +97,7 @@ export async function initializeLangChain() {
     if (process.env.CEREBRAS_API_KEY) {
       cerebras = new OpenAI({
         apiKey: process.env.CEREBRAS_API_KEY,
-        baseURL: 'https://api.cerebras.ai/v1'
+        baseURL: 'https://api.cerebras.ai/v1',
       });
       initialized.cerebras = true;
       console.log('[LangChain] ✅ Cerebras initialized');
@@ -155,156 +155,156 @@ async function callLLM(messages, options = {}) {
   const selectedProvider = getBestProvider(provider);
 
   switch (selectedProvider) {
-    case 'openai': {
-      const response = await openai.chat.completions.create({
-        model: model || 'gpt-4-turbo',
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature,
-        max_tokens: maxTokens,
-      });
-      return {
-        content: response.choices[0].message.content,
-        provider: 'openai',
-        model: model || 'gpt-4-turbo',
-      };
-    }
+  case 'openai': {
+    const response = await openai.chat.completions.create({
+      model: model || 'gpt-4-turbo',
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature,
+      max_tokens: maxTokens,
+    });
+    return {
+      content: response.choices[0].message.content,
+      provider: 'openai',
+      model: model || 'gpt-4-turbo',
+    };
+  }
 
-    case 'anthropic': {
-      const systemMsg = messages.find(m => m.role === 'system');
-      const otherMsgs = messages.filter(m => m.role !== 'system');
+  case 'anthropic': {
+    const systemMsg = messages.find(m => m.role === 'system');
+    const otherMsgs = messages.filter(m => m.role !== 'system');
       
-      const response = await anthropic.messages.create({
-        model: model || 'claude-3-5-sonnet-20241022',
-        max_tokens: maxTokens,
-        system: systemMsg?.content || '',
-        messages: otherMsgs.map(m => ({
-          role: m.role === 'assistant' ? 'assistant' : 'user',
-          content: m.content,
-        })),
-      });
-      return {
-        content: response.content[0].text,
-        provider: 'anthropic',
-        model: model || 'claude-3-5-sonnet-20241022',
-      };
-    }
+    const response = await anthropic.messages.create({
+      model: model || 'claude-3-5-sonnet-20241022',
+      max_tokens: maxTokens,
+      system: systemMsg?.content || '',
+      messages: otherMsgs.map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content,
+      })),
+    });
+    return {
+      content: response.content[0].text,
+      provider: 'anthropic',
+      model: model || 'claude-3-5-sonnet-20241022',
+    };
+  }
 
-    case 'gemini': {
-      const genModel = gemini.getGenerativeModel({ model: model || 'gemini-2.0-flash' });
-      const systemMsg = messages.find(m => m.role === 'system')?.content || '';
-      const userMsg = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
-      const fullPrompt = systemMsg ? `${systemMsg}\n\n${userMsg}` : userMsg;
+  case 'gemini': {
+    const genModel = gemini.getGenerativeModel({ model: model || 'gemini-2.0-flash' });
+    const systemMsg = messages.find(m => m.role === 'system')?.content || '';
+    const userMsg = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
+    const fullPrompt = systemMsg ? `${systemMsg}\n\n${userMsg}` : userMsg;
       
-      const result = await genModel.generateContent(fullPrompt);
-      return {
-        content: result.response.text(),
-        provider: 'gemini',
-        model: model || 'gemini-2.0-flash',
-      };
-    }
+    const result = await genModel.generateContent(fullPrompt);
+    return {
+      content: result.response.text(),
+      provider: 'gemini',
+      model: model || 'gemini-2.0-flash',
+    };
+  }
 
-    case 'groq': {
-      const response = await groq.chat.completions.create({
-        model: model || 'llama-3.3-70b-versatile',
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature,
-        max_tokens: maxTokens,
-      });
-      return {
-        content: response.choices[0].message.content,
-        provider: 'groq',
-        model: model || 'llama-3.3-70b-versatile',
-      };
-    }
+  case 'groq': {
+    const response = await groq.chat.completions.create({
+      model: model || 'llama-3.3-70b-versatile',
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature,
+      max_tokens: maxTokens,
+    });
+    return {
+      content: response.choices[0].message.content,
+      provider: 'groq',
+      model: model || 'llama-3.3-70b-versatile',
+    };
+  }
 
-    case 'xai': {
-      const response = await xai.chat.completions.create({
-        model: model || 'grok-beta',
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature,
-        max_tokens: maxTokens,
-      });
-      return {
-        content: response.choices[0].message.content,
-        provider: 'xai',
-        model: model || 'grok-beta',
-      };
-    }
+  case 'xai': {
+    const response = await xai.chat.completions.create({
+      model: model || 'grok-beta',
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature,
+      max_tokens: maxTokens,
+    });
+    return {
+      content: response.choices[0].message.content,
+      provider: 'xai',
+      model: model || 'grok-beta',
+    };
+  }
 
-    case 'cerebras': {
-      const response = await cerebras.chat.completions.create({
-        model: model || 'llama3.1-70b',
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature,
-        max_tokens: maxTokens,
-      });
-      return {
-        content: response.choices[0].message.content,
-        provider: 'cerebras',
-        model: model || 'llama3.1-70b',
-      };
-    }
+  case 'cerebras': {
+    const response = await cerebras.chat.completions.create({
+      model: model || 'llama3.1-70b',
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature,
+      max_tokens: maxTokens,
+    });
+    return {
+      content: response.choices[0].message.content,
+      provider: 'cerebras',
+      model: model || 'llama3.1-70b',
+    };
+  }
 
-    case 'mistral': {
-      // Mistral uses OpenAI-compatible API
-      const mistralClient = new OpenAI({
-        apiKey: mistral.apiKey,
-        baseURL: 'https://api.mistral.ai/v1'
-      });
-      const response = await mistralClient.chat.completions.create({
-        model: model || 'mistral-large-latest',
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature,
-        max_tokens: maxTokens,
-      });
-      return {
-        content: response.choices[0].message.content,
-        provider: 'mistral',
-        model: model || 'mistral-large-latest',
-      };
-    }
+  case 'mistral': {
+    // Mistral uses OpenAI-compatible API
+    const mistralClient = new OpenAI({
+      apiKey: mistral.apiKey,
+      baseURL: 'https://api.mistral.ai/v1',
+    });
+    const response = await mistralClient.chat.completions.create({
+      model: model || 'mistral-large-latest',
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      })),
+      temperature,
+      max_tokens: maxTokens,
+    });
+    return {
+      content: response.choices[0].message.content,
+      provider: 'mistral',
+      model: model || 'mistral-large-latest',
+    };
+  }
 
-    case 'cohere': {
-      // Cohere Command API
-      const cohereResponse = await fetch('https://api.cohere.ai/v1/chat', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${cohere.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: model || 'command-r-plus',
-          message: messages.filter(m => m.role === 'user').map(m => m.content).join('\n'),
-          preamble: messages.find(m => m.role === 'system')?.content || '',
-          temperature,
-          max_tokens: maxTokens,
-        }),
-      });
-      const cohereData = await cohereResponse.json();
-      return {
-        content: cohereData.text,
-        provider: 'cohere',
+  case 'cohere': {
+    // Cohere Command API
+    const cohereResponse = await fetch('https://api.cohere.ai/v1/chat', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${cohere.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         model: model || 'command-r-plus',
-      };
-    }
+        message: messages.filter(m => m.role === 'user').map(m => m.content).join('\n'),
+        preamble: messages.find(m => m.role === 'system')?.content || '',
+        temperature,
+        max_tokens: maxTokens,
+      }),
+    });
+    const cohereData = await cohereResponse.json();
+    return {
+      content: cohereData.text,
+      provider: 'cohere',
+      model: model || 'command-r-plus',
+    };
+  }
 
-    default:
-      throw new Error(`Unknown provider: ${selectedProvider}`);
+  default:
+    throw new Error(`Unknown provider: ${selectedProvider}`);
   }
 }
 

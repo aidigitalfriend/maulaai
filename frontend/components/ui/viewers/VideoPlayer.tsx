@@ -13,6 +13,7 @@ import {
   BackwardIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid';
+import Image from 'next/image';
 
 interface VideoPlayerProps {
   url: string;
@@ -61,6 +62,7 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const playerRef = useRef<ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [playing, setPlaying] = useState(autoPlay);
   const [muted, setMuted] = useState(initialMuted);
@@ -72,15 +74,14 @@ export default function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  let controlsTimeout: NodeJS.Timeout;
-
   // Auto-hide controls
   const handleMouseMove = useCallback(() => {
     setShowControls(true);
-    clearTimeout(controlsTimeout);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
     if (playing) {
-      controlsTimeout = setTimeout(() => setShowControls(false), 3000);
+      controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
     }
   }, [playing]);
 
@@ -410,10 +411,11 @@ export function VideoThumbnail({
       onClick={onClick}
     >
       {poster ? (
-        <img 
-          src={poster} 
-          alt={title || 'Video thumbnail'} 
-          className="w-full aspect-video object-cover"
+        <Image
+          src={poster}
+          alt={title || 'Video thumbnail'}
+          fill
+          className="object-cover"
         />
       ) : (
         <div className="w-full aspect-video bg-gray-800 flex items-center justify-center">

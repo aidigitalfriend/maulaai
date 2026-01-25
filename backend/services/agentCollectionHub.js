@@ -33,7 +33,7 @@ class AgentCollectionHub {
           agentId,
           messageCount: chatSessionData.messages?.length || 0,
           totalTokens: chatSessionData.totalTokens || 0,
-          lastMessageAt: new Date()
+          lastMessageAt: new Date(),
         },
         create: {
           sessionId: chatSessionData.sessionId,
@@ -42,8 +42,8 @@ class AgentCollectionHub {
           name: chatSessionData.name || 'Chat Session',
           messageCount: chatSessionData.messages?.length || 0,
           totalTokens: chatSessionData.totalTokens || 0,
-          context: chatSessionData.context || {}
-        }
+          context: chatSessionData.context || {},
+        },
       });
       
       console.log(`✅ Synced chat session for agent ${agentId}:`, session.id);
@@ -74,10 +74,10 @@ class AgentCollectionHub {
             aiResponsePreview: interactionData.aiResponse?.substring(0, 500),
             tokensUsed: interactionData.tokens || 0,
             responseTime: interactionData.responseTime || 0,
-            ...interactionData.metadata
+            ...interactionData.metadata,
           },
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       });
 
       console.log(`✅ Synced interaction for agent ${agentId}:`, event.id);
@@ -109,10 +109,10 @@ class AgentCollectionHub {
             price: subscriptionData.price,
             subscriptionId: subscriptionData.subscriptionId,
             stripeId: subscriptionData.stripeSubscriptionId,
-            ...subscriptionData.metadata
+            ...subscriptionData.metadata,
           },
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       });
 
       console.log(`✅ Synced subscription event for agent ${agentId}:`, event.id);
@@ -136,30 +136,30 @@ class AgentCollectionHub {
       const [
         chatSessions,
         subscriptions,
-        interactions
+        interactions,
       ] = await Promise.all([
         // Total chat sessions for this agent
         prisma.chatSession.count({
           where: {
             agentId,
-            ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {})
-          }
+            ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {}),
+          },
         }),
         // Active subscriptions for this agent
         prisma.agentSubscription.count({
           where: {
             agentId,
-            status: 'active'
-          }
+            status: 'active',
+          },
         }),
         // Interactions (from analytics events)
         prisma.analyticsEvent.count({
           where: {
             eventName: 'agent_interaction',
             eventData: { path: ['agentId'], equals: agentId },
-            ...(Object.keys(dateFilter).length ? { timestamp: dateFilter } : {})
-          }
-        })
+            ...(Object.keys(dateFilter).length ? { timestamp: dateFilter } : {}),
+          },
+        }),
       ]);
 
       return {
@@ -169,8 +169,8 @@ class AgentCollectionHub {
         totalInteractions: interactions,
         period: {
           start: startDate || 'all-time',
-          end: endDate || 'now'
-        }
+          end: endDate || 'now',
+        },
       };
 
     } catch (error) {
@@ -194,8 +194,8 @@ class AgentCollectionHub {
           userId: true,
           name: true,
           messageCount: true,
-          updatedAt: true
-        }
+          updatedAt: true,
+        },
       });
 
       return recentSessions;

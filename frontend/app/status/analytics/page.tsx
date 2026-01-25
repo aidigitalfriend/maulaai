@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { BarChart3, TrendingUp, Users, Zap, Activity, Clock, ArrowUp, ArrowDown } from 'lucide-react'
 import Link from 'next/link'
 
@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h')
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       const response = await fetch(`/api/status/analytics?timeRange=${timeRange}`)
       const data = await response.json()
@@ -57,13 +57,13 @@ export default function AnalyticsPage() {
       console.error('Error fetching analytics:', error)
       setIsLoading(false)
     }
-  }
+  }, [timeRange, setData, setIsLoading, setLastUpdate])
 
   useEffect(() => {
     fetchAnalytics()
     const interval = setInterval(fetchAnalytics, 30000)
     return () => clearInterval(interval)
-  }, [timeRange])
+  }, [timeRange, fetchAnalytics])
 
   if (isLoading || !data) {
     return (

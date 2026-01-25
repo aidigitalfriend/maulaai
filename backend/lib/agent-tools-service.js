@@ -13,7 +13,6 @@
  */
 
 import { JSDOM } from 'jsdom';
-import fs from 'fs/promises';
 import path from 'path';
 import AgentFile from '../models/AgentFile.js';
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
@@ -671,7 +670,7 @@ export async function webSearch(query, numResults = 5) {
     // DuckDuckGo Instant Answer API
     const encodedQuery = encodeURIComponent(query);
     const response = await fetch(
-      `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`
+      `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`,
     );
 
     if (!response.ok) {
@@ -757,7 +756,6 @@ export async function fetchUrl(url) {
       throw new Error(`Failed to fetch URL: ${response.status}`);
     }
 
-    const contentType = response.headers.get('content-type') || '';
     const html = await response.text();
 
     // Parse HTML and extract content
@@ -768,7 +766,7 @@ export async function fetchUrl(url) {
     const unwantedSelectors = [
       'script', 'style', 'nav', 'header', 'footer', 'aside',
       '.advertisement', '.ads', '.sidebar', '.navigation',
-      '[role="navigation"]', '[role="banner"]', '[role="complementary"]'
+      '[role="navigation"]', '[role="banner"]', '[role="complementary"]',
     ];
     unwantedSelectors.forEach(selector => {
       document.querySelectorAll(selector).forEach(el => el.remove());
@@ -784,7 +782,7 @@ export async function fetchUrl(url) {
     let mainContent = '';
     const contentSelectors = [
       'article', 'main', '[role="main"]', '.content', '.post-content',
-      '.article-body', '.entry-content', '#content', '.main-content'
+      '.article-body', '.entry-content', '#content', '.main-content',
     ];
 
     for (const selector of contentSelectors) {
@@ -853,7 +851,7 @@ export function getCurrentTime(timezone = 'UTC') {
       iso: now.toISOString(),
       unix: Math.floor(now.getTime() / 1000),
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: `Invalid timezone: ${timezone}`,
@@ -897,6 +895,7 @@ export function calculate(expression) {
       .replace(/e(?![xp])/gi, 'Math.E');
 
     // Evaluate using Function constructor (safer than eval)
+    // eslint-disable-next-line no-new-func
     const result = new Function(`"use strict"; return (${prepared})`)();
 
     if (typeof result !== 'number' || !isFinite(result)) {
@@ -982,7 +981,7 @@ export async function createFile(filename, content, folder = '', userId = 'defau
     const existingFile = await AgentFile.findOne({ 
       userId, 
       path: filePath, 
-      isDeleted: false 
+      isDeleted: false, 
     });
     
     if (existingFile) {
@@ -1078,9 +1077,9 @@ export async function readFile(filename, userId = 'default') {
       userId, 
       $or: [
         { path: searchPath },
-        { filename: filename }
+        { filename },
       ],
-      isDeleted: false 
+      isDeleted: false, 
     });
     
     if (!file) {
@@ -1150,9 +1149,9 @@ export async function modifyFile(filename, content, mode = 'replace', userId = '
       userId, 
       $or: [
         { path: searchPath },
-        { filename: filename }
+        { filename },
       ],
-      isDeleted: false 
+      isDeleted: false, 
     });
     
     if (!file) {
@@ -1222,14 +1221,14 @@ export async function listFiles(folder = '', userId = 'default') {
     const files = await AgentFile.find({ 
       userId, 
       folder: sanitizedFolder,
-      isDeleted: false 
+      isDeleted: false, 
     }).sort({ filename: 1 });
     
     // Get unique subfolders
     const allFiles = await AgentFile.find({
       userId,
       isDeleted: false,
-      folder: { $regex: `^${sanitizedFolder}`, $ne: sanitizedFolder }
+      folder: { $regex: `^${sanitizedFolder}`, $ne: sanitizedFolder },
     });
     
     const subfolders = new Set();
@@ -1286,9 +1285,9 @@ export async function deleteFile(filename, userId = 'default') {
       userId, 
       $or: [
         { path: searchPath },
-        { filename: filename }
+        { filename },
       ],
-      isDeleted: false 
+      isDeleted: false, 
     });
     
     if (!file) {
@@ -1383,7 +1382,7 @@ export async function generateImage(prompt, style = 'realistic', width = 1024, h
           downloadUrl: saveResult.downloadUrl,
           s3Url: saveResult.s3Url,
           experimentId: data.experimentId,
-          message: `Image generated and saved successfully! You can view or download it.`,
+          message: 'Image generated and saved successfully! You can view or download it.',
         };
       } else {
         // Still return the image even if save failed
@@ -1396,7 +1395,7 @@ export async function generateImage(prompt, style = 'realistic', width = 1024, h
           image: data.image,
           experimentId: data.experimentId,
           warning: 'Image generated but could not be saved to workspace',
-          message: `Image generated successfully! (Note: Could not save to workspace)`,
+          message: 'Image generated successfully! (Note: Could not save to workspace)',
         };
       }
     }
@@ -1444,7 +1443,7 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
         // Using animate-diff or similar video model
         version: 'a4a8bafd6089e1716b06057c42b19378250d008b80fe87caa5cd36d40c1eda90', // AnimateDiff-Lightning
         input: {
-          prompt: prompt,
+          prompt,
           num_frames: Math.min(duration * 8, 32), // ~8 fps, max 32 frames
           guidance_scale: 7.5,
         },
@@ -1504,7 +1503,7 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
             success: true,
             prompt,
             duration: `~${duration}s`,
-            videoUrl: videoUrl,
+            videoUrl,
             filename: saveResult.filename,
             path: saveResult.path,
             downloadUrl: saveResult.downloadUrl,
@@ -1516,7 +1515,7 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
           return {
             success: true,
             prompt,
-            videoUrl: videoUrl,
+            videoUrl,
             warning: 'Video generated but could not be saved to workspace',
             message: 'Video generated! Click to view. (Note: Could not save to workspace)',
           };
@@ -1527,7 +1526,7 @@ export async function generateVideo(prompt, duration = 4, userId = 'default') {
         return {
           success: true,
           prompt,
-          videoUrl: videoUrl,
+          videoUrl,
           message: 'Video generated! Click to view.',
         };
       }
@@ -1577,25 +1576,25 @@ export async function convertImage(imageUrl, format = 'png', quality = 90, userI
     
     if (sharp) {
       // Direct conversion with sharp
-      let processor = sharp(imageBuffer);
+      const processor = sharp(imageBuffer);
       
       switch (format.toLowerCase()) {
-        case 'jpeg':
-        case 'jpg':
-          outputBuffer = await processor.jpeg({ quality }).toBuffer();
-          mimeType = 'image/jpeg';
-          format = 'jpeg';
-          break;
-        case 'webp':
-          outputBuffer = await processor.webp({ quality }).toBuffer();
-          mimeType = 'image/webp';
-          break;
-        case 'png':
-        default:
-          outputBuffer = await processor.png().toBuffer();
-          mimeType = 'image/png';
-          format = 'png';
-          break;
+      case 'jpeg':
+      case 'jpg':
+        outputBuffer = await processor.jpeg({ quality }).toBuffer();
+        mimeType = 'image/jpeg';
+        format = 'jpeg';
+        break;
+      case 'webp':
+        outputBuffer = await processor.webp({ quality }).toBuffer();
+        mimeType = 'image/webp';
+        break;
+      case 'png':
+      default:
+        outputBuffer = await processor.png().toBuffer();
+        mimeType = 'image/png';
+        format = 'png';
+        break;
       }
     } else {
       // Fallback: just use the original buffer if sharp is not available
@@ -1650,9 +1649,6 @@ export async function convertImage(imageUrl, format = 'png', quality = 90, userI
 export async function createFolder(folderPath, userId = 'default') {
   try {
     const sanitizedFolder = sanitizePath(folderPath);
-    
-    // Check if folder already exists (any file with this folder)
-    const existingFiles = await AgentFile.findOne({ userId, folder: sanitizedFolder, isDeleted: false });
     
     // Create a placeholder file to represent the folder
     const placeholderFile = new AgentFile({
@@ -1782,7 +1778,7 @@ export async function renameFile(oldName, newName, userId = 'default') {
     const file = await AgentFile.findOne({ 
       userId, 
       $or: [{ path: oldName }, { filename: oldName }],
-      isDeleted: false 
+      isDeleted: false, 
     });
     if (!file) return { success: false, error: `File not found: ${oldName}` };
     
@@ -2272,50 +2268,50 @@ export async function editImage(imagePath, operations = [], userId = 'default') 
       const opValue = typeof op === 'object' ? op.value : null;
       
       switch (opName.toLowerCase()) {
-        case 'brightness':
-          processor = processor.modulate({ brightness: opValue || 1.2 });
-          appliedOps.push(`brightness(${opValue || 1.2})`);
-          break;
-        case 'contrast':
-          processor = processor.linear(opValue || 1.2, -(128 * (opValue || 1.2)) + 128);
-          appliedOps.push(`contrast(${opValue || 1.2})`);
-          break;
-        case 'blur':
-          processor = processor.blur(opValue || 3);
-          appliedOps.push(`blur(${opValue || 3})`);
-          break;
-        case 'sharpen':
-          processor = processor.sharpen(opValue || 1);
-          appliedOps.push(`sharpen(${opValue || 1})`);
-          break;
-        case 'grayscale':
-        case 'greyscale':
-          processor = processor.grayscale();
-          appliedOps.push('grayscale');
-          break;
-        case 'rotate':
-          processor = processor.rotate(opValue || 90);
-          appliedOps.push(`rotate(${opValue || 90})`);
-          break;
-        case 'flip':
-          processor = processor.flip();
-          appliedOps.push('flip');
-          break;
-        case 'flop':
-          processor = processor.flop();
-          appliedOps.push('flop');
-          break;
-        case 'negate':
-        case 'invert':
-          processor = processor.negate();
-          appliedOps.push('negate');
-          break;
-        case 'tint':
-          if (opValue) processor = processor.tint(opValue);
-          appliedOps.push(`tint(${opValue})`);
-          break;
-        default:
-          console.log(`[EditImage] Unknown operation: ${opName}`);
+      case 'brightness':
+        processor = processor.modulate({ brightness: opValue || 1.2 });
+        appliedOps.push(`brightness(${opValue || 1.2})`);
+        break;
+      case 'contrast':
+        processor = processor.linear(opValue || 1.2, -(128 * (opValue || 1.2)) + 128);
+        appliedOps.push(`contrast(${opValue || 1.2})`);
+        break;
+      case 'blur':
+        processor = processor.blur(opValue || 3);
+        appliedOps.push(`blur(${opValue || 3})`);
+        break;
+      case 'sharpen':
+        processor = processor.sharpen(opValue || 1);
+        appliedOps.push(`sharpen(${opValue || 1})`);
+        break;
+      case 'grayscale':
+      case 'greyscale':
+        processor = processor.grayscale();
+        appliedOps.push('grayscale');
+        break;
+      case 'rotate':
+        processor = processor.rotate(opValue || 90);
+        appliedOps.push(`rotate(${opValue || 90})`);
+        break;
+      case 'flip':
+        processor = processor.flip();
+        appliedOps.push('flip');
+        break;
+      case 'flop':
+        processor = processor.flop();
+        appliedOps.push('flop');
+        break;
+      case 'negate':
+      case 'invert':
+        processor = processor.negate();
+        appliedOps.push('negate');
+        break;
+      case 'tint':
+        if (opValue) processor = processor.tint(opValue);
+        appliedOps.push(`tint(${opValue})`);
+        break;
+      default:
+        console.log(`[EditImage] Unknown operation: ${opName}`);
       }
     }
     
@@ -2423,7 +2419,7 @@ export async function ocrImage(imagePath, language = 'eng', userId = 'default') 
 /**
  * Analyze video
  */
-export async function analyzeVideo(videoPath, userId = 'default') {
+export async function analyzeVideo(videoPath, _userId = 'default') {
   try {
     return {
       success: true,
@@ -2438,7 +2434,7 @@ export async function analyzeVideo(videoPath, userId = 'default') {
 /**
  * Trim video
  */
-export async function trimVideo(videoPath, startTime, endTime, userId = 'default') {
+export async function trimVideo(videoPath, startTime, endTime, _userId = 'default') {
   try {
     return {
       success: true,
@@ -2455,7 +2451,7 @@ export async function trimVideo(videoPath, startTime, endTime, userId = 'default
 /**
  * Extract frames from video
  */
-export async function extractFrames(videoPath, timestamps, userId = 'default') {
+export async function extractFrames(videoPath, timestamps, _userId = 'default') {
   try {
     return {
       success: true,
@@ -2471,7 +2467,7 @@ export async function extractFrames(videoPath, timestamps, userId = 'default') {
 /**
  * Convert video format
  */
-export async function convertVideo(videoPath, format = 'mp4', userId = 'default') {
+export async function convertVideo(videoPath, format = 'mp4', _userId = 'default') {
   try {
     return {
       success: true,
@@ -2491,7 +2487,7 @@ export async function convertVideo(videoPath, format = 'mp4', userId = 'default'
 /**
  * Analyze audio
  */
-export async function analyzeAudio(audioPath, userId = 'default') {
+export async function analyzeAudio(audioPath, _userId = 'default') {
   try {
     return {
       success: true,
@@ -2506,7 +2502,7 @@ export async function analyzeAudio(audioPath, userId = 'default') {
 /**
  * Transcribe audio
  */
-export async function transcribeAudio(audioPath, language = 'en', userId = 'default') {
+export async function transcribeAudio(audioPath, language = 'en', _userId = 'default') {
   try {
     // This would use OpenAI Whisper or similar
     return {
@@ -2523,7 +2519,7 @@ export async function transcribeAudio(audioPath, language = 'en', userId = 'defa
 /**
  * Convert audio format
  */
-export async function convertAudio(audioPath, format = 'mp3', userId = 'default') {
+export async function convertAudio(audioPath, format = 'mp3', _userId = 'default') {
   try {
     return {
       success: true,
@@ -2543,7 +2539,7 @@ export async function convertAudio(audioPath, format = 'mp3', userId = 'default'
 /**
  * Analyze code using Tree-sitter for AST parsing
  */
-export async function analyzeCode(code, language = 'auto', userId = 'default') {
+export async function analyzeCode(code, language = 'auto', _userId = 'default') {
   try {
     // Detect language if auto
     let detectedLanguage = language;
@@ -2680,7 +2676,7 @@ export async function analyzeCode(code, language = 'auto', userId = 'default') {
 /**
  * Format code using Prettier
  */
-export async function formatCode(code, language, userId = 'default') {
+export async function formatCode(code, language, _userId = 'default') {
   try {
     // Try to use Prettier for formatting
     let formatted = code;
@@ -2756,7 +2752,7 @@ export async function formatCode(code, language, userId = 'default') {
 /**
  * Lint code using ESLint
  */
-export async function lintCode(code, language = 'javascript', userId = 'default') {
+export async function lintCode(code, language = 'javascript', _userId = 'default') {
   try {
     // Only lint JavaScript/TypeScript
     if (!['javascript', 'js', 'typescript', 'ts'].includes(language.toLowerCase())) {
@@ -2857,7 +2853,7 @@ export async function lintCode(code, language = 'javascript', userId = 'default'
 /**
  * Run code in sandbox
  */
-export async function runCode(code, language, userId = 'default') {
+export async function runCode(code, language, _userId = 'default') {
   try {
     // Only JavaScript can be safely executed
     if (language.toLowerCase() === 'javascript' || language.toLowerCase() === 'js') {
@@ -2895,7 +2891,7 @@ export async function runCode(code, language, userId = 'default') {
 /**
  * Create vector embeddings using OpenAI Embeddings API
  */
-export async function embedContent(content, model = 'text-embedding-3-small', userId = 'default') {
+export async function embedContent(content, model = 'text-embedding-3-small', _userId = 'default') {
   try {
     const OpenAI = (await import('openai')).default;
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -2977,7 +2973,7 @@ export async function storeInQdrant(embeddings, metadata, collectionName = 'agen
     
     // Prepare points for insertion (Qdrant requires UUID or integer IDs)
     const { randomUUID } = await import('crypto');
-    const points = embeddings.map((emb, idx) => ({
+    const points = embeddings.map((emb, _idx) => ({
       id: randomUUID(),
       vector: emb.vector,
       payload: {
@@ -3092,7 +3088,7 @@ export async function semanticSearch(query, collectionName = 'agent_memories', l
         const memoriesStr = JSON.stringify(r.memories || []).toLowerCase();
         const summaryStr = (r.summary || '').toLowerCase();
         return queryTerms.some(term => 
-          memoriesStr.includes(term) || summaryStr.includes(term)
+          memoriesStr.includes(term) || summaryStr.includes(term),
         );
       });
       
@@ -3194,7 +3190,7 @@ export async function saveMemory(key, content, tags = [], userId = 'default', ag
     await AgentFile.findOneAndUpdate(
       { userId, path: `/.memory/memory-${key}.json` },
       memoryFile.toObject(),
-      { upsert: true }
+      { upsert: true },
     );
     
     return {
@@ -3213,7 +3209,7 @@ export async function saveMemory(key, content, tags = [], userId = 'default', ag
  */
 export async function loadMemory(key = null, tags = [], userId = 'default') {
   try {
-    let query = { userId, folder: '/.memory', isDeleted: false };
+    const query = { userId, folder: '/.memory', isDeleted: false };
     
     if (key) {
       query.path = `/.memory/memory-${key}.json`;
@@ -3249,7 +3245,7 @@ export async function loadMemory(key = null, tags = [], userId = 'default') {
 /**
  * Plan a task
  */
-export async function planTask(task, context = '', userId = 'default') {
+export async function planTask(task, context = '', _userId = 'default') {
   try {
     return {
       success: true,
@@ -3271,7 +3267,7 @@ export async function planTask(task, context = '', userId = 'default') {
 /**
  * Delegate task to another agent
  */
-export async function delegateTask(task, agentType, userId = 'default') {
+export async function delegateTask(task, agentType, _userId = 'default') {
   try {
     return {
       success: true,
@@ -3289,203 +3285,203 @@ export async function delegateTask(task, agentType, userId = 'default') {
  */
 export async function executeTool(toolName, params) {
   switch (toolName) {
-    // ═══════════════════════════════════════════════════════════════
-    // UTILITY TOOLS
-    // ═══════════════════════════════════════════════════════════════
-    case 'web_search':
-      return webSearch(params.query, params.num_results);
+  // ═══════════════════════════════════════════════════════════════
+  // UTILITY TOOLS
+  // ═══════════════════════════════════════════════════════════════
+  case 'web_search':
+    return webSearch(params.query, params.num_results);
 
-    case 'fetch_url':
-      return fetchUrl(params.url);
+  case 'fetch_url':
+    return fetchUrl(params.url);
 
-    case 'get_current_time':
-      return getCurrentTime(params.timezone);
+  case 'get_current_time':
+    return getCurrentTime(params.timezone);
 
-    case 'calculate':
-      return calculate(params.expression);
+  case 'calculate':
+    return calculate(params.expression);
 
-    case 'analyze_image':
-      return {
-        success: true,
-        message: 'Image analysis should be handled by vision-enabled AI model',
-        image_url: params.image_url,
-      };
+  case 'analyze_image':
+    return {
+      success: true,
+      message: 'Image analysis should be handled by vision-enabled AI model',
+      image_url: params.image_url,
+    };
 
     // ═══════════════════════════════════════════════════════════════
     // FILE OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'create_file':
-      return createFile(params.filename, params.content, params.folder, params.userId);
+  case 'create_file':
+    return createFile(params.filename, params.content, params.folder, params.userId);
 
-    case 'read_file':
-      return readFile(params.filename, params.userId);
+  case 'read_file':
+    return readFile(params.filename, params.userId);
 
-    case 'modify_file':
-      return modifyFile(params.filename, params.content, params.mode, params.userId);
+  case 'modify_file':
+    return modifyFile(params.filename, params.content, params.mode, params.userId);
 
-    case 'list_files':
-      return listFiles(params.folder, params.userId);
+  case 'list_files':
+    return listFiles(params.folder, params.userId);
 
-    case 'delete_file':
-      return deleteFile(params.filename, params.userId);
+  case 'delete_file':
+    return deleteFile(params.filename, params.userId);
 
-    case 'create_folder':
-      return createFolder(params.path || params.folder, params.userId);
+  case 'create_folder':
+    return createFolder(params.path || params.folder, params.userId);
 
-    case 'list_folders':
-      return listFolders(params.folder, params.userId);
+  case 'list_folders':
+    return listFolders(params.folder, params.userId);
 
-    case 'move_file':
-      return moveFile(params.source, params.destination, params.userId);
+  case 'move_file':
+    return moveFile(params.source, params.destination, params.userId);
 
-    case 'copy_file':
-      return copyFile(params.source, params.destination, params.userId);
+  case 'copy_file':
+    return copyFile(params.source, params.destination, params.userId);
 
-    case 'rename_file':
-      return renameFile(params.old_name || params.oldName, params.new_name || params.newName, params.userId);
+  case 'rename_file':
+    return renameFile(params.old_name || params.oldName, params.new_name || params.newName, params.userId);
 
-    case 'zip_files':
-      return zipFiles(params.files, params.output || 'archive.zip', params.userId);
+  case 'zip_files':
+    return zipFiles(params.files, params.output || 'archive.zip', params.userId);
 
-    case 'unzip_files':
-      return unzipFiles(params.file, params.destination, params.userId);
+  case 'unzip_files':
+    return unzipFiles(params.file, params.destination, params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // DOCUMENT PARSING
     // ═══════════════════════════════════════════════════════════════
-    case 'parse_pdf':
-      return parsePdf(params.file || params.path, params.userId);
+  case 'parse_pdf':
+    return parsePdf(params.file || params.path, params.userId);
 
-    case 'parse_docx':
-      return parseDocx(params.file || params.path, params.userId);
+  case 'parse_docx':
+    return parseDocx(params.file || params.path, params.userId);
 
-    case 'parse_csv':
-      return parseCsv(params.file || params.path, params.limit || 100, params.userId);
+  case 'parse_csv':
+    return parseCsv(params.file || params.path, params.limit || 100, params.userId);
 
-    case 'parse_markdown':
-      return parseMarkdown(params.content || params.file, params.userId);
+  case 'parse_markdown':
+    return parseMarkdown(params.content || params.file, params.userId);
 
-    case 'extract_text':
-      return extractText(params.file || params.path, params.userId);
+  case 'extract_text':
+    return extractText(params.file || params.path, params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // IMAGE OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'generate_image':
-      return generateImage(params.prompt, params.style, params.width, params.height, params.userId);
+  case 'generate_image':
+    return generateImage(params.prompt, params.style, params.width, params.height, params.userId);
 
-    case 'convert_image':
-      return convertImage(params.image_url, params.format, params.quality, params.userId);
+  case 'convert_image':
+    return convertImage(params.image_url, params.format, params.quality, params.userId);
 
-    case 'view_image':
-      return viewImage(params.path || params.file, params.userId);
+  case 'view_image':
+    return viewImage(params.path || params.file, params.userId);
 
-    case 'resize_image':
-      return resizeImage(params.path || params.file, params.width, params.height, params.userId);
+  case 'resize_image':
+    return resizeImage(params.path || params.file, params.width, params.height, params.userId);
 
-    case 'crop_image':
-      return cropImage(params.path || params.file, params.x, params.y, params.width, params.height, params.userId);
+  case 'crop_image':
+    return cropImage(params.path || params.file, params.x, params.y, params.width, params.height, params.userId);
 
-    case 'edit_image':
-      return editImage(params.path || params.file, params.operations || [], params.userId);
+  case 'edit_image':
+    return editImage(params.path || params.file, params.operations || [], params.userId);
 
-    case 'ocr_image':
-      return ocrImage(params.path || params.file, params.language || 'eng', params.userId);
+  case 'ocr_image':
+    return ocrImage(params.path || params.file, params.language || 'eng', params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // VIDEO OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'generate_video':
-      return generateVideo(params.prompt, params.duration, params.userId);
+  case 'generate_video':
+    return generateVideo(params.prompt, params.duration, params.userId);
 
-    case 'analyze_video':
-      return analyzeVideo(params.path || params.file, params.userId);
+  case 'analyze_video':
+    return analyzeVideo(params.path || params.file, params.userId);
 
-    case 'trim_video':
-      return trimVideo(params.path || params.file, params.start, params.end, params.userId);
+  case 'trim_video':
+    return trimVideo(params.path || params.file, params.start, params.end, params.userId);
 
-    case 'extract_frames':
-      return extractFrames(params.path || params.file, params.timestamps, params.userId);
+  case 'extract_frames':
+    return extractFrames(params.path || params.file, params.timestamps, params.userId);
 
-    case 'convert_video':
-      return convertVideo(params.path || params.file, params.format || 'mp4', params.userId);
+  case 'convert_video':
+    return convertVideo(params.path || params.file, params.format || 'mp4', params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // AUDIO OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'analyze_audio':
-      return analyzeAudio(params.path || params.file, params.userId);
+  case 'analyze_audio':
+    return analyzeAudio(params.path || params.file, params.userId);
 
-    case 'transcribe_audio':
-      return transcribeAudio(params.path || params.file, params.language || 'en', params.userId);
+  case 'transcribe_audio':
+    return transcribeAudio(params.path || params.file, params.language || 'en', params.userId);
 
-    case 'convert_audio':
-      return convertAudio(params.path || params.file, params.format || 'mp3', params.userId);
+  case 'convert_audio':
+    return convertAudio(params.path || params.file, params.format || 'mp3', params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // CODE OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'analyze_code':
-      return analyzeCode(params.code, params.language || 'auto', params.userId);
+  case 'analyze_code':
+    return analyzeCode(params.code, params.language || 'auto', params.userId);
 
-    case 'format_code':
-      return formatCode(params.code, params.language, params.userId);
+  case 'format_code':
+    return formatCode(params.code, params.language, params.userId);
 
-    case 'lint_code':
-      return lintCode(params.code, params.language || 'javascript', params.userId);
+  case 'lint_code':
+    return lintCode(params.code, params.language || 'javascript', params.userId);
 
-    case 'parse_ast':
-      return analyzeCode(params.code, params.language, params.userId); // Uses Tree-sitter in analyzeCode
+  case 'parse_ast':
+    return analyzeCode(params.code, params.language, params.userId); // Uses Tree-sitter in analyzeCode
 
-    case 'run_code':
-      return runCode(params.code, params.language, params.userId);
+  case 'run_code':
+    return runCode(params.code, params.language, params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // EMBEDDINGS / VECTOR SEARCH OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'embed_content':
-      return embedContent(params.content, params.model || 'text-embedding-3-small', params.userId);
+  case 'embed_content':
+    return embedContent(params.content, params.model || 'text-embedding-3-small', params.userId);
 
-    case 'semantic_search':
-      return semanticSearch(params.query, params.index || params.collection || 'agent_memories', params.limit || 10, params.userId);
+  case 'semantic_search':
+    return semanticSearch(params.query, params.index || params.collection || 'agent_memories', params.limit || 10, params.userId);
 
-    case 'store_vectors':
-      // First embed, then store in Qdrant
-      const embedResult = await embedContent(params.content, params.model || 'text-embedding-3-small', params.userId);
-      if (embedResult.success) {
-        return storeInQdrant(embedResult.embeddings, params.metadata || {}, params.collection || 'agent_memories', params.userId);
-      }
-      return embedResult;
+  case 'store_vectors':
+    // First embed, then store in Qdrant
+    const embedResult = await embedContent(params.content, params.model || 'text-embedding-3-small', params.userId);
+    if (embedResult.success) {
+      return storeInQdrant(embedResult.embeddings, params.metadata || {}, params.collection || 'agent_memories', params.userId);
+    }
+    return embedResult;
 
-    case 'cache_set':
-      return cacheInRedis(params.key, params.value, params.ttl || 3600, params.userId);
+  case 'cache_set':
+    return cacheInRedis(params.key, params.value, params.ttl || 3600, params.userId);
 
-    case 'cache_get':
-      return getFromRedis(params.key, params.userId);
+  case 'cache_get':
+    return getFromRedis(params.key, params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // MEMORY OPERATIONS
     // ═══════════════════════════════════════════════════════════════
-    case 'save_memory':
-      return saveMemory(params.key, params.content, params.tags || [], params.userId, params.agentId);
+  case 'save_memory':
+    return saveMemory(params.key, params.content, params.tags || [], params.userId, params.agentId);
 
-    case 'load_memory':
-      return loadMemory(params.key, params.tags || [], params.userId);
+  case 'load_memory':
+    return loadMemory(params.key, params.tags || [], params.userId);
 
     // ═══════════════════════════════════════════════════════════════
     // AGENT CONTROL
     // ═══════════════════════════════════════════════════════════════
-    case 'plan_task':
-      return planTask(params.task, params.context, params.userId);
+  case 'plan_task':
+    return planTask(params.task, params.context, params.userId);
 
-    case 'delegate_task':
-      return delegateTask(params.task, params.agent || params.agentType, params.userId);
+  case 'delegate_task':
+    return delegateTask(params.task, params.agent || params.agentType, params.userId);
 
-    default:
-      return {
-        success: false,
-        error: `Unknown tool: ${toolName}`,
-      };
+  default:
+    return {
+      success: false,
+      error: `Unknown tool: ${toolName}`,
+    };
   }
 }
 
@@ -3518,7 +3514,7 @@ export function formatToolResults(results) {
   return results.map(r => {
     if (r.tool === 'web_search' && r.result.results) {
       const searchResults = r.result.results.map(
-        (res, i) => `${i + 1}. **${res.title}**\n   ${res.snippet}\n   Source: ${res.url}`
+        (res, i) => `${i + 1}. **${res.title}**\n   ${res.snippet}\n   Source: ${res.url}`,
       ).join('\n\n');
       return `## Web Search Results for "${r.result.query}":\n\n${searchResults || 'No results found.'}`;
     }
@@ -3563,7 +3559,7 @@ export function formatToolResults(results) {
 
     if (r.tool === 'generate_image' && r.result.success) {
       // Include full base64 image for display in chat
-      const parts = [`## Image Generated!`, `**Prompt:** ${r.result.prompt}`, `**Style:** ${r.result.style}`, `**Dimensions:** ${r.result.dimensions}`];
+      const parts = ['## Image Generated!', `**Prompt:** ${r.result.prompt}`, `**Style:** ${r.result.style}`, `**Dimensions:** ${r.result.dimensions}`];
       if (r.result.downloadUrl) {
         parts.push(`\n[📥 Download Image](${r.result.downloadUrl})`);
       }
@@ -3582,7 +3578,7 @@ export function formatToolResults(results) {
     }
 
     if (r.tool === 'convert_image' && r.result.success) {
-      const parts = [`## Image Converted!`, `**Format:** ${r.result.format}`];
+      const parts = ['## Image Converted!', `**Format:** ${r.result.format}`];
       if (r.result.downloadUrl) {
         parts.push(`\n[📥 Download ${r.result.format}](${r.result.downloadUrl})`);
       }

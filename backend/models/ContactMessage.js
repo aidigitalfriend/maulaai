@@ -1,1 +1,1 @@
-import { ContactMessage } from "./index.js"; export { ContactMessage };
+import { ContactMessage } from './index.js'; export { ContactMessage };

@@ -44,7 +44,7 @@ const upload = multer({
 router.get('/profile', async (req, res) => {
   try {
     let userId = req.headers['x-user-id'];
-    let userEmail = req.headers['x-user-email'];
+    const userEmail = req.headers['x-user-email'];
     
     // Also check session cookie for authentication
     if (!userId && !userEmail) {
@@ -116,7 +116,7 @@ router.get('/profile', async (req, res) => {
 
     res.json({
       success: true,
-      profile: profile,
+      profile,
       cached: false,
     });
   } catch (error) {
@@ -129,7 +129,7 @@ router.get('/profile', async (req, res) => {
 router.put('/profile', async (req, res) => {
   try {
     let userId = req.headers['x-user-id'];
-    let userEmail = req.headers['x-user-email'];
+    const userEmail = req.headers['x-user-email'];
     
     // Also check session cookie for authentication
     if (!userId && !userEmail) {
@@ -830,7 +830,7 @@ router.get('/conversations/:userId/export', async (req, res) => {
       const csvRows = ['ID,Agent,Topic,Date,Messages'];
       exportData.forEach((conv) => {
         csvRows.push(
-          `"${conv.id}","${conv.agent}","${conv.topic.replace(/"/g, '""')}","${conv.createdAt}",${conv.messageCount}`
+          `"${conv.id}","${conv.agent}","${conv.topic.replace(/"/g, '""')}","${conv.createdAt}",${conv.messageCount}`,
         );
       });
       const csvContent = csvRows.join('\n');
@@ -887,11 +887,11 @@ router.get('/analytics', async (req, res) => {
       subscriptions = await prisma.agentSubscription.findMany({
         where: { 
           userId,
-          status: 'active'
+          status: 'active',
         },
         include: {
-          agent: true
-        }
+          agent: true,
+        },
       });
       activeAgents = subscriptions.length;
     } catch (e) {
@@ -907,10 +907,10 @@ router.get('/analytics', async (req, res) => {
         include: {
           agent: true,
           messages: {
-            select: { id: true, createdAt: true, role: true }
-          }
+            select: { id: true, createdAt: true, role: true },
+          },
         },
-        orderBy: { updatedAt: 'desc' }
+        orderBy: { updatedAt: 'desc' },
       });
       totalConversations = chatSessions.length;
     } catch (e) {
@@ -922,8 +922,8 @@ router.get('/analytics', async (req, res) => {
     try {
       totalMessages = await prisma.chatMessage.count({
         where: {
-          session: { userId }
-        }
+          session: { userId },
+        },
       });
     } catch (e) {
       console.log('Messages count error:', e.message);
@@ -933,9 +933,9 @@ router.get('/analytics', async (req, res) => {
     let apiCallsCount = 0;
     try {
       apiCallsCount = await prisma.apiUsage.count({
-        where: { userId }
+        where: { userId },
       });
-    } catch (e) {
+    } catch (_e) {
       // Table might not exist
     }
     
@@ -943,17 +943,16 @@ router.get('/analytics', async (req, res) => {
     const totalApiCalls = totalMessages + apiCallsCount;
 
     // Calculate success rate from chat feedback
-    let successRate = 0;
     try {
       const feedbackStats = await prisma.chatFeedback.aggregate({
         where: { userId },
         _avg: { rating: true },
-        _count: true
+        _count: true,
       });
       if (feedbackStats._count > 0 && feedbackStats._avg.rating) {
-        successRate = (feedbackStats._avg.rating / 5) * 100;
+        // successRate = (feedbackStats._avg.rating / 5) * 100;
       }
-    } catch (e) {
+    } catch (_e) {
       // No feedback yet
     }
 
@@ -968,9 +967,9 @@ router.get('/analytics', async (req, res) => {
         by: ['createdAt'],
         where: {
           session: { userId },
-          createdAt: { gte: sevenDaysAgo }
+          createdAt: { gte: sevenDaysAgo },
         },
-        _count: true
+        _count: true,
       });
 
       // Create a map for the last 7 days
@@ -1011,7 +1010,7 @@ router.get('/analytics', async (req, res) => {
           date: date.toISOString().split('T')[0],
           conversations: 0,
           messages: 0,
-          apiCalls: 0
+          apiCalls: 0,
         });
       }
     }
@@ -1020,19 +1019,19 @@ router.get('/analytics', async (req, res) => {
     const agentUsageMap = new Map();
     
     // First, get per-agent feedback ratings for real success rate
-    let agentFeedbackMap = new Map();
+    const agentFeedbackMap = new Map();
     try {
       const agentFeedbacks = await prisma.chatFeedback.groupBy({
         by: ['agentId'],
         where: { userId },
         _avg: { rating: true },
-        _count: true
+        _count: true,
       });
       agentFeedbacks.forEach(fb => {
         if (fb.agentId) {
           agentFeedbackMap.set(fb.agentId, {
             avgRating: fb._avg.rating || 0,
-            count: fb._count || 0
+            count: fb._count || 0,
           });
         }
       });
@@ -1059,7 +1058,7 @@ router.get('/analytics', async (req, res) => {
           avgResponseTime: 0,
           successRate: realSuccessRate, // Real success rate from feedback
           totalResponseTime: 0,
-          responseTimeCount: 0
+          responseTimeCount: 0,
         });
       }
       
@@ -1084,7 +1083,7 @@ router.get('/analytics', async (req, res) => {
       avgResponseTime: agent.responseTimeCount > 0 
         ? Math.round((agent.totalResponseTime / agent.responseTimeCount) / 1000)
         : 0, // 0 if no response time data available
-      successRate: Math.round(agent.successRate * 10) / 10 // Real calculated rate
+      successRate: Math.round(agent.successRate * 10) / 10, // Real calculated rate
     }));
 
     // Sort by conversations for top agents
@@ -1098,7 +1097,7 @@ router.get('/analytics', async (req, res) => {
         name: agent.name,
         usage: Math.round((agent.conversations / totalAgentConversations) * 100),
         conversations: agent.conversations,
-        messages: agent.messages
+        messages: agent.messages,
       }));
 
     // Get recent activity (last 24 hours for audit trail)
@@ -1108,23 +1107,23 @@ router.get('/analytics', async (req, res) => {
       const recentMessages = await prisma.chatMessage.findMany({
         where: {
           session: { userId },
-          createdAt: { gte: twentyFourHoursAgo }
+          createdAt: { gte: twentyFourHoursAgo },
         },
         include: {
           session: {
-            include: { agent: true }
-          }
+            include: { agent: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
-        take: 20
+        take: 20,
       });
 
       recentActivity = recentMessages.map(msg => ({
         id: msg.id,
         type: msg.role === 'user' ? 'message_sent' : 'message_received',
         action: msg.role === 'user' 
-          ? `Sent message`
-          : `Received response`,
+          ? 'Sent message'
+          : 'Received response',
         description: msg.role === 'user' 
           ? `Sent message to ${msg.session.agent?.name || 'AI Studio'}`
           : `Received response from ${msg.session.agent?.name || 'AI Studio'}`,
@@ -1132,7 +1131,7 @@ router.get('/analytics', async (req, res) => {
         timestamp: msg.createdAt,
         agentId: msg.session.agentId,
         agentName: msg.session.agent?.name || 'AI Studio',
-        status: 'success'
+        status: 'success',
       }));
     } catch (e) {
       console.log('Recent activity error:', e.message);
@@ -1234,8 +1233,8 @@ router.get('/analytics', async (req, res) => {
           name: agent.name,
           category: agent.name,
           cost: Math.round(agent.messages * estimatedCostPerMessage * 100) / 100,
-          percentage: totalMessages > 0 ? Math.round((agent.messages / totalMessages) * 100) : 0
-        }))
+          percentage: totalMessages > 0 ? Math.round((agent.messages / totalMessages) * 100) : 0,
+        })),
       },
       topAgents,
       agentStatus: activeAgents > 0 ? 'active' : 'inactive',

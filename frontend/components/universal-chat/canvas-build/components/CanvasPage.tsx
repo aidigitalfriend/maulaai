@@ -1662,6 +1662,11 @@ export default function CanvasMode({
     updatePreview,
     extractFiles,
     summarizePrompt,
+    selectedProvider,
+    selectedModel,
+    temperature,
+    maxTokens,
+    normalizeCode,
   ]);
 
   const handleStopGeneration = useCallback(() => {
@@ -2322,10 +2327,12 @@ export default function CanvasMode({
                   {file.type.startsWith('image/') ? (
                     <>
                       {/* Show image thumbnail */}
-                      <img 
-                        src={file.url} 
+                      <Image
+                        src={file.url}
                         alt={file.name}
-                        className="w-8 h-8 object-cover rounded"
+                        width={32}
+                        height={32}
+                        className="object-cover rounded"
                       />
                       <span className={brandColors.text}>
                         {file.name.length > 15 ? file.name.slice(0, 12) + '...' : file.name}

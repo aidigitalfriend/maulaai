@@ -22,7 +22,7 @@ router.post('/login', async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() }).select(
-      '+password'
+      '+password',
     );
     if (!user) {
       return res.status(401).json({
@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN },
     );
 
     // Set secure HTTP-only cookie
@@ -136,7 +136,7 @@ router.post('/register', async (req, res) => {
         name: user.name,
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN },
     );
 
     // Set secure HTTP-only cookie
@@ -286,7 +286,7 @@ router.post('/refresh', async (req, res) => {
         name: user.name,
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN },
     );
 
     // Set new cookie

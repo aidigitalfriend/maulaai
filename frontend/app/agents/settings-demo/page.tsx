@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import AgentSettingsModal from '../../../components/AgentSettingsModal'
 import { AgentConfig } from '../types'
+import Image from 'next/image'
 
 export default function AgentSettingsDemo() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -66,9 +67,11 @@ export default function AgentSettingsDemo() {
         {/* Agent Preview Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
           <div className="flex items-center space-x-4 mb-4">
-            <img 
+            <Image 
               src={sampleAgent.avatarUrl} 
               alt={sampleAgent.name}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full object-cover"
             />
             <div>

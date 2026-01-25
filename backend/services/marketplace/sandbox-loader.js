@@ -12,12 +12,12 @@ let VM2 = null;
 try {
   ivm = await import('isolated-vm');
   ivm = ivm.default || ivm;
-} catch (e) {
+} catch (_e) {
   console.warn('isolated-vm not available, trying vm2...');
   try {
     const vm2Module = await import('vm2');
     VM2 = vm2Module.VM;
-  } catch (e2) {
+  } catch (_e2) {
     console.warn('vm2 not available, using basic sandbox');
   }
 }
@@ -34,7 +34,7 @@ const SANDBOX_LIMITS = {
 const BLOCKED_GLOBALS = [
   'process', 'require', 'module', 'exports', '__dirname', '__filename',
   'Buffer', 'setImmediate', 'clearImmediate', 'global', 'globalThis',
-  'eval', 'Function', 'WebAssembly'
+  'eval', 'Function', 'WebAssembly',
 ];
 
 class SandboxLoader {
@@ -106,7 +106,7 @@ class SandboxLoader {
           
           const script = await isolate.compileScript(wrappedCode);
           const result = await script.run(context, {
-            timeout: SANDBOX_LIMITS.timeout
+            timeout: SANDBOX_LIMITS.timeout,
           });
           
           return { success: true, result };
@@ -114,7 +114,7 @@ class SandboxLoader {
           return { 
             success: false, 
             error: error.message,
-            type: error.name
+            type: error.name,
           };
         }
       },
@@ -122,7 +122,7 @@ class SandboxLoader {
       dispose: () => {
         isolate.dispose();
         this.isolates.delete(sandboxId);
-      }
+      },
     };
   }
 
@@ -138,11 +138,11 @@ class SandboxLoader {
           error: (...args) => console.error(`[Sandbox ${sandboxId}]`, ...args),
           warn: (...args) => console.warn(`[Sandbox ${sandboxId}]`, ...args),
         },
-        ...allowedAPIs
+        ...allowedAPIs,
       },
       wasm: false,
       eval: false,
-      fixAsync: true
+      fixAsync: true,
     });
 
     return {
@@ -160,14 +160,14 @@ class SandboxLoader {
           return { 
             success: false, 
             error: error.message,
-            type: error.name
+            type: error.name,
           };
         }
       },
       
       dispose: () => {
         // VM2 doesn't need explicit disposal
-      }
+      },
     };
   }
 
@@ -189,7 +189,7 @@ class SandboxLoader {
               log: (...args) => console.log(`[Sandbox ${sandboxId}]`, ...args),
             },
             input,
-            ...allowedAPIs
+            ...allowedAPIs,
           };
           
           // Block dangerous globals
@@ -210,8 +210,8 @@ class SandboxLoader {
           const result = await Promise.race([
             fn(scope),
             new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Execution timeout')), SANDBOX_LIMITS.timeout)
-            )
+              setTimeout(() => reject(new Error('Execution timeout')), SANDBOX_LIMITS.timeout),
+            ),
           ]);
           
           return { success: true, result };
@@ -219,12 +219,12 @@ class SandboxLoader {
           return { 
             success: false, 
             error: error.message,
-            type: error.name
+            type: error.name,
           };
         }
       },
       
-      dispose: () => {}
+      dispose: () => {},
     };
   }
 
@@ -256,21 +256,21 @@ class SandboxLoader {
           if (!['http:', 'https:'].includes(parsed.protocol)) {
             throw new Error('Only HTTP/HTTPS URLs allowed');
           }
-        } catch (e) {
+        } catch (_e) {
           throw new Error(`Invalid URL: ${url}`);
         }
         
         // Proxy through our fetch with limits
         const response = await fetch(url, {
           ...options,
-          signal: AbortSignal.timeout(10000) // 10s timeout
+          signal: AbortSignal.timeout(10000), // 10s timeout
         });
         
         return {
           ok: response.ok,
           status: response.status,
           json: async () => response.json(),
-          text: async () => response.text()
+          text: async () => response.text(),
         };
       };
     }
@@ -281,22 +281,22 @@ class SandboxLoader {
         get: (key) => storage.get(key),
         set: (key, value) => storage.set(key, value),
         delete: (key) => storage.delete(key),
-        clear: () => storage.clear()
+        clear: () => storage.clear(),
       };
     }
 
     if (permissions.includes('ai:chat')) {
       apis.ai = {
-        chat: async (messages) => {
+        chat: async (_messages) => {
           // Would proxy to our AI service
           return { message: 'AI response placeholder' };
-        }
+        },
       };
     }
 
     if (permissions.includes('ai:embeddings')) {
       apis.ai = apis.ai || {};
-      apis.ai.embed = async (text) => {
+      apis.ai.embed = async (_text) => {
         // Would proxy to embedding service
         return { embedding: [] };
       };
@@ -317,7 +317,7 @@ class SandboxLoader {
       sandbox,
       config,
       loadedAt: new Date(),
-      executions: 0
+      executions: 0,
     });
 
     // Initialize plugin
@@ -341,7 +341,7 @@ class SandboxLoader {
     return {
       success: true,
       pluginId,
-      sandboxType: sandbox.type
+      sandboxType: sandbox.type,
     };
   }
 
@@ -379,7 +379,7 @@ class SandboxLoader {
     return {
       ...result,
       duration,
-      executionCount: loaded.executions
+      executionCount: loaded.executions,
     };
   }
 
@@ -414,8 +414,8 @@ class SandboxLoader {
         id,
         sandboxType: data.sandbox.type,
         loadedAt: data.loadedAt,
-        executions: data.executions
-      }))
+        executions: data.executions,
+      })),
     };
   }
 
@@ -433,7 +433,7 @@ class SandboxLoader {
    * Cleanup all sandboxes
    */
   cleanup() {
-    for (const [pluginId, loaded] of this.loadedPlugins) {
+    for (const [, loaded] of this.loadedPlugins) {
       loaded.sandbox.dispose();
     }
     this.loadedPlugins.clear();

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState('')
@@ -119,9 +120,10 @@ export default function NewsletterSection() {
           
           {/* Right - Image */}
           <div className="relative">
-            <img
+            <Image
               src="/images/products/newsletter.jpeg"
               alt="Newsletter Subscription"
+              fill
               className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
               style={{ maxHeight: '400px' }}
             />

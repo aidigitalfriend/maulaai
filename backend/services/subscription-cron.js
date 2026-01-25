@@ -38,7 +38,7 @@ export function startSubscriptionExpirationCron() {
 
       if (result.count > 0) {
         console.log(
-          `✅ [Cron] Marked ${result.count} subscription(s) as expired`
+          `✅ [Cron] Marked ${result.count} subscription(s) as expired`,
         );
       } else {
         console.log('✅ [Cron] No subscriptions to expire');
@@ -49,7 +49,7 @@ export function startSubscriptionExpirationCron() {
   });
 
   console.log(
-    '✅ Subscription expiration cron job started (runs hourly at minute 0)'
+    '✅ Subscription expiration cron job started (runs hourly at minute 0)',
   );
 }
 

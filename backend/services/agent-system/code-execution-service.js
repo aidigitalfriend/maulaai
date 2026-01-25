@@ -54,7 +54,7 @@ export async function executeCode(language, code, options = {}) {
     return {
       success: false,
       error: `Unsupported language: ${language}`,
-      supportedLanguages: Object.keys(EXECUTORS)
+      supportedLanguages: Object.keys(EXECUTORS),
     };
   }
 
@@ -76,8 +76,8 @@ export async function executeCode(language, code, options = {}) {
       {
         cwd: tempDir,
         timeout: options.timeout || LIMITS.timeout,
-        maxOutput: LIMITS.maxOutputSize
-      }
+        maxOutput: LIMITS.maxOutputSize,
+      },
     );
     
     return {
@@ -88,7 +88,7 @@ export async function executeCode(language, code, options = {}) {
       stderr: result.stderr,
       exitCode: result.exitCode,
       duration: result.duration,
-      timedOut: result.timedOut
+      timedOut: result.timedOut,
     };
 
   } catch (error) {
@@ -96,7 +96,7 @@ export async function executeCode(language, code, options = {}) {
       success: false,
       executionId,
       language,
-      error: error.message
+      error: error.message,
     };
   } finally {
     // Cleanup
@@ -160,7 +160,7 @@ function runProcess(command, args, options) {
         stderr,
         exitCode: killed ? -1 : (exitCode ?? -1),
         duration: Date.now() - startTime,
-        timedOut
+        timedOut,
       });
     });
 
@@ -171,7 +171,7 @@ function runProcess(command, args, options) {
         stderr: error.message,
         exitCode: -1,
         duration: Date.now() - startTime,
-        timedOut: false
+        timedOut: false,
       });
     });
   });
@@ -213,14 +213,14 @@ export function validateCode(language, code) {
     if (pattern.test(code)) {
       violations.push({
         pattern: pattern.toString(),
-        message: 'Potentially dangerous code pattern detected'
+        message: 'Potentially dangerous code pattern detected',
       });
     }
   }
 
   return {
     safe: violations.length === 0,
-    violations
+    violations,
   };
 }
 
@@ -231,7 +231,7 @@ export function getSupportedLanguages() {
   return Object.keys(EXECUTORS).map(lang => ({
     language: lang,
     extension: EXECUTORS[lang].extension,
-    command: EXECUTORS[lang].command
+    command: EXECUTORS[lang].command,
   }));
 }
 
@@ -239,5 +239,5 @@ export default {
   executeCode,
   validateCode,
   getSupportedLanguages,
-  LIMITS
+  LIMITS,
 };

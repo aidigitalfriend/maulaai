@@ -3,10 +3,8 @@
  * Generates new code based on requirements, specifications, or descriptions
  */
 
-import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 class CodeGenerationAgent {
@@ -64,8 +62,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -76,7 +74,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -87,14 +85,14 @@ Respond in JSON format:
         success: true,
         code: content,
         language: context.language || 'javascript',
-        explanation: 'Code generated successfully'
+        explanation: 'Code generated successfully',
       };
 
     } catch (error) {
       console.error('[CodeGenerationAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

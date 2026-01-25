@@ -67,8 +67,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -78,7 +78,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -88,14 +88,14 @@ Respond in JSON format:
       return {
         success: true,
         refactoredCode: content,
-        changes: ['See refactored code for details']
+        changes: ['See refactored code for details'],
       };
 
     } catch (error) {
       console.error('[RefactorAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -103,7 +103,7 @@ Respond in JSON format:
   /**
    * Analyze code for refactoring opportunities
    */
-  async analyze(code, context = {}) {
+  async analyze(code, _context = {}) {
     const systemPrompt = `Analyze this code and identify refactoring opportunities:
 
 \`\`\`
@@ -131,8 +131,8 @@ Return a JSON list of opportunities:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -141,19 +141,19 @@ Return a JSON list of opportunities:
       if (jsonMatch) {
         return {
           success: true,
-          ...JSON.parse(jsonMatch[0])
+          ...JSON.parse(jsonMatch[0]),
         };
       }
 
       return {
         success: true,
-        analysis: content
+        analysis: content,
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

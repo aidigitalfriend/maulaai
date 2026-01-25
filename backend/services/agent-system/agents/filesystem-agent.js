@@ -13,7 +13,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const ALLOWED_BASES = [
   process.cwd(),
   '/tmp',
-  process.env.WORKSPACE_DIR
+  process.env.WORKSPACE_DIR,
 ].filter(Boolean);
 
 class FileSystemAgent {
@@ -28,6 +28,10 @@ class FileSystemAgent {
       'Move/rename files',
       'Delete files (with caution)',
       'Analyze file structure',
+      'Manage canvas projects',
+      'Read canvas projects',
+      'Save canvas projects',
+      'Export canvas projects',
     ];
   }
 
@@ -59,6 +63,8 @@ class FileSystemAgent {
       return this.handleMove(task, context);
     } else if (taskLower.includes('search') || taskLower.includes('find')) {
       return this.handleSearch(task, context);
+    } else if (taskLower.includes('canvas')) {
+      return this.handleCanvas(task, context);
     } else {
       // Use AI to determine operation
       return this.handleGeneric(task, context);
@@ -74,14 +80,14 @@ class FileSystemAgent {
     if (!filePath) {
       return {
         success: false,
-        error: 'No file path specified'
+        error: 'No file path specified',
       };
     }
 
     if (!this.isPathAllowed(filePath)) {
       return {
         success: false,
-        error: 'Access to this path is not allowed'
+        error: 'Access to this path is not allowed',
       };
     }
 
@@ -95,13 +101,13 @@ class FileSystemAgent {
         content,
         size: stats.size,
         modified: stats.mtime,
-        extension: path.extname(filePath)
+        extension: path.extname(filePath),
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        path: filePath
+        path: filePath,
       };
     }
   }
@@ -116,21 +122,21 @@ class FileSystemAgent {
     if (!filePath) {
       return {
         success: false,
-        error: 'No file path specified'
+        error: 'No file path specified',
       };
     }
 
     if (!content) {
       return {
         success: false,
-        error: 'No content to write'
+        error: 'No content to write',
       };
     }
 
     if (!this.isPathAllowed(filePath)) {
       return {
         success: false,
-        error: 'Access to this path is not allowed'
+        error: 'Access to this path is not allowed',
       };
     }
 
@@ -144,14 +150,14 @@ class FileSystemAgent {
       return {
         success: true,
         path: filePath,
-        message: `File written successfully`,
-        bytesWritten: Buffer.byteLength(content)
+        message: 'File written successfully',
+        bytesWritten: Buffer.byteLength(content),
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        path: filePath
+        path: filePath,
       };
     }
   }
@@ -165,7 +171,7 @@ class FileSystemAgent {
     if (!this.isPathAllowed(dirPath)) {
       return {
         success: false,
-        error: 'Access to this path is not allowed'
+        error: 'Access to this path is not allowed',
       };
     }
 
@@ -183,7 +189,7 @@ class FileSystemAgent {
           name: entry.name,
           path: fullPath,
           size: stats?.size,
-          modified: stats?.mtime
+          modified: stats?.mtime,
         };
         
         if (entry.isDirectory()) {
@@ -199,13 +205,13 @@ class FileSystemAgent {
         directories,
         files,
         totalDirectories: directories.length,
-        totalFiles: files.length
+        totalFiles: files.length,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        path: dirPath
+        path: dirPath,
       };
     }
   }
@@ -219,14 +225,14 @@ class FileSystemAgent {
     if (!filePath) {
       return {
         success: false,
-        error: 'No file path specified'
+        error: 'No file path specified',
       };
     }
 
     if (!this.isPathAllowed(filePath)) {
       return {
         success: false,
-        error: 'Access to this path is not allowed'
+        error: 'Access to this path is not allowed',
       };
     }
 
@@ -236,7 +242,7 @@ class FileSystemAgent {
       return {
         success: false,
         error: 'Cannot delete protected files/directories',
-        path: filePath
+        path: filePath,
       };
     }
 
@@ -250,7 +256,7 @@ class FileSystemAgent {
             success: false,
             error: 'Directory deletion requires explicit confirmation',
             requiresConfirmation: true,
-            path: filePath
+            path: filePath,
           };
         }
         await fs.rm(filePath, { recursive: true });
@@ -261,13 +267,13 @@ class FileSystemAgent {
       return {
         success: true,
         path: filePath,
-        message: 'Deleted successfully'
+        message: 'Deleted successfully',
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        path: filePath
+        path: filePath,
       };
     }
   }
@@ -282,14 +288,14 @@ class FileSystemAgent {
     if (!sourcePath || !destPath) {
       return {
         success: false,
-        error: 'Both source and destination paths are required'
+        error: 'Both source and destination paths are required',
       };
     }
 
     if (!this.isPathAllowed(sourcePath) || !this.isPathAllowed(destPath)) {
       return {
         success: false,
-        error: 'Access to these paths is not allowed'
+        error: 'Access to these paths is not allowed',
       };
     }
 
@@ -300,12 +306,12 @@ class FileSystemAgent {
         success: true,
         sourcePath,
         destPath,
-        message: 'Moved/renamed successfully'
+        message: 'Moved/renamed successfully',
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -320,7 +326,7 @@ class FileSystemAgent {
     if (!this.isPathAllowed(searchDir)) {
       return {
         success: false,
-        error: 'Access to this path is not allowed'
+        error: 'Access to this path is not allowed',
       };
     }
 
@@ -333,12 +339,12 @@ class FileSystemAgent {
         searchDir,
         pattern,
         matches,
-        totalMatches: matches.length
+        totalMatches: matches.length,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -362,7 +368,7 @@ class FileSystemAgent {
           matches.push({
             name: entry.name,
             path: fullPath,
-            isDirectory: entry.isDirectory()
+            isDirectory: entry.isDirectory(),
           });
         }
         
@@ -397,8 +403,8 @@ Return a JSON response:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -410,19 +416,19 @@ Return a JSON response:
         return this.execute(parsed.operation, {
           ...context,
           ...parsed,
-          ...parsed.additionalParams
+          ...parsed.additionalParams,
         });
       }
 
       return {
         success: false,
-        error: 'Could not determine file operation'
+        error: 'Could not determine file operation',
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -463,6 +469,150 @@ Return a JSON response:
     }
 
     return '';
+  }
+
+  /**
+   * Handle canvas operations
+   */
+  async handleCanvas(task, context) {
+    const taskLower = task.toLowerCase();
+    const userId = context.userId || 'default';
+
+    try {
+      // Import canvas manager dynamically to avoid circular dependencies
+      const { default: CanvasFileManager } = await import('../../canvas/canvas-file-manager.js');
+      const canvasManager = new CanvasFileManager();
+
+      if (taskLower.includes('list') || taskLower.includes('show projects')) {
+        const result = await canvasManager.listProjects(userId);
+        return {
+          success: result.success,
+          message: result.success
+            ? `Found ${result.projects.length} canvas projects`
+            : result.error,
+          projects: result.projects,
+        };
+      }
+
+      if (taskLower.includes('read') || taskLower.includes('load') || taskLower.includes('open')) {
+        const projectId = this.extractCanvasProjectId(task);
+        if (!projectId) {
+          return {
+            success: false,
+            error: 'Could not identify canvas project to read',
+          };
+        }
+
+        const result = await canvasManager.loadProject(projectId, userId);
+        return {
+          success: result.success,
+          message: result.success
+            ? `Loaded canvas project: ${result.project.name}`
+            : result.error,
+          project: result.project,
+        };
+      }
+
+      if (taskLower.includes('save') || taskLower.includes('create')) {
+        const projectData = context.projectData || {};
+        const result = await canvasManager.saveProject(projectData, userId);
+        return {
+          success: result.success,
+          message: result.success
+            ? `Saved canvas project: ${result.projectId}`
+            : result.error,
+          projectId: result.projectId,
+        };
+      }
+
+      if (taskLower.includes('delete') || taskLower.includes('remove')) {
+        const projectId = this.extractCanvasProjectId(task);
+        if (!projectId) {
+          return {
+            success: false,
+            error: 'Could not identify canvas project to delete',
+          };
+        }
+
+        const result = await canvasManager.deleteProject(projectId, userId);
+        return {
+          success: result.success,
+          message: result.success
+            ? `Deleted canvas project: ${projectId}`
+            : result.error,
+        };
+      }
+
+      if (taskLower.includes('export')) {
+        const projectId = this.extractCanvasProjectId(task);
+        const format = taskLower.includes('html') ? 'html' : 'json';
+
+        if (!projectId) {
+          return {
+            success: false,
+            error: 'Could not identify canvas project to export',
+          };
+        }
+
+        const result = await canvasManager.exportProject(projectId, userId, format);
+        return {
+          success: result.success,
+          message: result.success
+            ? `Exported canvas project as ${result.format}: ${result.fileName}`
+            : result.error,
+          exportPath: result.exportPath,
+          fileName: result.fileName,
+        };
+      }
+
+      if (taskLower.includes('search') || taskLower.includes('find')) {
+        const query = this.extractPattern(task);
+        if (!query) {
+          return {
+            success: false,
+            error: 'No search query specified',
+          };
+        }
+
+        const result = await canvasManager.searchProjects(query, userId);
+        return {
+          success: result.success,
+          message: result.success
+            ? `Found ${result.projects.length} matching canvas projects`
+            : result.error,
+          projects: result.projects,
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Unsupported canvas operation',
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: `Canvas operation failed: ${error.message}`,
+      };
+    }
+  }
+
+  /**
+   * Extract canvas project ID from task
+   */
+  extractCanvasProjectId(task) {
+    const patterns = [
+      /project\s+['"]?([^'"\s]+)['"]?/i,
+      /canvas\s+['"]?([^'"\s]+)['"]?/i,
+      /id\s+['"]?([^'"\s]+)['"]?/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = task.match(pattern);
+      if (match) return match[1];
+    }
+
+    return null;
   }
 }
 

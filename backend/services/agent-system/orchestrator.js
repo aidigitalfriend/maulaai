@@ -104,8 +104,8 @@ class AgentOrchestrator {
 
 Available Agents:
 ${Object.entries(this.agents).map(([key, info]) => 
-  `- ${key}: ${info.description}`
-).join('\n')}
+    `- ${key}: ${info.description}`,
+  ).join('\n')}
 
 Respond in JSON format:
 {
@@ -129,7 +129,7 @@ Rules:
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Request: ${userRequest}\n\nContext: ${JSON.stringify(context)}` }
+          { role: 'user', content: `Request: ${userRequest}\n\nContext: ${JSON.stringify(context)}` },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.3,
@@ -152,7 +152,7 @@ Rules:
 
     for (const [key, info] of Object.entries(this.agents)) {
       const matchScore = info.triggers.filter(trigger => 
-        request.includes(trigger.toLowerCase())
+        request.includes(trigger.toLowerCase()),
       ).length;
       
       if (matchScore > 0) {
@@ -168,10 +168,10 @@ Rules:
       taskBreakdown: [{
         agent: matchedAgents[0]?.key || 'code_generation',
         task: userRequest,
-        priority: 1
+        priority: 1,
       }],
       requiresSequential: false,
-      reasoning: 'Fallback keyword-based analysis'
+      reasoning: 'Fallback keyword-based analysis',
     };
   }
 
@@ -204,10 +204,10 @@ Rules:
       console.log(`[Orchestrator] Analyzing task: ${userRequest.substring(0, 100)}...`);
       const analysis = await this.analyzeTask(userRequest, { ...context, ragContext });
       
-      console.log(`[Orchestrator] Analysis complete:`, {
+      console.log('[Orchestrator] Analysis complete:', {
         primary: analysis.primaryAgent,
         secondary: analysis.secondaryAgents,
-        sequential: analysis.requiresSequential
+        sequential: analysis.requiresSequential,
       });
 
       // Step 2: Execute agents
@@ -221,13 +221,13 @@ Rules:
           if (agentInfo) {
             const result = await this.executeAgent(task.agent, task.task, {
               ...enhancedContext,
-              previousResults: results
+              previousResults: results,
             });
             results.push({
               agent: task.agent,
               agentName: agentInfo.name,
               task: task.task,
-              result
+              result,
             });
           }
         }
@@ -243,11 +243,11 @@ Rules:
                 agent: task.agent,
                 agentName: agentInfo.name,
                 task: task.task,
-                result
+                result,
               };
             }
             return null;
-          })
+          }),
         );
         results.push(...parallelResults.filter(Boolean));
       }
@@ -264,7 +264,7 @@ Rules:
         combinedResult,
         ragUsed: !!ragContext,
         duration: Date.now() - startTime,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
       this.executionHistory.push(execution);
 
@@ -274,7 +274,7 @@ Rules:
         analysis,
         agentResults: results,
         finalResult: combinedResult,
-        duration: execution.duration
+        duration: execution.duration,
       };
 
     } catch (error) {
@@ -283,7 +283,7 @@ Rules:
         success: false,
         executionId,
         error: error.message,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
     }
   }
@@ -307,7 +307,7 @@ Rules:
       console.error(`[${agentInfo.name}] Error:`, error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -315,7 +315,7 @@ Rules:
   /**
    * Combine results from multiple agents into a cohesive response
    */
-  async combineResults(originalRequest, agentResults, context) {
+  async combineResults(originalRequest, agentResults, _context) {
     if (agentResults.length === 0) {
       return { message: 'No agents were able to process the request.' };
     }
@@ -344,8 +344,8 @@ Include all relevant code, explanations, and recommendations from each agent.`;
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       return {
@@ -354,17 +354,17 @@ Include all relevant code, explanations, and recommendations from each agent.`;
         response: response.content[0].text,
         individualResults: agentResults.map(r => ({
           agent: r.agentName,
-          summary: r.result?.summary || r.result?.message || 'Completed'
-        }))
+          summary: r.result?.summary || r.result?.message || 'Completed',
+        })),
       };
-    } catch (error) {
+    } catch (_error) {
       // Fallback: just return all results
       return {
         combined: false,
         results: agentResults.map(r => ({
           agent: r.agentName,
-          result: r.result
-        }))
+          result: r.result,
+        })),
       };
     }
   }
@@ -377,7 +377,7 @@ Include all relevant code, explanations, and recommendations from each agent.`;
       id: key,
       name: info.name,
       description: info.description,
-      triggers: info.triggers
+      triggers: info.triggers,
     }));
   }
 

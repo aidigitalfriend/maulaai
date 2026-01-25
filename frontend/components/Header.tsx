@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 export default function Header() {
   // Always call hooks in the same order
@@ -55,11 +56,11 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <img
+            <Image
               src="/images/logos/company-logo.png"
               alt="One Last AI"
-              width="40"
-              height="40"
+              width={40}
+              height={40}
               className="w-10 h-10 object-contain"
             />
             <span className="text-xl font-bold text-neural-800">

@@ -139,57 +139,57 @@ class MultiModalAIService {
         : defaultConfig.provider;
     try {
       switch (provider) {
-        case 'gemini':
-          return await this.getChatGemini(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        case 'openai':
-          return await this.getChatOpenAI(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        case 'mistral':
-          return await this.getChatMistral(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        case 'anthropic':
-          return await this.getChatAnthropic(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        case 'cohere':
-          return await this.getChatCohere(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        case 'groq':
-          return await this.getChatGroq(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        case 'xai':
-          return await this.getChatXAI(
-            message,
-            systemPrompt,
-            defaultConfig,
-            startTime
-          );
-        default:
-          throw new Error(`No AI provider available`);
+      case 'gemini':
+        return await this.getChatGemini(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'openai':
+        return await this.getChatOpenAI(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'mistral':
+        return await this.getChatMistral(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'anthropic':
+        return await this.getChatAnthropic(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'cohere':
+        return await this.getChatCohere(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'groq':
+        return await this.getChatGroq(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'xai':
+        return await this.getChatXAI(
+          message,
+          systemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      default:
+        throw new Error('No AI provider available');
       }
     } catch (error) {
       console.error(`${provider} failed, trying fallback...`, error);
@@ -197,10 +197,201 @@ class MultiModalAIService {
         message,
         agentId,
         provider,
-        startTime
+        startTime,
       );
     }
   }
+
+  /**
+   * Get chat response with tool calling support
+   */
+  async getChatWithTools(message, agentId, config, tools = []) {
+    const startTime = Date.now();
+    const personality = getAgentPersonalityConfig(agentId);
+    const systemPrompt = buildAgentSystemMessage(agentId, '');
+
+    // Add tool calling instructions to system prompt
+    const enhancedSystemPrompt = this.buildToolCallingPrompt(systemPrompt, tools);
+
+    const defaultConfig = {
+      provider: 'auto',
+      model: void 0,
+      temperature: personality.temperature,
+      maxTokens: 2e3,
+      topP: personality.topP,
+      enableToolCalling: true,
+      tools,
+      ...config,
+    };
+
+    const provider = defaultConfig.provider === 'auto'
+      ? this.selectBestProvider()
+      : defaultConfig.provider;
+
+    try {
+      switch (provider) {
+      case 'openai':
+        return await this.getChatOpenAIWithTools(
+          message,
+          enhancedSystemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      case 'anthropic':
+        return await this.getChatAnthropicWithTools(
+          message,
+          enhancedSystemPrompt,
+          defaultConfig,
+          startTime,
+        );
+      default:
+        // Fallback to regular chat for providers that don't support tools
+        return await this.getChatResponse(message, agentId, config);
+      }
+    } catch (error) {
+      console.error(`${provider} tool calling failed, falling back to regular chat...`, error);
+      return await this.getChatResponse(message, agentId, config);
+    }
+  }
+
+  /**
+   * Build system prompt with tool calling instructions
+   */
+  buildToolCallingPrompt(systemPrompt, tools) {
+    if (!tools || tools.length === 0) {
+      return systemPrompt;
+    }
+
+    const toolInstructions = `
+You have access to the following tools:
+${tools.map(tool => `- ${tool.name}: ${tool.description}`).join('\n')}
+
+When you need to use a tool, respond with a JSON object containing the tool call:
+{
+  "tool_call": {
+    "name": "tool_name",
+    "arguments": {
+      "param1": "value1",
+      "param2": "value2"
+    }
+  }
+}
+
+You can make multiple tool calls if needed. After receiving tool results, provide a natural language response to the user.`;
+
+    return `${systemPrompt}\n\n${toolInstructions}`;
+  }
+
+  /**
+   * Get OpenAI chat with tool calling
+   */
+  async getChatOpenAIWithTools(message, systemPrompt, config, startTime) {
+    if (!this.openai) throw new Error('OpenAI client not initialized');
+
+    try {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message },
+      ];
+
+      // Convert tools to OpenAI format
+      const openaiTools = config.tools?.map(tool => ({
+        type: 'function',
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters || {
+            type: 'object',
+            properties: {},
+            required: [],
+          },
+        },
+      }));
+
+      const response = await this.openai.chat.completions.create({
+        model: config.model || 'gpt-4',
+        messages,
+        temperature: config.temperature,
+        max_tokens: config.maxTokens,
+        top_p: config.topP,
+        tools: openaiTools,
+        tool_choice: openaiTools ? 'auto' : undefined,
+      });
+
+      const duration = Date.now() - startTime;
+      console.log(`[OpenAI Tools] Response in ${duration}ms`);
+
+      const choice = response.choices[0];
+      const content = choice.message.content || '';
+
+      // Check for tool calls
+      const toolCalls = choice.message.tool_calls || [];
+
+      return {
+        content,
+        toolCalls: toolCalls.map(tc => ({
+          id: tc.id,
+          name: tc.function.name,
+          arguments: JSON.parse(tc.function.arguments || '{}'),
+        })),
+        usage: response.usage,
+        duration,
+      };
+    } catch (error) {
+      console.error('[OpenAI Tools] Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get Anthropic chat with tool calling
+   */
+  async getChatAnthropicWithTools(message, systemPrompt, config, startTime) {
+    if (!this.anthropic) throw new Error('Anthropic client not initialized');
+
+    try {
+      // Convert tools to Anthropic format
+      const anthropicTools = config.tools?.map(tool => ({
+        name: tool.name,
+        description: tool.description,
+        input_schema: tool.parameters || {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      }));
+
+      const response = await this.anthropic.messages.create({
+        model: config.model || 'claude-3-sonnet-20240229',
+        max_tokens: config.maxTokens,
+        temperature: config.temperature,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: message }],
+        tools: anthropicTools,
+      });
+
+      const duration = Date.now() - startTime;
+      console.log(`[Anthropic Tools] Response in ${duration}ms`);
+
+      const content = response.content.find(c => c.type === 'text')?.text || '';
+      const toolCalls = response.content.filter(c => c.type === 'tool_use');
+
+      return {
+        content,
+        toolCalls: toolCalls.map(tc => ({
+          id: tc.id,
+          name: tc.name,
+          arguments: tc.input || {},
+        })),
+        usage: response.usage,
+        duration,
+      };
+    } catch (error) {
+      console.error('[Anthropic Tools] Error:', error);
+      throw error;
+    }
+  }
+
   selectBestProvider() {
     if (this.gemini) return 'gemini';
     if (this.openai) return 'openai';
@@ -233,69 +424,69 @@ class MultiModalAIService {
       if (provider === failedProvider) continue;
       try {
         switch (provider) {
-          case 'gemini':
-            if (this.gemini)
-              return await this.getChatGemini(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
-          case 'openai':
-            if (this.openai)
-              return await this.getChatOpenAI(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
-          case 'mistral':
-            if (this.mistral)
-              return await this.getChatMistral(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
-          case 'anthropic':
-            if (this.anthropic)
-              return await this.getChatAnthropic(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
-          case 'xai':
-            if (this.xaiApiKey)
-              return await this.getChatXAI(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
-          case 'groq':
-            if (this.groq)
-              return await this.getChatGroq(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
-          case 'cohere':
-            if (this.cohere)
-              return await this.getChatCohere(
-                message,
-                systemPrompt,
-                config,
-                startTime
-              );
-            break;
+        case 'gemini':
+          if (this.gemini)
+            return await this.getChatGemini(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
+        case 'openai':
+          if (this.openai)
+            return await this.getChatOpenAI(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
+        case 'mistral':
+          if (this.mistral)
+            return await this.getChatMistral(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
+        case 'anthropic':
+          if (this.anthropic)
+            return await this.getChatAnthropic(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
+        case 'xai':
+          if (this.xaiApiKey)
+            return await this.getChatXAI(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
+        case 'groq':
+          if (this.groq)
+            return await this.getChatGroq(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
+        case 'cohere':
+          if (this.cohere)
+            return await this.getChatCohere(
+              message,
+              systemPrompt,
+              config,
+              startTime,
+            );
+          break;
         }
       } catch (error) {
         console.error(`Fallback ${provider} also failed:`, error);
@@ -477,14 +668,14 @@ class MultiModalAIService {
         : defaultConfig.provider;
     try {
       switch (provider) {
-        case 'gemini':
-          return await this.getEmbeddingGemini(text, defaultConfig);
-        case 'openai':
-          return await this.getEmbeddingOpenAI(text, defaultConfig);
-        case 'cohere':
-          return await this.getEmbeddingCohere(text, defaultConfig);
-        default:
-          throw new Error(`Unsupported embedding provider: ${provider}`);
+      case 'gemini':
+        return await this.getEmbeddingGemini(text, defaultConfig);
+      case 'openai':
+        return await this.getEmbeddingOpenAI(text, defaultConfig);
+      case 'cohere':
+        return await this.getEmbeddingCohere(text, defaultConfig);
+      default:
+        throw new Error(`Unsupported embedding provider: ${provider}`);
       }
     } catch (error) {
       console.error('Embedding error:', error);
@@ -497,7 +688,7 @@ class MultiModalAIService {
     if (this.cohere) return 'cohere';
     throw new Error('No embedding provider available');
   }
-  async getEmbeddingGemini(text, config) {
+  async getEmbeddingGemini(text, _config) {
     if (!this.gemini) throw new Error('Gemini not initialized');
     const model = this.gemini.getGenerativeModel({
       model: 'text-embedding-004',
@@ -552,12 +743,12 @@ class MultiModalAIService {
     };
     try {
       switch (defaultConfig.provider) {
-        case 'openai':
-          return await this.generateImageOpenAI(prompt, defaultConfig);
-        default:
-          throw new Error(
-            `Unsupported image provider: ${defaultConfig.provider}`
-          );
+      case 'openai':
+        return await this.generateImageOpenAI(prompt, defaultConfig);
+      default:
+        throw new Error(
+          `Unsupported image provider: ${defaultConfig.provider}`,
+        );
       }
     } catch (error) {
       console.error('Image generation error:', error);
@@ -601,12 +792,12 @@ class MultiModalAIService {
     };
     try {
       switch (defaultConfig.provider) {
-        case 'openai':
-          return await this.transcribeOpenAI(audioFile, defaultConfig);
-        default:
-          throw new Error(
-            `Unsupported STT provider: ${defaultConfig.provider}`
-          );
+      case 'openai':
+        return await this.transcribeOpenAI(audioFile, defaultConfig);
+      default:
+        throw new Error(
+          `Unsupported STT provider: ${defaultConfig.provider}`,
+        );
       }
     } catch (error) {
       console.error('Transcription error:', error);
@@ -642,12 +833,12 @@ class MultiModalAIService {
     };
     try {
       switch (defaultConfig.provider) {
-        case 'openai':
-          return await this.generateSpeechOpenAI(text, defaultConfig);
-        default:
-          throw new Error(
-            `Unsupported TTS provider: ${defaultConfig.provider}`
-          );
+      case 'openai':
+        return await this.generateSpeechOpenAI(text, defaultConfig);
+      default:
+        throw new Error(
+          `Unsupported TTS provider: ${defaultConfig.provider}`,
+        );
       }
     } catch (error) {
       console.error('TTS error:', error);
@@ -688,7 +879,7 @@ class MultiModalAIService {
   async getNASAData(endpoint = 'planetary/apod') {
     if (!this.nasaApiKey) throw new Error('NASA API key not configured');
     const response = await fetch(
-      `https://api.nasa.gov/${endpoint}?api_key=${this.nasaApiKey}`
+      `https://api.nasa.gov/${endpoint}?api_key=${this.nasaApiKey}`,
     );
     return await response.json();
   }
@@ -699,8 +890,8 @@ class MultiModalAIService {
     if (!this.newsApiKey) throw new Error('News API key not configured');
     const response = await fetch(
       `https://newsapi.org/v2/everything?q=${encodeURIComponent(
-        query
-      )}&language=${language}&apiKey=${this.newsApiKey}`
+        query,
+      )}&language=${language}&apiKey=${this.newsApiKey}`,
     );
     return await response.json();
   }
@@ -719,7 +910,7 @@ class MultiModalAIService {
     const response = await fetch(
       `https://www.alphavantage.co/query?function=${
         functionMap[interval] || functionMap.daily
-      }&symbol=${symbol}&apikey=${this.alphaVantageKey}`
+      }&symbol=${symbol}&apikey=${this.alphaVantageKey}`,
     );
     return await response.json();
   }
@@ -731,7 +922,7 @@ class MultiModalAIService {
     const response = await fetch(
       `https://api.shodan.io/shodan/host/search?key=${
         this.shodanKey
-      }&query=${encodeURIComponent(query)}`
+      }&query=${encodeURIComponent(query)}`,
     );
     return await response.json();
   }

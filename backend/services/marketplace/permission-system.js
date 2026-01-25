@@ -13,16 +13,16 @@ const PERMISSION_CATEGORIES = {
     scopes: {
       read: { description: 'Read data', risk: 'low' },
       write: { description: 'Create and modify data', risk: 'medium' },
-      delete: { description: 'Delete data', risk: 'high' }
-    }
+      delete: { description: 'Delete data', risk: 'high' },
+    },
   },
   network: {
     name: 'Network Access',
     description: 'Internet and network connectivity',
     scopes: {
       fetch: { description: 'Make HTTP requests', risk: 'medium' },
-      websocket: { description: 'WebSocket connections', risk: 'medium' }
-    }
+      websocket: { description: 'WebSocket connections', risk: 'medium' },
+    },
   },
   ai: {
     name: 'AI Features',
@@ -31,8 +31,8 @@ const PERMISSION_CATEGORIES = {
       chat: { description: 'Chat completions', risk: 'low' },
       embeddings: { description: 'Generate embeddings', risk: 'low' },
       images: { description: 'Image generation', risk: 'medium' },
-      voice: { description: 'Voice synthesis/recognition', risk: 'medium' }
-    }
+      voice: { description: 'Voice synthesis/recognition', risk: 'medium' },
+    },
   },
   storage: {
     name: 'Storage',
@@ -40,8 +40,8 @@ const PERMISSION_CATEGORIES = {
     scopes: {
       local: { description: 'Local storage', risk: 'low' },
       cloud: { description: 'Cloud storage (S3, etc.)', risk: 'medium' },
-      database: { description: 'Direct database access', risk: 'high' }
-    }
+      database: { description: 'Direct database access', risk: 'high' },
+    },
   },
   system: {
     name: 'System',
@@ -49,8 +49,8 @@ const PERMISSION_CATEGORIES = {
     scopes: {
       notifications: { description: 'Send notifications', risk: 'low' },
       clipboard: { description: 'Clipboard access', risk: 'medium' },
-      files: { description: 'File system access', risk: 'high' }
-    }
+      files: { description: 'File system access', risk: 'high' },
+    },
   },
   tools: {
     name: 'Tools',
@@ -58,17 +58,17 @@ const PERMISSION_CATEGORIES = {
     scopes: {
       execute: { description: 'Execute other tools', risk: 'medium' },
       compose: { description: 'Compose tool chains', risk: 'low' },
-      install: { description: 'Install plugins', risk: 'high' }
-    }
+      install: { description: 'Install plugins', risk: 'high' },
+    },
   },
   billing: {
     name: 'Billing',
     description: 'Financial operations',
     scopes: {
       read: { description: 'View billing info', risk: 'medium' },
-      charge: { description: 'Create charges', risk: 'high' }
-    }
-  }
+      charge: { description: 'Create charges', risk: 'high' },
+    },
+  },
 };
 
 // Role definitions
@@ -80,8 +80,8 @@ const ROLES = {
       'ai:chat',
       'ai:embeddings',
       'storage:local',
-      'tools:compose'
-    ]
+      'tools:compose',
+    ],
   },
   developer: {
     name: 'Developer',
@@ -90,17 +90,17 @@ const ROLES = {
       'network:fetch',
       'ai:chat', 'ai:embeddings', 'ai:images',
       'storage:local', 'storage:cloud',
-      'tools:execute', 'tools:compose'
-    ]
+      'tools:execute', 'tools:compose',
+    ],
   },
   admin: {
     name: 'Admin',
-    defaultPermissions: ['*'] // All permissions
+    defaultPermissions: ['*'], // All permissions
   },
   plugin: {
     name: 'Plugin',
-    defaultPermissions: [] // Must explicitly request
-  }
+    defaultPermissions: [], // Must explicitly request
+  },
 };
 
 class PermissionSystem {
@@ -137,7 +137,7 @@ class PermissionSystem {
       valid: true,
       risk: scope && categoryDef.scopes[scope] 
         ? categoryDef.scopes[scope].risk 
-        : this.getHighestRisk(categoryDef.scopes)
+        : this.getHighestRisk(categoryDef.scopes),
     };
   }
 
@@ -179,14 +179,14 @@ class PermissionSystem {
       permission,
       grantedBy,
       timestamp: new Date(),
-      options
+      options,
     });
 
     return {
       success: true,
       permission,
       risk: parsed.risk,
-      expiresAt: options.expiresAt || null
+      expiresAt: options.expiresAt || null,
     };
   }
 
@@ -218,7 +218,7 @@ class PermissionSystem {
       permission,
       revokedBy,
       reason,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     return { success: true };
@@ -227,7 +227,7 @@ class PermissionSystem {
   /**
    * Check if entity has permission
    */
-  hasPermission(entityId, permission, options = {}) {
+  hasPermission(entityId, permission, _options = {}) {
     const parsed = this.parsePermission(permission);
     if (!parsed.valid) {
       return { allowed: false, error: parsed.error };
@@ -240,7 +240,7 @@ class PermissionSystem {
         action: 'check:denied:revoked',
         entityId,
         permission,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       return { allowed: false, reason: 'explicitly_revoked' };
     }
@@ -280,7 +280,7 @@ class PermissionSystem {
 
     return {
       granted: grants ? Array.from(grants) : [],
-      revoked: revocations ? Array.from(revocations) : []
+      revoked: revocations ? Array.from(revocations) : [],
     };
   }
 
@@ -295,14 +295,14 @@ class PermissionSystem {
 
     for (const permission of roleDef.defaultPermissions) {
       this.grantPermission(entityId, 'role', permission, 'system', {
-        reason: `Default for role: ${role}`
+        reason: `Default for role: ${role}`,
       });
     }
 
     return {
       success: true,
       role,
-      permissions: roleDef.defaultPermissions
+      permissions: roleDef.defaultPermissions,
     };
   }
 
@@ -314,14 +314,14 @@ class PermissionSystem {
     
     const validations = permissions.map(p => ({
       permission: p,
-      ...this.parsePermission(p)
+      ...this.parsePermission(p),
     }));
 
     const invalid = validations.filter(v => !v.valid);
     if (invalid.length > 0) {
       return {
         success: false,
-        errors: invalid.map(v => v.error)
+        errors: invalid.map(v => v.error),
       };
     }
 
@@ -336,31 +336,31 @@ class PermissionSystem {
       reason,
       risk: overallRisk,
       status: 'pending',
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     this.logAudit({
       action: 'permission_request',
-      ...request
+      ...request,
     });
 
     return {
       success: true,
-      request
+      request,
     };
   }
 
   /**
    * Approve permission request
    */
-  approveRequest(requestId, approvedBy, selectedPermissions = null) {
+  approveRequest(requestId, approvedBy, _selectedPermissions = null) {
     // In production, would look up request from database
     // For now, this is a placeholder
     return {
       success: true,
       requestId,
       approvedBy,
-      approvedAt: new Date()
+      approvedAt: new Date(),
     };
   }
 
@@ -373,7 +373,7 @@ class PermissionSystem {
       requestId,
       deniedBy,
       reason,
-      deniedAt: new Date()
+      deniedAt: new Date(),
     };
   }
 
@@ -395,7 +395,7 @@ class PermissionSystem {
     
     this.rateTracking.set(key, {
       count: current.count + 1,
-      lastUsed: new Date()
+      lastUsed: new Date(),
     });
   }
 
@@ -422,7 +422,7 @@ class PermissionSystem {
     this.auditLog.push({
       ...entry,
       logId: crypto.randomBytes(8).toString('hex'),
-      loggedAt: new Date()
+      loggedAt: new Date(),
     });
 
     // Keep only last 10000 entries in memory
@@ -465,7 +465,7 @@ class PermissionSystem {
           permission: `${category}:${scope}`,
           category: categoryDef.name,
           description: scopeDef.description,
-          risk: scopeDef.risk
+          risk: scopeDef.risk,
         });
       }
     }
@@ -479,7 +479,7 @@ class PermissionSystem {
   getRoles() {
     return Object.entries(ROLES).map(([id, role]) => ({
       id,
-      ...role
+      ...role,
     }));
   }
 
@@ -493,7 +493,7 @@ class PermissionSystem {
       totalRevocations: Array.from(this.revocations.values()).reduce((sum, s) => sum + s.size, 0),
       auditLogSize: this.auditLog.length,
       categories: Object.keys(PERMISSION_CATEGORIES),
-      roles: Object.keys(ROLES)
+      roles: Object.keys(ROLES),
     };
   }
 }

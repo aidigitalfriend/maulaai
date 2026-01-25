@@ -27,6 +27,7 @@ import {
   generateAndDescribeImage,
   useMultiModalAgent
 } from '@/lib/multimodal-helper'
+import Image from 'next/image'
 
 export default function MultiModalAgentExample() {
   const agentId = 'ben-sega' // Or any agent: tech-wizard, doctor-network, etc.
@@ -247,7 +248,13 @@ export default function MultiModalAgentExample() {
         
         {imageUrl && (
           <div className="mt-4">
-            <img src={imageUrl} alt="Generated" className="max-w-md rounded shadow-lg" />
+            <Image 
+              src={imageUrl} 
+              alt="Generated" 
+              width={400} 
+              height={400} 
+              className="max-w-md rounded shadow-lg object-cover" 
+            />
           </div>
         )}
       </section>

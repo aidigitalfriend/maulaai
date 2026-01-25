@@ -74,7 +74,7 @@ class ChatSessionAdapter {
   static async findById(id) {
     return prisma.chatSession.findUnique({ 
       where: { id },
-      include: { agent: true, messages: true }
+      include: { agent: true, messages: true },
     });
   }
 
@@ -85,7 +85,7 @@ class ChatSessionAdapter {
     if (query.id) where.id = query.id;
     return prisma.chatSession.findFirst({ 
       where,
-      include: { agent: true }
+      include: { agent: true },
     });
   }
 
@@ -97,7 +97,7 @@ class ChatSessionAdapter {
     return prisma.chatSession.findMany({ 
       where,
       include: { agent: true },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
   }
 
@@ -117,7 +117,7 @@ class ChatSessionAdapter {
         messageCount: data.stats?.messageCount || 0,
         totalTokens: data.stats?.totalTokens || 0,
         lastMessageAt: data.stats?.lastMessageAt,
-      }
+      },
     });
   }
 
@@ -128,7 +128,7 @@ class ChatSessionAdapter {
       if (query.userId) where.userId = query.userId;
       await prisma.chatSession.deleteMany({ where });
       return { deletedCount: 1 };
-    } catch (error) {
+    } catch (_error) {
       return { deletedCount: 0 };
     }
   }
@@ -153,14 +153,14 @@ class ChatSettingsAdapter {
     if (existing) {
       return prisma.chatSettings.update({
         where: { id: existing.id },
-        data: update.$set || update
+        data: update.$set || update,
       });
     } else if (options.upsert) {
       return prisma.chatSettings.create({
         data: {
           userId: query.userId,
-          ...(update.$set || update)
-        }
+          ...(update.$set || update),
+        },
       });
     }
     return null;
@@ -201,7 +201,7 @@ class ChatQuickActionAdapter {
     if (query.isDefault !== undefined) where.isDefault = query.isDefault;
     return prisma.chatQuickAction.findMany({ 
       where,
-      orderBy: { sortOrder: 'asc' }
+      orderBy: { sortOrder: 'asc' },
     });
   }
 
@@ -212,7 +212,7 @@ class ChatQuickActionAdapter {
   static async findByIdAndUpdate(id, update) {
     return prisma.chatQuickAction.update({
       where: { id },
-      data: update
+      data: update,
     });
   }
 
@@ -232,14 +232,14 @@ class ChatCanvasProjectAdapter {
     return prisma.chatCanvasProject.findMany({
       where,
       include: { files: true },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
   }
 
   static async findById(id) {
     return prisma.chatCanvasProject.findUnique({
       where: { id },
-      include: { files: true }
+      include: { files: true },
     });
   }
 
@@ -251,15 +251,15 @@ class ChatCanvasProjectAdapter {
         name: data.name,
         description: data.description,
         type: data.type,
-        metadata: data.metadata || {}
-      }
+        metadata: data.metadata || {},
+      },
     });
   }
 
   static async findByIdAndUpdate(id, update) {
     return prisma.chatCanvasProject.update({
       where: { id },
-      data: update.$set || update
+      data: update.$set || update,
     });
   }
 
@@ -280,7 +280,7 @@ class ChatCanvasFileAdapter {
     if (query.userId) where.userId = query.userId;
     return prisma.chatCanvasFile.findMany({
       where,
-      orderBy: { path: 'asc' }
+      orderBy: { path: 'asc' },
     });
   }
 
@@ -295,7 +295,7 @@ class ChatCanvasFileAdapter {
   static async findByIdAndUpdate(id, update) {
     return prisma.chatCanvasFile.update({
       where: { id },
-      data: update.$set || update
+      data: update.$set || update,
     });
   }
 
@@ -313,7 +313,7 @@ class ChatCanvasHistoryAdapter {
     if (query.fileId) where.fileId = query.fileId;
     return prisma.chatCanvasHistory.findMany({
       where,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -399,7 +399,7 @@ class ChatInteractionAdapter {
     if (query.userId) where.userId = query.userId;
     return prisma.chatAnalyticsInteraction.findMany({
       where,
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
     });
   }
 
@@ -412,8 +412,8 @@ class ChatInteractionAdapter {
         channel: data.channel || 'web',
         language: data.language || 'en',
         messages: data.messages || [],
-        status: data.status || 'active'
-      }
+        status: data.status || 'active',
+      },
     });
   }
 }
@@ -471,14 +471,14 @@ class CommunityPostAdapter {
     return prisma.communityPost.findMany({ 
       where, 
       include: { author: true, comments: true, likes: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   static async findById(id) {
     return prisma.communityPost.findUnique({ 
       where: { id },
-      include: { author: true, comments: true, likes: true }
+      include: { author: true, comments: true, likes: true },
     });
   }
 
@@ -568,7 +568,7 @@ class AgentMemoryAdapter {
   static async find(query = {}) {
     return prisma.agentMemory.findMany({ 
       where: query, 
-      orderBy: { updatedAt: 'desc' } 
+      orderBy: { updatedAt: 'desc' }, 
     });
   }
 
@@ -640,7 +640,7 @@ class LabExperimentAdapter {
     if (query.userId) where.userId = query.userId;
     return prisma.analyticsEvent.findMany({ 
       where, 
-      orderBy: { timestamp: 'desc' } 
+      orderBy: { timestamp: 'desc' }, 
     });
   }
 
@@ -666,10 +666,10 @@ class LabExperimentAdapter {
           costIncurred: data.costIncurred,
           modelUsed: data.modelUsed,
           parameters: data.parameters,
-          metadata: data.metadata
+          metadata: data.metadata,
         },
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     });
   }
 
@@ -686,7 +686,7 @@ class LabExperimentAdapter {
     const events = await prisma.analyticsEvent.findMany({
       where,
       select: { [field]: true },
-      distinct: [field]
+      distinct: [field],
     });
     return events.map(e => e[field]).filter(Boolean);
   }
@@ -694,7 +694,7 @@ class LabExperimentAdapter {
   static async aggregate(pipeline) {
     // Simplified aggregation for avg duration
     const events = await prisma.analyticsEvent.findMany({
-      where: { eventName: 'lab_experiment' }
+      where: { eventName: 'lab_experiment' },
     });
     if (pipeline.some(p => p.$group?._id === null)) {
       const durations = events.map(e => e.eventData?.processingTime || 0);
@@ -721,7 +721,7 @@ class ConsultationAdapter {
   static async find(query = {}) {
     return prisma.consultation.findMany({ 
       where: query, 
-      orderBy: { createdAt: 'desc' } 
+      orderBy: { createdAt: 'desc' }, 
     });
   }
 
@@ -736,7 +736,7 @@ class ConsultationAdapter {
   static async findByIdAndUpdate(id, update) {
     return prisma.consultation.update({ 
       where: { id }, 
-      data: update.$set || update 
+      data: update.$set || update, 
     });
   }
 }

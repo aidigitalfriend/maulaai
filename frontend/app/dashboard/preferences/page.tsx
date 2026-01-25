@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -138,14 +138,7 @@ export default function PreferencesPage() {
     normalizePreferences(defaultPreferences)
   );
 
-  // Fetch preferences on mount
-  useEffect(() => {
-    if (state.user?.id) {
-      fetchPreferences();
-    }
-  }, [state.user]);
-
-  const fetchPreferences = async () => {
+  const fetchPreferences = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/user/preferences/${state.user.id}`, {
@@ -164,7 +157,14 @@ export default function PreferencesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [state.user?.id, setLoading, setPreferences, setMessage]);
+
+  // Fetch preferences on mount
+  useEffect(() => {
+    if (state.user?.id) {
+      fetchPreferences();
+    }
+  }, [state.user, fetchPreferences]);
 
   const savePreferences = async (updatedPrefs) => {
     try {

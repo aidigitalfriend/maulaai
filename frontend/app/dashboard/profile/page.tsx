@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -18,6 +18,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 import { profileService, ProfileData } from '../../../services/profileService';
 
 export default function UserProfilePage() {
@@ -38,19 +39,7 @@ export default function UserProfilePage() {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // Redirect to login if not authenticated
-    if (!authLoading && !state.isAuthenticated) {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (user) {
-      loadProfile();
-    }
-  }, [user, authLoading, state.isAuthenticated, router]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -64,7 +53,19 @@ export default function UserProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, setLoading, setProfile, setOriginalProfile, setError]);
+
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!authLoading && !state.isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+
+    if (user) {
+      loadProfile();
+    }
+  }, [user, authLoading, state.isAuthenticated, router, loadProfile]);
 
   const handleInputChange = (field: string, value: any) => {
     if (!profile) return;
@@ -337,9 +338,11 @@ export default function UserProfilePage() {
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 text-center">
                 <div className="relative mb-6">
                   {profile.avatar ? (
-                    <img
+                    <Image
                       src={profile.avatar}
                       alt={profile.name}
+                      width={128}
+                      height={128}
                       className="w-32 h-32 rounded-full mx-auto object-cover"
                     />
                   ) : (

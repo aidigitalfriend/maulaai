@@ -27,6 +27,7 @@ import {
   ArrowDownTrayIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 interface FileUpload {
   id: string;
@@ -110,7 +111,7 @@ const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     };
   };
 
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     // Check file size
     if (file.size > maxFileSize * 1024 * 1024) {
       return `File "${file.name}" is too large. Maximum size is ${maxFileSize}MB.`;
@@ -127,9 +128,9 @@ const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     }
 
     return null;
-  };
+  }, [maxFileSize, acceptedTypes, files.length, maxFiles]);
 
-  const processFile = async (file: File): Promise<FileUpload> => {
+  const processFile = useCallback(async (file: File): Promise<FileUpload> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       const fileUpload: FileUpload = {
@@ -177,7 +178,7 @@ const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
 
       reader.readAsDataURL(file);
     });
-  };
+  }, []);
 
   const handleFileSelect = useCallback(async (selectedFiles: FileList | null) => {
     if (!selectedFiles || disabled) return;
@@ -214,7 +215,7 @@ const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     }
 
     setIsProcessing(false);
-  }, [files, disabled, maxFileSize, maxFiles, acceptedTypes, onFilesUpload]);
+  }, [disabled, files, onFilesUpload, processFile, validateFile]);
 
   const removeFile = (fileId: string) => {
     const updatedFiles = files.filter(f => f.id !== fileId);
@@ -312,10 +313,12 @@ const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
                     <div className="flex-shrink-0">
                       {file.preview ? (
                         <div className="relative">
-                          <img
+                          <Image
                             src={file.preview}
                             alt={file.name}
-                            className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                            width={48}
+                            height={48}
+                            className="object-cover rounded-lg border border-gray-200"
                           />
                           <button
                             onClick={() => setPreviewFile(file)}
@@ -391,9 +394,10 @@ const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
               </button>
             </div>
             <div className="p-4">
-              <img
+              <Image
                 src={previewFile.preview}
                 alt={previewFile.name}
+                fill
                 className="max-w-full max-h-[70vh] object-contain mx-auto"
               />
               {previewFile.analysis?.dimensions && (

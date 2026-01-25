@@ -17,7 +17,7 @@ export default function TimestampConverterPage(){
 
   const now = new Date()
 
-  const format = (d: Date) => new Intl.DateTimeFormat('en-US',{ dateStyle:'full', timeStyle:'long', timeZone: tz }).format(d)
+  const format = useMemo(() => (d: Date) => new Intl.DateTimeFormat('en-US',{ dateStyle:'full', timeStyle:'long', timeZone: tz }).format(d), [tz])
 
   useEffect(()=>{
     if(epoch.trim()===''){ setHuman(''); return }
@@ -25,7 +25,7 @@ export default function TimestampConverterPage(){
     const ms = String(n).length<=10 ? n*1000 : n
     const d = fromEpoch(ms)
     setHuman(format(d))
-  }, [epoch, tz])
+  }, [epoch, tz, format])
 
   useEffect(()=>{
     if(!human.trim()) return

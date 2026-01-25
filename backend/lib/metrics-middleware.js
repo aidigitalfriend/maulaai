@@ -1,9 +1,9 @@
-import { metricsTracker } from "./metrics-tracker.js";
-import { v4 as uuidv4 } from "uuid";
+import { metricsTracker } from './metrics-tracker.js';
+import { v4 as uuidv4 } from 'uuid';
 function getSessionId(req) {
   let sessionId = req.cookies?.sessionId;
   if (!sessionId) {
-    sessionId = req.headers["x-session-id"];
+    sessionId = req.headers['x-session-id'];
   }
   if (!sessionId) {
     sessionId = uuidv4();
@@ -17,7 +17,7 @@ function getAgentFromRequest(req) {
   if (req.body?.agent) {
     return req.body.agent;
   }
-  if (req.path.includes("/chat") && req.body?.agentId) {
+  if (req.path.includes('/chat') && req.body?.agentId) {
     return req.body.agentId;
   }
   return void 0;
@@ -26,21 +26,21 @@ function sessionTrackingMiddleware(req, res, next) {
   const sessionId = getSessionId(req);
   req.sessionId = sessionId;
   if (!req.cookies?.sessionId) {
-    res.cookie("sessionId", sessionId, {
+    res.cookie('sessionId', sessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 30 * 24 * 60 * 60 * 1e3,
       // 30 days
-      sameSite: "lax"
+      sameSite: 'lax',
     });
   }
   metricsTracker.trackSession(sessionId, {
     sessionId,
     userId: req.user?.id,
-    ipAddress: req.ip || req.socket.remoteAddress || "unknown",
-    userAgent: req.headers["user-agent"] || "unknown"
+    ipAddress: req.ip || req.socket.remoteAddress || 'unknown',
+    userAgent: req.headers['user-agent'] || 'unknown',
   }).catch((error) => {
-    console.error("Error in session tracking:", error);
+    console.error('Error in session tracking:', error);
   });
   next();
 }
@@ -66,14 +66,14 @@ function apiMetricsMiddleware(req, res, next) {
       req.method,
       statusCode,
       responseTime,
-      isError && body?.error ? body.error : void 0
+      isError && body?.error ? body.error : void 0,
     ).catch((error) => {
-      console.error("Error tracking API metrics:", error);
+      console.error('Error tracking API metrics:', error);
     });
     const agentName = getAgentFromRequest(req);
-    if (agentName && req.path.includes("/chat")) {
+    if (agentName && req.path.includes('/chat')) {
       metricsTracker.trackAgentRequest(agentName, sessionId, responseTime, !isError).catch((error) => {
-        console.error("Error tracking agent metrics:", error);
+        console.error('Error tracking agent metrics:', error);
       });
     }
   }
@@ -83,33 +83,33 @@ function startMetricsCleanupJob() {
   setInterval(
     () => {
       metricsTracker.cleanupSessions().catch((error) => {
-        console.error("Error in cleanup job:", error);
+        console.error('Error in cleanup job:', error);
       });
     },
-    5 * 60 * 1e3
+    5 * 60 * 1e3,
   );
   setInterval(
     () => {
       metricsTracker.updateDailyMetrics().catch((error) => {
-        console.error("Error updating daily metrics:", error);
+        console.error('Error updating daily metrics:', error);
       });
     },
-    60 * 60 * 1e3
+    60 * 60 * 1e3,
   );
-  console.log("\u2705 Metrics cleanup jobs started");
+  console.log('\u2705 Metrics cleanup jobs started');
 }
 async function initializeMetrics() {
   try {
     await metricsTracker.initializeIndexes();
     startMetricsCleanupJob();
-    console.log("\u2705 Metrics tracking initialized");
+    console.log('\u2705 Metrics tracking initialized');
   } catch (error) {
-    console.error("Error initializing metrics:", error);
+    console.error('Error initializing metrics:', error);
   }
 }
 export {
   apiMetricsMiddleware,
   initializeMetrics,
   sessionTrackingMiddleware,
-  startMetricsCleanupJob
+  startMetricsCleanupJob,
 };

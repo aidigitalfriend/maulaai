@@ -16,6 +16,7 @@ import {
   MagnifyingGlassIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 interface ChatSession {
   id: string;
@@ -139,10 +140,12 @@ export default function ChatSessionSidebar({
       >
         {/* Company Logo - Collapsed */}
         <div className="p-2 flex justify-center border-b border-gray-700/30">
-          <img
+          <Image
             src="/images/logos/company-logo.png"
             alt="OnelastAI"
-            className="h-6 w-6 object-contain"
+            width={24}
+            height={24}
+            className="object-contain"
           />
         </div>
 
@@ -212,10 +215,12 @@ export default function ChatSessionSidebar({
       {/* Company Logo Header - Expanded */}
       <div className={`px-4 py-3 border-b ${isNeural ? 'border-gray-700/50' : 'border-gray-200'} flex items-center justify-between`}>
         <div className="flex items-center space-x-2">
-          <img
+          <Image
             src="/images/logos/company-logo.png"
             alt="OnelastAI"
-            className="h-7 w-auto object-contain"
+            width={28}
+            height={28}
+            className="object-contain"
           />
           <p className={`text-[11px] ${textSecondary}`}>
             AI Digital Friend

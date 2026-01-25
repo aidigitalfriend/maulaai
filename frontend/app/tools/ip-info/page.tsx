@@ -23,7 +23,6 @@ import DoctorNetworkChat from '@/components/DoctorNetworkChat';
 import Script from 'next/script';
 
 // Declare Google Maps JS SDK global to satisfy TypeScript when script is loaded at runtime
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const google: any;
 
 interface IPLocation {
@@ -327,7 +326,7 @@ export default function IPInfoPage() {
     if (infoWindow) {
       infoWindow.setContent(buildInfoWindowHtml(ipData, lat, lng, formattedAddress || getFallbackAddress()));
     }
-  }, [mapsAvailable, mapLoaded, ipData, map, marker, markerType, infoWindow, formattedAddress]);
+  }, [mapsAvailable, mapLoaded, ipData, map, marker, markerType, infoWindow, formattedAddress, getFallbackAddress]);
 
   // Reverse geocode to get a human-readable address for the coordinates
   useEffect(() => {
@@ -345,7 +344,7 @@ export default function IPInfoPage() {
     } catch (e) {
       setFormattedAddress(getFallbackAddress());
     }
-  }, [mapsAvailable, mapLoaded, ipData?.location?.coordinates?.lat, ipData?.location?.coordinates?.lng]);
+  }, [mapsAvailable, mapLoaded, ipData?.location?.coordinates, getFallbackAddress]);
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -391,13 +390,13 @@ export default function IPInfoPage() {
   };
 
   // Fallback address from IP fields when reverse geocoding is unavailable
-  const getFallbackAddress = () => {
+  const getFallbackAddress = useCallback(() => {
     if (!ipData) return null;
     const parts = [ipData.location.city, ipData.location.region, ipData.location.country]
       .filter(Boolean)
       .join(', ');
     return parts || null;
-  };
+  }, [ipData]);
 
   const openInGoogleMapsUrl = (lat?: number, lng?: number) => {
     if (typeof lat !== 'number' || typeof lng !== 'number') return '#';

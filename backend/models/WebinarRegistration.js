@@ -1,1 +1,1 @@
-import { WebinarRegistration } from "./index.js"; export { WebinarRegistration };
+import { WebinarRegistration } from './index.js'; export { WebinarRegistration };

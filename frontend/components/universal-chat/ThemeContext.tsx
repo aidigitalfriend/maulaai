@@ -88,12 +88,7 @@ export function useChatTheme() {
 export function useChatThemeWithAgent(agentId: string) {
   const context = useContext(ThemeContext);
 
-  // If we're inside a provider, use it
-  if (context !== undefined) {
-    return context;
-  }
-
-  // Fallback: standalone usage (not recommended but maintains backward compatibility)
+  // Always call hooks at the top level (Rules of Hooks)
   const [theme, setThemeState] = useState<ChatTheme>('default');
 
   useEffect(() => {
@@ -122,5 +117,11 @@ export function useChatThemeWithAgent(agentId: string) {
     return newTheme;
   }, [theme, setTheme]);
 
+  // If we're inside a provider, use it instead of the fallback
+  if (context !== undefined) {
+    return context;
+  }
+
+  // Fallback: standalone usage (not recommended but maintains backward compatibility)
   return { theme, setTheme, toggleTheme, isNeural: theme === 'neural' };
 }

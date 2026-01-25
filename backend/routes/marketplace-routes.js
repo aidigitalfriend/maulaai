@@ -30,14 +30,14 @@ router.get('/status', (req, res) => {
       services: {
         pluginSDK: pluginSDK.getSDKInfo(),
         sandboxLoader: sandboxLoader.getStatus(),
-        permissionSystem: permissionSystem.getStatus()
+        permissionSystem: permissionSystem.getStatus(),
       },
       stats: {
         tools: tools.size,
         reviews: reviews.size,
         transactions: transactions.size,
-        developers: developers.size
-      }
+        developers: developers.size,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -52,7 +52,7 @@ router.get('/status', (req, res) => {
 router.get('/sdk/info', (req, res) => {
   res.json({
     success: true,
-    sdk: pluginSDK.getSDKInfo()
+    sdk: pluginSDK.getSDKInfo(),
   });
 });
 
@@ -60,7 +60,7 @@ router.get('/sdk/info', (req, res) => {
 router.get('/sdk/permissions', (req, res) => {
   res.json({
     success: true,
-    permissions: pluginSDK.getAvailablePermissions()
+    permissions: pluginSDK.getAvailablePermissions(),
   });
 });
 
@@ -77,7 +77,7 @@ router.post('/sdk/template', (req, res) => {
     
     res.json({
       success: true,
-      template
+      template,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -97,7 +97,7 @@ router.post('/sdk/validate', (req, res) => {
     
     res.json({
       success: true,
-      validation
+      validation,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -112,7 +112,7 @@ router.post('/sdk/register', async (req, res) => {
     if (!manifest || !code) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Manifest and code are required' 
+        error: 'Manifest and code are required', 
       });
     }
 
@@ -126,7 +126,7 @@ router.post('/sdk/register', async (req, res) => {
       success: true,
       pluginId: result.pluginId,
       warnings: result.warnings,
-      riskLevel: result.riskLevel
+      riskLevel: result.riskLevel,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -141,7 +141,7 @@ router.get('/sdk/plugins', (req, res) => {
     
     res.json({
       success: true,
-      plugins: pluginSDK.listPlugins(filter)
+      plugins: pluginSDK.listPlugins(filter),
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -159,7 +159,7 @@ router.get('/sdk/plugins/:pluginId', (req, res) => {
 
     res.json({
       success: true,
-      plugin
+      plugin,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -189,7 +189,7 @@ router.delete('/sdk/plugins/:pluginId', (req, res) => {
 router.get('/sandbox/status', (req, res) => {
   res.json({
     success: true,
-    status: sandboxLoader.getStatus()
+    status: sandboxLoader.getStatus(),
   });
 });
 
@@ -201,7 +201,7 @@ router.post('/sandbox/load', async (req, res) => {
     if (!pluginId || !code) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Plugin ID and code are required' 
+        error: 'Plugin ID and code are required', 
       });
     }
 
@@ -214,7 +214,7 @@ router.post('/sandbox/load', async (req, res) => {
     res.json({
       success: true,
       pluginId: result.pluginId,
-      sandboxType: result.sandboxType
+      sandboxType: result.sandboxType,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -229,7 +229,7 @@ router.post('/sandbox/execute', async (req, res) => {
     if (!pluginId || !functionName) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Plugin ID and function name are required' 
+        error: 'Plugin ID and function name are required', 
       });
     }
 
@@ -240,7 +240,7 @@ router.post('/sandbox/execute', async (req, res) => {
       result: result.result,
       error: result.error,
       duration: result.duration,
-      executionCount: result.executionCount
+      executionCount: result.executionCount,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -275,7 +275,7 @@ router.get('/sandbox/stats', (req, res) => {
     
     res.json({
       success: true,
-      stats: sandboxLoader.getStats(pluginId || undefined)
+      stats: sandboxLoader.getStats(pluginId || undefined),
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -291,7 +291,7 @@ router.get('/permissions/available', (req, res) => {
   res.json({
     success: true,
     permissions: permissionSystem.getAvailablePermissions(),
-    roles: permissionSystem.getRoles()
+    roles: permissionSystem.getRoles(),
   });
 });
 
@@ -303,7 +303,7 @@ router.post('/permissions/grant', (req, res) => {
     if (!entityId || !permission) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Entity ID and permission are required' 
+        error: 'Entity ID and permission are required', 
       });
     }
 
@@ -312,7 +312,7 @@ router.post('/permissions/grant', (req, res) => {
       entityType || 'plugin',
       permission, 
       grantedBy || 'api',
-      options
+      options,
     );
     
     if (!result.success) {
@@ -333,7 +333,7 @@ router.post('/permissions/revoke', (req, res) => {
     if (!entityId || !permission) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Entity ID and permission are required' 
+        error: 'Entity ID and permission are required', 
       });
     }
 
@@ -341,7 +341,7 @@ router.post('/permissions/revoke', (req, res) => {
       entityId,
       permission,
       revokedBy || 'api',
-      reason || ''
+      reason || '',
     );
     
     if (!result.success) {
@@ -362,7 +362,7 @@ router.get('/permissions/check', (req, res) => {
     if (!entityId || !permission) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Entity ID and permission are required' 
+        error: 'Entity ID and permission are required', 
       });
     }
 
@@ -370,7 +370,7 @@ router.get('/permissions/check', (req, res) => {
     
     res.json({
       success: true,
-      ...result
+      ...result,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -386,7 +386,7 @@ router.get('/permissions/entity/:entityId', (req, res) => {
     res.json({
       success: true,
       permissions,
-      usage
+      usage,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -401,7 +401,7 @@ router.post('/permissions/init-role', (req, res) => {
     if (!entityId || !role) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Entity ID and role are required' 
+        error: 'Entity ID and role are required', 
       });
     }
 
@@ -425,7 +425,7 @@ router.post('/permissions/request', (req, res) => {
     if (!entityId || !permissions || permissions.length === 0) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Entity ID and permissions are required' 
+        error: 'Entity ID and permissions are required', 
       });
     }
 
@@ -433,7 +433,7 @@ router.post('/permissions/request', (req, res) => {
       entityId,
       entityType || 'plugin',
       permissions,
-      reason || ''
+      reason || '',
     );
     
     if (!result.success) {
@@ -455,13 +455,13 @@ router.get('/permissions/audit', (req, res) => {
       entityId,
       action,
       since,
-      limit: limit ? parseInt(limit) : 100
+      limit: limit ? parseInt(limit) : 100,
     });
     
     res.json({
       success: true,
       logs,
-      total: logs.length
+      total: logs.length,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -490,7 +490,7 @@ router.get('/tools', (req, res) => {
       toolList = toolList.filter(t => 
         t.name.toLowerCase().includes(searchLower) ||
         t.description.toLowerCase().includes(searchLower) ||
-        t.tags.some(tag => tag.toLowerCase().includes(searchLower))
+        t.tags.some(tag => tag.toLowerCase().includes(searchLower)),
       );
     }
     
@@ -513,8 +513,8 @@ router.get('/tools', (req, res) => {
         total,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        hasMore: parseInt(offset) + toolList.length < total
-      }
+        hasMore: parseInt(offset) + toolList.length < total,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -527,13 +527,13 @@ router.post('/tools', (req, res) => {
     const {
       name, description, category, tags = [],
       icon, code, permissions = [], pricing = { type: 'free' },
-      developerId
+      developerId,
     } = req.body;
     
     if (!name || !description || !code) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Name, description, and code are required' 
+        error: 'Name, description, and code are required', 
       });
     }
 
@@ -560,14 +560,14 @@ router.post('/tools', (req, res) => {
       verified: false,
       featured: false,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
     
     tools.set(toolId, tool);
     
     res.status(201).json({
       success: true,
-      tool
+      tool,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -591,7 +591,7 @@ router.get('/tools/:toolId', (req, res) => {
     res.json({
       success: true,
       tool,
-      reviews: toolReviews
+      reviews: toolReviews,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -620,7 +620,7 @@ router.patch('/tools/:toolId', (req, res) => {
     
     res.json({
       success: true,
-      tool
+      tool,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -656,7 +656,7 @@ router.post('/tools/:toolId/install', (req, res) => {
     
     res.json({
       success: true,
-      downloads: tool.downloads
+      downloads: tool.downloads,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -684,7 +684,7 @@ router.post('/tools/:toolId/execute', async (req, res) => {
       success: result.success,
       result: result.result,
       error: result.error,
-      duration: result.duration
+      duration: result.duration,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -723,7 +723,7 @@ router.get('/reviews', (req, res) => {
     res.json({
       success: true,
       reviews: reviewList,
-      pagination: { total, limit: parseInt(limit), offset: parseInt(offset) }
+      pagination: { total, limit: parseInt(limit), offset: parseInt(offset) },
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -738,7 +738,7 @@ router.post('/reviews', (req, res) => {
     if (!toolId || !userId || !rating) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Tool ID, user ID, and rating are required' 
+        error: 'Tool ID, user ID, and rating are required', 
       });
     }
     
@@ -758,7 +758,7 @@ router.post('/reviews', (req, res) => {
       verified: false,
       helpfulCount: 0,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
     
     reviews.set(reviewId, review);
@@ -774,7 +774,7 @@ router.post('/reviews', (req, res) => {
     
     res.status(201).json({
       success: true,
-      review
+      review,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -795,7 +795,7 @@ router.post('/reviews/:reviewId/helpful', (req, res) => {
     
     res.json({
       success: true,
-      helpfulCount: review.helpfulCount
+      helpfulCount: review.helpfulCount,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -820,7 +820,7 @@ router.get('/developers/:developerId', (req, res) => {
         tools: [],
         totalDownloads: 0,
         totalEarnings: 0,
-        joinedAt: new Date()
+        joinedAt: new Date(),
       };
       developers.set(req.params.developerId, developer);
     }
@@ -833,14 +833,14 @@ router.get('/developers/:developerId', (req, res) => {
       id: t.id,
       name: t.name,
       downloads: t.downloads,
-      rating: t.averageRating
+      rating: t.averageRating,
     }));
     
     developer.totalDownloads = devTools.reduce((sum, t) => sum + t.downloads, 0);
     
     res.json({
       success: true,
-      developer
+      developer,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -863,9 +863,9 @@ router.get('/developers/:developerId/earnings', (req, res) => {
       earnings: {
         total: totalEarnings,
         pending: pendingEarnings,
-        paid: totalEarnings - pendingEarnings
+        paid: totalEarnings - pendingEarnings,
       },
-      transactions: devTransactions.slice(-20)
+      transactions: devTransactions.slice(-20),
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -897,14 +897,14 @@ router.post('/transactions', (req, res) => {
       developerShare,
       type,
       status: 'completed',
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     
     transactions.set(transactionId, transaction);
     
     res.status(201).json({
       success: true,
-      transaction
+      transaction,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -922,8 +922,8 @@ router.get('/categories', (req, res) => {
       { id: 'automation', name: 'Automation', icon: '⚡' },
       { id: 'utility', name: 'Utilities', icon: '🛠️' },
       { id: 'ai', name: 'AI & ML', icon: '🤖' },
-      { id: 'custom', name: 'Custom', icon: '✨' }
-    ]
+      { id: 'custom', name: 'Custom', icon: '✨' },
+    ],
   });
 });
 

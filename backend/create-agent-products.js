@@ -56,7 +56,7 @@ async function createAgentProducts() {
         name: `${agentName} - Daily Access`,
         description: `24-hour access to ${agentName}`,
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'daily',
         },
       });
@@ -69,7 +69,7 @@ async function createAgentProducts() {
           interval: PRICING.daily.interval,
         },
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'daily',
         },
       });
@@ -86,7 +86,7 @@ async function createAgentProducts() {
         name: `${agentName} - Weekly Access`,
         description: `7-day access to ${agentName}`,
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'weekly',
         },
       });
@@ -99,7 +99,7 @@ async function createAgentProducts() {
           interval: PRICING.weekly.interval,
         },
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'weekly',
         },
       });
@@ -116,7 +116,7 @@ async function createAgentProducts() {
         name: `${agentName} - Monthly Access`,
         description: `30-day access to ${agentName}`,
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'monthly',
         },
       });
@@ -129,7 +129,7 @@ async function createAgentProducts() {
           interval: PRICING.monthly.interval,
         },
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'monthly',
         },
       });
@@ -142,7 +142,7 @@ async function createAgentProducts() {
       console.log(`  ✅ Monthly: ${monthlyProduct.id} / ${monthlyPrice.id}`);
     } catch (error) {
       console.log(
-        `  ❌ Error creating products for ${agentName}: ${error.message}`
+        `  ❌ Error creating products for ${agentName}: ${error.message}`,
       );
     }
   }
@@ -156,24 +156,24 @@ async function createAgentProducts() {
   for (const [agentId, plans] of Object.entries(results)) {
     console.log(`# ${AGENTS[agentId]} (${agentId})`);
     console.log(
-      `STRIPE_PRODUCT_${agentId.toUpperCase()}_DAILY=${plans.daily.productId}`
+      `STRIPE_PRODUCT_${agentId.toUpperCase()}_DAILY=${plans.daily.productId}`,
     );
     console.log(
-      `STRIPE_PRODUCT_${agentId.toUpperCase()}_WEEKLY=${plans.weekly.productId}`
+      `STRIPE_PRODUCT_${agentId.toUpperCase()}_WEEKLY=${plans.weekly.productId}`,
     );
     console.log(
       `STRIPE_PRODUCT_${agentId.toUpperCase()}_MONTHLY=${
         plans.monthly.productId
-      }`
+      }`,
     );
     console.log(
-      `STRIPE_PRICE_${agentId.toUpperCase()}_DAILY=${plans.daily.priceId}`
+      `STRIPE_PRICE_${agentId.toUpperCase()}_DAILY=${plans.daily.priceId}`,
     );
     console.log(
-      `STRIPE_PRICE_${agentId.toUpperCase()}_WEEKLY=${plans.weekly.priceId}`
+      `STRIPE_PRICE_${agentId.toUpperCase()}_WEEKLY=${plans.weekly.priceId}`,
     );
     console.log(
-      `STRIPE_PRICE_${agentId.toUpperCase()}_MONTHLY=${plans.monthly.priceId}`
+      `STRIPE_PRICE_${agentId.toUpperCase()}_MONTHLY=${plans.monthly.priceId}`,
     );
     console.log('');
   }

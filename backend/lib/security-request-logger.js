@@ -1,24 +1,24 @@
 function getClientIP(request) {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const realIP = request.headers.get("x-real-ip");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : realIP;
-  return ip || "unknown";
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIP = request.headers.get('x-real-ip');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : realIP;
+  return ip || 'unknown';
 }
 function extractRequestMetadata(request) {
   const method = request.method;
   const url = new URL(request.url);
   const path = url.pathname;
-  const userAgent = request.headers.get("user-agent") || "unknown";
-  const referer = request.headers.get("referer");
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+  const referer = request.headers.get('referer');
   const ip = getClientIP(request);
-  const isSecure = url.protocol === "https:" || url.hostname === "localhost";
+  const isSecure = url.protocol === 'https:' || url.hostname === 'localhost';
   return {
     method,
     path,
     userAgent,
     referer,
     ip,
-    isSecure
+    isSecure,
   };
 }
 function logRequest(request, options) {
@@ -34,10 +34,10 @@ function logRequest(request, options) {
     userAgent: metadata.userAgent,
     referer: metadata.referer || void 0,
     isSecure: metadata.isSecure,
-    rateLimit: options?.rateLimit
+    rateLimit: options?.rateLimit,
   };
-  if (process.env.NODE_ENV === "development") {
-    console.log("[API Request]", log);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[API Request]', log);
   }
 }
 function detectSuspiciousActivity(request, options) {
@@ -48,25 +48,25 @@ function detectSuspiciousActivity(request, options) {
     // Path traversal
     /\.\.\//,
     // Script injection
-    /<script|javascript:|onerror=|onclick=/i
+    /<script|javascript:|onerror=|onclick=/i,
   ];
   const path = metadata.path;
   const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(path));
   if (isSuspicious) {
-    console.warn("[SUSPICIOUS ACTIVITY]", {
+    console.warn('[SUSPICIOUS ACTIVITY]', {
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       ip: metadata.ip,
       path,
       userAgent: metadata.userAgent,
-      userId: options?.userId
+      userId: options?.userId,
     });
   }
   if (options?.rateLimit?.exceeded) {
-    console.warn("[RATE LIMIT EXCEEDED]", {
+    console.warn('[RATE LIMIT EXCEEDED]', {
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       ip: metadata.ip,
       path,
-      userId: options?.userId
+      userId: options?.userId,
     });
   }
 }
@@ -83,21 +83,21 @@ function createRequestContext(request, userId) {
         userId,
         status,
         duration,
-        rateLimit
+        rateLimit,
       });
       detectSuspiciousActivity(request, {
         userId,
-        rateLimit
+        rateLimit,
       });
-    }
+    },
   };
 }
-var security_request_logger_default = logRequest;
+const security_request_logger_default = logRequest;
 export {
   createRequestContext,
   security_request_logger_default as default,
   detectSuspiciousActivity,
   extractRequestMetadata,
   getClientIP,
-  logRequest
+  logRequest,
 };

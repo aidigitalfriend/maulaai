@@ -49,7 +49,7 @@ const logActivity = async (
   resource,
   resourceId,
   userId = null,
-  metadata = {}
+  metadata = {},
 ) => {
   try {
     console.log(`[COMMUNITY_ACTIVITY] ${action} ${resource} ${resourceId}`, {
@@ -218,7 +218,7 @@ router.get('/posts/:id', async (req, res) => {
 // GET /api/community/metrics - Get community metrics
 router.get('/metrics', async (req, res) => {
   try {
-    const { period = 'daily', groupId } = req.query;
+    const { period = 'daily', groupId: _groupId } = req.query;
 
     // Basic stats
     const totalPosts = await CommunityPost.countDocuments();

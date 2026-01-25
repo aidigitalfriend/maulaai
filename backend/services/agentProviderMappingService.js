@@ -3,7 +3,6 @@
  * Maps agents to optimal AI providers based on personality and characteristics
  */
 
-import { AIProvider, AIModel, AgentProviderConfig } from '../models/Agent.js';
 import { aiProviderService } from './aiProviderService.js';
 
 /**
@@ -106,7 +105,7 @@ class AgentProviderMappingService {
       temperature: 0.8,
       maxTokens: 1000,
       systemPrompt:
-        "You are Julie, a caring and affectionate girlfriend. You are warm, loving, and always supportive. You use affectionate language, emojis, and show genuine interest in the user's feelings and experiences. You are playful but sincere, and you make the user feel special and loved.",
+        'You are Julie, a caring and affectionate girlfriend. You are warm, loving, and always supportive. You use affectionate language, emojis, and show genuine interest in the user\'s feelings and experiences. You are playful but sincere, and you make the user feel special and loved.',
     },
 
     // Chef Agent - Creative, technical
@@ -353,7 +352,7 @@ class AgentProviderMappingService {
 
     // Find the highest scoring category
     const bestCategory = Object.entries(scores).reduce((a, b) =>
-      scores[a[0]] > scores[b[0]] ? a : b
+      scores[a[0]] > scores[b[0]] ? a : b,
     )[0];
 
     const recommendation = this.providerRecommendations[bestCategory];
@@ -377,7 +376,7 @@ class AgentProviderMappingService {
     return availableProviders.some(
       (p) =>
         p.provider === provider &&
-        aiProviderService.isProviderAvailable(provider)
+        aiProviderService.isProviderAvailable(provider),
     );
   }
 

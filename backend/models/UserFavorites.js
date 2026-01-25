@@ -1,1 +1,1 @@
-import { UserFavorites } from "./index.js"; export { UserFavorites };
+import { UserFavorites } from './index.js'; export { UserFavorites };

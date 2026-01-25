@@ -67,8 +67,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -78,7 +78,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -88,14 +88,14 @@ Respond in JSON format:
       return {
         success: true,
         documentation: content,
-        format: 'markdown'
+        format: 'markdown',
       };
 
     } catch (error) {
       console.error('[DocumentationAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

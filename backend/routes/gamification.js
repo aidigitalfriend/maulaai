@@ -12,7 +12,7 @@ router.get('/metrics/:userId', async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'User ID is required'
+        error: 'User ID is required',
       });
     }
 
@@ -42,7 +42,7 @@ router.get('/metrics/:userId', async (req, res) => {
         averageResponseTime: 0,
         averageConversationLength: 0,
         accountCreatedAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
       
       gamificationData.set(userId, metrics);
@@ -50,13 +50,13 @@ router.get('/metrics/:userId', async (req, res) => {
 
     res.json({
       success: true,
-      data: metrics
+      data: metrics,
     });
   } catch (error) {
     console.error('Get gamification metrics error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get metrics'
+      error: 'Failed to get metrics',
     });
   }
 });
@@ -70,7 +70,7 @@ router.post('/metrics/:userId', async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'User ID is required'
+        error: 'User ID is required',
       });
     }
 
@@ -100,7 +100,7 @@ router.post('/metrics/:userId', async (req, res) => {
         averageResponseTime: 0,
         averageConversationLength: 0,
         accountCreatedAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     }
 
@@ -108,7 +108,7 @@ router.post('/metrics/:userId', async (req, res) => {
     const updatedMetrics = {
       ...currentMetrics,
       ...metricsUpdate,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     };
 
     // Handle Set conversion for agentsUsed
@@ -120,13 +120,13 @@ router.post('/metrics/:userId', async (req, res) => {
 
     res.json({
       success: true,
-      data: updatedMetrics
+      data: updatedMetrics,
     });
   } catch (error) {
     console.error('Update gamification metrics error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update metrics'
+      error: 'Failed to update metrics',
     });
   }
 });
@@ -140,7 +140,7 @@ router.post('/events/:userId', async (req, res) => {
     if (!userId || !type) {
       return res.status(400).json({
         success: false,
-        error: 'User ID and event type are required'
+        error: 'User ID and event type are required',
       });
     }
 
@@ -170,43 +170,43 @@ router.post('/events/:userId', async (req, res) => {
         averageResponseTime: 0,
         averageConversationLength: 0,
         accountCreatedAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     }
 
     // Process different event types
     switch (type) {
-      case 'message-sent':
-        metrics.totalMessagesEarned += 1;
-        if (data.agentId) {
-          metrics.agentUsageCount[data.agentId] = (metrics.agentUsageCount[data.agentId] || 0) + 1;
-          if (!metrics.agentsUsed.includes(data.agentId)) {
-            metrics.agentsUsed.push(data.agentId);
-          }
+    case 'message-sent':
+      metrics.totalMessagesEarned += 1;
+      if (data.agentId) {
+        metrics.agentUsageCount[data.agentId] = (metrics.agentUsageCount[data.agentId] || 0) + 1;
+        if (!metrics.agentsUsed.includes(data.agentId)) {
+          metrics.agentsUsed.push(data.agentId);
         }
-        break;
+      }
+      break;
 
-      case 'perfect-response':
-        metrics.perfectResponseCount += 1;
-        break;
+    case 'perfect-response':
+      metrics.perfectResponseCount += 1;
+      break;
 
-      case 'high-score':
-        metrics.highScoreCount += 1;
-        break;
+    case 'high-score':
+      metrics.highScoreCount += 1;
+      break;
 
-      case 'session-end':
-        if (data.messageCount) {
-          metrics.longestConversation = Math.max(metrics.longestConversation, data.messageCount);
-          metrics.totalConversationLength += data.messageCount;
-        }
-        break;
+    case 'session-end':
+      if (data.messageCount) {
+        metrics.longestConversation = Math.max(metrics.longestConversation, data.messageCount);
+        metrics.totalConversationLength += data.messageCount;
+      }
+      break;
 
-      case 'streak-update':
-        if (data.streakCount) {
-          metrics.currentStreak = data.streakCount;
-          metrics.longestStreak = Math.max(metrics.longestStreak, data.streakCount);
-        }
-        break;
+    case 'streak-update':
+      if (data.streakCount) {
+        metrics.currentStreak = data.streakCount;
+        metrics.longestStreak = Math.max(metrics.longestStreak, data.streakCount);
+      }
+      break;
     }
 
     metrics.lastActivityTime = new Date().toISOString();
@@ -219,14 +219,14 @@ router.post('/events/:userId', async (req, res) => {
       data: {
         eventProcessed: true,
         type,
-        metrics
-      }
+        metrics,
+      },
     });
   } catch (error) {
     console.error('Track gamification event error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to track event'
+      error: 'Failed to track event',
     });
   }
 });
@@ -239,7 +239,7 @@ router.get('/sync/:userId', async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'User ID is required'
+        error: 'User ID is required',
       });
     }
 
@@ -251,14 +251,14 @@ router.get('/sync/:userId', async (req, res) => {
       data: {
         metrics: metrics || null,
         pendingEvents,
-        lastSyncTime: new Date().toISOString()
-      }
+        lastSyncTime: new Date().toISOString(),
+      },
     });
   } catch (error) {
     console.error('Gamification sync error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to sync data'
+      error: 'Failed to sync data',
     });
   }
 });
@@ -272,7 +272,7 @@ router.post('/bulk-sync/:userId', async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        error: 'User ID is required'
+        error: 'User ID is required',
       });
     }
 
@@ -280,13 +280,13 @@ router.post('/bulk-sync/:userId', async (req, res) => {
     if (metrics) {
       gamificationData.set(userId, {
         ...metrics,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       });
     }
 
     // Process events (in real implementation, add to events queue)
     let processedEvents = 0;
-    for (const event of events) {
+    for (const _event of events) {
       // Process each event
       processedEvents++;
     }
@@ -296,14 +296,14 @@ router.post('/bulk-sync/:userId', async (req, res) => {
       data: {
         metricsUpdated: !!metrics,
         eventsProcessed: processedEvents,
-        syncTime: new Date().toISOString()
-      }
+        syncTime: new Date().toISOString(),
+      },
     });
   } catch (error) {
     console.error('Bulk gamification sync error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to bulk sync'
+      error: 'Failed to bulk sync',
     });
   }
 });

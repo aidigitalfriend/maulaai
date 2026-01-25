@@ -76,15 +76,15 @@ const TASK_PATTERNS = {
  * System prompts for different task types
  */
 const SYSTEM_PROMPTS = {
-  code_generation: `You are an expert code generation agent. Generate clean, efficient, well-documented code based on the requirements. Include error handling and follow best practices.`,
-  refactor: `You are an expert refactoring agent. Improve code structure, readability, and performance while maintaining the same functionality. Explain your changes.`,
-  debug: `You are an expert debugging agent. Analyze the code or error, identify the root cause, and provide a fix with explanation.`,
-  test: `You are an expert testing agent. Generate comprehensive unit tests with good coverage. Use appropriate testing frameworks and patterns.`,
-  documentation: `You are an expert documentation agent. Write clear, comprehensive documentation including usage examples and API references.`,
-  ui: `You are an expert UI/UX agent. Generate clean React/HTML/CSS code with modern design patterns and accessibility in mind.`,
-  deploy: `You are an expert deployment agent. Provide deployment configurations, scripts, and best practices for production environments.`,
-  build: `You are an expert build agent. Configure build tools, manage dependencies, and optimize build processes.`,
-  general: `You are a helpful AI assistant. Provide accurate, helpful responses.`,
+  code_generation: 'You are an expert code generation agent. Generate clean, efficient, well-documented code based on the requirements. Include error handling and follow best practices.',
+  refactor: 'You are an expert refactoring agent. Improve code structure, readability, and performance while maintaining the same functionality. Explain your changes.',
+  debug: 'You are an expert debugging agent. Analyze the code or error, identify the root cause, and provide a fix with explanation.',
+  test: 'You are an expert testing agent. Generate comprehensive unit tests with good coverage. Use appropriate testing frameworks and patterns.',
+  documentation: 'You are an expert documentation agent. Write clear, comprehensive documentation including usage examples and API references.',
+  ui: 'You are an expert UI/UX agent. Generate clean React/HTML/CSS code with modern design patterns and accessibility in mind.',
+  deploy: 'You are an expert deployment agent. Provide deployment configurations, scripts, and best practices for production environments.',
+  build: 'You are an expert build agent. Configure build tools, manage dependencies, and optimize build processes.',
+  general: 'You are a helpful AI assistant. Provide accurate, helpful responses.',
 };
 
 /**
@@ -318,7 +318,7 @@ Be thorough but concise.` },
         reviews: [{ 
           iteration: state.iteration, 
           feedback: reviewResult.content, 
-          approved: isApproved 
+          approved: isApproved, 
         }],
         approved: isApproved,
         status: isApproved ? 'approved' : 'needs_revision',
@@ -686,24 +686,24 @@ export async function executeQAWorkflow(input, options = {}) {
  */
 export async function executeWorkflow(workflowType, input, options = {}) {
   switch (workflowType) {
-    case 'coding':
-      return executeCodingWorkflow(input, options);
-    case 'collaboration':
-      return executeCollaborationWorkflow(input, options);
-    case 'review':
-      return executeReviewWorkflow(input, options);
-    case 'research':
-      return executeResearchWorkflow(input, options);
-    case 'creative':
-      return executeCreativeWorkflow(input, options);
-    case 'analysis':
-      return executeAnalysisWorkflow(input, options);
-    case 'planning':
-      return executePlanningWorkflow(input, options);
-    case 'qa':
-      return executeQAWorkflow(input, options);
-    default:
-      return executeCodingWorkflow(input, options);
+  case 'coding':
+    return executeCodingWorkflow(input, options);
+  case 'collaboration':
+    return executeCollaborationWorkflow(input, options);
+  case 'review':
+    return executeReviewWorkflow(input, options);
+  case 'research':
+    return executeResearchWorkflow(input, options);
+  case 'creative':
+    return executeCreativeWorkflow(input, options);
+  case 'analysis':
+    return executeAnalysisWorkflow(input, options);
+  case 'planning':
+    return executePlanningWorkflow(input, options);
+  case 'qa':
+    return executeQAWorkflow(input, options);
+  default:
+    return executeCodingWorkflow(input, options);
   }
 }
 

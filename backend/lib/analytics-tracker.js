@@ -13,7 +13,7 @@ async function trackVisitor(data) {
   try {
     // Try to find existing visitor
     const existingVisitor = await prisma.visitor.findUnique({
-      where: { visitorId: data.visitorId }
+      where: { visitorId: data.visitorId },
     });
 
     if (existingVisitor) {
@@ -24,8 +24,8 @@ async function trackVisitor(data) {
           lastVisit: new Date(),
           visitCount: { increment: 1 },
           sessionId: data.sessionId,
-          ...(data.userId && { userId: data.userId, isRegistered: true })
-        }
+          ...(data.userId && { userId: data.userId, isRegistered: true }),
+        },
       });
       return updated;
     }
@@ -49,8 +49,8 @@ async function trackVisitor(data) {
         isActive: true,
         firstVisit: new Date(),
         lastVisit: new Date(),
-        visitCount: 1
-      }
+        visitCount: 1,
+      },
     });
     return visitor;
   } catch (error) {
@@ -66,7 +66,7 @@ async function createSession(data) {
   try {
     // Check for existing session
     const existingSession = await prisma.session.findUnique({
-      where: { sessionId: data.sessionId }
+      where: { sessionId: data.sessionId },
     });
 
     if (existingSession) {
@@ -75,8 +75,8 @@ async function createSession(data) {
         where: { sessionId: data.sessionId },
         data: {
           lastActivity: new Date(),
-          ...(data.userId && !existingSession.userId && { userId: data.userId })
-        }
+          ...(data.userId && !existingSession.userId && { userId: data.userId }),
+        },
       });
       return updated;
     }
@@ -92,15 +92,15 @@ async function createSession(data) {
         isActive: true,
         pageViews: 0,
         events: 0,
-        duration: 0
-      }
+        duration: 0,
+      },
     });
     return session;
   } catch (error) {
     // Handle unique constraint violation gracefully
     if (error.code === 'P2002') {
       const existingSession = await prisma.session.findUnique({
-        where: { sessionId: data.sessionId }
+        where: { sessionId: data.sessionId },
       });
       return existingSession;
     }
@@ -115,7 +115,7 @@ async function createSession(data) {
 async function updateSession(sessionId, updates) {
   try {
     const session = await prisma.session.findUnique({
-      where: { sessionId }
+      where: { sessionId },
     });
     
     if (session) {
@@ -141,8 +141,8 @@ async function updateSession(sessionId, updates) {
         data: {
           ...updateData,
           duration,
-          lastActivity: new Date()
-        }
+          lastActivity: new Date(),
+        },
       });
       return updated;
     }
@@ -158,7 +158,7 @@ async function updateSession(sessionId, updates) {
 async function endSession(sessionId, exitPage) {
   try {
     const session = await prisma.session.findUnique({
-      where: { sessionId }
+      where: { sessionId },
     });
     
     if (session) {
@@ -169,8 +169,8 @@ async function endSession(sessionId, exitPage) {
         data: {
           isActive: false,
           duration,
-          ...(exitPage && { exitPage })
-        }
+          ...(exitPage && { exitPage }),
+        },
       });
       return updated;
     }
@@ -194,8 +194,8 @@ async function trackPageView(data) {
         title: data.title,
         referrer: data.referrer,
         timeSpent: 0,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     });
     
     // Update session page views
@@ -217,8 +217,8 @@ async function updatePageViewMetrics(pageViewId, data) {
       where: { id: pageViewId },
       data: {
         timeSpent: data.timeSpent,
-        ...(data.title && { title: data.title })
-      }
+        ...(data.title && { title: data.title }),
+      },
     });
     return updated;
   } catch (error) {
@@ -248,8 +248,8 @@ async function trackChatInteraction(data) {
         status: data.status || 'active',
         tags: data.tags || [],
         priority: data.priority || 'medium',
-        startedAt: new Date()
-      }
+        startedAt: new Date(),
+      },
     });
     
     // Update session if sessionId provided
@@ -301,8 +301,8 @@ async function trackToolUsage(data) {
         integration: data.metadata?.integration,
         environment: data.metadata?.environment,
         tags: data.metadata?.tags || [],
-        occurredAt: new Date()
-      }
+        occurredAt: new Date(),
+      },
     });
     
     // Update session if sessionId provided
@@ -340,10 +340,10 @@ async function trackLabExperiment(data) {
           costIncurred: data.costIncurred,
           modelUsed: data.modelUsed,
           parameters: data.parameters,
-          metadata: data.metadata
+          metadata: data.metadata,
         },
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     });
     
     // Update session
@@ -381,8 +381,8 @@ async function trackTransaction(data) {
         billing: data.billing,
         invoiceUrl: data.invoiceUrl,
         receiptUrl: data.receiptUrl,
-        metadata: data.metadata
-      }
+        metadata: data.metadata,
+      },
     });
     return transaction;
   } catch (error) {
@@ -397,7 +397,7 @@ async function trackTransaction(data) {
 async function updateTransactionStatus(transactionId, status, additionalData = {}) {
   try {
     const transaction = await prisma.transaction.findFirst({
-      where: { transactionId }
+      where: { transactionId },
     });
     
     if (transaction) {
@@ -405,8 +405,8 @@ async function updateTransactionStatus(transactionId, status, additionalData = {
         where: { id: transaction.id },
         data: {
           status,
-          ...additionalData
-        }
+          ...additionalData,
+        },
       });
       return updated;
     }
@@ -435,8 +435,8 @@ async function trackUserEvent(data) {
         source: data.source || 'web',
         tags: data.metadata?.tags || [],
         featureFlag: data.metadata?.featureFlag,
-        occurredAt: new Date()
-      }
+        occurredAt: new Date(),
+      },
     });
     
     // Update session
@@ -467,8 +467,8 @@ async function trackApiUsage(data) {
         responseTime: data.responseTime,
         userAgent: data.userAgent,
         ipAddress: data.ipAddress,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     });
     return apiUsage;
   } catch (error) {
@@ -483,28 +483,28 @@ async function trackApiUsage(data) {
 async function getVisitorStats(visitorId) {
   try {
     const visitor = await prisma.visitor.findUnique({
-      where: { visitorId }
+      where: { visitorId },
     });
     
     const sessions = await prisma.session.findMany({
       where: { visitorId },
-      orderBy: { startTime: 'desc' }
+      orderBy: { startTime: 'desc' },
     });
     
     const pageViews = await prisma.pageView.count({
-      where: { visitorId }
+      where: { visitorId },
     });
     
     const chats = await prisma.chatAnalyticsInteraction.count({
-      where: { userId: visitor?.userId }
+      where: { userId: visitor?.userId },
     });
     
     const tools = await prisma.toolUsage.count({
-      where: { userId: visitor?.userId }
+      where: { userId: visitor?.userId },
     });
     
     const events = await prisma.userEvent.count({
-      where: { userId: visitor?.userId }
+      where: { userId: visitor?.userId },
     });
     
     return {
@@ -514,7 +514,7 @@ async function getVisitorStats(visitorId) {
       chats,
       tools,
       events,
-      recentSessions: sessions.slice(0, 5)
+      recentSessions: sessions.slice(0, 5),
     };
   } catch (error) {
     console.error('Error getting visitor stats:', error);
@@ -528,23 +528,23 @@ async function getVisitorStats(visitorId) {
 async function getSessionStats(sessionId) {
   try {
     const session = await prisma.session.findUnique({
-      where: { sessionId }
+      where: { sessionId },
     });
     
     const pageViews = await prisma.pageView.findMany({
       where: { sessionId },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     });
     
     const events = await prisma.analyticsEvent.findMany({
       where: { sessionId },
-      orderBy: { timestamp: 'asc' }
+      orderBy: { timestamp: 'asc' },
     });
     
     return {
       session,
       pageViews,
-      events
+      events,
     };
   } catch (error) {
     console.error('Error getting session stats:', error);
@@ -563,20 +563,20 @@ async function getRealtimeStats() {
     const activeSessions = await prisma.session.count({
       where: {
         isActive: true,
-        lastActivity: { gte: fiveMinutesAgo }
-      }
+        lastActivity: { gte: fiveMinutesAgo },
+      },
     });
     
     const recentPageViews = await prisma.pageView.count({
-      where: { timestamp: { gte: fiveMinutesAgo } }
+      where: { timestamp: { gte: fiveMinutesAgo } },
     });
     
     const recentChats = await prisma.chatAnalyticsInteraction.count({
-      where: { startedAt: { gte: fiveMinutesAgo } }
+      where: { startedAt: { gte: fiveMinutesAgo } },
     });
     
     const recentTools = await prisma.toolUsage.count({
-      where: { occurredAt: { gte: fiveMinutesAgo } }
+      where: { occurredAt: { gte: fiveMinutesAgo } },
     });
     
     return {
@@ -584,7 +584,7 @@ async function getRealtimeStats() {
       recentPageViews,
       recentChats,
       recentTools,
-      timestamp: now
+      timestamp: now,
     };
   } catch (error) {
     console.error('Error getting realtime stats:', error);

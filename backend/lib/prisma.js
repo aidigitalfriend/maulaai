@@ -132,41 +132,41 @@ export const handlePrismaError = (error) => {
   // Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference
   
   switch (error.code) {
-    case 'P2002':
-      // Unique constraint violation
-      return {
-        status: 409,
-        message: 'A record with this value already exists',
-        field: error.meta?.target?.[0],
-      };
+  case 'P2002':
+    // Unique constraint violation
+    return {
+      status: 409,
+      message: 'A record with this value already exists',
+      field: error.meta?.target?.[0],
+    };
     
-    case 'P2025':
-      // Record not found
-      return {
-        status: 404,
-        message: 'Record not found',
-      };
+  case 'P2025':
+    // Record not found
+    return {
+      status: 404,
+      message: 'Record not found',
+    };
     
-    case 'P2003':
-      // Foreign key constraint violation
-      return {
-        status: 400,
-        message: 'Referenced record does not exist',
-      };
+  case 'P2003':
+    // Foreign key constraint violation
+    return {
+      status: 400,
+      message: 'Referenced record does not exist',
+    };
     
-    case 'P2014':
-      // Relation violation
-      return {
-        status: 400,
-        message: 'Invalid relation',
-      };
+  case 'P2014':
+    // Relation violation
+    return {
+      status: 400,
+      message: 'Invalid relation',
+    };
     
-    default:
-      return {
-        status: 500,
-        message: 'Database error',
-        error: error.message,
-      };
+  default:
+    return {
+      status: 500,
+      message: 'Database error',
+      error: error.message,
+    };
   }
 };
 

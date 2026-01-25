@@ -60,7 +60,7 @@ export function validateIdParams(params, requiredIds = []) {
   
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -68,5 +68,5 @@ export function validateIdParams(params, requiredIds = []) {
 export default {
   isValidUUID,
   isValidId,
-  validateIdParams
+  validateIdParams,
 };

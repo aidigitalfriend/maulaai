@@ -182,7 +182,7 @@ export async function processConversation(userId, agentId, messages, conversatio
           // Check if we already have a similar memory
           const isDuplicate = memory.memories.some(m =>
             m.type === learning.type &&
-            m.content.toLowerCase().includes(learning.data.extractedValue?.toLowerCase() || '')
+            m.content.toLowerCase().includes(learning.data.extractedValue?.toLowerCase() || ''),
           );
 
           if (!isDuplicate) {
@@ -258,7 +258,6 @@ export async function generateUserSummary(userId, agentId) {
     // Collect key information
     const facts = memory.memories.filter(m => m.type === 'user_fact');
     const preferences = memory.memories.filter(m => m.type === 'user_preference');
-    const insights = memory.memories.filter(m => m.type === 'conversation_insight');
 
     // Build summary
     let summary = '';
@@ -369,7 +368,7 @@ export async function clearMemories(userId, agentId, options = {}) {
       // Clear old memories
       const cutoff = new Date(Date.now() - options.olderThan);
       memory.memories = memory.memories.filter(m =>
-        new Date(m.source.timestamp) > cutoff
+        new Date(m.source.timestamp) > cutoff,
       );
     }
 

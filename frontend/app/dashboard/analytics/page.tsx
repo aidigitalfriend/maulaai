@@ -124,7 +124,7 @@ export default function DashboardAnalyticsPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [state.user]);
 
   const handleExportPDF = useCallback(async () => {
     if (!analyticsData) return;
@@ -141,7 +141,7 @@ export default function DashboardAnalyticsPage() {
       console.error('Error exporting PDF:', error);
       setError('Failed to export PDF report');
     }
-  }, [analyticsData]);
+  }, [analyticsData, setError]);
 
   useEffect(() => {
     if (!state.user) return;

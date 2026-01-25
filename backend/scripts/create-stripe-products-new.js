@@ -69,7 +69,7 @@ async function createAgentProducts() {
         name: `${agentName} - Daily Access`,
         description: `24-hour access to ${agentName}`,
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'daily',
         },
       });
@@ -79,7 +79,7 @@ async function createAgentProducts() {
         unit_amount: PRICING.daily.amount,
         currency: 'usd',
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'daily',
         },
       });
@@ -95,7 +95,7 @@ async function createAgentProducts() {
         name: `${agentName} - Weekly Access`,
         description: `7-day access to ${agentName}`,
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'weekly',
         },
       });
@@ -105,7 +105,7 @@ async function createAgentProducts() {
         unit_amount: PRICING.weekly.amount,
         currency: 'usd',
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'weekly',
         },
       });
@@ -121,7 +121,7 @@ async function createAgentProducts() {
         name: `${agentName} - Monthly Access`,
         description: `30-day access to ${agentName}`,
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'monthly',
         },
       });
@@ -131,7 +131,7 @@ async function createAgentProducts() {
         unit_amount: PRICING.monthly.amount,
         currency: 'usd',
         metadata: {
-          agentId: agentId,
+          agentId,
           planType: 'monthly',
         },
       });

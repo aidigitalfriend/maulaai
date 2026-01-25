@@ -1,57 +1,57 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 const RATE_LIMIT_CONFIG = {
   // Agent endpoints - strict limits to prevent abuse
-  "agent-chat": {
+  'agent-chat': {
     maxRequests: 30,
     windowSeconds: 3600,
     // 30 requests per hour
-    description: "Agent chat requests"
+    description: 'Agent chat requests',
   },
-  "agent-config": {
+  'agent-config': {
     maxRequests: 100,
     windowSeconds: 3600,
     // 100 requests per hour
-    description: "Agent configuration requests"
+    description: 'Agent configuration requests',
   },
   // Auth endpoints - moderate limits
-  "auth-login": {
+  'auth-login': {
     maxRequests: 10,
     windowSeconds: 900,
     // 10 requests per 15 minutes
-    description: "Login attempts"
+    description: 'Login attempts',
   },
-  "auth-register": {
+  'auth-register': {
     maxRequests: 5,
     windowSeconds: 3600,
     // 5 requests per hour
-    description: "Registration attempts"
+    description: 'Registration attempts',
   },
-  "auth-refresh": {
+  'auth-refresh': {
     maxRequests: 50,
     windowSeconds: 3600,
     // 50 requests per hour
-    description: "Token refresh"
+    description: 'Token refresh',
   },
   // Payment endpoints - strict limits
-  "payment-create": {
+  'payment-create': {
     maxRequests: 10,
     windowSeconds: 3600,
     // 10 requests per hour
-    description: "Payment creation"
+    description: 'Payment creation',
   },
-  "payment-webhook": {
+  'payment-webhook': {
     maxRequests: 100,
     windowSeconds: 3600,
     // 100 requests per hour (webhooks can burst)
-    description: "Payment webhooks"
+    description: 'Payment webhooks',
   },
   // General API - relaxed limits
-  "api-general": {
+  'api-general': {
     maxRequests: 100,
     windowSeconds: 60,
     // 100 requests per minute
-    description: "General API calls"
-  }
+    description: 'General API calls',
+  },
 };
 const rateLimitStore = /* @__PURE__ */ new Map();
 setInterval(() => {
@@ -62,15 +62,15 @@ setInterval(() => {
     }
   });
 }, 6e4);
-async function checkRateLimit(identifier, endpoint = "api-general") {
-  const config = RATE_LIMIT_CONFIG[endpoint] || RATE_LIMIT_CONFIG["api-general"];
+async function checkRateLimit(identifier, endpoint = 'api-general') {
+  const config = RATE_LIMIT_CONFIG[endpoint] || RATE_LIMIT_CONFIG['api-general'];
   const key = `${identifier}:${endpoint}`;
   const now = Date.now();
   let entry = rateLimitStore.get(key);
   if (!entry || entry.resetTime < now) {
     entry = {
       count: 0,
-      resetTime: now + config.windowSeconds * 1e3
+      resetTime: now + config.windowSeconds * 1e3,
     };
     rateLimitStore.set(key, entry);
   }
@@ -84,11 +84,11 @@ async function checkRateLimit(identifier, endpoint = "api-general") {
     limit: config.maxRequests,
     remaining,
     reset: resetTime,
-    retryAfter
+    retryAfter,
   };
 }
-async function getRateLimitStatus(identifier, endpoint = "api-general") {
-  const config = RATE_LIMIT_CONFIG[endpoint] || RATE_LIMIT_CONFIG["api-general"];
+async function getRateLimitStatus(identifier, endpoint = 'api-general') {
+  const config = RATE_LIMIT_CONFIG[endpoint] || RATE_LIMIT_CONFIG['api-general'];
   const key = `${identifier}:${endpoint}`;
   const now = Date.now();
   const entry = rateLimitStore.get(key);
@@ -97,7 +97,7 @@ async function getRateLimitStatus(identifier, endpoint = "api-general") {
       success: true,
       limit: config.maxRequests,
       remaining: config.maxRequests,
-      reset: Math.ceil((now + config.windowSeconds * 1e3) / 1e3)
+      reset: Math.ceil((now + config.windowSeconds * 1e3) / 1e3),
     };
   }
   const remaining = Math.max(0, config.maxRequests - entry.count);
@@ -106,15 +106,15 @@ async function getRateLimitStatus(identifier, endpoint = "api-general") {
     limit: config.maxRequests,
     remaining,
     reset: Math.ceil(entry.resetTime / 1e3),
-    retryAfter: entry.count > config.maxRequests ? Math.ceil((entry.resetTime - now) / 1e3) : void 0
+    retryAfter: entry.count > config.maxRequests ? Math.ceil((entry.resetTime - now) / 1e3) : void 0,
   };
 }
 function addRateLimitHeaders(response, result) {
-  response.headers.set("X-RateLimit-Limit", result.limit.toString());
-  response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
-  response.headers.set("X-RateLimit-Reset", result.reset.toString());
+  response.headers.set('X-RateLimit-Limit', result.limit.toString());
+  response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
+  response.headers.set('X-RateLimit-Reset', result.reset.toString());
   if (result.retryAfter) {
-    response.headers.set("Retry-After", result.retryAfter.toString());
+    response.headers.set('Retry-After', result.retryAfter.toString());
   }
   return response;
 }
@@ -122,11 +122,11 @@ function rateLimitExceededResponse(result) {
   const response = NextResponse.json(
     {
       success: false,
-      error: "Rate limit exceeded",
+      error: 'Rate limit exceeded',
       retryAfter: result.retryAfter,
-      resetAt: new Date(result.reset * 1e3).toISOString()
+      resetAt: new Date(result.reset * 1e3).toISOString(),
     },
-    { status: 429 }
+    { status: 429 },
   );
   return addRateLimitHeaders(response, result);
 }
@@ -134,11 +134,11 @@ function getIdentifierFromRequest(req, userId) {
   if (userId) {
     return userId;
   }
-  const forwarded = req.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip");
-  return ip || "unknown";
+  const forwarded = req.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip');
+  return ip || 'unknown';
 }
-var rate_limit_default = checkRateLimit;
+const rate_limit_default = checkRateLimit;
 export {
   RATE_LIMIT_CONFIG,
   addRateLimitHeaders,
@@ -146,5 +146,5 @@ export {
   rate_limit_default as default,
   getIdentifierFromRequest,
   getRateLimitStatus,
-  rateLimitExceededResponse
+  rateLimitExceededResponse,
 };

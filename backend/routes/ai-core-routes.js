@@ -80,7 +80,7 @@ router.post('/rag/index', async (req, res) => {
 
     const result = await ragEngine.indexDocument(
       { content, title, source, agentId, userId, type },
-      metadata
+      metadata,
     );
 
     res.json(result);
@@ -301,7 +301,7 @@ router.post('/langchain/chain', async (req, res) => {
 
     const result = await langChainService.executeChain(
       { promptTemplate, provider },
-      input
+      input,
     );
 
     res.json(result);
@@ -418,7 +418,7 @@ router.post('/langgraph/execute', async (req, res) => {
     const result = await langGraphService.executeWorkflow(
       workflowType || 'coding',
       input,
-      options || {}
+      options || {},
     );
 
     res.json(result);

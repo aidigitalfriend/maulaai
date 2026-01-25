@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Link from 'next/link'
 import { Palette, Upload, Download, Wand2, RefreshCw, Sparkles } from 'lucide-react'
+import Image from 'next/image'
 
 export default function NeuralArtPage() {
   const [selectedStyle, setSelectedStyle] = useState('van-gogh')
@@ -167,7 +168,7 @@ export default function NeuralArtPage() {
 
             {uploadedImage ? (
               <div className="aspect-square rounded-xl overflow-hidden mb-6">
-                <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-cover" />
+                <Image src={uploadedImage} alt="Uploaded" fill className="object-cover" />
               </div>
             ) : (
               <label className="aspect-square rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 mb-6 cursor-pointer hover:border-orange-300 hover:bg-orange-50 transition-all">
@@ -218,7 +219,7 @@ export default function NeuralArtPage() {
                 className="space-y-4"
               >
                 <div className="aspect-square rounded-xl overflow-hidden">
-                  <img src={resultImage} alt="Stylized result" className="w-full h-full object-cover" />
+                  <Image src={resultImage} alt="Stylized result" fill className="object-cover" />
                 </div>
                 <a
                   href={resultImage}
@@ -261,10 +262,11 @@ export default function NeuralArtPage() {
                 }`}
               >
                 <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 relative">
-                  <img 
+                  <Image 
                     src={style.preview} 
                     alt={style.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   {selectedStyle === style.id && (
                     <div className="absolute inset-0 bg-orange-500/20 flex items-center justify-center">

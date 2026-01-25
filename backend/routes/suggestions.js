@@ -83,22 +83,22 @@ router.get('/', async (req, res) => {
 
     let sortOption = {};
     switch (sort) {
-      case 'votes':
-        sortOption = { 'votes.up': -1 };
-        break;
-      case 'newest':
-        sortOption = { createdAt: -1 };
-        break;
-      case 'oldest':
-        sortOption = { createdAt: 1 };
-        break;
-      default:
-        sortOption = { 'votes.up': -1 };
+    case 'votes':
+      sortOption = { 'votes.up': -1 };
+      break;
+    case 'newest':
+      sortOption = { createdAt: -1 };
+      break;
+    case 'oldest':
+      sortOption = { createdAt: 1 };
+      break;
+    default:
+      sortOption = { 'votes.up': -1 };
     }
 
     const suggestions = await CommunitySuggestion.find(filter)
       .select(
-        'suggestionId title description category status votes.up votes.down userPriority createdAt updatedAt'
+        'suggestionId title description category status votes.up votes.down userPriority createdAt updatedAt',
       )
       .sort(sortOption)
       .skip((page - 1) * limit)
@@ -164,7 +164,7 @@ router.post('/:suggestionId/vote', async (req, res) => {
 
     // Check if user already voted
     const existingVoteIndex = suggestion.votes.voters.findIndex(
-      (v) => v.userId.toString() === userId
+      (v) => v.userId.toString() === userId,
     );
 
     if (existingVoteIndex >= 0) {
@@ -257,7 +257,7 @@ router.get('/user/:userId', async (req, res) => {
 
     const suggestions = await CommunitySuggestion.find({ userId })
       .select(
-        'suggestionId title category status votes.up votes.down createdAt'
+        'suggestionId title category status votes.up votes.down createdAt',
       )
       .sort({ createdAt: -1 });
 

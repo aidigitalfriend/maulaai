@@ -72,8 +72,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -83,7 +83,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -93,14 +93,14 @@ Respond in JSON format:
       return {
         success: true,
         tests: content,
-        framework
+        framework,
       };
 
     } catch (error) {
       console.error('[TestAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -113,7 +113,7 @@ Respond in JSON format:
     
     return this.execute(`Generate ${type} tests for this code`, {
       code,
-      framework
+      framework,
     });
   }
 
@@ -128,7 +128,7 @@ Respond in JSON format:
   /**
    * Analyze test coverage gaps
    */
-  async analyzeCoverage(code, existingTests, context = {}) {
+  async analyzeCoverage(code, existingTests, _context = {}) {
     const systemPrompt = `Analyze the test coverage for this code:
 
 CODE:
@@ -160,8 +160,8 @@ Return a JSON analysis:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -170,19 +170,19 @@ Return a JSON analysis:
       if (jsonMatch) {
         return {
           success: true,
-          ...JSON.parse(jsonMatch[0])
+          ...JSON.parse(jsonMatch[0]),
         };
       }
 
       return {
         success: true,
-        analysis: content
+        analysis: content,
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

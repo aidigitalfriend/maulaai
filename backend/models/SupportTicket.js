@@ -1,1 +1,1 @@
-import { SupportTicket } from "./index.js"; export { SupportTicket };
+import { SupportTicket } from './index.js'; export { SupportTicket };

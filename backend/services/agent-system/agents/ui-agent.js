@@ -77,8 +77,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -88,7 +88,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -99,14 +99,14 @@ Respond in JSON format:
         success: true,
         component: content,
         framework,
-        styling
+        styling,
       };
 
     } catch (error) {
       console.error('[UIAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -154,14 +154,14 @@ Respond in JSON format:
     const task = `Create a complete page layout: ${requirements}`;
     return this.execute(task, {
       ...context,
-      isPageLayout: true
+      isPageLayout: true,
     });
   }
 
   /**
    * Improve existing component
    */
-  async improveComponent(componentCode, improvements, context = {}) {
+  async improveComponent(componentCode, improvements, _context = {}) {
     const systemPrompt = `Improve this React component based on the requirements:
 
 CURRENT COMPONENT:
@@ -187,8 +187,8 @@ Return the improved component in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -197,19 +197,19 @@ Return the improved component in JSON format:
       if (jsonMatch) {
         return {
           success: true,
-          ...JSON.parse(jsonMatch[0])
+          ...JSON.parse(jsonMatch[0]),
         };
       }
 
       return {
         success: true,
-        improvedComponent: content
+        improvedComponent: content,
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

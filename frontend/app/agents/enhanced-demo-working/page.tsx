@@ -19,6 +19,7 @@ import {
   PhotoIcon,
   DocumentIcon
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 export default function WorkingEnhancedDemo() {
   const [input, setInput] = useState('');
@@ -103,10 +104,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
       {user && (
         <>
           <div className="flex items-center space-x-4 mb-4">
-            <img
+            <Image
               src={user.avatar || '/default-avatar.png'}
               alt={user.name}
-              className="w-16 h-16 rounded-full object-cover"
+              width={64}
+              height={64}
+              className="rounded-full object-cover"
             />
             <div>
               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>

@@ -102,7 +102,7 @@ router.get('/applications/user/:userId', async (req, res) => {
 
     const applications = await JobApplication.find({ userId })
       .select(
-        'applicationId applicationNumber position status appliedAt lastActivityAt'
+        'applicationId applicationNumber position status appliedAt lastActivityAt',
       )
       .sort({ appliedAt: -1 });
 
@@ -122,7 +122,7 @@ router.get('/applications/email/:email', async (req, res) => {
 
     const applications = await JobApplication.find({ 'applicant.email': email })
       .select(
-        'applicationId applicationNumber position status appliedAt lastActivityAt'
+        'applicationId applicationNumber position status appliedAt lastActivityAt',
       )
       .sort({ appliedAt: -1 });
 
@@ -155,7 +155,7 @@ router.get('/applications/:applicationId', async (req, res) => {
       status: application.status,
       appliedAt: application.appliedAt,
       interviews: application.interviews?.filter(
-        (i) => i.status === 'scheduled'
+        (i) => i.status === 'scheduled',
       ),
     };
 

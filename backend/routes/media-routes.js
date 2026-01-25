@@ -76,7 +76,7 @@ router.post('/edit-image', upload.fields([
       imageFile.buffer,
       prompt,
       maskFile?.buffer,
-      { size, n }
+      { size, n },
     );
     res.json(result);
   } catch (error) {
@@ -167,14 +167,14 @@ router.post('/convert', upload.single('image'), async (req, res) => {
     if (!validFormats.includes(format.toLowerCase())) {
       return res.status(400).json({ 
         success: false, 
-        error: `Invalid format. Supported: ${validFormats.join(', ')}` 
+        error: `Invalid format. Supported: ${validFormats.join(', ')}`, 
       });
     }
 
     const result = await mediaService.convertImageFormat(
       req.file.buffer, 
       format.toLowerCase(), 
-      quality ? parseInt(quality) : 80
+      quality ? parseInt(quality) : 80,
     );
     
     // Return converted image

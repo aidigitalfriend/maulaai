@@ -45,7 +45,7 @@ export default function HashGeneratorPage(){
       }finally{ setLoading(false) }
     }
     run()
-  }, [sourceChanged])
+  }, [text, file, key])
 
   const copy = async (label: string, value: string) => {
     await navigator.clipboard.writeText(value)

@@ -4,6 +4,7 @@ import TestimonialSection from '@/components/TestimonialSection';
 import CommunityStats from '@/components/CommunityStats';
 import NewsletterSection from '@/components/NewsletterSection';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Homepage showcasing the fixed design system
 export default function HomePage() {
@@ -271,12 +272,14 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <img
-                src="/images/products/ai-agents.jpeg"
-                alt="AI-Powered Agents"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+                <Image
+                  src="/images/products/ai-agents.jpeg"
+                  alt="AI-Powered Agents"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/30">
                 <span className="text-4xl">🤖</span>
               </div>
@@ -299,12 +302,14 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative order-2 lg:order-1">
-              <img
-                src="/images/products/analytics-dashboard.jpeg"
-                alt="Real-time Analytics"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+                <Image
+                  src="/images/products/analytics-dashboard.jpeg"
+                  alt="Real-time Analytics"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">📊</span>
               </div>
@@ -397,12 +402,14 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <img
-                src="/images/products/enterprise-security.jpeg"
-                alt="Enterprise Security"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+                <Image
+                  src="/images/products/enterprise-security.jpeg"
+                  alt="Enterprise Security"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-slate-500 to-zinc-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">🔒</span>
               </div>
@@ -425,12 +432,14 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative order-2 lg:order-1">
-              <img
-                src="/images/products/environment-config.jpeg"
-                alt="Environment Configuration"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+                <Image
+                  src="/images/products/environment-config.jpeg"
+                  alt="Environment Configuration"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">⚙️</span>
               </div>
@@ -685,12 +694,15 @@ export default function HomePage() {
             {/* Left - Visual/Image */}
             <div className="relative order-2 lg:order-1">
               <div className="relative">
-                <img
-                  src="/images/products/data-generator.jpeg"
-                  alt="AI Data Generator"
-                  className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                  style={{ maxHeight: '450px' }}
-                />
+                <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                  <Image
+                    src="/images/products/data-generator.jpeg"
+                    alt="AI Data Generator"
+                    width={600}
+                    height={400}
+                    className="w-full object-cover"
+                  />
+                </div>
                 <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-xl">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
@@ -763,12 +775,14 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative">
-              <img
-                src="/images/products/faq-support.jpeg"
-                alt="FAQ & Support"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '500px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '500px' }}>
+                <Image
+                  src="/images/products/faq-support.jpeg"
+                  alt="FAQ & Support"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">❓</span>
               </div>
@@ -871,12 +885,14 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <img
-                src="/images/products/news-updates.jpeg"
-                alt="Latest News & Updates"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '500px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '500px' }}>
+                <Image
+                  src="/images/products/news-updates.jpeg"
+                  alt="Latest News & Updates"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">📢</span>
               </div>
@@ -899,9 +915,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative">
-              <img
+              <Image
                 src="/images/products/integrations.jpeg"
                 alt="Integrations & Partnerships"
+                fill
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '450px' }}
               />
@@ -1008,12 +1025,14 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <img
-                src="/images/products/roadmap.jpeg"
-                alt="Product Roadmap"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '450px' }}>
+                <Image
+                  src="/images/products/roadmap.jpeg"
+                  alt="Product Roadmap"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">🚀</span>
               </div>
@@ -1036,9 +1055,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative">
-              <img
+              <Image
                 src="/images/products/security-trust.jpeg"
                 alt="Enterprise Security"
+                fill
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '450px' }}
               />
@@ -1104,9 +1124,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative">
-              <img
+              <Image
                 src="/images/products/pricing-plans.jpeg"
                 alt="Simple Pricing"
+                fill
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '500px' }}
               />
@@ -1216,12 +1237,14 @@ export default function HomePage() {
             
             {/* Right - Image */}
             <div className="relative">
-              <img
-                src="/images/products/why-choose-us.jpeg"
-                alt="Why Choose One Last AI"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '500px' }}
-              />
+              <div className="relative rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ maxHeight: '500px' }}>
+                <Image
+                  src="/images/products/why-choose-us.jpeg"
+                  alt="Why Choose One Last AI"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <span className="text-4xl">⭐</span>
               </div>
@@ -1244,9 +1267,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left - Image */}
             <div className="relative">
-              <img
+              <Image
                 src="/images/products/transform-workflow.jpeg"
                 alt="Transform Your Workflow"
+                fill
                 className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
                 style={{ maxHeight: '400px' }}
               />

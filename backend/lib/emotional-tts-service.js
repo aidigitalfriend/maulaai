@@ -413,10 +413,9 @@ class EmotionDetector {
    * Detect emotion from text content
    */
   static detectEmotion(text) {
-    const lowerText = text.toLowerCase();
     if (
       /(happy|joy|excited|great|wonderful|amazing|fantastic|love|yay)/i.test(
-        text
+        text,
       )
     ) {
       return 'joyful';
@@ -432,7 +431,7 @@ class EmotionDetector {
     }
     if (
       /(oh my|absolutely|devastating|incredible|unbelievable|shocking|!{2,})/i.test(
-        text
+        text,
       )
     ) {
       return 'dramatic';
@@ -545,18 +544,18 @@ class EmotionalTTSService {
     });
     try {
       switch (provider) {
-        case 'elevenlabs':
-          return await this.speakElevenLabs(text, personality, finalConfig);
-        case 'azure':
-          return await this.speakAzure(text, personality, finalConfig);
-        case 'google':
-          return await this.speakGoogle(text, personality, finalConfig);
-        case 'polly':
-          return await this.speakPolly(text, personality, finalConfig);
-        case 'openai':
-          return await this.speakOpenAI(text, personality, finalConfig);
-        default:
-          throw new Error(`Unsupported TTS provider: ${provider}`);
+      case 'elevenlabs':
+        return await this.speakElevenLabs(text, personality, finalConfig);
+      case 'azure':
+        return await this.speakAzure(text, personality, finalConfig);
+      case 'google':
+        return await this.speakGoogle(text, personality, finalConfig);
+      case 'polly':
+        return await this.speakPolly(text, personality, finalConfig);
+      case 'openai':
+        return await this.speakOpenAI(text, personality, finalConfig);
+      default:
+        throw new Error(`Unsupported TTS provider: ${provider}`);
       }
     } catch (error) {
       console.error(`${provider} TTS failed, trying fallback...`, error);
@@ -564,7 +563,7 @@ class EmotionalTTSService {
         text,
         personality,
         finalConfig,
-        provider
+        provider,
       );
     }
   }
@@ -583,26 +582,26 @@ class EmotionalTTSService {
       if (provider === failedProvider) continue;
       try {
         switch (provider) {
-          case 'elevenlabs':
-            if (this.elevenLabsKey)
-              return await this.speakElevenLabs(text, personality, config);
-            break;
-          case 'azure':
-            if (this.azureKey)
-              return await this.speakAzure(text, personality, config);
-            break;
-          case 'google':
-            if (this.googleKey)
-              return await this.speakGoogle(text, personality, config);
-            break;
-          case 'polly':
-            if (this.awsAccessKey)
-              return await this.speakPolly(text, personality, config);
-            break;
-          case 'openai':
-            if (this.openaiKey)
-              return await this.speakOpenAI(text, personality, config);
-            break;
+        case 'elevenlabs':
+          if (this.elevenLabsKey)
+            return await this.speakElevenLabs(text, personality, config);
+          break;
+        case 'azure':
+          if (this.azureKey)
+            return await this.speakAzure(text, personality, config);
+          break;
+        case 'google':
+          if (this.googleKey)
+            return await this.speakGoogle(text, personality, config);
+          break;
+        case 'polly':
+          if (this.awsAccessKey)
+            return await this.speakPolly(text, personality, config);
+          break;
+        case 'openai':
+          if (this.openaiKey)
+            return await this.speakOpenAI(text, personality, config);
+          break;
         }
       } catch (error) {
         console.error(`Fallback ${provider} also failed:`, error);
@@ -628,7 +627,7 @@ class EmotionalTTSService {
       personality,
       config,
       this.azureKey,
-      this.azureRegion
+      this.azureRegion,
     );
   }
   async speakGoogle(text, personality, config) {
@@ -647,7 +646,7 @@ class EmotionalTTSService {
       personality,
       config,
       this.awsAccessKey,
-      this.awsSecretKey
+      this.awsSecretKey,
     );
   }
   async speakOpenAI(text, personality, config) {
@@ -702,17 +701,17 @@ class EmotionalTTSService {
       'emma-emotional':
         'I really understand how you feel. Let me help you through this.',
       'mrs-boss':
-        "Let's analyze the quarterly reports and optimize our strategy.",
+        'Let\'s analyze the quarterly reports and optimize our strategy.',
       'chef-biew':
         'The secret to amazing food is love, passion, and fresh ingredients!',
       'nid-gaming':
-        "Let's GO! Time to dominate this game! Ready player one? \u{1F3AE}",
+        'Let\'s GO! Time to dominate this game! Ready player one? \u{1F3AE}',
       einstein:
         'The universe is a fascinating tapestry of mathematical elegance.',
-      'comedy-king': `So I told him, "That's not a bug, that's a feature!" Haha!`,
-      'fitness-guru': "Let's GO! Push through! You've got this! One more rep!",
+      'comedy-king': 'So I told him, "That\'s not a bug, that\'s a feature!" Haha!',
+      'fitness-guru': 'Let\'s GO! Push through! You\'ve got this! One more rep!',
       'tech-wizard':
-        "The algorithm's time complexity is O(n log n) with optimal space usage.",
+        'The algorithm\'s time complexity is O(n log n) with optimal space usage.',
       'lazy-pawn':
         'Eh... do we really need to do this right now? Maybe later...',
       'professor-astrology':
@@ -724,9 +723,9 @@ class EmotionalTTSService {
       'chess-player':
         'Consider the strategic implications. Every move matters.',
       'knight-logic':
-        "Let's think creatively. There's always an innovative solution.",
+        'Let\'s think creatively. There\'s always an innovative solution.',
       'rook-jokey':
-        "Well technically, you're not wrong... but you're not right either!",
+        'Well technically, you\'re not wrong... but you\'re not right either!',
     };
     const text =
       sampleTexts[agentId] ||

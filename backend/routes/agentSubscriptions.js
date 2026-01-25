@@ -6,7 +6,6 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma.js';
-import { AgentSubscriptionService } from '../lib/db.js';
 
 const router = express.Router();
 
@@ -25,24 +24,19 @@ const getStripe = () => {
 const calculateExpiryDate = (plan, startDate) => {
   const date = new Date(startDate);
   switch (plan) {
-    case 'daily':
-      date.setDate(date.getDate() + 1);
-      break;
-    case 'weekly':
-      date.setDate(date.getDate() + 7);
-      break;
-    case 'monthly':
-      date.setMonth(date.getMonth() + 1);
-      break;
-    default:
-      throw new Error(`Invalid plan: ${plan}`);
+  case 'daily':
+    date.setDate(date.getDate() + 1);
+    break;
+  case 'weekly':
+    date.setDate(date.getDate() + 7);
+    break;
+  case 'monthly':
+    date.setMonth(date.getMonth() + 1);
+    break;
+  default:
+    throw new Error(`Invalid plan: ${plan}`);
   }
   return date;
-};
-
-// Helper function to check if subscription is valid
-const isSubscriptionValid = (subscription) => {
-  return subscription.status === 'active' && new Date(subscription.expiryDate) > new Date();
 };
 
 // ============================================
@@ -72,8 +66,8 @@ router.post('/subscribe', async (req, res) => {
         userId,
         agentId,
         status: 'active',
-        expiryDate: { gt: new Date() }
-      }
+        expiryDate: { gt: new Date() },
+      },
     });
 
     if (existingSubscription) {
@@ -97,7 +91,7 @@ router.post('/subscribe', async (req, res) => {
         startDate,
         expiryDate,
         status: 'active',
-      }
+      },
     });
 
     res.status(201).json({
@@ -130,10 +124,10 @@ router.get('/user/:userId', async (req, res) => {
           select: {
             name: true,
             avatarUrl: true,
-            specialty: true
-          }
-        }
-      }
+            specialty: true,
+          },
+        },
+      },
     });
 
     res.json({
@@ -146,7 +140,7 @@ router.get('/user/:userId', async (req, res) => {
     res.status(500).json({ 
       success: false,
       error: 'Failed to fetch subscriptions',
-      subscriptions: []
+      subscriptions: [],
     });
   }
 });
@@ -165,7 +159,7 @@ router.get('/check/:userId/:agentId', async (req, res) => {
         status: 'active',
         expiryDate: { gt: new Date() },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
     // Calculate days remaining if subscription exists
@@ -173,7 +167,7 @@ router.get('/check/:userId/:agentId', async (req, res) => {
     if (subscription && subscription.expiryDate) {
       daysRemaining = Math.ceil(
         (new Date(subscription.expiryDate).getTime() - Date.now()) /
-          (1000 * 60 * 60 * 24)
+          (1000 * 60 * 60 * 24),
       );
     }
 
@@ -182,16 +176,16 @@ router.get('/check/:userId/:agentId', async (req, res) => {
       hasAccess: !!subscription,
       subscription: subscription
         ? {
-            ...subscription,
-            daysRemaining,
-          }
+          ...subscription,
+          daysRemaining,
+        }
         : null,
     });
   } catch (error) {
     console.error('Error checking subscription:', error);
     res.status(500).json({ 
       error: 'Failed to check subscription',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -206,7 +200,7 @@ router.get('/active', async (req, res) => {
         status: 'active',
         expiryDate: { gt: new Date() },
       },
-      orderBy: { expiryDate: 'asc' }
+      orderBy: { expiryDate: 'asc' },
     });
 
     res.json({
@@ -228,7 +222,7 @@ router.put('/:subscriptionId', async (req, res) => {
     const { status, autoRenew, plan } = req.body;
 
     const subscription = await prisma.agentSubscription.findUnique({
-      where: { id: subscriptionId }
+      where: { id: subscriptionId },
     });
 
     if (!subscription) {
@@ -257,7 +251,7 @@ router.put('/:subscriptionId', async (req, res) => {
 
     const updated = await prisma.agentSubscription.update({
       where: { id: subscriptionId },
-      data: updateData
+      data: updateData,
     });
 
     res.json({
@@ -278,7 +272,7 @@ router.post('/:subscriptionId/renew', async (req, res) => {
     const { subscriptionId } = req.params;
 
     const subscription = await prisma.agentSubscription.findUnique({
-      where: { id: subscriptionId }
+      where: { id: subscriptionId },
     });
 
     if (!subscription) {
@@ -293,7 +287,7 @@ router.post('/:subscriptionId/renew', async (req, res) => {
       data: {
         expiryDate: newExpiryDate,
         status: 'active',
-      }
+      },
     });
 
     res.json({
@@ -314,7 +308,7 @@ router.delete('/:subscriptionId', async (req, res) => {
     const { subscriptionId } = req.params;
 
     const subscription = await prisma.agentSubscription.findUnique({
-      where: { id: subscriptionId }
+      where: { id: subscriptionId },
     });
 
     if (!subscription) {
@@ -326,7 +320,7 @@ router.delete('/:subscriptionId', async (req, res) => {
       data: {
         status: 'cancelled',
         autoRenew: false,
-      }
+      },
     });
 
     res.json({
@@ -357,7 +351,7 @@ router.get('/expiring/soon', async (req, res) => {
           lte: expiryThreshold,
         },
       },
-      orderBy: { expiryDate: 'asc' }
+      orderBy: { expiryDate: 'asc' },
     });
 
     res.json({
@@ -379,14 +373,14 @@ router.get('/stats/overview', async (req, res) => {
     const statusBreakdown = await prisma.agentSubscription.groupBy({
       by: ['status'],
       _count: { status: true },
-      _sum: { price: true }
+      _sum: { price: true },
     });
 
     // Plan breakdown for active subscriptions
     const planBreakdown = await prisma.agentSubscription.groupBy({
       by: ['plan'],
       where: { status: 'active' },
-      _count: { plan: true }
+      _count: { plan: true },
     });
 
     // Agent popularity
@@ -395,23 +389,23 @@ router.get('/stats/overview', async (req, res) => {
       where: { status: 'active' },
       _count: { agentId: true },
       orderBy: {
-        _count: { agentId: 'desc' }
-      }
+        _count: { agentId: 'desc' },
+      },
     });
 
     res.json({
       statusBreakdown: statusBreakdown.map(s => ({
         _id: s.status,
         count: s._count.status,
-        totalRevenue: s._sum.price || 0
+        totalRevenue: s._sum.price || 0,
       })),
       planBreakdown: planBreakdown.map(p => ({
         _id: p.plan,
-        count: p._count.plan
+        count: p._count.plan,
       })),
       agentPopularity: agentPopularity.map(a => ({
         _id: a.agentId,
-        subscribers: a._count.agentId
+        subscribers: a._count.agentId,
       })),
     });
   } catch (error) {
@@ -439,7 +433,7 @@ router.post('/cancel', async (req, res) => {
         userId,
         agentId,
         status: 'active',
-      }
+      },
     });
 
     if (!subscription) {
@@ -451,7 +445,7 @@ router.post('/cancel', async (req, res) => {
     // Mark as cancelled
     const updated = await prisma.agentSubscription.update({
       where: { id: subscription.id },
-      data: { status: 'cancelled' }
+      data: { status: 'cancelled' },
     });
 
     res.json({
@@ -571,7 +565,7 @@ router.post('/verify-session', async (req, res) => {
 
     // Check if subscription already exists by Stripe ID
     const existingByStripeId = await prisma.agentSubscription.findFirst({
-      where: { stripeSubscriptionId: subscriptionData.id }
+      where: { stripeSubscriptionId: subscriptionData.id },
     });
 
     if (existingByStripeId) {
@@ -582,12 +576,12 @@ router.post('/verify-session', async (req, res) => {
           status: 'active',
           startDate,
           expiryDate,
-          ...(existingByStripeId.userId ? {} : { userId })
-        }
+          ...(existingByStripeId.userId ? {} : { userId }),
+        },
       });
 
       const daysRemaining = Math.ceil(
-        (updated.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        (updated.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
       );
 
       return res.json({
@@ -607,7 +601,7 @@ router.post('/verify-session', async (req, res) => {
 
     // Check if user already has subscription for this agent
     const existingSubscription = await prisma.agentSubscription.findFirst({
-      where: { userId, agentId }
+      where: { userId, agentId },
     });
 
     let subscriptionRecord;
@@ -622,7 +616,7 @@ router.post('/verify-session', async (req, res) => {
           startDate,
           expiryDate,
           stripeSubscriptionId: subscriptionData.id,
-        }
+        },
       });
     } else {
       // Create new subscription record
@@ -636,7 +630,7 @@ router.post('/verify-session', async (req, res) => {
           startDate,
           expiryDate,
           stripeSubscriptionId: subscriptionData.id,
-        }
+        },
       });
     }
 
@@ -650,7 +644,7 @@ router.post('/verify-session', async (req, res) => {
         status: subscriptionRecord.status,
         expiryDate: subscriptionRecord.expiryDate,
         daysRemaining: Math.ceil(
-          (subscriptionRecord.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+          (subscriptionRecord.expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
         ),
         price: subscriptionRecord.price,
       },

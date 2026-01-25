@@ -10,8 +10,8 @@ async function testRedisConnection() {
     url: redisUrl,
     socket: {
       connectTimeout: 10000,
-      lazyConnect: false
-    }
+      lazyConnect: false,
+    },
   });
 
   try {
@@ -48,7 +48,7 @@ async function testRedisConnection() {
     try {
       await client.quit();
       console.log('🔌 Connection closed');
-    } catch (e) {
+    } catch {
       // Ignore quit errors
     }
   }

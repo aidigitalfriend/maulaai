@@ -23,7 +23,7 @@ router.get('/proxy-download', async (req, res) => {
     if (!url) {
       return res.status(400).json({ 
         success: false, 
-        error: 'URL parameter is required' 
+        error: 'URL parameter is required', 
       });
     }
 
@@ -37,7 +37,7 @@ router.get('/proxy-download', async (req, res) => {
         if (!matches) {
           return res.status(400).json({ 
             success: false, 
-            error: 'Invalid data URL format' 
+            error: 'Invalid data URL format', 
           });
         }
 
@@ -53,7 +53,7 @@ router.get('/proxy-download', async (req, res) => {
         console.error('Error processing data URL:', err);
         return res.status(400).json({ 
           success: false, 
-          error: 'Failed to process data URL' 
+          error: 'Failed to process data URL', 
         });
       }
     }
@@ -62,10 +62,10 @@ router.get('/proxy-download', async (req, res) => {
     let parsedUrl;
     try {
       parsedUrl = new URL(decodedUrl);
-    } catch (err) {
+    } catch (_err) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Invalid URL format' 
+        error: 'Invalid URL format', 
       });
     }
 
@@ -73,7 +73,7 @@ router.get('/proxy-download', async (req, res) => {
     if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Only HTTP and HTTPS URLs are supported' 
+        error: 'Only HTTP and HTTPS URLs are supported', 
       });
     }
 
@@ -95,14 +95,14 @@ router.get('/proxy-download', async (req, res) => {
     ];
 
     const isAllowed = allowedDomains.some(domain => 
-      parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
+      parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain),
     );
 
     if (!isAllowed) {
       console.warn(`Proxy download blocked for unauthorized domain: ${parsedUrl.hostname}`);
       return res.status(403).json({ 
         success: false, 
-        error: 'Domain not allowed for proxy downloads' 
+        error: 'Domain not allowed for proxy downloads', 
       });
     }
 
@@ -120,7 +120,7 @@ router.get('/proxy-download', async (req, res) => {
         console.error(`Proxy download failed with status ${proxyRes.statusCode} for URL: ${decodedUrl}`);
         return res.status(proxyRes.statusCode).json({ 
           success: false, 
-          error: `Remote server returned status ${proxyRes.statusCode}` 
+          error: `Remote server returned status ${proxyRes.statusCode}`, 
         });
       }
 
@@ -143,7 +143,7 @@ router.get('/proxy-download', async (req, res) => {
       if (!res.headersSent) {
         res.status(500).json({ 
           success: false, 
-          error: 'Failed to download from remote server' 
+          error: 'Failed to download from remote server', 
         });
       }
     });
@@ -153,7 +153,7 @@ router.get('/proxy-download', async (req, res) => {
       if (!res.headersSent) {
         res.status(504).json({ 
           success: false, 
-          error: 'Request timed out' 
+          error: 'Request timed out', 
         });
       }
     });
@@ -162,7 +162,7 @@ router.get('/proxy-download', async (req, res) => {
     console.error('Proxy download error:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message || 'Internal server error' 
+      error: error.message || 'Internal server error', 
     });
   }
 });

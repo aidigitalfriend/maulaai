@@ -17,6 +17,7 @@ import {
   ArrowDownTrayIcon,
   DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 type Recommendation = {
   id: string | number;
@@ -105,7 +106,7 @@ export default function SecuritySettingsPage() {
     },
   ];
 
-  const normalizeDevices = (devices: any[] = []): TrustedDevice[] =>
+  const normalizeDevices = useCallback((devices: any[] = []): TrustedDevice[] =>
     devices.map((device, index) => ({
       id: String(device.id ?? device._id ?? index),
       name:
@@ -116,9 +117,9 @@ export default function SecuritySettingsPage() {
       browser: device.browser || device.userAgent || 'Unknown browser',
       current: Boolean(device.current ?? device.isCurrent ?? false),
       ipAddress: device.ipAddress || device.ip || '',
-    }));
+    })), []);
 
-  const normalizeSessions = (sessions: any[] = []): ActiveSession[] =>
+  const normalizeSessions = useCallback((sessions: any[] = []): ActiveSession[] =>
     sessions.map((session, index) => ({
       id: String(session.id ?? session._id ?? index),
       createdAt: session.createdAt || new Date().toISOString(),
@@ -130,9 +131,9 @@ export default function SecuritySettingsPage() {
       browser: detectBrowser(session.userAgent || ''),
       device: detectDevice(session.userAgent || ''),
       location: session.location || 'Current Session',
-    }));
+    })), []);
 
-  const normalizeLoginHistory = (history: any[] = []): LoginHistoryEntry[] =>
+  const normalizeLoginHistory = useCallback((history: any[] = []): LoginHistoryEntry[] =>
     history.map((entry, index) => ({
       id: String(entry.id ?? entry._id ?? index),
       date: entry.date || entry.timestamp || new Date().toISOString(),
@@ -140,7 +141,7 @@ export default function SecuritySettingsPage() {
       location: entry.location || 'Unknown location',
       status: entry.status || (entry.success === false ? 'blocked' : 'success'),
       ip: entry.ip || entry.ipAddress || '—',
-    }));
+    })), []);
 
   function detectBrowser(userAgent: string): string {
     if (userAgent.includes('Chrome')) return 'Chrome';
@@ -211,7 +212,7 @@ export default function SecuritySettingsPage() {
         });
       }
     },
-    [state.user?.id]
+    [state.user?.id, normalizeDevices, normalizeSessions, normalizeLoginHistory]
   );
 
   useEffect(() => {
@@ -875,9 +876,11 @@ use one of these codes to sign in.
                           <div className="p-6 bg-white border-2 border-brand-200 rounded-lg">
                             <div className="text-center">
                               <div className="bg-white p-4 rounded-lg inline-block mb-4 border border-neural-200">
-                                <img
+                                <Image
                                   src={qrCodeUrl}
                                   alt="2FA QR Code"
+                                  width={256}
+                                  height={256}
                                   className="w-64 h-64"
                                 />
                               </div>

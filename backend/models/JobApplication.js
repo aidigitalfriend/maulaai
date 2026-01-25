@@ -1,1 +1,1 @@
-import { JobApplication } from "./index.js"; export { JobApplication };
+import { JobApplication } from './index.js'; export { JobApplication };

@@ -68,8 +68,8 @@ Respond in JSON format:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         messages: [
-          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` }
-        ]
+          { role: 'user', content: `${systemPrompt}\n\nTASK: ${task}` },
+        ],
       });
 
       const content = response.content[0].text;
@@ -79,7 +79,7 @@ Respond in JSON format:
         if (jsonMatch) {
           return {
             success: true,
-            ...JSON.parse(jsonMatch[0])
+            ...JSON.parse(jsonMatch[0]),
           };
         }
       } catch {
@@ -88,14 +88,14 @@ Respond in JSON format:
 
       return {
         success: true,
-        configuration: content
+        configuration: content,
       };
 
     } catch (error) {
       console.error('[BuildAgent] Error:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -111,7 +111,7 @@ Respond in JSON format:
     if (!allowedCommands.includes(firstWord)) {
       return {
         success: false,
-        error: `Command not allowed: ${firstWord}. Allowed: ${allowedCommands.join(', ')}`
+        error: `Command not allowed: ${firstWord}. Allowed: ${allowedCommands.join(', ')}`,
       };
     }
 
@@ -119,21 +119,21 @@ Respond in JSON format:
       const { stdout, stderr } = await execAsync(command, {
         cwd: workingDir,
         timeout: 120000, // 2 minute timeout
-        maxBuffer: 10 * 1024 * 1024 // 10MB
+        maxBuffer: 10 * 1024 * 1024, // 10MB
       });
 
       return {
         success: true,
         stdout,
         stderr,
-        command
+        command,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
         stdout: error.stdout,
-        stderr: error.stderr
+        stderr: error.stderr,
       };
     }
   }
@@ -141,7 +141,7 @@ Respond in JSON format:
   /**
    * Analyze package.json for issues
    */
-  async analyzePackageJson(packageJson, context = {}) {
+  async analyzePackageJson(packageJson, _context = {}) {
     const systemPrompt = `Analyze this package.json for issues and improvements:
 
 \`\`\`json
@@ -165,8 +165,8 @@ Return a JSON analysis:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         messages: [
-          { role: 'user', content: systemPrompt }
-        ]
+          { role: 'user', content: systemPrompt },
+        ],
       });
 
       const content = response.content[0].text;
@@ -175,19 +175,19 @@ Return a JSON analysis:
       if (jsonMatch) {
         return {
           success: true,
-          ...JSON.parse(jsonMatch[0])
+          ...JSON.parse(jsonMatch[0]),
         };
       }
 
       return {
         success: true,
-        analysis: content
+        analysis: content,
       };
 
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

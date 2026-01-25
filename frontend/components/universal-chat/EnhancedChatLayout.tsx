@@ -10,6 +10,7 @@ import {
   SparklesIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 import ChatSessionSidebar from './ChatSessionSidebar';
 import ChatSettingsPanel, { AgentSettings } from './ChatSettingsPanel';
 import ChatRightPanel from './ChatRightPanel';
@@ -137,10 +138,12 @@ function EnhancedChatLayoutContent({
             <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1.5">
               {/* Left: Logo + Arrow to open sidebar */}
               <div className="flex flex-col items-center">
-                <img
+                <Image
                   src="/images/logos/company-logo.png"
                   alt="OnelastAI"
-                  className="h-5 w-5 object-contain"
+                  width={20}
+                  height={20}
+                  className="object-contain"
                 />
                 {showSidebar && (
                   <button

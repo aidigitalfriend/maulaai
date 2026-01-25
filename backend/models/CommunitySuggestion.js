@@ -1,1 +1,1 @@
-import { CommunitySuggestion } from "./index.js"; export { CommunitySuggestion };
+import { CommunitySuggestion } from './index.js'; export { CommunitySuggestion };

@@ -170,17 +170,17 @@ router.get('/lab/stats', async (req, res) => {
     // Get platform-wide active sessions in last 5 minutes
     const platformActiveSessions = await Session.countDocuments({
       isActive: true,
-      lastActivity: { $gte: fiveMinutesAgo }
+      lastActivity: { $gte: fiveMinutesAgo },
     });
 
     // Get unique lab experiment sessions in last 5 minutes  
     const labActiveUsers = await LabExperiment.distinct('sessionId', {
-      createdAt: { $gte: fiveMinutesAgo }
+      createdAt: { $gte: fiveMinutesAgo },
     });
 
     // Get total tests today
     const testsToday = await LabExperiment.countDocuments({
-      createdAt: { $gte: today }
+      createdAt: { $gte: today },
     });
 
     // Get total tests all time
@@ -190,7 +190,7 @@ router.get('/lab/stats', async (req, res) => {
     const avgDurationResult = await LabExperiment.aggregate([
       { $match: { createdAt: { $gte: twentyFourHoursAgo }, processingTime: { $gt: 0 } } },
       { $group: { _id: '$sessionId', totalTime: { $sum: '$processingTime' } } },
-      { $group: { _id: null, avgDuration: { $avg: '$totalTime' } } }
+      { $group: { _id: null, avgDuration: { $avg: '$totalTime' } } },
     ]);
     const avgSessionMs = avgDurationResult[0]?.avgDuration || 0;
     const avgMinutes = Math.floor(avgSessionMs / 60000);
@@ -207,7 +207,7 @@ router.get('/lab/stats', async (req, res) => {
       { id: 'music-generator', name: 'AI Music Generator', color: 'from-blue-500 to-cyan-500' },
       { id: 'battle-arena', name: 'AI Battle Arena', color: 'from-yellow-500 to-orange-500' },
       { id: 'dream-interpreter', name: 'Dream Interpreter', color: 'from-violet-500 to-purple-500' },
-      { id: 'future-predictor', name: 'Future Predictor', color: 'from-indigo-500 to-blue-500' }
+      { id: 'future-predictor', name: 'Future Predictor', color: 'from-indigo-500 to-blue-500' },
     ];
 
     // Get stats for each experiment type
@@ -215,19 +215,19 @@ router.get('/lab/stats', async (req, res) => {
       experimentTypes.map(async (exp) => {
         // Total tests all time
         const totalTests = await LabExperiment.countDocuments({
-          experimentType: exp.id
+          experimentType: exp.id,
         });
 
         // Active users (unique sessions in last 5 min)
         const activeNow = await LabExperiment.distinct('sessionId', {
           experimentType: exp.id,
-          createdAt: { $gte: fiveMinutesAgo }
+          createdAt: { $gte: fiveMinutesAgo },
         });
 
         // Average duration for this experiment
         const durationResult = await LabExperiment.aggregate([
           { $match: { experimentType: exp.id, processingTime: { $gt: 0 } } },
-          { $group: { _id: null, avg: { $avg: '$processingTime' } } }
+          { $group: { _id: null, avg: { $avg: '$processingTime' } } },
         ]);
         const avgMs = durationResult[0]?.avg || 0;
         const mins = Math.floor(avgMs / 60000);
@@ -236,11 +236,11 @@ router.get('/lab/stats', async (req, res) => {
         // 24h trend calculation
         const last24h = await LabExperiment.countDocuments({
           experimentType: exp.id,
-          createdAt: { $gte: twentyFourHoursAgo }
+          createdAt: { $gte: twentyFourHoursAgo },
         });
         const prev24h = await LabExperiment.countDocuments({
           experimentType: exp.id,
-          createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo }
+          createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo },
         });
         
         let trendValue = 0;
@@ -261,9 +261,9 @@ router.get('/lab/stats', async (req, res) => {
           avgDuration: `${mins}m ${secs.toString().padStart(2, '0')}s`,
           trend,
           trendValue: parseFloat(trendValue.toFixed(1)),
-          color: exp.color
+          color: exp.color,
         };
-      })
+      }),
     );
 
     // Sort by total tests descending
@@ -278,11 +278,11 @@ router.get('/lab/stats', async (req, res) => {
           activeExperiments: 10,
           testsToday,
           totalTestsAllTime, // Total tests ever
-          avgSessionTime: `${avgMinutes}m ${avgSeconds.toString().padStart(2, '0')}s`
+          avgSessionTime: `${avgMinutes}m ${avgSeconds.toString().padStart(2, '0')}s`,
         },
         experiments: experimentStats,
-        timestamp: now.toISOString()
-      }
+        timestamp: now.toISOString(),
+      },
     });
   } catch (error) {
     console.error('Error getting lab stats:', error);
@@ -316,7 +316,7 @@ router.get('/lab/activity', async (req, res) => {
       'battle-arena': { name: 'AI Battle Arena', color: 'text-yellow-400' },
       'debate-arena': { name: 'Debate Arena', color: 'text-yellow-400' },
       'dream-interpreter': { name: 'Dream Interpreter', color: 'text-violet-400' },
-      'future-predictor': { name: 'Future Predictor', color: 'text-indigo-400' }
+      'future-predictor': { name: 'Future Predictor', color: 'text-indigo-400' },
     };
 
     // Generate user identifier from session ID or experiment ID
@@ -348,14 +348,14 @@ router.get('/lab/activity', async (req, res) => {
         action,
         experiment: info.name,
         time: timeAgo,
-        color: info.color
+        color: info.color,
       };
     });
 
     res.json({
       success: true,
       data: activity,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error getting lab activity:', error);

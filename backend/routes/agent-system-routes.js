@@ -43,7 +43,7 @@ router.get('/status', (req, res) => {
     status: 'operational',
     version: '1.0.0',
     agents: orchestrator.getAgentCapabilities(),
-    totalAgents: Object.keys(agents).length
+    totalAgents: Object.keys(agents).length,
   });
 });
 
@@ -55,12 +55,12 @@ router.get('/agents', (req, res) => {
   const agentList = Object.entries(agents).map(([key, agent]) => ({
     id: key,
     name: agent.name,
-    capabilities: agent.capabilities
+    capabilities: agent.capabilities,
   }));
 
   res.json({
     success: true,
-    agents: agentList
+    agents: agentList,
   });
 });
 
@@ -75,7 +75,7 @@ router.post('/execute', async (req, res) => {
     if (!task) {
       return res.status(400).json({
         success: false,
-        error: 'Task is required'
+        error: 'Task is required',
       });
     }
 
@@ -85,14 +85,14 @@ router.post('/execute', async (req, res) => {
     
     res.json({
       success: true,
-      ...result
+      ...result,
     });
 
   } catch (error) {
     console.error('[AgentSystem] Execute error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -110,14 +110,14 @@ router.post('/agent/:agentId/execute', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: `Agent not found: ${agentId}`,
-        availableAgents: Object.keys(agents)
+        availableAgents: Object.keys(agents),
       });
     }
 
     if (!task) {
       return res.status(400).json({
         success: false,
-        error: 'Task is required'
+        error: 'Task is required',
       });
     }
 
@@ -129,14 +129,14 @@ router.post('/agent/:agentId/execute', async (req, res) => {
     res.json({
       success: true,
       agent: agentId,
-      ...result
+      ...result,
     });
 
   } catch (error) {
     console.error('[AgentSystem] Agent execute error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -152,7 +152,7 @@ router.post('/code/generate', async (req, res) => {
     if (!requirements) {
       return res.status(400).json({
         success: false,
-        error: 'Requirements are required'
+        error: 'Requirements are required',
       });
     }
 
@@ -182,7 +182,7 @@ router.post('/code/refactor', async (req, res) => {
     if (!code) {
       return res.status(400).json({
         success: false,
-        error: 'Code is required'
+        error: 'Code is required',
       });
     }
 
@@ -207,7 +207,7 @@ router.post('/code/debug', async (req, res) => {
     if (!errorMessage && !code && !description) {
       return res.status(400).json({
         success: false,
-        error: 'Error message, code, or description is required'
+        error: 'Error message, code, or description is required',
       });
     }
 
@@ -215,7 +215,7 @@ router.post('/code/debug', async (req, res) => {
     const result = await agent.execute(description || `Debug: ${errorMessage}`, {
       error: errorMessage,
       code,
-      stackTrace
+      stackTrace,
     });
     
     res.json({ success: true, ...result });
@@ -236,7 +236,7 @@ router.post('/code/test', async (req, res) => {
     if (!code) {
       return res.status(400).json({
         success: false,
-        error: 'Code is required'
+        error: 'Code is required',
       });
     }
 
@@ -261,7 +261,7 @@ router.post('/ui/component', async (req, res) => {
     if (!requirements) {
       return res.status(400).json({
         success: false,
-        error: 'Requirements are required'
+        error: 'Requirements are required',
       });
     }
 
@@ -303,13 +303,13 @@ router.post('/docs/generate', async (req, res) => {
     if (!code && !projectInfo) {
       return res.status(400).json({
         success: false,
-        error: 'Code or project info is required'
+        error: 'Code or project info is required',
       });
     }
 
     const result = await agent.execute(
       code ? `Document this code: ${code}` : `Create documentation for: ${JSON.stringify(projectInfo)}`,
-      { code }
+      { code },
     );
     
     res.json({ success: true, ...result });
@@ -330,14 +330,14 @@ router.post('/build/configure', async (req, res) => {
     if (!projectType && !requirements) {
       return res.status(400).json({
         success: false,
-        error: 'Project type or requirements are required'
+        error: 'Project type or requirements are required',
       });
     }
 
     const agent = agents.build;
     const result = await agent.execute(
       requirements || `Configure build for a ${projectType} project`,
-      { projectType, packageJson }
+      { projectType, packageJson },
     );
     
     res.json({ success: true, ...result });
@@ -358,14 +358,14 @@ router.post('/deploy/configure', async (req, res) => {
     if (!platform && !requirements) {
       return res.status(400).json({
         success: false,
-        error: 'Platform or requirements are required'
+        error: 'Platform or requirements are required',
       });
     }
 
     const agent = agents.deploy;
     const result = await agent.execute(
       requirements || `Configure deployment for ${platform}`,
-      { platform, projectType }
+      { platform, projectType },
     );
     
     res.json({ success: true, ...result });
@@ -386,7 +386,7 @@ router.post('/file/operation', async (req, res) => {
     if (!operation) {
       return res.status(400).json({
         success: false,
-        error: 'Operation is required'
+        error: 'Operation is required',
       });
     }
 
@@ -396,7 +396,7 @@ router.post('/file/operation', async (req, res) => {
       content,
       sourcePath,
       destPath,
-      pattern
+      pattern,
     });
     
     res.json({ success: true, ...result });
@@ -417,7 +417,7 @@ router.get('/history', (req, res) => {
   res.json({
     success: true,
     history,
-    count: history.length
+    count: history.length,
   });
 });
 
@@ -432,7 +432,7 @@ router.post('/analyze', async (req, res) => {
     if (!task) {
       return res.status(400).json({
         success: false,
-        error: 'Task is required'
+        error: 'Task is required',
       });
     }
 
@@ -443,8 +443,8 @@ router.post('/analyze', async (req, res) => {
       analysis,
       agents: {
         primary: analysis.primaryAgent,
-        secondary: analysis.secondaryAgents || []
-      }
+        secondary: analysis.secondaryAgents || [],
+      },
     });
 
   } catch (error) {
@@ -468,7 +468,7 @@ router.post('/code/execute', async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Language and code are required',
-        supportedLanguages: codeExecutionService.getSupportedLanguages()
+        supportedLanguages: codeExecutionService.getSupportedLanguages(),
       });
     }
 
@@ -478,7 +478,7 @@ router.post('/code/execute', async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Code contains potentially dangerous patterns',
-        violations: validation.violations
+        violations: validation.violations,
       });
     }
 
@@ -487,7 +487,7 @@ router.post('/code/execute', async (req, res) => {
     
     res.json({
       success: result.success,
-      ...result
+      ...result,
     });
 
   } catch (error) {
@@ -503,7 +503,7 @@ router.get('/code/languages', (req, res) => {
   res.json({
     success: true,
     languages: codeExecutionService.getSupportedLanguages(),
-    limits: codeExecutionService.LIMITS
+    limits: codeExecutionService.LIMITS,
   });
 });
 
@@ -518,7 +518,7 @@ router.post('/code/validate', (req, res) => {
     if (!language || !code) {
       return res.status(400).json({
         success: false,
-        error: 'Language and code are required'
+        error: 'Language and code are required',
       });
     }
 
@@ -526,7 +526,7 @@ router.post('/code/validate', (req, res) => {
     
     res.json({
       success: true,
-      ...validation
+      ...validation,
     });
 
   } catch (error) {

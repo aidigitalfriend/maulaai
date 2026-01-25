@@ -8,7 +8,7 @@ import crypto from 'crypto';
 // Plugin manifest schema
 const MANIFEST_SCHEMA = {
   required: ['id', 'name', 'version', 'main', 'permissions'],
-  optional: ['description', 'author', 'homepage', 'repository', 'hooks', 'config']
+  optional: ['description', 'author', 'homepage', 'repository', 'hooks', 'config'],
 };
 
 // Available permissions
@@ -110,7 +110,7 @@ class PluginSDK {
 
     // Check for high-risk permissions
     const highRiskPerms = (manifest.permissions || []).filter(
-      p => PERMISSION_RISK[p] === 'high'
+      p => PERMISSION_RISK[p] === 'high',
     );
     if (highRiskPerms.length > 0) {
       warnings.push(`Plugin requests high-risk permissions: ${highRiskPerms.join(', ')}`);
@@ -120,7 +120,7 @@ class PluginSDK {
       valid: errors.length === 0,
       errors,
       warnings,
-      riskLevel: this.calculateRiskLevel(manifest.permissions || [])
+      riskLevel: this.calculateRiskLevel(manifest.permissions || []),
     };
   }
 
@@ -149,13 +149,13 @@ class PluginSDK {
         main: 'index.js',
         permissions,
         hooks: {},
-        config: {}
+        config: {},
       },
       files: {
         'index.js': this.generateMainTemplate(name),
         'README.md': this.generateReadmeTemplate(name, description),
-        'package.json': this.generatePackageJson(name, description)
-      }
+        'package.json': this.generatePackageJson(name, description),
+      },
     };
   }
 
@@ -252,7 +252,7 @@ MIT
       main: 'index.js',
       type: 'module',
       keywords: ['plugin', 'marketplace'],
-      license: 'MIT'
+      license: 'MIT',
     }, null, 2);
   }
 
@@ -264,7 +264,7 @@ MIT
     if (!validation.valid) {
       return {
         success: false,
-        errors: validation.errors
+        errors: validation.errors,
       };
     }
 
@@ -273,7 +273,7 @@ MIT
       code,
       registeredAt: new Date(),
       enabled: false,
-      instances: 0
+      instances: 0,
     };
 
     this.registeredPlugins.set(manifest.id, pluginData);
@@ -282,7 +282,7 @@ MIT
       success: true,
       pluginId: manifest.id,
       warnings: validation.warnings,
-      riskLevel: validation.riskLevel
+      riskLevel: validation.riskLevel,
     };
   }
 
@@ -317,7 +317,7 @@ MIT
       ...plugin.manifest,
       registeredAt: plugin.registeredAt,
       enabled: plugin.enabled,
-      instances: plugin.instances
+      instances: plugin.instances,
     };
   }
 
@@ -330,7 +330,7 @@ MIT
       ...data.manifest,
       registeredAt: data.registeredAt,
       enabled: data.enabled,
-      instances: data.instances
+      instances: data.instances,
     }));
 
     if (filter.enabled !== undefined) {
@@ -351,7 +351,7 @@ MIT
     this.hookRegistry.get(hookName).push({
       pluginId,
       handler,
-      priority: 10
+      priority: 10,
     });
   }
 
@@ -366,7 +366,7 @@ MIT
     this.filterRegistry.get(filterName).push({
       pluginId,
       handler,
-      priority: 10
+      priority: 10,
     });
   }
 
@@ -414,7 +414,7 @@ MIT
     for (const [hookName, handlers] of this.hookRegistry.entries()) {
       this.hookRegistry.set(
         hookName,
-        handlers.filter(h => h.pluginId !== pluginId)
+        handlers.filter(h => h.pluginId !== pluginId),
       );
     }
 
@@ -422,7 +422,7 @@ MIT
     for (const [filterName, handlers] of this.filterRegistry.entries()) {
       this.filterRegistry.set(
         filterName,
-        handlers.filter(h => h.pluginId !== pluginId)
+        handlers.filter(h => h.pluginId !== pluginId),
       );
     }
   }
@@ -434,7 +434,7 @@ MIT
     return Object.entries(AVAILABLE_PERMISSIONS).map(([id, description]) => ({
       id,
       description,
-      riskLevel: PERMISSION_RISK[id]
+      riskLevel: PERMISSION_RISK[id],
     }));
   }
 
@@ -453,16 +453,16 @@ MIT
         'data:beforeSave',
         'data:afterSave',
         'chat:beforeSend',
-        'chat:afterReceive'
+        'chat:afterReceive',
       ],
       availableFilters: [
         'input:sanitize',
         'output:transform',
         'response:format',
-        'error:handle'
+        'error:handle',
       ],
       registeredPlugins: this.registeredPlugins.size,
-      totalInstances: Array.from(this.pluginInstances.values()).reduce((sum, i) => sum + i, 0)
+      totalInstances: Array.from(this.pluginInstances.values()).reduce((sum, i) => sum + i, 0),
     };
   }
 }
