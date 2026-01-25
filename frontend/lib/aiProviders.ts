@@ -17,8 +17,9 @@ export interface ProviderModelOption {
 // 2. Maula AI - Mistral (Platform Branding)
 // 3. Image Generator - OpenAI (Best for image generation/vision)
 // 4. Code Builder - Cerebras (Fastest for code)
-// 5. Planner - xAI Grok (Strategic planning)
-// 6. Research Helper - xAI Grok (Deep analysis & search)
+// 5. Fast Response - Groq (Ultra-fast inference)
+// 6. Planner - xAI Grok (Strategic planning)
+// 7. Research Helper - xAI Grok (Deep analysis & search)
 // ============================================================================
 
 // Helper to create standard agent options with agent-specific name
@@ -60,7 +61,16 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
         { value: 'llama3.1-8b', label: 'Quick Code' },
       ],
     },
-    // 5. Planner - xAI Grok (Strategic planning)
+    // 5. Fast Response - Groq (Ultra-fast inference)
+    {
+      provider: 'groq',
+      label: 'Fast Response',
+      models: [
+        { value: 'llama-3.3-70b-versatile', label: 'Balanced' },
+        { value: 'llama-3.1-8b-instant', label: 'Instant' },
+      ],
+    },
+    // 6. Planner - xAI Grok (Strategic planning)
     {
       provider: 'xai',
       label: 'Planner',
@@ -69,7 +79,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
         { value: 'grok-2', label: 'Quick Planning' },
       ],
     },
-    // 6. Research Helper - xAI Grok (Deep analysis & search)
+    // 7. Research Helper - xAI Grok (Deep analysis & search)
     {
       provider: 'xai',
       label: 'Research Helper',
@@ -237,7 +247,7 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 // GET AGENT-SPECIFIC CANVAS PROVIDER OPTIONS
 // ============================================================================
-// For Canvas app - same 6 options as chat with agent-specific naming
+// For Canvas app - same 7 options as chat with agent-specific naming
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
   const displayName = agentName || getAgentDisplayName(agentId);
@@ -275,7 +285,15 @@ export function getAgentCanvasProviders(agentId: string, agentName?: string): Re
         { id: 'llama3.1-8b', name: 'Quick Code' },
       ],
     },
-    // 5. Planner - xAI Grok
+    // 5. Fast Response - Groq (Ultra-fast inference)
+    groq: {
+      name: 'Fast Response',
+      models: [
+        { id: 'llama-3.3-70b-versatile', name: 'Balanced' },
+        { id: 'llama-3.1-8b-instant', name: 'Instant' },
+      ],
+    },
+    // 6. Planner - xAI Grok
     xai: {
       name: 'Planner',
       models: [
@@ -367,7 +385,16 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'llama3.1-8b', label: 'Quick Code' },
     ],
   },
-  // 5. Planner - xAI Grok (Strategic planning)
+  // 5. Fast Response - Groq (Ultra-fast inference)
+  {
+    provider: 'groq',
+    label: 'Fast Response',
+    models: [
+      { value: 'llama-3.3-70b-versatile', label: 'Balanced' },
+      { value: 'llama-3.1-8b-instant', label: 'Instant' },
+    ],
+  },
+  // 6. Planner - xAI Grok (Strategic planning)
   {
     provider: 'xai',
     label: 'Planner',
@@ -376,7 +403,7 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'grok-2', label: 'Quick Planning' },
     ],
   },
-  // 6. Research Helper - xAI Grok (Analysis & Search)
+  // 7. Research Helper - xAI Grok (Analysis & Search)
   {
     provider: 'xai',
     label: 'Research Helper',
