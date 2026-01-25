@@ -220,11 +220,11 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     mode: 'balanced',
     speedMode: 'quick', // Default to quick mode for faster responses
     systemPrompt: '',
-    provider: agent.aiProvider?.primary || 'cerebras',
-    model: agent.aiProvider?.model || 'llama3.1-8b',
+    provider: agent.aiProvider?.primary || 'anthropic',
+    model: agent.aiProvider?.model || 'claude-sonnet-4-20250514',
   });
 
-  // Load persisted settings per agent
+  // Load persisted settings per agent (but NEVER override provider/model from config)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setHasSpeechRecognition(!!getSpeechRecognition());
@@ -232,12 +232,20 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setSettings((prev) => ({ ...prev, ...parsed }));
+        // DO NOT override provider and model from localStorage - always use agent's config
+        const { provider: _p, model: _m, ...otherSettings } = parsed;
+        setSettings((prev) => ({ 
+          ...prev, 
+          ...otherSettings,
+          // Always use agent's configured provider/model
+          provider: agent.aiProvider?.primary || 'anthropic',
+          model: agent.aiProvider?.model || 'claude-sonnet-4-20250514',
+        }));
       } catch (err) {
         console.error('Failed to parse saved settings', err);
       }
     }
-  }, [agent.id]);
+  }, [agent.id, agent.aiProvider?.primary, agent.aiProvider?.model]);
 
   // Persist settings
   useEffect(() => {
@@ -258,8 +266,8 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       maxTokens: 2000,
       mode: 'balanced',
       systemPrompt: '',
-      provider: agent.aiProvider?.primary || 'cerebras',
-      model: agent.aiProvider?.model || 'llama3.1-8b',
+      provider: agent.aiProvider?.primary || 'anthropic',
+      model: agent.aiProvider?.model || 'claude-sonnet-4-20250514',
     });
   }, [agent.aiProvider?.model, agent.aiProvider?.primary]);
 
