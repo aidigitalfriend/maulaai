@@ -29,7 +29,8 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   ...(process.env.NODE_ENV === 'production' && {
     datasources: {
       db: {
-        url: process.env.DATABASE_URL + '?pgbouncer=true&connection_limit=10&pool_timeout=20',
+        // Use & if URL already has query params, otherwise use ?
+        url: process.env.DATABASE_URL + (process.env.DATABASE_URL?.includes('?') ? '&' : '?') + 'connection_limit=10&pool_timeout=20',
       },
     },
   }),
