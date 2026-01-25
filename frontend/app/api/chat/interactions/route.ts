@@ -37,15 +37,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'messages array is required' }, { status: 400 });
     }
 
-    // Resolve agentId - could be a slug or actual ID
+    // Resolve agentId - could be an agentId (slug) or actual ID
     let resolvedAgentId: string | undefined = undefined;
     if (agentId) {
-      // First try to find by ID directly
+      // First try to find by ID directly (CUID)
       let agent = await prisma.agent.findUnique({ where: { id: agentId } });
       
-      // If not found, try by slug
+      // If not found, try by agentId field (slug like "comedy-king")
       if (!agent) {
-        agent = await prisma.agent.findFirst({ where: { slug: agentId } });
+        agent = await prisma.agent.findUnique({ where: { agentId: agentId } });
       }
       
       // If still not found, try by name (case-insensitive)
