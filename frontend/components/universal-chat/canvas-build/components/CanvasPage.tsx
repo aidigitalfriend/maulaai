@@ -2522,7 +2522,7 @@ export default function CanvasMode({
                 className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
               >
                 <CodeBracketIcon className="w-4 h-4 text-purple-400" />
-                <span className="font-semibold text-sm">AI Provider</span>
+                <span className="font-semibold text-sm">AI Assistant</span>
               </div>
               <select
                 value={selectedProvider}
@@ -2533,36 +2533,12 @@ export default function CanvasMode({
                   const firstModel = providerModels[newProvider]?.models[0]?.id;
                   if (firstModel) setSelectedModel(firstModel);
                 }}
-                title="Select AI Provider"
+                title="Select AI Assistant"
                 className={`w-full px-3 py-2 rounded-lg text-sm ${brandColors.bgInput} ${brandColors.border} border ${brandColors.text} focus:outline-none focus:ring-2 focus:ring-cyan-500/50`}
               >
                 {Object.entries(providerModels).map(([key, provider]) => (
                   <option key={key} value={key}>
                     {provider.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* AI Model Selection */}
-            <div
-              className={`${brandColors.bgSecondary} border ${brandColors.border} rounded-xl p-4`}
-            >
-              <div
-                className={`flex items-center gap-2 mb-3 ${brandColors.text}`}
-              >
-                <SparklesIcon className="w-4 h-4 text-cyan-400" />
-                <span className="font-semibold text-sm">Model</span>
-              </div>
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                title="Select AI Model"
-                className={`w-full px-3 py-2 rounded-lg text-sm ${brandColors.bgInput} ${brandColors.border} border ${brandColors.text} focus:outline-none focus:ring-2 focus:ring-cyan-500/50`}
-              >
-                {providerModels[selectedProvider]?.models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
                   </option>
                 ))}
               </select>

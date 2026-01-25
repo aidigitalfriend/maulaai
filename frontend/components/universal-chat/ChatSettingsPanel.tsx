@@ -366,24 +366,6 @@ export default function ChatSettingsPanel({
                 </option>
               ))}
             </select>
-            <label className={`block text-xs mt-2 mb-1 ${isNeural ? 'text-gray-400' : 'text-gray-500'}`}>
-              Response Style
-            </label>
-            <select
-              value={settings.model}
-              onChange={(e) => onUpdateSettings({ model: e.target.value })}
-              className={`w-full px-2 py-1.5 rounded-lg text-xs border ${inputStyles}`}
-            >
-              {(
-                providerOptions.find(
-                  (opt) => opt.provider === settings.provider
-                )?.models || []
-              ).map((model) => (
-                <option key={model.value} value={model.value}>
-                  {model.label}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Reset Button */}
@@ -619,7 +601,7 @@ export default function ChatSettingsPanel({
                     isNeural ? 'text-gray-400' : 'text-gray-600'
                   }`}
                 >
-                  Provider
+                  AI Assistant
                 </label>
                 <select
                   value={settings.provider}
@@ -640,31 +622,6 @@ export default function ChatSettingsPanel({
                   {providerOptions.map((opt) => (
                     <option key={opt.provider} value={opt.provider}>
                       {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  className={`block text-xs font-medium mb-1.5 ${
-                    isNeural ? 'text-gray-400' : 'text-gray-600'
-                  }`}
-                >
-                  Model
-                </label>
-                <select
-                  value={settings.model}
-                  onChange={(e) => onUpdateSettings({ model: e.target.value })}
-                  className={`w-full px-3 py-2.5 rounded-lg border text-sm ${inputStyles}`}
-                >
-                  {(
-                    providerOptions.find(
-                      (opt) => opt.provider === settings.provider
-                    )?.models || []
-                  ).map((model) => (
-                    <option key={model.value} value={model.value}>
-                      {model.label}
                     </option>
                   ))}
                 </select>

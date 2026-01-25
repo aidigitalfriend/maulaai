@@ -15,9 +15,53 @@ function getApiKeys() {
 }
 
 // ============================================================================
+// FAILED MODEL CACHE - Cache failed models for 5 minutes
+// ============================================================================
+// When a model fails (rate limit, overloaded, etc.), cache it to avoid retries
+// Failed models are automatically removed after 5 minutes
+// ============================================================================
+const FAILED_MODEL_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const failedModelCache = new Map<string, number>(); // key: "provider:model", value: timestamp
+
+// Check if a model is in the failed cache
+function isModelFailed(provider: string, model: string): boolean {
+  const key = `${provider}:${model}`;
+  const failedAt = failedModelCache.get(key);
+  if (!failedAt) return false;
+  
+  // Check if cache has expired
+  if (Date.now() - failedAt > FAILED_MODEL_CACHE_TTL) {
+    failedModelCache.delete(key);
+    return false;
+  }
+  return true;
+}
+
+// Mark a model as failed
+function markModelFailed(provider: string, model: string): void {
+  const key = `${provider}:${model}`;
+  failedModelCache.set(key, Date.now());
+  console.log(`[chat-stream] Model ${model} marked as failed for 5 minutes`);
+}
+
+// Clean up expired cache entries periodically
+function cleanupFailedCache(): void {
+  const now = Date.now();
+  for (const [key, timestamp] of failedModelCache.entries()) {
+    if (now - timestamp > FAILED_MODEL_CACHE_TTL) {
+      failedModelCache.delete(key);
+    }
+  }
+}
+
+// Run cleanup every minute
+setInterval(cleanupFailedCache, 60 * 1000);
+
+// ============================================================================
 // FALLBACK MODEL CONFIGURATION
 // ============================================================================
 // When a model fails, automatically try the next one in the list
+// 32K max tokens maintained across all providers
 // ============================================================================
 const FALLBACK_MODELS: Record<string, string[]> = {
   // OpenAI fallback chain
@@ -66,31 +110,45 @@ const FALLBACK_MODELS: Record<string, string[]> = {
   ],
 };
 
-// Get next fallback model for a provider
+// Get the first available (non-failed) model for a provider
+function getFirstAvailableModel(provider: string): string | null {
+  const models = FALLBACK_MODELS[provider];
+  if (!models) return null;
+  
+  for (const model of models) {
+    if (!isModelFailed(provider, model)) {
+      return model;
+    }
+  }
+  return null; // All models failed
+}
+
+// Get next fallback model for a provider (skipping failed ones)
 function getNextFallbackModel(provider: string, currentModel: string): string | null {
   const models = FALLBACK_MODELS[provider];
   if (!models) return null;
   
   const currentIndex = models.indexOf(currentModel);
-  if (currentIndex === -1) {
-    // If current model not in list, return first model
-    return models[0];
+  // Start from after current model, or beginning if not found
+  const startIndex = currentIndex === -1 ? 0 : currentIndex + 1;
+  
+  for (let i = startIndex; i < models.length; i++) {
+    if (!isModelFailed(provider, models[i])) {
+      return models[i];
+    }
   }
-  if (currentIndex >= models.length - 1) {
-    // No more fallbacks
-    return null;
-  }
-  return models[currentIndex + 1];
+  return null; // No more available fallbacks
 }
 
-// Get all fallback models after current one
+// Get all remaining available fallback models
 function getRemainingFallbacks(provider: string, currentModel: string): string[] {
   const models = FALLBACK_MODELS[provider];
   if (!models) return [];
   
   const currentIndex = models.indexOf(currentModel);
-  if (currentIndex === -1) return models;
-  return models.slice(currentIndex + 1);
+  const startIndex = currentIndex === -1 ? 0 : currentIndex + 1;
+  
+  return models.slice(startIndex).filter(m => !isModelFailed(provider, m));
 }
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -913,12 +971,33 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
           ): Promise<boolean> {
             // Use text-only messages for providers that don't support vision
             const messagesToSend = supportsVision ? messages : getTextOnlyMessages();
-            const requestedModel = model || defaultModel;
             
-            // Try the requested model first, then fallbacks
-            const modelsToTry = [requestedModel, ...getRemainingFallbacks(providerName, requestedModel)];
+            // Get the first available model (skipping cached failures)
+            const requestedModel = model || defaultModel;
+            const firstAvailable = isModelFailed(providerName, requestedModel) 
+              ? getFirstAvailableModel(providerName) 
+              : requestedModel;
+            
+            if (!firstAvailable) {
+              console.error(`[chat-stream] All ${providerName} models are in failed cache`);
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: 'All models temporarily unavailable. Please try again in a few minutes.' })}\n\n`
+                )
+              );
+              return true;
+            }
+            
+            // Build list of models to try (starting with first available, then remaining fallbacks)
+            const modelsToTry = [firstAvailable, ...getRemainingFallbacks(providerName, firstAvailable)];
             
             for (const currentModel of modelsToTry) {
+              // Skip models that are in the failed cache
+              if (isModelFailed(providerName, currentModel)) {
+                console.log(`[chat-stream] Skipping ${currentModel} - in failed cache`);
+                continue;
+              }
+              
               console.log(`[chat-stream] Trying ${providerName} with model: ${currentModel}`);
               
               try {
@@ -932,7 +1011,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                     model: currentModel,
                     messages: messagesToSend,
                     temperature,
-                    max_tokens: maxTokens,
+                    max_tokens: Math.min(maxTokens, 32000), // 32K max maintained
                     stream: true,
                   }),
                 });
@@ -940,6 +1019,9 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                 if (!response.ok) {
                   const errorData = await response.text();
                   console.error(`[chat-stream] ${providerName} model ${currentModel} failed:`, errorData);
+                  
+                  // Mark this model as failed for 5 minutes
+                  markModelFailed(providerName, currentModel);
                   
                   // Check if there's a next fallback model
                   const nextModel = getNextFallbackModel(providerName, currentModel);
@@ -1009,6 +1091,9 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                 
               } catch (fetchError) {
                 console.error(`[chat-stream] Fetch error for ${currentModel}:`, fetchError);
+                // Mark model as failed
+                markModelFailed(providerName, currentModel);
+                
                 // Try next model if available
                 const nextModel = getNextFallbackModel(providerName, currentModel);
                 if (nextModel) {
@@ -1018,7 +1103,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                 // No more fallbacks
                 controller.enqueue(
                   encoder.encode(
-                    `data: ${JSON.stringify({ error: 'Network error' })}\n\n`
+                    `data: ${JSON.stringify({ error: 'Network error. Please try again.' })}\n\n`
                   )
                 );
                 return true;
@@ -1026,6 +1111,11 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
             }
             
             // All models exhausted
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ error: 'All models temporarily unavailable. Please try again in a few minutes.' })}\n\n`
+              )
+            );
             return true;
           }
 
@@ -1033,7 +1123,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
           let hadError = false;
           
           if (provider === 'anthropic' && apiKeys.anthropic) {
-            // Anthropic streaming (different format)
+            // Anthropic streaming (different format) with automatic fallback
             const systemMessage = messages.find((m) => m.role === 'system');
             // Filter out empty messages and system messages for Anthropic
             const chatMessages = messages
@@ -1081,45 +1171,84 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               });
             };
 
-            try {
-              const response = await fetch(
-                'https://api.anthropic.com/v1/messages',
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKeys.anthropic,
-                    'anthropic-version': '2023-06-01',
-                  },
-                  body: JSON.stringify({
-                    model: model || 'claude-sonnet-4-20250514',  // Latest Claude Sonnet 4
-                    max_tokens: maxTokens,
-                    temperature,
-                    system:
-                      systemMessage?.content || 'You are a helpful AI assistant.',
-                    messages: chatMessages.map((m) => ({
-                      role: m.role,
-                      content: convertToAnthropicFormat(m.content),
-                    })),
-                    stream: true,
-                  }),
-                }
+            // Get the first available model (skipping cached failures)
+            const requestedModel = model || 'claude-sonnet-4-20250514';
+            const firstAvailable = isModelFailed('anthropic', requestedModel) 
+              ? getFirstAvailableModel('anthropic') 
+              : requestedModel;
+            
+            if (!firstAvailable) {
+              console.error('[chat-stream] All Anthropic models are in failed cache');
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: 'All Anthropic models temporarily unavailable. Please try again in a few minutes.' })}\n\n`
+                )
               );
+              hadError = true;
+            } else {
+              const modelsToTry = [firstAvailable, ...getRemainingFallbacks('anthropic', firstAvailable)];
+              let anthropicSuccess = false;
+              
+              for (const currentModel of modelsToTry) {
+                if (isModelFailed('anthropic', currentModel)) continue;
+                
+                console.log(`[chat-stream] Trying Anthropic with model: ${currentModel}`);
+                
+                try {
+                  const response = await fetch(
+                    'https://api.anthropic.com/v1/messages',
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKeys.anthropic,
+                        'anthropic-version': '2023-06-01',
+                      },
+                      body: JSON.stringify({
+                        model: currentModel,
+                        max_tokens: Math.min(maxTokens, 32000), // 32K max
+                        temperature,
+                        system:
+                          systemMessage?.content || 'You are a helpful AI assistant.',
+                        messages: chatMessages.map((m) => ({
+                          role: m.role,
+                          content: convertToAnthropicFormat(m.content),
+                        })),
+                        stream: true,
+                      }),
+                    }
+                  );
 
-              if (!response.ok) {
-                const errorData = await response.text();
-                console.error('Anthropic API error:', errorData);
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({ error: `Anthropic API error: ${response.status}` })}\n\n`
-                  )
-                );
-                hadError = true;
-              } else {
-                const reader = response.body?.getReader();
-                if (!reader) {
-                  hadError = true;
-                } else {
+                  if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error(`Anthropic API error (${currentModel}):`, errorData);
+                    markModelFailed('anthropic', currentModel);
+                    
+                    const nextModel = getNextFallbackModel('anthropic', currentModel);
+                    if (nextModel) {
+                      console.log(`[chat-stream] Trying Anthropic fallback: ${nextModel}`);
+                      continue;
+                    }
+                    
+                    controller.enqueue(
+                      encoder.encode(
+                        `data: ${JSON.stringify({ error: `Anthropic API error: ${response.status}` })}\n\n`
+                      )
+                    );
+                    hadError = true;
+                    break;
+                  }
+
+                  const reader = response.body?.getReader();
+                  if (!reader) {
+                    continue;
+                  }
+                  
+                  // Success!
+                  if (currentModel !== requestedModel) {
+                    console.log(`[chat-stream] ✅ Anthropic fallback successful! Using ${currentModel}`);
+                  }
+                  
                   const decoder = new TextDecoder();
                   let buffer = '';
 
@@ -1154,11 +1283,23 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                       }
                     }
                   }
+                  anthropicSuccess = true;
+                  break;
+                } catch (error) {
+                  console.error(`Anthropic streaming error (${currentModel}):`, error);
+                  markModelFailed('anthropic', currentModel);
+                  
+                  const nextModel = getNextFallbackModel('anthropic', currentModel);
+                  if (nextModel) {
+                    console.log(`[chat-stream] Anthropic network error, trying fallback: ${nextModel}`);
+                    continue;
+                  }
                 }
               }
-            } catch (error) {
-              console.error('Anthropic streaming error:', error);
-              hadError = true;
+              
+              if (!anthropicSuccess) {
+                hadError = true;
+              }
             }
           } else if (provider === 'mistral' && apiKeys.mistral) {
             // Mistral uses OpenAI-compatible API with automatic fallback
