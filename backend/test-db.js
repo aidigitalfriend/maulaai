@@ -14,10 +14,10 @@ console.log('\n--- Test 1: Basic Connection (No SSL) ---');
 const clientNoSSL = new Client({
   host: 'maulaai-db.c3oiwgyy4oo1.ap-southeast-1.rds.amazonaws.com',
   port: 5432,
-  user: 'maulaai',
-  password: 'MaulaAI2026Secure!',
+  user: 'postgres',
+  password: 'MaulaAI_2026_Secure!',
   database: 'maulaai',
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000,
 });
 
 try {
