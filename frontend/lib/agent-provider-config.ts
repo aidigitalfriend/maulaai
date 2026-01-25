@@ -52,75 +52,90 @@ export const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   openai: {
     name: 'OpenAI',
     models: [
+      // Latest GPT-4.1 Series (January 2026)
+      { id: 'gpt-4.1', name: 'GPT-4.1', maxTokens: 32768, contextWindow: 1047576, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini', maxTokens: 16384, contextWindow: 1047576, tier: 'quick', supportsVision: true, supportsTools: true },
+      { id: 'gpt-4.1-nano', name: 'GPT-4.1 Nano', maxTokens: 16384, contextWindow: 1047576, tier: 'quick', supportsVision: true, supportsTools: true },
+      // GPT-4o Series
       { id: 'gpt-4o', name: 'GPT-4o', maxTokens: 16384, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: true },
       { id: 'gpt-4o-mini', name: 'GPT-4o Mini', maxTokens: 16384, contextWindow: 128000, tier: 'quick', supportsVision: true, supportsTools: true },
-      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', maxTokens: 4096, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: true },
-      { id: 'gpt-4-turbo-preview', name: 'GPT-4 Turbo Preview', maxTokens: 4096, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
-      { id: 'gpt-4', name: 'GPT-4', maxTokens: 8192, contextWindow: 8192, tier: 'premium', supportsVision: false, supportsTools: true },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', maxTokens: 4096, contextWindow: 16385, tier: 'quick', supportsVision: false, supportsTools: true },
+      // O-Series Reasoning Models
+      { id: 'o3', name: 'O3', maxTokens: 100000, contextWindow: 200000, tier: 'premium', supportsVision: true, supportsTools: true },
+      { id: 'o3-mini', name: 'O3 Mini', maxTokens: 100000, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
       { id: 'o1', name: 'O1', maxTokens: 100000, contextWindow: 200000, tier: 'premium', supportsVision: true, supportsTools: false },
       { id: 'o1-mini', name: 'O1 Mini', maxTokens: 65536, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: false },
-      { id: 'o1-preview', name: 'O1 Preview', maxTokens: 32768, contextWindow: 128000, tier: 'premium', supportsVision: false, supportsTools: false },
-      { id: 'o3-mini', name: 'O3 Mini', maxTokens: 100000, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: false },
+      // Legacy
+      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', maxTokens: 4096, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: true },
     ],
-    quick: 'gpt-4o-mini',
-    advanced: 'gpt-4o',
-    premium: 'o1',
+    quick: 'gpt-4.1-mini',
+    advanced: 'gpt-4.1',
+    premium: 'o3',
   },
   anthropic: {
     name: 'Anthropic',
     models: [
+      // Claude 4 Series (Latest - 2025)
       { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', maxTokens: 64000, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'claude-opus-4-20250514', name: 'Claude Opus 4', maxTokens: 64000, contextWindow: 200000, tier: 'premium', supportsVision: true, supportsTools: true },
+      // Claude 3.5 Series
       { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', maxTokens: 8192, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
       { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', maxTokens: 8192, contextWindow: 200000, tier: 'quick', supportsVision: true, supportsTools: true },
+      // Claude 3 Series
       { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', maxTokens: 4096, contextWindow: 200000, tier: 'premium', supportsVision: true, supportsTools: true },
       { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', maxTokens: 4096, contextWindow: 200000, tier: 'advanced', supportsVision: true, supportsTools: true },
       { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', maxTokens: 4096, contextWindow: 200000, tier: 'quick', supportsVision: true, supportsTools: true },
     ],
     quick: 'claude-3-5-haiku-20241022',
     advanced: 'claude-sonnet-4-20250514',
-    premium: 'claude-3-opus-20240229',
+    premium: 'claude-opus-4-20250514',
   },
   mistral: {
     name: 'Mistral AI',
     models: [
+      // Latest Mistral Models (2025)
+      { id: 'mistral-large-2501', name: 'Mistral Large 2501', maxTokens: 131072, contextWindow: 131072, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'mistral-small-2501', name: 'Mistral Small 2501', maxTokens: 32768, contextWindow: 32768, tier: 'quick', supportsVision: true, supportsTools: true },
+      { id: 'codestral-2501', name: 'Codestral 2501', maxTokens: 262144, contextWindow: 262144, tier: 'advanced', supportsVision: false, supportsTools: true },
+      // Pixtral Vision Models
+      { id: 'pixtral-large-latest', name: 'Pixtral Large', maxTokens: 131072, contextWindow: 131072, tier: 'premium', supportsVision: true, supportsTools: true },
+      // Legacy
       { id: 'mistral-large-latest', name: 'Mistral Large', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
-      { id: 'mistral-medium-latest', name: 'Mistral Medium', maxTokens: 32768, contextWindow: 32000, tier: 'advanced', supportsVision: false, supportsTools: true },
       { id: 'mistral-small-latest', name: 'Mistral Small', maxTokens: 32768, contextWindow: 32000, tier: 'quick', supportsVision: false, supportsTools: true },
       { id: 'open-mistral-nemo', name: 'Open Mistral Nemo', maxTokens: 32768, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: false },
-      { id: 'codestral-latest', name: 'Codestral', maxTokens: 32768, contextWindow: 32000, tier: 'advanced', supportsVision: false, supportsTools: true },
-      { id: 'pixtral-large-latest', name: 'Pixtral Large', maxTokens: 32768, contextWindow: 128000, tier: 'premium', supportsVision: true, supportsTools: true },
-      { id: 'pixtral-12b-2409', name: 'Pixtral 12B', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: false },
-      { id: 'mistral-embed', name: 'Mistral Embed', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
     ],
-    quick: 'mistral-small-latest',
-    advanced: 'mistral-large-latest',
+    quick: 'mistral-small-2501',
+    advanced: 'mistral-large-2501',
     premium: 'pixtral-large-latest',
   },
   xai: {
     name: 'xAI',
     models: [
+      // Grok 3 Series (Latest - 2025)
+      { id: 'grok-3', name: 'Grok 3', maxTokens: 131072, contextWindow: 131072, tier: 'premium', supportsVision: true, supportsTools: true },
+      { id: 'grok-3-fast', name: 'Grok 3 Fast', maxTokens: 131072, contextWindow: 131072, tier: 'advanced', supportsVision: true, supportsTools: true },
+      { id: 'grok-3-mini', name: 'Grok 3 Mini', maxTokens: 131072, contextWindow: 131072, tier: 'quick', supportsVision: true, supportsTools: true },
+      { id: 'grok-3-mini-fast', name: 'Grok 3 Mini Fast', maxTokens: 131072, contextWindow: 131072, tier: 'quick', supportsVision: false, supportsTools: true },
+      // Grok 2 Series
       { id: 'grok-2', name: 'Grok 2', maxTokens: 32768, contextWindow: 131072, tier: 'advanced', supportsVision: true, supportsTools: true },
-      { id: 'grok-2-mini', name: 'Grok 2 Mini', maxTokens: 32768, contextWindow: 131072, tier: 'quick', supportsVision: false, supportsTools: true },
       { id: 'grok-2-vision-1212', name: 'Grok 2 Vision', maxTokens: 32768, contextWindow: 32768, tier: 'advanced', supportsVision: true, supportsTools: false },
-      { id: 'grok-beta', name: 'Grok Beta', maxTokens: 131072, contextWindow: 131072, tier: 'premium', supportsVision: false, supportsTools: true },
     ],
-    quick: 'grok-2-mini',
-    advanced: 'grok-2',
-    premium: 'grok-beta',
+    quick: 'grok-3-mini-fast',
+    advanced: 'grok-3-fast',
+    premium: 'grok-3',
   },
   groq: {
     name: 'Groq',
     models: [
+      // Latest Llama 3.3 (Fastest inference)
       { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
-      { id: 'llama-3.1-70b-versatile', name: 'Llama 3.1 70B Versatile', maxTokens: 32768, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
-      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', maxTokens: 8192, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: true },
-      { id: 'llama3-70b-8192', name: 'Llama 3 70B', maxTokens: 8192, contextWindow: 8192, tier: 'advanced', supportsVision: false, supportsTools: false },
-      { id: 'llama3-8b-8192', name: 'Llama 3 8B', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
-      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', maxTokens: 32768, contextWindow: 32768, tier: 'advanced', supportsVision: false, supportsTools: false },
-      { id: 'gemma2-9b-it', name: 'Gemma 2 9B', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
+      { id: 'llama-3.3-70b-specdec', name: 'Llama 3.3 70B SpecDec', maxTokens: 8192, contextWindow: 8192, tier: 'advanced', supportsVision: false, supportsTools: true },
+      // Llama 3.2 Vision
       { id: 'llama-3.2-90b-vision-preview', name: 'Llama 3.2 90B Vision', maxTokens: 8192, contextWindow: 128000, tier: 'premium', supportsVision: true, supportsTools: false },
       { id: 'llama-3.2-11b-vision-preview', name: 'Llama 3.2 11B Vision', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: true, supportsTools: false },
+      // Fast inference models
+      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', maxTokens: 8192, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: true },
+      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', maxTokens: 32768, contextWindow: 32768, tier: 'advanced', supportsVision: false, supportsTools: false },
+      { id: 'gemma2-9b-it', name: 'Gemma 2 9B', maxTokens: 8192, contextWindow: 8192, tier: 'quick', supportsVision: false, supportsTools: false },
     ],
     quick: 'llama-3.1-8b-instant',
     advanced: 'llama-3.3-70b-versatile',
@@ -129,9 +144,10 @@ export const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   cerebras: {
     name: 'Cerebras',
     models: [
-      { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: false },
-      { id: 'llama3.1-8b', name: 'Llama 3.1 8B', maxTokens: 8192, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: false },
-      { id: 'llama3.1-70b', name: 'Llama 3.1 70B', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: false },
+      // Llama 3.3 Series (Ultra-fast inference)
+      { id: 'llama-3.3-70b', name: 'Llama 3.3 70B', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
+      { id: 'llama3.1-8b', name: 'Llama 3.1 8B', maxTokens: 8192, contextWindow: 128000, tier: 'quick', supportsVision: false, supportsTools: true },
+      { id: 'llama3.1-70b', name: 'Llama 3.1 70B', maxTokens: 8192, contextWindow: 128000, tier: 'advanced', supportsVision: false, supportsTools: true },
     ],
     quick: 'llama3.1-8b',
     advanced: 'llama-3.3-70b',
@@ -139,16 +155,19 @@ export const PROVIDER_CONFIGS: Record<ProviderName, ProviderConfig> = {
   gemini: {
     name: 'Google Gemini',
     models: [
+      // Gemini 2.5 Series (Latest - 2025)
+      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxTokens: 65536, contextWindow: 1048576, tier: 'premium', supportsVision: true, supportsTools: true },
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', maxTokens: 65536, contextWindow: 1048576, tier: 'advanced', supportsVision: true, supportsTools: true },
+      // Gemini 2.0 Series
       { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', maxTokens: 8192, contextWindow: 1048576, tier: 'advanced', supportsVision: true, supportsTools: true },
       { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', maxTokens: 8192, contextWindow: 1048576, tier: 'quick', supportsVision: true, supportsTools: false },
-      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', maxTokens: 8192, contextWindow: 2097152, tier: 'premium', supportsVision: true, supportsTools: true },
+      // Gemini 1.5 Series
+      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', maxTokens: 8192, contextWindow: 2097152, tier: 'advanced', supportsVision: true, supportsTools: true },
       { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', maxTokens: 8192, contextWindow: 1048576, tier: 'quick', supportsVision: true, supportsTools: true },
-      { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B', maxTokens: 8192, contextWindow: 1048576, tier: 'quick', supportsVision: true, supportsTools: false },
-      { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro', maxTokens: 8192, contextWindow: 32760, tier: 'advanced', supportsVision: false, supportsTools: true },
     ],
-    quick: 'gemini-1.5-flash',
-    advanced: 'gemini-2.0-flash',
-    premium: 'gemini-1.5-pro',
+    quick: 'gemini-2.0-flash-lite',
+    advanced: 'gemini-2.5-flash',
+    premium: 'gemini-2.5-pro',
   },
 };
 
