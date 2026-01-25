@@ -704,13 +704,15 @@ app.post('/api/auth/signup', rateLimiters.auth, async (req, res) => {
       lastLoginAt: new Date(),
     });
 
-    // Set cookie
-    res.cookie('sessionId', sessionId, {
+    // Set both cookie names for compatibility with frontend and backend routes
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    };
+    res.cookie('session_id', sessionId, cookieOptions);
+    res.cookie('sessionId', sessionId, cookieOptions);
 
     res.json({
       success: true,
@@ -787,12 +789,15 @@ app.post('/api/auth/login', rateLimiters.auth, async (req, res) => {
       lastLoginAt: new Date(),
     });
 
-    res.cookie('sessionId', sessionId, {
+    // Set both cookie names for compatibility with frontend and backend routes
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    };
+    res.cookie('session_id', sessionId, cookieOptions);
+    res.cookie('sessionId', sessionId, cookieOptions);
 
     res.json({
       success: true,
@@ -939,7 +944,8 @@ app.post('/api/auth/logout', async (req, res) => {
 // Get current session
 app.get('/api/auth/session', async (req, res) => {
   try {
-    const sessionId = req.cookies?.sessionId;
+    // Check both cookie names for compatibility (snake_case from frontend, camelCase from backend)
+    const sessionId = req.cookies?.session_id || req.cookies?.sessionId;
     if (!sessionId) {
       return res.json({ success: true, user: null });
     }
@@ -947,6 +953,7 @@ app.get('/api/auth/session', async (req, res) => {
     const user = await db.User.findBySessionId(sessionId);
     if (!user || (user.sessionExpiry && new Date(user.sessionExpiry) < new Date())) {
       res.clearCookie('sessionId');
+      res.clearCookie('session_id');
       return res.json({ success: true, user: null });
     }
 
