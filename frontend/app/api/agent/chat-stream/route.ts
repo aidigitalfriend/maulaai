@@ -64,49 +64,49 @@ setInterval(cleanupFailedCache, 60 * 1000);
 // 32K max tokens maintained across all providers
 // ============================================================================
 const FALLBACK_MODELS: Record<string, string[]> = {
-  // OpenAI fallback chain
+  // OpenAI fallback chain (2026)
   openai: [
+    'gpt-4.5-preview',
     'gpt-4o',
     'gpt-4o-mini',
     'gpt-4-turbo',
-    'gpt-4',
-    'gpt-3.5-turbo',
+    'o3-mini',
   ],
-  // Anthropic fallback chain
+  // Anthropic fallback chain (2026)
   anthropic: [
+    'claude-opus-4-20250514',
     'claude-sonnet-4-20250514',
+    'claude-3-7-sonnet-20250219',
     'claude-3-5-sonnet-20241022',
-    'claude-3-opus-20240229',
-    'claude-3-sonnet-20240229',
-    'claude-3-haiku-20240307',
+    'claude-3-5-haiku-20241022',
   ],
-  // Mistral fallback chain
+  // Mistral fallback chain (2026)
   mistral: [
+    'mistral-large-2501',
     'mistral-large-latest',
-    'mistral-medium-latest',
-    'mistral-small-latest',
-    'open-mistral-nemo',
+    'mistral-small-2501',
+    'codestral-latest',
   ],
-  // Groq fallback chain
+  // Groq fallback chain (2026)
   groq: [
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+    'meta-llama/llama-4-maverick-17b-128e-instruct',
     'llama-3.3-70b-versatile',
     'llama-3.1-70b-versatile',
-    'llama-3.1-8b-instant',
-    'mixtral-8x7b-32768',
-    'gemma2-9b-it',
+    'deepseek-r1-distill-llama-70b',
   ],
-  // Cerebras fallback chain
+  // Cerebras fallback chain (2026)
   cerebras: [
+    'llama-4-scout-17b-16e-instruct',
     'llama-3.3-70b',
     'llama3.1-70b',
-    'llama3.1-8b',
   ],
-  // xAI fallback chain
+  // xAI fallback chain (2026)
   xai: [
-    'grok-3',
-    'grok-3-mini',
-    'grok-2',
-    'grok-2-mini',
+    'grok-3-beta',
+    'grok-3-mini-beta',
+    'grok-2-latest',
+    'grok-2-vision-1212',
   ],
 };
 

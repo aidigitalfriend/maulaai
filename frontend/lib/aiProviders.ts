@@ -37,7 +37,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
       provider: 'anthropic',
       label: agentName,
       models: [
-        { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+        { value: 'claude-opus-4-20250514', label: 'Claude Opus 4' },
       ],
     },
     // 2. Maula AI - Mistral
@@ -45,7 +45,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
       provider: 'mistral',
       label: 'Maula AI',
       models: [
-        { value: 'mistral-large-latest', label: 'Mistral Large' },
+        { value: 'mistral-large-2501', label: 'Mistral Large 2501' },
       ],
     },
     // 3. Image Generator - OpenAI
@@ -53,7 +53,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
       provider: 'openai',
       label: 'Image Generator',
       models: [
-        { value: 'gpt-4o', label: 'GPT-4o (Best Vision)' },
+        { value: 'gpt-4.5-preview', label: 'GPT-4.5 Preview' },
       ],
     },
     // 4. Code Builder - Cerebras
@@ -61,7 +61,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
       provider: 'cerebras',
       label: 'Code Builder',
       models: [
-        { value: 'llama-3.3-70b', label: 'Llama 3.3 70B' },
+        { value: 'llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
       ],
     },
     // 5. Fast Response - Groq
@@ -69,7 +69,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
       provider: 'groq',
       label: 'Fast Response',
       models: [
-        { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B' },
+        { value: 'meta-llama/llama-4-scout-17b-16e-instruct', label: 'Llama 4 Scout' },
       ],
     },
     // 6. Planner - xAI Grok
@@ -77,7 +77,7 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
       provider: 'xai',
       label: 'Planner',
       models: [
-        { value: 'grok-3', label: 'Grok 3' },
+        { value: 'grok-3-beta', label: 'Grok 3 Beta' },
       ],
     },
     // 7. Research Helper - xAI Grok
