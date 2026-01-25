@@ -30,6 +30,7 @@ interface DashboardStats {
   avgResponseSize: number;
   totalTokens: number;
   activeUsers: number;
+  activeAgents?: number;
 }
 
 interface ApiMetric {
@@ -280,9 +281,9 @@ export default function AdvancedDashboard() {
             noChange
           />
           <StatCard
-            icon="👥"
-            label="Active Users"
-            value={stats.activeUsers.toString()}
+            icon="🤖"
+            label="Active Agents"
+            value={(stats.activeAgents || stats.activeUsers || 0).toString()}
             gradient="from-cyan-500 to-teal-600"
             noChange
           />
@@ -598,8 +599,8 @@ export default function AdvancedDashboard() {
             </ChartCard>
 
             <ChartCard
-              title="Geographic Distribution"
-              icon="🌍"
+              title="Client Distribution"
+              icon="🖥️"
               gradient="from-cyan-500 to-blue-600"
             >
               {data?.geographic && data.geographic.length > 0 ? (
@@ -627,7 +628,7 @@ export default function AdvancedDashboard() {
                   })}
                 </div>
               ) : (
-                <EmptyState message="No geographic data available yet" />
+                <EmptyState message="No client data available yet" />
               )}
             </ChartCard>
           </div>

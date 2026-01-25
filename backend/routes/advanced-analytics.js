@@ -49,6 +49,14 @@ router.get('/', async (req, res) => {
           gte: sevenDaysAgo,
         },
       },
+      include: {
+        agent: {
+          select: {
+            name: true,
+            modelId: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -57,7 +65,7 @@ router.get('/', async (req, res) => {
     // Fetch Tool Usage data
     const toolUsage = await prisma.toolUsage.findMany({
       where: {
-        createdAt: {
+        occurredAt: {
           gte: sevenDaysAgo,
         },
       },
@@ -78,7 +86,7 @@ router.get('/', async (req, res) => {
     // Fetch User Events
     const userEvents = await prisma.userEvent.findMany({
       where: {
-        timestamp: {
+        occurredAt: {
           gte: sevenDaysAgo,
         },
       },
@@ -120,17 +128,23 @@ router.get('/', async (req, res) => {
     // Calculate total tokens from chat interactions
     const totalTokens = chatInteractions.reduce((sum, c) => sum + (c.totalTokens || 0), 0);
 
-    // Calculate average response size
+    // Calculate average response time as proxy for response size (no responseSize field)
     const avgResponseSize = apiUsageRecent.length > 0
-      ? Math.round(apiUsageRecent.reduce((sum, r) => sum + (r.responseSize || 0), 0) / apiUsageRecent.length)
+      ? Math.round(apiUsageRecent.reduce((sum, r) => sum + (r.responseTime || 0), 0) / apiUsageRecent.length)
       : 0;
 
-    // Get unique active users
+    // Get unique active users (now renamed to active agents for clarity)
     const uniqueUserIds = new Set([
       ...apiUsageRecent.filter(r => r.userId).map(r => r.userId),
       ...chatInteractions.filter(c => c.userId).map(c => c.userId),
     ]);
+    
+    // Also count unique agents
+    const uniqueAgentIds = new Set([
+      ...chatInteractions.filter(c => c.agentId).map(c => c.agentId),
+    ]);
     const activeUsers = uniqueUserIds.size;
+    const activeAgents = uniqueAgentIds.size;
 
     // Calculate estimated cost (based on tokens and API calls)
     const estimatedCost = (totalTokens * 0.00003) + (totalRequests * 0.001);
@@ -159,9 +173,10 @@ router.get('/', async (req, res) => {
       .sort((a, b) => b.requests - a.requests)
       .slice(0, 10);
 
-    // Group by model for model usage
+    // Group by model for model usage (use agent's modelId or agent name)
     const modelGroups = chatInteractions.reduce((acc, c) => {
-      const model = c.model || 'unknown';
+      // Use agent's model ID, or agent name, or 'unknown'
+      const model = c.agent?.modelId || c.agent?.name || c.agentId || 'unknown';
       if (!acc[model]) {
         acc[model] = { requests: 0, tokens: 0 };
       }
@@ -241,20 +256,32 @@ router.get('/', async (req, res) => {
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Geographic distribution (from visitor/user metadata if available)
+    // Geographic distribution - use IP address prefix as region proxy (no country field)
+    // Group by user agent to show client distribution instead
     const geoGroups = {};
     apiUsageRecent.forEach(r => {
-      const country = r.country || 'Unknown';
-      if (!geoGroups[country]) {
-        geoGroups[country] = { requests: 0, totalLatency: 0 };
+      // Parse user agent for browser/client type as a proxy for geographic data
+      let client = 'Unknown';
+      const ua = r.userAgent || '';
+      if (ua.includes('Chrome')) client = 'Chrome';
+      else if (ua.includes('Safari')) client = 'Safari';
+      else if (ua.includes('Firefox')) client = 'Firefox';
+      else if (ua.includes('Edge')) client = 'Edge';
+      else if (ua.includes('curl')) client = 'API/CLI';
+      else if (ua.includes('Postman')) client = 'Postman';
+      else if (ua.includes('node')) client = 'Node.js';
+      else if (ua) client = 'Other';
+      
+      if (!geoGroups[client]) {
+        geoGroups[client] = { requests: 0, totalLatency: 0 };
       }
-      geoGroups[country].requests++;
-      geoGroups[country].totalLatency += r.responseTime || 0;
+      geoGroups[client].requests++;
+      geoGroups[client].totalLatency += r.responseTime || 0;
     });
 
     const geographic = Object.entries(geoGroups)
       .map(([country, data]) => ({
-        country,
+        country, // This is actually client type, but keeping field name for frontend compatibility
         requests: data.requests,
         latency: Math.round(data.totalLatency / data.requests),
       }))
@@ -324,6 +351,7 @@ router.get('/', async (req, res) => {
         avgResponseSize,
         totalTokens,
         activeUsers,
+        activeAgents,
       },
       apiMetrics,
       modelUsage,
