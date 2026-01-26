@@ -770,7 +770,10 @@ const SubscriptionGate: React.FC<{ children: React.ReactNode }> = ({ children })
 // Hook to check if user has AI access
 const useAIAccess = () => {
   const { state } = useAuth();
-  const { subscriptions, loading } = useSubscriptions();
+  const { subscriptions, loading: subsLoading } = useSubscriptions();
+
+  // Combined loading state - wait for BOTH auth and subscriptions to load
+  const loading = state.isLoading || subsLoading;
 
   // Check if user has weekly or monthly subscription to ANY agent
   const hasAIAccess = subscriptions.some(
@@ -784,9 +787,11 @@ const useAIAccess = () => {
     isAuthenticated: state.isAuthenticated,
     hasAIAccess,
     loading,
+    authLoading: state.isLoading,
     // Daily plan users can see but not use AI
     canViewApp: true,
-    canUseAI: state.isAuthenticated && hasAIAccess,
+    // Only determine canUseAI after loading is complete
+    canUseAI: !loading && state.isAuthenticated && hasAIAccess,
   };
 };
 
@@ -1924,6 +1929,7 @@ function CanvasAppInner() {
                     />
                     <button
                       onClick={() => {
+                        if (aiAccessLoading) return; // Wait for auth to load
                         if (!canUseAI) {
                           setShowSubscriptionModal(true);
                           return;
@@ -1934,10 +1940,10 @@ function CanvasAppInner() {
                           setActivePanel('assistant');
                         }
                       }}
-                      disabled={genState.isGenerating || !prompt.trim()}
+                      disabled={genState.isGenerating || !prompt.trim() || aiAccessLoading}
                       className={`w-full mt-3 py-3 text-white text-xs font-bold rounded-2xl disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-md ${darkMode ? 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-900/30' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'}`}
                     >
-                      {genState.isGenerating ? 'BUILDING...' : canUseAI ? 'START BUILDING' : '🔒 UPGRADE TO BUILD'}
+                      {genState.isGenerating ? 'BUILDING...' : aiAccessLoading ? 'Loading...' : canUseAI ? 'START BUILDING' : '🔒 UPGRADE TO BUILD'}
                     </button>
                   </div>
                   <div>
@@ -2659,8 +2665,8 @@ function CanvasAppInner() {
         </div>
       )}
 
-      {/* AI Status Indicator */}
-      {!canUseAI && (
+      {/* AI Status Indicator - Only show after auth loading completes */}
+      {!aiAccessLoading && !canUseAI && (
         <div className={`fixed bottom-4 left-20 z-40 flex items-center gap-2 px-4 py-2 rounded-xl shadow-lg border ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
           <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
