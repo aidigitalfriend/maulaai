@@ -34,11 +34,12 @@ Rules for generated code (must follow all):
 9) If the image shows a partial design, complete it logically maintaining the same style.
 10) Pay attention to shadows, borders, gradients, and subtle design details.`;
 
-const PROVIDER_PRIORITY: ReadonlyArray<'Mistral' | 'XAI' | 'OpenAI' | 'Gemini' | 'Anthropic'> = [
-  'Mistral',
+const PROVIDER_PRIORITY: ReadonlyArray<'Cerebras' | 'XAI' | 'Gemini' | 'Mistral' | 'OpenAI' | 'Anthropic'> = [
+  'Cerebras',
   'XAI',
-  'OpenAI',
   'Gemini',
+  'Mistral',
+  'OpenAI',
   'Anthropic',
 ];
 
@@ -117,7 +118,16 @@ export async function POST(request: NextRequest) {
 
         for (const candidate of providersToTry) {
           try {
-            if (candidate === 'Mistral') {
+            if (candidate === 'Cerebras') {
+              await streamWithCerebras(
+                controller,
+                encoder,
+                prompt,
+                modelId,
+                currentCode,
+                history
+              );
+            } else if (candidate === 'Mistral') {
               await streamWithMistral(
                 controller,
                 encoder,
@@ -276,6 +286,77 @@ async function streamWithMistral(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Mistral stream failed';
+    throw new Error(message);
+  }
+}
+
+async function streamWithCerebras(
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
+  prompt: string,
+  modelId: string,
+  currentCode?: string,
+  history?: { role: string; text: string }[]
+) {
+  const apiKey = process.env.CEREBRAS_API_KEY;
+  if (!apiKey) {
+    throw new Error('Cerebras API key is not configured');
+  }
+
+  try {
+    const cerebras = new OpenAI({
+      apiKey,
+      baseURL: 'https://api.cerebras.ai/v1',
+    });
+
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: SYSTEM_INSTRUCTION },
+    ];
+
+    if (currentCode) {
+      messages.push({ role: 'user', content: `Current code:\n${currentCode}` });
+    }
+
+    if (history && history.length > 0) {
+      history.forEach((msg) => {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.text,
+        });
+      });
+    }
+
+    messages.push({ role: 'user', content: prompt });
+
+    // Map model IDs to Cerebras models
+    let actualModel = 'llama-3.3-70b';
+    if (modelId === 'llama3.1-8b' || modelId === 'llama-3.1-8b') actualModel = 'llama3.1-8b';
+    if (modelId === 'llama-3.3-70b') actualModel = 'llama-3.3-70b';
+
+    const stream = await cerebras.chat.completions.create({
+      model: actualModel,
+      messages,
+      temperature: 0.72,
+      max_tokens: 8192,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const piece = chunk.choices[0]?.delta?.content;
+      const text = Array.isArray(piece) ? piece.join('') : piece;
+      if (text) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+        );
+      }
+    }
+
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Cerebras stream failed';
     throw new Error(message);
   }
 }

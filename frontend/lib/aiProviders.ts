@@ -13,19 +13,26 @@ export interface ProviderModelOption {
 // AGENT-SPECIFIC AI PROVIDER OPTIONS
 // ============================================================================
 // Standard Structure for ALL agents (7 options):
-// 1. [Agent Name] - Anthropic (Primary Default - Best quality)
-// 2. Maula AI - Groq
-// 3. Image Generator - OpenAI
-// 4. Code Writing - Anthropic (for coding tasks)
-// 5. Planner - Mistral
-// 6. Research Helper - XAI
-// 7. Quick Mode - Cerebras (fast responses)
+// 1. [Agent Name] - Anthropic (Primary for character personality)
+// 2. Maula AI - Mistral (Platform branding)
+// 3. Image Generator - OpenAI (DALL-E)
+// 4. Fast Response - Cerebras (Ultra-fast inference)
+// 5. Research - xAI (Deep analysis)
+// 6. Reasoning (Grok) - xAI (Complex reasoning)
+// 7. Multi-Modal - Gemini (Text, image, video understanding)
 // ============================================================================
 
 // Helper to create standard agent options (all 7)
+// 1. Agent Character → Anthropic (primary for personality)
+// 2. Maula AI Platform → Mistral (platform branding)
+// 3. Image Generator → OpenAI (DALL-E)
+// 4. Fast Response → Cerebras
+// 5. Research → xAI
+// 6. Reasoning → xAI Grok
+// 7. Multi-Modal → Gemini
 function createAgentOptions(agentName: string): ProviderModelOption[] {
   return [
-    // 1. Agent Primary - Anthropic (Best quality for character agents)
+    // 1. Agent Character - Anthropic (Primary for agent personality responses)
     {
       provider: 'anthropic',
       label: agentName,
@@ -34,16 +41,17 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
         { value: 'claude-3-5-haiku-20241022', label: 'Fast Response' },
       ],
     },
-    // 2. Maula AI - Groq
+    // 2. Maula AI Platform - Mistral (Platform branding)
     {
-      provider: 'groq',
+      provider: 'mistral',
       label: 'Maula AI',
       models: [
-        { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
-        { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
+        { value: 'mistral-large-latest', label: 'Best Quality' },
+        { value: 'mistral-medium-latest', label: 'Balanced' },
+        { value: 'mistral-small-latest', label: 'Fast Response' },
       ],
     },
-    // 3. Image Generator - OpenAI
+    // 3. Image Generator - OpenAI (DALL-E integration)
     {
       provider: 'openai',
       label: 'Image Generator',
@@ -52,40 +60,41 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
         { value: 'gpt-4o-mini', label: 'Fast Mode' },
       ],
     },
-    // 4. Code Writing - Anthropic
-    {
-      provider: 'anthropic',
-      label: 'Code Writing',
-      models: [
-        { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
-        { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
-      ],
-    },
-    // 5. Planner - Mistral
-    {
-      provider: 'mistral',
-      label: 'Planner',
-      models: [
-        { value: 'mistral-medium-latest', label: 'Detailed Planning' },
-        { value: 'mistral-small-latest', label: 'Quick Planning' },
-      ],
-    },
-    // 6. Research Helper - XAI
-    {
-      provider: 'xai',
-      label: 'Research Helper',
-      models: [
-        { value: 'grok-2', label: 'Deep Analysis' },
-        { value: 'grok-3', label: 'Advanced Research' },
-      ],
-    },
-    // 7. Quick Mode - Cerebras (for fast responses when needed)
+    // 4. Fast Response - Cerebras (Ultra-fast inference)
     {
       provider: 'cerebras',
-      label: 'Quick Mode',
+      label: 'Fast Response',
       models: [
+        { value: 'llama-3.3-70b', label: 'Smart & Fast' },
         { value: 'llama3.1-8b', label: 'Ultra Fast' },
-        { value: 'llama-3.3-70b', label: 'Fast + Smart' },
+      ],
+    },
+    // 5. Research - xAI (Deep analysis & research)
+    {
+      provider: 'xai',
+      label: 'Research',
+      models: [
+        { value: 'grok-3', label: 'Advanced Research' },
+        { value: 'grok-2', label: 'Deep Analysis' },
+      ],
+    },
+    // 6. Reasoning - xAI Grok (Complex reasoning)
+    {
+      provider: 'xai',
+      label: 'Reasoning (Grok)',
+      models: [
+        { value: 'grok-3', label: 'Best Reasoning' },
+        { value: 'grok-2', label: 'Standard Reasoning' },
+      ],
+    },
+    // 7. Multi-Modal - Gemini (Text, image, video understanding)
+    {
+      provider: 'gemini',
+      label: 'Multi-Modal',
+      models: [
+        { value: 'gemini-2.0-flash', label: 'Latest Flash' },
+        { value: 'gemini-1.5-pro', label: 'Best Quality' },
+        { value: 'gemini-1.5-flash', label: 'Fast Response' },
       ],
     },
   ];
@@ -247,41 +256,49 @@ export function getAgentProviderOptions(agentId: string): ProviderModelOption[] 
 // ============================================================================
 // GET AGENT-SPECIFIC CANVAS PROVIDER OPTIONS
 // ============================================================================
-// For Canvas app - focused on coding with 3 options:
-// 1. [Agent Name] - Cerebras
-// 2. Maula AI - Groq  
-// 3. Better Quality - Gemini
+// For Canvas Build app - focused on coding with 4 options:
+// 1. Code Base - Cerebras (Ultra-fast code generation)
+// 2. Code Builder - xAI Grok (Advanced code building)
+// 3. Planner - xAI (Task planning & architecture)
+// 4. Designer - Gemini (UI/UX & visual design)
 // ============================================================================
 export function getAgentCanvasProviders(agentId: string, agentName?: string): Record<string, { name: string; models: { id: string; name: string }[] }> {
-  const displayName = agentName || getAgentDisplayName(agentId);
+  // agentId and agentName kept for future per-agent customization
+  void agentId;
+  void agentName;
   
   return {
+    // 1. Code Base - Cerebras (Ultra-fast code generation)
     cerebras: {
-      name: displayName,
+      name: 'Code Base',
       models: [
-        { id: 'llama3.1-8b', name: 'Quick Response' },
-        { id: 'llama-3.3-70b', name: 'Smart Response' },
+        { id: 'llama-3.3-70b', name: 'Smart Code' },
+        { id: 'llama3.1-8b', name: 'Quick Code' },
       ],
     },
-    groq: {
-      name: 'Maula AI',
+    // 2. Code Builder - xAI Grok (Advanced code building)
+    xai: {
+      name: 'Code Builder',
       models: [
-        { id: 'llama-3.1-8b-instant', name: 'Instant Response' },
-        { id: 'llama-3.3-70b-versatile', name: 'Balanced Response' },
+        { id: 'grok-3', name: 'Advanced Builder' },
+        { id: 'grok-2', name: 'Standard Builder' },
       ],
     },
+    // 3. Planner - xAI (Task planning & architecture)
+    'xai-planner': {
+      name: 'Planner',
+      models: [
+        { id: 'grok-3', name: 'Deep Planning' },
+        { id: 'grok-2', name: 'Quick Planning' },
+      ],
+    },
+    // 4. Designer - Gemini (UI/UX & visual design)
     gemini: {
-      name: 'Better Quality',
+      name: 'Designer',
       models: [
-        { id: 'gemini-1.5-flash', name: 'Fast & Smart' },
+        { id: 'gemini-2.0-flash', name: 'Latest Design' },
         { id: 'gemini-1.5-pro', name: 'Best Quality' },
-      ],
-    },
-    anthropic: {
-      name: 'Code Expert',
-      models: [
-        { id: 'claude-sonnet-4-20250514', name: 'Advanced Code' },
-        { id: 'claude-3-haiku-20240307', name: 'Quick Code' },
+        { id: 'gemini-1.5-flash', name: 'Fast Design' },
       ],
     },
   };
@@ -314,10 +331,10 @@ export function getAgentDisplayName(agentId: string): string {
   return names[agentId] || 'AI Assistant';
 }
 
-// Get first provider key for default selection
+// Get first provider key for default selection (Universal Chat)
 export function getAgentDefaultProvider(agentId: string): string {
   const options = getAgentProviderOptions(agentId);
-  return options[0]?.provider || 'cerebras';
+  return options[0]?.provider || 'anthropic';
 }
 
 // Get first model for a provider
@@ -328,10 +345,32 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
   return opt?.models[0]?.value || 'claude-sonnet-4-20250514';
 }
 
+// Get default provider for Canvas Build (first canvas option = cerebras)
+export function getCanvasDefaultProvider(): string {
+  return 'cerebras';
+}
+
+// Get default model for Canvas Build
+export function getCanvasDefaultModel(provider?: string): string {
+  const canvasProviders = getAgentCanvasProviders('', '');
+  const targetProvider = provider || 'cerebras';
+  const models = canvasProviders[targetProvider]?.models;
+  return models?.[0]?.id || 'llama-3.3-70b';
+}
+
 // ============================================================================
 // DEFAULT USER-FRIENDLY AI OPTIONS (Fallback for unknown agents)
 // ============================================================================
+// 1. AI Assistant → Anthropic (primary for personality)
+// 2. Maula AI Platform → Mistral (platform branding)
+// 3. Image Generator → OpenAI (DALL-E)
+// 4. Fast Response → Cerebras
+// 5. Research → xAI
+// 6. Reasoning → xAI Grok
+// 7. Multi-Modal → Gemini
+// ============================================================================
 export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
+  // 1. AI Assistant - Anthropic (Primary)
   {
     provider: 'anthropic',
     label: 'AI Assistant',
@@ -340,14 +379,17 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'claude-3-5-haiku-20241022', label: 'Fast Response' },
     ],
   },
+  // 2. Maula AI Platform - Mistral
   {
-    provider: 'groq',
+    provider: 'mistral',
     label: 'Maula AI',
     models: [
-      { value: 'llama-3.1-8b-instant', label: 'Instant Response' },
-      { value: 'llama-3.3-70b-versatile', label: 'Balanced Response' },
+      { value: 'mistral-large-latest', label: 'Best Quality' },
+      { value: 'mistral-medium-latest', label: 'Balanced' },
+      { value: 'mistral-small-latest', label: 'Fast Response' },
     ],
   },
+  // 3. Image Generator - OpenAI
   {
     provider: 'openai',
     label: 'Image Generator',
@@ -356,35 +398,41 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'gpt-4o-mini', label: 'Fast Mode' },
     ],
   },
+  // 4. Fast Response - Cerebras
   {
-    provider: 'anthropic',
-    label: 'Code Writing',
+    provider: 'cerebras',
+    label: 'Fast Response',
     models: [
-      { value: 'claude-sonnet-4-20250514', label: 'Advanced Code' },
-      { value: 'claude-3-haiku-20240307', label: 'Quick Code' },
+      { value: 'llama-3.3-70b', label: 'Smart & Fast' },
+      { value: 'llama3.1-8b', label: 'Ultra Fast' },
     ],
   },
-  {
-    provider: 'mistral',
-    label: 'Planner',
-    models: [
-      { value: 'mistral-medium-latest', label: 'Detailed Planning' },
-      { value: 'mistral-small-latest', label: 'Quick Planning' },
-    ],
-  },
+  // 5. Research - xAI
   {
     provider: 'xai',
-    label: 'Research Helper',
+    label: 'Research',
     models: [
+      { value: 'grok-3', label: 'Advanced Research' },
       { value: 'grok-2', label: 'Deep Analysis' },
     ],
   },
+  // 6. Reasoning - xAI Grok
   {
-    provider: 'cerebras',
-    label: 'Quick Mode',
+    provider: 'xai',
+    label: 'Reasoning (Grok)',
     models: [
-      { value: 'llama3.1-8b', label: 'Ultra Fast' },
-      { value: 'llama-3.3-70b', label: 'Fast + Smart' },
+      { value: 'grok-3', label: 'Best Reasoning' },
+      { value: 'grok-2', label: 'Standard Reasoning' },
+    ],
+  },
+  // 7. Multi-Modal - Gemini
+  {
+    provider: 'gemini',
+    label: 'Multi-Modal',
+    models: [
+      { value: 'gemini-2.0-flash', label: 'Latest Flash' },
+      { value: 'gemini-1.5-pro', label: 'Best Quality' },
+      { value: 'gemini-1.5-flash', label: 'Fast Response' },
     ],
   },
 ];

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { getAgentCanvasProviders, getAgentDefaultProvider, getAgentDefaultModel } from '../../../../lib/aiProviders';
+import { getAgentCanvasProviders, getCanvasDefaultProvider, getCanvasDefaultModel } from '../../../../lib/aiProviders';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -34,6 +34,23 @@ import {
   Squares2X2Icon,
   RectangleGroupIcon,
 } from '@heroicons/react/24/outline';
+
+// =============================================================================
+// HELPER: Map provider key to API provider name
+// =============================================================================
+function getApiProviderName(providerKey: string): string {
+  const mapping: Record<string, string> = {
+    'cerebras': 'Cerebras',
+    'xai': 'XAI',
+    'xai-planner': 'XAI', // Planner also uses XAI
+    'gemini': 'Gemini',
+    'mistral': 'Mistral',
+    'openai': 'OpenAI',
+    'anthropic': 'Anthropic',
+    'groq': 'Groq',
+  };
+  return mapping[providerKey.toLowerCase()] || providerKey;
+}
 
 // Lazy load Monaco Editor with proper error handling
 const MonacoEditor = dynamic(
@@ -992,8 +1009,8 @@ export default function CanvasMode({
   
   // Agent-specific provider/model options
   const providerModels = useMemo(() => getAgentCanvasProviders(agentId, agentName), [agentId, agentName]);
-  const defaultProvider = useMemo(() => getAgentDefaultProvider(agentId), [agentId]);
-  const defaultModel = useMemo(() => getAgentDefaultModel(agentId), [agentId]);
+  const defaultProvider = useMemo(() => getCanvasDefaultProvider(), []);
+  const defaultModel = useMemo(() => getCanvasDefaultModel(), []);
   
   const [selectedProvider, setSelectedProvider] = useState<string>(defaultProvider);
   const [selectedModel, setSelectedModel] = useState<string>(defaultModel);
@@ -1555,7 +1572,7 @@ export default function CanvasMode({
         signal: controller.signal,
         body: JSON.stringify({
           prompt: userPrompt,
-          provider: selectedProvider,
+          provider: getApiProviderName(selectedProvider),
           modelId: selectedModel,
           temperature,
           maxTokens,
