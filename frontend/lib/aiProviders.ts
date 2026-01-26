@@ -13,25 +13,25 @@ export interface ProviderModelOption {
 // AGENT-SPECIFIC AI PROVIDER OPTIONS
 // ============================================================================
 // Standard Structure for ALL agents (7 options):
-// 1. [Agent Name] - Cerebras (Primary Default)
+// 1. [Agent Name] - Anthropic (Primary Default - Best quality)
 // 2. Maula AI - Groq
 // 3. Image Generator - OpenAI
-// 4. Code Writing - Anthropic
+// 4. Code Writing - Anthropic (for coding tasks)
 // 5. Planner - Mistral
 // 6. Research Helper - XAI
-// 7. Creative Mind - Gemini
+// 7. Quick Mode - Cerebras (fast responses)
 // ============================================================================
 
 // Helper to create standard agent options (all 7)
 function createAgentOptions(agentName: string): ProviderModelOption[] {
   return [
-    // 1. Agent Primary - Cerebras
+    // 1. Agent Primary - Anthropic (Best quality for character agents)
     {
-      provider: 'cerebras',
+      provider: 'anthropic',
       label: agentName,
       models: [
-        { value: 'llama3.1-8b', label: 'Quick Response' },
-        { value: 'llama-3.3-70b', label: 'Smart Response' },
+        { value: 'claude-sonnet-4-20250514', label: 'Best Quality' },
+        { value: 'claude-3-5-haiku-20241022', label: 'Fast Response' },
       ],
     },
     // 2. Maula AI - Groq
@@ -79,13 +79,13 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
         { value: 'grok-3', label: 'Advanced Research' },
       ],
     },
-    // 7. Creative Mind - Gemini
+    // 7. Quick Mode - Cerebras (for fast responses when needed)
     {
-      provider: 'gemini',
-      label: 'Creative Mind',
+      provider: 'cerebras',
+      label: 'Quick Mode',
       models: [
-        { value: 'gemini-1.5-flash', label: 'Fast Creative' },
-        { value: 'gemini-1.5-pro', label: 'Deep Creative' },
+        { value: 'llama3.1-8b', label: 'Ultra Fast' },
+        { value: 'llama-3.3-70b', label: 'Fast + Smart' },
       ],
     },
   ];
@@ -325,7 +325,7 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
   const options = getAgentProviderOptions(agentId);
   const targetProvider = provider || options[0]?.provider;
   const opt = options.find(o => o.provider === targetProvider);
-  return opt?.models[0]?.value || 'llama3.1-8b';
+  return opt?.models[0]?.value || 'claude-sonnet-4-20250514';
 }
 
 // ============================================================================
@@ -333,11 +333,11 @@ export function getAgentDefaultModel(agentId: string, provider?: string): string
 // ============================================================================
 export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
   {
-    provider: 'cerebras',
+    provider: 'anthropic',
     label: 'AI Assistant',
     models: [
-      { value: 'llama3.1-8b', label: 'Quick Response' },
-      { value: 'llama-3.3-70b', label: 'Smart Response' },
+      { value: 'claude-sonnet-4-20250514', label: 'Best Quality' },
+      { value: 'claude-3-5-haiku-20241022', label: 'Fast Response' },
     ],
   },
   {
@@ -380,11 +380,11 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
     ],
   },
   {
-    provider: 'gemini',
-    label: 'Creative Mind',
+    provider: 'cerebras',
+    label: 'Quick Mode',
     models: [
-      { value: 'gemini-2.0-flash', label: 'Fast Creative' },
-      { value: 'gemini-1.5-pro', label: 'Deep Creative' },
+      { value: 'llama3.1-8b', label: 'Ultra Fast' },
+      { value: 'llama-3.3-70b', label: 'Fast + Smart' },
     ],
   },
 ];
