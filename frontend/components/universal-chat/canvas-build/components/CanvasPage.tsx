@@ -1072,7 +1072,7 @@ export default function CanvasMode({
       {
         id: '1',
         role: 'assistant',
-        content: `Hey! 👋 I'm your **Code Builder** assistant - let's create something amazing together!\n\n**How this works:**\n1. 💬 First, tell me what you want to build\n2. 🤔 I'll ask questions to understand your vision\n3. 🎨 We'll discuss colors, layout, features\n4. ✨ Then I'll generate the code step-by-step\n\n**What would you like to create?**\n- 🚀 Landing page or website\n- 📊 Dashboard or admin panel\n- 🛒 E-commerce or product page\n- 📝 Forms, cards, or components\n- 🎨 Or upload a design screenshot!\n\nLet's start with: **What's your project about?**`,
+        content: `Hey there! 👋 I'm super excited to help you build something awesome today!\n\nSo what's on your mind? Got a cool idea brewing? Whether it's a slick landing page, a fancy dashboard, or even just a quick component - I'm all ears! 🎨\n\nOh and pro tip: you can also drop a screenshot of any design and I'll turn it into code for you! ✨\n\nWhat are we creating?`,
         timestamp: new Date(),
       },
     ]);
@@ -1793,7 +1793,7 @@ export default function CanvasMode({
       {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\n**🎨 Image-to-Code:** Upload a design screenshot and I'll recreate it as code!\n\nI'll ask a few questions to understand your needs, then we can start building!`,
+        content: `Hey! 👋 Fresh canvas, endless possibilities!\n\nWhat are we building this time? I'm ready for anything - websites, dashboards, portfolios, you name it! 🚀\n\nGot a design screenshot? Drop it in and I'll recreate it in code!`,
         timestamp: new Date(),
       },
     ]);
