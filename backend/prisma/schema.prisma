@@ -52,6 +52,8 @@ model User {
   backupCodes          String[]  @default([])
   loginAttempts        Int       @default(0)
   lockUntil            DateTime?
+  tempToken            String?
+  tempTokenExpiry      DateTime?
 
   // Relations
   subscriptions        AgentSubscription[]

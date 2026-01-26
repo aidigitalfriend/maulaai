@@ -919,7 +919,28 @@ app.post('/api/auth/login', rateLimiters.auth, async (req, res) => {
       });
     }
 
-    // Generate session
+    // Check if 2FA is enabled for this user
+    if (user.twoFactorEnabled) {
+      // Generate a temporary token for 2FA verification
+      const tempToken = crypto.randomBytes(32).toString('hex');
+      const tempTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Store temp token in user record
+      await db.User.update(user.id, {
+        tempToken,
+        tempTokenExpiry,
+      });
+
+      return res.json({
+        success: true,
+        requires2FA: true,
+        tempToken,
+        userId: user.id,
+        message: '2FA verification required',
+      });
+    }
+
+    // Generate session (no 2FA enabled)
     const sessionId = crypto.randomBytes(32).toString('hex');
     const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -973,6 +994,95 @@ app.post('/api/auth/logout', async (req, res) => {
   } catch (error) {
     console.error('Logout error:', error);
     res.json({ success: true });
+  }
+});
+
+// Verify 2FA during login
+app.post('/api/auth/verify-2fa', rateLimiters.auth, async (req, res) => {
+  try {
+    const { tempToken, userId, code } = req.body;
+
+    if (!tempToken || !userId || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token, user ID, and verification code are required',
+      });
+    }
+
+    if (code.length !== 6 || !/^\d+$/.test(code)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code format',
+      });
+    }
+
+    // Find user with valid temp token
+    const prisma = db.prisma;
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        tempToken,
+        tempTokenExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired verification session. Please login again.',
+      });
+    }
+
+    // Verify TOTP code
+    const speakeasy = require('speakeasy');
+    const isValid = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: code,
+      window: 1, // Allow 1 step before/after for clock drift
+    });
+
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid verification code. Please try again.',
+      });
+    }
+
+    // 2FA verified - create session
+    const sessionId = crypto.randomBytes(32).toString('hex');
+    const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await db.User.update(user.id, {
+      sessionId,
+      sessionExpiry,
+      lastLoginAt: new Date(),
+      tempToken: null,
+      tempTokenExpiry: null,
+    });
+
+    res.cookie('sessionId', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error('2FA verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify 2FA code',
+    });
   }
 });
 
