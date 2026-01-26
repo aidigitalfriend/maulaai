@@ -1,21 +1,78 @@
 /**
  * PRISMA MODEL ADAPTERS
- * Provides consistent interface for database operations using Prisma
+ * Provides Mongoose-compatible interface for database operations using Prisma
  * All models use PostgreSQL via Prisma ORM
+ * 
+ * Supports both:
+ * - Static methods: Model.findById(id), Model.findOne(query)
+ * - Instance methods: new Model(data), instance.save()
  */
 
 import { prisma } from '../lib/prisma.js';
+
+// Helper to convert MongoDB query operators to Prisma
+function convertMongoToPrisma(query) {
+  const where = {};
+  for (const [key, value] of Object.entries(query)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      // Handle MongoDB operators
+      const prismaOp = {};
+      if (value.$gte) prismaOp.gte = value.$gte;
+      if (value.$lte) prismaOp.lte = value.$lte;
+      if (value.$gt) prismaOp.gt = value.$gt;
+      if (value.$lt) prismaOp.lt = value.$lt;
+      if (value.$ne) prismaOp.not = value.$ne;
+      if (value.$in) prismaOp.in = value.$in;
+      if (Object.keys(prismaOp).length > 0) {
+        where[key] = prismaOp;
+      } else {
+        where[key] = value;
+      }
+    } else {
+      where[key] = value;
+    }
+  }
+  return where;
+}
 
 // ============================================
 // USER MODEL ADAPTER
 // ============================================
 class UserAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.user.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.user.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, ...data } = this;
+    return data;
+  }
+
   static async findById(id) {
-    return prisma.user.findUnique({ where: { id } });
+    const result = await prisma.user.findUnique({ where: { id } });
+    return result ? Object.assign(new UserAdapter(result), { _isNew: false }) : null;
   }
 
   static async findByEmail(email) {
-    return prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const result = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    return result ? Object.assign(new UserAdapter(result), { _isNew: false }) : null;
   }
 
   static async findOne(query) {
@@ -23,20 +80,29 @@ class UserAdapter {
     if (query.email) where.email = query.email.toLowerCase();
     if (query.sessionId) where.sessionId = query.sessionId;
     if (query._id) where.id = query._id;
-    return prisma.user.findFirst({ where });
+    if (query.id) where.id = query.id;
+    const result = await prisma.user.findFirst({ where: convertMongoToPrisma(where) });
+    return result ? Object.assign(new UserAdapter(result), { _isNew: false }) : null;
   }
 
   static async findMany(query = {}) {
-    return prisma.user.findMany({ where: query });
+    const results = await prisma.user.findMany({ where: convertMongoToPrisma(query) });
+    return results.map(r => Object.assign(new UserAdapter(r), { _isNew: false }));
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.user.count({ where: convertMongoToPrisma(query) });
   }
 
   static async create(data) {
-    return prisma.user.create({ data });
+    const result = await prisma.user.create({ data });
+    return Object.assign(new UserAdapter(result), { _isNew: false });
   }
 
   static async updateOne(query, update) {
     const where = {};
     if (query._id) where.id = query._id;
+    if (query.id) where.id = query.id;
     if (query.email) where.email = query.email.toLowerCase();
     return prisma.user.updateMany({ where, data: update.$set || update });
   }
@@ -46,8 +112,35 @@ class UserAdapter {
 // AGENT MODEL ADAPTER
 // ============================================
 class AgentAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.agent.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.agent.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, ...data } = this;
+    return data;
+  }
+
   static async findById(id) {
-    return prisma.agent.findUnique({ where: { id } });
+    const result = await prisma.agent.findUnique({ where: { id } });
+    return result ? Object.assign(new AgentAdapter(result), { _isNew: false }) : null;
   }
 
   static async findOne(query) {
@@ -56,14 +149,25 @@ class AgentAdapter {
     if (query.id) where.id = query.id;
     if (query._id) where.id = query._id;
     if (query.status) where.status = query.status;
-    return prisma.agent.findFirst({ where });
+    const result = await prisma.agent.findFirst({ where });
+    return result ? Object.assign(new AgentAdapter(result), { _isNew: false }) : null;
   }
 
   static async find(query = {}) {
     const where = {};
     if (query.status) where.status = query.status;
     if (query.isActive !== undefined) where.status = query.isActive ? 'active' : 'deprecated';
-    return prisma.agent.findMany({ where, orderBy: { name: 'asc' } });
+    const results = await prisma.agent.findMany({ where, orderBy: { name: 'asc' } });
+    return results.map(r => Object.assign(new AgentAdapter(r), { _isNew: false }));
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.agent.count({ where: convertMongoToPrisma(query) });
+  }
+
+  static async create(data) {
+    const result = await prisma.agent.create({ data });
+    return Object.assign(new AgentAdapter(result), { _isNew: false });
   }
 }
 
@@ -71,11 +175,64 @@ class AgentAdapter {
 // CHAT SESSION MODEL ADAPTER
 // ============================================
 class ChatSessionAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const createData = {
+        sessionId: this.sessionId,
+        userId: this.userId,
+        agentId: this.agentId,
+        name: this.name,
+        description: this.description,
+        tags: this.tags || [],
+        context: this.context || {},
+        model: this.model,
+        temperature: this.temperature,
+        maxTokens: this.maxTokens,
+        messageCount: this.stats?.messageCount || this.messageCount || 0,
+        totalTokens: this.stats?.totalTokens || this.totalTokens || 0,
+        lastMessageAt: this.stats?.lastMessageAt || this.lastMessageAt,
+        isActive: this.isActive !== undefined ? this.isActive : true,
+        isArchived: this.isArchived || false,
+      };
+      const result = await prisma.chatSession.create({ data: createData });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatSession.update({
+        where: { id: this.id },
+        data: {
+          name: this.name,
+          description: this.description,
+          tags: this.tags,
+          isActive: this.isActive,
+          isArchived: this.isArchived,
+          messageCount: this.stats?.messageCount || this.messageCount,
+          totalTokens: this.stats?.totalTokens || this.totalTokens,
+          lastMessageAt: this.stats?.lastMessageAt || this.lastMessageAt,
+        },
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  // Mongoose-style populate (returns self for chaining)
+  populate() {
+    return this;
+  }
+
   static async findById(id) {
-    return prisma.chatSession.findUnique({ 
+    const result = await prisma.chatSession.findUnique({ 
       where: { id },
-      include: { agent: true, messages: true },
+      include: { agent: true },
     });
+    return result ? Object.assign(new ChatSessionAdapter(result), { _isNew: false }) : null;
   }
 
   static async findOne(query) {
@@ -83,10 +240,11 @@ class ChatSessionAdapter {
     if (query.sessionId) where.sessionId = query.sessionId;
     if (query.userId) where.userId = query.userId;
     if (query.id) where.id = query.id;
-    return prisma.chatSession.findFirst({ 
+    const result = await prisma.chatSession.findFirst({ 
       where,
       include: { agent: true },
     });
+    return result ? Object.assign(new ChatSessionAdapter(result), { _isNew: false }) : null;
   }
 
   static async find(query = {}) {
@@ -94,31 +252,21 @@ class ChatSessionAdapter {
     if (query.userId) where.userId = query.userId;
     if (query.agentId) where.agentId = query.agentId;
     if (query.isActive !== undefined) where.isActive = query.isActive;
-    return prisma.chatSession.findMany({ 
+    const results = await prisma.chatSession.findMany({ 
       where,
       include: { agent: true },
       orderBy: { updatedAt: 'desc' },
     });
+    return results.map(r => Object.assign(new ChatSessionAdapter(r), { _isNew: false }));
   }
 
   static async create(data) {
-    return prisma.chatSession.create({
-      data: {
-        sessionId: data.sessionId,
-        userId: data.userId,
-        agentId: data.agentId,
-        name: data.name,
-        description: data.description,
-        tags: data.tags || [],
-        context: data.context || {},
-        model: data.model,
-        temperature: data.temperature,
-        maxTokens: data.maxTokens,
-        messageCount: data.stats?.messageCount || 0,
-        totalTokens: data.stats?.totalTokens || 0,
-        lastMessageAt: data.stats?.lastMessageAt,
-      },
-    });
+    const instance = new ChatSessionAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatSession.count({ where: convertMongoToPrisma(query) });
   }
 
   static async deleteOne(query) {
@@ -138,10 +286,37 @@ class ChatSessionAdapter {
 // CHAT SETTINGS MODEL ADAPTER
 // ============================================
 class ChatSettingsAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.chatSettings.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatSettings.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async findOne(query) {
     const where = {};
     if (query.userId) where.userId = query.userId;
-    return prisma.chatSettings.findFirst({ where });
+    const result = await prisma.chatSettings.findFirst({ where });
+    return result ? Object.assign(new ChatSettingsAdapter(result), { _isNew: false }) : null;
   }
 
   static async findOneAndUpdate(query, update, options = {}) {
@@ -151,19 +326,30 @@ class ChatSettingsAdapter {
     const existing = await prisma.chatSettings.findFirst({ where });
     
     if (existing) {
-      return prisma.chatSettings.update({
+      const result = await prisma.chatSettings.update({
         where: { id: existing.id },
         data: update.$set || update,
       });
+      return Object.assign(new ChatSettingsAdapter(result), { _isNew: false });
     } else if (options.upsert) {
-      return prisma.chatSettings.create({
+      const result = await prisma.chatSettings.create({
         data: {
           userId: query.userId,
           ...(update.$set || update),
         },
       });
+      return Object.assign(new ChatSettingsAdapter(result), { _isNew: false });
     }
     return null;
+  }
+
+  static async create(data) {
+    const instance = new ChatSettingsAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatSettings.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -171,23 +357,56 @@ class ChatSettingsAdapter {
 // CHAT FEEDBACK MODEL ADAPTER
 // ============================================
 class ChatFeedbackAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.chatFeedback.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatFeedback.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async findOne(query) {
     const where = {};
     if (query.messageId) where.messageId = query.messageId;
     if (query.userId) where.userId = query.userId;
     if (query.sessionId) where.sessionId = query.sessionId;
-    return prisma.chatFeedback.findFirst({ where });
+    const result = await prisma.chatFeedback.findFirst({ where });
+    return result ? Object.assign(new ChatFeedbackAdapter(result), { _isNew: false }) : null;
   }
 
   static async find(query = {}) {
     const where = {};
     if (query.sessionId) where.sessionId = query.sessionId;
     if (query.userId) where.userId = query.userId;
-    return prisma.chatFeedback.findMany({ where });
+    const results = await prisma.chatFeedback.findMany({ where });
+    return results.map(r => Object.assign(new ChatFeedbackAdapter(r), { _isNew: false }));
   }
 
   static async create(data) {
-    return prisma.chatFeedback.create({ data });
+    const instance = new ChatFeedbackAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatFeedback.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -195,29 +414,62 @@ class ChatFeedbackAdapter {
 // CHAT QUICK ACTION MODEL ADAPTER
 // ============================================
 class ChatQuickActionAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.chatQuickAction.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatQuickAction.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
     const where = {};
     if (query.userId) where.userId = query.userId;
     if (query.isDefault !== undefined) where.isDefault = query.isDefault;
-    return prisma.chatQuickAction.findMany({ 
+    const results = await prisma.chatQuickAction.findMany({ 
       where,
       orderBy: { sortOrder: 'asc' },
     });
+    return results.map(r => Object.assign(new ChatQuickActionAdapter(r), { _isNew: false }));
   }
 
   static async create(data) {
-    return prisma.chatQuickAction.create({ data });
+    const instance = new ChatQuickActionAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.chatQuickAction.update({
+    const result = await prisma.chatQuickAction.update({
       where: { id },
       data: update,
     });
+    return Object.assign(new ChatQuickActionAdapter(result), { _isNew: false });
   }
 
   static async findByIdAndDelete(id) {
     return prisma.chatQuickAction.delete({ where: { id } });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatQuickAction.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -225,42 +477,84 @@ class ChatQuickActionAdapter {
 // CANVAS PROJECT MODEL ADAPTER
 // ============================================
 class ChatCanvasProjectAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.chatCanvasProject.create({
+        data: {
+          projectId: this.projectId,
+          userId: this.userId,
+          sessionId: this.sessionId,
+          name: this.name,
+          description: this.description,
+          type: this.type,
+          metadata: this.metadata || {},
+        },
+      });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatCanvasProject.update({
+        where: { id: this.id },
+        data: {
+          name: this.name,
+          description: this.description,
+          type: this.type,
+          metadata: this.metadata,
+        },
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
   static async find(query = {}) {
     const where = {};
     if (query.userId) where.userId = query.userId;
     if (query.sessionId) where.sessionId = query.sessionId;
-    return prisma.chatCanvasProject.findMany({
+    const results = await prisma.chatCanvasProject.findMany({
       where,
       include: { files: true },
       orderBy: { updatedAt: 'desc' },
     });
+    return results.map(r => Object.assign(new ChatCanvasProjectAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.chatCanvasProject.findUnique({
+    const result = await prisma.chatCanvasProject.findUnique({
       where: { id },
       include: { files: true },
     });
+    return result ? Object.assign(new ChatCanvasProjectAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const where = {};
+    if (query.projectId) where.projectId = query.projectId;
+    if (query.userId) where.userId = query.userId;
+    const result = await prisma.chatCanvasProject.findFirst({
+      where,
+      include: { files: true },
+    });
+    return result ? Object.assign(new ChatCanvasProjectAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.chatCanvasProject.create({
-      data: {
-        userId: data.userId,
-        sessionId: data.sessionId,
-        name: data.name,
-        description: data.description,
-        type: data.type,
-        metadata: data.metadata || {},
-      },
-    });
+    const instance = new ChatCanvasProjectAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.chatCanvasProject.update({
+    const result = await prisma.chatCanvasProject.update({
       where: { id },
       data: update.$set || update,
     });
+    return Object.assign(new ChatCanvasProjectAdapter(result), { _isNew: false });
   }
 
   static async findByIdAndDelete(id) {
@@ -268,39 +562,87 @@ class ChatCanvasProjectAdapter {
     await prisma.chatCanvasFile.deleteMany({ where: { projectId: id } });
     return prisma.chatCanvasProject.delete({ where: { id } });
   }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatCanvasProject.count({ where: convertMongoToPrisma(query) });
+  }
 }
 
 // ============================================
 // CANVAS FILE MODEL ADAPTER
 // ============================================
 class ChatCanvasFileAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.chatCanvasFile.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatCanvasFile.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
     const where = {};
     if (query.projectId) where.projectId = query.projectId;
     if (query.userId) where.userId = query.userId;
-    return prisma.chatCanvasFile.findMany({
+    const results = await prisma.chatCanvasFile.findMany({
       where,
       orderBy: { path: 'asc' },
     });
+    return results.map(r => Object.assign(new ChatCanvasFileAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.chatCanvasFile.findUnique({ where: { id } });
+    const result = await prisma.chatCanvasFile.findUnique({ where: { id } });
+    return result ? Object.assign(new ChatCanvasFileAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const where = {};
+    if (query.projectId) where.projectId = query.projectId;
+    if (query.userId) where.userId = query.userId;
+    if (query.path) where.path = query.path;
+    if (query.fileId) where.fileId = query.fileId;
+    const result = await prisma.chatCanvasFile.findFirst({ where });
+    return result ? Object.assign(new ChatCanvasFileAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.chatCanvasFile.create({ data });
+    const instance = new ChatCanvasFileAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.chatCanvasFile.update({
+    const result = await prisma.chatCanvasFile.update({
       where: { id },
       data: update.$set || update,
     });
+    return Object.assign(new ChatCanvasFileAdapter(result), { _isNew: false });
   }
 
   static async findByIdAndDelete(id) {
     return prisma.chatCanvasFile.delete({ where: { id } });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatCanvasFile.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -308,17 +650,49 @@ class ChatCanvasFileAdapter {
 // CANVAS HISTORY MODEL ADAPTER
 // ============================================
 class ChatCanvasHistoryAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.chatCanvasHistory.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatCanvasHistory.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
     const where = {};
     if (query.fileId) where.fileId = query.fileId;
-    return prisma.chatCanvasHistory.findMany({
+    const results = await prisma.chatCanvasHistory.findMany({
       where,
       orderBy: { createdAt: 'desc' },
     });
+    return results.map(r => Object.assign(new ChatCanvasHistoryAdapter(r), { _isNew: false }));
   }
 
   static async create(data) {
-    return prisma.chatCanvasHistory.create({ data });
+    const instance = new ChatCanvasHistoryAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatCanvasHistory.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -326,95 +700,311 @@ class ChatCanvasHistoryAdapter {
 // ANALYTICS MODELS ADAPTERS
 // ============================================
 class VisitorAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.visitor.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.visitor.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async findOne(query) {
     const where = {};
     if (query.visitorId) where.visitorId = query.visitorId;
-    return prisma.visitor.findFirst({ where });
+    const result = await prisma.visitor.findFirst({ where });
+    return result ? Object.assign(new VisitorAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findById(id) {
+    const result = await prisma.visitor.findUnique({ where: { id } });
+    return result ? Object.assign(new VisitorAdapter(result), { _isNew: false }) : null;
   }
 
   static async countDocuments(query = {}) {
-    return prisma.visitor.count({ where: query });
+    return prisma.visitor.count({ where: convertMongoToPrisma(query) });
+  }
+
+  static async create(data) {
+    const instance = new VisitorAdapter(data);
+    return instance.save();
   }
 }
 
 class SessionAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.session.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.session.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async findOne(query) {
     const where = {};
     if (query.sessionId) where.sessionId = query.sessionId;
-    return prisma.session.findFirst({ where });
+    const result = await prisma.session.findFirst({ where });
+    return result ? Object.assign(new SessionAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findById(id) {
+    const result = await prisma.session.findUnique({ where: { id } });
+    return result ? Object.assign(new SessionAdapter(result), { _isNew: false }) : null;
   }
 
   static async find(query = {}) {
     const where = {};
     if (query.visitorId) where.visitorId = query.visitorId;
-    return prisma.session.findMany({ where, orderBy: { startTime: 'desc' } });
+    const results = await prisma.session.findMany({ where: convertMongoToPrisma(where), orderBy: { startTime: 'desc' } });
+    return results.map(r => Object.assign(new SessionAdapter(r), { _isNew: false }));
   }
 
   static async countDocuments(query = {}) {
-    return prisma.session.count({ where: query });
+    return prisma.session.count({ where: convertMongoToPrisma(query) });
+  }
+
+  static async create(data) {
+    const instance = new SessionAdapter(data);
+    return instance.save();
   }
 }
 
 class PageViewAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.pageView.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.pageView.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, ...data } = this;
+    return data;
+  }
+
+  static async findById(id) {
+    const result = await prisma.pageView.findUnique({ where: { id } });
+    return result ? Object.assign(new PageViewAdapter(result), { _isNew: false }) : null;
+  }
+
   static async countDocuments(query = {}) {
-    return prisma.pageView.count({ where: query });
+    return prisma.pageView.count({ where: convertMongoToPrisma(query) });
   }
 
   static async find(query = {}) {
-    return prisma.pageView.findMany({ where: query, orderBy: { timestamp: 'desc' } });
+    const results = await prisma.pageView.findMany({ where: convertMongoToPrisma(query), orderBy: { timestamp: 'desc' } });
+    return results.map(r => Object.assign(new PageViewAdapter(r), { _isNew: false }));
+  }
+
+  static async create(data) {
+    const instance = new PageViewAdapter(data);
+    return instance.save();
   }
 }
 
 class UserEventAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.userEvent.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.userEvent.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, ...data } = this;
+    return data;
+  }
+
   static async countDocuments(query = {}) {
-    return prisma.userEvent.count({ where: query });
+    return prisma.userEvent.count({ where: convertMongoToPrisma(query) });
   }
 
   static async find(query = {}) {
-    return prisma.userEvent.findMany({ where: query, orderBy: { occurredAt: 'desc' } });
+    const results = await prisma.userEvent.findMany({ where: convertMongoToPrisma(query), orderBy: { occurredAt: 'desc' } });
+    return results.map(r => Object.assign(new UserEventAdapter(r), { _isNew: false }));
+  }
+
+  static async create(data) {
+    const instance = new UserEventAdapter(data);
+    return instance.save();
   }
 }
 
 class ApiUsageAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.apiUsage.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.apiUsage.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, ...data } = this;
+    return data;
+  }
+
   static async countDocuments(query = {}) {
-    return prisma.apiUsage.count({ where: query });
+    return prisma.apiUsage.count({ where: convertMongoToPrisma(query) });
   }
 
   static async find(query = {}) {
-    return prisma.apiUsage.findMany({ where: query, orderBy: { timestamp: 'desc' } });
+    const results = await prisma.apiUsage.findMany({ where: convertMongoToPrisma(query), orderBy: { timestamp: 'desc' } });
+    return results.map(r => Object.assign(new ApiUsageAdapter(r), { _isNew: false }));
+  }
+
+  static async create(data) {
+    const instance = new ApiUsageAdapter(data);
+    return instance.save();
   }
 }
 
 class ChatInteractionAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const createData = {
+        conversationId: this.conversationId,
+        userId: this.userId,
+        agentId: this.agentId,
+        channel: this.channel || 'web',
+        language: this.language || 'en',
+        messages: this.messages || [],
+        status: this.status || 'active',
+      };
+      const result = await prisma.chatAnalyticsInteraction.create({ data: createData });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.chatAnalyticsInteraction.update({
+        where: { id: this.id },
+        data: {
+          messages: this.messages,
+          status: this.status,
+        },
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
   static async findOne(query) {
     const where = {};
     if (query.conversationId) where.conversationId = query.conversationId;
     if (query.userId) where.userId = query.userId;
-    return prisma.chatAnalyticsInteraction.findFirst({ where });
+    const result = await prisma.chatAnalyticsInteraction.findFirst({ where });
+    return result ? Object.assign(new ChatInteractionAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findById(id) {
+    const result = await prisma.chatAnalyticsInteraction.findUnique({ where: { id } });
+    return result ? Object.assign(new ChatInteractionAdapter(result), { _isNew: false }) : null;
   }
 
   static async find(query = {}) {
     const where = {};
     if (query.conversationId) where.conversationId = query.conversationId;
     if (query.userId) where.userId = query.userId;
-    return prisma.chatAnalyticsInteraction.findMany({
+    const results = await prisma.chatAnalyticsInteraction.findMany({
       where,
       orderBy: { createdAt: 'asc' },
     });
+    return results.map(r => Object.assign(new ChatInteractionAdapter(r), { _isNew: false }));
   }
 
   static async create(data) {
-    return prisma.chatAnalyticsInteraction.create({
-      data: {
-        conversationId: data.conversationId,
-        userId: data.userId,
-        agentId: data.agentId,
-        channel: data.channel || 'web',
-        language: data.language || 'en',
-        messages: data.messages || [],
-        status: data.status || 'active',
-      },
-    });
+    const instance = new ChatInteractionAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.chatAnalyticsInteraction.count({ where: convertMongoToPrisma(query) });
+  }
+
+  // Mongoose-style sort (returns self for chaining)  
+  sort() {
+    return this;
   }
 }
 
@@ -422,41 +1012,109 @@ class ChatInteractionAdapter {
 // SUPPORT MODELS ADAPTERS
 // ============================================
 class SupportTicketAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.supportTicket.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.supportTicket.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
     const where = {};
     if (query.userId) where.userId = query.userId;
     if (query.status) where.status = query.status;
-    return prisma.supportTicket.findMany({ where, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.supportTicket.findMany({ where, orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new SupportTicketAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.supportTicket.findUnique({ where: { id } });
+    const result = await prisma.supportTicket.findUnique({ where: { id } });
+    return result ? Object.assign(new SupportTicketAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.supportTicket.create({ data });
+    const instance = new SupportTicketAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.supportTicket.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.supportTicket.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new SupportTicketAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.supportTicket.count({ where: convertMongoToPrisma(query) });
   }
 }
 
 class ContactMessageAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.contactMessage.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.contactMessage.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.contactMessage.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.contactMessage.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new ContactMessageAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.contactMessage.findUnique({ where: { id } });
+    const result = await prisma.contactMessage.findUnique({ where: { id } });
+    return result ? Object.assign(new ContactMessageAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.contactMessage.create({ data });
+    const instance = new ContactMessageAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.contactMessage.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.contactMessage.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new ContactMessageAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.contactMessage.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -464,34 +1122,152 @@ class ContactMessageAdapter {
 // COMMUNITY MODELS ADAPTERS
 // ============================================
 class CommunityPostAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityPost.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityPost.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, author, comments, likes, ...data } = this;
+    return data;
+  }
+
+  // Mongoose-style lean (returns self for chaining)
+  lean() {
+    return this;
+  }
+
   static async find(query = {}) {
     const where = {};
     if (query.authorId) where.authorId = query.authorId;
     if (query.category) where.category = query.category;
-    return prisma.communityPost.findMany({ 
+    const results = await prisma.communityPost.findMany({ 
       where, 
       include: { author: true, comments: true, likes: true },
       orderBy: { createdAt: 'desc' },
     });
+    return results.map(r => Object.assign(new CommunityPostAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.communityPost.findUnique({ 
+    const result = await prisma.communityPost.findUnique({ 
       where: { id },
       include: { author: true, comments: true, likes: true },
     });
+    // Return a chainable instance with lean() support
+    if (result) {
+      const instance = Object.assign(new CommunityPostAdapter(result), { _isNew: false });
+      return instance;
+    }
+    return null;
   }
 
   static async create(data) {
-    return prisma.communityPost.create({ data });
+    const instance = new CommunityPostAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.communityPost.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.communityPost.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new CommunityPostAdapter(result), { _isNew: false });
   }
 
   static async findByIdAndDelete(id) {
     return prisma.communityPost.delete({ where: { id } });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityPost.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+class CommunityCommentAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityComment.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityComment.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityComment.count({ where: convertMongoToPrisma(query) });
+  }
+
+  static async create(data) {
+    const instance = new CommunityCommentAdapter(data);
+    return instance.save();
+  }
+}
+
+class CommunityLikeAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityLike.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityLike.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, ...data } = this;
+    return data;
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityLike.count({ where: convertMongoToPrisma(query) });
+  }
+
+  static async create(data) {
+    const instance = new CommunityLikeAdapter(data);
+    return instance.save();
   }
 }
 
@@ -499,89 +1275,277 @@ class CommunityPostAdapter {
 // OTHER MODELS ADAPTERS
 // ============================================
 class JobApplicationAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.jobApplication.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.jobApplication.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.jobApplication.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.jobApplication.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new JobApplicationAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.jobApplication.findUnique({ where: { id } });
+    const result = await prisma.jobApplication.findUnique({ where: { id } });
+    return result ? Object.assign(new JobApplicationAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const where = {};
+    if (query.applicationId) where.applicationId = query.applicationId;
+    if (query.email) where.email = query.email;
+    if (query.jobId) where.jobId = query.jobId;
+    const result = await prisma.jobApplication.findFirst({ where });
+    return result ? Object.assign(new JobApplicationAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.jobApplication.create({ data });
+    const instance = new JobApplicationAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.jobApplication.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.jobApplication.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new JobApplicationAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.jobApplication.count({ where: convertMongoToPrisma(query) });
   }
 }
 
 class WebinarRegistrationAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.webinarRegistration.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.webinarRegistration.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.webinarRegistration.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.webinarRegistration.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new WebinarRegistrationAdapter(r), { _isNew: false }));
   }
 
   static async findOne(query) {
-    return prisma.webinarRegistration.findFirst({ where: query });
+    const result = await prisma.webinarRegistration.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new WebinarRegistrationAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.webinarRegistration.create({ data });
+    const instance = new WebinarRegistrationAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.webinarRegistration.count({ where: convertMongoToPrisma(query) });
   }
 }
 
 class UserFavoritesAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.userFavorites.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.userFavorites.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async findOne(query) {
-    return prisma.userFavorites.findFirst({ where: query });
+    const result = await prisma.userFavorites.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new UserFavoritesAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findById(id) {
+    const result = await prisma.userFavorites.findUnique({ where: { id } });
+    return result ? Object.assign(new UserFavoritesAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.userFavorites.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new UserFavoritesAdapter(r), { _isNew: false }));
   }
 
   static async findOneAndUpdate(query, update, options = {}) {
-    const existing = await prisma.userFavorites.findFirst({ where: query });
+    const existing = await prisma.userFavorites.findFirst({ where: convertMongoToPrisma(query) });
     if (existing) {
-      return prisma.userFavorites.update({ where: { id: existing.id }, data: update.$set || update });
+      const result = await prisma.userFavorites.update({ where: { id: existing.id }, data: update.$set || update });
+      return Object.assign(new UserFavoritesAdapter(result), { _isNew: false });
     } else if (options.upsert) {
-      return prisma.userFavorites.create({ data: { ...query, ...(update.$set || update) } });
+      const result = await prisma.userFavorites.create({ data: { ...query, ...(update.$set || update) } });
+      return Object.assign(new UserFavoritesAdapter(result), { _isNew: false });
     }
     return null;
+  }
+
+  static async create(data) {
+    const instance = new UserFavoritesAdapter(data);
+    return instance.save();
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.userFavorites.count({ where: convertMongoToPrisma(query) });
   }
 }
 
 class TransactionAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.transaction.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.transaction.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.transaction.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.transaction.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new TransactionAdapter(r), { _isNew: false }));
   }
 
   static async findOne(query) {
-    return prisma.transaction.findFirst({ where: query });
+    const result = await prisma.transaction.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new TransactionAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.transaction.create({ data });
+    const instance = new TransactionAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.transaction.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.transaction.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new TransactionAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.transaction.count({ where: convertMongoToPrisma(query) });
   }
 }
 
 class AgentMemoryAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.agentMemory.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.agentMemory.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.agentMemory.findMany({ 
-      where: query, 
+    const results = await prisma.agentMemory.findMany({ 
+      where: convertMongoToPrisma(query), 
       orderBy: { updatedAt: 'desc' }, 
     });
+    return results.map(r => Object.assign(new AgentMemoryAdapter(r), { _isNew: false }));
   }
 
   static async findOne(query) {
-    return prisma.agentMemory.findFirst({ where: query });
+    const result = await prisma.agentMemory.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new AgentMemoryAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.agentMemory.create({ data });
+    const instance = new AgentMemoryAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.agentMemory.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.agentMemory.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new AgentMemoryAdapter(result), { _isNew: false });
   }
 
   static async findByIdAndDelete(id) {
@@ -589,43 +1553,169 @@ class AgentMemoryAdapter {
   }
 
   static async deleteMany(query) {
-    return prisma.agentMemory.deleteMany({ where: query });
+    return prisma.agentMemory.deleteMany({ where: convertMongoToPrisma(query) });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.agentMemory.count({ where: convertMongoToPrisma(query) });
   }
 }
 
 class AgentFileAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.agentFile.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.agentFile.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.agentFile.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.agentFile.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new AgentFileAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.agentFile.findUnique({ where: { id } });
+    const result = await prisma.agentFile.findUnique({ where: { id } });
+    return result ? Object.assign(new AgentFileAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const where = {};
+    if (query.userId) where.userId = query.userId;
+    if (query.path) where.path = query.path;
+    if (query.filename) where.filename = query.filename;
+    if (query.isDeleted !== undefined) where.isDeleted = query.isDeleted;
+    const result = await prisma.agentFile.findFirst({ where });
+    return result ? Object.assign(new AgentFileAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.agentFile.create({ data });
+    const instance = new AgentFileAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndDelete(id) {
     return prisma.agentFile.delete({ where: { id } });
   }
+
+  static async countDocuments(query = {}) {
+    return prisma.agentFile.count({ where: convertMongoToPrisma(query) });
+  }
 }
 
 class CommunitySuggestionAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communitySuggestion.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communitySuggestion.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.communitySuggestion.findMany({ where: query, orderBy: { createdAt: 'desc' } });
+    const results = await prisma.communitySuggestion.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new CommunitySuggestionAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.communitySuggestion.findUnique({ where: { id } });
+    const result = await prisma.communitySuggestion.findUnique({ where: { id } });
+    return result ? Object.assign(new CommunitySuggestionAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.communitySuggestion.create({ data });
+    const instance = new CommunitySuggestionAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.communitySuggestion.update({ where: { id }, data: update.$set || update });
+    const result = await prisma.communitySuggestion.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new CommunitySuggestionAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communitySuggestion.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+// ============================================
+// TOOL USAGE ADAPTER
+// ============================================
+class ToolUsageAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.toolUsage.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.toolUsage.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, ...data } = this;
+    return data;
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.toolUsage.count({ where: convertMongoToPrisma(query) });
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.toolUsage.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
+    return results.map(r => Object.assign(new ToolUsageAdapter(r), { _isNew: false }));
+  }
+
+  static async create(data) {
+    const instance = new ToolUsageAdapter(data);
+    return instance.save();
   }
 }
 
@@ -634,22 +1724,33 @@ class CommunitySuggestionAdapter {
 // Uses AnalyticsEvent to store lab experiments
 // ============================================
 class LabExperimentAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    return LabExperimentAdapter.create(this);
+  }
+
   static async find(query = {}) {
     const where = { eventName: 'lab_experiment' };
     if (query.sessionId) where.sessionId = query.sessionId;
     if (query.userId) where.userId = query.userId;
-    return prisma.analyticsEvent.findMany({ 
+    const results = await prisma.analyticsEvent.findMany({ 
       where, 
       orderBy: { timestamp: 'desc' }, 
     });
+    return results.map(r => Object.assign(new LabExperimentAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.analyticsEvent.findUnique({ where: { id } });
+    const result = await prisma.analyticsEvent.findUnique({ where: { id } });
+    return result ? Object.assign(new LabExperimentAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.analyticsEvent.create({
+    const result = await prisma.analyticsEvent.create({
       data: {
         visitorId: data.visitorId || 'system',
         sessionId: data.sessionId || 'system',
@@ -671,18 +1772,18 @@ class LabExperimentAdapter {
         timestamp: new Date(),
       },
     });
+    return Object.assign(new LabExperimentAdapter(result), { _isNew: false });
   }
 
   static async countDocuments(query = {}) {
     const where = { eventName: 'lab_experiment' };
-    if (query.timestamp?.$gte) where.timestamp = { gte: query.timestamp.$gte };
-    if (query.timestamp?.$lte) where.timestamp = { ...(where.timestamp || {}), lte: query.timestamp.$lte };
+    if (query.timestamp) where.timestamp = convertMongoToPrisma({ timestamp: query.timestamp }).timestamp;
     return prisma.analyticsEvent.count({ where });
   }
 
   static async distinct(field, query = {}) {
     const where = { eventName: 'lab_experiment' };
-    if (query.timestamp?.$gte) where.timestamp = { gte: query.timestamp.$gte };
+    if (query.timestamp) where.timestamp = convertMongoToPrisma({ timestamp: query.timestamp }).timestamp;
     const events = await prisma.analyticsEvent.findMany({
       where,
       select: { [field]: true },
@@ -703,41 +1804,371 @@ class LabExperimentAdapter {
     }
     return [];
   }
-
-  // Make instances with save method
-  constructor(data) {
-    Object.assign(this, data);
-  }
-
-  async save() {
-    return LabExperimentAdapter.create(this);
-  }
 }
 
 // ============================================
 // CONSULTATION ADAPTER
 // ============================================
 class ConsultationAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.consultation.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.consultation.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
   static async find(query = {}) {
-    return prisma.consultation.findMany({ 
-      where: query, 
+    const results = await prisma.consultation.findMany({ 
+      where: convertMongoToPrisma(query), 
       orderBy: { createdAt: 'desc' }, 
     });
+    return results.map(r => Object.assign(new ConsultationAdapter(r), { _isNew: false }));
   }
 
   static async findById(id) {
-    return prisma.consultation.findUnique({ where: { id } });
+    const result = await prisma.consultation.findUnique({ where: { id } });
+    return result ? Object.assign(new ConsultationAdapter(result), { _isNew: false }) : null;
   }
 
   static async create(data) {
-    return prisma.consultation.create({ data });
+    const instance = new ConsultationAdapter(data);
+    return instance.save();
   }
 
   static async findByIdAndUpdate(id, update) {
-    return prisma.consultation.update({ 
+    const result = await prisma.consultation.update({ 
       where: { id }, 
       data: update.$set || update, 
     });
+    return Object.assign(new ConsultationAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.consultation.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+// ============================================
+// ADDITIONAL COMMUNITY ADAPTERS
+// ============================================
+class CommunityGroupAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityGroup.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityGroup.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, memberships, ...data } = this;
+    return data;
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.communityGroup.findMany({ 
+      where: convertMongoToPrisma(query), 
+      include: { memberships: true },
+      orderBy: { createdAt: 'desc' } 
+    });
+    return results.map(r => Object.assign(new CommunityGroupAdapter(r), { _isNew: false }));
+  }
+
+  static async findById(id) {
+    const result = await prisma.communityGroup.findUnique({ 
+      where: { id },
+      include: { memberships: true } 
+    });
+    return result ? Object.assign(new CommunityGroupAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const result = await prisma.communityGroup.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new CommunityGroupAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async create(data) {
+    const instance = new CommunityGroupAdapter(data);
+    return instance.save();
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    const result = await prisma.communityGroup.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new CommunityGroupAdapter(result), { _isNew: false });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityGroup.delete({ where: { id } });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityGroup.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+class CommunityMembershipAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityMembership.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityMembership.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, user, group, ...data } = this;
+    return data;
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.communityMembership.findMany({ 
+      where: convertMongoToPrisma(query), 
+      include: { user: true, group: true },
+      orderBy: { createdAt: 'desc' } 
+    });
+    return results.map(r => Object.assign(new CommunityMembershipAdapter(r), { _isNew: false }));
+  }
+
+  static async findOne(query) {
+    const result = await prisma.communityMembership.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new CommunityMembershipAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async create(data) {
+    const instance = new CommunityMembershipAdapter(data);
+    return instance.save();
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityMembership.delete({ where: { id } });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityMembership.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+class CommunityEventAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityEvent.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityEvent.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.communityEvent.findMany({ 
+      where: convertMongoToPrisma(query), 
+      orderBy: { startTime: 'asc' } 
+    });
+    return results.map(r => Object.assign(new CommunityEventAdapter(r), { _isNew: false }));
+  }
+
+  static async findById(id) {
+    const result = await prisma.communityEvent.findUnique({ where: { id } });
+    return result ? Object.assign(new CommunityEventAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const result = await prisma.communityEvent.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new CommunityEventAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async create(data) {
+    const instance = new CommunityEventAdapter(data);
+    return instance.save();
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    const result = await prisma.communityEvent.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new CommunityEventAdapter(result), { _isNew: false });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.communityEvent.delete({ where: { id } });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityEvent.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+class CommunityModerationAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityModeration.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityModeration.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    return data;
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.communityModeration.findMany({ 
+      where: convertMongoToPrisma(query), 
+      orderBy: { createdAt: 'desc' } 
+    });
+    return results.map(r => Object.assign(new CommunityModerationAdapter(r), { _isNew: false }));
+  }
+
+  static async findById(id) {
+    const result = await prisma.communityModeration.findUnique({ where: { id } });
+    return result ? Object.assign(new CommunityModerationAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOne(query) {
+    const result = await prisma.communityModeration.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new CommunityModerationAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async create(data) {
+    const instance = new CommunityModerationAdapter(data);
+    return instance.save();
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    const result = await prisma.communityModeration.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new CommunityModerationAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityModeration.count({ where: convertMongoToPrisma(query) });
+  }
+}
+
+class CommunityMetricsAdapter {
+  constructor(data = {}) {
+    Object.assign(this, data);
+    this._isNew = true;
+  }
+
+  async save() {
+    if (this._isNew) {
+      const result = await prisma.communityMetrics.create({ data: this._getData() });
+      Object.assign(this, result);
+      this._isNew = false;
+      return this;
+    } else {
+      const result = await prisma.communityMetrics.update({
+        where: { id: this.id },
+        data: this._getData(),
+      });
+      Object.assign(this, result);
+      return this;
+    }
+  }
+
+  _getData() {
+    const { _isNew, id, createdAt, ...data } = this;
+    return data;
+  }
+
+  static async find(query = {}) {
+    const results = await prisma.communityMetrics.findMany({ 
+      where: convertMongoToPrisma(query), 
+      orderBy: { createdAt: 'desc' } 
+    });
+    return results.map(r => Object.assign(new CommunityMetricsAdapter(r), { _isNew: false }));
+  }
+
+  static async findOne(query) {
+    const result = await prisma.communityMetrics.findFirst({ where: convertMongoToPrisma(query) });
+    return result ? Object.assign(new CommunityMetricsAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async create(data) {
+    const instance = new CommunityMetricsAdapter(data);
+    return instance.save();
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    const result = await prisma.communityMetrics.update({ where: { id }, data: update.$set || update });
+    return Object.assign(new CommunityMetricsAdapter(result), { _isNew: false });
+  }
+
+  static async countDocuments(query = {}) {
+    return prisma.communityMetrics.count({ where: convertMongoToPrisma(query) });
   }
 }
 
@@ -762,6 +2193,7 @@ export const Session = SessionAdapter;
 export const PageView = PageViewAdapter;
 export const UserEvent = UserEventAdapter;
 export const ApiUsage = ApiUsageAdapter;
+export const ToolUsage = ToolUsageAdapter;
 
 // Support
 export const SupportTicket = SupportTicketAdapter;
@@ -770,6 +2202,13 @@ export const Consultation = ConsultationAdapter;
 
 // Community  
 export const CommunityPost = CommunityPostAdapter;
+export const CommunityComment = CommunityCommentAdapter;
+export const CommunityLike = CommunityLikeAdapter;
+export const CommunityGroup = CommunityGroupAdapter;
+export const CommunityMembership = CommunityMembershipAdapter;
+export const CommunityEvent = CommunityEventAdapter;
+export const CommunityModeration = CommunityModerationAdapter;
+export const CommunityMetrics = CommunityMetricsAdapter;
 
 // Lab
 export const LabExperiment = LabExperimentAdapter;
@@ -800,10 +2239,18 @@ export default {
   PageView,
   UserEvent,
   ApiUsage,
+  ToolUsage,
   SupportTicket,
   ContactMessage,
   Consultation,
   CommunityPost,
+  CommunityComment,
+  CommunityLike,
+  CommunityGroup,
+  CommunityMembership,
+  CommunityEvent,
+  CommunityModeration,
+  CommunityMetrics,
   LabExperiment,
   JobApplication,
   WebinarRegistration,
