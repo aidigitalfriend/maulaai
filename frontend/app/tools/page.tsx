@@ -19,10 +19,9 @@ import {
   FileJson,
   Clock,
   Palette,
-  FileText,
   Key,
-  Link2,
-  Database,
+  Binary,
+  Code2,
   Wrench,
 } from 'lucide-react';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
@@ -188,58 +187,35 @@ const developerTools = [
   {
     id: 'json-formatter',
     name: 'JSON Formatter',
-    description: 'Format, validate, and beautify JSON data with syntax highlighting',
+    description:
+      'Format, validate, and beautify JSON data with syntax highlighting',
     icon: FileJson,
     href: '/tools/json-formatter',
-    color: 'from-yellow-500 to-amber-500',
+    color: 'from-blue-500 to-cyan-500',
   },
   {
     id: 'base64',
     name: 'Base64 Encoder/Decoder',
-    description: 'Encode and decode Base64 strings and files',
-    icon: Code,
+    description: 'Encode and decode Base64 strings easily',
+    icon: Binary,
     href: '/tools/base64',
-    color: 'from-blue-500 to-indigo-500',
+    color: 'from-purple-500 to-pink-500',
   },
   {
     id: 'hash-generator',
     name: 'Hash Generator',
-    description: 'Generate MD5, SHA-1, SHA-256, and other cryptographic hashes',
+    description: 'Generate MD5, SHA-1, SHA-256, and other hash values',
     icon: Hash,
     href: '/tools/hash-generator',
-    color: 'from-green-500 to-teal-500',
+    color: 'from-green-500 to-emerald-500',
   },
   {
     id: 'uuid-generator',
     name: 'UUID Generator',
-    description: 'Generate unique UUIDs/GUIDs in various formats',
+    description: 'Generate unique identifiers (UUID/GUID) in various formats',
     icon: Key,
     href: '/tools/uuid-generator',
-    color: 'from-purple-500 to-violet-500',
-  },
-  {
-    id: 'timestamp-converter',
-    name: 'Timestamp Converter',
-    description: 'Convert between Unix timestamps and human-readable dates',
-    icon: Clock,
-    href: '/tools/timestamp-converter',
     color: 'from-orange-500 to-red-500',
-  },
-  {
-    id: 'url-parser',
-    name: 'URL Parser',
-    description: 'Parse and analyze URL components including query parameters',
-    icon: Link2,
-    href: '/tools/url-parser',
-    color: 'from-cyan-500 to-blue-500',
-  },
-  {
-    id: 'regex-tester',
-    name: 'Regex Tester',
-    description: 'Test and debug regular expressions with real-time matching',
-    icon: FileText,
-    href: '/tools/regex-tester',
-    color: 'from-pink-500 to-rose-500',
   },
   {
     id: 'color-picker',
@@ -247,13 +223,37 @@ const developerTools = [
     description: 'Pick colors and convert between HEX, RGB, HSL formats',
     icon: Palette,
     href: '/tools/color-picker',
-    color: 'from-gradient-start to-gradient-end',
+    color: 'from-indigo-500 to-purple-500',
+  },
+  {
+    id: 'timestamp',
+    name: 'Timestamp Converter',
+    description: 'Convert between Unix timestamps and human-readable dates',
+    icon: Clock,
+    href: '/tools/timestamp-converter',
+    color: 'from-yellow-500 to-orange-500',
+  },
+  {
+    id: 'regex-tester',
+    name: 'Regex Tester',
+    description: 'Test and debug regular expressions with live matching',
+    icon: Code2,
+    href: '/tools/regex-tester',
+    color: 'from-teal-500 to-green-500',
+  },
+  {
+    id: 'url-parser',
+    name: 'URL Parser',
+    description: 'Parse and decode URLs to extract components',
+    icon: Code2,
+    href: '/tools/url-parser',
+    color: 'from-pink-500 to-rose-500',
   },
   {
     id: 'data-generator',
     name: 'Data Generator',
     description: 'Generate fake data for testing: names, emails, addresses, and more',
-    icon: Database,
+    icon: Server,
     href: '/tools/data-generator',
     color: 'from-emerald-500 to-green-500',
   },
@@ -263,133 +263,146 @@ export default function ToolsPage() {
   const { hasActiveSubscription } = useSubscriptionStatus();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-6">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
+        <div className="container-custom text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 mb-6">
             <Wrench className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Developer & Network Tools
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Developer & Network Tools</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             A comprehensive suite of tools for developers, network administrators, and security professionals
           </p>
+        </div>
+      </section>
+
+      <div className="container-custom section-padding">
+        {/* Quick Stats */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-brand-50 rounded-lg">
+                <div className="text-2xl font-bold text-brand-600">27+</div>
+                <div className="text-xs text-neural-600">Total Tools</div>
+              </div>
+              <div className="text-center p-4 bg-accent-50 rounded-lg">
+                <div className="text-2xl font-bold text-accent-600">Fast</div>
+                <div className="text-xs text-neural-600">Real-time Results</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">Free</div>
+                <div className="text-xs text-neural-600">No Limits</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Network Tools Section */}
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
-            <Network className="w-6 h-6 text-blue-500" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <Network className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-neural-800">
               Network Tools
             </h2>
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+              {networkTools.length} tools
+            </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {networkTools.map((tool) => {
-              const Icon = tool.icon;
-              const isPremium = ['threat-intelligence', 'domain-reputation', 'ip-netblocks', 'mac-lookup', 'domain-research'].includes(tool.id);
-
-              if (isPremium && !hasActiveSubscription) {
-                return (
-                  <LockedCard
-                    key={tool.id}
-                    title={tool.name}
-                    description={tool.description}
-                    icon={<Icon className="w-6 h-6" />}
-                  />
-                );
-              }
-
-              return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {networkTools.map((tool) => (
+              <LockedCard
+                key={tool.id}
+                isLocked={!hasActiveSubscription}
+                title={tool.name}
+              >
                 <Link
-                  key={tool.id}
                   href={tool.href}
-                  className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-transparent overflow-hidden"
+                  className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300 block h-full"
                 >
                   <div
-                    className={`absolute inset-0 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
-                  />
-                  <div className="relative z-10">
-                    <div
-                      className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} mb-4`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {tool.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {tool.description}
-                    </p>
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                  >
+                    <tool.icon className="w-6 h-6 text-white" />
+                  </div>
+
+                  <h3 className="text-lg font-bold text-neural-800 mb-2 group-hover:text-brand-600 transition-colors">
+                    {tool.name}
+                  </h3>
+
+                  <p className="text-sm text-neural-600 leading-relaxed mb-4">{tool.description}</p>
+
+                  <div className="flex items-center text-brand-600 text-sm font-semibold group-hover:translate-x-2 transition-transform">
+                    Launch Tool →
                   </div>
                 </Link>
-              );
-            })}
+              </LockedCard>
+            ))}
           </div>
         </div>
 
         {/* Developer Tools Section */}
-        <div>
+        <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
-            <Code className="w-6 h-6 text-purple-500" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <Code className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-neural-800">
               Developer Tools
             </h2>
+            <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full">
+              {developerTools.length} tools
+            </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {developerTools.map((tool) => {
-              const Icon = tool.icon;
-
-              return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {developerTools.map((tool) => (
+              <LockedCard
+                key={tool.id}
+                isLocked={!hasActiveSubscription}
+                title={tool.name}
+              >
                 <Link
-                  key={tool.id}
                   href={tool.href}
-                  className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-transparent overflow-hidden"
+                  className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300 block h-full"
                 >
                   <div
-                    className={`absolute inset-0 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
-                  />
-                  <div className="relative z-10">
-                    <div
-                      className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} mb-4`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                      {tool.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {tool.description}
-                    </p>
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                  >
+                    <tool.icon className="w-6 h-6 text-white" />
+                  </div>
+
+                  <h3 className="text-lg font-bold text-neural-800 mb-2 group-hover:text-brand-600 transition-colors">
+                    {tool.name}
+                  </h3>
+
+                  <p className="text-sm text-neural-600 leading-relaxed mb-4">{tool.description}</p>
+
+                  <div className="flex items-center text-brand-600 text-sm font-semibold group-hover:translate-x-2 transition-transform">
+                    Launch Tool →
                   </div>
                 </Link>
-              );
-            })}
+              </LockedCard>
+            ))}
           </div>
         </div>
 
-        {/* Quick Links */}
-        <div className="mt-12 text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Looking for more specialized tools?
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/tools/network-tools"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-            >
-              <Network className="w-4 h-4" />
-              Network Tools Hub
-            </Link>
-            <Link
-              href="/tools/developer-utils"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-            >
-              <Code className="w-4 h-4" />
-              Developer Utilities
-            </Link>
+        {/* CTA Section */}
+        <div className="max-w-4xl mx-auto mt-16">
+          <div className="bg-gradient-to-r from-brand-600 to-accent-500 rounded-2xl p-8 md:p-12 text-center text-white">
+            <h2 className="text-3xl font-bold mb-4">Need AI-Powered Assistance?</h2>
+            <p className="text-lg opacity-90 mb-8">
+              Explore our intelligent AI agents that can help you with coding, analysis, and automation tasks.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/agents" className="btn-primary bg-white text-brand-600 hover:bg-neural-50">
+                Explore AI Agents
+              </Link>
+              <Link href="/studio" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-brand-600">
+                Try AI Studio
+              </Link>
+            </div>
           </div>
         </div>
       </div>
