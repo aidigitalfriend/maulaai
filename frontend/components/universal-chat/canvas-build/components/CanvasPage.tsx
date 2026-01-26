@@ -1835,8 +1835,11 @@ export default function CanvasMode({
     };
     setHistoryEntries((prev) => [historyEntry, ...prev]);
     
-    // Close the panel and switch to preview
+    // Close the templates panel and switch to preview
     setShowBuiltinTemplatesPanel(false);
+    setShowChatPanel(false);
+    setShowFilesPanel(false);
+    setShowHistoryPanel(false);
     setActivePane('preview');
     setGenerationStatus('success');
   }, [normalizeCode, extractFiles, updatePreview]);
@@ -2029,9 +2032,17 @@ export default function CanvasMode({
               <span className={`text-sm ${brandColors.text}`}>Chat</span>
             )}
           </button>
-          {/* Templates Button - Opens Built-in Templates Panel */}
+          {/* Templates Button - Opens Built-in Templates Side Panel */}
           <button
-            onClick={() => setShowBuiltinTemplatesPanel(true)}
+            onClick={() => {
+              setShowBuiltinTemplatesPanel(!showBuiltinTemplatesPanel);
+              if (!showBuiltinTemplatesPanel) {
+                // Close other panels when opening templates
+                setShowChatPanel(false);
+                setShowFilesPanel(false);
+                setShowHistoryPanel(false);
+              }
+            }}
             className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               showBuiltinTemplatesPanel
                 ? brandColors.btnPrimary
@@ -2469,6 +2480,81 @@ export default function CanvasMode({
             </div>
           </div>
         )}
+      </div>
+
+      {/* =========== TEMPLATES SIDE PANEL =========== */}
+      <div
+        className={`${showBuiltinTemplatesPanel ? 'w-[320px]' : 'w-0'} flex flex-col ${brandColors.bgPanel} ${showBuiltinTemplatesPanel ? `${brandColors.border} border-r` : 'border-transparent'} relative z-10 transition-all duration-300 overflow-hidden`}
+      >
+        {/* Panel Header */}
+        <div className={`flex items-center justify-between px-4 py-3 ${brandColors.border} border-b flex-shrink-0`}>
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-lg ${brandColors.gradientPrimary}`}>
+              <RectangleGroupIcon className="w-4 h-4 text-white" />
+            </div>
+            <span className={`font-semibold ${brandColors.gradientText}`}>Templates</span>
+          </div>
+          <button
+            onClick={() => setShowBuiltinTemplatesPanel(false)}
+            className={`p-1.5 rounded-lg ${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`}
+          >
+            <XMarkIcon className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Category Tabs - Horizontal Scrollable */}
+        <div className={`flex overflow-x-auto px-3 py-2 gap-1.5 ${brandColors.border} border-b flex-shrink-0 custom-scrollbar`}>
+          {BUILTIN_TEMPLATE_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setBuiltinTemplateCategory(cat)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                builtinTemplateCategory === cat
+                  ? brandColors.btnPrimary
+                  : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Templates List - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
+          {filteredBuiltinTemplates.map((template) => (
+            <button
+              key={template.id}
+              onClick={() => handleLoadBuiltinTemplate(template)}
+              className={`group w-full p-3 rounded-xl text-left transition-all hover:scale-[1.01] ${brandColors.bgSecondary} border ${brandColors.border} hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10`}
+            >
+              {/* Template Preview Thumbnail */}
+              <div className={`aspect-video rounded-lg mb-3 flex items-center justify-center text-3xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border ${brandColors.border} group-hover:border-cyan-500/30 transition`}>
+                {template.thumbnail}
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-xl group-hover:scale-110 transition-transform">{template.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-sm font-semibold ${brandColors.text} group-hover:text-cyan-400 transition truncate`}>
+                    {template.name}
+                  </h3>
+                  <p className={`text-xs ${brandColors.textSecondary} mt-0.5 line-clamp-2`}>
+                    {template.description}
+                  </p>
+                  <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full ${brandColors.bgInput} ${brandColors.textMuted}`}>
+                    {template.category}
+                  </span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Panel Footer */}
+        <div className={`px-3 py-2 ${brandColors.border} border-t flex-shrink-0`}>
+          <p className={`text-[10px] ${brandColors.textMuted} text-center`}>
+            💡 Click to load instantly, then customize with AI!
+          </p>
+        </div>
       </div>
 
       {/* =========== CENTER PANEL: FILES / HISTORY / SETTINGS =========== */}
@@ -3194,94 +3280,6 @@ export default function CanvasMode({
           </span>
         </div>
       </div>
-
-      {/* =========== BUILT-IN TEMPLATES PANEL (Overlay) =========== */}
-      {showBuiltinTemplatesPanel && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className={`w-full max-w-5xl max-h-[85vh] ${brandColors.bgPanel} rounded-3xl border ${brandColors.border} shadow-2xl overflow-hidden flex flex-col`}>
-            {/* Panel Header */}
-            <div className={`flex items-center justify-between px-6 py-4 ${brandColors.border} border-b`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl ${brandColors.gradientPrimary}`}>
-                  <RectangleGroupIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className={`text-xl font-bold ${brandColors.gradientText}`}>Ready-Made Templates</h2>
-                  <p className={`text-sm ${brandColors.textSecondary}`}>Choose a template to start instantly - no AI generation needed!</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowBuiltinTemplatesPanel(false)}
-                className={`p-2 rounded-lg ${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`}
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Category Tabs */}
-            <div className={`flex overflow-x-auto px-6 py-3 gap-2 ${brandColors.border} border-b`}>
-              {BUILTIN_TEMPLATE_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setBuiltinTemplateCategory(cat)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                    builtinTemplateCategory === cat
-                      ? brandColors.btnPrimary
-                      : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Templates Grid */}
-            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBuiltinTemplates.map((template) => (
-                  <button
-                    key={template.id}
-                    onClick={() => handleLoadBuiltinTemplate(template)}
-                    className={`group p-6 rounded-2xl text-left transition-all hover:scale-[1.02] ${brandColors.bgSecondary} border ${brandColors.border} hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10`}
-                  >
-                    {/* Template Preview Placeholder */}
-                    <div className={`aspect-video rounded-xl mb-4 flex items-center justify-center text-5xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border ${brandColors.border} group-hover:border-cyan-500/30 transition`}>
-                      {template.thumbnail}
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl group-hover:scale-110 transition-transform">{template.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={`font-semibold ${brandColors.text} group-hover:text-cyan-400 transition`}>
-                          {template.name}
-                        </h3>
-                        <p className={`text-sm ${brandColors.textSecondary} mt-1 line-clamp-2`}>
-                          {template.description}
-                        </p>
-                        <span className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${brandColors.bgInput} ${brandColors.textMuted}`}>
-                          {template.category}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Panel Footer */}
-            <div className={`px-6 py-4 ${brandColors.border} border-t flex items-center justify-between`}>
-              <p className={`text-sm ${brandColors.textMuted}`}>
-                💡 Click a template to load it instantly. Then customize with AI chat!
-              </p>
-              <button
-                onClick={() => setShowBuiltinTemplatesPanel(false)}
-                className={`px-4 py-2 rounded-lg ${brandColors.btnSecondary} text-sm font-medium`}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Custom scrollbar styles and animations */}
       <style jsx global>{`
