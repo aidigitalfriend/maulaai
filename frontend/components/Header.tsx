@@ -47,6 +47,7 @@ export default function Header() {
     { name: 'Status', href: '/status' },
     { name: 'AI Studio', href: '/studio' },
     { name: 'AI Lab', href: '/lab' },
+    { name: 'AI Space', href: '/canvas-app' },
   ];
 
   return (
