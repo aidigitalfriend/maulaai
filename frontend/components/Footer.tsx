@@ -70,8 +70,7 @@ export default function Footer() {
     { name: 'Community', href: '/community/overview' },
     { name: 'Resources', href: '/resources' },
     { name: 'Careers', href: '/resources/careers' },
-    { name: 'Network Tools', href: '/tools/network-tools' },
-    { name: 'Dev Utils', href: '/tools/developer-utils' },
+    { name: 'All Tools', href: '/tools' },
     { name: 'Status', href: '/status' },
     { name: 'Rewards', href: '/rewards' },
   ]

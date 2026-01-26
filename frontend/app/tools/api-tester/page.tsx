@@ -224,7 +224,7 @@ export default function ApiTesterPage() {
       <header className="bg-gradient-to-r from-brand-600 to-accent-600">
         <div className="container-custom py-6">
           <Link 
-            href="/tools/network-tools"
+            href="/tools"
             className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-4 transition-colors"
           >
             <span></span>

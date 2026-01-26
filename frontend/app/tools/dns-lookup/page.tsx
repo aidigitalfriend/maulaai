@@ -102,7 +102,7 @@ export default function DnsLookupPage() {
       <div className="bg-gradient-to-r from-brand-600 to-accent-600 py-12">
         <div className="container-custom">
           <Link 
-            href="/tools/network-tools"
+            href="/tools"
             className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

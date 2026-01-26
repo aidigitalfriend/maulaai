@@ -69,7 +69,7 @@ export default function ThreatIntelligencePage() {
       {/* Hero Header */}
       <div className="bg-gradient-to-r from-brand-600 to-accent-600 py-12">
         <div className="container-custom">
-          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to Network Tools
           </Link>

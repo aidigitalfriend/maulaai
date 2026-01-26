@@ -56,7 +56,7 @@ export default function ColorPickerPage(){
     <div className="min-h-screen bg-gray-50">
       <header className="bg-gradient-to-r from-brand-600 to-accent-600">
         <div className="container-custom py-6">
-          <Link href="/tools/developer-utils" className="text-blue-100 hover:text-white">← Back to Developer Utils</Link>
+          <Link href="/tools" className="text-blue-100 hover:text-white">← Back to Tools</Link>
           <div className="mt-3 flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"><Palette className="w-6 h-6 text-white"/></div>
             <div>

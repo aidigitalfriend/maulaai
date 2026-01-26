@@ -63,7 +63,7 @@ export default function DomainReputationPage() {
       <div className="bg-gradient-to-r from-brand-600 to-accent-600">
         <div className="container mx-auto px-4 py-6">
           <Link 
-            href="/tools/network-tools" 
+            href="/tools" 
             className="inline-flex items-center text-blue-100 hover:text-white transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

@@ -68,7 +68,7 @@ export default function PortScannerPage() {
       <header className="bg-gradient-to-r from-brand-600 to-accent-600">
         <div className="container-custom py-8">
           <Link 
-            href="/tools/network-tools"
+            href="/tools"
             className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

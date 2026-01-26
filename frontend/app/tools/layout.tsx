@@ -8,12 +8,11 @@ import { SubscriptionGuard } from '@/components/SubscriptionGuard';
  * Tools Layout - Protects all individual tool pages with subscription check
  *
  * This layout wraps all pages under /tools/* EXCEPT:
- * - /tools/network-tools (listing page - has its own card locking)
- * - /tools/developer-utils (listing page - has its own card locking)
+ * - /tools (listing page - has its own card locking)
  */
 
 // Listing pages that should NOT be protected (they show locked cards instead)
-const LISTING_PAGES = ['/tools/network-tools', '/tools/developer-utils'];
+const LISTING_PAGES = ['/tools'];
 
 export default function ToolsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
