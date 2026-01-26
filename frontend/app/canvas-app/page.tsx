@@ -17,7 +17,7 @@ interface ChatMessage {
   isSystemMessage?: boolean;
 }
 
-type ModelProvider = 'Gemini' | 'OpenAI' | 'Anthropic' | 'Groq' | 'xAI';
+type ModelProvider = 'One Last AI' | 'Image Generator' | 'Maula AI' | 'Code Builder' | 'Fast Coding' | 'Planner' | 'Designer';
 
 interface ModelOption {
   id: string;
@@ -26,6 +26,8 @@ interface ModelOption {
   description: string;
   isThinking?: boolean;
   icon?: string;
+  // Backend provider mapping
+  backendProvider: string;
 }
 
 interface GeneratedApp {
@@ -68,66 +70,124 @@ type ActivePanel = 'workspace' | 'assistant' | 'history' | 'tools' | 'files' | n
 type ConversationPhase = 'initial' | 'gathering' | 'confirming' | 'building' | 'editing';
 
 const MODELS: ModelOption[] = [
-  // Anthropic Models - Best for coding
+  // One Last AI - Anthropic Claude (Best for app building)
   {
-    id: 'claude-3-5-sonnet',
-    name: 'Claude 3.5 Sonnet',
-    provider: 'Anthropic',
-    description: 'Best for coding - highly recommended.',
-    icon: '🎭',
+    id: 'claude-sonnet-4-20250514',
+    name: 'Nova',
+    provider: 'One Last AI',
+    description: 'Best for building apps - highly recommended.',
+    icon: '🌟',
+    backendProvider: 'anthropic',
   },
   {
-    id: 'claude-3-opus',
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
-    description: 'Most powerful Claude model.',
-    icon: '🎯',
+    id: 'claude-opus-4-20250514',
+    name: 'Nova Pro',
+    provider: 'One Last AI',
+    description: 'Most powerful AI for complex apps.',
+    icon: '💫',
+    backendProvider: 'anthropic',
   },
-  // OpenAI Models
+  // Maula AI - Mistral (Platform Branding)
+  {
+    id: 'mistral-large-2501',
+    name: 'Maula Large',
+    provider: 'Maula AI',
+    description: 'Creative and versatile AI assistant.',
+    icon: '🔮',
+    backendProvider: 'mistral',
+  },
+  {
+    id: 'codestral-latest',
+    name: 'Maula Code',
+    provider: 'Maula AI',
+    description: 'Optimized for code generation.',
+    icon: '💻',
+    backendProvider: 'mistral',
+  },
+  // Image Generator - OpenAI (Best for visual apps)
   {
     id: 'gpt-4o',
-    name: 'GPT-4o',
-    provider: 'OpenAI',
-    description: 'Most capable OpenAI model.',
-    icon: '🌟',
+    name: 'Vision Pro',
+    provider: 'Image Generator',
+    description: 'Best for visual and image-rich apps.',
+    icon: '🎨',
+    backendProvider: 'openai',
   },
   {
     id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
-    provider: 'OpenAI',
+    name: 'Vision Fast',
+    provider: 'Image Generator',
     description: 'Fast and cost-effective.',
-    icon: '⚙️',
-  },
-  // Gemini Models
-  {
-    id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    provider: 'Gemini',
-    description: 'Fast and efficient for basic layouts.',
     icon: '⚡',
+    backendProvider: 'openai',
+  },
+  // Designer - Gemini (Good for UI design)
+  {
+    id: 'gemini-2.0-flash',
+    name: 'Design Flash',
+    provider: 'Designer',
+    description: 'Fast UI design and layouts.',
+    icon: '🎯',
+    backendProvider: 'gemini',
   },
   {
-    id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    provider: 'Gemini',
-    description: 'High reasoning for complex apps.',
+    id: 'gemini-2.5-pro-preview-05-06',
+    name: 'Design Pro',
+    provider: 'Designer',
+    description: 'Advanced reasoning for complex UI.',
     icon: '🧠',
+    backendProvider: 'gemini',
   },
-  // xAI
+  // Planner - xAI Grok (Strategic planning)
   {
     id: 'grok-3',
-    name: 'Grok 3',
-    provider: 'xAI',
-    description: 'Strong reasoning and coding.',
-    icon: '🚀',
+    name: 'Architect',
+    provider: 'Planner',
+    description: 'Strategic planning and architecture.',
+    icon: '📐',
+    backendProvider: 'xai',
   },
-  // Groq - Fast inference
+  {
+    id: 'grok-3-fast',
+    name: 'Architect Fast',
+    provider: 'Planner',
+    description: 'Quick planning and prototyping.',
+    icon: '🚀',
+    backendProvider: 'xai',
+  },
+  // Code Builder - Groq (Ultra-fast inference)
+  {
+    id: 'llama-3.3-70b-versatile',
+    name: 'Turbo Code',
+    provider: 'Code Builder',
+    description: 'Ultra-fast code generation.',
+    icon: '⚡',
+    backendProvider: 'groq',
+  },
+  {
+    id: 'llama-3.1-8b-instant',
+    name: 'Turbo Instant',
+    provider: 'Code Builder',
+    description: 'Instant responses for quick edits.',
+    icon: '💨',
+    backendProvider: 'groq',
+  },
+  // Fast Coding - Cerebras (Fastest for code)
   {
     id: 'llama-3.3-70b',
-    name: 'Llama 3.3 70B',
-    provider: 'Groq',
-    description: 'Ultra-fast inference.',
-    icon: '🦙',
+    name: 'Lightning',
+    provider: 'Fast Coding',
+    description: 'Fastest code generation available.',
+    icon: '⚡',
+    backendProvider: 'cerebras',
+  },
+  {
+    id: 'llama3.1-8b',
+    name: 'Lightning Lite',
+    provider: 'Fast Coding',
+    description: 'Quick and efficient for small changes.',
+    icon: '✨',
+    backendProvider: 'cerebras',
   },
 ];
 
@@ -962,7 +1022,7 @@ function CanvasAppInner() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             prompt: instruction,
-            provider: selectedModel.provider,
+            provider: selectedModel.backendProvider,
             modelId: selectedModel.id,
             isThinking: selectedModel.isThinking,
             currentCode: isInitial ? undefined : currentApp?.code,
@@ -1099,7 +1159,7 @@ function CanvasAppInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: instruction,
-          provider: selectedModel.provider,
+          provider: selectedModel.backendProvider,
           modelId: selectedModel.id,
           isThinking: selectedModel.isThinking,
           currentCode: isInitial ? undefined : currentApp?.code,
@@ -2013,11 +2073,13 @@ function CanvasAppInner() {
                       <p className={`text-[10px] ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedModel.description}</p>
                       <div className="mt-2 flex items-center gap-2">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          selectedModel.provider === 'Anthropic' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
-                          selectedModel.provider === 'OpenAI' ? darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700' :
-                          selectedModel.provider === 'Gemini' ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700' :
-                          selectedModel.provider === 'xAI' ? darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700' :
-                          darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'
+                          selectedModel.provider === 'One Last AI' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
+                          selectedModel.provider === 'Image Generator' ? darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700' :
+                          selectedModel.provider === 'Designer' ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700' :
+                          selectedModel.provider === 'Planner' ? darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700' :
+                          selectedModel.provider === 'Maula AI' ? darkMode ? 'bg-pink-900/50 text-pink-300' : 'bg-pink-100 text-pink-700' :
+                          selectedModel.provider === 'Code Builder' ? darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700' :
+                          darkMode ? 'bg-yellow-900/50 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
                         }`}>
                           {selectedModel.provider}
                         </span>
@@ -2029,7 +2091,7 @@ function CanvasAppInner() {
                     
                     {/* Provider Tabs */}
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {(['Anthropic', 'OpenAI', 'Gemini', 'xAI', 'Groq'] as ModelProvider[]).map((provider) => (
+                      {(['One Last AI', 'Maula AI', 'Image Generator', 'Designer', 'Planner', 'Code Builder', 'Fast Coding'] as ModelProvider[]).map((provider) => (
                         <button
                           key={provider}
                           onClick={() => {
@@ -2038,11 +2100,13 @@ function CanvasAppInner() {
                           }}
                           className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${
                             selectedModel.provider === provider
-                              ? provider === 'Anthropic' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
-                                provider === 'OpenAI' ? darkMode ? 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-700' : 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
-                                provider === 'Gemini' ? darkMode ? 'bg-green-900/50 text-green-300 ring-1 ring-green-700' : 'bg-green-100 text-green-700 ring-1 ring-green-300' :
-                                provider === 'xAI' ? darkMode ? 'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
-                                darkMode ? 'bg-orange-900/50 text-orange-300 ring-1 ring-orange-700' : 'bg-orange-100 text-orange-700 ring-1 ring-orange-300'
+                              ? provider === 'One Last AI' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
+                                provider === 'Image Generator' ? darkMode ? 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-700' : 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
+                                provider === 'Designer' ? darkMode ? 'bg-green-900/50 text-green-300 ring-1 ring-green-700' : 'bg-green-100 text-green-700 ring-1 ring-green-300' :
+                                provider === 'Planner' ? darkMode ? 'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
+                                provider === 'Maula AI' ? darkMode ? 'bg-pink-900/50 text-pink-300 ring-1 ring-pink-700' : 'bg-pink-100 text-pink-700 ring-1 ring-pink-300' :
+                                provider === 'Code Builder' ? darkMode ? 'bg-orange-900/50 text-orange-300 ring-1 ring-orange-700' : 'bg-orange-100 text-orange-700 ring-1 ring-orange-300' :
+                                darkMode ? 'bg-yellow-900/50 text-yellow-300 ring-1 ring-yellow-700' : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-300'
                               : darkMode ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
