@@ -2032,7 +2032,7 @@ function CanvasAppInner() {
                         <span className="text-xl">{selectedModel.icon}</span>
                         <div>
                           <span className={`text-sm font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedModel.brandedProvider}</span>
-                          <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({selectedModel.name})</span>
+                          <span className={`text-xs ml-2 px-2 py-0.5 rounded-full ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>{selectedModel.name}</span>
                         </div>
                       </div>
                       <p className={`text-[10px] ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedModel.description}</p>
@@ -2048,9 +2048,6 @@ function CanvasAppInner() {
                           darkMode ? 'bg-yellow-900/50 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
                         }`}>
                           {selectedProvider.name}
-                        </span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
-                          {selectedModel.provider}
                         </span>
                         {selectedModel.isThinking && (
                           <span className={`text-[10px] px-2 py-0.5 rounded-full ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>Thinking Mode</span>
