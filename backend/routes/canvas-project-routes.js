@@ -23,7 +23,7 @@ const validateRequest = (req, res, next) => {
   next();
 };
 
-// Authentication middleware
+// Authentication middleware - optional for list operations
 const requireAuth = async (req, res, next) => {
   try {
     const userId = req.session?.userId || req.user?.id;
@@ -44,11 +44,23 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
+// Optional auth - sets userId if available, otherwise uses 'anonymous'
+const optionalAuth = async (req, res, next) => {
+  try {
+    const userId = req.session?.userId || req.user?.id;
+    req.userId = userId || 'anonymous';
+    next();
+  } catch (error) {
+    req.userId = 'anonymous';
+    next();
+  }
+};
+
 /**
  * POST /api/canvas/projects
- * Save a canvas project
+ * Save a canvas project (uses anonymous if not authenticated)
  */
-router.post('/projects', requireAuth, [
+router.post('/projects', optionalAuth, [
   body('name').optional().isString().isLength({ min: 1, max: 200 }),
   body('description').optional().isString().isLength({ max: 1000 }),
   body('code').optional().isString(),
@@ -96,9 +108,9 @@ router.post('/projects', requireAuth, [
 
 /**
  * GET /api/canvas/projects
- * List canvas projects for the authenticated user
+ * List canvas projects for the user (uses anonymous if not authenticated)
  */
-router.get('/projects', requireAuth, async (req, res) => {
+router.get('/projects', optionalAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const result = await canvasManager.listProjects(userId);

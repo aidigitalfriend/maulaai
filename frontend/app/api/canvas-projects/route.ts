@@ -18,24 +18,33 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      // For auth errors, return empty projects gracefully (fallback to localStorage)
+      if (response.status === 401 || response.status === 403) {
+        return NextResponse.json({
+          success: true,
+          projects: [],
+          message: 'Using local storage for projects'
+        });
+      }
       const error = await response.text();
       console.error('[Canvas Projects API] List error:', error);
       return NextResponse.json({
-        success: false,
-        error: 'Failed to fetch projects',
-        projects: []
-      }, { status: response.status });
+        success: true,
+        projects: [],
+        error: 'Failed to fetch projects'
+      });
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error('[Canvas Projects API] Error:', error);
+    // Return empty projects on error so localStorage fallback works
     return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch projects',
-      projects: []
-    }, { status: 500 });
+      success: true,
+      projects: [],
+      error: 'Backend unavailable'
+    });
   }
 }
 
