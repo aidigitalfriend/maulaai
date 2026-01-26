@@ -152,6 +152,67 @@ const extractBase64Images = (content: string): { cleanContent: string; images: E
   return { cleanContent, images };
 };
 
+// Helper function to generate user-friendly error messages with actionable prompts
+interface ErrorInfo {
+  message: string;
+  isCapabilityError: boolean;
+  suggestModelChange: boolean;
+  errorType: 'image' | 'model' | 'capability' | 'network' | 'generic';
+}
+
+const getErrorInfo = (error: Error | string): ErrorInfo => {
+  const errorMessage = error instanceof Error ? error.message : error;
+  const lowerMessage = errorMessage.toLowerCase();
+  
+  // Image generation errors
+  if (lowerMessage.includes('image') && (lowerMessage.includes('generat') || lowerMessage.includes('failed') || lowerMessage.includes('create'))) {
+    return {
+      message: `❌ **Image Generation Failed**\n\nThe current model doesn't support image generation or the request failed.\n\n💡 **What you can do:**\n• Open **Settings** (⚙️) and switch to a model that supports image generation\n• Try models like **GPT-4o**, **Claude 3**, or **Gemini Pro Vision**\n• Rephrase your request to be more specific about the image you want`,
+      isCapabilityError: true,
+      suggestModelChange: true,
+      errorType: 'image',
+    };
+  }
+  
+  // Model capability errors
+  if (lowerMessage.includes('not support') || lowerMessage.includes('capability') || lowerMessage.includes('cannot perform') || lowerMessage.includes('unable to')) {
+    return {
+      message: `❌ **Request Not Supported**\n\nThis model cannot handle this type of request.\n\n💡 **Try these solutions:**\n• Open **Settings** (⚙️) and choose a different AI model\n• Different models have different strengths - try GPT-4o for complex tasks or Claude for analysis\n• Rephrase your request or break it into smaller steps`,
+      isCapabilityError: true,
+      suggestModelChange: true,
+      errorType: 'capability',
+    };
+  }
+  
+  // Model-specific errors (rate limits, token limits, etc.)
+  if (lowerMessage.includes('rate limit') || lowerMessage.includes('quota') || lowerMessage.includes('token limit') || lowerMessage.includes('context length')) {
+    return {
+      message: `❌ **Model Limit Reached**\n\n${errorMessage}\n\n💡 **What you can do:**\n• Open **Settings** (⚙️) and try a different model\n• If using a free tier, consider upgrading or switching providers\n• Try shortening your message or starting a new conversation`,
+      isCapabilityError: false,
+      suggestModelChange: true,
+      errorType: 'model',
+    };
+  }
+  
+  // Network/connection errors
+  if (lowerMessage.includes('network') || lowerMessage.includes('connection') || lowerMessage.includes('timeout') || lowerMessage.includes('fetch')) {
+    return {
+      message: `❌ **Connection Error**\n\nCouldn't reach the AI service. This might be a temporary issue.\n\n💡 **Try:**\n• Check your internet connection\n• Wait a moment and try again\n• Refresh the page if the problem persists`,
+      isCapabilityError: false,
+      suggestModelChange: false,
+      errorType: 'network',
+    };
+  }
+  
+  // Generic fallback
+  return {
+    message: `❌ **Something went wrong**\n\n${errorMessage}\n\n💡 **Suggestions:**\n• Try rephrasing your request\n• Open **Settings** (⚙️) to try a different AI model\n• Start a new conversation if errors persist`,
+    isCapabilityError: false,
+    suggestModelChange: true,
+    errorType: 'generic',
+  };
+};
+
 export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
   // Auth
   const { state: authState } = useAuth();
@@ -1635,7 +1696,9 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
               }
 
               if (data.event === 'error') {
-                const errorInfo = `\n\n❌ **Error:** ${data.message}`;
+                // Use enhanced error info for streaming errors too
+                const streamErrorInfo = getErrorInfo(data.message || 'An error occurred');
+                const errorInfo = `\n\n${streamErrorInfo.message}`;
                 fullContent += errorInfo;
                 setSessions((prev) =>
                   prev.map((s) =>
@@ -1716,7 +1779,10 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
       } else {
         console.error('Chat error:', error);
 
-        // Update the message with error
+        // Get enhanced error info with actionable prompts
+        const errorInfo = getErrorInfo(error instanceof Error ? error : String(error));
+
+        // Update the message with enhanced error and suggestions
         setSessions((prev) =>
           prev.map((s) =>
             s.id === activeSessionId
@@ -1726,7 +1792,7 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                     m.id === assistantMessageId
                       ? {
                           ...m,
-                          content: `❌ **Error:** ${error instanceof Error ? error.message : 'Something went wrong. Please try again.'}`,
+                          content: errorInfo.message,
                           isStreaming: false,
                         }
                       : m
