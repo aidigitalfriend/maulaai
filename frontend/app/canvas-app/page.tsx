@@ -342,7 +342,9 @@ const ChatBox: React.FC<{
   conversationPhase: ConversationPhase;
   hasApp: boolean;
   darkMode?: boolean;
-}> = ({ messages, onSendMessage, isGenerating, conversationPhase, hasApp, darkMode = false }) => {
+  hasAIAccess?: boolean;
+  onSubscriptionClick?: () => void;
+}> = ({ messages, onSendMessage, isGenerating, conversationPhase, hasApp, darkMode = false, hasAIAccess = true, onSubscriptionClick }) => {
   const [input, setInput] = useState('');
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -354,6 +356,10 @@ const ChatBox: React.FC<{
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!hasAIAccess) {
+      onSubscriptionClick?.();
+      return;
+    }
     if (input.trim() && !isGenerating) {
       onSendMessage(input);
       setInput('');
@@ -361,6 +367,9 @@ const ChatBox: React.FC<{
   };
 
   const getPlaceholderText = () => {
+    if (!hasAIAccess) {
+      return "🔒 Subscribe to use AI...";
+    }
     if (hasApp) {
       return "Ask to modify, add features, change styles...";
     }
@@ -468,15 +477,25 @@ const ChatBox: React.FC<{
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={getPlaceholderText()}
-            className={`flex-1 px-4 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'}`}
-            disabled={isGenerating}
+            className={`flex-1 px-4 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${
+              !hasAIAccess 
+                ? darkMode ? 'bg-gray-900 border-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                : darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'
+            }`}
+            disabled={isGenerating || !hasAIAccess}
           />
           <button
             type="submit"
-            disabled={isGenerating || !input.trim()}
-            className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 disabled:bg-indigo-300 transition-all"
+            disabled={isGenerating || (!hasAIAccess && false)}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              !hasAIAccess
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : isGenerating || !input.trim()
+                  ? 'bg-indigo-300 text-white cursor-not-allowed'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            }`}
           >
-            Send
+            {!hasAIAccess ? '🔒' : 'Send'}
           </button>
         </div>
       </form>
@@ -751,6 +770,21 @@ function CanvasAppInner() {
     progressMessage: '',
     streamingCode: '',
   });
+
+  // Check if user has AI access (weekly or monthly subscription)
+  // AI is enabled only for users with weekly or monthly plans
+  const hasAIAccess = useMemo(() => {
+    if (!authState.isAuthenticated) return false;
+    
+    // Check if user has any active weekly or monthly subscription
+    const hasValidPlan = subscriptions.some(sub => 
+      sub.status === 'active' && 
+      (sub.plan === 'weekly' || sub.plan === 'monthly') &&
+      new Date(sub.expiryDate) > new Date()
+    );
+    
+    return hasValidPlan;
+  }, [authState.isAuthenticated, subscriptions]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -1238,7 +1272,31 @@ function CanvasAppInner() {
   };
 
   return (
-    <div className={`h-screen overflow-hidden flex transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`h-screen overflow-hidden flex flex-col transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* AI Locked Banner - shown when user doesn't have subscription */}
+      {!hasAIAccess && (
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 flex items-center justify-center gap-3 text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span className="font-medium">
+            AI Features Locked — 
+            {authState.isAuthenticated 
+              ? ' Subscribe to any agent (weekly/monthly) to unlock AI building'
+              : ' Sign in and subscribe to unlock AI building'
+            }
+          </span>
+          <button
+            onClick={() => setShowSubscriptionModal(true)}
+            className="ml-2 px-3 py-1 bg-white text-orange-600 font-bold text-xs rounded-full hover:bg-orange-50 transition-colors"
+          >
+            {authState.isAuthenticated ? 'Subscribe Now' : 'Get Started'}
+          </button>
+        </div>
+      )}
+      
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
       {/* Left Vertical Nav Bar */}
         <nav className={`w-16 flex flex-col items-center shrink-0 border-r relative transition-colors duration-300 ${darkMode ? 'bg-[#0d0d14] border-gray-800' : 'bg-[#1e1e2e] border-gray-700'}`}>
           {/* Micro Logo at Top */}
@@ -1691,20 +1749,45 @@ function CanvasAppInner() {
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="Ex: Landing page for a SaaS..."
                       className={`w-full p-4 text-xs border rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] resize-none transition-all ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50/50 border-gray-200 text-gray-800'}`}
+                      disabled={!hasAIAccess}
                     />
                     <button
                       onClick={() => {
+                        if (!hasAIAccess) {
+                          setShowSubscriptionModal(true);
+                          return;
+                        }
                         if (prompt.trim()) {
                           setGatheredRequirements([prompt]);
                           handleAgentConversation(prompt);
                           setActivePanel('assistant');
                         }
                       }}
-                      disabled={genState.isGenerating || !prompt.trim()}
-                      className={`w-full mt-3 py-3 text-white text-xs font-bold rounded-2xl disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-md ${darkMode ? 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-900/30' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'}`}
+                      disabled={genState.isGenerating || (!hasAIAccess && false)}
+                      className={`w-full mt-3 py-3 text-white text-xs font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md ${
+                        !hasAIAccess 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : genState.isGenerating || !prompt.trim()
+                            ? 'bg-indigo-400 opacity-50 cursor-not-allowed'
+                            : darkMode 
+                              ? 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-900/30' 
+                              : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
+                      }`}
                     >
-                      {genState.isGenerating ? 'BUILDING...' : 'START BUILDING'}
+                      {!hasAIAccess ? (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          AI LOCKED - SUBSCRIBE
+                        </>
+                      ) : genState.isGenerating ? 'BUILDING...' : 'START BUILDING'}
                     </button>
+                    {!hasAIAccess && (
+                      <p className={`text-[10px] mt-2 text-center ${darkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                        ⚡ Weekly or Monthly subscription required to use AI
+                      </p>
+                    )}
                   </div>
                   <div>
                     <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Starter Templates</h3>
@@ -1754,6 +1837,8 @@ function CanvasAppInner() {
                     conversationPhase={conversationPhase}
                     hasApp={!!currentApp}
                     darkMode={darkMode}
+                    hasAIAccess={hasAIAccess}
+                    onSubscriptionClick={() => setShowSubscriptionModal(true)}
                   />
                 </div>
               )}
@@ -2044,6 +2129,7 @@ function CanvasAppInner() {
             </div>
           </div>
         </main>
+      </div> {/* End of Main Content wrapper */}
 
       {/* Live Camera Modal */}
       {cameraOpen && (
