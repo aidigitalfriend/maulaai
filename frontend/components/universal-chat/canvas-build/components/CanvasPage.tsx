@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { getAgentCanvasProviders, getCanvasDefaultProvider, getCanvasDefaultModel } from '../../../../lib/aiProviders';
 import {
   XMarkIcon,
@@ -956,6 +957,14 @@ export default function CanvasMode({
   agentId = 'default',
   agentName = 'AI Assistant',
 }: CanvasModeProps) {
+  // Get user ID for user-specific localStorage keys
+  const { state: authState } = useAuth();
+  const userId = authState.user?.id || 'guest';
+  
+  // Helper functions for user-specific localStorage keys
+  const getHistoryKey = useCallback(() => `canvasHistory_${userId}`, [userId]);
+  const getMessagesKey = useCallback(() => `canvasMessages_${userId}`, [userId]);
+  
   const previewRef = useRef<HTMLIFrameElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1254,8 +1263,8 @@ export default function CanvasMode({
               code: entry.code,
               timestamp: entry.timestamp
             })));
-            // Sync to localStorage
-            localStorage.setItem('canvasHistory', JSON.stringify(data.history));
+            // Sync to localStorage with user-specific key
+            localStorage.setItem(getHistoryKey(), JSON.stringify(data.history));
             return;
           }
         }
@@ -1263,9 +1272,9 @@ export default function CanvasMode({
         console.log('API history load failed, using localStorage:', err);
       }
       
-      // Fallback to localStorage
+      // Fallback to localStorage with user-specific key
       try {
-        const stored = localStorage.getItem('canvasHistory');
+        const stored = localStorage.getItem(getHistoryKey());
         if (stored) {
           const parsed: HistoryEntry[] = JSON.parse(stored);
           setHistoryEntries(
@@ -1281,17 +1290,17 @@ export default function CanvasMode({
     };
     
     loadHistory();
-  }, [summarizePrompt]);
+  }, [summarizePrompt, getHistoryKey]);
 
   // Persist history to API and localStorage
   const saveHistoryEntry = useCallback(async (entry: HistoryEntry) => {
-    // Save to localStorage immediately
+    // Save to localStorage immediately with user-specific key
     if (typeof window !== 'undefined') {
       try {
-        const current = localStorage.getItem('canvasHistory');
+        const current = localStorage.getItem(getHistoryKey());
         const entries = current ? JSON.parse(current) : [];
         entries.unshift(entry);
-        localStorage.setItem('canvasHistory', JSON.stringify(entries.slice(0, 100)));
+        localStorage.setItem(getHistoryKey(), JSON.stringify(entries.slice(0, 100)));
       } catch (err) {
         console.error('Failed to save to localStorage', err);
       }
@@ -1312,20 +1321,20 @@ export default function CanvasMode({
     } catch (err) {
       console.log('API history save failed (user may not be logged in):', err);
     }
-  }, []);
+  }, [getHistoryKey]);
 
   // Delete history entry from API and localStorage
   const deleteHistoryEntry = useCallback(async (id: string) => {
     // Remove from state
     setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
     
-    // Remove from localStorage
+    // Remove from localStorage with user-specific key
     if (typeof window !== 'undefined') {
       try {
-        const current = localStorage.getItem('canvasHistory');
+        const current = localStorage.getItem(getHistoryKey());
         if (current) {
           const entries = JSON.parse(current).filter((e: any) => e.id !== id);
-          localStorage.setItem('canvasHistory', JSON.stringify(entries));
+          localStorage.setItem(getHistoryKey(), JSON.stringify(entries));
         }
       } catch (err) {
         console.error('Failed to delete from localStorage', err);
@@ -1341,7 +1350,7 @@ export default function CanvasMode({
     } catch (err) {
       console.log('API history delete failed:', err);
     }
-  }, []);
+  }, [getHistoryKey]);
 
   // Rename history entry
   const renameHistoryEntry = useCallback(async (id: string, newName: string) => {
@@ -1352,15 +1361,15 @@ export default function CanvasMode({
       )
     );
     
-    // Update localStorage
+    // Update localStorage with user-specific key
     if (typeof window !== 'undefined') {
       try {
-        const current = localStorage.getItem('canvasHistory');
+        const current = localStorage.getItem(getHistoryKey());
         if (current) {
           const entries = JSON.parse(current).map((e: any) =>
             e.id === id ? { ...e, name: newName } : e
           );
-          localStorage.setItem('canvasHistory', JSON.stringify(entries));
+          localStorage.setItem(getHistoryKey(), JSON.stringify(entries));
         }
       } catch (err) {
         console.error('Failed to rename in localStorage', err);
@@ -1378,7 +1387,7 @@ export default function CanvasMode({
     } catch (err) {
       console.log('API history rename failed:', err);
     }
-  }, []);
+  }, [getHistoryKey]);
 
   // Load chat messages from API (with localStorage fallback)
   useEffect(() => {
@@ -1408,9 +1417,9 @@ export default function CanvasMode({
         console.log('API messages load failed, using localStorage:', err);
       }
       
-      // Fallback to localStorage
+      // Fallback to localStorage with user-specific key
       try {
-        const stored = localStorage.getItem('canvasMessages');
+        const stored = localStorage.getItem(getMessagesKey());
         if (stored) {
           const parsed: ChatMessage[] = JSON.parse(stored).map((m: any) => ({
             ...m,
@@ -1437,7 +1446,7 @@ export default function CanvasMode({
     };
     
     loadMessages();
-  }, [isOpen]);
+  }, [isOpen, getMessagesKey]);
 
   // Persist chat messages to API and localStorage
   useEffect(() => {
@@ -1452,9 +1461,9 @@ export default function CanvasMode({
           : m.timestamp,
     }));
     
-    // Save to localStorage immediately
+    // Save to localStorage immediately with user-specific key
     try {
-      localStorage.setItem('canvasMessages', JSON.stringify(serialized));
+      localStorage.setItem(getMessagesKey(), JSON.stringify(serialized));
     } catch (err) {
       console.error('Failed to save messages to localStorage', err);
     }
@@ -1474,7 +1483,7 @@ export default function CanvasMode({
     }, 2000);
     
     return () => clearTimeout(timeoutId);
-  }, [messages]);
+  }, [messages, getMessagesKey]);
 
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {

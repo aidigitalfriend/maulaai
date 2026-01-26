@@ -735,6 +735,12 @@ const SubscriptionGate: React.FC<{ children: React.ReactNode }> = ({ children })
 function CanvasAppInner() {
   const { state: authState } = useAuth();
   const { subscriptions } = useSubscriptions();
+  
+  // User-specific localStorage key for chat/history isolation
+  const userId = authState.user?.id || 'guest';
+  const getHistoryKey = useCallback(() => `canvas_builder_history_${userId}`, [userId]);
+  const getChatKey = useCallback(() => `canvas_chat_messages_${userId}`, [userId]);
+  
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<CanvasAppProviderConfig>(CANVAS_APP_PROVIDERS[0]);
@@ -803,24 +809,24 @@ function CanvasAppInner() {
   }, [openMenuId]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('canvas_builder_history');
+    const saved = localStorage.getItem(getHistoryKey());
     if (saved)
       try {
         setHistory(JSON.parse(saved));
       } catch (e) {
         console.error(e);
       }
-  }, []);
+  }, [getHistoryKey]);
 
   // Save dark mode preference
   useEffect(() => {
     localStorage.setItem('canvas_dark_mode', JSON.stringify(darkMode));
   }, [darkMode]);
 
-  const saveHistory = (newHistory: GeneratedApp[]) => {
+  const saveHistory = useCallback((newHistory: GeneratedApp[]) => {
     setHistory(newHistory);
-    localStorage.setItem('canvas_builder_history', JSON.stringify(newHistory));
-  };
+    localStorage.setItem(getHistoryKey(), JSON.stringify(newHistory));
+  }, [getHistoryKey]);
 
   // AI Agent conversation handler
   const handleAgentConversation = async (userMessage: string) => {
@@ -1605,8 +1611,7 @@ function CanvasAppInner() {
               if (currentApp) {
                 if (confirm('Delete this project from history?')) {
                   const newHistory = history.filter((h) => h.id !== currentApp.id);
-                  localStorage.setItem('canvas_builder_history', JSON.stringify(newHistory));
-                  setHistory(newHistory);
+                  saveHistory(newHistory);
                   setCurrentApp(null);
                   setChatMessages([]);
                   setConversationPhase('initial');
