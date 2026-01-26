@@ -62,6 +62,72 @@ function markModelFailed(provider: ProviderName, modelId: string) {
   }
 }
 
+// Helper function to generate user-friendly error messages with suggestions
+function getUserFriendlyError(errorType: string, details?: string, provider?: string): string {
+  const settingsHint = `\n\n💡 **Tip:** Click the ⚙️ Settings icon (top right) to change your AI model or provider.`;
+  
+  switch (errorType) {
+    case 'image_format':
+      return `⚠️ **Image Processing Issue**\n\nThe current AI model (${provider || 'selected'}) had trouble processing your image. This can happen with certain image formats or sizes.\n\n**Suggested solutions:**\n• Try a different AI provider like OpenAI (GPT-4o) which has excellent vision capabilities\n• Resize the image to a smaller size\n• Convert the image to PNG or JPEG format${settingsHint}`;
+    
+    case 'image_not_supported':
+      return `⚠️ **Image Vision Not Supported**\n\nThe current AI model doesn't support image analysis.\n\n**Models with vision support:**\n• OpenAI: GPT-4o, GPT-4 Turbo\n• Anthropic: Claude Sonnet 4, Claude Opus 4\n• Google: Gemini Pro Vision${settingsHint}`;
+    
+    case 'image_generation_failed':
+      return `⚠️ **Image Generation Failed**\n\n${details || 'The image could not be generated.'}\n\n**Suggested solutions:**\n• Try simplifying your image description\n• Remove any potentially problematic content\n• Try again in a few moments${settingsHint}`;
+    
+    case 'model_overloaded':
+      return `⚠️ **Model Temporarily Unavailable**\n\nThe AI model is currently experiencing high demand.\n\n**Suggested solutions:**\n• Try a different AI provider or model\n• Wait a few moments and try again${settingsHint}`;
+    
+    case 'context_too_long':
+      return `⚠️ **Conversation Too Long**\n\nThe conversation has become too long for the current model to process.\n\n**Suggested solutions:**\n• Start a new conversation\n• Use a model with larger context window (e.g., Claude Sonnet 4, GPT-4 Turbo)${settingsHint}`;
+    
+    case 'rate_limit':
+      return `⚠️ **Rate Limit Reached**\n\nYou've reached the usage limit for this model.\n\n**Suggested solutions:**\n• Wait a few minutes before trying again\n• Switch to a different AI provider${settingsHint}`;
+    
+    case 'api_error':
+      return `⚠️ **Service Error**\n\n${details || 'An error occurred while processing your request.'}\n\n**Suggested solutions:**\n• Try a different AI provider or model\n• Try again in a few moments${settingsHint}`;
+    
+    default:
+      return `⚠️ **Something Went Wrong**\n\n${details || 'An unexpected error occurred.'}\n\n**Suggested solutions:**\n• Try again\n• Switch to a different AI model${settingsHint}`;
+  }
+}
+
+// Parse API error responses to determine error type
+function parseApiError(errorData: string, provider: string): { type: string; message: string } {
+  const lowerError = errorData.toLowerCase();
+  
+  // Image format errors
+  if (lowerError.includes('image_url') || lowerError.includes('image format') || 
+      lowerError.includes('invalid_request_error') && lowerError.includes('image')) {
+    return { type: 'image_format', message: 'Image format not supported by this model' };
+  }
+  
+  // Vision not supported
+  if (lowerError.includes('vision') || lowerError.includes('does not support images')) {
+    return { type: 'image_not_supported', message: 'Model does not support image analysis' };
+  }
+  
+  // Overloaded
+  if (lowerError.includes('overloaded') || lowerError.includes('capacity') || 
+      lowerError.includes('503') || lowerError.includes('service unavailable')) {
+    return { type: 'model_overloaded', message: 'Model is temporarily unavailable' };
+  }
+  
+  // Context length
+  if (lowerError.includes('context') || lowerError.includes('token') || 
+      lowerError.includes('too long') || lowerError.includes('maximum')) {
+    return { type: 'context_too_long', message: 'Conversation too long for model' };
+  }
+  
+  // Rate limit
+  if (lowerError.includes('rate') || lowerError.includes('limit') || lowerError.includes('429')) {
+    return { type: 'rate_limit', message: 'Rate limit exceeded' };
+  }
+  
+  return { type: 'api_error', message: errorData };
+}
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX_MESSAGES = 10000; // 10000 messages per hour - essentially unlimited
@@ -794,8 +860,32 @@ Here's your converted image:
             });
           }
         } else {
-          console.error('[chat-stream] DALL-E API error:', await imageResponse.text());
-          // Fall through to regular chat if image generation fails
+          const errorText = await imageResponse.text();
+          console.error('[chat-stream] DALL-E API error:', errorText);
+          
+          // Return user-friendly error for image generation failure
+          const encoder = new TextEncoder();
+          const errorMessage = getUserFriendlyError('image_generation_failed', 
+            errorText.includes('safety') || errorText.includes('content') 
+              ? 'The image prompt may contain content that cannot be generated.' 
+              : 'Please try a different description.');
+          
+          const errorStream = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: errorMessage })}\n\n`));
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+              controller.close();
+            }
+          });
+
+          return new Response(errorStream, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              Connection: 'keep-alive',
+              'X-Accel-Buffering': 'no',
+            },
+          });
         }
       } catch (imageError) {
         console.error('[chat-stream] Image generation error:', imageError);
@@ -991,10 +1081,18 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               }
             }
             
-            // All models failed
+            // All models failed - provide user-friendly error
+            const parsedError = parseApiError(lastError || 'Unknown error', providerName || 'unknown');
+            const friendlyMessage = getUserFriendlyError(parsedError.type, parsedError.message, providerName);
+            
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ error: `All models failed. Last error: ${lastError}` })}\n\n`
+                `data: ${JSON.stringify({ token: friendlyMessage })}\n\n`
+              )
+            );
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ done: true })}\n\n`
               )
             );
             return true;
@@ -1080,9 +1178,19 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
               if (!response.ok) {
                 const errorData = await response.text();
                 console.error('Anthropic API error:', errorData);
+                
+                // Parse error and provide user-friendly message
+                const parsedError = parseApiError(errorData, 'anthropic');
+                const friendlyMessage = getUserFriendlyError(parsedError.type, parsedError.message, 'Anthropic Claude');
+                
                 controller.enqueue(
                   encoder.encode(
-                    `data: ${JSON.stringify({ error: `Anthropic API error: ${response.status}` })}\n\n`
+                    `data: ${JSON.stringify({ token: friendlyMessage })}\n\n`
+                  )
+                );
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ done: true })}\n\n`
                   )
                 );
                 hadError = true;
