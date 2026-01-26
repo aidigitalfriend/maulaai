@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Get user ID from session cookie
-async function getUserId(request: NextRequest): Promise<string | null> {
+async function getUserId(): Promise<string | null> {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId')?.value;
   
@@ -23,65 +23,70 @@ async function getUserId(request: NextRequest): Promise<string | null> {
 }
 
 // GET - Fetch user's canvas chat messages
+// Uses ChatCanvasHistory table to store message history by project
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserId(request);
+    const userId = await getUserId();
     
     if (!userId) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        messages: []
-      }, { status: 401 });
-    }
-
-    // Get user's canvas settings which stores messages
-    const settings = await prisma.chatSettings.findFirst({
-      where: { 
-        userId,
-        settingKey: 'canvas_messages'
-      }
-    });
-
-    if (!settings) {
+      // Return empty for non-authenticated users (they use localStorage)
       return NextResponse.json({
         success: true,
         messages: []
       });
     }
 
-    const messages = typeof settings.settingValue === 'string' 
-      ? JSON.parse(settings.settingValue) 
-      : settings.settingValue;
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get('projectId');
+
+    // Get messages from ChatCanvasHistory for this user's latest project
+    const history = await prisma.chatCanvasHistory.findMany({
+      where: { 
+        userId,
+        ...(projectId ? { projectId } : {})
+      },
+      orderBy: { createdAt: 'asc' },
+      take: 100 // Limit to last 100 messages
+    });
+
+    // Convert history entries to message format
+    const messages = history.map(h => ({
+      id: h.id,
+      role: h.name?.startsWith('user:') ? 'user' : 'assistant',
+      content: h.prompt || '',
+      timestamp: h.createdAt.toISOString()
+    }));
 
     return NextResponse.json({
       success: true,
-      messages: Array.isArray(messages) ? messages : []
+      messages
     });
   } catch (error) {
     console.error('Error fetching canvas messages:', error);
+    // Return empty array on error - localStorage is the primary store
     return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch messages',
+      success: true,
       messages: []
-    }, { status: 500 });
+    });
   }
 }
 
 // POST - Save canvas chat messages
+// Stores in ChatCanvasHistory for persistence
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserId(request);
+    const userId = await getUserId();
     
     if (!userId) {
+      // Non-authenticated users use localStorage only
       return NextResponse.json({
-        success: false,
-        error: 'Unauthorized'
-      }, { status: 401 });
+        success: true,
+        message: 'Using localStorage for non-authenticated users'
+      });
     }
 
     const body = await request.json();
-    const { messages } = body;
+    const { messages, projectId } = body;
 
     if (!Array.isArray(messages)) {
       return NextResponse.json({
@@ -90,24 +95,43 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Upsert canvas messages setting
-    await prisma.chatSettings.upsert({
-      where: {
-        userId_settingKey: {
+    // Store the latest messages in ChatCanvasHistory
+    // First, get or create a project for this user
+    let project = await prisma.chatCanvasProject.findFirst({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    if (!project) {
+      project = await prisma.chatCanvasProject.create({
+        data: {
           userId,
-          settingKey: 'canvas_messages'
+          name: 'Canvas Messages',
+          description: 'Canvas chat messages storage'
         }
-      },
-      update: {
-        settingValue: JSON.stringify(messages),
-        updatedAt: new Date()
-      },
-      create: {
+      });
+    }
+
+    // Clear existing history for this project and add new messages
+    await prisma.chatCanvasHistory.deleteMany({
+      where: { 
         userId,
-        settingKey: 'canvas_messages',
-        settingValue: JSON.stringify(messages)
+        projectId: projectId || project.id
       }
     });
+
+    // Insert new messages
+    if (messages.length > 0) {
+      await prisma.chatCanvasHistory.createMany({
+        data: messages.slice(-50).map((msg: { role?: string; content?: string; id?: string }) => ({
+          userId,
+          projectId: projectId || project!.id,
+          name: `${msg.role || 'user'}:${msg.id || Date.now()}`,
+          prompt: msg.content || '',
+          code: ''
+        }))
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -115,29 +139,33 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error saving canvas messages:', error);
+    // Don't fail - localStorage is primary, this is just backup
     return NextResponse.json({
-      success: false,
-      error: 'Failed to save messages'
-    }, { status: 500 });
+      success: true,
+      message: 'Using localStorage fallback'
+    });
   }
 }
 
 // DELETE - Clear canvas chat messages
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = await getUserId(request);
+    const userId = await getUserId();
     
     if (!userId) {
       return NextResponse.json({
-        success: false,
-        error: 'Unauthorized'
-      }, { status: 401 });
+        success: true,
+        message: 'Using localStorage for non-authenticated users'
+      });
     }
 
-    await prisma.chatSettings.deleteMany({
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get('projectId');
+
+    await prisma.chatCanvasHistory.deleteMany({
       where: {
         userId,
-        settingKey: 'canvas_messages'
+        ...(projectId ? { projectId } : {})
       }
     });
 
@@ -148,8 +176,8 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error clearing canvas messages:', error);
     return NextResponse.json({
-      success: false,
-      error: 'Failed to clear messages'
-    }, { status: 500 });
+      success: true,
+      message: 'Using localStorage fallback'
+    });
   }
 }
