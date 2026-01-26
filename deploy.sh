@@ -134,6 +134,7 @@ cd ~/maula-ai
 echo "🌐 Updating nginx config"
 if [ -f nginx/maula.ai.conf ]; then
   sudo cp nginx/maula.ai.conf /etc/nginx/sites-available/maula.ai
+  sudo cp nginx/maula.ai.conf /etc/nginx/sites-enabled/maula.ai
   sudo nginx -t && sudo systemctl reload nginx
   echo "✅ Nginx config updated and reloaded"
 else
