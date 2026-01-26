@@ -985,6 +985,11 @@ export default function CanvasMode({
   const [isMobilePortrait, setIsMobilePortrait] = useState(false);
   const [quickResponseMode, setQuickResponseMode] = useState(false);
   
+  // Auto-scroll animation state for sidebar discovery
+  const [isScrollAnimating, setIsScrollAnimating] = useState(false);
+  const [highlightedButtonIndex, setHighlightedButtonIndex] = useState<number | null>(null);
+  const sidebarNavRef = useRef<HTMLDivElement>(null);
+  
   // Agent-specific provider/model options
   const providerModels = useMemo(() => getAgentCanvasProviders(agentId, agentName), [agentId, agentName]);
   const defaultProvider = useMemo(() => getAgentDefaultProvider(agentId), [agentId]);
@@ -1045,6 +1050,89 @@ export default function CanvasMode({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Auto-scroll animation on canvas open to discover sidebar options
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const runAnimation = () => {
+      // Delay to let the page render first
+      const animationTimer = setTimeout(() => {
+        setIsScrollAnimating(true);
+        
+        // Highlight buttons sequentially
+        const buttonCount = 13; // Number of sidebar buttons (0-12)
+        let currentIndex = 0;
+        
+        const highlightInterval = setInterval(() => {
+          setHighlightedButtonIndex(currentIndex);
+          currentIndex++;
+          
+          if (currentIndex >= buttonCount) {
+            clearInterval(highlightInterval);
+            setTimeout(() => {
+              setHighlightedButtonIndex(null);
+              setIsScrollAnimating(false);
+              // Mark as seen - try API first, fallback to localStorage
+              fetch('/api/user/ui-flags', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ flags: { hasSeenCanvasBuildSidebarAnimation: true } }),
+              }).catch(() => {});
+              localStorage.setItem('canvas_build_sidebar_animation_seen', 'true');
+            }, 500);
+          }
+        }, 250);
+
+        // Scroll the sidebar if it's scrollable
+        if (sidebarNavRef.current) {
+          const nav = sidebarNavRef.current;
+          const scrollHeight = nav.scrollHeight - nav.clientHeight;
+          if (scrollHeight > 0) {
+            // Scroll down slowly
+            nav.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+            setTimeout(() => {
+              // Scroll back up
+              nav.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 1500);
+          }
+        }
+      }, 800);
+
+      return animationTimer;
+    };
+
+    // Check localStorage first (faster)
+    const hasSeenLocal = localStorage.getItem('canvas_build_sidebar_animation_seen');
+    if (hasSeenLocal) return;
+
+    // Try to check database for logged-in users
+    let animationTimer: ReturnType<typeof setTimeout> | undefined;
+    fetch('/api/user/ui-flags', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.uiFlags?.hasSeenCanvasBuildSidebarAnimation) {
+          // User has seen it - sync to localStorage
+          localStorage.setItem('canvas_build_sidebar_animation_seen', 'true');
+          return;
+        }
+        // User hasn't seen it, run animation
+        animationTimer = runAnimation();
+      })
+      .catch(() => {
+        // API failed (guest or network error) - run animation
+        animationTimer = runAnimation();
+      });
+
+    return () => {
+      if (animationTimer) clearTimeout(animationTimer);
+    };
+  }, [isOpen]);
 
   // Mobile orientation detection - show rotate prompt on portrait mobile
   useEffect(() => {
@@ -1924,11 +2012,12 @@ export default function CanvasMode({
 
       {/* =========== LEFT TOOLBAR =========== */}
       <div
+        ref={sidebarNavRef}
         className={`${showNavOverlay ? 'w-60 items-start' : 'w-14 items-center'} flex flex-col gap-2 py-4 ${brandColors.bgPanel} ${brandColors.border} border-r relative z-20 transition-all duration-300 overflow-y-auto overflow-x-hidden custom-scrollbar`}
       >
         <button
           onClick={() => setShowNavOverlay((v) => !v)}
-          className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-transform flex items-center gap-2 flex-shrink-0`}
+          className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-transform flex items-center gap-2 flex-shrink-0 ${highlightedButtonIndex === 0 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
           title={showNavOverlay ? 'Close navigation' : 'Open navigation'}
         >
           <Image
@@ -1949,7 +2038,7 @@ export default function CanvasMode({
           {/* New Conversation Button */}
           <button
             onClick={handleNewConversation}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${brandColors.btnPrimary} hover:scale-105`}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${brandColors.btnPrimary} hover:scale-105 ${highlightedButtonIndex === 1 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="New conversation"
           >
             <PlusIcon className="w-5 h-5" />
@@ -1966,7 +2055,7 @@ export default function CanvasMode({
               activePane === 'chat'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 2 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Chat"
           >
             <ChatBubbleLeftRightIcon className="w-5 h-5" />
@@ -1981,7 +2070,7 @@ export default function CanvasMode({
               showBuiltinTemplatesPanel
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 3 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Built-in Templates"
           >
             <RectangleGroupIcon className="w-5 h-5" />
@@ -1997,7 +2086,7 @@ export default function CanvasMode({
               activePane === 'files'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 4 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Files"
           >
             <FolderIcon className="w-5 h-5" />
@@ -2015,7 +2104,7 @@ export default function CanvasMode({
               activePane === 'preview'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 5 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Preview"
           >
             <EyeIcon className="w-5 h-5" />
@@ -2033,7 +2122,7 @@ export default function CanvasMode({
               activePane === 'preview' && previewDevice === 'desktop'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 6 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Desktop preview"
           >
             <ComputerDesktopIcon className="w-5 h-5" />
@@ -2050,7 +2139,7 @@ export default function CanvasMode({
               activePane === 'preview' && previewDevice === 'tablet'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 7 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Tablet preview"
           >
             <DeviceTabletIcon className="w-5 h-5" />
@@ -2067,7 +2156,7 @@ export default function CanvasMode({
               activePane === 'preview' && previewDevice === 'mobile'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 8 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Mobile preview"
           >
             <DevicePhoneMobileIcon className="w-5 h-5" />
@@ -2083,7 +2172,7 @@ export default function CanvasMode({
               activePane === 'code'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 9 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Code"
           >
             <CodeBracketIcon className="w-5 h-5" />
@@ -2098,7 +2187,7 @@ export default function CanvasMode({
               splitView
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 10 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Split view (Code + Preview)"
           >
             <Squares2X2Icon className="w-5 h-5" />
@@ -2117,7 +2206,7 @@ export default function CanvasMode({
               activePane === 'history'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 11 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="History"
           >
             <ClockIcon className="w-5 h-5" />
@@ -2135,7 +2224,7 @@ export default function CanvasMode({
               activePane === 'settings'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${highlightedButtonIndex === 12 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#12121a] animate-pulse scale-110' : ''}`}
             title="Settings"
           >
             <Cog6ToothIcon className="w-5 h-5" />

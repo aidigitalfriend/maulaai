@@ -84,6 +84,11 @@ const App: React.FC = () => {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   
+  // Auto-scroll animation state
+  const [isScrollAnimating, setIsScrollAnimating] = useState(false);
+  const [highlightedButtonIndex, setHighlightedButtonIndex] = useState<number | null>(null);
+  const sidebarNavRef = useRef<HTMLElement>(null);
+  
   // Refs for camera
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -94,6 +99,87 @@ const App: React.FC = () => {
       try {
         setHistory(JSON.parse(saved));
       } catch (e) {}
+  }, []);
+
+  // Auto-scroll animation on page load to discover sidebar options
+  useEffect(() => {
+    const runAnimation = () => {
+      // Delay to let the page render first
+      const animationTimer = setTimeout(() => {
+        setIsScrollAnimating(true);
+        
+        // Highlight buttons sequentially
+        const buttonCount = 10; // Number of sidebar buttons
+        let currentIndex = 0;
+        
+        const highlightInterval = setInterval(() => {
+          setHighlightedButtonIndex(currentIndex);
+          currentIndex++;
+          
+          if (currentIndex >= buttonCount) {
+            clearInterval(highlightInterval);
+            setTimeout(() => {
+              setHighlightedButtonIndex(null);
+              setIsScrollAnimating(false);
+              // Mark as seen - try API first, fallback to localStorage
+              fetch('/api/user/ui-flags', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ flags: { hasSeenCanvasSidebarAnimation: true } }),
+              }).catch(() => {});
+              localStorage.setItem('canvas_sidebar_animation_seen', 'true');
+            }, 500);
+          }
+        }, 300);
+
+        // Scroll the sidebar if it's scrollable
+        if (sidebarNavRef.current) {
+          const nav = sidebarNavRef.current;
+          const scrollHeight = nav.scrollHeight - nav.clientHeight;
+          if (scrollHeight > 0) {
+            // Scroll down slowly
+            nav.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+            setTimeout(() => {
+              // Scroll back up
+              nav.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 1500);
+          }
+        }
+      }, 1000);
+
+      return animationTimer;
+    };
+
+    // Check localStorage first (faster)
+    const hasSeenLocal = localStorage.getItem('canvas_sidebar_animation_seen');
+    if (hasSeenLocal) return;
+
+    // Try to check database for logged-in users
+    let animationTimer: ReturnType<typeof setTimeout> | undefined;
+    fetch('/api/user/ui-flags', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.uiFlags?.hasSeenCanvasSidebarAnimation) {
+          // User has seen it - sync to localStorage
+          localStorage.setItem('canvas_sidebar_animation_seen', 'true');
+          return;
+        }
+        // User hasn't seen it, run animation
+        animationTimer = runAnimation();
+      })
+      .catch(() => {
+        // API failed (guest or network error) - run animation
+        animationTimer = runAnimation();
+      });
+
+    return () => {
+      if (animationTimer) clearTimeout(animationTimer);
+    };
   }, []);
 
   const saveHistory = (newHistory: GeneratedApp[]) => {
@@ -321,7 +407,10 @@ const App: React.FC = () => {
   return (
     <div className={`flex h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       {/* 1. Left Vertical Nav Bar (Narrow) */}
-      <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center py-6 gap-6 shrink-0 z-[60]">
+      <nav 
+        ref={sidebarNavRef}
+        className="w-16 bg-[#1e1e2e] flex flex-col items-center py-6 gap-6 shrink-0 z-[60] overflow-y-auto"
+      >
         <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-4 shadow-lg shadow-indigo-900/20">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -345,7 +434,7 @@ const App: React.FC = () => {
             activePanel === 'workspace'
               ? 'bg-indigo-600/20 text-indigo-400'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          } ${highlightedButtonIndex === 0 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
           title="Workspace"
         >
           <svg
@@ -370,7 +459,7 @@ const App: React.FC = () => {
             activePanel === 'assistant'
               ? 'bg-indigo-600/20 text-indigo-400'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          } ${highlightedButtonIndex === 1 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
           title="AI Assistant"
         >
           <svg
@@ -395,7 +484,7 @@ const App: React.FC = () => {
             activePanel === 'history'
               ? 'bg-indigo-600/20 text-indigo-400'
               : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          } ${highlightedButtonIndex === 2 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
           title="History"
         >
           <svg
@@ -421,7 +510,7 @@ const App: React.FC = () => {
           {/* Camera Button */}
           <button
             onClick={openCamera}
-            className={`p-3 rounded-xl transition-all ${cameraOpen ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${cameraOpen ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${highlightedButtonIndex === 3 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
             title="Camera - Live Capture"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -433,7 +522,7 @@ const App: React.FC = () => {
           {/* Voice Button */}
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={`p-3 rounded-xl transition-all ${voiceEnabled ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${voiceEnabled ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${highlightedButtonIndex === 4 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
             title={voiceEnabled ? 'Voice On' : 'Voice Off'}
           >
             {voiceEnabled ? (
@@ -451,7 +540,7 @@ const App: React.FC = () => {
           {/* Screenshot Button */}
           <button
             onClick={handleScreenshot}
-            className="p-3 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/5"
+            className={`p-3 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/5 ${highlightedButtonIndex === 5 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
             title="Screenshot - Capture Screen"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -465,7 +554,7 @@ const App: React.FC = () => {
           {/* Share Button */}
           <button
             onClick={shareCode}
-            className={`p-3 rounded-xl transition-all ${currentApp ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            className={`p-3 rounded-xl transition-all ${currentApp ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'} ${highlightedButtonIndex === 6 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
             title="Share - Copy Code"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -476,7 +565,7 @@ const App: React.FC = () => {
           {/* Download Button */}
           <button
             onClick={downloadCode}
-            className={`p-3 rounded-xl transition-all ${currentApp ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'}`}
+            className={`p-3 rounded-xl transition-all ${currentApp ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-700 cursor-not-allowed'} ${highlightedButtonIndex === 7 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
             title="Download Code"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -493,7 +582,7 @@ const App: React.FC = () => {
           {/* Settings Button */}
           <button 
             onClick={() => togglePanel('settings')}
-            className={`p-3 rounded-xl transition-all ${activePanel === 'settings' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white'}`}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'settings' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white'} ${highlightedButtonIndex === 8 ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#1e1e2e] animate-pulse scale-110' : ''}`}
             title="Settings"
           >
             <svg

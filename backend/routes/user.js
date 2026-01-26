@@ -576,6 +576,77 @@ router.put('/preferences/:userId', async (req, res) => {
 });
 
 // ============================================
+// UI FLAGS (for tracking seen tutorials, animations, etc.)
+// ============================================
+router.get('/ui-flags', async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'];
+    
+    if (!userId) {
+      // Return empty flags for guests - they'll use localStorage
+      return res.json({ success: true, uiFlags: {} });
+    }
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.json({ success: true, uiFlags: {} });
+    }
+
+    // UI flags are stored in preferences.uiFlags
+    const uiFlags = user.preferences?.uiFlags || {};
+
+    res.json({
+      success: true,
+      uiFlags,
+    });
+  } catch (error) {
+    console.error('Get UI flags error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get UI flags' });
+  }
+});
+
+router.put('/ui-flags', async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'];
+    const { flags } = req.body;
+
+    if (!userId) {
+      // Guests can't save to database
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    if (!flags || typeof flags !== 'object') {
+      return res.status(400).json({ success: false, error: 'Invalid flags data' });
+    }
+
+    const user = await db.User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Merge new flags with existing preferences.uiFlags
+    const updatedPreferences = {
+      ...(user.preferences || {}),
+      uiFlags: {
+        ...(user.preferences?.uiFlags || {}),
+        ...flags,
+      },
+    };
+
+    await db.User.update(userId, { preferences: updatedPreferences });
+
+    res.json({
+      success: true,
+      message: 'UI flags updated',
+      uiFlags: updatedPreferences.uiFlags,
+    });
+  } catch (error) {
+    console.error('Update UI flags error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update UI flags' });
+  }
+});
+
+// ============================================
 // USER SECURITY
 // ============================================
 router.get('/security/:userId', async (req, res) => {
