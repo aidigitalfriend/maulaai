@@ -359,48 +359,191 @@ function detectToolCalls(response) {
  */
 async function executeTools(toolCalls, context) {
   const results = [];
+  
+  // Import agent tools service for all tool operations
+  const agentTools = await import('../lib/agent-tools-service.js');
 
   for (const toolCall of toolCalls) {
     try {
       console.log(`[ToolExecution] Executing ${toolCall.name} with args:`, toolCall.arguments);
 
       let result;
+      const args = toolCall.arguments || {};
 
       // Route tool calls to appropriate handlers
       switch (toolCall.name) {
-      case 'execute_code':
-        result = await executeCodeTool(toolCall.arguments, context);
+      // ═══════════════════════════════════════════════════════════════════
+      // FILE OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'create_file':
+        result = await agentTools.createFile(args.filename, args.content, args.folder || '', context.userId, context.agentId);
         break;
-      case 'search_web':
-        result = await executeWebSearchTool(toolCall.arguments, context);
+      case 'read_file':
+        result = await agentTools.readFile(args.filename, context.userId);
         break;
-      case 'generate_image':
-        result = await executeImageGenerationTool(toolCall.arguments, context);
+      case 'modify_file':
+        result = await agentTools.modifyFile(args.filename, args.content, args.mode || 'replace', context.userId);
+        break;
+      case 'delete_file':
+        result = await agentTools.deleteFile(args.filename, context.userId);
+        break;
+      case 'list_files':
+        result = await agentTools.listFiles(args.folder || '', context.userId);
+        break;
+      case 'create_folder':
+        result = await agentTools.createFolder(args.folder_path, context.userId);
+        break;
+      case 'move_file':
+        result = await agentTools.moveFile(args.source, args.destination, context.userId);
+        break;
+      case 'copy_file':
+        result = await agentTools.copyFile(args.source, args.destination, context.userId);
+        break;
+      case 'rename_file':
+        result = await agentTools.renameFile(args.old_name, args.new_name, context.userId);
+        break;
+      case 'zip_files':
+        result = await agentTools.zipFiles(args.files, args.output_name || 'archive.zip', context.userId);
+        break;
+      case 'unzip_files':
+        result = await agentTools.unzipFiles(args.zip_file, args.destination || '', context.userId);
         break;
       case 'file_system':
-        result = await executeFileSystemTool(toolCall.arguments, context);
+        result = await executeFileSystemTool(args, context);
         break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // IMAGE OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'generate_image':
+        result = await agentTools.generateImage(args.prompt, args.style || 'realistic', args.width || 1024, args.height || 1024, context.userId);
+        break;
+      case 'convert_image':
+        result = await agentTools.convertImage(args.image_url, args.format || 'png', args.quality || 90, context.userId);
+        break;
+      case 'edit_image':
+        result = await agentTools.editImage(args.image_path, args.operations || [], context.userId);
+        break;
+      case 'resize_image':
+        result = await agentTools.resizeImage(args.image_path, args.width, args.height, context.userId);
+        break;
+      case 'crop_image':
+        result = await agentTools.cropImage(args.image_path, args.x, args.y, args.width, args.height, context.userId);
+        break;
+      case 'analyze_image':
+        result = await agentTools.analyzeImage(args.image_url, context.userId);
+        break;
+      case 'ocr_image':
+        result = await agentTools.ocrImage(args.image_path, args.language || 'en', context.userId);
+        break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // DOCUMENT / TEXT OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'extract_text':
+        result = await agentTools.extractText(args.file_path, context.userId);
+        break;
+      case 'parse_pdf':
+        result = await agentTools.parsePdf(args.file_path, context.userId);
+        break;
+      case 'parse_docx':
+        result = await agentTools.parseDocx(args.file_path, context.userId);
+        break;
+      case 'parse_csv':
+        result = await agentTools.parseCsv(args.file_path, args.limit || 100, context.userId);
+        break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // VIDEO OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'generate_video':
+        result = await agentTools.generateVideo(args.prompt, args.duration || 4, context.userId);
+        break;
+      case 'convert_video':
+        result = await agentTools.convertVideo(args.video_path, args.format || 'mp4', context.userId);
+        break;
+      case 'trim_video':
+        result = await agentTools.trimVideo(args.video_path, args.start_time, args.end_time, context.userId);
+        break;
+      case 'extract_frames':
+        result = await agentTools.extractFrames(args.video_path, args.timestamps, context.userId);
+        break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // AUDIO OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'convert_audio':
+        result = await agentTools.convertAudio(args.audio_path, args.format || 'mp3', context.userId);
+        break;
+      case 'transcribe_audio':
+        result = await agentTools.transcribeAudio(args.audio_path, args.language || 'en', context.userId);
+        break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // CODE OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'execute_code':
+        result = await executeCodeTool(args, context);
+        break;
+      case 'analyze_code':
+        result = await agentTools.analyzeCode(args.code, args.language || 'auto');
+        break;
+      case 'format_code':
+        result = await agentTools.formatCode(args.code, args.language);
+        break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // WEB / UTILITY OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
+      case 'web_search':
+      case 'search_web':
+        result = await agentTools.webSearch(args.query, args.num_results || args.limit || 5);
+        break;
+      case 'fetch_url':
+        result = await agentTools.fetchUrl(args.url);
+        break;
+      case 'get_current_time':
+        result = await agentTools.getCurrentTime(args.timezone || 'UTC');
+        break;
+      case 'calculate':
+        result = await agentTools.calculate(args.expression);
+        break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // CANVAS OPERATIONS
+      // ═══════════════════════════════════════════════════════════════════
       case 'canvas_save':
-        result = await executeCanvasSaveTool(toolCall.arguments, context);
+        result = await executeCanvasSaveTool(args, context);
         break;
       case 'canvas_load':
-        result = await executeCanvasLoadTool(toolCall.arguments, context);
+        result = await executeCanvasLoadTool(args, context);
         break;
       case 'canvas_list':
-        result = await executeCanvasListTool(toolCall.arguments, context);
+        result = await executeCanvasListTool(args, context);
         break;
       case 'canvas_export':
-        result = await executeCanvasExportTool(toolCall.arguments, context);
+        result = await executeCanvasExportTool(args, context);
         break;
+        
+      // ═══════════════════════════════════════════════════════════════════
+      // AGENT ORCHESTRATOR (fallback)
+      // ═══════════════════════════════════════════════════════════════════
       case 'agent_orchestrator':
-        result = await orchestrator.execute(toolCall.arguments.task || 'Help with this request', {
+        result = await orchestrator.execute(args.task || 'Help with this request', {
           ...context,
-          ...toolCall.arguments,
+          ...args,
         });
         break;
+        
       default:
-        // Try to execute via agent system
-        result = await orchestrator.execute(`Execute ${toolCall.name}: ${JSON.stringify(toolCall.arguments)}`, context);
+        // Check if tool exists in agent tools service
+        const toolFunctionName = toolCall.name.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+        if (typeof agentTools[toolFunctionName] === 'function') {
+          result = await agentTools[toolFunctionName](...Object.values(args), context.userId);
+        } else {
+          // Try to execute via agent system as last resort
+          result = await orchestrator.execute(`Execute ${toolCall.name}: ${JSON.stringify(args)}`, context);
+        }
       }
 
       results.push({
