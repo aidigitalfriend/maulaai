@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { getAgentCanvasProviders, getCanvasDefaultProvider, getCanvasDefaultModel } from '../../../../lib/aiProviders';
+import { useCanvasProjects, type CanvasProject } from '../hooks/useCanvasProjects';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -944,6 +945,27 @@ export default function CanvasMode({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasLoadedMessages = useRef(false);
 
+  // Canvas Projects Hook for persistent storage
+  const {
+    projects: canvasProjects,
+    isLoading: isLoadingProjects,
+    saveProject,
+    deleteProject: deleteCanvasProject,
+    updateProject,
+  } = useCanvasProjects();
+
+  // Convert projects to history entries format
+  const historyEntries = useMemo<HistoryEntry[]>(() => 
+    canvasProjects.map(p => ({
+      id: p.id,
+      name: p.name,
+      prompt: p.prompt,
+      code: p.code,
+      timestamp: p.timestamp,
+    })),
+    [canvasProjects]
+  );
+
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -968,7 +990,6 @@ export default function CanvasMode({
   const [showFilesPanel, setShowFilesPanel] = useState(true);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [showNavOverlay, setShowNavOverlay] = useState(false);
-  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [openHistoryMenuId, setOpenHistoryMenuId] = useState<string | null>(
@@ -1210,34 +1231,8 @@ export default function CanvasMode({
     return firstLine.length > 80 ? `${firstLine.slice(0, 77)}...` : firstLine;
   }, []);
 
-  // Load history from localStorage on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const stored = localStorage.getItem('canvasHistory');
-      if (stored) {
-        const parsed: HistoryEntry[] = JSON.parse(stored);
-        setHistoryEntries(
-          parsed.map((entry) => ({
-            ...entry,
-            name: entry.name || summarizePrompt(entry.prompt),
-          }))
-        );
-      }
-    } catch (err) {
-      console.error('Failed to load history', err);
-    }
-  }, [summarizePrompt]);
-
-  // Persist history to localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('canvasHistory', JSON.stringify(historyEntries));
-    } catch (err) {
-      console.error('Failed to save history', err);
-    }
-  }, [historyEntries]);
+  // Note: History is now loaded via useCanvasProjects hook (backend + localStorage sync)
+  // The historyEntries is derived from canvasProjects in the hook
 
   // Persist chat messages to localStorage
   useEffect(() => {
@@ -1634,18 +1629,19 @@ export default function CanvasMode({
           setGeneratedFiles(files);
           setGenerationStatus('success');
 
-          setHistoryEntries((prev) =>
-            [
-              {
-                id: `${Date.now()}`,
-                name: summarizePrompt(userPrompt),
-                prompt: userPrompt,
-                code: cleaned,
-                timestamp: Date.now(),
-              },
-              ...prev,
-            ].slice(0, 20)
-          );
+          // Save to backend via hook
+          saveProject({
+            name: summarizePrompt(userPrompt),
+            prompt: userPrompt,
+            code: cleaned,
+            timestamp: Date.now(),
+            chatHistory: messages.map(m => ({
+              id: m.id,
+              role: m.role,
+              content: m.content,
+              timestamp: m.timestamp instanceof Date ? m.timestamp.toISOString() : String(m.timestamp),
+            })),
+          });
 
           // Show explanation in chat if any, otherwise default message
           const chatMessage = explanation
@@ -1717,6 +1713,7 @@ export default function CanvasMode({
     temperature,
     maxTokens,
     normalizeCode,
+    saveProject,
   ]);
 
   const handleStopGeneration = useCallback(() => {
@@ -1726,15 +1723,15 @@ export default function CanvasMode({
   }, [abortController]);
 
   const handleDeleteHistoryEntry = useCallback(
-    (id: string) => {
-      setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
+    async (id: string) => {
+      await deleteCanvasProject(id);
       if (openHistoryMenuId === id) setOpenHistoryMenuId(null);
     },
-    [openHistoryMenuId]
+    [openHistoryMenuId, deleteCanvasProject]
   );
 
   const handleRenameHistoryEntry = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const entry = historyEntries.find((e) => e.id === id);
       if (!entry) return;
       const newName = window.prompt(
@@ -1742,14 +1739,10 @@ export default function CanvasMode({
         entry.name || 'Untitled build'
       );
       if (!newName) return;
-      setHistoryEntries((prev) =>
-        prev.map((e) =>
-          e.id === id ? { ...e, name: newName.trim() || e.name } : e
-        )
-      );
+      await updateProject(id, { name: newName.trim() || entry.name });
       setOpenHistoryMenuId(null);
     },
-    [historyEntries]
+    [historyEntries, updateProject]
   );
 
   const handleDownloadHistoryEntry = useCallback((entry: HistoryEntry) => {
@@ -1825,15 +1818,13 @@ export default function CanvasMode({
       },
     ]);
     
-    // Save to history
-    const historyEntry: HistoryEntry = {
-      id: Date.now().toString(),
+    // Save to history via hook (syncs to backend + localStorage)
+    saveProject({
       name: template.name,
       prompt: `Loaded template: ${template.name}`,
       code: normalizedCode,
       timestamp: Date.now(),
-    };
-    setHistoryEntries((prev) => [historyEntry, ...prev]);
+    });
     
     // Close the templates panel and switch to preview
     setShowBuiltinTemplatesPanel(false);
@@ -1842,7 +1833,7 @@ export default function CanvasMode({
     setShowHistoryPanel(false);
     setActivePane('preview');
     setGenerationStatus('success');
-  }, [normalizeCode, extractFiles, updatePreview]);
+  }, [normalizeCode, extractFiles, updatePreview, saveProject]);
 
   // Filter built-in templates by category
   const filteredBuiltinTemplates = builtinTemplateCategory === 'All'
