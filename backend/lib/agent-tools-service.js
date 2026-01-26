@@ -3781,11 +3781,20 @@ export function formatToolResults(results) {
       const preview = r.result.content.length > 2000 
         ? r.result.content.slice(0, 2000) + '\n... (truncated)' 
         : r.result.content;
-      return `## File: ${r.result.filename}\n\`\`\`\n${preview}\n\`\`\``;
+      const downloadLink = `/api/agents/files/download?filename=${encodeURIComponent(r.result.filename)}`;
+      return `## File: ${r.result.filename}\n\`\`\`\n${preview}\n\`\`\`\n\n[📥 Download ${r.result.filename}](${downloadLink})`;
     }
 
     if (r.tool === 'modify_file' && r.result.success) {
-      return `## File Modified:\n**${r.result.filename}** ${r.result.mode === 'append' ? 'appended' : 'replaced'} (${r.result.size} bytes)`;
+      const downloadLink = `/api/agents/files/download?filename=${encodeURIComponent(r.result.filename)}`;
+      return `## File Modified:\n**${r.result.filename}** ${r.result.mode === 'append' ? 'appended' : 'replaced'} (${r.result.size} bytes)\n\n[📥 Download ${r.result.filename}](${downloadLink})`;
+    }
+
+    if (r.tool === 'extract_text' && r.result.success) {
+      const preview = r.result.text?.length > 2000 
+        ? r.result.text.slice(0, 2000) + '\n... (truncated)' 
+        : r.result.text || '';
+      return `## Text Extracted from: ${r.result.filename}\n\`\`\`\n${preview}\n\`\`\`\n\n*Total characters: ${r.result.text?.length || 0}*`;
     }
 
     if (r.tool === 'list_files' && r.result.success) {

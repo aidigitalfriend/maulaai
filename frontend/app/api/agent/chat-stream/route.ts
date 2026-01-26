@@ -331,12 +331,30 @@ export async function POST(request: NextRequest) {
       /modify\s+(the\s+)?file/i,
       /change\s+(the\s+)?file/i,
       /append\s+to\s+(the\s+)?file/i,
+      /add\s+to\s+(the\s+)?file/i,
       // Zip operations
       /zip\s+(the\s+)?files?/i,
       /create\s+(a\s+)?zip/i,
       /compress\s+(the\s+)?files?/i,
       /unzip\s+(the\s+)?file/i,
       /extract\s+(the\s+)?zip/i,
+      // Extract text from documents
+      /extract\s+(text|content)\s+(from)?/i,
+      /get\s+text\s+(from)?/i,
+      /parse\s+(the\s+)?pdf/i,
+      /parse\s+(the\s+)?docx?/i,
+      /read\s+(the\s+)?pdf/i,
+      /convert\s+.+\s+to\s+text/i,
+      // Convert/Export file format
+      /convert\s+(the\s+)?file/i,
+      /export\s+(the\s+)?file/i,
+      /save\s+(as|to)\s+\.?txt/i,
+      /convert\s+to\s+\.?txt/i,
+      /export\s+as\s+\.?txt/i,
+      // Download file
+      /download\s+(the\s+)?file/i,
+      /give\s+me\s+(the\s+)?file/i,
+      /provide\s+(the\s+)?file/i,
     ];
 
     const isFileOperation = fileOperationPatterns.some(pattern => pattern.test(message));
@@ -528,9 +546,9 @@ Here's your converted image:
             const encoder = new TextEncoder();
             const fileResultStream = new ReadableStream({
               start(controller) {
-                const resultMessage = result.success
-                  ? `✅ **File Created Successfully!**\n\n**Filename:** \`${filename}\`\n**Size:** ${result.size} bytes\n\n📁 Your file has been saved to your workspace.`
-                  : `❌ **File Creation Failed**\n\n${result.error}`;
+                const resultMessage = result.success || result.data?.success
+                  ? `✅ **File Created Successfully!**\n\n**Filename:** \`${filename}\`\n**Size:** ${result.data?.size || result.size || content.length} bytes\n\n📁 Your file has been saved to your workspace.\n\n[📥 Download ${filename}](/api/agents/files/download?filename=${encodeURIComponent(filename)}&userId=${userId})`
+                  : `❌ **File Creation Failed**\n\n${result.error || result.data?.error || 'Unknown error'}`;
                 
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
@@ -597,9 +615,13 @@ Here's your converted image:
             const encoder = new TextEncoder();
             const readResultStream = new ReadableStream({
               start(controller) {
-                const resultMessage = result.success
-                  ? `📄 **File: \`${filename}\`**\n\n\`\`\`\n${result.content}\n\`\`\`\n\n*Size: ${result.size} bytes*`
-                  : `❌ **Could not read file**\n\n${result.error}`;
+                const fileContent = result.data?.content || result.content || '';
+                const fileSize = result.data?.size || result.size || fileContent.length;
+                const isSuccess = result.success || result.data?.success;
+                
+                const resultMessage = isSuccess
+                  ? `📄 **File: \`${filename}\`**\n\n\`\`\`\n${fileContent}\n\`\`\`\n\n*Size: ${fileSize} bytes*\n\n[📥 Download ${filename}](/api/agents/files/download?filename=${encodeURIComponent(filename)}&userId=${userId})`
+                  : `❌ **Could not read file**\n\n${result.error || result.data?.error || 'File not found'}`;
                 
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
@@ -642,6 +664,202 @@ Here's your converted image:
             });
             
             return new Response(deleteResultStream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+              },
+            });
+          }
+        }
+        
+        // MODIFY FILE (edit, update, change, append)
+        if (/edit|update|change|modify|append|add to/.test(lowerMessage) && /file|\.txt|\.py|\.js|\.ts|\.json|\.md|\.html|\.css/.test(lowerMessage)) {
+          const filenameMatch = message.match(/(?:edit|update|change|modify|append|add to)\s*(?:the\s+)?(?:file\s+)?["']?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']?/i) ||
+                               message.match(/["']([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']/i);
+          
+          if (filenameMatch) {
+            const filename = filenameMatch[1];
+            const isAppend = /append|add to/.test(lowerMessage);
+            
+            // Extract new content from message
+            const contentMatch = message.match(/```[\w]*\n?([\s\S]*?)```/i) ||
+                                message.match(/(?:with|to|content|text)[:=]?\s*["']?([\s\S]+?)["']?$/i);
+            const content = contentMatch ? contentMatch[1].trim() : '';
+            
+            if (content) {
+              const response = await fetch(`${backendUrl}/api/agents/files/modify`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename, content, mode: isAppend ? 'append' : 'replace', userId }),
+              });
+              
+              const result = await response.json();
+              
+              const encoder = new TextEncoder();
+              const modifyResultStream = new ReadableStream({
+                start(controller) {
+                  const resultMessage = result.success || result.data?.success
+                    ? `✅ **File Modified Successfully!**\n\n**Filename:** \`${filename}\`\n**Mode:** ${isAppend ? 'Appended' : 'Replaced'}\n**New Size:** ${result.data?.size || result.size || 'updated'} bytes\n\n📝 Your changes have been saved.\n\n[📥 Download File](/api/agents/files/download?filename=${encodeURIComponent(filename)}&userId=${userId})`
+                    : `❌ **File Modification Failed**\n\n${result.error || result.data?.error || 'Unknown error'}`;
+                  
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                  controller.close();
+                }
+              });
+              
+              return new Response(modifyResultStream, {
+                headers: {
+                  'Content-Type': 'text/event-stream',
+                  'Cache-Control': 'no-cache',
+                  Connection: 'keep-alive',
+                },
+              });
+            }
+          }
+        }
+        
+        // EXTRACT TEXT (from PDF, DOCX, etc.)
+        if (/extract|get text|read text|parse|convert to text/.test(lowerMessage) && /pdf|docx|doc|document|file/.test(lowerMessage)) {
+          const filenameMatch = message.match(/(?:from|in|of)\s*["']?([a-zA-Z0-9_.-]+\.(pdf|docx|doc|txt))["']?/i) ||
+                               message.match(/["']([a-zA-Z0-9_.-]+\.(pdf|docx|doc|txt))["']/i);
+          
+          if (filenameMatch) {
+            const filename = filenameMatch[1];
+            
+            // Call extract_text endpoint
+            const response = await fetch(`${backendUrl}/api/agents/tools/execute`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                tool: 'extract_text', 
+                params: { file: filename, userId } 
+              }),
+            });
+            
+            const result = await response.json();
+            
+            const encoder = new TextEncoder();
+            const extractResultStream = new ReadableStream({
+              start(controller) {
+                let resultMessage;
+                if (result.success && result.data?.success) {
+                  const text = result.data.text || '';
+                  const preview = text.length > 3000 ? text.substring(0, 3000) + '\n... (truncated)' : text;
+                  resultMessage = `📄 **Text Extracted from \`${filename}\`**\n\n\`\`\`\n${preview}\n\`\`\`\n\n*Total characters: ${text.length}*`;
+                } else {
+                  resultMessage = `❌ **Could not extract text**\n\n${result.error || result.data?.error || 'Unknown error'}`;
+                }
+                
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                controller.close();
+              }
+            });
+            
+            return new Response(extractResultStream, {
+              headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                Connection: 'keep-alive',
+              },
+            });
+          }
+        }
+        
+        // CONVERT FILE (convert to txt, convert format)
+        if (/convert|export|save as|download as/.test(lowerMessage) && /text|txt|\.txt|plain text/.test(lowerMessage)) {
+          const filenameMatch = message.match(/(?:convert|export)\s*["']?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']?/i) ||
+                               message.match(/["']([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']/i);
+          
+          if (filenameMatch) {
+            const sourceFile = filenameMatch[1];
+            const baseName = sourceFile.replace(/\.[^.]+$/, '');
+            const outputFile = `${baseName}.txt`;
+            
+            // First read/extract the source file
+            let extractResponse;
+            if (/\.(pdf|docx|doc)$/i.test(sourceFile)) {
+              extractResponse = await fetch(`${backendUrl}/api/agents/tools/execute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  tool: 'extract_text', 
+                  params: { file: sourceFile, userId } 
+                }),
+              });
+            } else {
+              extractResponse = await fetch(`${backendUrl}/api/agents/files/read?filename=${encodeURIComponent(sourceFile)}&userId=${userId}`);
+            }
+            
+            const extractResult = await extractResponse.json();
+            const textContent = extractResult.data?.text || extractResult.data?.content || extractResult.content || '';
+            
+            if (textContent) {
+              // Create a new text file with the content
+              const createResponse = await fetch(`${backendUrl}/api/agents/files/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: outputFile, content: textContent, userId }),
+              });
+              
+              const createResult = await createResponse.json();
+              
+              const encoder = new TextEncoder();
+              const convertResultStream = new ReadableStream({
+                start(controller) {
+                  const resultMessage = createResult.success || createResult.data?.success
+                    ? `✅ **File Converted to Text!**\n\n**Original:** \`${sourceFile}\`\n**Converted:** \`${outputFile}\`\n**Size:** ${createResult.data?.size || createResult.size || textContent.length} bytes\n\n[📥 Download ${outputFile}](/api/agents/files/download?filename=${encodeURIComponent(outputFile)}&userId=${userId})`
+                    : `❌ **Conversion Failed**\n\n${createResult.error || 'Could not create text file'}`;
+                  
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                  controller.close();
+                }
+              });
+              
+              return new Response(convertResultStream, {
+                headers: {
+                  'Content-Type': 'text/event-stream',
+                  'Cache-Control': 'no-cache',
+                  Connection: 'keep-alive',
+                },
+              });
+            }
+          }
+        }
+        
+        // DOWNLOAD FILE (provide direct download link for existing file)
+        if (/download|get|give me|provide/.test(lowerMessage) && /file|\.txt|\.py|\.js|\.json|\.md|\.pdf|\.docx/.test(lowerMessage)) {
+          const filenameMatch = message.match(/download\s*(?:the\s+)?(?:file\s+)?["']?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']?/i) ||
+                               message.match(/["']([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)["']/i);
+          
+          if (filenameMatch) {
+            const filename = filenameMatch[1];
+            
+            // Check if file exists
+            const response = await fetch(`${backendUrl}/api/agents/files/read?filename=${encodeURIComponent(filename)}&userId=${userId}`);
+            const result = await response.json();
+            
+            const encoder = new TextEncoder();
+            const downloadResultStream = new ReadableStream({
+              start(controller) {
+                let resultMessage;
+                if (result.success || result.data?.success) {
+                  const fileSize = result.data?.size || result.size || 'unknown';
+                  resultMessage = `📥 **Download Ready!**\n\n**File:** \`${filename}\`\n**Size:** ${fileSize} bytes\n\n[📥 Click to Download](/api/agents/files/download?filename=${encodeURIComponent(filename)}&userId=${userId})`;
+                } else {
+                  resultMessage = `❌ **File not found:** \`${filename}\`\n\nUse "list files" to see available files.`;
+                }
+                
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: resultMessage })}\n\n`));
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                controller.close();
+              }
+            });
+            
+            return new Response(downloadResultStream, {
               headers: {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',

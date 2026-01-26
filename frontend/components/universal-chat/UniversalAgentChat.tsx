@@ -2215,6 +2215,52 @@ export default function UniversalAgentChat({ agent }: UniversalAgentChatProps) {
                           </td>
                         );
                       },
+                      // Custom anchor/link renderer for download links
+                      a({ href, children, ...props }) {
+                        const isDownloadLink = href?.includes('/api/agents/files/download') || href?.includes('📥');
+                        const isExternal = href?.startsWith('http') && !href?.includes(window.location.hostname);
+                        
+                        if (isDownloadLink) {
+                          return (
+                            <a
+                              href={href}
+                              download
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 my-1 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                              style={{
+                                backgroundColor: 'rgba(124, 108, 255, 0.15)',
+                                color: '#7C6CFF',
+                                border: '1px solid rgba(124, 108, 255, 0.3)',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(124, 108, 255, 0.25)';
+                                e.currentTarget.style.borderColor = 'rgba(124, 108, 255, 0.5)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(124, 108, 255, 0.15)';
+                                e.currentTarget.style.borderColor = 'rgba(124, 108, 255, 0.3)';
+                              }}
+                              {...props}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              {children}
+                            </a>
+                          );
+                        }
+                        
+                        return (
+                          <a
+                            href={href}
+                            target={isExternal ? '_blank' : undefined}
+                            rel={isExternal ? 'noopener noreferrer' : undefined}
+                            className={`underline decoration-1 underline-offset-2 transition-colors ${isNeural ? 'text-[#7C6CFF] hover:text-[#9B8FFF]' : 'text-indigo-600 hover:text-purple-600'}`}
+                            {...props}
+                          >
+                            {children}
+                          </a>
+                        );
+                      },
                     }}
                   >
                     {extractBase64Images(message.content).cleanContent}
