@@ -179,6 +179,35 @@ export default function IPInfoPage() {
   const mapsApiKey = useMemo(() => (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim(), []);
   const [mapsAvailable, setMapsAvailable] = useState<boolean>(!!mapsApiKey);
 
+  // Fallback address from IP fields when reverse geocoding is unavailable
+  // IMPORTANT: Defined before useEffects that depend on it
+  const getFallbackAddress = useCallback(() => {
+    if (!ipData) return null;
+    const parts = [ipData.location.city, ipData.location.region, ipData.location.country]
+      .filter(Boolean)
+      .join(', ');
+    return parts || null;
+  }, [ipData]);
+
+  // Build info window HTML for Google Maps marker
+  // IMPORTANT: Defined before useEffects that depend on it
+  const buildInfoWindowHtml = useCallback((
+    data: IPInfoData,
+    lat: number,
+    lng: number,
+    address?: string | null
+  ) => `
+    <div style="padding: 12px; max-width: 300px; font-family: system-ui, -apple-system, sans-serif;">
+      <h3 style="font-weight: 700; margin-bottom: 10px; color: #1a1a1a; font-size: 16px;">${data.ip}</h3>
+      ${address ? `<div style="margin: 6px 0; font-size: 14px; color: #2c3e50; line-height: 1.4;"><strong style="color: #1a1a1a;">Address:</strong> ${address}</div>` : ''}
+      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">City:</strong> ${data.location.city || 'Unknown'}</div>
+      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Region:</strong> ${data.location.region || 'N/A'}</div>
+      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Country:</strong> ${data.location.country || 'Unknown'}</div>
+      ${data.network.organization ? `<div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Organization:</strong> ${data.network.organization}</div>` : ''}
+      <div style="margin: 8px 0 4px 0; padding-top: 8px; border-top: 1px solid #e0e0e0; font-size: 13px; color: #34495e;"><strong style="color: #1a1a1a;">Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
+    </div>
+  `, []);
+
   // Set up Google Maps callback
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -389,15 +418,6 @@ export default function IPInfoPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Fallback address from IP fields when reverse geocoding is unavailable
-  const getFallbackAddress = useCallback(() => {
-    if (!ipData) return null;
-    const parts = [ipData.location.city, ipData.location.region, ipData.location.country]
-      .filter(Boolean)
-      .join(', ');
-    return parts || null;
-  }, [ipData]);
-
   const openInGoogleMapsUrl = (lat?: number, lng?: number) => {
     if (typeof lat !== 'number' || typeof lng !== 'number') return '#';
     return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
@@ -452,23 +472,6 @@ export default function IPInfoPage() {
     }, 1200);
     return () => clearTimeout(id);
   }, [mapLoaded, mapsAvailable]);
-
-  const buildInfoWindowHtml = (
-    data: IPInfoData,
-    lat: number,
-    lng: number,
-    address?: string | null
-  ) => `
-    <div style="padding: 12px; max-width: 300px; font-family: system-ui, -apple-system, sans-serif;">
-      <h3 style="font-weight: 700; margin-bottom: 10px; color: #1a1a1a; font-size: 16px;">${data.ip}</h3>
-      ${address ? `<div style="margin: 6px 0; font-size: 14px; color: #2c3e50; line-height: 1.4;"><strong style="color: #1a1a1a;">Address:</strong> ${address}</div>` : ''}
-      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">City:</strong> ${data.location.city || 'Unknown'}</div>
-      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Region:</strong> ${data.location.region || 'N/A'}</div>
-      <div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Country:</strong> ${data.location.country || 'Unknown'}</div>
-      ${data.network.organization ? `<div style="margin: 6px 0; font-size: 14px; color: #2c3e50;"><strong style="color: #1a1a1a;">Organization:</strong> ${data.network.organization}</div>` : ''}
-      <div style="margin: 8px 0 4px 0; padding-top: 8px; border-top: 1px solid #e0e0e0; font-size: 13px; color: #34495e;"><strong style="color: #1a1a1a;">Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
-    </div>
-  `;
 
   const InfoCard = ({ title, children, icon }: { title: string; children: React.ReactNode; icon: React.ReactNode }) => (
     <div className="card card-padding">
