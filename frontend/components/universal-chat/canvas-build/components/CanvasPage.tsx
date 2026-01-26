@@ -5,6 +5,7 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { getAgentCanvasProviders, getCanvasDefaultProvider, getCanvasDefaultModel } from '../../../../lib/aiProviders';
 import { useCanvasProjects, type CanvasProject } from '../hooks/useCanvasProjects';
+import { useAuth } from '../../../../contexts/AuthContext';
 import {
   XMarkIcon,
   PaperAirplaneIcon,
@@ -945,14 +946,24 @@ export default function CanvasMode({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasLoadedMessages = useRef(false);
 
-  // Canvas Projects Hook for persistent storage
+  // Auth context for user-scoped storage
+  const { state: authState } = useAuth();
+  const userId = authState.user?.id ?? null;
+
+  // User-scoped localStorage key generators
+  const getMessagesStorageKey = useCallback(() => 
+    userId ? `canvasMessages_${userId}` : 'canvasMessages_guest', [userId]);
+  const getSidebarAnimatedKey = useCallback(() => 
+    userId ? `canvas_sidebar_animated_${userId}` : 'canvas_sidebar_animated_guest', [userId]);
+
+  // Canvas Projects Hook for persistent storage (user-scoped)
   const {
     projects: canvasProjects,
     isLoading: isLoadingProjects,
     saveProject,
     deleteProject: deleteCanvasProject,
     updateProject,
-  } = useCanvasProjects();
+  } = useCanvasProjects(userId);
 
   // Convert projects to history entries format
   const historyEntries = useMemo<HistoryEntry[]>(() => 
@@ -1034,14 +1045,15 @@ export default function CanvasMode({
     }
   }, [quickResponseMode, selectedProvider, providerModels]);
 
-  // Restore chat messages once when opened, or seed with welcome message
+  // Restore chat messages once when opened, or seed with welcome message (user-scoped)
   useEffect(() => {
     if (!isOpen || hasLoadedMessages.current) return;
     hasLoadedMessages.current = true;
     if (typeof window === 'undefined') return;
 
     try {
-      const stored = localStorage.getItem('canvasMessages');
+      const storageKey = getMessagesStorageKey();
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         const parsed: ChatMessage[] = JSON.parse(stored).map((m: any) => ({
           ...m,
@@ -1102,12 +1114,13 @@ export default function CanvasMode({
     };
   }, [isOpen]);
 
-  // Sidebar discovery animation - runs once on first canvas open
+  // Sidebar discovery animation - runs once on first canvas open (user-scoped)
   useEffect(() => {
     if (!isOpen) return;
     
     // Check if user has already seen the animation
-    const hasSeen = localStorage.getItem('canvas_sidebar_animated');
+    const sidebarKey = getSidebarAnimatedKey();
+    const hasSeen = localStorage.getItem(sidebarKey);
     if (hasSeen) {
       setHasSeenSidebarAnimation(true);
       return;
@@ -1128,7 +1141,7 @@ export default function CanvasMode({
         // Animation complete
         setSidebarHighlightIndex(null);
         setHasSeenSidebarAnimation(true);
-        localStorage.setItem('canvas_sidebar_animated', 'true');
+        localStorage.setItem(sidebarKey, 'true');
       }
     };
 
@@ -1234,7 +1247,7 @@ export default function CanvasMode({
   // Note: History is now loaded via useCanvasProjects hook (backend + localStorage sync)
   // The historyEntries is derived from canvasProjects in the hook
 
-  // Persist chat messages to localStorage
+  // Persist chat messages to localStorage (user-scoped)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -1247,11 +1260,12 @@ export default function CanvasMode({
               : m.timestamp,
         }))
       );
-      localStorage.setItem('canvasMessages', serialized);
+      const storageKey = getMessagesStorageKey();
+      localStorage.setItem(storageKey, serialized);
     } catch (err) {
       console.error('Failed to save messages', err);
     }
-  }, [messages]);
+  }, [messages, getMessagesStorageKey]);
 
   const updatePreview = useCallback((code: string) => {
     if (previewRef.current) {

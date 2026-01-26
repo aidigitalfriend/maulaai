@@ -1,6 +1,7 @@
 /**
  * useCanvasProjects Hook
  * Manages canvas project persistence with backend API + localStorage fallback
+ * All localStorage is user-scoped to prevent cross-user data leakage
  */
 'use client';
 
@@ -34,10 +35,18 @@ interface UseCanvasProjectsResult {
   syncToBackend: () => Promise<void>;
 }
 
-const STORAGE_KEY = 'canvasHistory';
-const CHAT_STORAGE_KEY = 'canvasMessages';
+// User-scoped storage key generators
+const getStorageKey = (userId: string | null) => userId ? `canvasHistory_${userId}` : 'canvasHistory_guest';
+const getChatStorageKey = (userId: string | null) => userId ? `canvasMessages_${userId}` : 'canvasMessages_guest';
 
-export function useCanvasProjects(): UseCanvasProjectsResult {
+// Legacy key for migration
+const LEGACY_STORAGE_KEY = 'canvasHistory';
+const LEGACY_CHAT_STORAGE_KEY = 'canvasMessages';
+
+export function useCanvasProjects(userId?: string | null): UseCanvasProjectsResult {
+  const currentUserId = userId ?? null;
+  const STORAGE_KEY = getStorageKey(currentUserId);
+  const CHAT_STORAGE_KEY = getChatStorageKey(currentUserId);
   const [projects, setProjects] = useState<CanvasProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,24 +96,48 @@ export function useCanvasProjects(): UseCanvasProjectsResult {
         console.warn('[Canvas] Failed to load from API, falling back to localStorage:', err);
       }
 
-      // Fallback to localStorage
+      // Fallback to localStorage (user-scoped)
       const localProjects = loadFromLocalStorage();
       setProjects(localProjects);
       setIsLoading(false);
     };
 
     loadProjects();
-  }, []);
+  }, [currentUserId, STORAGE_KEY]);
+
+  // Migrate legacy data on user login (one-time migration)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !currentUserId) return;
+    
+    const migrationKey = `canvas_migrated_${currentUserId}`;
+    if (localStorage.getItem(migrationKey)) return;
+    
+    try {
+      // Check for legacy data
+      const legacyProjects = localStorage.getItem(LEGACY_STORAGE_KEY);
+      const legacyChat = localStorage.getItem(LEGACY_CHAT_STORAGE_KEY);
+      
+      if (legacyProjects || legacyChat) {
+        console.log('[Canvas] Migrating legacy data to user-scoped storage');
+        
+        // Note: We don't migrate automatically to prevent data cross-contamination
+        // The user will start fresh with their own data
+        localStorage.setItem(migrationKey, 'true');
+      }
+    } catch (err) {
+      console.error('[Canvas] Migration check failed:', err);
+    }
+  }, [currentUserId]);
 
   // Save projects to localStorage whenever they change
   useEffect(() => {
     if (!isLoading && projects.length >= 0) {
       saveToLocalStorage(projects);
     }
-  }, [projects, isLoading]);
+  }, [projects, isLoading, STORAGE_KEY]);
 
-  // Load from localStorage
-  const loadFromLocalStorage = (): CanvasProject[] => {
+  // Load from localStorage (user-scoped)
+  const loadFromLocalStorage = useCallback((): CanvasProject[] => {
     if (typeof window === 'undefined') return [];
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -115,17 +148,17 @@ export function useCanvasProjects(): UseCanvasProjectsResult {
       console.error('[Canvas] Failed to load from localStorage:', err);
     }
     return [];
-  };
+  }, [STORAGE_KEY]);
 
-  // Save to localStorage
-  const saveToLocalStorage = (data: CanvasProject[]) => {
+  // Save to localStorage (user-scoped)
+  const saveToLocalStorage = useCallback((data: CanvasProject[]) => {
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (err) {
       console.error('[Canvas] Failed to save to localStorage:', err);
     }
-  };
+  }, [STORAGE_KEY]);
 
   // Merge projects (backend takes priority for same IDs)
   const mergeProjects = (backend: CanvasProject[], local: CanvasProject[]): CanvasProject[] => {
@@ -304,11 +337,12 @@ export function useCanvasProjects(): UseCanvasProjectsResult {
   };
 }
 
-// Export chat history helpers
-export function loadChatHistory(): ChatMessage[] {
+// Export chat history helpers (user-scoped)
+export function loadChatHistory(userId?: string | null): ChatMessage[] {
   if (typeof window === 'undefined') return [];
+  const key = getChatStorageKey(userId ?? null);
   try {
-    const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+    const stored = localStorage.getItem(key);
     if (stored) {
       return JSON.parse(stored);
     }
@@ -318,10 +352,11 @@ export function loadChatHistory(): ChatMessage[] {
   return [];
 }
 
-export function saveChatHistory(messages: ChatMessage[]): void {
+export function saveChatHistory(messages: ChatMessage[], userId?: string | null): void {
   if (typeof window === 'undefined') return;
+  const key = getChatStorageKey(userId ?? null);
   try {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    localStorage.setItem(key, JSON.stringify(messages));
   } catch (err) {
     console.error('[Canvas] Failed to save chat history:', err);
   }

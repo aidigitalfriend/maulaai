@@ -795,6 +795,15 @@ function CanvasAppInner() {
   const { state: authState } = useAuth();
   const { subscriptions } = useSubscriptions();
   
+  // Get user ID for scoped storage
+  const userId = authState.user?.id ?? null;
+  
+  // User-scoped localStorage key generators
+  const getHistoryKey = useCallback(() => 
+    userId ? `canvas_builder_history_${userId}` : 'canvas_builder_history_guest', [userId]);
+  const getDarkModeKey = useCallback(() => 
+    userId ? `canvas_dark_mode_${userId}` : 'canvas_dark_mode_guest', [userId]);
+  
   // Check AI access based on subscription
   const { canUseAI, isAuthenticated, loading: aiAccessLoading } = useAIAccess();
   
@@ -812,13 +821,8 @@ function CanvasAppInner() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('canvas_dark_mode');
-      return saved ? JSON.parse(saved) : false;
-    }
-    return false;
-  });
+  const [darkMode, setDarkMode] = useState(false);
+  const [darkModeLoaded, setDarkModeLoaded] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -855,20 +859,39 @@ function CanvasAppInner() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [openMenuId]);
 
+  // Load history from user-scoped localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('canvas_builder_history');
+    const historyKey = getHistoryKey();
+    const saved = localStorage.getItem(historyKey);
     if (saved)
       try {
         setHistory(JSON.parse(saved));
       } catch (e) {
         console.error(e);
       }
-  }, []);
+  }, [getHistoryKey]);
 
-  // Save dark mode preference
+  // Load dark mode preference from user-scoped localStorage
   useEffect(() => {
-    localStorage.setItem('canvas_dark_mode', JSON.stringify(darkMode));
-  }, [darkMode]);
+    if (darkModeLoaded) return;
+    const darkModeKey = getDarkModeKey();
+    const saved = localStorage.getItem(darkModeKey);
+    if (saved) {
+      try {
+        setDarkMode(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setDarkModeLoaded(true);
+  }, [getDarkModeKey, darkModeLoaded]);
+
+  // Save dark mode preference (user-scoped)
+  useEffect(() => {
+    if (!darkModeLoaded) return; // Don't save until loaded
+    const darkModeKey = getDarkModeKey();
+    localStorage.setItem(darkModeKey, JSON.stringify(darkMode));
+  }, [darkMode, getDarkModeKey, darkModeLoaded]);
 
   // Sidebar scroll animation on mount
   useEffect(() => {
@@ -930,10 +953,11 @@ function CanvasAppInner() {
     }
   }, [sidebarAnimating]);
 
-  const saveHistory = (newHistory: GeneratedApp[]) => {
+  const saveHistory = useCallback((newHistory: GeneratedApp[]) => {
     setHistory(newHistory);
-    localStorage.setItem('canvas_builder_history', JSON.stringify(newHistory));
-  };
+    const historyKey = getHistoryKey();
+    localStorage.setItem(historyKey, JSON.stringify(newHistory));
+  }, [getHistoryKey]);
 
   // AI Agent conversation handler
   const handleAgentConversation = async (userMessage: string) => {
