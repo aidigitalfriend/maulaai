@@ -871,6 +871,12 @@ function CanvasAppInner() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [gatheredRequirements, setGatheredRequirements] = useState<string[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Sidebar animation states
+  const [sidebarAnimating, setSidebarAnimating] = useState(true);
+  const [sidebarGlowIndex, setSidebarGlowIndex] = useState(0);
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  
   const [genState, setGenState] = useState<GenerationState>({
     isGenerating: false,
     error: null,
@@ -908,6 +914,66 @@ function CanvasAppInner() {
   useEffect(() => {
     localStorage.setItem('canvas_dark_mode', JSON.stringify(darkMode));
   }, [darkMode]);
+
+  // Sidebar scroll animation on mount
+  useEffect(() => {
+    if (sidebarScrollRef.current && sidebarAnimating) {
+      const sidebar = sidebarScrollRef.current;
+      const totalHeight = sidebar.scrollHeight - sidebar.clientHeight;
+      
+      // Animate scroll down then up
+      const animateScroll = async () => {
+        // Scroll down smoothly
+        await new Promise<void>((resolve) => {
+          let progress = 0;
+          const scrollDown = setInterval(() => {
+            progress += 0.02;
+            if (progress >= 1) {
+              clearInterval(scrollDown);
+              resolve();
+            }
+            sidebar.scrollTop = totalHeight * easeInOutCubic(progress);
+          }, 16);
+        });
+        
+        // Pause at bottom
+        await new Promise(r => setTimeout(r, 300));
+        
+        // Scroll back up
+        await new Promise<void>((resolve) => {
+          let progress = 0;
+          const scrollUp = setInterval(() => {
+            progress += 0.02;
+            if (progress >= 1) {
+              clearInterval(scrollUp);
+              resolve();
+            }
+            sidebar.scrollTop = totalHeight * (1 - easeInOutCubic(progress));
+          }, 16);
+        });
+        
+        setSidebarAnimating(false);
+      };
+      
+      // Easing function for smooth animation
+      const easeInOutCubic = (t: number) => 
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      
+      // Start animation after a short delay
+      const timer = setTimeout(animateScroll, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [sidebarAnimating]);
+
+  // Sidebar glow cycling effect
+  useEffect(() => {
+    if (sidebarAnimating) {
+      const glowInterval = setInterval(() => {
+        setSidebarGlowIndex(prev => (prev + 1) % 12); // 12 items in sidebar
+      }, 150);
+      return () => clearInterval(glowInterval);
+    }
+  }, [sidebarAnimating]);
 
   const saveHistory = (newHistory: GeneratedApp[]) => {
     setHistory(newHistory);
@@ -1365,17 +1431,57 @@ function CanvasAppInner() {
 
   return (
     <div className={`h-screen overflow-hidden flex transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Sidebar Animation Styles */}
+      <style jsx>{`
+        @keyframes sidebarGlow {
+          0%, 100% { box-shadow: 0 0 0 rgba(99, 102, 241, 0); }
+          50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), inset 0 0 10px rgba(99, 102, 241, 0.3); }
+        }
+        @keyframes sidebarPulse {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.1); opacity: 1; }
+        }
+        @keyframes sidebarSlideIn {
+          0% { transform: translateX(-20px); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes glowTrail {
+          0% { background-position: 0% 0%; }
+          100% { background-position: 0% 200%; }
+        }
+        .sidebar-item-glow {
+          animation: sidebarGlow 0.6s ease-in-out;
+        }
+        .sidebar-item-pulse {
+          animation: sidebarPulse 0.4s ease-in-out;
+        }
+        .sidebar-entrance {
+          animation: sidebarSlideIn 0.5s ease-out forwards;
+        }
+        .sidebar-glow-trail {
+          background: linear-gradient(180deg, 
+            transparent 0%, 
+            rgba(99, 102, 241, 0.1) 20%, 
+            rgba(99, 102, 241, 0.3) 50%, 
+            rgba(99, 102, 241, 0.1) 80%, 
+            transparent 100%
+          );
+          background-size: 100% 200%;
+          animation: glowTrail 2s linear infinite;
+        }
+      `}</style>
+      
       {/* Left Vertical Nav Bar */}
-        <nav className={`w-16 flex flex-col items-center shrink-0 border-r relative transition-colors duration-300 ${darkMode ? 'bg-[#0d0d14] border-gray-800' : 'bg-[#1e1e2e] border-gray-700'}`}>
+        <nav className={`w-16 flex flex-col items-center shrink-0 border-r relative transition-colors duration-300 ${darkMode ? 'bg-[#0d0d14] border-gray-800' : 'bg-[#1e1e2e] border-gray-700'} ${sidebarAnimating ? 'sidebar-glow-trail' : ''}`}>
           {/* Micro Logo at Top */}
-          <div className="pt-3 pb-2">
+          <div className={`pt-3 pb-2 ${sidebarAnimating ? 'sidebar-entrance' : ''}`} style={{ animationDelay: '0ms' }}>
             <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
               <Image 
                 src="/images/logos/company-logo.png" 
                 alt="OneLast.AI" 
                 width={36}
                 height={36}
-                className="w-9 h-9 object-contain"
+                className={`w-9 h-9 object-contain ${sidebarAnimating ? 'sidebar-item-pulse' : ''}`}
               />
             </div>
           </div>
@@ -1383,12 +1489,14 @@ function CanvasAppInner() {
           <div className="w-8 h-px bg-gray-600 mb-2"></div>
           
           {/* Scrollable Content */}
-          <div className="flex-1 w-full overflow-y-auto scrollbar-hide py-2 flex flex-col items-center gap-2"
-               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div 
+            ref={sidebarScrollRef}
+            className="flex-1 w-full overflow-y-auto scrollbar-hide py-2 flex flex-col items-center gap-2"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {/* Home Icon */}
           <Link
             href="/"
-            className="p-3 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/5"
+            className={`p-3 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/5 ${sidebarAnimating && sidebarGlowIndex === 0 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Home"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1401,7 +1509,7 @@ function CanvasAppInner() {
           {/* Panel Toggles */}
           <button
             onClick={() => togglePanel('workspace')}
-            className={`p-3 rounded-xl transition-all ${activePanel === 'workspace' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'workspace' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 1 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Workspace"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1411,7 +1519,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => togglePanel('assistant')}
-            className={`p-3 rounded-xl transition-all ${activePanel === 'assistant' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'assistant' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 2 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="AI Assistant"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1421,7 +1529,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => togglePanel('files')}
-            className={`p-3 rounded-xl transition-all ${activePanel === 'files' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'files' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 3 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Files"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1431,7 +1539,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => togglePanel('history')}
-            className={`p-3 rounded-xl transition-all ${activePanel === 'history' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'history' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 4 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="History"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1441,7 +1549,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => togglePanel('tools')}
-            className={`p-3 rounded-xl transition-all ${activePanel === 'tools' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`p-3 rounded-xl transition-all ${activePanel === 'tools' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-400 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 5 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Tools & Settings"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1455,7 +1563,7 @@ function CanvasAppInner() {
           {/* View Mode Buttons */}
           <button
             onClick={() => setViewMode(ViewMode.PREVIEW)}
-            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.PREVIEW ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.PREVIEW ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 6 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Preview Only"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1466,7 +1574,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => setViewMode(ViewMode.SPLIT)}
-            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.SPLIT ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.SPLIT ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 7 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Split View"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1476,7 +1584,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => setViewMode(ViewMode.CODE)}
-            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.CODE ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            className={`p-2 rounded-lg transition-all ${viewMode === ViewMode.CODE ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 8 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Code Only"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1489,7 +1597,7 @@ function CanvasAppInner() {
           {/* Device Preview Buttons */}
           <button
             onClick={() => setDeviceMode('desktop')}
-            className={`p-2 rounded-lg transition-all ${deviceMode === 'desktop' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            className={`p-2 rounded-lg transition-all ${deviceMode === 'desktop' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 9 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Desktop Preview"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1499,7 +1607,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => setDeviceMode('tablet')}
-            className={`p-2 rounded-lg transition-all ${deviceMode === 'tablet' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            className={`p-2 rounded-lg transition-all ${deviceMode === 'tablet' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 10 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Tablet Preview"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1509,7 +1617,7 @@ function CanvasAppInner() {
 
           <button
             onClick={() => setDeviceMode('mobile')}
-            className={`p-2 rounded-lg transition-all ${deviceMode === 'mobile' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+            className={`p-2 rounded-lg transition-all ${deviceMode === 'mobile' ? 'bg-indigo-600/20 text-indigo-400' : 'text-gray-500 hover:text-white hover:bg-white/5'} ${sidebarAnimating && sidebarGlowIndex === 11 ? 'sidebar-item-glow bg-indigo-500/20' : ''}`}
             title="Mobile Preview"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
