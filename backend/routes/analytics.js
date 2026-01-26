@@ -21,8 +21,7 @@ import {
   detectOS,
 } from '../lib/analytics-tracker.js';
 import { getTrackingData } from '../lib/tracking-middleware.js';
-import { LabExperiment } from '../models/LabExperiment.js';
-import { Session } from '../models/Analytics.js';
+import { prisma } from '../lib/prisma.js';
 
 const router = express.Router();
 
@@ -167,32 +166,45 @@ router.get('/lab/stats', async (req, res) => {
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-    // Get platform-wide active sessions in last 5 minutes
-    const platformActiveSessions = await Session.countDocuments({
-      isActive: true,
-      lastActivity: { $gte: fiveMinutesAgo },
+    // Get platform-wide active sessions in last 5 minutes (Prisma)
+    const platformActiveSessions = await prisma.session.count({
+      where: {
+        isActive: true,
+        lastActivity: { gte: fiveMinutesAgo },
+      },
     });
 
-    // Get unique lab experiment sessions in last 5 minutes  
-    const labActiveUsers = await LabExperiment.distinct('sessionId', {
-      createdAt: { $gte: fiveMinutesAgo },
+    // Get unique lab experiment sessions in last 5 minutes (Prisma)
+    const labActiveSessions = await prisma.labExperiment.findMany({
+      where: {
+        createdAt: { gte: fiveMinutesAgo },
+        sessionId: { not: null },
+      },
+      distinct: ['sessionId'],
+      select: { sessionId: true },
     });
 
-    // Get total tests today
-    const testsToday = await LabExperiment.countDocuments({
-      createdAt: { $gte: today },
+    // Get total tests today (Prisma)
+    const testsToday = await prisma.labExperiment.count({
+      where: {
+        createdAt: { gte: today },
+      },
     });
 
-    // Get total tests all time
-    const totalTestsAllTime = await LabExperiment.countDocuments({});
+    // Get total tests all time (Prisma)
+    const totalTestsAllTime = await prisma.labExperiment.count();
 
-    // Get average session duration from recent experiments
-    const avgDurationResult = await LabExperiment.aggregate([
-      { $match: { createdAt: { $gte: twentyFourHoursAgo }, processingTime: { $gt: 0 } } },
-      { $group: { _id: '$sessionId', totalTime: { $sum: '$processingTime' } } },
-      { $group: { _id: null, avgDuration: { $avg: '$totalTime' } } },
-    ]);
-    const avgSessionMs = avgDurationResult[0]?.avgDuration || 0;
+    // Get average session duration from recent experiments (Prisma)
+    const avgDurationResult = await prisma.labExperiment.aggregate({
+      where: {
+        createdAt: { gte: twentyFourHoursAgo },
+        processingTime: { gt: 0 },
+      },
+      _avg: {
+        processingTime: true,
+      },
+    });
+    const avgSessionMs = avgDurationResult._avg?.processingTime || 0;
     const avgMinutes = Math.floor(avgSessionMs / 60000);
     const avgSeconds = Math.floor((avgSessionMs % 60000) / 1000);
 
@@ -210,37 +222,49 @@ router.get('/lab/stats', async (req, res) => {
       { id: 'future-predictor', name: 'Future Predictor', color: 'from-indigo-500 to-blue-500' },
     ];
 
-    // Get stats for each experiment type
+    // Get stats for each experiment type using Prisma
     const experimentStats = await Promise.all(
       experimentTypes.map(async (exp) => {
         // Total tests all time
-        const totalTests = await LabExperiment.countDocuments({
-          experimentType: exp.id,
+        const totalTests = await prisma.labExperiment.count({
+          where: { experimentType: exp.id },
         });
 
         // Active users (unique sessions in last 5 min)
-        const activeNow = await LabExperiment.distinct('sessionId', {
-          experimentType: exp.id,
-          createdAt: { $gte: fiveMinutesAgo },
+        const activeNow = await prisma.labExperiment.findMany({
+          where: {
+            experimentType: exp.id,
+            createdAt: { gte: fiveMinutesAgo },
+            sessionId: { not: null },
+          },
+          distinct: ['sessionId'],
+          select: { sessionId: true },
         });
 
         // Average duration for this experiment
-        const durationResult = await LabExperiment.aggregate([
-          { $match: { experimentType: exp.id, processingTime: { $gt: 0 } } },
-          { $group: { _id: null, avg: { $avg: '$processingTime' } } },
-        ]);
-        const avgMs = durationResult[0]?.avg || 0;
+        const durationResult = await prisma.labExperiment.aggregate({
+          where: {
+            experimentType: exp.id,
+            processingTime: { gt: 0 },
+          },
+          _avg: { processingTime: true },
+        });
+        const avgMs = durationResult._avg?.processingTime || 0;
         const mins = Math.floor(avgMs / 60000);
         const secs = Math.floor((avgMs % 60000) / 1000);
 
         // 24h trend calculation
-        const last24h = await LabExperiment.countDocuments({
-          experimentType: exp.id,
-          createdAt: { $gte: twentyFourHoursAgo },
+        const last24h = await prisma.labExperiment.count({
+          where: {
+            experimentType: exp.id,
+            createdAt: { gte: twentyFourHoursAgo },
+          },
         });
-        const prev24h = await LabExperiment.countDocuments({
-          experimentType: exp.id,
-          createdAt: { $gte: fortyEightHoursAgo, $lt: twentyFourHoursAgo },
+        const prev24h = await prisma.labExperiment.count({
+          where: {
+            experimentType: exp.id,
+            createdAt: { gte: fortyEightHoursAgo, lt: twentyFourHoursAgo },
+          },
         });
         
         let trendValue = 0;
@@ -274,7 +298,7 @@ router.get('/lab/stats', async (req, res) => {
       data: {
         realtime: {
           totalUsers: platformActiveSessions, // Platform-wide active users
-          labActiveUsers: labActiveUsers.length, // Lab-specific active users
+          labActiveUsers: labActiveSessions.length, // Lab-specific active users
           activeExperiments: 10,
           testsToday,
           totalTestsAllTime, // Total tests ever
@@ -297,12 +321,19 @@ router.get('/lab/activity', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 20;
     
-    // Get recent experiments
-    const recentExperiments = await LabExperiment.find({})
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .select('experimentId experimentType sessionId status createdAt completedAt')
-      .lean();
+    // Get recent experiments using Prisma
+    const recentExperiments = await prisma.labExperiment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        experimentId: true,
+        experimentType: true,
+        sessionId: true,
+        status: true,
+        createdAt: true,
+        completedAt: true,
+      },
+    });
 
     // Map experiment types to display names
     const nameMap = {
