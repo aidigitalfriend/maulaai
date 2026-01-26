@@ -1,5 +1,6 @@
 import express from 'express';
 import User from '../models/User.js';
+import { PageView, UserEvent } from '../models/Analytics.js';
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ router.get('/stats', async (req, res) => {
     const now = new Date();
     const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     
-    // Using Prisma-compatible model adapters
+    // Using Prisma-compatible model adapters with MongoDB-style query conversion
     const totalUsers = await User.countDocuments();
     const activeUsers = await User.countDocuments({ lastLoginAt: { $gte: last7Days } });
     const totalPageViews = await PageView.countDocuments();
@@ -33,12 +34,9 @@ router.get('/stats', async (req, res) => {
 router.get('/users', async (req, res) => {
   try {
     // Using Prisma-compatible model adapter
-    const users = await User.find()
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .select('email name createdAt lastLoginAt');
+    const users = await User.findMany({});
     
-    res.json({ success: true, data: { users } });
+    res.json({ success: true, data: { users: users.slice(0, 100) } });
   } catch (_error) {
     res.status(500).json({ error: 'Failed to get users' });
   }

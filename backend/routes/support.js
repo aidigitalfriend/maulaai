@@ -435,40 +435,43 @@ router.get('/contact', async (req, res) => {
     if (category) query.category = category;
     if (priority) query.priority = priority;
 
-    const options = {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 },
-      populate: [
-        { path: 'assignedTo', select: 'name email' },
-        { path: 'response.respondedBy', select: 'name email' },
-      ],
-    };
+    // Get all messages matching query (Prisma-compatible)
+    let messages = await ContactMessage.find(query);
+    
+    // Sort in JavaScript
+    messages.sort((a, b) => {
+      const aVal = a[sortBy];
+      const bVal = b[sortBy];
+      if (sortOrder === 'desc') {
+        return new Date(bVal) - new Date(aVal);
+      }
+      return new Date(aVal) - new Date(bVal);
+    });
+    
+    // Paginate in JavaScript
+    const totalDocs = messages.length;
+    const totalPages = Math.ceil(totalDocs / parseInt(limit));
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const docs = messages.slice(skip, skip + parseInt(limit));
 
-    const result = await ContactMessage.paginate(query, options);
-
-    // Get stats
-    const stats = await ContactMessage.aggregate([
-      {
-        $group: {
-          _id: null,
-          total: { $sum: 1 },
-          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
-          read: { $sum: { $cond: [{ $eq: ['$status', 'read'] }, 1, 0] } },
-          replied: { $sum: { $cond: [{ $eq: ['$status', 'replied'] }, 1, 0] } },
-          closed: { $sum: { $cond: [{ $eq: ['$status', 'closed'] }, 1, 0] } },
-        },
-      },
-    ]);
+    // Calculate stats in JavaScript
+    const allMessages = await ContactMessage.find({});
+    const stats = [{
+      total: allMessages.length,
+      pending: allMessages.filter(m => m.status === 'pending').length,
+      read: allMessages.filter(m => m.status === 'read').length,
+      replied: allMessages.filter(m => m.status === 'replied').length,
+      closed: allMessages.filter(m => m.status === 'closed').length,
+    }];
 
     res.json({
       success: true,
-      data: result.docs,
+      data: docs,
       pagination: {
-        page: result.page,
-        pages: result.totalPages,
-        total: result.totalDocs,
-        limit: result.limit,
+        page: parseInt(page),
+        pages: totalPages,
+        total: totalDocs,
+        limit: parseInt(limit),
       },
       stats: stats[0] || {
         total: 0,
@@ -589,70 +592,50 @@ router.post('/contact/:id/response', async (req, res) => {
  */
 router.get('/contact/stats/overview', async (req, res) => {
   try {
-    const stats = await ContactMessage.aggregate([
-      {
-        $group: {
-          _id: null,
-          total: { $sum: 1 },
-          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
-          read: { $sum: { $cond: [{ $eq: ['$status', 'read'] }, 1, 0] } },
-          replied: { $sum: { $cond: [{ $eq: ['$status', 'replied'] }, 1, 0] } },
-          closed: { $sum: { $cond: [{ $eq: ['$status', 'closed'] }, 1, 0] } },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          total: 1,
-          pending: 1,
-          read: 1,
-          replied: 1,
-          closed: 1,
-          responseRate: {
-            $multiply: [
-              { $divide: ['$replied', { $max: ['$total', 1] }] },
-              100,
-            ],
-          },
-        },
-      },
-    ]);
+    // Get all messages for statistics (Prisma-compatible)
+    const allMessages = await ContactMessage.find({});
+    
+    // Calculate stats in JavaScript
+    const total = allMessages.length;
+    const pending = allMessages.filter(m => m.status === 'pending').length;
+    const read = allMessages.filter(m => m.status === 'read').length;
+    const replied = allMessages.filter(m => m.status === 'replied').length;
+    const closed = allMessages.filter(m => m.status === 'closed').length;
+    const responseRate = total > 0 ? (replied / total) * 100 : 0;
+    
+    const stats = [{
+      total,
+      pending,
+      read,
+      replied,
+      closed,
+      responseRate,
+    }];
 
     // Category breakdown
-    const categoryStats = await ContactMessage.aggregate([
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { count: -1 },
-      },
-    ]);
+    const categoryMap = {};
+    allMessages.forEach(m => {
+      const cat = m.category || 'uncategorized';
+      categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+    });
+    const categoryStats = Object.entries(categoryMap)
+      .map(([_id, count]) => ({ _id, count }))
+      .sort((a, b) => b.count - a.count);
 
     // Recent activity (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const recentStats = await ContactMessage.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: thirtyDaysAgo },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
+    // Group by date
+    const recentMessages = allMessages.filter(m => new Date(m.createdAt) >= thirtyDaysAgo);
+    const dateMap = {};
+    recentMessages.forEach(m => {
+      const dateStr = new Date(m.createdAt).toISOString().split('T')[0];
+      dateMap[dateStr] = (dateMap[dateStr] || 0) + 1;
+    });
+    const recentStats = Object.entries(dateMap)
+      .map(([_id, count]) => ({ _id, count }))
+      .sort((a, b) => a._id.localeCompare(b._id));
 
     res.json({
       success: true,

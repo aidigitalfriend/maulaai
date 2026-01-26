@@ -92,27 +92,28 @@ router.get('/transactions/user/:userId', async (req, res) => {
     if (type) filter.type = type;
     if (status) filter.status = status;
 
-    const transactions = await Transaction.find(filter)
-      .select(
-        'transactionId type amount currency status description invoiceUrl receiptUrl createdAt',
-      )
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+    // Get transactions with Prisma-compatible adapter
+    let transactions = await Transaction.find(filter);
+    
+    // Apply pagination in JavaScript
+    const total = transactions.length;
+    const skip = (page - 1) * parseInt(limit);
+    transactions = transactions.slice(skip, skip + parseInt(limit));
 
-    const total = await Transaction.countDocuments(filter);
-
-    // Calculate totals
-    const totals = await Transaction.aggregate([
-      { $match: { userId, status: 'completed' } },
-      {
-        $group: {
-          _id: '$type',
-          total: { $sum: '$amount' },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+    // Calculate totals in JavaScript
+    const completedTransactions = (await Transaction.find({ userId }))
+      .filter(t => t.status === 'completed');
+    
+    const typeMap = {};
+    completedTransactions.forEach(t => {
+      const tType = t.type || 'unknown';
+      if (!typeMap[tType]) {
+        typeMap[tType] = { _id: tType, total: 0, count: 0 };
+      }
+      typeMap[tType].total += t.amount || 0;
+      typeMap[tType].count += 1;
+    });
+    const totals = Object.values(typeMap);
 
     res.json({
       success: true,
@@ -198,51 +199,37 @@ router.get('/billing/summary/:userId', async (req, res) => {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const monthlySpend = await Transaction.aggregate([
-      {
-        $match: {
-          userId,
-          status: 'completed',
-          createdAt: { $gte: startOfMonth },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$amount' },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+    // Get all transactions for user (Prisma-compatible)
+    const allTransactions = await Transaction.find({ userId });
+    const completedTransactions = allTransactions.filter(t => t.status === 'completed');
+    
+    // Monthly spend calculation
+    const monthlyTransactions = completedTransactions.filter(t => 
+      new Date(t.createdAt) >= startOfMonth
+    );
+    const monthlyTotal = monthlyTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const monthlyCount = monthlyTransactions.length;
 
-    // Get all-time stats
-    const allTimeStats = await Transaction.aggregate([
-      {
-        $match: {
-          userId,
-          status: 'completed',
-        },
-      },
-      {
-        $group: {
-          _id: '$type',
-          total: { $sum: '$amount' },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+    // All-time stats by type
+    const typeMap = {};
+    completedTransactions.forEach(t => {
+      const type = t.type || 'unknown';
+      if (!typeMap[type]) {
+        typeMap[type] = { _id: type, total: 0, count: 0 };
+      }
+      typeMap[type].total += t.amount || 0;
+      typeMap[type].count += 1;
+    });
+    const allTimeStats = Object.values(typeMap);
 
-    // Get recent transactions
-    const recentTransactions = await Transaction.find({ userId })
-      .select('transactionId type amount status description createdAt')
-      .sort({ createdAt: -1 })
-      .limit(5);
+    // Get recent transactions (already sorted by createdAt desc from adapter)
+    const recentTransactions = allTransactions.slice(0, 5);
 
     res.json({
       success: true,
       summary: {
-        monthlySpend: monthlySpend[0]?.total || 0,
-        monthlyTransactions: monthlySpend[0]?.count || 0,
+        monthlySpend: monthlyTotal,
+        monthlyTransactions: monthlyCount,
         allTimeStats,
         recentTransactions,
       },

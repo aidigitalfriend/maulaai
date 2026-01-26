@@ -76,21 +76,12 @@ router.get('/posts', async (req, res) => {
       before,
       author,
     });
+    
+    // Build Prisma-compatible query
     const query = {};
 
     if (category && ['general', 'agents', 'ideas', 'help'].includes(category)) {
       query.category = category;
-    }
-
-    if (search && search.trim()) {
-      query.$or = [
-        { content: { $regex: search.trim(), $options: 'i' } },
-        { authorName: { $regex: search.trim(), $options: 'i' } },
-      ];
-    }
-
-    if (author) {
-      query.authorName = { $regex: author, $options: 'i' };
     }
 
     if (before) {
@@ -100,10 +91,34 @@ router.get('/posts', async (req, res) => {
       }
     }
 
-    const posts = await CommunityPost.find(query)
-      .sort({ isPinned: -1, createdAt: -1 })
-      .limit(Math.min(parseInt(limit) || 20, 50))
-      .lean();
+    // Get all posts matching the base query
+    let posts = await CommunityPost.find(query);
+    
+    // Apply text search in JavaScript (Prisma doesn't support regex like MongoDB)
+    if (search && search.trim()) {
+      const searchLower = search.trim().toLowerCase();
+      posts = posts.filter(p => 
+        (p.content && p.content.toLowerCase().includes(searchLower)) ||
+        (p.authorName && p.authorName.toLowerCase().includes(searchLower))
+      );
+    }
+
+    if (author) {
+      const authorLower = author.toLowerCase();
+      posts = posts.filter(p => 
+        p.authorName && p.authorName.toLowerCase().includes(authorLower)
+      );
+    }
+
+    // Sort: pinned first, then by date
+    posts.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    // Apply limit
+    posts = posts.slice(0, Math.min(parseInt(limit) || 20, 50));
 
     await logActivity('LIST', 'posts', 'multiple', null, {
       count: posts.length,
@@ -225,11 +240,17 @@ router.get('/metrics', async (req, res) => {
     const totalComments = await CommunityComment.countDocuments();
     const totalLikes = await CommunityLike.countDocuments();
 
-    // Category breakdown
-    const postsByCategory = await CommunityPost.aggregate([
-      { $group: { _id: '$category', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-    ]);
+    // Category breakdown - simplified without MongoDB aggregate
+    // Get all posts and count by category in JavaScript
+    const allPosts = await CommunityPost.find({});
+    const categoryMap = {};
+    allPosts.forEach(post => {
+      const cat = post.category || 'uncategorized';
+      categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+    });
+    const postsByCategory = Object.entries(categoryMap)
+      .map(([_id, count]) => ({ _id, count }))
+      .sort((a, b) => b.count - a.count);
 
     // Recent activity (last 7 days)
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -340,19 +361,31 @@ router.get('/top-members', async (req, res) => {
   try {
     const { limit = 10 } = req.query;
 
-    // Aggregate top posters
-    const topPosters = await CommunityPost.aggregate([
-      {
-        $group: {
-          _id: '$authorName',
-          posts: { $sum: 1 },
-          avatar: { $first: '$authorAvatar' },
-          lastPost: { $max: '$createdAt' },
-        },
-      },
-      { $sort: { posts: -1 } },
-      { $limit: Math.min(parseInt(limit) || 10, 50) },
-    ]);
+    // Get all posts and aggregate in JavaScript (Prisma-compatible)
+    const allPosts = await CommunityPost.find({});
+    
+    // Group by author
+    const authorMap = {};
+    allPosts.forEach(post => {
+      const author = post.authorName || 'Anonymous';
+      if (!authorMap[author]) {
+        authorMap[author] = {
+          _id: author,
+          posts: 0,
+          avatar: post.authorAvatar,
+          lastPost: post.createdAt,
+        };
+      }
+      authorMap[author].posts += 1;
+      if (new Date(post.createdAt) > new Date(authorMap[author].lastPost)) {
+        authorMap[author].lastPost = post.createdAt;
+      }
+    });
+    
+    // Sort by post count and limit
+    const topPosters = Object.values(authorMap)
+      .sort((a, b) => b.posts - a.posts)
+      .slice(0, Math.min(parseInt(limit) || 10, 50));
 
     await logActivity('VIEW', 'top_members', 'leaderboard', null);
 

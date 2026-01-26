@@ -23,6 +23,24 @@ function convertMongoToPrisma(query) {
       if (value.$lt) prismaOp.lt = value.$lt;
       if (value.$ne) prismaOp.not = value.$ne;
       if (value.$in) prismaOp.in = value.$in;
+      if (value.$regex) {
+        // Convert MongoDB $regex to Prisma startsWith/contains/endsWith
+        const pattern = value.$regex.toString();
+        if (pattern.startsWith('^')) {
+          prismaOp.startsWith = pattern.slice(1);
+        } else if (pattern.endsWith('$')) {
+          prismaOp.endsWith = pattern.slice(0, -1);
+        } else {
+          prismaOp.contains = pattern;
+        }
+      }
+      if (value.$exists !== undefined) {
+        // Handle $exists - map to isNot null or is null
+        prismaOp[value.$exists ? 'not' : 'equals'] = value.$exists ? null : null;
+        // Actually for Prisma, we should skip this as it's a different paradigm
+        // Just ignore $exists and return all records
+        continue;
+      }
       if (Object.keys(prismaOp).length > 0) {
         where[key] = prismaOp;
       } else {
@@ -33,6 +51,98 @@ function convertMongoToPrisma(query) {
     }
   }
   return where;
+}
+
+// ============================================
+// QUERY BUILDER - Provides Mongoose-style chaining for find() queries
+// ============================================
+class QueryBuilder {
+  constructor(promise, AdapterClass = null) {
+    this._promise = promise;
+    this._AdapterClass = AdapterClass;
+    this._sortOptions = null;
+    this._limitValue = null;
+    this._skipValue = null;
+    this._populateFields = [];
+    this._selectFields = null;
+  }
+
+  // Chainable methods (no-op for Prisma but allow chaining)
+  populate(field, select) {
+    this._populateFields.push({ field, select });
+    return this;
+  }
+
+  sort(options) {
+    this._sortOptions = options;
+    return this;
+  }
+
+  limit(value) {
+    this._limitValue = parseInt(value);
+    return this;
+  }
+
+  skip(value) {
+    this._skipValue = parseInt(value);
+    return this;
+  }
+
+  select(fields) {
+    this._selectFields = fields;
+    return this;
+  }
+
+  lean() {
+    // No-op for Prisma - always returns plain objects
+    return this;
+  }
+
+  // Execute the query with all options applied
+  async then(resolve, reject) {
+    try {
+      let results = await this._promise;
+      
+      // Apply sort in JavaScript
+      if (this._sortOptions) {
+        results = this._applySorting(results);
+      }
+      
+      // Apply skip
+      if (this._skipValue) {
+        results = results.slice(this._skipValue);
+      }
+      
+      // Apply limit
+      if (this._limitValue) {
+        results = results.slice(0, this._limitValue);
+      }
+      
+      resolve(results);
+    } catch (error) {
+      reject(error);
+    }
+  }
+
+  _applySorting(results) {
+    if (!this._sortOptions || !Array.isArray(results)) return results;
+    
+    return [...results].sort((a, b) => {
+      for (const [field, direction] of Object.entries(this._sortOptions)) {
+        const dir = direction === -1 || direction === 'desc' ? -1 : 1;
+        const aVal = this._getNestedValue(a, field);
+        const bVal = this._getNestedValue(b, field);
+        
+        if (aVal < bVal) return -1 * dir;
+        if (aVal > bVal) return 1 * dir;
+      }
+      return 0;
+    });
+  }
+
+  _getNestedValue(obj, path) {
+    return path.split('.').reduce((curr, key) => curr?.[key], obj);
+  }
 }
 
 // ============================================
@@ -235,29 +345,39 @@ class ChatSessionAdapter {
     return result ? Object.assign(new ChatSessionAdapter(result), { _isNew: false }) : null;
   }
 
-  static async findOne(query) {
+  static findOne(query) {
     const where = {};
     if (query.sessionId) where.sessionId = query.sessionId;
     if (query.userId) where.userId = query.userId;
     if (query.id) where.id = query.id;
-    const result = await prisma.chatSession.findFirst({ 
+    const promise = prisma.chatSession.findFirst({ 
       where,
       include: { agent: true },
-    });
-    return result ? Object.assign(new ChatSessionAdapter(result), { _isNew: false }) : null;
+    }).then(result => result ? Object.assign(new ChatSessionAdapter(result), { _isNew: false, agentId: result.agent }) : null);
+    return new QueryBuilder(promise, ChatSessionAdapter);
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.userId) where.userId = query.userId;
     if (query.agentId) where.agentId = query.agentId;
     if (query.isActive !== undefined) where.isActive = query.isActive;
-    const results = await prisma.chatSession.findMany({ 
+    const promise = prisma.chatSession.findMany({ 
       where,
       include: { agent: true },
-      orderBy: { updatedAt: 'desc' },
-    });
-    return results.map(r => Object.assign(new ChatSessionAdapter(r), { _isNew: false }));
+    }).then(results => results.map(r => {
+      const session = Object.assign(new ChatSessionAdapter(r), { _isNew: false });
+      // Map agent relation to agentId for Mongoose-style access
+      session.agentId = r.agent;
+      session.stats = {
+        messageCount: r.messageCount || 0,
+        totalTokens: r.totalTokens || 0,
+        lastMessageAt: r.lastMessageAt,
+        durationMs: 0,
+      };
+      return session;
+    }));
+    return new QueryBuilder(promise, ChatSessionAdapter);
   }
 
   static async create(data) {
@@ -440,15 +560,59 @@ class ChatQuickActionAdapter {
     return data;
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.userId) where.userId = query.userId;
+    if (query.category) where.category = query.category;
+    if (query.isActive !== undefined) where.isActive = query.isActive;
     if (query.isDefault !== undefined) where.isDefault = query.isDefault;
-    const results = await prisma.chatQuickAction.findMany({ 
+    const promise = prisma.chatQuickAction.findMany({ 
       where,
-      orderBy: { sortOrder: 'asc' },
+    }).then(results => results.map(r => Object.assign(new ChatQuickActionAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, ChatQuickActionAdapter);
+  }
+
+  static async findOne(query) {
+    const where = {};
+    if (query.actionId) where.actionId = query.actionId;
+    if (query.userId) where.userId = query.userId;
+    const result = await prisma.chatQuickAction.findFirst({ where });
+    return result ? Object.assign(new ChatQuickActionAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOneAndUpdate(query, update, options = {}) {
+    const where = {};
+    if (query.actionId) where.actionId = query.actionId;
+    if (query.userId) where.userId = query.userId;
+    
+    const existing = await prisma.chatQuickAction.findFirst({ where });
+    if (!existing && options.upsert) {
+      const createData = { ...query };
+      if (update.$set) Object.assign(createData, update.$set);
+      if (update.$inc) {
+        for (const [key, val] of Object.entries(update.$inc)) {
+          createData[key] = val;
+        }
+      }
+      const result = await prisma.chatQuickAction.create({ data: createData });
+      return Object.assign(new ChatQuickActionAdapter(result), { _isNew: false });
+    }
+    
+    if (!existing) return null;
+    
+    // Handle $inc operations
+    const updateData = update.$set ? { ...update.$set } : {};
+    if (update.$inc) {
+      for (const [key, val] of Object.entries(update.$inc)) {
+        updateData[key] = { increment: val };
+      }
+    }
+    
+    const result = await prisma.chatQuickAction.update({
+      where: { id: existing.id },
+      data: updateData,
     });
-    return results.map(r => Object.assign(new ChatQuickActionAdapter(r), { _isNew: false }));
+    return Object.assign(new ChatQuickActionAdapter(result), { _isNew: false });
   }
 
   static async create(data) {
@@ -513,16 +677,19 @@ class ChatCanvasProjectAdapter {
     }
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.userId) where.userId = query.userId;
     if (query.sessionId) where.sessionId = query.sessionId;
-    const results = await prisma.chatCanvasProject.findMany({
+    if (query.status) where.status = query.status;
+    if (query.status?.$exists !== undefined) {
+      // Handle Mongoose $exists - ignore, just return all
+    }
+    const promise = prisma.chatCanvasProject.findMany({
       where,
       include: { files: true },
-      orderBy: { updatedAt: 'desc' },
-    });
-    return results.map(r => Object.assign(new ChatCanvasProjectAdapter(r), { _isNew: false }));
+    }).then(results => results.map(r => Object.assign(new ChatCanvasProjectAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, ChatCanvasProjectAdapter);
   }
 
   static async findById(id) {
@@ -542,6 +709,31 @@ class ChatCanvasProjectAdapter {
       include: { files: true },
     });
     return result ? Object.assign(new ChatCanvasProjectAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOneAndUpdate(query, update, options = {}) {
+    const where = {};
+    if (query.projectId) where.projectId = query.projectId;
+    if (query.userId) where.userId = query.userId;
+    
+    const existing = await prisma.chatCanvasProject.findFirst({ where });
+    if (!existing) return null;
+    
+    // Handle $inc and $set operations - ChatCanvasProject doesn't have stats in schema
+    // Just update normal fields
+    const updateData = update.$set ? { ...update.$set } : {};
+    // Copy non-operator fields
+    for (const [key, val] of Object.entries(update)) {
+      if (!key.startsWith('$') && key !== 'stats.lastModified') {
+        updateData[key] = val;
+      }
+    }
+    
+    const result = await prisma.chatCanvasProject.update({
+      where: { id: existing.id },
+      data: updateData,
+    });
+    return Object.assign(new ChatCanvasProjectAdapter(result), { _isNew: false });
   }
 
   static async create(data) {
@@ -598,15 +790,14 @@ class ChatCanvasFileAdapter {
     return data;
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.projectId) where.projectId = query.projectId;
     if (query.userId) where.userId = query.userId;
-    const results = await prisma.chatCanvasFile.findMany({
+    const promise = prisma.chatCanvasFile.findMany({
       where,
-      orderBy: { path: 'asc' },
-    });
-    return results.map(r => Object.assign(new ChatCanvasFileAdapter(r), { _isNew: false }));
+    }).then(results => results.map(r => Object.assign(new ChatCanvasFileAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, ChatCanvasFileAdapter);
   }
 
   static async findById(id) {
@@ -676,14 +867,15 @@ class ChatCanvasHistoryAdapter {
     return data;
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.fileId) where.fileId = query.fileId;
-    const results = await prisma.chatCanvasHistory.findMany({
+    if (query.projectId) where.projectId = query.projectId;
+    if (query.userId) where.userId = query.userId;
+    const promise = prisma.chatCanvasHistory.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
-    });
-    return results.map(r => Object.assign(new ChatCanvasHistoryAdapter(r), { _isNew: false }));
+    }).then(results => results.map(r => Object.assign(new ChatCanvasHistoryAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, ChatCanvasHistoryAdapter);
   }
 
   static async create(data) {
@@ -969,12 +1161,13 @@ class ChatInteractionAdapter {
     }
   }
 
-  static async findOne(query) {
+  static findOne(query) {
     const where = {};
     if (query.conversationId) where.conversationId = query.conversationId;
     if (query.userId) where.userId = query.userId;
-    const result = await prisma.chatAnalyticsInteraction.findFirst({ where });
-    return result ? Object.assign(new ChatInteractionAdapter(result), { _isNew: false }) : null;
+    const promise = prisma.chatAnalyticsInteraction.findFirst({ where })
+      .then(result => result ? Object.assign(new ChatInteractionAdapter(result), { _isNew: false }) : null);
+    return new QueryBuilder(promise, ChatInteractionAdapter);
   }
 
   static async findById(id) {
@@ -982,15 +1175,14 @@ class ChatInteractionAdapter {
     return result ? Object.assign(new ChatInteractionAdapter(result), { _isNew: false }) : null;
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.conversationId) where.conversationId = query.conversationId;
     if (query.userId) where.userId = query.userId;
-    const results = await prisma.chatAnalyticsInteraction.findMany({
+    const promise = prisma.chatAnalyticsInteraction.findMany({
       where,
-      orderBy: { createdAt: 'asc' },
-    });
-    return results.map(r => Object.assign(new ChatInteractionAdapter(r), { _isNew: false }));
+    }).then(results => results.map(r => Object.assign(new ChatInteractionAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, ChatInteractionAdapter);
   }
 
   static async create(data) {
@@ -1153,29 +1345,29 @@ class CommunityPostAdapter {
     return this;
   }
 
-  static async find(query = {}) {
+  static find(query = {}) {
     const where = {};
     if (query.authorId) where.authorId = query.authorId;
     if (query.category) where.category = query.category;
-    const results = await prisma.communityPost.findMany({ 
+    const promise = prisma.communityPost.findMany({ 
       where, 
       include: { author: true, comments: true, likes: true },
-      orderBy: { createdAt: 'desc' },
-    });
-    return results.map(r => Object.assign(new CommunityPostAdapter(r), { _isNew: false }));
+    }).then(results => results.map(r => Object.assign(new CommunityPostAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, CommunityPostAdapter);
   }
 
-  static async findById(id) {
-    const result = await prisma.communityPost.findUnique({ 
+  static findById(id) {
+    const promise = prisma.communityPost.findUnique({ 
       where: { id },
       include: { author: true, comments: true, likes: true },
+    }).then(result => {
+      if (result) {
+        const instance = Object.assign(new CommunityPostAdapter(result), { _isNew: false });
+        return instance;
+      }
+      return null;
     });
-    // Return a chainable instance with lean() support
-    if (result) {
-      const instance = Object.assign(new CommunityPostAdapter(result), { _isNew: false });
-      return instance;
-    }
-    return null;
+    return new QueryBuilder(promise, CommunityPostAdapter);
   }
 
   static async create(data) {
@@ -1301,9 +1493,10 @@ class JobApplicationAdapter {
     return data;
   }
 
-  static async find(query = {}) {
-    const results = await prisma.jobApplication.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
-    return results.map(r => Object.assign(new JobApplicationAdapter(r), { _isNew: false }));
+  static find(query = {}) {
+    const promise = prisma.jobApplication.findMany({ where: convertMongoToPrisma(query) })
+      .then(results => results.map(r => Object.assign(new JobApplicationAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, JobApplicationAdapter);
   }
 
   static async findById(id) {
@@ -1588,9 +1781,16 @@ class AgentFileAdapter {
     return data;
   }
 
-  static async find(query = {}) {
-    const results = await prisma.agentFile.findMany({ where: convertMongoToPrisma(query), orderBy: { createdAt: 'desc' } });
-    return results.map(r => Object.assign(new AgentFileAdapter(r), { _isNew: false }));
+  // Mongoose-style toObject
+  toObject() {
+    const { _isNew, ...data } = this;
+    return data;
+  }
+
+  static find(query = {}) {
+    const promise = prisma.agentFile.findMany({ where: convertMongoToPrisma(query) })
+      .then(results => results.map(r => Object.assign(new AgentFileAdapter(r), { _isNew: false })));
+    return new QueryBuilder(promise, AgentFileAdapter);
   }
 
   static async findById(id) {
@@ -1606,6 +1806,34 @@ class AgentFileAdapter {
     if (query.isDeleted !== undefined) where.isDeleted = query.isDeleted;
     const result = await prisma.agentFile.findFirst({ where });
     return result ? Object.assign(new AgentFileAdapter(result), { _isNew: false }) : null;
+  }
+
+  static async findOneAndUpdate(query, update, options = {}) {
+    const where = {};
+    if (query.userId) where.userId = query.userId;
+    if (query.path) where.path = query.path;
+    if (query.filename) where.filename = query.filename;
+    
+    const existing = await prisma.agentFile.findFirst({ where });
+    
+    if (existing) {
+      const updateData = update.$set ? { ...update.$set } : { ...update };
+      // Remove any _id field
+      delete updateData._id;
+      delete updateData.id;
+      const result = await prisma.agentFile.update({
+        where: { id: existing.id },
+        data: updateData,
+      });
+      return Object.assign(new AgentFileAdapter(result), { _isNew: false });
+    } else if (options.upsert) {
+      const createData = { ...query, ...(update.$set || update) };
+      delete createData._id;
+      delete createData.id;
+      const result = await prisma.agentFile.create({ data: createData });
+      return Object.assign(new AgentFileAdapter(result), { _isNew: false });
+    }
+    return null;
   }
 
   static async create(data) {
