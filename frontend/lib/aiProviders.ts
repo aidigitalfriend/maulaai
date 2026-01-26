@@ -359,6 +359,294 @@ export function getCanvasDefaultModel(provider?: string): string {
 }
 
 // ============================================================================
+// CANVAS APP PROVIDER OPTIONS (for /canvas-app page)
+// ============================================================================
+// Branded AI providers for the standalone Canvas App:
+// 1. One Last AI → Anthropic (Best for coding)
+// 2. Maula AI → Mistral (Platform branding)
+// 3. Image Generator → OpenAI
+// 4. Code Builder → xAI Grok
+// 5. Planner → xAI
+// 6. Fast Coding → Cerebras
+// 7. Designer → Gemini
+// ============================================================================
+export interface CanvasAppModel {
+  id: string;
+  name: string;
+  provider: string; // Backend provider key
+  brandedProvider: string; // Display name
+  description: string;
+  icon: string;
+  isThinking?: boolean;
+}
+
+export interface CanvasAppProviderConfig {
+  key: string;
+  name: string; // Branded display name
+  icon: string;
+  color: string; // Tailwind color class
+  models: CanvasAppModel[];
+}
+
+export function getCanvasAppProviders(): CanvasAppProviderConfig[] {
+  return [
+    // 1. One Last AI - Anthropic (Best for coding - recommended)
+    {
+      key: 'anthropic',
+      name: 'One Last AI',
+      icon: '🎯',
+      color: 'purple',
+      models: [
+        {
+          id: 'claude-sonnet-4-20250514',
+          name: 'Sonnet 4',
+          provider: 'Anthropic',
+          brandedProvider: 'One Last AI',
+          description: 'Best for coding - highly recommended',
+          icon: '🎯',
+        },
+        {
+          id: 'claude-3-5-sonnet',
+          name: 'Sonnet 3.5',
+          provider: 'Anthropic',
+          brandedProvider: 'One Last AI',
+          description: 'Excellent coding capabilities',
+          icon: '🎭',
+        },
+        {
+          id: 'claude-3-opus',
+          name: 'Opus',
+          provider: 'Anthropic',
+          brandedProvider: 'One Last AI',
+          description: 'Most powerful for complex apps',
+          icon: '👑',
+          isThinking: true,
+        },
+      ],
+    },
+    // 2. Maula AI - Mistral (Platform branding)
+    {
+      key: 'mistral',
+      name: 'Maula AI',
+      icon: '✨',
+      color: 'indigo',
+      models: [
+        {
+          id: 'mistral-large-latest',
+          name: 'Large',
+          provider: 'Mistral',
+          brandedProvider: 'Maula AI',
+          description: 'Best quality & reasoning',
+          icon: '✨',
+        },
+        {
+          id: 'codestral-latest',
+          name: 'Codestral',
+          provider: 'Mistral',
+          brandedProvider: 'Maula AI',
+          description: 'Specialized for code generation',
+          icon: '💻',
+        },
+        {
+          id: 'mistral-small-latest',
+          name: 'Small',
+          provider: 'Mistral',
+          brandedProvider: 'Maula AI',
+          description: 'Fast and efficient',
+          icon: '⚡',
+        },
+      ],
+    },
+    // 3. Image Generator - OpenAI
+    {
+      key: 'openai',
+      name: 'Image Generator',
+      icon: '🖼️',
+      color: 'emerald',
+      models: [
+        {
+          id: 'gpt-4o',
+          name: 'GPT-4o',
+          provider: 'OpenAI',
+          brandedProvider: 'Image Generator',
+          description: 'Best quality with vision',
+          icon: '🌟',
+        },
+        {
+          id: 'gpt-4o-mini',
+          name: 'GPT-4o Mini',
+          provider: 'OpenAI',
+          brandedProvider: 'Image Generator',
+          description: 'Fast and cost-effective',
+          icon: '⚙️',
+        },
+        {
+          id: 'o3-mini',
+          name: 'O3 Mini',
+          provider: 'OpenAI',
+          brandedProvider: 'Image Generator',
+          description: 'Latest reasoning model',
+          icon: '🧠',
+          isThinking: true,
+        },
+      ],
+    },
+    // 4. Code Builder - xAI Grok
+    {
+      key: 'xai',
+      name: 'Code Builder',
+      icon: '🔨',
+      color: 'blue',
+      models: [
+        {
+          id: 'grok-3',
+          name: 'Grok 3',
+          provider: 'xAI',
+          brandedProvider: 'Code Builder',
+          description: 'Advanced code building',
+          icon: '🚀',
+        },
+        {
+          id: 'grok-3-fast',
+          name: 'Grok 3 Fast',
+          provider: 'xAI',
+          brandedProvider: 'Code Builder',
+          description: 'Quick code generation',
+          icon: '⚡',
+        },
+        {
+          id: 'grok-2',
+          name: 'Grok 2',
+          provider: 'xAI',
+          brandedProvider: 'Code Builder',
+          description: 'Reliable code building',
+          icon: '🔧',
+        },
+      ],
+    },
+    // 5. Planner - xAI (Architecture & Planning)
+    {
+      key: 'xai-planner',
+      name: 'Planner',
+      icon: '📋',
+      color: 'cyan',
+      models: [
+        {
+          id: 'grok-3',
+          name: 'Deep Planning',
+          provider: 'xAI',
+          brandedProvider: 'Planner',
+          description: 'Architecture & task planning',
+          icon: '📋',
+        },
+        {
+          id: 'grok-2',
+          name: 'Quick Planning',
+          provider: 'xAI',
+          brandedProvider: 'Planner',
+          description: 'Fast project planning',
+          icon: '📝',
+        },
+      ],
+    },
+    // 6. Fast Coding - Cerebras (Ultra-fast inference)
+    {
+      key: 'cerebras',
+      name: 'Fast Coding',
+      icon: '⚡',
+      color: 'orange',
+      models: [
+        {
+          id: 'llama-3.3-70b',
+          name: 'Llama 70B',
+          provider: 'Cerebras',
+          brandedProvider: 'Fast Coding',
+          description: 'Smart & ultra-fast',
+          icon: '🦙',
+        },
+        {
+          id: 'llama3.1-8b',
+          name: 'Llama 8B',
+          provider: 'Cerebras',
+          brandedProvider: 'Fast Coding',
+          description: 'Blazing fast response',
+          icon: '⚡',
+        },
+      ],
+    },
+    // 7. Designer - Gemini (UI/UX & visual design)
+    {
+      key: 'gemini',
+      name: 'Designer',
+      icon: '🎨',
+      color: 'green',
+      models: [
+        {
+          id: 'gemini-2.0-flash',
+          name: 'Flash 2.0',
+          provider: 'Gemini',
+          brandedProvider: 'Designer',
+          description: 'Latest design capabilities',
+          icon: '✨',
+        },
+        {
+          id: 'gemini-1.5-pro',
+          name: 'Pro 1.5',
+          provider: 'Gemini',
+          brandedProvider: 'Designer',
+          description: 'Best quality UI/UX',
+          icon: '🎨',
+        },
+        {
+          id: 'gemini-1.5-flash',
+          name: 'Flash 1.5',
+          provider: 'Gemini',
+          brandedProvider: 'Designer',
+          description: 'Fast design iteration',
+          icon: '⚡',
+        },
+      ],
+    },
+    // 8. Groq - Fast inference (bonus option)
+    {
+      key: 'groq',
+      name: 'Lightning',
+      icon: '⚡',
+      color: 'yellow',
+      models: [
+        {
+          id: 'llama-3.3-70b-versatile',
+          name: 'Llama 70B',
+          provider: 'Groq',
+          brandedProvider: 'Lightning',
+          description: 'Ultra-fast Groq inference',
+          icon: '⚡',
+        },
+        {
+          id: 'llama-3.1-8b-instant',
+          name: 'Llama 8B',
+          provider: 'Groq',
+          brandedProvider: 'Lightning',
+          description: 'Instant responses',
+          icon: '💨',
+        },
+      ],
+    },
+  ];
+}
+
+// Get default provider for Canvas App
+export function getCanvasAppDefaultProvider(): string {
+  return 'anthropic';
+}
+
+// Get default model for Canvas App
+export function getCanvasAppDefaultModel(): CanvasAppModel {
+  const providers = getCanvasAppProviders();
+  return providers[0].models[0];
+}
+
+// ============================================================================
 // DEFAULT USER-FRIENDLY AI OPTIONS (Fallback for unknown agents)
 // ============================================================================
 // 1. AI Assistant → Anthropic (primary for personality)

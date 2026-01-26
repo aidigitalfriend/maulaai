@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptions } from '@/contexts/SubscriptionContext';
 import type { AgentSubscription } from '@/services/agentSubscriptionService';
+import { getCanvasAppProviders, getCanvasAppDefaultModel, type CanvasAppModel, type CanvasAppProviderConfig } from '@/lib/aiProviders';
 
 // Types
 interface ChatMessage {
@@ -16,16 +17,7 @@ interface ChatMessage {
   isSystemMessage?: boolean;
 }
 
-type ModelProvider = 'Gemini' | 'OpenAI' | 'Anthropic' | 'Groq' | 'xAI';
-
-interface ModelOption {
-  id: string;
-  name: string;
-  provider: ModelProvider;
-  description: string;
-  isThinking?: boolean;
-  icon?: string;
-}
+// Using the CanvasAppModel from aiProviders instead of local ModelOption
 
 interface GeneratedApp {
   id: string;
@@ -66,69 +58,11 @@ type ActivePanel = 'workspace' | 'assistant' | 'history' | 'tools' | 'files' | n
 // Conversation Phase for AI Agent
 type ConversationPhase = 'initial' | 'gathering' | 'confirming' | 'building' | 'editing';
 
-const MODELS: ModelOption[] = [
-  // Anthropic Models - Best for coding
-  {
-    id: 'claude-3-5-sonnet',
-    name: 'Claude 3.5 Sonnet',
-    provider: 'Anthropic',
-    description: 'Best for coding - highly recommended.',
-    icon: '🎭',
-  },
-  {
-    id: 'claude-3-opus',
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
-    description: 'Most powerful Claude model.',
-    icon: '🎯',
-  },
-  // OpenAI Models
-  {
-    id: 'gpt-4o',
-    name: 'GPT-4o',
-    provider: 'OpenAI',
-    description: 'Most capable OpenAI model.',
-    icon: '🌟',
-  },
-  {
-    id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
-    provider: 'OpenAI',
-    description: 'Fast and cost-effective.',
-    icon: '⚙️',
-  },
-  // Gemini Models
-  {
-    id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    provider: 'Gemini',
-    description: 'Fast and efficient for basic layouts.',
-    icon: '⚡',
-  },
-  {
-    id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    provider: 'Gemini',
-    description: 'High reasoning for complex apps.',
-    icon: '🧠',
-  },
-  // xAI
-  {
-    id: 'grok-3',
-    name: 'Grok 3',
-    provider: 'xAI',
-    description: 'Strong reasoning and coding.',
-    icon: '🚀',
-  },
-  // Groq - Fast inference
-  {
-    id: 'llama-3.3-70b',
-    name: 'Llama 3.3 70B',
-    provider: 'Groq',
-    description: 'Ultra-fast inference.',
-    icon: '🦙',
-  },
-];
+// Get providers configuration from centralized aiProviders
+const CANVAS_APP_PROVIDERS = getCanvasAppProviders();
+
+// Flatten all models for backward compatibility where needed
+const ALL_MODELS: CanvasAppModel[] = CANVAS_APP_PROVIDERS.flatMap(p => p.models);
 
 const PRESET_TEMPLATES = [
   {
@@ -784,7 +718,8 @@ function CanvasAppInner() {
   const { subscriptions } = useSubscriptions();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [selectedModel, setSelectedModel] = useState<ModelOption>(MODELS[0]);
+  const [selectedProvider, setSelectedProvider] = useState<CanvasAppProviderConfig>(CANVAS_APP_PROVIDERS[0]);
+  const [selectedModel, setSelectedModel] = useState<CanvasAppModel>(getCanvasAppDefaultModel());
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.PREVIEW);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [currentApp, setCurrentApp] = useState<GeneratedApp | null>(null);
@@ -948,7 +883,7 @@ function CanvasAppInner() {
         error: null,
         progressMessage: selectedModel.isThinking
           ? 'Deep thinking in progress...'
-          : `Generating with ${selectedModel.provider}...`,
+          : `Generating with ${selectedModel.brandedProvider}...`,
         isThinking: selectedModel.isThinking,
         streamingCode: '',
       });
@@ -961,7 +896,7 @@ function CanvasAppInner() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             prompt: instruction,
-            provider: selectedModel.provider,
+            provider: selectedProvider.key === 'xai-planner' ? 'xai' : selectedProvider.key, // Map xai-planner to xai
             modelId: selectedModel.id,
             isThinking: selectedModel.isThinking,
             currentCode: isInitial ? undefined : currentApp?.code,
@@ -1012,7 +947,7 @@ function CanvasAppInner() {
         const modelMsg: ChatMessage = {
           role: 'model',
           text: isInitial
-            ? `✅ Your app is ready! Built with ${selectedModel.name}.\n\nYou can now ask me to make any changes - add features, modify styles, fix issues, or completely redesign sections.`
+            ? `✅ Your app is ready! Built with ${selectedModel.brandedProvider}.\n\nYou can now ask me to make any changes - add features, modify styles, fix issues, or completely redesign sections.`
             : '✅ Changes applied! What else would you like me to modify?',
           timestamp: Date.now(),
         };
@@ -1073,7 +1008,7 @@ function CanvasAppInner() {
         }
       }
     },
-    [selectedModel, currentApp, history, genState.isGenerating, chatMessages]
+    [selectedModel, selectedProvider, currentApp, history, genState.isGenerating, chatMessages]
   );
 
   // Non-streaming fallback
@@ -1088,7 +1023,7 @@ function CanvasAppInner() {
       error: null,
       progressMessage: selectedModel.isThinking
         ? 'Deep thinking in progress...'
-        : `Building with ${selectedModel.name}...`,
+        : `Building with ${selectedModel.brandedProvider}...`,
       isThinking: selectedModel.isThinking,
     });
 
@@ -1098,7 +1033,7 @@ function CanvasAppInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: instruction,
-          provider: selectedModel.provider,
+          provider: selectedProvider.key === 'xai-planner' ? 'xai' : selectedProvider.key, // Map xai-planner to xai
           modelId: selectedModel.id,
           isThinking: selectedModel.isThinking,
           currentCode: isInitial ? undefined : currentApp?.code,
@@ -1117,7 +1052,7 @@ function CanvasAppInner() {
       const modelMsg: ChatMessage = {
         role: 'model',
         text: isInitial
-          ? `✅ Your app is ready! Built with ${selectedModel.name}.\n\nYou can now ask me to make any changes.`
+          ? `✅ Your app is ready! Built with ${selectedModel.brandedProvider}.\n\nYou can now ask me to make any changes.`
           : '✅ Changes applied!',
         timestamp: Date.now(),
       };
@@ -1688,7 +1623,7 @@ function CanvasAppInner() {
                 </div>
                 <div className="text-center max-w-md px-6">
                   <p className={`text-lg font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-800'}`}>{genState.progressMessage}</p>
-                  <p className="text-sm text-gray-500 mt-1">Using {selectedModel.name} • {selectedModel.provider}</p>
+                  <p className="text-sm text-gray-500 mt-1">Using {selectedModel.brandedProvider} • {selectedModel.name}</p>
                   {genState.streamingCode && (
                     <div className="mt-4 text-left">
                       <p className="text-[10px] text-indigo-600 font-bold uppercase mb-2">
@@ -1999,23 +1934,32 @@ function CanvasAppInner() {
 
                   {/* Provider & Model Selection */}
                   <div className="mb-6">
-                    <h4 className={`text-[10px] font-bold uppercase mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Provider & Model</h4>
+                    <h4 className={`text-[10px] font-bold uppercase mb-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>AI Assistant</h4>
                     
                     {/* Current Selection */}
                     <div className={`p-4 rounded-xl border mb-3 ${darkMode ? 'bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border-indigo-800' : 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100'}`}>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">{selectedModel.icon}</span>
-                        <span className={`text-sm font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedModel.name}</span>
+                        <div>
+                          <span className={`text-sm font-bold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedModel.brandedProvider}</span>
+                          <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({selectedModel.name})</span>
+                        </div>
                       </div>
                       <p className={`text-[10px] ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedModel.description}</p>
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          selectedModel.provider === 'Anthropic' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
-                          selectedModel.provider === 'OpenAI' ? darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700' :
-                          selectedModel.provider === 'Gemini' ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700' :
-                          selectedModel.provider === 'xAI' ? darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700' :
-                          darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'
+                          selectedProvider.color === 'purple' ? darkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700' :
+                          selectedProvider.color === 'indigo' ? darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700' :
+                          selectedProvider.color === 'emerald' ? darkMode ? 'bg-emerald-900/50 text-emerald-300' : 'bg-emerald-100 text-emerald-700' :
+                          selectedProvider.color === 'blue' ? darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700' :
+                          selectedProvider.color === 'cyan' ? darkMode ? 'bg-cyan-900/50 text-cyan-300' : 'bg-cyan-100 text-cyan-700' :
+                          selectedProvider.color === 'orange' ? darkMode ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700' :
+                          selectedProvider.color === 'green' ? darkMode ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700' :
+                          darkMode ? 'bg-yellow-900/50 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
                         }`}>
+                          {selectedProvider.name}
+                        </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
                           {selectedModel.provider}
                         </span>
                         {selectedModel.isThinking && (
@@ -2024,33 +1968,37 @@ function CanvasAppInner() {
                       </div>
                     </div>
                     
-                    {/* Provider Tabs */}
+                    {/* Provider Tabs - Branded Names */}
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {(['Anthropic', 'OpenAI', 'Gemini', 'xAI', 'Groq'] as ModelProvider[]).map((provider) => (
+                      {CANVAS_APP_PROVIDERS.map((provider) => (
                         <button
-                          key={provider}
+                          key={provider.key}
                           onClick={() => {
-                            const firstModel = MODELS.find(m => m.provider === provider);
-                            if (firstModel) setSelectedModel(firstModel);
+                            setSelectedProvider(provider);
+                            setSelectedModel(provider.models[0]);
                           }}
-                          className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all ${
-                            selectedModel.provider === provider
-                              ? provider === 'Anthropic' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
-                                provider === 'OpenAI' ? darkMode ? 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-700' : 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
-                                provider === 'Gemini' ? darkMode ? 'bg-green-900/50 text-green-300 ring-1 ring-green-700' : 'bg-green-100 text-green-700 ring-1 ring-green-300' :
-                                provider === 'xAI' ? darkMode ? 'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
-                                darkMode ? 'bg-orange-900/50 text-orange-300 ring-1 ring-orange-700' : 'bg-orange-100 text-orange-700 ring-1 ring-orange-300'
+                          className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 ${
+                            selectedProvider.key === provider.key
+                              ? provider.color === 'purple' ? darkMode ? 'bg-purple-900/50 text-purple-300 ring-1 ring-purple-700' : 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' :
+                                provider.color === 'indigo' ? darkMode ? 'bg-indigo-900/50 text-indigo-300 ring-1 ring-indigo-700' : 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300' :
+                                provider.color === 'emerald' ? darkMode ? 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-700' : 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' :
+                                provider.color === 'blue' ? darkMode ? 'bg-blue-900/50 text-blue-300 ring-1 ring-blue-700' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' :
+                                provider.color === 'cyan' ? darkMode ? 'bg-cyan-900/50 text-cyan-300 ring-1 ring-cyan-700' : 'bg-cyan-100 text-cyan-700 ring-1 ring-cyan-300' :
+                                provider.color === 'orange' ? darkMode ? 'bg-orange-900/50 text-orange-300 ring-1 ring-orange-700' : 'bg-orange-100 text-orange-700 ring-1 ring-orange-300' :
+                                provider.color === 'green' ? darkMode ? 'bg-green-900/50 text-green-300 ring-1 ring-green-700' : 'bg-green-100 text-green-700 ring-1 ring-green-300' :
+                                darkMode ? 'bg-yellow-900/50 text-yellow-300 ring-1 ring-yellow-700' : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-300'
                               : darkMode ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
-                          {provider}
+                          <span>{provider.icon}</span>
+                          <span>{provider.name}</span>
                         </button>
                       ))}
                     </div>
                     
                     {/* Model List for Selected Provider */}
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
-                      {MODELS.filter(m => m.provider === selectedModel.provider).map((m) => (
+                    <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
+                      {selectedProvider.models.map((m) => (
                         <button
                           key={m.id}
                           onClick={() => setSelectedModel(m)}
