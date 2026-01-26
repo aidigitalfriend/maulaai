@@ -130,6 +130,7 @@ NEXT_TELEMETRY_DISABLED=1 npm run build
 echo "🔄 Restarting frontend"
 pm2 restart maula-frontend || true
 
+cd ~/maula-ai
 echo "🌐 Updating nginx config"
 if [ -f nginx/maula.ai.conf ]; then
   sudo cp nginx/maula.ai.conf /etc/nginx/sites-available/maula.ai
