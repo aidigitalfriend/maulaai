@@ -1014,6 +1014,44 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                 return content && content.trim().length > 0;
               });
 
+            // Convert OpenAI format to Anthropic format for images
+            const convertToAnthropicFormat = (content: unknown): unknown => {
+              if (typeof content === 'string') return content;
+              if (!Array.isArray(content)) return content;
+              
+              return content.map((item: { type: string; text?: string; image_url?: { url: string } }) => {
+                if (item.type === 'text') {
+                  return { type: 'text', text: item.text };
+                }
+                if (item.type === 'image_url' && item.image_url?.url) {
+                  const url = item.image_url.url;
+                  // Handle base64 data URLs
+                  if (url.startsWith('data:')) {
+                    const matches = url.match(/^data:([^;]+);base64,(.+)$/);
+                    if (matches) {
+                      return {
+                        type: 'image',
+                        source: {
+                          type: 'base64',
+                          media_type: matches[1],
+                          data: matches[2],
+                        },
+                      };
+                    }
+                  }
+                  // Handle regular URLs
+                  return {
+                    type: 'image',
+                    source: {
+                      type: 'url',
+                      url: url,
+                    },
+                  };
+                }
+                return item;
+              });
+            };
+
             try {
               const response = await fetch(
                 'https://api.anthropic.com/v1/messages',
@@ -1032,8 +1070,7 @@ Do NOT say you cannot create or edit images. Do NOT suggest using external tools
                       systemMessage?.content || 'You are a helpful AI assistant.',
                     messages: chatMessages.map((m) => ({
                       role: m.role,
-                      content:
-                        typeof m.content === 'string' ? m.content : m.content,
+                      content: convertToAnthropicFormat(m.content),
                     })),
                     stream: true,
                   }),
