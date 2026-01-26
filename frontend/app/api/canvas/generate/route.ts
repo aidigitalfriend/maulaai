@@ -15,7 +15,9 @@ Rules for generated code:
 6. Return ONLY the code. No explanations, no markdown blocks.
 7. Always return the FULL updated file.
 8. Use smooth animations and transitions for a polished feel.
-9. Ensure accessibility with proper ARIA labels and semantic HTML.`;
+9. Ensure accessibility with proper ARIA labels and semantic HTML.
+10. For placeholder images, use inline SVG placeholders or CSS gradients instead of external services like via.placeholder.com or placehold.co. Example: <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full"></div>
+11. When using Lucide icons, ensure the element exists before calling addEventListener. Use DOMContentLoaded or place scripts at the end of body.`;
 
 function cleanCode(text: string): string {
   return text

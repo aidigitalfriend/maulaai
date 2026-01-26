@@ -16,7 +16,9 @@ Rules for generated code (must follow all):
 7) Always return the FULL updated file.
 8) Use smooth, subtle animations for polish.
 9) Avoid reusing the same layouts or color systems between requests—produce varied structure, components, and palettes per prompt.
-10) Prefer semantic HTML and ARIA labels for key controls.`;
+10) Prefer semantic HTML and ARIA labels for key controls.
+11) For placeholder images, use inline SVG placeholders or CSS gradients instead of external services like via.placeholder.com or placehold.co. Example: <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full"></div>
+12) When using Lucide icons or adding event listeners, ensure DOM elements exist first. Use DOMContentLoaded or place scripts at end of body after all elements.`;
 
 const IMAGE_TO_CODE_INSTRUCTION = `You are a world-class senior frontend engineer and UI/UX designer specializing in converting visual designs into code.
 
@@ -32,7 +34,9 @@ Rules for generated code (must follow all):
 7) Include hover states, transitions, and micro-interactions where appropriate.
 8) Use semantic HTML and ARIA labels for accessibility.
 9) If the image shows a partial design, complete it logically maintaining the same style.
-10) Pay attention to shadows, borders, gradients, and subtle design details.`;
+10) Pay attention to shadows, borders, gradients, and subtle design details.
+11) For placeholder images, use inline SVG placeholders or CSS gradients instead of external services. Example: <div class="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg"></div>
+12) Ensure all JavaScript event listeners check that elements exist before attaching. Use DOMContentLoaded or place scripts at end of body.`;
 
 const PROVIDER_PRIORITY: ReadonlyArray<'Cerebras' | 'XAI' | 'Gemini' | 'Mistral' | 'OpenAI' | 'Anthropic'> = [
   'Cerebras',
