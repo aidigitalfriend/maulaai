@@ -76,6 +76,10 @@ const App: React.FC = () => {
     error: null,
     progressMessage: '',
   });
+  
+  // Sidebar discovery animation state
+  const [sidebarHighlightIndex, setSidebarHighlightIndex] = useState<number | null>(null);
+  const [hasSeenSidebarAnimation, setHasSeenSidebarAnimation] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('gencraft_v4_history');
@@ -83,6 +87,40 @@ const App: React.FC = () => {
       try {
         setHistory(JSON.parse(saved));
       } catch (e) {}
+  }, []);
+
+  // Sidebar discovery animation - runs once on first load
+  useEffect(() => {
+    // Check if user has already seen the animation
+    const hasSeen = localStorage.getItem('gencraft_sidebar_animated');
+    if (hasSeen) {
+      setHasSeenSidebarAnimation(true);
+      return;
+    }
+
+    // Animation sequence: highlight each sidebar item with delay
+    const sidebarItems = ['logo', 'workspace', 'assistant', 'history', 'settings'];
+    let currentIndex = 0;
+    
+    const animateNext = () => {
+      if (currentIndex < sidebarItems.length) {
+        setSidebarHighlightIndex(currentIndex);
+        currentIndex++;
+        setTimeout(animateNext, 600);
+      } else {
+        // Animation complete
+        setSidebarHighlightIndex(null);
+        setHasSeenSidebarAnimation(true);
+        localStorage.setItem('gencraft_sidebar_animated', 'true');
+      }
+    };
+
+    // Start animation after a short delay
+    const startTimer = setTimeout(() => {
+      animateNext();
+    }, 1000);
+
+    return () => clearTimeout(startTimer);
   }, []);
 
   const saveHistory = (newHistory: GeneratedApp[]) => {
@@ -175,11 +213,33 @@ const App: React.FC = () => {
     setActivePanel(activePanel === panel ? null : panel);
   };
 
+  // Helper function for sidebar animation classes
+  const getSidebarItemClass = (index: number, baseClass: string, activeClass: string, inactiveClass: string, isActive: boolean) => {
+    const isHighlighted = sidebarHighlightIndex === index && !hasSeenSidebarAnimation;
+    const highlightClass = isHighlighted 
+      ? 'animate-pulse ring-2 ring-indigo-400 ring-opacity-75 scale-110 bg-indigo-600/30 text-indigo-300' 
+      : '';
+    return `${baseClass} ${isActive ? activeClass : inactiveClass} ${highlightClass}`;
+  };
+
   return (
     <div className="flex h-screen bg-white text-gray-900">
+      {/* CSS for sidebar discovery animation */}
+      <style>{`
+        @keyframes sidebar-glow {
+          0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.3); }
+          50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8), 0 0 30px rgba(99, 102, 241, 0.4); }
+        }
+        .sidebar-highlight {
+          animation: sidebar-glow 0.6s ease-in-out;
+        }
+      `}</style>
+      
       {/* 1. Left Vertical Nav Bar (Narrow) */}
       <nav className="w-16 bg-[#1e1e2e] flex flex-col items-center py-6 gap-6 shrink-0 z-[60]">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-4 shadow-lg shadow-indigo-900/20">
+        <div className={`w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-4 shadow-lg shadow-indigo-900/20 transition-all duration-300 ${
+          sidebarHighlightIndex === 0 && !hasSeenSidebarAnimation ? 'scale-125 ring-2 ring-white ring-opacity-50 animate-pulse' : ''
+        }`}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
@@ -198,11 +258,13 @@ const App: React.FC = () => {
 
         <button
           onClick={() => togglePanel('workspace')}
-          className={`p-3 rounded-xl transition-all ${
+          className={getSidebarItemClass(
+            1,
+            'p-3 rounded-xl transition-all duration-300',
+            'bg-indigo-600/20 text-indigo-400',
+            'text-gray-400 hover:text-white hover:bg-white/5',
             activePanel === 'workspace'
-              ? 'bg-indigo-600/20 text-indigo-400'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          )}
           title="Workspace"
         >
           <svg
@@ -223,11 +285,13 @@ const App: React.FC = () => {
 
         <button
           onClick={() => togglePanel('assistant')}
-          className={`p-3 rounded-xl transition-all ${
+          className={getSidebarItemClass(
+            2,
+            'p-3 rounded-xl transition-all duration-300',
+            'bg-indigo-600/20 text-indigo-400',
+            'text-gray-400 hover:text-white hover:bg-white/5',
             activePanel === 'assistant'
-              ? 'bg-indigo-600/20 text-indigo-400'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          )}
           title="AI Assistant"
         >
           <svg
@@ -248,11 +312,13 @@ const App: React.FC = () => {
 
         <button
           onClick={() => togglePanel('history')}
-          className={`p-3 rounded-xl transition-all ${
+          className={getSidebarItemClass(
+            3,
+            'p-3 rounded-xl transition-all duration-300',
+            'bg-indigo-600/20 text-indigo-400',
+            'text-gray-400 hover:text-white hover:bg-white/5',
             activePanel === 'history'
-              ? 'bg-indigo-600/20 text-indigo-400'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          )}
           title="History"
         >
           <svg
@@ -273,7 +339,13 @@ const App: React.FC = () => {
 
         <div className="mt-auto flex flex-col gap-6">
           <div className="w-2 h-2 rounded-full bg-green-500 mx-auto animate-pulse shadow-sm shadow-green-500/50"></div>
-          <button className="p-3 text-gray-500 hover:text-white">
+          <button className={getSidebarItemClass(
+            4,
+            'p-3 transition-all duration-300',
+            'text-indigo-400',
+            'text-gray-500 hover:text-white',
+            false
+          )}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"

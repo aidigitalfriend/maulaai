@@ -985,6 +985,10 @@ export default function CanvasMode({
   const [isMobilePortrait, setIsMobilePortrait] = useState(false);
   const [quickResponseMode, setQuickResponseMode] = useState(false);
   
+  // Sidebar discovery animation state
+  const [sidebarHighlightIndex, setSidebarHighlightIndex] = useState<number | null>(null);
+  const [hasSeenSidebarAnimation, setHasSeenSidebarAnimation] = useState(false);
+  
   // Agent-specific provider/model options
   const providerModels = useMemo(() => getAgentCanvasProviders(agentId, agentName), [agentId, agentName]);
   const defaultProvider = useMemo(() => getCanvasDefaultProvider(), []);
@@ -1077,6 +1081,44 @@ export default function CanvasMode({
     };
   }, [isOpen]);
 
+  // Sidebar discovery animation - runs once on first canvas open
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    // Check if user has already seen the animation
+    const hasSeen = localStorage.getItem('canvas_sidebar_animated');
+    if (hasSeen) {
+      setHasSeenSidebarAnimation(true);
+      return;
+    }
+
+    // Animation sequence: highlight each sidebar item with delay
+    // 0: logo, 1: new, 2: chat, 3: templates, 4: files, 5: preview, 
+    // 6: desktop, 7: tablet, 8: mobile, 9: code, 10: split, 11: history, 12: settings
+    const totalItems = 13;
+    let currentIndex = 0;
+    
+    const animateNext = () => {
+      if (currentIndex < totalItems) {
+        setSidebarHighlightIndex(currentIndex);
+        currentIndex++;
+        setTimeout(animateNext, 400);
+      } else {
+        // Animation complete
+        setSidebarHighlightIndex(null);
+        setHasSeenSidebarAnimation(true);
+        localStorage.setItem('canvas_sidebar_animated', 'true');
+      }
+    };
+
+    // Start animation after a short delay
+    const startTimer = setTimeout(() => {
+      animateNext();
+    }, 1500);
+
+    return () => clearTimeout(startTimer);
+  }, [isOpen]);
+
   // =============================================================================
   // BRAND THEME STYLES
   // =============================================================================
@@ -1101,6 +1143,14 @@ export default function CanvasMode({
     btnPrimary:
       'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white shadow-lg shadow-cyan-500/25',
     btnSecondary: 'bg-[#2a2a3a] hover:bg-[#353545] text-gray-200',
+  };
+
+  // Helper function for sidebar discovery animation highlight
+  const getSidebarHighlightClass = (index: number) => {
+    if (sidebarHighlightIndex === index && !hasSeenSidebarAnimation) {
+      return 'ring-2 ring-cyan-400 ring-opacity-75 scale-110 animate-pulse shadow-lg shadow-cyan-500/50';
+    }
+    return '';
   };
 
   // Categories
@@ -1933,7 +1983,7 @@ export default function CanvasMode({
       >
         <button
           onClick={() => setShowNavOverlay((v) => !v)}
-          className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-transform flex items-center gap-2 flex-shrink-0`}
+          className={`p-2 rounded-lg ${brandColors.gradientPrimary} ${showNavOverlay ? 'ml-2' : ''} hover:scale-105 transition-all duration-300 flex items-center gap-2 flex-shrink-0 ${getSidebarHighlightClass(0)}`}
           title={showNavOverlay ? 'Close navigation' : 'Open navigation'}
         >
           <Image
@@ -1954,7 +2004,7 @@ export default function CanvasMode({
           {/* New Conversation Button */}
           <button
             onClick={handleNewConversation}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${brandColors.btnPrimary} hover:scale-105`}
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${brandColors.btnPrimary} hover:scale-105 ${getSidebarHighlightClass(1)}`}
             title="New conversation"
           >
             <PlusIcon className="w-5 h-5" />
@@ -1967,11 +2017,11 @@ export default function CanvasMode({
             onClick={() =>
               setActivePane((prev) => (prev === 'chat' ? 'preview' : 'chat'))
             }
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'chat'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(2)}`}
             title="Chat"
           >
             <ChatBubbleLeftRightIcon className="w-5 h-5" />
@@ -1982,11 +2032,11 @@ export default function CanvasMode({
           {/* Templates Button - Opens Built-in Templates Panel */}
           <button
             onClick={() => setShowBuiltinTemplatesPanel(true)}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               showBuiltinTemplatesPanel
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(3)}`}
             title="Built-in Templates"
           >
             <RectangleGroupIcon className="w-5 h-5" />
@@ -1998,11 +2048,11 @@ export default function CanvasMode({
             onClick={() =>
               setActivePane((prev) => (prev === 'files' ? 'preview' : 'files'))
             }
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'files'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(4)}`}
             title="Files"
           >
             <FolderIcon className="w-5 h-5" />
@@ -2016,11 +2066,11 @@ export default function CanvasMode({
                 prev === 'preview' ? 'preview' : 'preview'
               )
             }
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'preview'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(5)}`}
             title="Preview"
           >
             <EyeIcon className="w-5 h-5" />
@@ -2034,11 +2084,11 @@ export default function CanvasMode({
               setActivePane('preview');
               setPreviewDevice('desktop');
             }}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'preview' && previewDevice === 'desktop'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(6)}`}
             title="Desktop preview"
           >
             <ComputerDesktopIcon className="w-5 h-5" />
@@ -2051,11 +2101,11 @@ export default function CanvasMode({
               setActivePane('preview');
               setPreviewDevice('tablet');
             }}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'preview' && previewDevice === 'tablet'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(7)}`}
             title="Tablet preview"
           >
             <DeviceTabletIcon className="w-5 h-5" />
@@ -2068,11 +2118,11 @@ export default function CanvasMode({
               setActivePane('preview');
               setPreviewDevice('mobile');
             }}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'preview' && previewDevice === 'mobile'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(8)}`}
             title="Mobile preview"
           >
             <DevicePhoneMobileIcon className="w-5 h-5" />
@@ -2084,11 +2134,11 @@ export default function CanvasMode({
             onClick={() =>
               setActivePane((prev) => (prev === 'code' ? 'preview' : 'code'))
             }
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'code'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(9)}`}
             title="Code"
           >
             <CodeBracketIcon className="w-5 h-5" />
@@ -2099,11 +2149,11 @@ export default function CanvasMode({
           {/* Split View Button */}
           <button
             onClick={() => setSplitView((prev) => !prev)}
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               splitView
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(10)}`}
             title="Split view (Code + Preview)"
           >
             <Squares2X2Icon className="w-5 h-5" />
@@ -2118,11 +2168,11 @@ export default function CanvasMode({
                 prev === 'history' ? 'preview' : 'history'
               )
             }
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'history'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(11)}`}
             title="History"
           >
             <ClockIcon className="w-5 h-5" />
@@ -2136,11 +2186,11 @@ export default function CanvasMode({
                 prev === 'settings' ? 'preview' : 'settings'
               )
             }
-            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-colors ${
+            className={`p-2 rounded-lg flex items-center ${showNavOverlay ? 'justify-start gap-3 px-3' : 'justify-center'} transition-all duration-300 ${
               activePane === 'settings'
                 ? brandColors.btnPrimary
                 : `${brandColors.bgSecondary} ${brandColors.textSecondary} ${brandColors.bgHover}`
-            }`}
+            } ${getSidebarHighlightClass(12)}`}
             title="Settings"
           >
             <Cog6ToothIcon className="w-5 h-5" />
