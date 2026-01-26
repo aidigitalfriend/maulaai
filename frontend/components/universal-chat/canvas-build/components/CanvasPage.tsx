@@ -1407,23 +1407,41 @@ export default function CanvasMode({
         fixedCode = fixedCode.replace('</body>', lucideInit + '</body>');
       }
 
-      // Use doc.write() with allow-same-origin sandbox (required for external CDN requests)
-      const doc = previewRef.current.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(fixedCode);
-        doc.close();
-      }
+      // Use srcdoc attribute instead of doc.write() to avoid script re-execution issues
+      // srcdoc creates a fresh document context each time, avoiding "already declared" errors
+      previewRef.current.srcdoc = fixedCode;
     }
   }, []);
+
+  // Debounced preview update ref to avoid rapid re-renders during streaming
+  const previewDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastCodeRef = useRef<string>('');
 
   useEffect(() => {
     if (viewMode !== 'preview' && !splitView) return;
     const htmlContent =
       selectedFile?.type === 'html' ? selectedFile.content : generatedCode;
-    if (htmlContent) {
-      updatePreview(htmlContent);
+    
+    // Skip if content hasn't changed
+    if (!htmlContent || htmlContent === lastCodeRef.current) return;
+    
+    // Clear any pending debounce
+    if (previewDebounceRef.current) {
+      clearTimeout(previewDebounceRef.current);
     }
+    
+    // Debounce preview updates during streaming (wait 300ms between updates)
+    // This prevents the "already declared" errors from rapid script re-execution
+    previewDebounceRef.current = setTimeout(() => {
+      lastCodeRef.current = htmlContent;
+      updatePreview(htmlContent);
+    }, 300);
+    
+    return () => {
+      if (previewDebounceRef.current) {
+        clearTimeout(previewDebounceRef.current);
+      }
+    };
   }, [viewMode, selectedFile, generatedCode, updatePreview, splitView]);
 
   // Extract files from generated code
