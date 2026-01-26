@@ -228,44 +228,69 @@ class ChatCanvasProjectAdapter {
     const where = {};
     if (query.userId) where.userId = query.userId;
     if (query.sessionId) where.sessionId = query.sessionId;
+    if (query.status) where.status = query.status;
     return prisma.chatCanvasProject.findMany({
       where,
-      include: { files: true },
       orderBy: { updatedAt: 'desc' }
     });
   }
 
+  static async findOne(query = {}) {
+    const where = {};
+    if (query.id) where.id = query.id;
+    if (query.userId) where.userId = query.userId;
+    if (query.sessionId) where.sessionId = query.sessionId;
+    return prisma.chatCanvasProject.findFirst({ where });
+  }
+
   static async findById(id) {
-    return prisma.chatCanvasProject.findUnique({
-      where: { id },
-      include: { files: true }
-    });
+    return prisma.chatCanvasProject.findUnique({ where: { id } });
   }
 
   static async create(data) {
     return prisma.chatCanvasProject.create({
       data: {
         userId: data.userId,
-        sessionId: data.sessionId,
+        sessionId: data.sessionId || null,
         name: data.name,
-        description: data.description,
-        type: data.type,
-        metadata: data.metadata || {}
+        description: data.description || null,
+        code: data.code || null,
+        files: data.files || [],
+        settings: data.settings || {},
+        status: data.status || 'active'
       }
     });
   }
 
   static async findByIdAndUpdate(id, update) {
+    const data = update.$set || update;
     return prisma.chatCanvasProject.update({
       where: { id },
-      data: update.$set || update
+      data
     });
   }
 
+  static async updateOne(query, update) {
+    const where = {};
+    if (query.id) where.id = query.id;
+    if (query.userId) where.userId = query.userId;
+    const data = update.$set || update;
+    return prisma.chatCanvasProject.updateMany({ where, data });
+  }
+
   static async findByIdAndDelete(id) {
-    // Delete associated files first
-    await prisma.chatCanvasFile.deleteMany({ where: { projectId: id } });
     return prisma.chatCanvasProject.delete({ where: { id } });
+  }
+
+  static async deleteOne(query) {
+    const where = {};
+    if (query.id) where.id = query.id;
+    if (query.userId) where.userId = query.userId;
+    return prisma.chatCanvasProject.deleteMany({ where });
+  }
+
+  static async deleteMany(query) {
+    return prisma.chatCanvasProject.deleteMany({ where: query });
   }
 }
 
@@ -275,11 +300,11 @@ class ChatCanvasProjectAdapter {
 class ChatCanvasFileAdapter {
   static async find(query = {}) {
     const where = {};
-    if (query.projectId) where.projectId = query.projectId;
     if (query.userId) where.userId = query.userId;
+    if (query.sessionId) where.sessionId = query.sessionId;
     return prisma.chatCanvasFile.findMany({
       where,
-      orderBy: { path: 'asc' }
+      orderBy: { updatedAt: 'desc' }
     });
   }
 
@@ -288,18 +313,33 @@ class ChatCanvasFileAdapter {
   }
 
   static async create(data) {
-    return prisma.chatCanvasFile.create({ data });
+    return prisma.chatCanvasFile.create({ 
+      data: {
+        userId: data.userId,
+        sessionId: data.sessionId || null,
+        fileName: data.fileName,
+        fileType: data.fileType,
+        content: data.content,
+        version: data.version || 1,
+        metadata: data.metadata || {}
+      }
+    });
   }
 
   static async findByIdAndUpdate(id, update) {
+    const data = update.$set || update;
     return prisma.chatCanvasFile.update({
       where: { id },
-      data: update.$set || update
+      data
     });
   }
 
   static async findByIdAndDelete(id) {
     return prisma.chatCanvasFile.delete({ where: { id } });
+  }
+
+  static async deleteMany(query) {
+    return prisma.chatCanvasFile.deleteMany({ where: query });
   }
 }
 
@@ -309,15 +349,45 @@ class ChatCanvasFileAdapter {
 class ChatCanvasHistoryAdapter {
   static async find(query = {}) {
     const where = {};
-    if (query.fileId) where.fileId = query.fileId;
+    if (query.userId) where.userId = query.userId;
+    if (query.sessionId) where.sessionId = query.sessionId;
     return prisma.chatCanvasHistory.findMany({
       where,
       orderBy: { createdAt: 'desc' }
     });
   }
 
+  static async findById(id) {
+    return prisma.chatCanvasHistory.findUnique({ where: { id } });
+  }
+
   static async create(data) {
-    return prisma.chatCanvasHistory.create({ data });
+    return prisma.chatCanvasHistory.create({ 
+      data: {
+        userId: data.userId,
+        sessionId: data.sessionId || null,
+        name: data.name || 'Untitled',
+        prompt: data.prompt,
+        code: data.code,
+        metadata: data.metadata || {}
+      }
+    });
+  }
+
+  static async findByIdAndUpdate(id, update) {
+    const data = update.$set || update;
+    return prisma.chatCanvasHistory.update({
+      where: { id },
+      data
+    });
+  }
+
+  static async findByIdAndDelete(id) {
+    return prisma.chatCanvasHistory.delete({ where: { id } });
+  }
+
+  static async deleteMany(query) {
+    return prisma.chatCanvasHistory.deleteMany({ where: query });
   }
 }
 

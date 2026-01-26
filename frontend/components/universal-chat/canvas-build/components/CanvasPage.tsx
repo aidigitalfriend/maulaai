@@ -1031,38 +1031,6 @@ export default function CanvasMode({
     }
   }, [quickResponseMode, selectedProvider, providerModels]);
 
-  // Restore chat messages once when opened, or seed with welcome message
-  useEffect(() => {
-    if (!isOpen || hasLoadedMessages.current) return;
-    hasLoadedMessages.current = true;
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = localStorage.getItem('canvasMessages');
-      if (stored) {
-        const parsed: ChatMessage[] = JSON.parse(stored).map((m: any) => ({
-          ...m,
-          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
-        }));
-        if (parsed.length > 0) {
-          setMessages(parsed);
-          return;
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load messages', err);
-    }
-
-    setMessages([
-      {
-        id: '1',
-        role: 'assistant',
-        content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\n**🎨 Image-to-Code:** Upload a design screenshot and I'll recreate it as code!\n\nI'll ask a few questions to understand your needs, then we can start building!`,
-        timestamp: new Date(),
-      },
-    ]);
-  }, [isOpen]);
-
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -1265,52 +1233,247 @@ export default function CanvasMode({
     return firstLine.length > 80 ? `${firstLine.slice(0, 77)}...` : firstLine;
   }, []);
 
-  // Load history from localStorage on mount
+  // Load history from API (with localStorage fallback)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      const stored = localStorage.getItem('canvasHistory');
-      if (stored) {
-        const parsed: HistoryEntry[] = JSON.parse(stored);
-        setHistoryEntries(
-          parsed.map((entry) => ({
-            ...entry,
-            name: entry.name || summarizePrompt(entry.prompt),
-          }))
-        );
+    
+    const loadHistory = async () => {
+      try {
+        // Try API first for logged-in users
+        const response = await fetch('/api/canvas/history', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.history?.length > 0) {
+            setHistoryEntries(data.history.map((entry: any) => ({
+              id: entry.id,
+              name: entry.name || summarizePrompt(entry.prompt),
+              prompt: entry.prompt,
+              code: entry.code,
+              timestamp: entry.timestamp
+            })));
+            // Sync to localStorage
+            localStorage.setItem('canvasHistory', JSON.stringify(data.history));
+            return;
+          }
+        }
+      } catch (err) {
+        console.log('API history load failed, using localStorage:', err);
       }
-    } catch (err) {
-      console.error('Failed to load history', err);
-    }
+      
+      // Fallback to localStorage
+      try {
+        const stored = localStorage.getItem('canvasHistory');
+        if (stored) {
+          const parsed: HistoryEntry[] = JSON.parse(stored);
+          setHistoryEntries(
+            parsed.map((entry) => ({
+              ...entry,
+              name: entry.name || summarizePrompt(entry.prompt),
+            }))
+          );
+        }
+      } catch (err) {
+        console.error('Failed to load history from localStorage', err);
+      }
+    };
+    
+    loadHistory();
   }, [summarizePrompt]);
 
-  // Persist history to localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem('canvasHistory', JSON.stringify(historyEntries));
-    } catch (err) {
-      console.error('Failed to save history', err);
+  // Persist history to API and localStorage
+  const saveHistoryEntry = useCallback(async (entry: HistoryEntry) => {
+    // Save to localStorage immediately
+    if (typeof window !== 'undefined') {
+      try {
+        const current = localStorage.getItem('canvasHistory');
+        const entries = current ? JSON.parse(current) : [];
+        entries.unshift(entry);
+        localStorage.setItem('canvasHistory', JSON.stringify(entries.slice(0, 100)));
+      } catch (err) {
+        console.error('Failed to save to localStorage', err);
+      }
     }
-  }, [historyEntries]);
+    
+    // Sync to API for logged-in users
+    try {
+      await fetch('/api/canvas/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: entry.name,
+          prompt: entry.prompt,
+          code: entry.code
+        })
+      });
+    } catch (err) {
+      console.log('API history save failed (user may not be logged in):', err);
+    }
+  }, []);
 
-  // Persist chat messages to localStorage
+  // Delete history entry from API and localStorage
+  const deleteHistoryEntry = useCallback(async (id: string) => {
+    // Remove from state
+    setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
+    
+    // Remove from localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const current = localStorage.getItem('canvasHistory');
+        if (current) {
+          const entries = JSON.parse(current).filter((e: any) => e.id !== id);
+          localStorage.setItem('canvasHistory', JSON.stringify(entries));
+        }
+      } catch (err) {
+        console.error('Failed to delete from localStorage', err);
+      }
+    }
+    
+    // Delete from API
+    try {
+      await fetch(`/api/canvas/history?id=${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.log('API history delete failed:', err);
+    }
+  }, []);
+
+  // Rename history entry
+  const renameHistoryEntry = useCallback(async (id: string, newName: string) => {
+    // Update state
+    setHistoryEntries((prev) =>
+      prev.map((entry) =>
+        entry.id === id ? { ...entry, name: newName } : entry
+      )
+    );
+    
+    // Update localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const current = localStorage.getItem('canvasHistory');
+        if (current) {
+          const entries = JSON.parse(current).map((e: any) =>
+            e.id === id ? { ...e, name: newName } : e
+          );
+          localStorage.setItem('canvasHistory', JSON.stringify(entries));
+        }
+      } catch (err) {
+        console.error('Failed to rename in localStorage', err);
+      }
+    }
+    
+    // Update via API
+    try {
+      await fetch('/api/canvas/history', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id, name: newName })
+      });
+    } catch (err) {
+      console.log('API history rename failed:', err);
+    }
+  }, []);
+
+  // Load chat messages from API (with localStorage fallback)
+  useEffect(() => {
+    if (!isOpen || hasLoadedMessages.current) return;
+    hasLoadedMessages.current = true;
+    if (typeof window === 'undefined') return;
+
+    const loadMessages = async () => {
+      try {
+        // Try API first
+        const response = await fetch('/api/canvas/messages', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.messages?.length > 0) {
+            const parsed = data.messages.map((m: any) => ({
+              ...m,
+              timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+            }));
+            setMessages(parsed);
+            return;
+          }
+        }
+      } catch (err) {
+        console.log('API messages load failed, using localStorage:', err);
+      }
+      
+      // Fallback to localStorage
+      try {
+        const stored = localStorage.getItem('canvasMessages');
+        if (stored) {
+          const parsed: ChatMessage[] = JSON.parse(stored).map((m: any) => ({
+            ...m,
+            timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+          }));
+          if (parsed.length > 0) {
+            setMessages(parsed);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load messages from localStorage', err);
+      }
+
+      // Set welcome message if no history
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: `Hi! 👋 I'm your AI Canvas assistant.\n\nWhat would you like to build today? Tell me about your project - a landing page, dashboard, portfolio, or something else?\n\n**🎨 Image-to-Code:** Upload a design screenshot and I'll recreate it as code!\n\nI'll ask a few questions to understand your needs, then we can start building!`,
+          timestamp: new Date(),
+        },
+      ]);
+    };
+    
+    loadMessages();
+  }, [isOpen]);
+
+  // Persist chat messages to API and localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (messages.length === 0) return;
+    
+    const serialized = messages.map((m) => ({
+      ...m,
+      timestamp:
+        m.timestamp instanceof Date
+          ? m.timestamp.toISOString()
+          : m.timestamp,
+    }));
+    
+    // Save to localStorage immediately
     try {
-      const serialized = JSON.stringify(
-        messages.map((m) => ({
-          ...m,
-          timestamp:
-            m.timestamp instanceof Date
-              ? m.timestamp.toISOString()
-              : m.timestamp,
-        }))
-      );
-      localStorage.setItem('canvasMessages', serialized);
+      localStorage.setItem('canvasMessages', JSON.stringify(serialized));
     } catch (err) {
-      console.error('Failed to save messages', err);
+      console.error('Failed to save messages to localStorage', err);
     }
+    
+    // Debounce API save to avoid too many requests
+    const timeoutId = setTimeout(async () => {
+      try {
+        await fetch('/api/canvas/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ messages: serialized })
+        });
+      } catch (err) {
+        console.log('API messages save failed:', err);
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timeoutId);
   }, [messages]);
 
   const updatePreview = useCallback((code: string) => {
@@ -1707,18 +1870,15 @@ export default function CanvasMode({
           setGeneratedFiles(files);
           setGenerationStatus('success');
 
-          setHistoryEntries((prev) =>
-            [
-              {
-                id: `${Date.now()}`,
-                name: summarizePrompt(userPrompt),
-                prompt: userPrompt,
-                code: cleaned,
-                timestamp: Date.now(),
-              },
-              ...prev,
-            ].slice(0, 20)
-          );
+          const historyEntry: HistoryEntry = {
+            id: `${Date.now()}`,
+            name: summarizePrompt(userPrompt),
+            prompt: userPrompt,
+            code: cleaned,
+            timestamp: Date.now(),
+          };
+          setHistoryEntries((prev) => [historyEntry, ...prev].slice(0, 20));
+          saveHistoryEntry(historyEntry);
 
           // Show explanation in chat if any, otherwise default message
           const chatMessage = explanation
@@ -1785,6 +1945,7 @@ export default function CanvasMode({
     updatePreview,
     extractFiles,
     summarizePrompt,
+    saveHistoryEntry,
   ]);
 
   const handleStopGeneration = useCallback(() => {
@@ -1795,10 +1956,10 @@ export default function CanvasMode({
 
   const handleDeleteHistoryEntry = useCallback(
     (id: string) => {
-      setHistoryEntries((prev) => prev.filter((entry) => entry.id !== id));
+      deleteHistoryEntry(id);
       if (openHistoryMenuId === id) setOpenHistoryMenuId(null);
     },
-    [openHistoryMenuId]
+    [openHistoryMenuId, deleteHistoryEntry]
   );
 
   const handleRenameHistoryEntry = useCallback(
@@ -1810,14 +1971,10 @@ export default function CanvasMode({
         entry.name || 'Untitled build'
       );
       if (!newName) return;
-      setHistoryEntries((prev) =>
-        prev.map((e) =>
-          e.id === id ? { ...e, name: newName.trim() || e.name } : e
-        )
-      );
+      renameHistoryEntry(id, newName.trim());
       setOpenHistoryMenuId(null);
     },
-    [historyEntries]
+    [historyEntries, renameHistoryEntry]
   );
 
   const handleDownloadHistoryEntry = useCallback((entry: HistoryEntry) => {
@@ -1902,12 +2059,13 @@ export default function CanvasMode({
       timestamp: Date.now(),
     };
     setHistoryEntries((prev) => [historyEntry, ...prev]);
+    saveHistoryEntry(historyEntry);
     
     // Close the panel and switch to preview
     setShowBuiltinTemplatesPanel(false);
     setActivePane('preview');
     setGenerationStatus('success');
-  }, [normalizeCode, extractFiles, updatePreview]);
+  }, [normalizeCode, extractFiles, updatePreview, saveHistoryEntry]);
 
   // Filter built-in templates by category
   const filteredBuiltinTemplates = builtinTemplateCategory === 'All'
