@@ -35,7 +35,7 @@ type AuthAction =
 
 const initialState: AuthState = {
   user: null,
-  isLoading: false,
+  isLoading: true, // Start with loading true until we check session
   isAuthenticated: false,
   error: null,
 };
@@ -91,15 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    // Skip authentication for public tools like canvas app
-    if (
-      typeof window !== 'undefined' &&
-      window.location.pathname.startsWith('/canvas-app')
-    ) {
-      console.log('📱 Canvas app - skipping authentication');
-      return;
-    }
-
+    // Check session for all pages
     checkExistingSession();
   }, []);
 
