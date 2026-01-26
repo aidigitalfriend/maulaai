@@ -469,7 +469,8 @@ const ChatBox: React.FC<{
   conversationPhase: ConversationPhase;
   hasApp: boolean;
   darkMode?: boolean;
-}> = ({ messages, onSendMessage, isGenerating, conversationPhase, hasApp, darkMode = false }) => {
+  aiEnabled?: boolean;
+}> = ({ messages, onSendMessage, isGenerating, conversationPhase, hasApp, darkMode = false, aiEnabled = true }) => {
   const [input, setInput] = useState('');
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -589,19 +590,27 @@ const ChatBox: React.FC<{
         onSubmit={handleSubmit}
         className={`p-4 border-t ${darkMode ? 'border-gray-800 bg-gray-800/50' : 'border-gray-100 bg-gray-50/50'}`}
       >
+        {!aiEnabled && (
+          <div className={`mb-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${darkMode ? 'bg-amber-900/30 text-amber-300 border border-amber-800' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>AI generation requires Weekly/Monthly subscription</span>
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={getPlaceholderText()}
-            className={`flex-1 px-4 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'}`}
+            placeholder={!aiEnabled ? 'Subscribe to use AI...' : getPlaceholderText()}
+            className={`flex-1 px-4 py-2 text-xs border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-800'} ${!aiEnabled ? 'opacity-70' : ''}`}
             disabled={isGenerating}
           />
           <button
             type="submit"
             disabled={isGenerating || !input.trim()}
-            className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 disabled:bg-indigo-300 transition-all"
+            className={`px-4 py-2 text-white text-xs font-bold rounded-xl transition-all ${!aiEnabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300'}`}
           >
             Send
           </button>
@@ -752,97 +761,43 @@ const FilesPanel: React.FC<{
   );
 };
 
-// Subscription Gate Component
+// Subscription Gate Component - Now just provides context, doesn't block
 const SubscriptionGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // App is now open to all - subscription check moved to AI generation
+  return <>{children}</>;
+};
+
+// Hook to check if user has AI access
+const useAIAccess = () => {
   const { state } = useAuth();
   const { subscriptions, loading } = useSubscriptions();
 
   // Check if user has weekly or monthly subscription to ANY agent
-  const hasRequiredSubscription = subscriptions.some(
+  const hasAIAccess = subscriptions.some(
     (sub: AgentSubscription) =>
       sub.status === 'active' &&
       (sub.plan === 'weekly' || sub.plan === 'monthly') &&
       new Date(sub.expiryDate) > new Date()
   );
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-sm text-gray-500">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!state.isAuthenticated) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-8 text-center">
-          <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign In Required</h2>
-          <p className="text-gray-600 mb-6">
-            Please sign in to access Canvas Builder.
-          </p>
-          <Link
-            href="/auth/login"
-            className="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
-          >
-            Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasRequiredSubscription) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-8 text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Canvas Builder</h2>
-          <p className="text-gray-600 mb-4">
-            AI-Powered App Generator
-          </p>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-            <p className="text-sm text-amber-800">
-              <strong>Weekly or Monthly subscription required.</strong><br />
-              Subscribe to any AI Agent with a weekly or monthly plan to unlock Canvas Builder.
-            </p>
-          </div>
-          <Link
-            href="/agents"
-            className="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
-          >
-            Browse AI Agents
-          </Link>
-          <Link
-            href="/"
-            className="block mt-4 text-sm text-gray-500 hover:text-indigo-600 transition-colors"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  return {
+    isAuthenticated: state.isAuthenticated,
+    hasAIAccess,
+    loading,
+    // Daily plan users can see but not use AI
+    canViewApp: true,
+    canUseAI: state.isAuthenticated && hasAIAccess,
+  };
 };
 
 // Main Canvas App Component (Inner)
 function CanvasAppInner() {
   const { state: authState } = useAuth();
   const { subscriptions } = useSubscriptions();
+  
+  // Check AI access based on subscription
+  const { canUseAI, isAuthenticated, loading: aiAccessLoading } = useAIAccess();
+  
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState<ModelOption>(MODELS[0]);
@@ -982,6 +937,21 @@ function CanvasAppInner() {
 
   // AI Agent conversation handler
   const handleAgentConversation = async (userMessage: string) => {
+    // Check AI access - if no subscription, show upgrade message
+    if (!canUseAI) {
+      const upgradeMsg: ChatMessage = {
+        role: 'model',
+        text: !isAuthenticated 
+          ? `🔐 **Sign In Required**\n\nPlease sign in to use AI features.\n\n[Sign In →](/auth/login)`
+          : `🔒 **AI Features Locked**\n\nTo unlock AI-powered app generation, you need a **Weekly** or **Monthly** subscription to any AI Agent.\n\n✨ Benefits of subscribing:\n- Full AI app generation\n- Unlimited edits & iterations\n- Code export & download\n- Priority AI processing\n\n[Browse AI Agents →](/agents)`,
+        timestamp: Date.now(),
+        isSystemMessage: true,
+      };
+      setChatMessages((prev) => [...prev, { role: 'user', text: userMessage, timestamp: Date.now() }, upgradeMsg]);
+      setShowSubscriptionModal(true);
+      return;
+    }
+    
     // Add user message to chat
     const userMsg: ChatMessage = {
       role: 'user',
@@ -1930,6 +1900,10 @@ function CanvasAppInner() {
                     />
                     <button
                       onClick={() => {
+                        if (!canUseAI) {
+                          setShowSubscriptionModal(true);
+                          return;
+                        }
                         if (prompt.trim()) {
                           setGatheredRequirements([prompt]);
                           handleAgentConversation(prompt);
@@ -1939,7 +1913,7 @@ function CanvasAppInner() {
                       disabled={genState.isGenerating || !prompt.trim()}
                       className={`w-full mt-3 py-3 text-white text-xs font-bold rounded-2xl disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-md ${darkMode ? 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-900/30' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'}`}
                     >
-                      {genState.isGenerating ? 'BUILDING...' : 'START BUILDING'}
+                      {genState.isGenerating ? 'BUILDING...' : canUseAI ? 'START BUILDING' : '🔒 UPGRADE TO BUILD'}
                     </button>
                   </div>
                   <div>
@@ -1990,6 +1964,7 @@ function CanvasAppInner() {
                     conversationPhase={conversationPhase}
                     hasApp={!!currentApp}
                     darkMode={darkMode}
+                    aiEnabled={canUseAI}
                   />
                 </div>
               )}
@@ -2592,6 +2567,87 @@ function CanvasAppInner() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Subscription Required Modal */}
+      {showSubscriptionModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className={`max-w-md w-full rounded-3xl shadow-2xl p-8 text-center animate-slide-up ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/30">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {!isAuthenticated ? 'Sign In to Continue' : 'Unlock AI Generation'}
+            </h2>
+            <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {!isAuthenticated 
+                ? 'Sign in to access AI-powered app generation.'
+                : 'Subscribe to any AI Agent with a Weekly or Monthly plan to unlock all AI features.'}
+            </p>
+            
+            {!isAuthenticated ? (
+              <Link
+                href="/auth/login"
+                className="inline-block w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/30"
+              >
+                Sign In
+              </Link>
+            ) : (
+              <div className="space-y-4">
+                <div className={`rounded-xl p-4 border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div className="text-left">
+                      <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Weekly or Monthly Plan</p>
+                      <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Any AI Agent subscription</p>
+                    </div>
+                  </div>
+                  <ul className={`text-left text-xs space-y-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <li>✓ Unlimited AI app generation</li>
+                    <li>✓ Real-time code streaming</li>
+                    <li>✓ Export & download projects</li>
+                    <li>✓ All 7 AI providers included</li>
+                  </ul>
+                </div>
+                <Link
+                  href="/agents"
+                  className="inline-block w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/30"
+                >
+                  Browse AI Agents
+                </Link>
+              </div>
+            )}
+            
+            <button
+              onClick={() => setShowSubscriptionModal(false)}
+              className={`mt-4 text-sm transition-colors ${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Continue Exploring
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AI Status Indicator */}
+      {!canUseAI && (
+        <div className={`fixed bottom-4 left-20 z-40 flex items-center gap-2 px-4 py-2 rounded-xl shadow-lg border ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+          <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            {!isAuthenticated ? 'Sign in for AI' : 'AI Disabled - Upgrade to unlock'}
+          </span>
+          <button
+            onClick={() => setShowSubscriptionModal(true)}
+            className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+          >
+            {!isAuthenticated ? 'Sign In' : 'Upgrade'}
+          </button>
         </div>
       )}
 
