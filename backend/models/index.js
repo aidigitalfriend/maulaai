@@ -809,7 +809,7 @@ class AgentMemoryAdapter {
   }
 }
 
-// AgentFile wrapper class that supports both static methods and instance methods (Mongoose-like)
+// AgentFile wrapper class that supports both static methods and instance methods
 class AgentFileDocument {
   constructor(data) {
     // Clean up the data - handle special agentId values
@@ -844,7 +844,7 @@ class AgentFileDocument {
   }
 }
 
-// Query builder to support Mongoose-style chaining (e.g., .sort())
+// Query builder to support legacy chaining patterns (e.g., .sort())
 class PrismaQueryBuilder {
   constructor(model, baseQuery = {}) {
     this.model = model;
@@ -853,7 +853,7 @@ class PrismaQueryBuilder {
   }
 
   sort(sortObj) {
-    // Convert Mongoose-style sort to Prisma orderBy
+    // Convert legacy sort format to Prisma orderBy
     // e.g., { filename: 1 } -> { filename: 'asc' }
     const orderBy = {};
     for (const [key, value] of Object.entries(sortObj)) {
@@ -865,7 +865,7 @@ class PrismaQueryBuilder {
 
   async then(resolve, reject) {
     try {
-      // Convert MongoDB-style query operators to Prisma
+      // Convert legacy query operators to Prisma format
       const prismaWhere = this.convertToPrismaWhere(this.whereClause);
       const results = await prisma.agentFile.findMany({
         where: prismaWhere,
@@ -880,7 +880,7 @@ class PrismaQueryBuilder {
   convertToPrismaWhere(query) {
     const prismaWhere = {};
     for (const [key, value] of Object.entries(query)) {
-      // Handle MongoDB logical operators
+      // Handle legacy logical operators
       if (key === '$or' && Array.isArray(value)) {
         prismaWhere.OR = value.map(item => this.convertToPrismaWhere(item));
         continue;
@@ -895,7 +895,7 @@ class PrismaQueryBuilder {
       }
       
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        // Handle MongoDB operators
+        // Handle legacy query operators
         if (value.$regex) {
           prismaWhere[key] = { startsWith: value.$regex.replace('^', '').replace('$', '') };
         } else if (value.$ne !== undefined) {
@@ -933,7 +933,7 @@ class AgentFileAdapter {
   }
 
   static async findOne(query = {}) {
-    // Convert MongoDB-style query to Prisma
+    // Convert legacy query format to Prisma
     const builder = new PrismaQueryBuilder('agentFile', query);
     const prismaWhere = builder.convertToPrismaWhere(query);
     return prisma.agentFile.findFirst({ where: prismaWhere });
