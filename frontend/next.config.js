@@ -205,10 +205,10 @@ const nextConfig = {
           { key: 'X-XSS-Protection', value: '1; mode=block' },
           // Referrer policy
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          // Restrict browser features
+          // Restrict browser features - allow microphone for voice input
           {
             key: 'Permissions-Policy',
-            value: 'geolocation=(), microphone=(), camera=()',
+            value: 'geolocation=(), microphone=(self), camera=()',
           },
           // Content Security Policy - allow Stripe, Cloudflare Insights, AI APIs, Google Maps, and S3 uploads
           {
