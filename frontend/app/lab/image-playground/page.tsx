@@ -106,9 +106,27 @@ export default function ImagePlaygroundPage() {
     if (!generatedImage) return
     
     try {
-      // Fetch the image as a blob
-      const response = await fetch(generatedImage)
-      const blob = await response.blob()
+      let blob: Blob
+      
+      // Check if it's a data URL (base64)
+      if (generatedImage.startsWith('data:')) {
+        // Convert base64 data URL to blob directly (no fetch needed)
+        const [header, base64Data] = generatedImage.split(',')
+        const mimeMatch = header.match(/data:([^;]+)/)
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png'
+        
+        const byteCharacters = atob(base64Data)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        blob = new Blob([byteArray], { type: mimeType })
+      } else {
+        // Regular URL - fetch as blob
+        const response = await fetch(generatedImage)
+        blob = await response.blob()
+      }
       
       // Create object URL
       const url = window.URL.createObjectURL(blob)
@@ -116,7 +134,7 @@ export default function ImagePlaygroundPage() {
       // Create temporary link and trigger download
       const link = document.createElement('a')
       link.href = url
-      link.download = `ai-generated-${Date.now()}.jpg`
+      link.download = `ai-generated-${Date.now()}.png`
       document.body.appendChild(link)
       link.click()
       
