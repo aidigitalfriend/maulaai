@@ -789,32 +789,76 @@ function CanvasAppInner() {
       // Simple heuristic: after 1-2 messages, move to confirmation
       const totalRequirements = gatheredRequirements.length + 1;
       
+      // Dynamic friendly responses - randomize for natural feel
+      const greetingResponses = [
+        `Hey! 👋 What would you like to build today? A landing page, dashboard, portfolio... I'm ready for anything!`,
+        `Hi there! 😊 Tell me what's on your mind - what kind of app or page are we creating?`,
+        `Hello! Great to chat with you! So, what are we building today?`,
+        `Hey hey! 🎨 I'm excited to help. What kind of project do you have in mind?`,
+        `Hi! Nice to meet you! What can I help you create today?`,
+      ];
+      
+      const followUpResponses = [
+        `Nice! Any particular style or vibe you're going for? Or should I surprise you?`,
+        `Cool! Want to add any specific features, or should I just run with it?`,
+        `Awesome! Any preferences on colors or layout, or want me to get creative?`,
+        `Love it! Anything else you'd like me to include?`,
+        `Got it! Should I make it dark mode, light mode, or give you both options?`,
+      ];
+      
+      const readyResponses = [
+        `Alright, let's make it happen! 🚀`,
+        `On it! This is gonna look great 🎨`,
+        `Building now... can't wait to show you! ✨`,
+        `Let's go! Time to create something awesome 💪`,
+      ];
+      
       setTimeout(() => {
         let aiResponse: ChatMessage;
         
         if (totalRequirements === 1) {
-          // First message - ask clarifying questions
+          // First message - check if it's just a greeting vs actual request
+          const isJustGreeting = /^(hi|hello|hey|yo|sup|hola|howdy|greetings)[\s!?.]*$/i.test(userMessage.trim());
+          
           setConversationPhase('gathering');
-          aiResponse = {
-            role: 'model',
-            text: `Great idea! Let me understand better:\n\n1. What's the primary color scheme or brand style?\n2. Any specific features you'd like to highlight?\n3. Should it be dark mode, light mode, or have a toggle?\n\nFeel free to answer any or all, or just say "let's build it" if you're ready!`,
-            timestamp: Date.now(),
-          };
-        } else if (totalRequirements >= 2 || userMessage.toLowerCase().includes('build') || userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('ready')) {
+          
+          if (isJustGreeting) {
+            // Respond naturally to greetings
+            aiResponse = {
+              role: 'model',
+              text: greetingResponses[Math.floor(Math.random() * greetingResponses.length)],
+              timestamp: Date.now(),
+            };
+          } else {
+            // They gave us something to work with - ask a casual follow-up
+            aiResponse = {
+              role: 'model',
+              text: followUpResponses[Math.floor(Math.random() * followUpResponses.length)],
+              timestamp: Date.now(),
+            };
+          }
+        } else if (totalRequirements >= 2 || userMessage.toLowerCase().includes('build') || userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('ready') || userMessage.toLowerCase().includes('go') || userMessage.toLowerCase().includes('start') || userMessage.toLowerCase().includes('make it') || userMessage.toLowerCase().includes('do it') || userMessage.toLowerCase().includes('surprise')) {
           // Ready to build
           setConversationPhase('confirming');
-          const allRequirements = [...gatheredRequirements, userMessage].join('\n- ');
+          const allRequirements = [...gatheredRequirements, userMessage].filter(r => !/^(hi|hello|hey|yo|sup|hola|howdy|greetings)[\s!?.]*$/i.test(r.trim()));
+          const requirementsList = allRequirements.length > 0 ? allRequirements.join(' + ') : 'something awesome';
           aiResponse = {
             role: 'model',
-            text: `Perfect! Here's what I'll build:\n\n📋 Requirements:\n- ${allRequirements}\n\n✨ I'll create a modern, responsive design with:\n- Clean UI with smooth animations\n- Mobile-friendly layout\n- Professional styling\n\nType "yes" or "build it" to start, or tell me any changes you'd like first!`,
+            text: `${readyResponses[Math.floor(Math.random() * readyResponses.length)]}\n\nBuilding: ${requirementsList}\n\nSay "yes" to confirm, or tell me if you want any changes!`,
             timestamp: Date.now(),
             isSystemMessage: true,
           };
         } else {
           // Continue gathering
+          const continueResponses = [
+            `Cool, cool! Anything else, or should we start building?`,
+            `Nice! Ready when you are - just say "build it"!`,
+            `Got it! Want to add more, or shall we dive in?`,
+            `Sounds good! Anything else before I start?`,
+          ];
           aiResponse = {
             role: 'model',
-            text: `Got it! Anything else you'd like to add? Or say "build it" when you're ready!`,
+            text: continueResponses[Math.floor(Math.random() * continueResponses.length)],
             timestamp: Date.now(),
           };
         }
@@ -827,7 +871,7 @@ function CanvasAppInner() {
     }
     
     if (conversationPhase === 'confirming') {
-      if (userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('build')) {
+      if (userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('build') || userMessage.toLowerCase().includes('go') || userMessage.toLowerCase().includes('do it') || userMessage.toLowerCase().includes('start')) {
         // Start building
         setConversationPhase('building');
         const fullPrompt = gatheredRequirements.join('. ');
@@ -835,9 +879,15 @@ function CanvasAppInner() {
       } else {
         // User wants changes
         setGatheredRequirements((prev) => [...prev, userMessage]);
+        const changeResponses = [
+          `Got it! Added that. Ready when you are! 👍`,
+          `Sure thing! Just say "go" when you're ready!`,
+          `Noted! Anything else or shall we build?`,
+          `Perfect, I'll include that. Say the word and I'm on it!`,
+        ];
         const aiResponse: ChatMessage = {
           role: 'model',
-          text: `I've noted that. Ready to build when you are - just say "yes" or "build it"!`,
+          text: changeResponses[Math.floor(Math.random() * changeResponses.length)],
           timestamp: Date.now(),
         };
         setChatMessages((prev) => [...prev, aiResponse]);
@@ -1756,11 +1806,11 @@ function CanvasAppInner() {
                     <div>
                       <h3 className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>AI Assistant</h3>
                       <p className={`text-[10px] mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {conversationPhase === 'initial' && 'Tell me what to build'}
-                        {conversationPhase === 'gathering' && 'Gathering requirements'}
+                        {conversationPhase === 'initial' && "Let's chat!"}
+                        {conversationPhase === 'gathering' && "Listening..."}
                         {conversationPhase === 'confirming' && 'Ready to build'}
                         {conversationPhase === 'building' && 'Building...'}
-                        {conversationPhase === 'editing' && 'Ask for changes'}
+                        {conversationPhase === 'editing' && 'What should I change?'}
                       </p>
                     </div>
                     <button onClick={() => setActivePanel(null)} className={`${darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
