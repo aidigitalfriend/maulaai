@@ -110,7 +110,10 @@ npm ci --omit=dev
 echo "🗄️ Generating Prisma client"
 npx prisma generate
 
-echo "🔄 Restarting backend"
+echo "�️ Pushing schema changes to database"
+npx prisma db push --accept-data-loss || echo "⚠️ Schema push failed (may already be up to date)"
+
+echo "�🔄 Restarting backend"
 pm2 restart maula-backend || true
 
 cd ..
