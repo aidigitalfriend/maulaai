@@ -528,22 +528,25 @@ export default function DataGeneratorPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="py-12 border-b border-gray-200">
+      <section className="section-padding bg-gradient-to-r from-brand-600 to-accent-600 text-white">
         <div className="container-custom">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg shadow-green-500/20">
+          <Link href="/tools" className="inline-flex items-center gap-2 text-blue-100 hover:text-white mb-8 transition-colors">
+            ← Back to Tools
+          </Link>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center">
               <Database className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl md:text-4xl font-bold">
                 AI Data Generator
               </h1>
-              <p className="text-gray-600">
+              <p className="text-lg opacity-90">
                 Generate realistic test data in seconds
               </p>
             </div>
           </div>
-          <p className="text-gray-700 max-w-2xl">
+          <p className="text-white/80 max-w-2xl">
             Choose a template, set the number of records, and generate realistic
             test data for your databases, APIs, and applications. Export as
             JSON, CSV, or SQL.
@@ -556,8 +559,8 @@ export default function DataGeneratorPage() {
           {/* Left Panel - Template Selection */}
           <div className="lg:col-span-1 space-y-6">
             {/* Templates */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-2xl p-6 border border-neural-100 shadow-sm">
+              <h2 className="text-lg font-semibold text-neural-800 mb-4 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-500" />
                 Select Template
               </h2>
@@ -574,11 +577,11 @@ export default function DataGeneratorPage() {
                           ? 'bg-gradient-to-br ' +
                             template.color +
                             ' text-white shadow-lg'
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          : 'bg-gray-50 text-neural-700 hover:bg-gray-100 border border-neural-100'
                       }`}
                     >
                       <Icon
-                        className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-gray-500'}`}
+                        className={`w-5 h-5 mb-1 ${isSelected ? 'text-white' : 'text-neural-500'}`}
                       />
                       <div className="text-sm font-medium">{template.name}</div>
                     </button>
@@ -588,8 +591,8 @@ export default function DataGeneratorPage() {
             </div>
 
             {/* Configuration */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-2xl p-6 border border-neural-100 shadow-sm">
+              <h2 className="text-lg font-semibold text-neural-800 mb-4 flex items-center gap-2">
                 <Hash className="w-5 h-5 text-blue-500" />
                 Configuration
               </h2>
@@ -597,10 +600,10 @@ export default function DataGeneratorPage() {
               {/* Record Count Slider */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm text-gray-600">
+                  <label className="text-sm text-neural-600">
                     Number of Records
                   </label>
-                  <span className="text-sm font-mono text-green-600 font-semibold">
+                  <span className="text-sm font-mono text-brand-600 font-semibold">
                     {recordCount}
                   </span>
                 </div>
@@ -610,9 +613,9 @@ export default function DataGeneratorPage() {
                   max="1000"
                   value={recordCount}
                   onChange={(e) => setRecordCount(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-500"
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-neural-500 mt-1">
                   <span>1</span>
                   <span>500</span>
                   <span>1000</span>
@@ -627,8 +630,8 @@ export default function DataGeneratorPage() {
                     onClick={() => setRecordCount(num)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       recordCount === num
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                        ? 'bg-brand-500 text-white'
+                        : 'bg-gray-100 text-neural-600 hover:bg-gray-200 border border-neural-100'
                     }`}
                   >
                     {num}
@@ -638,7 +641,7 @@ export default function DataGeneratorPage() {
 
               {/* Output Format */}
               <div className="mb-6">
-                <label className="text-sm text-gray-600 block mb-2">
+                <label className="text-sm text-neural-600 block mb-2">
                   Output Format
                 </label>
                 <div className="flex gap-2">
@@ -649,7 +652,7 @@ export default function DataGeneratorPage() {
                       className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium uppercase transition-all ${
                         outputFormat === format
                           ? 'bg-brand-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                          : 'bg-gray-100 text-neural-600 hover:bg-gray-200 border border-neural-100'
                       }`}
                     >
                       {format}
@@ -660,7 +663,7 @@ export default function DataGeneratorPage() {
 
               {/* Seed Input (Optional) */}
               <div className="mb-6">
-                <label className="text-sm text-gray-600 block mb-2">
+                <label className="text-sm text-neural-600 block mb-2">
                   Seed (optional, for reproducible data)
                 </label>
                 <input
@@ -668,14 +671,14 @@ export default function DataGeneratorPage() {
                   value={seed}
                   onChange={(e) => setSeed(e.target.value)}
                   placeholder="Enter seed value..."
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-50 border border-neural-200 rounded-lg text-neural-800 placeholder-neural-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 />
               </div>
 
               {/* Generate Button */}
               <button
                 onClick={handleGenerate}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/25 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-brand-500 to-accent-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-brand-500/25 transition-all"
               >
                 <RefreshCw className="w-5 h-5" />
                 Generate {recordCount} Records
@@ -683,15 +686,15 @@ export default function DataGeneratorPage() {
             </div>
 
             {/* Selected Template Info */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <div className="bg-white rounded-2xl p-6 border border-neural-100 shadow-sm">
+              <h3 className="text-sm font-semibold text-neural-500 uppercase tracking-wider mb-3">
                 Template Fields
               </h3>
               <div className="flex flex-wrap gap-2">
                 {currentTemplate.fields.map((field) => (
                   <span
                     key={field}
-                    className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs text-gray-700 font-mono"
+                    className="px-2 py-1 bg-gray-100 border border-neural-100 rounded text-xs text-neural-700 font-mono"
                   >
                     {field}
                   </span>
@@ -818,7 +821,7 @@ export default function DataGeneratorPage() {
       {/* Features Section */}
       <section className="py-12 border-t border-gray-200">
         <div className="container-custom">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+          <h2 className="text-2xl font-bold text-neural-800 text-center mb-8">
             Why Use Our Data Generator?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -844,15 +847,33 @@ export default function DataGeneratorPage() {
             ].map((feature, idx) => (
               <div
                 key={idx}
-                className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                className="p-6 bg-white rounded-2xl border border-neural-100 shadow-sm hover:shadow-lg hover:border-brand-200 transition-all duration-300"
               >
                 <div className="text-3xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-neural-800 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
+                <p className="text-neural-600 text-sm">{feature.description}</p>
               </div>
             ))}
+          </div>
+
+          {/* CTA Section */}
+          <div className="max-w-4xl mx-auto mt-16">
+            <div className="bg-gradient-to-r from-brand-600 to-accent-500 rounded-2xl p-8 md:p-12 text-center text-white">
+              <h2 className="text-3xl font-bold mb-4">Explore More Tools</h2>
+              <p className="text-lg opacity-90 mb-8">
+                Check out our full suite of developer and network tools to boost your productivity.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/tools" className="btn-primary bg-white text-brand-600 hover:bg-neural-50">
+                  All Tools
+                </Link>
+                <Link href="/agents" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-brand-600">
+                  Explore AI Agents
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
