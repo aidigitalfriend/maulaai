@@ -10,12 +10,51 @@
  * - Code Analysis (Tree-sitter AST parsing)
  * - Code Formatting (Prettier)
  * - Code Linting (ESLint)
+ * - Video Processing (ffmpeg)
+ * - Audio Transcription (OpenAI Whisper)
  */
 
 import { JSDOM } from 'jsdom';
 import path from 'path';
+import fs from 'fs';
+import os from 'os';
+import { promisify } from 'util';
+import { exec } from 'child_process';
 import AgentFile from '../models/AgentFile.js';
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+
+const execAsync = promisify(exec);
+
+// ═══════════════════════════════════════════════════════════════════
+// FFMPEG CONFIGURATION  
+// ═══════════════════════════════════════════════════════════════════
+
+let ffmpeg = null;
+let ffprobePath = null;
+
+// Dynamic import for fluent-ffmpeg (ESM compatible)
+async function initFFmpeg() {
+  if (ffmpeg) return ffmpeg;
+  try {
+    const fluentFFmpeg = await import('fluent-ffmpeg');
+    ffmpeg = fluentFFmpeg.default || fluentFFmpeg;
+    
+    // Try to get ffprobe path from installer
+    try {
+      const ffprobeInstaller = await import('@ffprobe-installer/ffprobe');
+      ffprobePath = ffprobeInstaller.path;
+      ffmpeg.setFfprobePath(ffprobePath);
+    } catch {
+      // Use system ffprobe
+      ffprobePath = '/usr/bin/ffprobe';
+    }
+    
+    return ffmpeg;
+  } catch (error) {
+    console.error('[FFmpeg] Failed to load:', error.message);
+    return null;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // S3 CONFIGURATION
@@ -2417,65 +2456,360 @@ export async function ocrImage(imagePath, language = 'eng', userId = 'default') 
 // ═══════════════════════════════════════════════════════════════════
 
 /**
- * Analyze video
+ * Analyze video - Get detailed metadata using ffprobe
  */
-export async function analyzeVideo(videoPath, _userId = 'default') {
+export async function analyzeVideo(videoPath, userId = 'default') {
   try {
+    const ff = await initFFmpeg();
+    if (!ff) {
+      return { success: false, error: 'FFmpeg not available on this system' };
+    }
+
+    // Get file from database if it's a stored file
+    let actualPath = videoPath;
+    if (!videoPath.startsWith('/') && !videoPath.startsWith('http')) {
+      const file = await AgentFile.findOne({ userId, filename: videoPath });
+      if (file && file.s3Key) {
+        // Download from S3 to temp
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          const tempPath = path.join(os.tmpdir(), `video_${Date.now()}_${path.basename(videoPath)}`);
+          fs.writeFileSync(tempPath, s3Result.content);
+          actualPath = tempPath;
+        }
+      }
+    }
+
+    return new Promise((resolve) => {
+      ff.ffprobe(actualPath, (err, metadata) => {
+        // Clean up temp file
+        if (actualPath.includes(os.tmpdir())) {
+          try { fs.unlinkSync(actualPath); } catch {}
+        }
+
+        if (err) {
+          resolve({ success: false, error: err.message });
+          return;
+        }
+
+        const videoStream = metadata.streams?.find(s => s.codec_type === 'video');
+        const audioStream = metadata.streams?.find(s => s.codec_type === 'audio');
+
+        resolve({
+          success: true,
+          format: metadata.format?.format_name,
+          duration: parseFloat(metadata.format?.duration || 0),
+          durationFormatted: formatDuration(parseFloat(metadata.format?.duration || 0)),
+          size: parseInt(metadata.format?.size || 0),
+          bitrate: parseInt(metadata.format?.bit_rate || 0),
+          video: videoStream ? {
+            codec: videoStream.codec_name,
+            width: videoStream.width,
+            height: videoStream.height,
+            fps: eval(videoStream.r_frame_rate || '0'),
+            aspectRatio: videoStream.display_aspect_ratio,
+          } : null,
+          audio: audioStream ? {
+            codec: audioStream.codec_name,
+            channels: audioStream.channels,
+            sampleRate: audioStream.sample_rate,
+          } : null,
+          streams: metadata.streams?.length || 0,
+        });
+      });
+    });
+  } catch (error) {
+    console.error('[Video] Analyze error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Helper to format duration
+function formatDuration(seconds) {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Trim video to specified start/end times
+ */
+export async function trimVideo(videoPath, startTime, endTime, userId = 'default') {
+  try {
+    const ff = await initFFmpeg();
+    if (!ff) {
+      return { success: false, error: 'FFmpeg not available on this system' };
+    }
+
+    // Get file from database
+    let actualPath = videoPath;
+    let file = null;
+    if (!videoPath.startsWith('/') && !videoPath.startsWith('http')) {
+      file = await AgentFile.findOne({ userId, filename: videoPath });
+      if (file && file.s3Key) {
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          const tempPath = path.join(os.tmpdir(), `video_trim_${Date.now()}_${path.basename(videoPath)}`);
+          fs.writeFileSync(tempPath, s3Result.content);
+          actualPath = tempPath;
+        }
+      }
+    }
+
+    const ext = path.extname(videoPath) || '.mp4';
+    const outputFilename = `trimmed_${Date.now()}${ext}`;
+    const outputPath = path.join(os.tmpdir(), outputFilename);
+
+    return new Promise((resolve) => {
+      ff(actualPath)
+        .setStartTime(startTime)
+        .setDuration(parseTimestamp(endTime) - parseTimestamp(startTime))
+        .output(outputPath)
+        .on('end', async () => {
+          // Clean up input temp
+          if (actualPath.includes(os.tmpdir())) {
+            try { fs.unlinkSync(actualPath); } catch {}
+          }
+
+          // Upload to S3 and save to DB
+          const outputBuffer = fs.readFileSync(outputPath);
+          const s3Key = `agent-files/${userId}/videos/${outputFilename}`;
+          const uploadResult = await uploadToS3(s3Key, outputBuffer, `video/${ext.slice(1)}`);
+
+          // Clean up output temp
+          try { fs.unlinkSync(outputPath); } catch {}
+
+          if (uploadResult.success) {
+            const newFile = new AgentFile({
+              userId,
+              agentId: 'video-tool',
+              filename: outputFilename,
+              mimeType: `video/${ext.slice(1)}`,
+              size: outputBuffer.length,
+              s3Key,
+              s3Url: uploadResult.url,
+            });
+            await newFile.save();
+
+            resolve({
+              success: true,
+              filename: outputFilename,
+              url: uploadResult.url,
+              size: outputBuffer.length,
+              trimmedFrom: startTime,
+              trimmedTo: endTime,
+              message: `Video trimmed from ${startTime} to ${endTime}`,
+            });
+          } else {
+            resolve({ success: false, error: 'Failed to upload trimmed video' });
+          }
+        })
+        .on('error', (err) => {
+          if (actualPath.includes(os.tmpdir())) {
+            try { fs.unlinkSync(actualPath); } catch {}
+          }
+          resolve({ success: false, error: err.message });
+        })
+        .run();
+    });
+  } catch (error) {
+    console.error('[Video] Trim error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Helper to parse timestamp strings
+function parseTimestamp(ts) {
+  if (typeof ts === 'number') return ts;
+  const parts = ts.split(':').map(Number);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parseFloat(ts) || 0;
+}
+
+/**
+ * Extract frames from video at specified timestamps
+ */
+export async function extractFrames(videoPath, timestamps, userId = 'default') {
+  try {
+    const ff = await initFFmpeg();
+    if (!ff) {
+      return { success: false, error: 'FFmpeg not available on this system' };
+    }
+
+    // Get file from database
+    let actualPath = videoPath;
+    if (!videoPath.startsWith('/') && !videoPath.startsWith('http')) {
+      const file = await AgentFile.findOne({ userId, filename: videoPath });
+      if (file && file.s3Key) {
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          const tempPath = path.join(os.tmpdir(), `video_frames_${Date.now()}_${path.basename(videoPath)}`);
+          fs.writeFileSync(tempPath, s3Result.content);
+          actualPath = tempPath;
+        }
+      }
+    }
+
+    const extractedFrames = [];
+    const timestampArray = Array.isArray(timestamps) ? timestamps : [timestamps];
+
+    for (const timestamp of timestampArray) {
+      const frameFilename = `frame_${Date.now()}_${parseTimestamp(timestamp)}s.png`;
+      const framePath = path.join(os.tmpdir(), frameFilename);
+
+      await new Promise((resolve, reject) => {
+        ff(actualPath)
+          .seekInput(parseTimestamp(timestamp))
+          .frames(1)
+          .output(framePath)
+          .on('end', resolve)
+          .on('error', reject)
+          .run();
+      });
+
+      if (fs.existsSync(framePath)) {
+        const frameBuffer = fs.readFileSync(framePath);
+        const s3Key = `agent-files/${userId}/frames/${frameFilename}`;
+        const uploadResult = await uploadToS3(s3Key, frameBuffer, 'image/png');
+
+        if (uploadResult.success) {
+          const newFile = new AgentFile({
+            userId,
+            agentId: 'video-tool',
+            filename: frameFilename,
+            mimeType: 'image/png',
+            size: frameBuffer.length,
+            s3Key,
+            s3Url: uploadResult.url,
+          });
+          await newFile.save();
+
+          extractedFrames.push({
+            timestamp,
+            filename: frameFilename,
+            url: uploadResult.url,
+          });
+        }
+        try { fs.unlinkSync(framePath); } catch {}
+      }
+    }
+
+    // Clean up input temp
+    if (actualPath.includes(os.tmpdir())) {
+      try { fs.unlinkSync(actualPath); } catch {}
+    }
+
     return {
       success: true,
-      message: 'Video analysis requires ffprobe. For basic info, check file metadata.',
-      videoPath,
+      frames: extractedFrames,
+      count: extractedFrames.length,
+      message: `Extracted ${extractedFrames.length} frames from video`,
     };
   } catch (error) {
+    console.error('[Video] Extract frames error:', error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Trim video
+ * Convert video to different format
  */
-export async function trimVideo(videoPath, startTime, endTime, _userId = 'default') {
+export async function convertVideo(videoPath, format = 'mp4', userId = 'default') {
   try {
-    return {
-      success: true,
-      message: 'Video trimming requires ffmpeg. This operation will be available with media service integration.',
-      videoPath,
-      startTime,
-      endTime,
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
+    const ff = await initFFmpeg();
+    if (!ff) {
+      return { success: false, error: 'FFmpeg not available on this system' };
+    }
 
-/**
- * Extract frames from video
- */
-export async function extractFrames(videoPath, timestamps, _userId = 'default') {
-  try {
-    return {
-      success: true,
-      message: 'Frame extraction requires ffmpeg. This operation will be available with media service integration.',
-      videoPath,
-      timestamps,
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
+    // Validate format
+    const validFormats = ['mp4', 'webm', 'avi', 'mov', 'mkv', 'gif'];
+    const targetFormat = format.toLowerCase().replace('.', '');
+    if (!validFormats.includes(targetFormat)) {
+      return { success: false, error: `Invalid format. Supported: ${validFormats.join(', ')}` };
+    }
 
-/**
- * Convert video format
- */
-export async function convertVideo(videoPath, format = 'mp4', _userId = 'default') {
-  try {
-    return {
-      success: true,
-      message: 'Video conversion requires ffmpeg. This operation will be available with media service integration.',
-      videoPath,
-      format,
-    };
+    // Get file from database
+    let actualPath = videoPath;
+    if (!videoPath.startsWith('/') && !videoPath.startsWith('http')) {
+      const file = await AgentFile.findOne({ userId, filename: videoPath });
+      if (file && file.s3Key) {
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          const tempPath = path.join(os.tmpdir(), `video_convert_${Date.now()}_${path.basename(videoPath)}`);
+          fs.writeFileSync(tempPath, s3Result.content);
+          actualPath = tempPath;
+        }
+      }
+    }
+
+    const baseName = path.basename(videoPath, path.extname(videoPath));
+    const outputFilename = `${baseName}_converted.${targetFormat}`;
+    const outputPath = path.join(os.tmpdir(), outputFilename);
+
+    return new Promise((resolve) => {
+      let command = ff(actualPath);
+
+      // Format-specific settings
+      if (targetFormat === 'webm') {
+        command = command.videoCodec('libvpx-vp9').audioCodec('libopus');
+      } else if (targetFormat === 'gif') {
+        command = command.noAudio().fps(10).size('480x?');
+      } else if (targetFormat === 'mp4') {
+        command = command.videoCodec('libx264').audioCodec('aac');
+      }
+
+      command
+        .output(outputPath)
+        .on('end', async () => {
+          // Clean up input temp
+          if (actualPath.includes(os.tmpdir())) {
+            try { fs.unlinkSync(actualPath); } catch {}
+          }
+
+          const outputBuffer = fs.readFileSync(outputPath);
+          const mimeType = targetFormat === 'gif' ? 'image/gif' : `video/${targetFormat}`;
+          const s3Key = `agent-files/${userId}/videos/${outputFilename}`;
+          const uploadResult = await uploadToS3(s3Key, outputBuffer, mimeType);
+
+          try { fs.unlinkSync(outputPath); } catch {}
+
+          if (uploadResult.success) {
+            const newFile = new AgentFile({
+              userId,
+              agentId: 'video-tool',
+              filename: outputFilename,
+              mimeType,
+              size: outputBuffer.length,
+              s3Key,
+              s3Url: uploadResult.url,
+            });
+            await newFile.save();
+
+            resolve({
+              success: true,
+              filename: outputFilename,
+              url: uploadResult.url,
+              format: targetFormat,
+              size: outputBuffer.length,
+              message: `Video converted to ${targetFormat.toUpperCase()}`,
+            });
+          } else {
+            resolve({ success: false, error: 'Failed to upload converted video' });
+          }
+        })
+        .on('error', (err) => {
+          if (actualPath.includes(os.tmpdir())) {
+            try { fs.unlinkSync(actualPath); } catch {}
+          }
+          resolve({ success: false, error: err.message });
+        })
+        .run();
+    });
   } catch (error) {
+    console.error('[Video] Convert error:', error);
     return { success: false, error: error.message };
   }
 }
@@ -2485,49 +2819,266 @@ export async function convertVideo(videoPath, format = 'mp4', _userId = 'default
 // ═══════════════════════════════════════════════════════════════════
 
 /**
- * Analyze audio
+ * Analyze audio - Get detailed metadata using ffprobe
  */
-export async function analyzeAudio(audioPath, _userId = 'default') {
+export async function analyzeAudio(audioPath, userId = 'default') {
   try {
-    return {
-      success: true,
-      message: 'Audio analysis requires ffprobe. For basic info, check file metadata.',
-      audioPath,
-    };
+    const ff = await initFFmpeg();
+    if (!ff) {
+      return { success: false, error: 'FFmpeg not available on this system' };
+    }
+
+    // Get file from database if it's a stored file
+    let actualPath = audioPath;
+    if (!audioPath.startsWith('/') && !audioPath.startsWith('http')) {
+      const file = await AgentFile.findOne({ userId, filename: audioPath });
+      if (file && file.s3Key) {
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          const tempPath = path.join(os.tmpdir(), `audio_${Date.now()}_${path.basename(audioPath)}`);
+          fs.writeFileSync(tempPath, s3Result.content);
+          actualPath = tempPath;
+        }
+      }
+    }
+
+    return new Promise((resolve) => {
+      ff.ffprobe(actualPath, (err, metadata) => {
+        // Clean up temp file
+        if (actualPath.includes(os.tmpdir())) {
+          try { fs.unlinkSync(actualPath); } catch {}
+        }
+
+        if (err) {
+          resolve({ success: false, error: err.message });
+          return;
+        }
+
+        const audioStream = metadata.streams?.find(s => s.codec_type === 'audio');
+
+        resolve({
+          success: true,
+          format: metadata.format?.format_name,
+          duration: parseFloat(metadata.format?.duration || 0),
+          durationFormatted: formatDuration(parseFloat(metadata.format?.duration || 0)),
+          size: parseInt(metadata.format?.size || 0),
+          bitrate: parseInt(metadata.format?.bit_rate || 0),
+          audio: audioStream ? {
+            codec: audioStream.codec_name,
+            codecLong: audioStream.codec_long_name,
+            channels: audioStream.channels,
+            channelLayout: audioStream.channel_layout,
+            sampleRate: parseInt(audioStream.sample_rate || 0),
+            bitDepth: audioStream.bits_per_sample,
+          } : null,
+        });
+      });
+    });
   } catch (error) {
+    console.error('[Audio] Analyze error:', error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Transcribe audio
+ * Transcribe audio using OpenAI Whisper API
  */
-export async function transcribeAudio(audioPath, language = 'en', _userId = 'default') {
+export async function transcribeAudio(audioPath, language = 'en', userId = 'default') {
   try {
-    // This would use OpenAI Whisper or similar
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    if (!OPENAI_API_KEY) {
+      return { success: false, error: 'OpenAI API key not configured for transcription' };
+    }
+
+    // Get file from database if it's a stored file
+    let audioBuffer = null;
+    let filename = path.basename(audioPath);
+    
+    if (!audioPath.startsWith('/') && !audioPath.startsWith('http')) {
+      const file = await AgentFile.findOne({ userId, filename: audioPath });
+      if (file && file.s3Key) {
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          audioBuffer = s3Result.content;
+          filename = file.filename;
+        }
+      }
+    } else if (audioPath.startsWith('/') && fs.existsSync(audioPath)) {
+      audioBuffer = fs.readFileSync(audioPath);
+    } else if (audioPath.startsWith('http')) {
+      // Fetch from URL
+      const response = await fetch(audioPath);
+      audioBuffer = Buffer.from(await response.arrayBuffer());
+    }
+
+    if (!audioBuffer) {
+      return { success: false, error: 'Could not read audio file' };
+    }
+
+    // Prepare form data for Whisper API
+    const FormData = (await import('form-data')).default;
+    const formData = new FormData();
+    formData.append('file', audioBuffer, { filename, contentType: 'audio/mpeg' });
+    formData.append('model', 'whisper-1');
+    if (language && language !== 'auto') {
+      formData.append('language', language);
+    }
+    formData.append('response_format', 'verbose_json');
+
+    console.log(`[Whisper] Transcribing ${filename} (${audioBuffer.length} bytes)...`);
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        ...formData.getHeaders(),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('[Whisper] API error:', error);
+      return { success: false, error: `Whisper API error: ${response.status}` };
+    }
+
+    const result = await response.json();
+
+    // Save transcript as a file
+    const transcriptFilename = `transcript_${Date.now()}.txt`;
+    const transcriptContent = result.text;
+    const s3Key = `agent-files/${userId}/transcripts/${transcriptFilename}`;
+    await uploadToS3(s3Key, transcriptContent, 'text/plain');
+
+    const transcriptFile = new AgentFile({
+      userId,
+      agentId: 'whisper',
+      filename: transcriptFilename,
+      mimeType: 'text/plain',
+      size: transcriptContent.length,
+      s3Key,
+      content: transcriptContent,
+    });
+    await transcriptFile.save();
+
     return {
       success: true,
-      message: 'Audio transcription requires Whisper API integration. Use the AI chat to transcribe audio files.',
-      audioPath,
-      language,
+      text: result.text,
+      language: result.language || language,
+      duration: result.duration,
+      segments: result.segments?.length || 0,
+      words: result.text.split(/\s+/).length,
+      transcriptFile: transcriptFilename,
+      message: `Transcribed ${Math.round(result.duration || 0)}s of audio (${result.text.split(/\s+/).length} words)`,
     };
   } catch (error) {
+    console.error('[Whisper] Transcription error:', error);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Convert audio format
+ * Convert audio to different format using ffmpeg
  */
-export async function convertAudio(audioPath, format = 'mp3', _userId = 'default') {
+export async function convertAudio(audioPath, format = 'mp3', userId = 'default') {
   try {
-    return {
-      success: true,
-      message: 'Audio conversion requires ffmpeg. This operation will be available with media service integration.',
-      audioPath,
-      format,
-    };
+    const ff = await initFFmpeg();
+    if (!ff) {
+      return { success: false, error: 'FFmpeg not available on this system' };
+    }
+
+    // Validate format
+    const validFormats = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'opus'];
+    const targetFormat = format.toLowerCase().replace('.', '');
+    if (!validFormats.includes(targetFormat)) {
+      return { success: false, error: `Invalid format. Supported: ${validFormats.join(', ')}` };
+    }
+
+    // Get file from database
+    let actualPath = audioPath;
+    if (!audioPath.startsWith('/') && !audioPath.startsWith('http')) {
+      const file = await AgentFile.findOne({ userId, filename: audioPath });
+      if (file && file.s3Key) {
+        const s3Result = await downloadFromS3(file.s3Key);
+        if (s3Result.success) {
+          const tempPath = path.join(os.tmpdir(), `audio_convert_${Date.now()}_${path.basename(audioPath)}`);
+          fs.writeFileSync(tempPath, s3Result.content);
+          actualPath = tempPath;
+        }
+      }
+    }
+
+    const baseName = path.basename(audioPath, path.extname(audioPath));
+    const outputFilename = `${baseName}_converted.${targetFormat}`;
+    const outputPath = path.join(os.tmpdir(), outputFilename);
+
+    return new Promise((resolve) => {
+      let command = ff(actualPath);
+
+      // Format-specific settings for quality
+      if (targetFormat === 'mp3') {
+        command = command.audioCodec('libmp3lame').audioBitrate('192k');
+      } else if (targetFormat === 'ogg') {
+        command = command.audioCodec('libvorbis').audioQuality(6);
+      } else if (targetFormat === 'opus') {
+        command = command.audioCodec('libopus').audioBitrate('128k');
+      } else if (targetFormat === 'flac') {
+        command = command.audioCodec('flac');
+      } else if (targetFormat === 'aac' || targetFormat === 'm4a') {
+        command = command.audioCodec('aac').audioBitrate('192k');
+      } else if (targetFormat === 'wav') {
+        command = command.audioCodec('pcm_s16le');
+      }
+
+      command
+        .output(outputPath)
+        .on('end', async () => {
+          // Clean up input temp
+          if (actualPath.includes(os.tmpdir())) {
+            try { fs.unlinkSync(actualPath); } catch {}
+          }
+
+          const outputBuffer = fs.readFileSync(outputPath);
+          const mimeType = `audio/${targetFormat === 'm4a' ? 'mp4' : targetFormat}`;
+          const s3Key = `agent-files/${userId}/audio/${outputFilename}`;
+          const uploadResult = await uploadToS3(s3Key, outputBuffer, mimeType);
+
+          try { fs.unlinkSync(outputPath); } catch {}
+
+          if (uploadResult.success) {
+            const newFile = new AgentFile({
+              userId,
+              agentId: 'audio-tool',
+              filename: outputFilename,
+              mimeType,
+              size: outputBuffer.length,
+              s3Key,
+              s3Url: uploadResult.url,
+            });
+            await newFile.save();
+
+            resolve({
+              success: true,
+              filename: outputFilename,
+              url: uploadResult.url,
+              format: targetFormat,
+              size: outputBuffer.length,
+              message: `Audio converted to ${targetFormat.toUpperCase()}`,
+            });
+          } else {
+            resolve({ success: false, error: 'Failed to upload converted audio' });
+          }
+        })
+        .on('error', (err) => {
+          if (actualPath.includes(os.tmpdir())) {
+            try { fs.unlinkSync(actualPath); } catch {}
+          }
+          resolve({ success: false, error: err.message });
+        })
+        .run();
+    });
   } catch (error) {
+    console.error('[Audio] Convert error:', error);
     return { success: false, error: error.message };
   }
 }
