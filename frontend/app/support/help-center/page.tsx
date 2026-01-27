@@ -10,14 +10,14 @@ gsap.registerPlugin(ScrollTrigger)
 
 const creativeStyles = `
   .glass-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(30, 30, 35, 0.9);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
   .glow-card {
     position: relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, rgba(40, 40, 50, 0.95) 0%, rgba(25, 25, 35, 0.95) 100%);
+    border: 1px solid rgba(255,255,255,0.12);
   }
   .glow-card::before {
     content: '';
