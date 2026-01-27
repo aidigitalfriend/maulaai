@@ -380,15 +380,77 @@ const Preview: React.FC<{ code: string; deviceMode: DeviceMode }> = ({ code, dev
   );
 };
 
-// CodeView Component
-const CodeView: React.FC<{ code: string }> = ({ code }) => {
+// Enhanced CodeView Component with Syntax Highlighting & Line Numbers
+const CodeView: React.FC<{ code: string; darkMode?: boolean }> = ({ code, darkMode = true }) => {
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLPreElement>(null);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Simple HTML/CSS/JS syntax highlighting
+  const highlightCode = (sourceCode: string) => {
+    if (!sourceCode) return '';
+    
+    // Escape HTML first
+    let highlighted = sourceCode
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    
+    // HTML tags - blue
+    highlighted = highlighted.replace(
+      /(&lt;\/?)([\w-]+)/g,
+      '$1<span class="text-blue-400">$2</span>'
+    );
+    
+    // HTML attributes - cyan
+    highlighted = highlighted.replace(
+      /\s([\w-]+)(=)/g,
+      ' <span class="text-cyan-300">$1</span>$2'
+    );
+    
+    // Strings (both single and double quotes) - green
+    highlighted = highlighted.replace(
+      /("([^"\\]|\\.)*"|'([^'\\]|\\.)*')/g,
+      '<span class="text-green-400">$1</span>'
+    );
+    
+    // CSS properties - purple
+    highlighted = highlighted.replace(
+      /([a-z-]+)(\s*:\s*)([^;{]+)(;|})/gi,
+      '<span class="text-purple-400">$1</span>$2<span class="text-orange-300">$3</span>$4'
+    );
+    
+    // JavaScript keywords - pink
+    const jsKeywords = /\b(const|let|var|function|return|if|else|for|while|class|import|export|default|async|await|try|catch|throw|new|this|true|false|null|undefined)\b/g;
+    highlighted = highlighted.replace(
+      jsKeywords,
+      '<span class="text-pink-400">$1</span>'
+    );
+    
+    // Numbers - orange
+    highlighted = highlighted.replace(
+      /\b(\d+\.?\d*)\b/g,
+      '<span class="text-orange-400">$1</span>'
+    );
+    
+    // Comments - gray
+    highlighted = highlighted.replace(
+      /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|&lt;!--[\s\S]*?--&gt;)/g,
+      '<span class="text-gray-500 italic">$1</span>'
+    );
+    
+    return highlighted;
+  };
+
+  // Split code into lines for line numbers
+  const lines = code ? code.split('\n') : [];
+  const lineCount = lines.length;
+  const gutterWidth = Math.max(3, String(lineCount).length);
 
   if (!code) {
     return (
@@ -408,55 +470,89 @@ const CodeView: React.FC<{ code: string }> = ({ code }) => {
           />
         </svg>
         <p className="text-lg font-medium">No code generated yet</p>
+        <p className="text-sm text-gray-500 mt-2">Describe your app to get started</p>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full bg-[#1e1e1e] group">
-      <button
-        onClick={handleCopy}
-        className="absolute top-4 right-4 z-10 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-md flex items-center gap-2 transition-all opacity-0 group-hover:opacity-100"
-      >
-        {copied ? (
-          <>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Copied!
-          </>
-        ) : (
-          <>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
-              />
-            </svg>
-            Copy Code
-          </>
-        )}
-      </button>
-      <pre className="p-6 overflow-auto h-full font-mono text-sm text-gray-300 custom-scrollbar">
-        <code>{code}</code>
-      </pre>
+    <div className={`relative h-full w-full group flex flex-col ${darkMode ? 'bg-[#1a1a2e]' : 'bg-gray-50'}`}>
+      {/* Editor Header */}
+      <div className={`flex items-center justify-between px-4 py-2 border-b ${darkMode ? 'bg-[#16162a] border-gray-800' : 'bg-gray-100 border-gray-200'}`}>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <span className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            index.html
+          </span>
+          <span className={`text-[10px] px-2 py-0.5 rounded ${darkMode ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+            {lineCount} lines
+          </span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className={`px-3 py-1.5 text-xs rounded-md flex items-center gap-2 transition-all ${
+            copied 
+              ? 'bg-green-600 text-white' 
+              : darkMode 
+                ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+          }`}
+        >
+          {copied ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              Copied!
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      
+      {/* Code Editor Area with Line Numbers */}
+      <div className="flex-1 overflow-auto custom-scrollbar">
+        <div className="flex min-h-full">
+          {/* Line Numbers Gutter */}
+          <div className={`select-none text-right pr-4 pl-4 py-4 sticky left-0 ${
+            darkMode ? 'bg-[#16162a] text-gray-600 border-r border-gray-800' : 'bg-gray-100 text-gray-400 border-r border-gray-200'
+          }`} style={{ minWidth: `${gutterWidth + 2}ch` }}>
+            {lines.map((_, i) => (
+              <div key={i} className="font-mono text-xs leading-6">
+                {i + 1}
+              </div>
+            ))}
+          </div>
+          
+          {/* Code Content */}
+          <pre 
+            ref={codeRef}
+            className={`flex-1 py-4 px-4 font-mono text-sm leading-6 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}
+          >
+            <code 
+              dangerouslySetInnerHTML={{ __html: highlightCode(code) }}
+            />
+          </pre>
+        </div>
+      </div>
+      
+      {/* Editor Footer */}
+      <div className={`flex items-center justify-between px-4 py-2 text-[10px] border-t ${
+        darkMode ? 'bg-[#16162a] border-gray-800 text-gray-500' : 'bg-gray-100 border-gray-200 text-gray-500'
+      }`}>
+        <span>HTML • UTF-8</span>
+        <span>{code.length.toLocaleString()} characters</span>
+      </div>
     </div>
   );
 };
@@ -964,6 +1060,58 @@ function CanvasAppInner() {
     localStorage.setItem(historyKey, JSON.stringify(newHistory));
   }, [getHistoryKey]);
 
+  // Natural, conversational AI responses
+  const getInitialResponse = (userMessage: string) => {
+    const greetings = [
+      `Love it! 🎨 That sounds like a great project. Before I start building, let me ask a few quick questions:\n\n• What color palette are you thinking? (dark theme, light, colorful?)\n• Any must-have features or sections?\n• Who's the target audience?\n\nOr if you're ready to see some magic, just say "build it!" ✨`,
+      
+      `Ooh, I'm excited about this one! 🚀 Let me make sure I nail it for you:\n\n• Any specific style in mind? (modern, minimal, playful?)\n• What's the main goal - conversions, info, portfolio?\n• Any colors or brands to match?\n\nNo pressure - just drop a "let's go" if you want me to use my best judgment!`,
+      
+      `Nice! I can already picture it 🌟 Quick questions to make this perfect:\n\n• Vibe check: sleek & professional or fun & creative?\n• Key content you want highlighted?\n• Dark mode, light mode, or both?\n\nOr just say "surprise me" and I'll work my magic!`,
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  };
+
+  const getConfirmResponse = (requirements: string[]) => {
+    const confirms = [
+      `Perfect, I've got everything I need! 🎯\n\nHere's the plan:\n${requirements.map(r => `• ${r}`).join('\n')}\n\nI'll create something modern with smooth animations and a polished feel.\n\nReady? Just say "yes" or "build it" and watch the magic happen! ✨`,
+      
+      `Awesome, I'm locked in! 💪\n\nBuilding you:\n${requirements.map(r => `✓ ${r}`).join('\n')}\n\nExpect a clean, responsive design with that professional touch.\n\nDrop a "go" or "yes" when you're ready!`,
+      
+      `Got it all! 📝\n\nYour app will include:\n${requirements.map(r => `→ ${r}`).join('\n')}\n\nI'll add beautiful animations and make it mobile-ready.\n\nSay the word and I'll start creating!`,
+    ];
+    return confirms[Math.floor(Math.random() * confirms.length)];
+  };
+
+  const getContinueGatheringResponse = () => {
+    const continues = [
+      `Nice, noted! 📝 Anything else you'd like to add? Or say "build it" when you're ready!`,
+      `Got it! Feel free to add more details, or just say "let's go" to start building!`,
+      `Perfect! Any other requirements? Otherwise, just say "yes" and I'll get started!`,
+    ];
+    return continues[Math.floor(Math.random() * continues.length)];
+  };
+
+  const getSuccessResponse = (isInitial: boolean, modelName: string) => {
+    if (isInitial) {
+      const success = [
+        `✅ Boom! Your app is ready! 🎉\n\nBuilt with ${modelName} - check out the preview on the left!\n\nWant to tweak anything? Just tell me:\n• "Make the header bigger"\n• "Add a contact form"\n• "Change to dark mode"\n\nI'm here to iterate until it's perfect!`,
+        
+        `🎨 Done! Your app is live in the preview!\n\nPowered by ${modelName} ⚡\n\nNow the fun part - tell me what to change:\n• Colors, fonts, layout\n• Add new sections\n• Animations & effects\n\nLet's make it exactly what you envision!`,
+        
+        `✨ Ta-da! Check out your new app!\n\nCreated with ${modelName} magic.\n\nThis is just the start - I can:\n• Add features\n• Tweak the design\n• Make it mobile-perfect\n\nWhat would you like to adjust?`,
+      ];
+      return success[Math.floor(Math.random() * success.length)];
+    }
+    
+    const edits = [
+      `✅ Done! Changes applied - check the preview!\n\nWhat's next on the list?`,
+      `Updated! 🔄 Take a look at the preview.\n\nAnything else you'd like me to adjust?`,
+      `Changes are in! ✨ How does that look?\n\nKeep the requests coming - I love iterating!`,
+    ];
+    return edits[Math.floor(Math.random() * edits.length)];
+  };
+
   // AI Agent conversation handler
   const handleAgentConversation = async (userMessage: string) => {
     // Check AI access - if no subscription, show upgrade message
@@ -971,8 +1119,8 @@ function CanvasAppInner() {
       const upgradeMsg: ChatMessage = {
         role: 'model',
         text: !isAuthenticated 
-          ? `🔐 **Sign In Required**\n\nPlease sign in to use AI features.\n\n[Sign In →](/auth/login)`
-          : `🔒 **AI Features Locked**\n\nTo unlock AI-powered app generation, you need a **Weekly** or **Monthly** subscription to any AI Agent.\n\n✨ Benefits of subscribing:\n- Full AI app generation\n- Unlimited edits & iterations\n- Code export & download\n- Priority AI processing\n\n[Browse AI Agents →](/agents)`,
+          ? `Hey! 👋 To start building apps with AI, you'll need to sign in first.\n\nIt takes just a second, and then we can create something amazing together!\n\n[Sign In →](/auth/login)`
+          : `Hey there! 👋\n\nI'd love to help you build this, but AI features require a **Weekly** or **Monthly** subscription to any AI Agent.\n\n🎁 Here's what you get:\n• Unlimited AI app generation\n• Real-time code editing\n• Export & download your code\n• All AI models access\n\n[Check out our AI Agents →](/agents)`,
         timestamp: Date.now(),
         isSystemMessage: true,
       };
@@ -1000,7 +1148,7 @@ function CanvasAppInner() {
       // Gather requirements
       setGatheredRequirements((prev) => [...prev, userMessage]);
       
-      // Simulate AI asking clarifying questions
+      // Show thinking state
       setGenState({ ...genState, isGenerating: true, progressMessage: 'Thinking...' });
       
       // Simple heuristic: after 1-2 messages, move to confirmation
@@ -1010,41 +1158,41 @@ function CanvasAppInner() {
         let aiResponse: ChatMessage;
         
         if (totalRequirements === 1) {
-          // First message - ask clarifying questions
+          // First message - ask clarifying questions with natural tone
           setConversationPhase('gathering');
           aiResponse = {
             role: 'model',
-            text: `Great idea! Let me understand better:\n\n1. What's the primary color scheme or brand style?\n2. Any specific features you'd like to highlight?\n3. Should it be dark mode, light mode, or have a toggle?\n\nFeel free to answer any or all, or just say "let's build it" if you're ready!`,
+            text: getInitialResponse(userMessage),
             timestamp: Date.now(),
           };
-        } else if (totalRequirements >= 2 || userMessage.toLowerCase().includes('build') || userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('ready')) {
+        } else if (totalRequirements >= 2 || userMessage.toLowerCase().includes('build') || userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('ready') || userMessage.toLowerCase().includes('go') || userMessage.toLowerCase().includes('surprise')) {
           // Ready to build
           setConversationPhase('confirming');
-          const allRequirements = [...gatheredRequirements, userMessage].join('\n- ');
+          const allRequirements = [...gatheredRequirements, userMessage];
           aiResponse = {
             role: 'model',
-            text: `Perfect! Here's what I'll build:\n\n📋 Requirements:\n- ${allRequirements}\n\n✨ I'll create a modern, responsive design with:\n- Clean UI with smooth animations\n- Mobile-friendly layout\n- Professional styling\n\nType "yes" or "build it" to start, or tell me any changes you'd like first!`,
+            text: getConfirmResponse(allRequirements),
             timestamp: Date.now(),
             isSystemMessage: true,
           };
         } else {
-          // Continue gathering
+          // Continue gathering with natural response
           aiResponse = {
             role: 'model',
-            text: `Got it! Anything else you'd like to add? Or say "build it" when you're ready!`,
+            text: getContinueGatheringResponse(),
             timestamp: Date.now(),
           };
         }
         
         setChatMessages((prev) => [...prev, aiResponse]);
         setGenState({ ...genState, isGenerating: false, progressMessage: '' });
-      }, 1000);
+      }, 800 + Math.random() * 400); // Slight randomness for natural feel
       
       return;
     }
     
     if (conversationPhase === 'confirming') {
-      if (userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('build')) {
+      if (userMessage.toLowerCase().includes('yes') || userMessage.toLowerCase().includes('build') || userMessage.toLowerCase().includes('go') || userMessage.toLowerCase().includes('start')) {
         // Start building
         setConversationPhase('building');
         const fullPrompt = gatheredRequirements.join('. ');
@@ -1054,7 +1202,7 @@ function CanvasAppInner() {
         setGatheredRequirements((prev) => [...prev, userMessage]);
         const aiResponse: ChatMessage = {
           role: 'model',
-          text: `I've noted that. Ready to build when you are - just say "yes" or "build it"!`,
+          text: `Got it, I've added that! 📝\n\nReady when you are - just say "build" or "yes"!`,
           timestamp: Date.now(),
         };
         setChatMessages((prev) => [...prev, aiResponse]);
@@ -1137,9 +1285,7 @@ function CanvasAppInner() {
         const finalCode = accumulatedCode;
         const modelMsg: ChatMessage = {
           role: 'model',
-          text: isInitial
-            ? `✅ Your app is ready! Built with ${selectedModel.name}.\n\nYou can now ask me to make any changes - add features, modify styles, fix issues, or completely redesign sections.`
-            : '✅ Changes applied! What else would you like me to modify?',
+          text: getSuccessResponse(isInitial, selectedModel.name),
           timestamp: Date.now(),
         };
 
@@ -1242,9 +1388,7 @@ function CanvasAppInner() {
 
       const modelMsg: ChatMessage = {
         role: 'model',
-        text: isInitial
-          ? `✅ Your app is ready! Built with ${selectedModel.name}.\n\nYou can now ask me to make any changes.`
-          : '✅ Changes applied!',
+        text: getSuccessResponse(isInitial, selectedModel.name),
         timestamp: Date.now(),
       };
 
