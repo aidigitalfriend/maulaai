@@ -1234,6 +1234,9 @@ class SupportTicketAdapter {
       email: rest.email || rest.userEmail,
       // Map userName to name if present  
       name: rest.name || rest.userName,
+      // For guest users (userId starts with 'guest_'), set userId to null
+      // This avoids foreign key constraint violations
+      userId: (rest.userId && rest.userId.startsWith('guest_')) ? null : rest.userId,
     };
     // Remove the old field names
     delete data.userEmail;
