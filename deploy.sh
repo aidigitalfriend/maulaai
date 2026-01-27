@@ -135,6 +135,7 @@ echo "🌐 Updating nginx config"
 if [ -f nginx/onelastai.com.conf ]; then
   sudo cp nginx/onelastai.com.conf /etc/nginx/sites-available/onelastai.com
   sudo cp nginx/onelastai.com.conf /etc/nginx/sites-enabled/onelastai.com
+  sudo rm -f /etc/nginx/sites-enabled/maula.ai 2>/dev/null || true
   sudo nginx -t && sudo systemctl reload nginx
   echo "✅ Nginx config updated and reloaded"
 else
