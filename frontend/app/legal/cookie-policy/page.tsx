@@ -23,6 +23,84 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Creative styles for cards
+const creativeStyles = `
+  .glow-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(15, 15, 15, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #00d4ff, #00ff88, #0066ff, #00d4ff);
+    background-size: 300% 300%;
+    animation: glowRotate 4s ease infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+  @keyframes glowRotate {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .shimmer-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+  }
+  .shimmer-card:hover::after {
+    left: 100%;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(26, 26, 26, 0.7);
+  }
+
+  .float-card {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  }
+  .float-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
+  }
+
+  .cyber-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0, 212, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .cyber-grid:hover::before {
+    opacity: 1;
+  }
+`;
+
 // Article popup for legal references
 const articles: Record<string, { title: string; content: string }> = {
   "ePrivacy Directive": {
@@ -92,27 +170,46 @@ export default function CookiePolicyPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeArticle, setActiveArticle] = useState<string | null>(null);
 
+  // 3D tilt effect handlers
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 15;
+    const rotateY = (centerX - x) / 15;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+  };
+
   useGSAP(() => {
-    // Hero entrance animation
-    const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    // Hero entrance animation with blur effect
+    const heroTl = gsap.timeline({ defaults: { ease: "elastic.out(1, 0.8)" } });
 
     heroTl
-      .fromTo(".hero-badge", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
-      .fromTo(".hero-title", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3")
-      .fromTo(".hero-subtitle", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, "-=0.4")
-      .fromTo(".hero-meta", { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=0.2");
+      .fromTo(".hero-badge", { opacity: 0, y: 30, scale: 0.8, filter: "blur(10px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1 })
+      .fromTo(".hero-title", { opacity: 0, y: 60, scale: 0.9, filter: "blur(20px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.2 }, "-=0.6")
+      .fromTo(".hero-subtitle", { opacity: 0, y: 40, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8 }, "-=0.6")
+      .fromTo(".hero-meta", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.3");
 
-    // Bento cards animation
+    // Bento cards with explosive stagger
     gsap.fromTo(
       ".bento-card",
-      { opacity: 0, y: 60, scale: 0.95 },
+      { opacity: 0, y: 80, scale: 0.8, rotationX: 20, filter: "blur(10px)" },
       {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: "back.out(1.2)",
+        rotationX: 0,
+        filter: "blur(0px)",
+        duration: 1,
+        stagger: { each: 0.1, from: "center" },
+        ease: "back.out(1.7)",
         scrollTrigger: { trigger: ".bento-grid", start: "top 85%", toggleActions: "play none none reverse" },
       }
     );
@@ -121,27 +218,29 @@ export default function CookiePolicyPage() {
     gsap.utils.toArray<HTMLElement>(".section-animate").forEach((section) => {
       gsap.fromTo(
         section,
-        { opacity: 0, y: 50 },
+        { opacity: 0, y: 60, filter: "blur(5px)" },
         {
           opacity: 1,
           y: 0,
-          duration: 0.8,
-          ease: "power2.out",
+          filter: "blur(0px)",
+          duration: 1,
+          ease: "power3.out",
           scrollTrigger: { trigger: section, start: "top 85%", toggleActions: "play none none reverse" },
         }
       );
     });
 
-    // Table rows animation
+    // Table rows animation with wave effect
     gsap.fromTo(
       ".table-row",
-      { opacity: 0, x: -20 },
+      { opacity: 0, x: -30, rotationY: -10 },
       {
         opacity: 1,
         x: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power2.out",
+        rotationY: 0,
+        duration: 0.6,
+        stagger: 0.08,
+        ease: "back.out(1.4)",
         scrollTrigger: { trigger: ".cookie-table", start: "top 80%", toggleActions: "play none none reverse" },
       }
     );
@@ -152,28 +251,28 @@ export default function CookiePolicyPage() {
       icon: Shield,
       title: "Essential Cookies",
       desc: "Required for basic site functionality",
-      color: "green",
+      color: "#00ff88",
       required: true,
     },
     {
       icon: BarChart3,
       title: "Analytics Cookies",
       desc: "Help us understand how you use our site",
-      color: "blue",
+      color: "#00d4ff",
       required: false,
     },
     {
       icon: Zap,
       title: "Functional Cookies",
       desc: "Remember your preferences and settings",
-      color: "purple",
+      color: "#a855f7",
       required: false,
     },
     {
       icon: Target,
       title: "Marketing Cookies",
       desc: "Track across sites for advertising",
-      color: "orange",
+      color: "#f59e0b",
       required: false,
     },
   ];
@@ -198,6 +297,7 @@ export default function CookiePolicyPage() {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx>{creativeStyles}</style>
       {/* HERO SECTION */}
       <section className="pt-24 pb-16 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
@@ -266,19 +366,28 @@ export default function CookiePolicyPage() {
             {cookieTypes.map((item, i) => (
               <div
                 key={i}
-                className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300"
+                className="bento-card float-card glass-card shimmer-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer cyber-grid"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(circle at 50% 0%, ${item.color}20, transparent 60%)` }}
+                ></div>
                 {item.required && (
                   <div className="absolute top-4 right-4 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-xs text-green-400">
                     Required
                   </div>
                 )}
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <item.icon className="w-6 h-6 text-[#00d4ff]" />
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                  style={{ background: `linear-gradient(135deg, ${item.color}30, transparent)` }}
+                >
+                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
                 </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-[#00d4ff] transition-colors">{item.title}</h3>
-                <p className="text-sm text-gray-400">{item.desc}</p>
+                <h3 className="text-lg font-bold mb-2 transition-colors duration-300">{item.title}</h3>
+                <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -363,26 +472,34 @@ export default function CookiePolicyPage() {
             </div>
 
             <div className="section-animate space-y-4">
-              {thirdParties.map((party, i) => (
-                <div
-                  key={i}
-                  className="p-5 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 hover:border-[#00d4ff]/30 transition-all flex items-center justify-between"
-                >
-                  <div>
-                    <h4 className="font-semibold text-white mb-1">{party.name}</h4>
-                    <p className="text-sm text-gray-400">{party.purpose}</p>
-                  </div>
-                  <a
-                    href={party.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#00d4ff] hover:text-[#00d4ff]/80 text-sm transition-colors"
+              {thirdParties.map((party, i) => {
+                const colors = ['#00d4ff', '#00ff88', '#0066ff', '#a855f7'];
+                const color = colors[i % colors.length];
+                return (
+                  <div
+                    key={i}
+                    className="glass-card float-card shimmer-card p-5 rounded-2xl overflow-hidden relative group cursor-pointer flex items-center justify-between"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ transformStyle: 'preserve-3d' }}
                   >
-                    Privacy
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              ))}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}></div>
+                    <div>
+                      <h4 className="font-semibold text-white mb-1 group-hover:text-[#00d4ff] transition-colors">{party.name}</h4>
+                      <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{party.purpose}</p>
+                    </div>
+                    <a
+                      href={party.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-[#00d4ff] hover:text-[#00d4ff]/80 text-sm transition-colors"
+                    >
+                      Privacy
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

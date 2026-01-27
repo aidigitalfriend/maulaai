@@ -23,6 +23,84 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Creative styles for cards
+const creativeStyles = `
+  .glow-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(15, 15, 15, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #ef4444, #f59e0b, #ef4444);
+    background-size: 300% 300%;
+    animation: glowRotate 4s ease infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+  @keyframes glowRotate {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .shimmer-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+  }
+  .shimmer-card:hover::after {
+    left: 100%;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(26, 26, 26, 0.7);
+  }
+
+  .float-card {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  }
+  .float-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(239, 68, 68, 0.15);
+  }
+
+  .cyber-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(239, 68, 68, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(239, 68, 68, 0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .cyber-grid:hover::before {
+    opacity: 1;
+  }
+`;
+
 interface FormData {
   name: string;
   email: string;
@@ -63,26 +141,45 @@ export default function ReportsPage() {
 
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // 3D tilt effect handlers
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 15;
+    const rotateY = (centerX - x) / 15;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+  };
+
   useGSAP(() => {
-    // Hero entrance animation
-    const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    // Hero entrance animation with blur effect
+    const heroTl = gsap.timeline({ defaults: { ease: "elastic.out(1, 0.8)" } });
 
     heroTl
-      .fromTo(".hero-badge", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
-      .fromTo(".hero-title", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3")
-      .fromTo(".hero-subtitle", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, "-=0.4");
+      .fromTo(".hero-badge", { opacity: 0, y: 30, scale: 0.8, filter: "blur(10px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1 })
+      .fromTo(".hero-title", { opacity: 0, y: 60, scale: 0.9, filter: "blur(20px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.2 }, "-=0.6")
+      .fromTo(".hero-subtitle", { opacity: 0, y: 40, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8 }, "-=0.6");
 
-    // Info cards animation
+    // Info cards animation with explosive stagger
     gsap.fromTo(
       ".info-card",
-      { opacity: 0, y: 40, scale: 0.95 },
+      { opacity: 0, y: 80, scale: 0.8, rotationX: 20, filter: "blur(10px)" },
       {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.7,
-        stagger: 0.15,
-        ease: "back.out(1.2)",
+        rotationX: 0,
+        filter: "blur(0px)",
+        duration: 1,
+        stagger: { each: 0.15, from: "center" },
+        ease: "back.out(1.7)",
         scrollTrigger: { trigger: ".info-grid", start: "top 85%", toggleActions: "play none none reverse" },
       }
     );
@@ -91,27 +188,29 @@ export default function ReportsPage() {
     gsap.utils.toArray<HTMLElement>(".section-animate").forEach((section) => {
       gsap.fromTo(
         section,
-        { opacity: 0, y: 50 },
+        { opacity: 0, y: 60, filter: "blur(5px)" },
         {
           opacity: 1,
           y: 0,
-          duration: 0.8,
-          ease: "power2.out",
+          filter: "blur(0px)",
+          duration: 1,
+          ease: "power3.out",
           scrollTrigger: { trigger: section, start: "top 85%", toggleActions: "play none none reverse" },
         }
       );
     });
 
-    // FAQ animation
+    // FAQ animation with wave effect
     gsap.fromTo(
       ".faq-item",
-      { opacity: 0, x: -20 },
+      { opacity: 0, x: -30, rotationY: -10 },
       {
         opacity: 1,
         x: 0,
-        duration: 0.5,
+        rotationY: 0,
+        duration: 0.6,
         stagger: 0.1,
-        ease: "power2.out",
+        ease: "back.out(1.4)",
         scrollTrigger: { trigger: ".faq-section", start: "top 80%", toggleActions: "play none none reverse" },
       }
     );
@@ -186,19 +285,19 @@ export default function ReportsPage() {
       icon: Shield,
       title: "Your Safety First",
       desc: "We take all reports seriously and prioritize the safety of our community.",
-      color: "cyan",
+      color: "#00d4ff",
     },
     {
       icon: FileText,
       title: "Document Everything",
       desc: "Include as much detail as possible - screenshots, timestamps, and context help us investigate.",
-      color: "blue",
+      color: "#00ff88",
     },
     {
       icon: Lock,
       title: "Confidential",
       desc: "Your report will be handled confidentially. Your identity is protected throughout the process.",
-      color: "purple",
+      color: "#a855f7",
     },
   ];
 
@@ -249,6 +348,7 @@ export default function ReportsPage() {
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx>{creativeStyles}</style>
       {/* HERO SECTION */}
       <section className="pt-24 pb-16 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 via-[#0a0a0a] to-[#0a0a0a]"></div>
@@ -277,14 +377,23 @@ export default function ReportsPage() {
             {infoCards.map((card, i) => (
               <div
                 key={i}
-                className="info-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-6 overflow-hidden hover:border-red-500/30 transition-all duration-300"
+                className="info-card glow-card float-card glass-card shimmer-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer cyber-grid"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="w-14 h-14 rounded-xl bg-red-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <card.icon className="w-7 h-7 text-red-400" />
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(circle at 50% 0%, ${card.color}20, transparent 60%)` }}
+                ></div>
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                  style={{ background: `linear-gradient(135deg, ${card.color}20, transparent)` }}
+                >
+                  <card.icon className="w-7 h-7" style={{ color: card.color }} />
                 </div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-red-400 transition-colors">{card.title}</h3>
-                <p className="text-gray-400">{card.desc}</p>
+                <h3 className="text-xl font-bold mb-2 transition-colors duration-300">{card.title}</h3>
+                <p className="text-gray-400 group-hover:text-gray-300 transition-colors">{card.desc}</p>
               </div>
             ))}
           </div>

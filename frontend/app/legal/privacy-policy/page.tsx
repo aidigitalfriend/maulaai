@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -97,51 +97,167 @@ function ArticleRef({
   );
 }
 
+// Creative Card Styles CSS
+const creativeStyles = `
+  .glow-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(90deg, #00d4ff, #00ff88, #0066ff, #00d4ff);
+    background-size: 400% 100%;
+    animation: glow-rotate 4s linear infinite;
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+  .glow-card::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: #0f0f0f;
+    border-radius: inherit;
+    z-index: -1;
+  }
+  
+  @keyframes glow-rotate {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 400% 50%; }
+  }
+  
+  .shimmer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+    transition: left 0.6s ease;
+  }
+  .shimmer-card:hover::before {
+    left: 100%;
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  
+  .float-card {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+  }
+  .float-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 212, 255, 0.25);
+  }
+  
+  .cyber-grid {
+    background-image: 
+      linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+`;
+
 export default function PrivacyPolicyPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeArticle, setActiveArticle] = useState<string | null>(null);
 
+  // 3D Tilt effect for cards
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 25;
+    const rotateY = (centerX - x) / 25;
+    
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+  };
+
   useGSAP(() => {
-    // Hero entrance animation
+    // Hero entrance animation with 3D effect
     const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     
     heroTl
-      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
-      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-badge', { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'back.out(2)' })
+      .fromTo('.hero-title', { opacity: 0, y: 40, filter: 'blur(10px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8 }, '-=0.3')
       .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
       .fromTo('.hero-meta', { opacity: 0 }, { opacity: 1, duration: 0.5 }, '-=0.2');
 
-    // Bento cards animation
-    gsap.fromTo('.bento-card', 
-      { opacity: 0, y: 60, scale: 0.95 },
-      {
-        opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.12,
-        ease: 'back.out(1.2)',
-        scrollTrigger: { trigger: '.bento-grid', start: 'top 85%', toggleActions: 'play none none reverse' },
-      }
-    );
-
-    // Section animations
-    gsap.utils.toArray<HTMLElement>('.section-animate').forEach((section) => {
-      gsap.fromTo(section, { opacity: 0, y: 50 }, {
-        opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
-        scrollTrigger: { trigger: section, start: 'top 85%', toggleActions: 'play none none reverse' },
-      });
+    // Bento cards - explosive stagger from different directions
+    const bentoCards = gsap.utils.toArray('.bento-card');
+    bentoCards.forEach((card: any, i) => {
+      const directions = [
+        { x: -60, y: -30, rotate: -5 },
+        { x: 60, y: -30, rotate: 5 },
+        { x: -40, y: 40, rotate: -3 },
+        { x: 40, y: 40, rotate: 3 },
+      ];
+      const dir = directions[i % directions.length];
+      
+      gsap.fromTo(card, 
+        { opacity: 0, x: dir.x, y: dir.y, rotate: dir.rotate, scale: 0.8, filter: 'blur(5px)' },
+        {
+          opacity: 1, x: 0, y: 0, rotate: 0, scale: 1, filter: 'blur(0px)',
+          duration: 0.9, delay: i * 0.1,
+          ease: 'elastic.out(1, 0.8)',
+          scrollTrigger: { trigger: '.bento-grid', start: 'top 85%', toggleActions: 'play none none reverse' },
+        }
+      );
     });
 
-    // Feature cards
-    gsap.fromTo('.feature-card', { opacity: 0, x: -30 }, {
-      opacity: 1, x: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out',
-      scrollTrigger: { trigger: '.features-grid', start: 'top 80%', toggleActions: 'play none none reverse' },
+    // Section animations with blur
+    gsap.utils.toArray<HTMLElement>('.section-animate').forEach((section) => {
+      gsap.fromTo(section, 
+        { opacity: 0, y: 50, filter: 'blur(5px)' }, 
+        {
+          opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out',
+          scrollTrigger: { trigger: section, start: 'top 85%', toggleActions: 'play none none reverse' },
+        }
+      );
+    });
+
+    // Feature cards - wave effect with 3D
+    const featureCards = gsap.utils.toArray('.feature-card');
+    featureCards.forEach((card: any, i) => {
+      gsap.fromTo(card, 
+        { opacity: 0, x: -40, rotateY: -15, scale: 0.9 }, 
+        {
+          opacity: 1, x: 0, rotateY: 0, scale: 1,
+          duration: 0.7, delay: i * 0.08,
+          ease: 'back.out(1.5)',
+          scrollTrigger: { trigger: '.features-grid', start: 'top 80%', toggleActions: 'play none none reverse' },
+        }
+      );
     });
 
   }, { scope: containerRef });
 
   const dataCollected = [
-    { icon: Users, title: "Account Information", desc: "Name, email, phone, billing info" },
-    { icon: MessageSquare, title: "Chat Data", desc: "Conversations with AI assistants" },
-    { icon: Eye, title: "Usage Data", desc: "Device info, IP address, browsing" },
-    { icon: Cookie, title: "Cookie Data", desc: "Preferences and analytics" },
+    { icon: Users, title: "Account Information", desc: "Name, email, phone, billing info", color: "#00d4ff" },
+    { icon: MessageSquare, title: "Chat Data", desc: "Conversations with AI assistants", color: "#00ff88" },
+    { icon: Eye, title: "Usage Data", desc: "Device info, IP address, browsing", color: "#0066ff" },
+    { icon: Cookie, title: "Cookie Data", desc: "Preferences and analytics", color: "#f59e0b" },
   ];
 
   const dataUsage = [
@@ -154,12 +270,12 @@ export default function PrivacyPolicyPage() {
   ];
 
   const userRights = [
-    { icon: Eye, title: "Access", desc: "Request a copy of your data" },
-    { icon: Database, title: "Rectification", desc: "Correct inaccurate information" },
-    { icon: Trash2, title: "Erasure", desc: "Request deletion of your data" },
-    { icon: Download, title: "Portability", desc: "Receive data in structured format" },
-    { icon: Ban, title: "Object", desc: "Opt-out of certain processing" },
-    { icon: Lock, title: "Restrict", desc: "Limit how we process your data" },
+    { icon: Eye, title: "Access", desc: "Request a copy of your data", color: "#00d4ff" },
+    { icon: Database, title: "Rectification", desc: "Correct inaccurate information", color: "#00ff88" },
+    { icon: Trash2, title: "Erasure", desc: "Request deletion of your data", color: "#ef4444" },
+    { icon: Download, title: "Portability", desc: "Receive data in structured format", color: "#a855f7" },
+    { icon: Ban, title: "Object", desc: "Opt-out of certain processing", color: "#f59e0b" },
+    { icon: Lock, title: "Restrict", desc: "Limit how we process your data", color: "#0066ff" },
   ];
 
   const retentionData = [
@@ -240,13 +356,25 @@ export default function PrivacyPolicyPage() {
           
           <div className="bento-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {dataCollected.map((item, i) => (
-              <div key={i} className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <item.icon className="w-6 h-6 text-[#00d4ff]" />
+              <div 
+                key={i} 
+                className="bento-card float-card glass-card shimmer-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer cyber-grid"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(circle at 50% 0%, ${item.color}20, transparent 60%)` }}
+                ></div>
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                  style={{ background: `linear-gradient(135deg, ${item.color}30, transparent)` }}
+                >
+                  <item.icon className="w-6 h-6" style={{ color: item.color }} />
                 </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-[#00d4ff] transition-colors">{item.title}</h3>
-                <p className="text-sm text-gray-400">{item.desc}</p>
+                <h3 className="text-lg font-bold mb-2 transition-colors duration-300" style={{ color: 'white' }}>{item.title}</h3>
+                <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -267,7 +395,7 @@ export default function PrivacyPolicyPage() {
                 We use the information we collect for various purposes to provide, maintain, and improve our services.
               </p>
               
-              <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl">
+              <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl hover:border-green-500/40 transition-colors">
                 <div className="flex items-start gap-3">
                   <Check className="w-6 h-6 text-green-400 mt-1 flex-shrink-0" />
                   <div>
@@ -279,12 +407,23 @@ export default function PrivacyPolicyPage() {
             </div>
             
             <div className="section-animate grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {dataUsage.map((item, i) => (
-                <div key={i} className="p-5 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 hover:border-[#00d4ff]/30 transition-all">
-                  <h4 className="font-semibold text-white mb-2">{item.title}</h4>
-                  <p className="text-sm text-gray-400">{item.desc}</p>
-                </div>
-              ))}
+              {dataUsage.map((item, i) => {
+                const colors = ['#00d4ff', '#00ff88', '#0066ff', '#a855f7', '#f59e0b', '#ef4444'];
+                const color = colors[i % colors.length];
+                return (
+                  <div 
+                    key={i} 
+                    className="glass-card float-card group p-5 rounded-2xl overflow-hidden relative cursor-pointer"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}></div>
+                    <h4 className="font-semibold text-white mb-2 group-hover:text-[#00d4ff] transition-colors">{item.title}</h4>
+                    <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{item.desc}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -330,15 +469,29 @@ export default function PrivacyPolicyPage() {
           </div>
           
           <div className="features-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {userRights.map((right, i) => (
-              <div key={i} className="feature-card group p-6 rounded-2xl bg-gradient-to-br from-[#00d4ff]/5 to-transparent border border-[#00d4ff]/20 hover:border-[#00d4ff]/40 transition-all duration-300">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <right.icon className="w-6 h-6 text-[#00d4ff]" />
+            {userRights.map((right, i) => {
+              const colors = ['#00d4ff', '#00ff88', '#0066ff', '#a855f7', '#f59e0b', '#ef4444'];
+              const color = colors[i % colors.length];
+              return (
+                <div 
+                  key={i} 
+                  className="feature-card glow-card glass-card float-card group p-6 rounded-2xl overflow-hidden relative cursor-pointer cyber-grid"
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  <div className="absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}></div>
+                  <div 
+                    className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                    style={{ background: `linear-gradient(135deg, ${color}30, transparent)` }}
+                  >
+                    <right.icon className="w-6 h-6" style={{ color }} />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2 transition-colors duration-300" style={{ color: 'white' }}>Right to {right.title}</h3>
+                  <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{right.desc}</p>
                 </div>
-                <h3 className="font-bold text-lg mb-2 group-hover:text-[#00d4ff] transition-colors">Right to {right.title}</h3>
-                <p className="text-sm text-gray-400">{right.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

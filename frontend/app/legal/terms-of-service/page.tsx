@@ -29,6 +29,84 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Creative styles for cards
+const creativeStyles = `
+  .glow-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9), rgba(15, 15, 15, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #00d4ff, #00ff88, #0066ff, #00d4ff);
+    background-size: 300% 300%;
+    animation: glowRotate 4s ease infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+  @keyframes glowRotate {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .shimmer-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+  }
+  .shimmer-card:hover::after {
+    left: 100%;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(26, 26, 26, 0.7);
+  }
+
+  .float-card {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  }
+  .float-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
+  }
+
+  .cyber-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0, 212, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .cyber-grid:hover::before {
+    opacity: 1;
+  }
+`;
+
 // Article references for legal terms
 interface ArticleReference {
   title: string;
@@ -170,41 +248,60 @@ export default function TermsOfServicePage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
 
+  // 3D tilt effect handlers
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 15;
+    const rotateY = (centerX - x) / 15;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+  };
+
   useGSAP(() => {
-    // Hero entrance animation
-    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    // Hero entrance animation with blur effect
+    const heroTl = gsap.timeline({ defaults: { ease: 'elastic.out(1, 0.8)' } });
     
     heroTl
       .fromTo('.hero-badge', 
-        { opacity: 0, y: 20 }, 
-        { opacity: 1, y: 0, duration: 0.6 }
+        { opacity: 0, y: 30, scale: 0.8, filter: 'blur(10px)' }, 
+        { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 1 }
       )
       .fromTo('.hero-title', 
-        { opacity: 0, y: 40 }, 
-        { opacity: 1, y: 0, duration: 0.8 }, 
-        '-=0.3'
+        { opacity: 0, y: 60, scale: 0.9, filter: 'blur(20px)' }, 
+        { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 1.2 }, 
+        '-=0.6'
       )
       .fromTo('.hero-subtitle', 
-        { opacity: 0, y: 30 }, 
-        { opacity: 1, y: 0, duration: 0.6 }, 
-        '-=0.4'
+        { opacity: 0, y: 40, filter: 'blur(10px)' }, 
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8 }, 
+        '-=0.6'
       )
       .fromTo('.hero-meta', 
         { opacity: 0 }, 
-        { opacity: 1, duration: 0.5 }, 
-        '-=0.2'
+        { opacity: 1, duration: 0.6 }, 
+        '-=0.3'
       );
 
-    // Bento cards stagger animation
+    // Bento cards with explosive stagger
     gsap.fromTo('.bento-card', 
-      { opacity: 0, y: 60, scale: 0.95 },
+      { opacity: 0, y: 80, scale: 0.8, rotationX: 20, filter: 'blur(10px)' },
       {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: 'back.out(1.2)',
+        rotationX: 0,
+        filter: 'blur(0px)',
+        duration: 1,
+        stagger: { each: 0.12, from: 'center' },
+        ease: 'back.out(1.7)',
         scrollTrigger: {
           trigger: '.bento-grid',
           start: 'top 85%',
@@ -216,12 +313,13 @@ export default function TermsOfServicePage() {
     // Section animations
     gsap.utils.toArray<HTMLElement>('.section-animate').forEach((section) => {
       gsap.fromTo(section, 
-        { opacity: 0, y: 50 },
+        { opacity: 0, y: 60, filter: 'blur(5px)' },
         {
           opacity: 1,
           y: 0,
-          duration: 0.8,
-          ease: 'power2.out',
+          filter: 'blur(0px)',
+          duration: 1,
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: section,
             start: 'top 85%',
@@ -231,15 +329,16 @@ export default function TermsOfServicePage() {
       );
     });
 
-    // Feature cards
+    // Feature cards with 3D wave effect
     gsap.fromTo('.feature-card', 
-      { opacity: 0, x: -30 },
+      { opacity: 0, x: -40, rotationY: -15 },
       {
         opacity: 1,
         x: 0,
-        duration: 0.6,
-        stagger: 0.08,
-        ease: 'power2.out',
+        rotationY: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: 'back.out(1.4)',
         scrollTrigger: {
           trigger: '.features-grid',
           start: 'top 80%',
@@ -275,21 +374,22 @@ export default function TermsOfServicePage() {
 
   // Service features for bento grid
   const serviceFeatures = [
-    { icon: Bot, title: "AI Agents", desc: "Specialized AI personalities for various industries" },
-    { icon: Wrench, title: "Developer Tools", desc: "Network utilities, WHOIS, domain research" },
-    { icon: Mic, title: "Voice Interaction", desc: "Emotional TTS with 15+ voices" },
-    { icon: Users, title: "Community", desc: "Connect and collaborate with users" },
+    { icon: Bot, title: "AI Agents", desc: "Specialized AI personalities for various industries", color: "#00d4ff" },
+    { icon: Wrench, title: "Developer Tools", desc: "Network utilities, WHOIS, domain research", color: "#00ff88" },
+    { icon: Mic, title: "Voice Interaction", desc: "Emotional TTS with 15+ voices", color: "#a855f7" },
+    { icon: Users, title: "Community", desc: "Connect and collaborate with users", color: "#f59e0b" },
   ];
 
   // Pricing tiers
   const pricingTiers = [
-    { duration: "1 Day", price: "$1", icon: Clock },
-    { duration: "1 Week", price: "$5", icon: Clock },
-    { duration: "1 Month", price: "$15", icon: CreditCard },
+    { duration: "1 Day", price: "$1", icon: Clock, color: "#00d4ff" },
+    { duration: "1 Week", price: "$5", icon: Clock, color: "#00ff88" },
+    { duration: "1 Month", price: "$15", icon: CreditCard, color: "#f59e0b" },
   ];
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx>{creativeStyles}</style>
       
       {/* ═══════════════════════════════════════════════════════════════════════════
           HERO SECTION
@@ -379,13 +479,25 @@ export default function TermsOfServicePage() {
           
           <div className="bento-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {serviceFeatures.map((feature, i) => (
-              <div key={i} className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <feature.icon className="w-6 h-6 text-[#00d4ff]" />
+              <div 
+                key={i} 
+                className="bento-card float-card glass-card shimmer-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer cyber-grid"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(circle at 50% 0%, ${feature.color}20, transparent 60%)` }}
+                ></div>
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                  style={{ background: `linear-gradient(135deg, ${feature.color}30, transparent)` }}
+                >
+                  <feature.icon className="w-6 h-6" style={{ color: feature.color }} />
                 </div>
-                <h3 className="text-lg font-bold mb-2 group-hover:text-[#00d4ff] transition-colors">{feature.title}</h3>
-                <p className="text-sm text-gray-400">{feature.desc}</p>
+                <h3 className="text-lg font-bold mb-2 transition-colors duration-300">{feature.title}</h3>
+                <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -429,10 +541,20 @@ export default function TermsOfServicePage() {
               {/* Pricing cards */}
               <div className="grid grid-cols-3 gap-4">
                 {pricingTiers.map((tier, i) => (
-                  <div key={i} className="rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-6 text-center hover:border-[#00d4ff]/30 transition-all">
-                    <tier.icon className="w-8 h-8 text-[#00d4ff] mx-auto mb-3" />
-                    <div className="text-3xl font-bold text-[#00d4ff]">{tier.price}</div>
-                    <div className="text-sm text-gray-500">{tier.duration}</div>
+                  <div 
+                    key={i} 
+                    className="glass-card float-card shimmer-card rounded-2xl p-6 text-center overflow-hidden relative group cursor-pointer"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <div 
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{ background: `radial-gradient(circle at 50% 0%, ${tier.color}20, transparent 60%)` }}
+                    ></div>
+                    <tier.icon className="w-8 h-8 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300" style={{ color: tier.color }} />
+                    <div className="text-3xl font-bold" style={{ color: tier.color }}>{tier.price}</div>
+                    <div className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors">{tier.duration}</div>
                   </div>
                 ))}
               </div>
