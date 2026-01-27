@@ -8,12 +8,19 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+  const [isAnimated, setIsAnimated] = useState(false)
   const footerRef = useRef<HTMLElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
   const linksRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Mark as visible immediately to prevent flash of invisible content
+    setIsAnimated(true);
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let scrollTriggerInstance: any = null;
+    
     const initGSAP = async () => {
       // Check if all refs are available before running GSAP
       if (!footerRef.current || !brandRef.current || !linksRef.current || !ctaRef.current) {
@@ -23,30 +30,45 @@ export default function Footer() {
       const gsap = (await import('gsap')).default;
       const { ScrollTrigger } = await import('gsap/ScrollTrigger');
       gsap.registerPlugin(ScrollTrigger);
+      
+      // Kill any existing animations on these elements first
+      gsap.killTweensOf([brandRef.current, linksRef.current, ctaRef.current]);
 
       // Animate elements when footer comes into view
+      // Start from nearly visible (0.9) to prevent flash
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: footerRef.current,
-          start: 'top 90%',
-          toggleActions: 'play none none reverse'
+          start: 'top 95%',
+          toggleActions: 'play none none none'
         }
       });
+      
+      scrollTriggerInstance = tl.scrollTrigger;
 
       tl.fromTo(brandRef.current, 
-        { opacity: 0, x: -30 },
-        { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }
+        { opacity: 0.9, x: -20 },
+        { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out' }
       )
       .fromTo(linksRef.current,
-        { opacity: 0, x: 30 },
-        { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' },
-        '-=0.5'
+        { opacity: 0.9, x: 20 },
+        { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out' },
+        '-=0.4'
       )
       .fromTo(ctaRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+        { opacity: 0.9, y: 15 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
         '-=0.3'
       );
+    };
+
+    initGSAP();
+    
+    // Cleanup on unmount or re-render
+    return () => {
+      if (scrollTriggerInstance) {
+        scrollTriggerInstance.kill();
+      }
     };
 
     initGSAP();
