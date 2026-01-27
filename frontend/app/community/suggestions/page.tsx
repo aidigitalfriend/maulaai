@@ -5,7 +5,7 @@ import { useState, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import { Lightbulb, Send, CheckCircle, ArrowRight, MessageSquare, Zap, Users } from 'lucide-react'
+import { Lightbulb, Send, CheckCircle, MessageSquare, Zap, Users } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -96,7 +96,7 @@ export default function SuggestionsPage() {
     const centerY = rect.height / 2
     const rotateX = (y - centerY) / 20
     const rotateY = (centerX - x) / 20
-    card.style.transform = \`perspective(1000px) rotateX(\${rotateX}deg) rotateY(\${rotateY}deg) scale(1.02)\`
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`
   }
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -113,20 +113,20 @@ export default function SuggestionsPage() {
   }, { scope: containerRef })
 
   const categories = [
-    { value: 'feature', label: '💡 New Feature' },
-    { value: 'improvement', label: '⚡ Improvement' },
-    { value: 'integration', label: '🔗 Integration' },
-    { value: 'performance', label: '🚀 Performance' },
-    { value: 'security', label: '🔒 Security' },
-    { value: 'ux', label: '🎨 User Experience' },
-    { value: 'documentation', label: '📚 Documentation' },
-    { value: 'other', label: '📝 Other' }
+    { value: 'feature', label: 'New Feature' },
+    { value: 'improvement', label: 'Improvement' },
+    { value: 'integration', label: 'Integration' },
+    { value: 'performance', label: 'Performance' },
+    { value: 'security', label: 'Security' },
+    { value: 'ux', label: 'User Experience' },
+    { value: 'documentation', label: 'Documentation' },
+    { value: 'other', label: 'Other' }
   ]
 
   const priorityLevels = [
-    { value: 'low', label: '🟢 Nice to Have' },
-    { value: 'medium', label: '🟡 Important' },
-    { value: 'high', label: '🔴 Critical' }
+    { value: 'low', label: 'Nice to Have' },
+    { value: 'medium', label: 'Important' },
+    { value: 'high', label: 'Critical' }
   ]
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -152,7 +152,7 @@ export default function SuggestionsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const newSuggestionId = \`SUG-\${Date.now()}-\${Math.random().toString(36).substr(2, 9).toUpperCase()}\`
+    const newSuggestionId = `SUG-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
     console.log('Suggestion submitted:', { ...formData, suggestionId: newSuggestionId, createdAt: new Date().toISOString() })
     setSuggestionId(newSuggestionId)
     setSubmitted(true)
@@ -175,7 +175,6 @@ export default function SuggestionsPage() {
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white">
       <style jsx>{creativeStyles}</style>
       
-      {/* Hero Header */}
       <section className="pt-24 pb-16 px-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-[#f59e0b]/10 via-transparent to-transparent blur-3xl"></div>
@@ -194,7 +193,6 @@ export default function SuggestionsPage() {
         </div>
       </section>
 
-      {/* Benefits Section */}
       <section className="py-12 px-6 -mt-8 relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="benefits-grid grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -208,8 +206,7 @@ export default function SuggestionsPage() {
                   onMouseLeave={handleMouseLeave}
                   style={{ transformStyle: 'preserve-3d' }}
                 >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: \`radial-gradient(circle at 50% 0%, \${benefit.color}20, transparent 60%)\` }}></div>
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg relative z-10" style={{ background: \`linear-gradient(135deg, \${benefit.color}40, \${benefit.color}20)\`, boxShadow: \`0 10px 40px \${benefit.color}30\` }}>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg relative z-10" style={{ background: `linear-gradient(135deg, ${benefit.color}40, ${benefit.color}20)`, boxShadow: `0 10px 40px ${benefit.color}30` }}>
                     <Icon className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2 relative z-10">{benefit.title}</h3>
@@ -221,12 +218,10 @@ export default function SuggestionsPage() {
         </div>
       </section>
 
-      {/* Main Content */}
       <section className="form-section py-12 px-6">
         <div className="max-w-4xl mx-auto">
           {submitted ? (
             <div className="glass-card rounded-2xl border border-white/5 overflow-hidden">
-              {/* Success Header */}
               <div className="bg-gradient-to-r from-[#00ff88] to-[#00d4ff] p-8 text-center">
                 <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-12 h-12 text-white" />
@@ -259,25 +254,6 @@ export default function SuggestionsPage() {
                   </div>
                 </div>
 
-                <div className="glass-card rounded-xl border border-[#00d4ff]/20 p-6 mb-6">
-                  <h3 className="text-xl font-bold text-white mb-4">What Happens Next?</h3>
-                  <div className="space-y-4">
-                    {[
-                      { num: 1, title: "Review & Assessment", desc: "Our team evaluates your suggestion for feasibility and alignment with our roadmap." },
-                      { num: 2, title: "Community Voting", desc: "The idea appears in our community board where members can vote and discuss it." },
-                      { num: 3, title: "Roadmap Integration", desc: "Popular ideas get added to our product roadmap and you receive updates on progress." }
-                    ].map((step) => (
-                      <div key={step.num} className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-[#00d4ff] to-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold shadow-lg">{step.num}</div>
-                        <div>
-                          <p className="font-semibold text-white">{step.title}</p>
-                          <p className="text-gray-400 text-sm">{step.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/community/roadmap" className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition text-center">View Roadmap</Link>
                   <button onClick={handleSubmitAnother} className="flex-1 px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#00ff88] hover:from-[#00b8e6] hover:to-[#00e077] text-black rounded-xl font-semibold transition shadow-lg shadow-[#00d4ff]/25">Submit Another</button>
@@ -288,10 +264,9 @@ export default function SuggestionsPage() {
           ) : (
             <div className="glass-card rounded-2xl border border-white/5 p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Contact Information Section */}
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-4 pb-2 border-b border-white/10 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-[#00d4ff]/20 rounded-lg flex items-center justify-center text-[#00d4ff]">👤</span>
+                    <span className="w-8 h-8 bg-[#00d4ff]/20 rounded-lg flex items-center justify-center text-[#00d4ff]">1</span>
                     About You
                   </h3>
                   
@@ -318,10 +293,9 @@ export default function SuggestionsPage() {
                   </div>
                 </div>
 
-                {/* Suggestion Details Section */}
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-4 pb-2 border-b border-white/10 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-[#a855f7]/20 rounded-lg flex items-center justify-center text-[#a855f7]">💡</span>
+                    <span className="w-8 h-8 bg-[#a855f7]/20 rounded-lg flex items-center justify-center text-[#a855f7]">2</span>
                     Your Suggestion
                   </h3>
 
@@ -353,10 +327,9 @@ export default function SuggestionsPage() {
                   </div>
                 </div>
 
-                {/* Attachments Section */}
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-4 pb-2 border-b border-white/10 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-[#00ff88]/20 rounded-lg flex items-center justify-center text-[#00ff88]">📎</span>
+                    <span className="w-8 h-8 bg-[#00ff88]/20 rounded-lg flex items-center justify-center text-[#00ff88]">3</span>
                     Attachments (Optional)
                   </h3>
 
@@ -365,7 +338,7 @@ export default function SuggestionsPage() {
                       <input type="file" multiple onChange={handleFileChange} className="hidden" accept=".pdf,.png,.jpg,.jpeg,.gif,.sketch,.fig,.xd" />
                       <div>
                         <div className="w-16 h-16 bg-[#00d4ff]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-3xl">🎨</span>
+                          <Lightbulb className="w-8 h-8 text-[#00d4ff]" />
                         </div>
                         <p className="font-semibold text-white mb-1">Click to upload mockups or screenshots</p>
                         <p className="text-sm text-gray-500">PNG, JPG, PDF, Sketch, Figma up to 10MB</p>
@@ -377,7 +350,7 @@ export default function SuggestionsPage() {
                     <div className="mt-4">
                       <p className="text-sm font-semibold text-gray-300 mb-2">Uploading... {uploadProgress}%</p>
                       <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-[#00d4ff] to-[#00ff88] h-2 rounded-full transition-all" style={{ width: \`\${uploadProgress}%\` }}></div>
+                        <div className="bg-gradient-to-r from-[#00d4ff] to-[#00ff88] h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
                       </div>
                     </div>
                   )}
@@ -389,7 +362,7 @@ export default function SuggestionsPage() {
                         {formData.attachments.map((file, idx) => (
                           <div key={idx} className="bg-white/5 p-3 rounded-xl border border-white/10 flex items-center justify-between">
                             <div className="flex items-center gap-3 flex-1">
-                              <span className="text-lg">📎</span>
+                              <Lightbulb className="w-5 h-5 text-gray-400" />
                               <div className="flex-1">
                                 <p className="font-semibold text-sm text-white">{file.name}</p>
                                 <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
@@ -403,9 +376,8 @@ export default function SuggestionsPage() {
                   )}
                 </div>
 
-                {/* Suggestion Guidelines */}
                 <div className="glass-card p-5 rounded-xl border border-[#f59e0b]/20">
-                  <p className="text-sm text-white mb-2 font-semibold flex items-center gap-2"><span>💡</span> Pro Tips:</p>
+                  <p className="text-sm text-white mb-2 font-semibold flex items-center gap-2"><Lightbulb className="w-4 h-4 text-[#f59e0b]" /> Pro Tips:</p>
                   <ul className="text-sm text-gray-400 space-y-1.5 ml-6">
                     <li>• Be specific about the problem and your proposed solution</li>
                     <li>• Include examples of how this would improve your workflow</li>
@@ -414,7 +386,6 @@ export default function SuggestionsPage() {
                   </ul>
                 </div>
 
-                {/* Terms & Submit */}
                 <div className="glass-card p-4 rounded-xl border border-white/10">
                   <p className="text-sm text-gray-400 flex items-start gap-2">
                     <CheckCircle className="w-5 h-5 text-[#00ff88] flex-shrink-0 mt-0.5" />
@@ -422,32 +393,11 @@ export default function SuggestionsPage() {
                   </p>
                 </div>
 
-                {/* Submit Button */}
                 <button type="submit" className="w-full px-6 py-4 bg-gradient-to-r from-[#00d4ff] to-[#00ff88] hover:from-[#00b8e6] hover:to-[#00e077] text-black rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg shadow-[#00d4ff]/25">
                   <Send className="w-5 h-5" />
                   Submit Your Suggestion
                 </button>
               </form>
-
-              {/* Additional Info */}
-              <div className="mt-10 pt-8 border-t border-white/10">
-                <h3 className="text-xl font-bold text-white mb-6 text-center">What Happens with Your Suggestion?</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    { emoji: "📋", title: "Review", desc: "Our team reviews and evaluates your suggestion", color: "#00d4ff" },
-                    { emoji: "🗳️", title: "Vote", desc: "Community members can vote on ideas", color: "#a855f7" },
-                    { emoji: "🚀", title: "Build", desc: "Popular ideas make it to our roadmap", color: "#00ff88" }
-                  ].map((step, idx) => (
-                    <div key={idx} className="glass-card p-5 rounded-xl border border-white/5 text-center hover:border-white/20 transition-all cursor-pointer group" style={{ borderColor: \`\${step.color}20\` }}>
-                      <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: \`\${step.color}20\` }}>
-                        <span className="text-2xl">{step.emoji}</span>
-                      </div>
-                      <p className="font-semibold text-white">{step.title}</p>
-                      <p className="text-sm text-gray-400 mt-2">{step.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </div>
