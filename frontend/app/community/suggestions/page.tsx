@@ -1,8 +1,73 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
 import { Lightbulb, Send, CheckCircle, ArrowRight, MessageSquare, Zap, Users } from 'lucide-react'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const creativeStyles = `
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glow-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, #00d4ff, #00ff88, #a855f7, #00d4ff);
+    background-size: 400% 400%;
+    animation: glow-rotate 8s linear infinite;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    border-radius: inherit;
+    z-index: -1;
+  }
+  .glow-card:hover::before {
+    opacity: 1;
+  }
+  .glow-card::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: #0a0a0a;
+    border-radius: inherit;
+    z-index: -1;
+  }
+  @keyframes glow-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .shimmer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.7s ease;
+  }
+  .shimmer-card:hover::before {
+    left: 100%;
+  }
+  .float-card {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  }
+  .float-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 212, 255, 0.25);
+  }
+`
 
 export default function SuggestionsPage() {
   const [formData, setFormData] = useState({
@@ -20,6 +85,32 @@ export default function SuggestionsPage() {
   const [submitted, setSubmitted] = useState(false)
   const [suggestionId, setSuggestionId] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const rotateX = (y - centerY) / 20
+    const rotateY = (centerX - x) / 20
+    card.style.transform = \`perspective(1000px) rotateX(\${rotateX}deg) rotateY(\${rotateY}deg) scale(1.02)\`
+  }
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget
+    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)'
+  }
+
+  useGSAP(() => {
+    gsap.fromTo('.hero-badge', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: 'back.out(1.7)' })
+    gsap.fromTo('.hero-title', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1, delay: 0.2, ease: 'power3.out' })
+    gsap.fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.4, ease: 'power2.out' })
+    gsap.fromTo('.benefit-card', { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(1.7)', scrollTrigger: { trigger: '.benefits-grid', start: 'top 85%' } })
+    gsap.fromTo('.form-section', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', scrollTrigger: { trigger: '.form-section', start: 'top 85%' } })
+  }, { scope: containerRef })
 
   const categories = [
     { value: 'feature', label: '💡 New Feature' },
@@ -40,398 +131,271 @@ export default function SuggestionsPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...files]
-    }))
-    // Simulate upload progress
+    setFormData(prev => ({ ...prev, attachments: [...prev.attachments, ...files] }))
     setUploadProgress(0)
     const interval = setInterval(() => {
       setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          return 100
-        }
+        if (prev >= 100) { clearInterval(interval); return 100 }
         return prev + 10
       })
     }, 100)
   }
 
   const removeAttachment = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index)
-    }))
+    setFormData(prev => ({ ...prev, attachments: prev.attachments.filter((_, i) => i !== index) }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Generate suggestion ID
-    const newSuggestionId = `SUG-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-    
-    // Log submission (in production, send to backend)
-    console.log('Suggestion submitted:', {
-      ...formData,
-      suggestionId: newSuggestionId,
-      createdAt: new Date().toISOString()
-    })
-    
+    const newSuggestionId = \`SUG-\${Date.now()}-\${Math.random().toString(36).substr(2, 9).toUpperCase()}\`
+    console.log('Suggestion submitted:', { ...formData, suggestionId: newSuggestionId, createdAt: new Date().toISOString() })
     setSuggestionId(newSuggestionId)
     setSubmitted(true)
   }
 
   const handleSubmitAnother = () => {
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      company: '',
-      title: '',
-      description: '',
-      category: 'feature',
-      priority: 'medium',
-      attachments: []
-    })
+    setFormData({ firstName: '', lastName: '', email: '', company: '', title: '', description: '', category: 'feature', priority: 'medium', attachments: [] })
     setSubmitted(false)
     setSuggestionId('')
     setUploadProgress(0)
   }
 
+  const benefits = [
+    { icon: MessageSquare, title: "Your Voice Matters", desc: "Every suggestion is reviewed by our team and helps prioritize future development.", color: "#00d4ff" },
+    { icon: Users, title: "Community Driven", desc: "Vote on and discuss ideas with other community members to show your support.", color: "#a855f7" },
+    { icon: Zap, title: "Quick Updates", desc: "Receive notifications when your suggested feature is implemented or discussed.", color: "#f59e0b" }
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white">
+      <style jsx>{creativeStyles}</style>
+      
       {/* Hero Header */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6bTAtMjBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6bTIwIDBjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <Lightbulb className="w-5 h-5" />
-            Community Ideas
+      <section className="pt-24 pb-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-[#f59e0b]/10 via-transparent to-transparent blur-3xl"></div>
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f59e0b]/10 border border-[#f59e0b]/20 mb-6">
+            <Lightbulb className="w-4 h-4 text-[#f59e0b]" />
+            <span className="text-sm text-[#f59e0b] font-medium">Community Ideas</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Share Your Ideas</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+          <h1 className="hero-title text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent leading-tight">
+            Share Your Ideas
+          </h1>
+          <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
             Help shape the future of One Last AI. Submit your feature requests, improvements, and ideas to make our platform even better.
           </p>
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="py-12 -mt-8 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl border border-neural-200 shadow-lg p-6 text-center hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <MessageSquare className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Your Voice Matters</h3>
-              <p className="text-neural-600 text-sm">Every suggestion is reviewed by our team and helps prioritize future development.</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-neural-200 shadow-lg p-6 text-center hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Community Driven</h3>
-              <p className="text-neural-600 text-sm">Vote on and discuss ideas with other community members to show your support.</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-neural-200 shadow-lg p-6 text-center hover:shadow-xl transition">
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Zap className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-neural-900 mb-2">Quick Updates</h3>
-              <p className="text-neural-600 text-sm">Receive notifications when your suggested feature is implemented or discussed.</p>
-            </div>
+      <section className="py-12 px-6 -mt-8 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="benefits-grid grid grid-cols-1 md:grid-cols-3 gap-6">
+            {benefits.map((benefit, idx) => {
+              const Icon = benefit.icon
+              return (
+                <div 
+                  key={idx}
+                  className="benefit-card glass-card glow-card shimmer-card rounded-2xl border border-white/5 p-6 text-center cursor-pointer overflow-hidden relative group"
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: \`radial-gradient(circle at 50% 0%, \${benefit.color}20, transparent 60%)\` }}></div>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg relative z-10" style={{ background: \`linear-gradient(135deg, \${benefit.color}40, \${benefit.color}20)\`, boxShadow: \`0 10px 40px \${benefit.color}30\` }}>
+                    <Icon className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2 relative z-10">{benefit.title}</h3>
+                  <p className="text-gray-400 text-sm relative z-10">{benefit.desc}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="form-section py-12 px-6">
+        <div className="max-w-4xl mx-auto">
           {submitted ? (
-            <div className="bg-white rounded-2xl border border-neural-200 shadow-lg overflow-hidden">
+            <div className="glass-card rounded-2xl border border-white/5 overflow-hidden">
               {/* Success Header */}
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-8 text-white text-center">
+              <div className="bg-gradient-to-r from-[#00ff88] to-[#00d4ff] p-8 text-center">
                 <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-12 h-12" />
+                  <CheckCircle className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold mb-2">Thank You for Your Suggestion!</h2>
-                <p className="text-white/90 text-lg">
-                  Your idea has been submitted successfully. Our team will review it and get back to you soon.
-                </p>
+                <h2 className="text-3xl font-bold text-white mb-2">Thank You for Your Suggestion!</h2>
+                <p className="text-white/90 text-lg">Your idea has been submitted successfully. Our team will review it and get back to you soon.</p>
               </div>
 
               <div className="p-8">
-                {/* Suggestion Details Card */}
-                <div className="bg-gray-50 rounded-xl border border-neural-200 p-6 mb-6">
-                  <h3 className="text-xl font-bold text-neural-900 mb-4">Your Suggestion Details</h3>
+                <div className="glass-card rounded-xl border border-white/10 p-6 mb-6">
+                  <h3 className="text-xl font-bold text-white mb-4">Your Suggestion Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white p-4 rounded-xl border border-neural-200">
-                      <p className="text-neural-500 text-sm mb-1">Suggestion ID</p>
-                      <p className="text-xl font-mono font-bold text-blue-600">{suggestionId}</p>
-                      <p className="text-xs text-gray-400 mt-2">Save this for reference</p>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                      <p className="text-gray-500 text-sm mb-1">Suggestion ID</p>
+                      <p className="text-xl font-mono font-bold text-[#00d4ff]">{suggestionId}</p>
+                      <p className="text-xs text-gray-500 mt-2">Save this for reference</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-neural-200">
-                      <p className="text-neural-500 text-sm mb-1">Category</p>
-                      <p className="text-lg font-semibold text-neural-900 capitalize">
-                        {categories.find(c => c.value === formData.category)?.label}
-                      </p>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                      <p className="text-gray-500 text-sm mb-1">Category</p>
+                      <p className="text-lg font-semibold text-white capitalize">{categories.find(c => c.value === formData.category)?.label}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-neural-200">
-                      <p className="text-neural-500 text-sm mb-1">Title</p>
-                      <p className="text-lg font-semibold text-neural-900">{formData.title}</p>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                      <p className="text-gray-500 text-sm mb-1">Title</p>
+                      <p className="text-lg font-semibold text-white">{formData.title}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-neural-200">
-                      <p className="text-neural-500 text-sm mb-1">Priority</p>
-                      <p className="text-lg font-semibold text-neural-900 capitalize">{formData.priority}</p>
+                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                      <p className="text-gray-500 text-sm mb-1">Priority</p>
+                      <p className="text-lg font-semibold text-white capitalize">{formData.priority}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* What Happens Next */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6 mb-6">
-                  <h3 className="text-xl font-bold text-neural-900 mb-4">What Happens Next?</h3>
+                <div className="glass-card rounded-xl border border-[#00d4ff]/20 p-6 mb-6">
+                  <h3 className="text-xl font-bold text-white mb-4">What Happens Next?</h3>
                   <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">1</div>
-                      <div>
-                        <p className="font-semibold text-neural-900">Review & Assessment</p>
-                        <p className="text-neural-600 text-sm">Our team evaluates your suggestion for feasibility and alignment with our roadmap.</p>
+                    {[
+                      { num: 1, title: "Review & Assessment", desc: "Our team evaluates your suggestion for feasibility and alignment with our roadmap." },
+                      { num: 2, title: "Community Voting", desc: "The idea appears in our community board where members can vote and discuss it." },
+                      { num: 3, title: "Roadmap Integration", desc: "Popular ideas get added to our product roadmap and you receive updates on progress." }
+                    ].map((step) => (
+                      <div key={step.num} className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-[#00d4ff] to-[#00ff88] rounded-full flex items-center justify-center text-black text-sm font-bold shadow-lg">{step.num}</div>
+                        <div>
+                          <p className="font-semibold text-white">{step.title}</p>
+                          <p className="text-gray-400 text-sm">{step.desc}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">2</div>
-                      <div>
-                        <p className="font-semibold text-neural-900">Community Voting</p>
-                        <p className="text-neural-600 text-sm">The idea appears in our community board where members can vote and discuss it.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">3</div>
-                      <div>
-                        <p className="font-semibold text-neural-900">Roadmap Integration</p>
-                        <p className="text-neural-600 text-sm">Popular ideas get added to our product roadmap and you receive updates on progress.</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/community/roadmap" className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-neural-700 rounded-xl font-semibold transition text-center">
-                    View Roadmap
-                  </Link>
-                  <button onClick={handleSubmitAnother} className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">
-                    Submit Another
-                  </button>
-                  <Link href="/community" className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition text-center shadow-lg">
-                    Explore Community
-                  </Link>
+                  <Link href="/community/roadmap" className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition text-center">View Roadmap</Link>
+                  <button onClick={handleSubmitAnother} className="flex-1 px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#00ff88] hover:from-[#00b8e6] hover:to-[#00e077] text-black rounded-xl font-semibold transition shadow-lg shadow-[#00d4ff]/25">Submit Another</button>
+                  <Link href="/community" className="flex-1 px-6 py-3 bg-[#a855f7] hover:bg-[#9333ea] text-white rounded-xl font-semibold transition text-center shadow-lg">Explore Community</Link>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-neural-200 shadow-lg p-8">
+            <div className="glass-card rounded-2xl border border-white/5 p-8">
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Contact Information Section */}
                 <div>
-                  <h3 className="text-2xl font-bold text-neural-900 mb-4 pb-2 border-b border-neural-200 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">👤</span>
+                  <h3 className="text-2xl font-bold text-white mb-4 pb-2 border-b border-white/10 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-[#00d4ff]/20 rounded-lg flex items-center justify-center text-[#00d4ff]">👤</span>
                     About You
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-neural-700 mb-2">First Name *</label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                        placeholder="John"
-                      />
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">First Name *</label>
+                      <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition" placeholder="John" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-neural-700 mb-2">Last Name *</label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                        placeholder="Doe"
-                      />
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Last Name *</label>
+                      <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition" placeholder="Doe" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-semibold text-neural-700 mb-2">Email Address *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                        placeholder="john@example.com"
-                      />
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Email Address *</label>
+                      <input type="email" name="email" value={formData.email} onChange={handleInputChange} required className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition" placeholder="john@example.com" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-neural-700 mb-2">Company</label>
-                      <input
-                        type="text"
-                        name="company"
-                        value={formData.company}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                        placeholder="Your Company"
-                      />
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Company</label>
+                      <input type="text" name="company" value={formData.company} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition" placeholder="Your Company" />
                     </div>
                   </div>
                 </div>
 
                 {/* Suggestion Details Section */}
                 <div>
-                  <h3 className="text-2xl font-bold text-neural-900 mb-4 pb-2 border-b border-neural-200 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">💡</span>
+                  <h3 className="text-2xl font-bold text-white mb-4 pb-2 border-b border-white/10 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-[#a855f7]/20 rounded-lg flex items-center justify-center text-[#a855f7]">💡</span>
                     Your Suggestion
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-neural-700 mb-2">Category *</label>
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                      >
-                        {categories.map((cat) => (
-                          <option key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </option>
-                        ))}
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Category *</label>
+                      <select name="category" value={formData.category} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition">
+                        {categories.map((cat) => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-neural-700 mb-2">Priority *</label>
-                      <select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                      >
-                        {priorityLevels.map((level) => (
-                          <option key={level.value} value={level.value}>
-                            {level.label}
-                          </option>
-                        ))}
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Priority *</label>
+                      <select name="priority" value={formData.priority} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition">
+                        {priorityLevels.map((level) => (<option key={level.value} value={level.value}>{level.label}</option>))}
                       </select>
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-semibold text-neural-700 mb-2">Title *</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={100}
-                      className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                      placeholder="Brief title of your idea"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">{formData.title.length}/100</p>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">Title *</label>
+                    <input type="text" name="title" value={formData.title} onChange={handleInputChange} required maxLength={100} className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition" placeholder="Brief title of your idea" />
+                    <p className="text-xs text-gray-500 mt-1">{formData.title.length}/100</p>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-semibold text-neural-700 mb-2">Description *</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      required
-                      maxLength={2000}
-                      rows={6}
-                      className="w-full px-4 py-3 bg-gray-50 border border-neural-200 rounded-xl text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                      placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve One Last AI?"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">{formData.description.length}/2000</p>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">Description *</label>
+                    <textarea name="description" value={formData.description} onChange={handleInputChange} required maxLength={2000} rows={6} className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00d4ff]/50 focus:border-transparent transition resize-none" placeholder="Describe your suggestion in detail. What problem does it solve? How would it improve One Last AI?" />
+                    <p className="text-xs text-gray-500 mt-1">{formData.description.length}/2000</p>
                   </div>
                 </div>
 
                 {/* Attachments Section */}
                 <div>
-                  <h3 className="text-2xl font-bold text-neural-900 mb-4 pb-2 border-b border-neural-200 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">📎</span>
+                  <h3 className="text-2xl font-bold text-white mb-4 pb-2 border-b border-white/10 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-[#00ff88]/20 rounded-lg flex items-center justify-center text-[#00ff88]">📎</span>
                     Attachments (Optional)
                   </h3>
 
-                  <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition">
+                  <div className="bg-[#1a1a1a] border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-[#00d4ff]/50 hover:bg-[#00d4ff]/5 transition">
                     <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleFileChange}
-                        className="hidden"
-                        accept=".pdf,.png,.jpg,.jpeg,.gif,.sketch,.fig,.xd"
-                      />
+                      <input type="file" multiple onChange={handleFileChange} className="hidden" accept=".pdf,.png,.jpg,.jpeg,.gif,.sketch,.fig,.xd" />
                       <div>
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="w-16 h-16 bg-[#00d4ff]/20 rounded-full flex items-center justify-center mx-auto mb-4">
                           <span className="text-3xl">🎨</span>
                         </div>
-                        <p className="font-semibold text-neural-900 mb-1">Click to upload mockups or screenshots</p>
-                        <p className="text-sm text-neural-500">PNG, JPG, PDF, Sketch, Figma up to 10MB</p>
+                        <p className="font-semibold text-white mb-1">Click to upload mockups or screenshots</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, PDF, Sketch, Figma up to 10MB</p>
                       </div>
                     </label>
                   </div>
 
-                  {/* Upload Progress */}
                   {uploadProgress > 0 && uploadProgress < 100 && (
                     <div className="mt-4">
-                      <p className="text-sm font-semibold text-neural-700 mb-2">Uploading... {uploadProgress}%</p>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all"
-                          style={{ width: `${uploadProgress}%` }}
-                        ></div>
+                      <p className="text-sm font-semibold text-gray-300 mb-2">Uploading... {uploadProgress}%</p>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-[#00d4ff] to-[#00ff88] h-2 rounded-full transition-all" style={{ width: \`\${uploadProgress}%\` }}></div>
                       </div>
                     </div>
                   )}
 
-                  {/* Attached Files List */}
                   {formData.attachments.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-sm font-semibold text-neural-700 mb-2">Attached Files ({formData.attachments.length}):</p>
+                      <p className="text-sm font-semibold text-gray-300 mb-2">Attached Files ({formData.attachments.length}):</p>
                       <div className="space-y-2">
                         {formData.attachments.map((file, idx) => (
-                          <div key={idx} className="bg-gray-50 p-3 rounded-xl border border-neural-200 flex items-center justify-between">
+                          <div key={idx} className="bg-white/5 p-3 rounded-xl border border-white/10 flex items-center justify-between">
                             <div className="flex items-center gap-3 flex-1">
                               <span className="text-lg">📎</span>
                               <div className="flex-1">
-                                <p className="font-semibold text-sm text-neural-900">{file.name}</p>
-                                <p className="text-xs text-neural-500">{(file.size / 1024).toFixed(2)} KB</p>
+                                <p className="font-semibold text-sm text-white">{file.name}</p>
+                                <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
                               </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => removeAttachment(idx)}
-                              className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-sm transition font-medium"
-                            >
-                              Remove
-                            </button>
+                            <button type="button" onClick={() => removeAttachment(idx)} className="px-3 py-1 bg-[#ef4444]/20 hover:bg-[#ef4444]/30 text-[#ef4444] rounded-lg text-sm transition font-medium">Remove</button>
                           </div>
                         ))}
                       </div>
@@ -440,11 +404,9 @@ export default function SuggestionsPage() {
                 </div>
 
                 {/* Suggestion Guidelines */}
-                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 p-5 rounded-xl border border-amber-200">
-                  <p className="text-sm text-neural-700 mb-2 font-semibold flex items-center gap-2">
-                    <span>💡</span> Pro Tips:
-                  </p>
-                  <ul className="text-sm text-neural-600 space-y-1.5 ml-6">
+                <div className="glass-card p-5 rounded-xl border border-[#f59e0b]/20">
+                  <p className="text-sm text-white mb-2 font-semibold flex items-center gap-2"><span>💡</span> Pro Tips:</p>
+                  <ul className="text-sm text-gray-400 space-y-1.5 ml-6">
                     <li>• Be specific about the problem and your proposed solution</li>
                     <li>• Include examples of how this would improve your workflow</li>
                     <li>• Attach mockups or screenshots if they help explain your idea</li>
@@ -453,50 +415,37 @@ export default function SuggestionsPage() {
                 </div>
 
                 {/* Terms & Submit */}
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200">
-                  <p className="text-sm text-neural-600 flex items-start gap-2">
-                    <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
+                <div className="glass-card p-4 rounded-xl border border-white/10">
+                  <p className="text-sm text-gray-400 flex items-start gap-2">
+                    <CheckCircle className="w-5 h-5 text-[#00ff88] flex-shrink-0 mt-0.5" />
                     By submitting this suggestion, you agree that your idea may be implemented, discussed publicly, or used to improve One Last AI.
                   </p>
                 </div>
 
                 {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25"
-                >
+                <button type="submit" className="w-full px-6 py-4 bg-gradient-to-r from-[#00d4ff] to-[#00ff88] hover:from-[#00b8e6] hover:to-[#00e077] text-black rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 shadow-lg shadow-[#00d4ff]/25">
                   <Send className="w-5 h-5" />
                   Submit Your Suggestion
                 </button>
               </form>
 
               {/* Additional Info */}
-              <div className="mt-10 pt-8 border-t border-neural-200">
-                <h3 className="text-xl font-bold text-neural-900 mb-6 text-center">What Happens with Your Suggestion?</h3>
+              <div className="mt-10 pt-8 border-t border-white/10">
+                <h3 className="text-xl font-bold text-white mb-6 text-center">What Happens with Your Suggestion?</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 text-center">
-                    <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl">📋</span>
+                  {[
+                    { emoji: "📋", title: "Review", desc: "Our team reviews and evaluates your suggestion", color: "#00d4ff" },
+                    { emoji: "🗳️", title: "Vote", desc: "Community members can vote on ideas", color: "#a855f7" },
+                    { emoji: "🚀", title: "Build", desc: "Popular ideas make it to our roadmap", color: "#00ff88" }
+                  ].map((step, idx) => (
+                    <div key={idx} className="glass-card p-5 rounded-xl border border-white/5 text-center hover:border-white/20 transition-all cursor-pointer group" style={{ borderColor: \`\${step.color}20\` }}>
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: \`\${step.color}20\` }}>
+                        <span className="text-2xl">{step.emoji}</span>
+                      </div>
+                      <p className="font-semibold text-white">{step.title}</p>
+                      <p className="text-sm text-gray-400 mt-2">{step.desc}</p>
                     </div>
-                    <p className="font-semibold text-neural-900">Review</p>
-                    <p className="text-sm text-neural-600 mt-2">Our team reviews and evaluates your suggestion</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-100 text-center">
-                    <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl">🗳️</span>
-                    </div>
-                    <p className="font-semibold text-neural-900">Vote</p>
-                    <p className="text-sm text-neural-600 mt-2">Community members can vote on ideas</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-100 text-center">
-                    <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl">🚀</span>
-                    </div>
-                    <p className="font-semibold text-neural-900">Build</p>
-                    <p className="text-sm text-neural-600 mt-2">Popular ideas make it to our roadmap</p>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
