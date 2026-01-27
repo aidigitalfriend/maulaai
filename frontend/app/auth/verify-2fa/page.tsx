@@ -140,7 +140,7 @@ function Verify2FAContent() {
           <Link href="/" className="inline-flex items-center justify-center mb-6">
             <Image
               src="/images/logos/company-logo.png"
-              alt="Maula AI"
+              alt="One Last AI"
               width={80}
               height={80}
               className="w-20 h-20 object-contain"

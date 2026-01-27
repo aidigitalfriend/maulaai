@@ -462,7 +462,7 @@ export default function LiveSupportPage() {
       const errorMessage: Message = {
         id: Date.now().toString(),
         role: 'system',
-        content: '⚠️ Failed to create support ticket. Please try again or contact us directly at support@maula.ai',
+        content: '⚠️ Failed to create support ticket. Please try again or contact us directly at support@onelastai.com',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);

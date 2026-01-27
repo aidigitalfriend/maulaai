@@ -199,7 +199,7 @@ console.log(result.reply);`
                 <span className="flex-shrink-0 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
                 <div>
                   <p className="font-semibold text-neural-900">Sign in to your account</p>
-                  <p className="text-neural-600 text-sm">Log in to the Maula AI dashboard</p>
+                  <p className="text-neural-600 text-sm">Log in to the One Last AI dashboard</p>
                 </div>
               </li>
               <li className="flex gap-4">

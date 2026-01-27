@@ -1,6 +1,6 @@
 /**
  * AGENT SUBSCRIPTIONS ROUTES - PRISMA VERSION
- * PostgreSQL-based subscription management for Maula AI
+ * PostgreSQL-based subscription management for One Last AI
  */
 
 import express from 'express';

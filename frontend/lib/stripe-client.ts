@@ -92,7 +92,7 @@ async function getOrCreateProduct(agentId: string, agentName?: string): Promise<
   // Create new product
   const product = await stripe.products.create({
     name: `${displayName} - AI Agent Access`,
-    description: `Access to ${displayName} AI agent on Maula.ai`,
+    description: `Access to ${displayName} AI agent on OnelastAI.com`,
     metadata: {
       agentId,
       type: 'agent_access',

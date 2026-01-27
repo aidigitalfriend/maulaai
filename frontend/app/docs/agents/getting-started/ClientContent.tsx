@@ -20,7 +20,7 @@ export default function GettingStartedContent() {
               Quick Start Guide
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Getting Started with Agents</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn the fundamentals of creating, deploying, and managing AI agents on Maula AI</p>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn the fundamentals of creating, deploying, and managing AI agents on One Last AI</p>
             <div className="flex items-center justify-center gap-4 mt-6 text-white/70 text-sm">
               <span>📖 8 min read</span>
               <span>•</span>
@@ -96,7 +96,7 @@ export default function GettingStartedContent() {
                   <h3 className="text-xl font-bold text-neural-900">Create an Account</h3>
                 </div>
                 <p className="text-neural-600">
-                  Visit Maula AI and sign up for a free account. You'll get immediate access to all available agents and the ability to create custom ones.
+                  Visit One Last AI and sign up for a free account. You'll get immediate access to all available agents and the ability to create custom ones.
                 </p>
               </div>
 

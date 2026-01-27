@@ -348,7 +348,7 @@ export default function CommunityPage() {
             <Users className="w-8 h-8" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-            Maula AI Community
+            One Last AI Community
           </h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Join real-time discussions with thousands of developers, AI
@@ -633,7 +633,7 @@ export default function CommunityPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 text-2xl">🎯</div>
               <h3 className="font-bold text-neural-900 mb-2">Stay On Topic</h3>
               <p className="text-neural-600 text-sm">
-                Keep discussions relevant to Maula AI and applicable law.
+                Keep discussions relevant to One Last AI and applicable law.
                 Don't share illegal content or proprietary data without
                 permission.
               </p>

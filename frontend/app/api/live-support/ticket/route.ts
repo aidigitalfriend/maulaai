@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       data: {
         ticketNumber,
         userId,
-        email: userEmail || body.email || 'unknown@maula.ai',
+        email: userEmail || body.email || 'unknown@onelastai.com',
         name: body.name || null,
         subject,
         description,

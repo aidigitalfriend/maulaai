@@ -136,14 +136,14 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                   1. Introduction
                 </h2>
                 <p className="text-neural-700 leading-relaxed mb-4">
-                  This Cookie Policy explains how Maula AI ("we," "our," or
+                  This Cookie Policy explains how One Last AI ("we," "our," or
                   "us") uses cookies and similar tracking technologies on our
                   website at{' '}
                   <a
-                    href="https://maula.ai"
+                    href="https://onelastai.com"
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    maula.ai
+                    onelastai.com
                   </a>
                   .
                 </p>
@@ -263,7 +263,7 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
                       First-Party Cookies
                     </p>
                     <p className="text-neural-600 text-sm">
-                      Set by Maula AI directly. We have full control over
+                      Set by One Last AI directly. We have full control over
                       these cookies.
                     </p>
                   </div>
@@ -758,28 +758,28 @@ The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500
               <p>
                 Email:{' '}
                 <a
-                  href="mailto:privacy@maula.ai"
+                  href="mailto:privacy@onelastai.com"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  privacy@maula.ai
+                  privacy@onelastai.com
                 </a>
               </p>
               <p>
                 Support:{' '}
                 <a
-                  href="mailto:support@maula.ai"
+                  href="mailto:support@onelastai.com"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  support@maula.ai
+                  support@onelastai.com
                 </a>
               </p>
               <p>
                 Website:{' '}
                 <a
-                  href="https://maula.ai"
+                  href="https://onelastai.com"
                   className="text-white hover:text-blue-200 underline"
                 >
-                  https://maula.ai
+                  https://onelastai.com
                 </a>
               </p>
             </div>

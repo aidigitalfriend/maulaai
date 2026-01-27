@@ -27,7 +27,7 @@ export default function CareersPage() {
       type: 'Full-time',
       experience: '3+ years',
       salary: '$60,000 - $90,000',
-      description: 'Join our growing sales team and help drive Maula AI adoption across enterprises. You\'ll manage client relationships, identify opportunities, and close deals with mid-market and enterprise clients.',
+      description: 'Join our growing sales team and help drive One Last AI adoption across enterprises. You\'ll manage client relationships, identify opportunities, and close deals with mid-market and enterprise clients.',
       requirements: [
         'Proven sales track record in B2B SaaS',
         'Strong communication and negotiation skills',
@@ -81,7 +81,7 @@ export default function CareersPage() {
       type: 'Full-time',
       experience: '2+ years',
       salary: '$70,000 - $110,000',
-      description: 'Build and scale Maula AI with modern technologies. You\'ll work on both frontend and backend, contributing to our Next.js and Node.js stack while collaborating with a talented engineering team.',
+      description: 'Build and scale One Last AI with modern technologies. You\'ll work on both frontend and backend, contributing to our Next.js and Node.js stack while collaborating with a talented engineering team.',
       requirements: [
         'Strong JavaScript/TypeScript skills',
         'Experience with React and Next.js',
@@ -135,7 +135,7 @@ export default function CareersPage() {
       type: 'Full-time',
       experience: '3+ years',
       salary: '$80,000 - $130,000',
-      description: 'Develop and optimize AI models for Maula AI. You\'ll work on LLM integration, model fine-tuning, and building intelligent features that power our agents.',
+      description: 'Develop and optimize AI models for One Last AI. You\'ll work on LLM integration, model fine-tuning, and building intelligent features that power our agents.',
       requirements: [
         'Strong Python programming skills',
         'Experience with machine learning frameworks (PyTorch, TensorFlow)',
@@ -162,7 +162,7 @@ export default function CareersPage() {
       type: 'Full-time',
       experience: '4+ years',
       salary: '$85,000 - $125,000',
-      description: 'Shape the future of Maula AI by defining product strategy and roadmap. You\'ll work with engineering, design, and stakeholders to build features users love.',
+      description: 'Shape the future of One Last AI by defining product strategy and roadmap. You\'ll work with engineering, design, and stakeholders to build features users love.',
       requirements: [
         'Proven product management experience in SaaS',
         'Strong data analysis and metrics literacy',
@@ -189,7 +189,7 @@ export default function CareersPage() {
       type: 'Full-time',
       experience: '2+ years',
       salary: '$55,000 - $85,000',
-      description: 'Drive awareness and engagement for Maula AI. You\'ll create compelling content, manage campaigns, and help build our brand in the AI ecosystem.',
+      description: 'Drive awareness and engagement for One Last AI. You\'ll create compelling content, manage campaigns, and help build our brand in the AI ecosystem.',
       requirements: [
         'Experience with digital marketing',
         'Strong writing and content creation skills',
@@ -216,7 +216,7 @@ export default function CareersPage() {
       type: 'Full-time',
       experience: '2+ years',
       salary: '$50,000 - $80,000',
-      description: 'Be the trusted advisor for our customers. You\'ll help ensure they achieve their goals with Maula AI and identify upsell opportunities.',
+      description: 'Be the trusted advisor for our customers. You\'ll help ensure they achieve their goals with One Last AI and identify upsell opportunities.',
       requirements: [
         'Customer success or account management experience',
         'Strong communication and interpersonal skills',

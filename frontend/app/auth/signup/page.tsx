@@ -83,7 +83,7 @@ function SignupPageContent() {
               <Link href="/">
                 <Image
                   src="/images/logos/company-logo.png"
-                  alt="Maula AI"
+                  alt="One Last AI"
                   width={60}
                   height={60}
                   className="w-15 h-15 object-contain"
@@ -92,7 +92,7 @@ function SignupPageContent() {
               </Link>
             </div>
             <h1 className="text-3xl font-bold text-white mb-2 text-center">
-              Join Maula AI
+              Join One Last AI
             </h1>
             <p className="text-blue-100 text-center">
               Create your account in seconds

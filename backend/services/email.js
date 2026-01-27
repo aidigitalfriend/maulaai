@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer'
 
 // Admin notification email
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@maula.ai'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'support@onelastai.com'
 
 // Namecheap Private Email SMTP Configuration
 const SMTP_CONFIG = {
@@ -9,10 +9,10 @@ const SMTP_CONFIG = {
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false, // Use STARTTLS
   auth: {
-    user: process.env.SMTP_USER || 'noreply@maula.ai',
+    user: process.env.SMTP_USER || 'noreply@onelastai.com',
     pass: process.env.SMTP_PASS || '',
   },
-  from: process.env.SMTP_FROM || 'Maula AI <noreply@maula.ai>',
+  from: process.env.SMTP_FROM || 'One Last AI <noreply@onelastai.com>',
 }
 
 // Create SMTP transporter
@@ -66,7 +66,7 @@ export function getWelcomeEmailTemplate(userName) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Maula AI</title>
+  <title>Welcome to One Last AI</title>
   <style>
     body {
       margin: 0;
@@ -250,7 +250,7 @@ export function getWelcomeEmailTemplate(userName) {
     <!-- Header -->
     <div class="header">
       <div class="logo">🤖</div>
-      <h1>Welcome to Maula AI!</h1>
+      <h1>Welcome to One Last AI!</h1>
       <p>Your journey into the future of AI begins now</p>
     </div>
 
@@ -259,7 +259,7 @@ export function getWelcomeEmailTemplate(userName) {
       <p class="greeting">Hello ${userName}! 👋</p>
       
       <p class="message">
-        We're thrilled to have you join the Maula AI community! You've just unlocked access to the most advanced AI platform designed to transform the way you work, create, and innovate.
+        We're thrilled to have you join the One Last AI community! You've just unlocked access to the most advanced AI platform designed to transform the way you work, create, and innovate.
       </p>
 
       <p class="message">
@@ -298,7 +298,7 @@ export function getWelcomeEmailTemplate(userName) {
 
       <!-- CTA Button -->
       <div class="cta-container">
-        <a href="https://maula.ai/dashboard" class="cta-button">
+        <a href="https://onelastai.com/dashboard" class="cta-button">
           🚀 Start Exploring Now
         </a>
       </div>
@@ -308,13 +308,13 @@ export function getWelcomeEmailTemplate(userName) {
         <div class="support-title">💡 Need Help?</div>
         <p class="support-text">
           Our support team is here 24/7! Visit our <strong>Help Center</strong> at 
-          <a href="https://maula.ai/support" style="color: #667eea;">maula.ai/support</a> 
-          or email us at <strong>support@maula.ai</strong>
+          <a href="https://onelastai.com/support" style="color: #667eea;">onelastai.com/support</a> 
+          or email us at <strong>support@onelastai.com</strong>
         </p>
       </div>
 
       <p class="message">
-        We can't wait to see what you'll create with Maula AI. Welcome aboard! 🎉
+        We can't wait to see what you'll create with One Last AI. Welcome aboard! 🎉
       </p>
     </div>
 
@@ -328,19 +328,19 @@ export function getWelcomeEmailTemplate(userName) {
       </div>
 
       <div class="signature">
-        <div class="signature-team">The Maula AI Team</div>
-        <div class="signature-company">Maula AI - Empowering Innovation with AI</div>
+        <div class="signature-team">The One Last AI Team</div>
+        <div class="signature-company">One Last AI - Empowering Innovation with AI</div>
       </div>
 
       <p class="footer-text">
-        © 2025 Maula AI. All rights reserved.<br>
+        © 2025 One Last AI. All rights reserved.<br>
         Mansion 24 Ramkhamhaeng, HuaMak, 10240 THA
       </p>
       
       <p class="footer-text" style="margin-top: 15px;">
-        You received this email because you created an account at Maula AI.<br>
-        <a href="https://maula.ai/legal/privacy-policy" style="color: #667eea;">Privacy Policy</a> | 
-        <a href="https://maula.ai/legal/terms-of-service" style="color: #667eea;">Terms of Service</a>
+        You received this email because you created an account at One Last AI.<br>
+        <a href="https://onelastai.com/legal/privacy-policy" style="color: #667eea;">Privacy Policy</a> | 
+        <a href="https://onelastai.com/legal/terms-of-service" style="color: #667eea;">Terms of Service</a>
       </p>
     </div>
   </div>
@@ -360,7 +360,7 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password - Maula AI</title>
+  <title>Reset Your Password - One Last AI</title>
   <style>
     body {
       margin: 0;
@@ -565,7 +565,7 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
       <p class="greeting">Hello ${userName}! 👋</p>
       
       <p class="message">
-        We received a request to reset the password for your Maula AI account. If you made this request, click the button below to create a new password.
+        We received a request to reset the password for your One Last AI account. If you made this request, click the button below to create a new password.
       </p>
 
       <!-- Reset Button -->
@@ -629,19 +629,19 @@ export function getPasswordResetEmailTemplate(userName, resetUrl) {
       </div>
 
       <div class="signature">
-        <div class="signature-team">The Maula AI Security Team</div>
-        <div class="signature-company">Maula AI - Your Security is Our Priority</div>
+        <div class="signature-team">The One Last AI Security Team</div>
+        <div class="signature-company">One Last AI - Your Security is Our Priority</div>
       </div>
 
       <p class="footer-text">
-        © 2025 Maula AI. All rights reserved.<br>
+        © 2025 One Last AI. All rights reserved.<br>
         Mansion 24 Ramkhamhaeng, HuaMak, 10240 THA
       </p>
       
       <p class="footer-text" style="margin-top: 15px;">
-        Need help? Contact us at <strong>support@maula.ai</strong><br>
-        <a href="https://maula.ai/legal/privacy-policy" style="color: #f5576c;">Privacy Policy</a> | 
-        <a href="https://maula.ai/legal/terms-of-service" style="color: #f5576c;">Terms of Service</a>
+        Need help? Contact us at <strong>support@onelastai.com</strong><br>
+        <a href="https://onelastai.com/legal/privacy-policy" style="color: #f5576c;">Privacy Policy</a> | 
+        <a href="https://onelastai.com/legal/terms-of-service" style="color: #f5576c;">Terms of Service</a>
       </p>
     </div>
   </div>
@@ -664,9 +664,9 @@ export async function sendWelcomeEmail(email, name) {
 
   try {
     await transporter.sendMail({
-      from: 'Maula AI <noreply@maula.ai>',
+      from: 'One Last AI <noreply@onelastai.com>',
       to: email,
-      subject: '🎉 Welcome to Maula AI - Let\'s Get Started!',
+      subject: '🎉 Welcome to One Last AI - Let\'s Get Started!',
       html: getWelcomeEmailTemplate(name),
     })
     console.log(`✅ Welcome email sent to ${email}`)
@@ -693,9 +693,9 @@ export async function sendPasswordResetEmail(
 
   try {
     await transporter.sendMail({
-      from: 'Maula AI Security <noreply@maula.ai>',
+      from: 'One Last AI Security <noreply@onelastai.com>',
       to: email,
-      subject: '🔐 Reset Your Password - Maula AI',
+      subject: '🔐 Reset Your Password - One Last AI',
       html: getPasswordResetEmailTemplate(name, resetUrl),
     })
     console.log(`✅ Password reset email sent to ${email}`)
@@ -865,13 +865,13 @@ export async function notifyAdminSupportTicket(data) {
       <div class="value"><span class="priority">${data.priority}</span></div>
       
       <div style="text-align: center; margin-top: 30px;">
-        <a href="https://maula.ai/admin/support" class="btn">View in Admin Panel</a>
+        <a href="https://onelastai.com/admin/support" class="btn">View in Admin Panel</a>
       </div>
     </div>
   </div>
 </body>
 </html>`
-  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://maula.ai/admin/support`
+  const text = `New Support Ticket\n\nTicket #: ${data.ticketNumber}\nSubject: ${data.subject}\nCustomer: ${data.userName} (${data.userEmail})\nCategory: ${data.category}\nPriority: ${data.priority}\n\nView: https://onelastai.com/admin/support`
   
   await sendAdminEmail(subject, html, text)
 }
@@ -959,7 +959,7 @@ export async function notifyAdminNewUser(data) {
     <div class="content">
       <div class="name">${data.name}</div>
       <div class="email">${data.email}</div>
-      <p style="color: #888; margin-top: 20px; font-size: 14px;">A new user just joined Maula AI!</p>
+      <p style="color: #888; margin-top: 20px; font-size: 14px;">A new user just joined One Last AI!</p>
     </div>
   </div>
 </body>

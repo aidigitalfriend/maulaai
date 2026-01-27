@@ -2224,7 +2224,7 @@ export default function CanvasMode({
         >
           <Image
             src="/images/logos/company-logo.png"
-            alt="Maula AI logo"
+            alt="One Last AI logo"
             width={20}
             height={20}
             className="w-5 h-5 object-contain"
@@ -3185,7 +3185,7 @@ export default function CanvasMode({
             <span
               className={`text-sm font-semibold ${brandColors.gradientText}`}
             >
-              Maula AI
+              One Last AI
             </span>
           </div>
           {/* Actions */}

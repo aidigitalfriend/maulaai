@@ -73,16 +73,16 @@ jobs:
       - name: Public health checks (HTTPS)
         run: |
           set -e
-          echo "==> Checking https://maula.ai/"
-          code=$(curl -k -s -o /dev/null -w "%{http_code}" --retry 4 --retry-delay 3 https://maula.ai/);
+          echo "==> Checking https://onelastai.com/"
+          code=$(curl -k -s -o /dev/null -w "%{http_code}" --retry 4 --retry-delay 3 https://onelastai.com/);
           echo "GET / => $code"; [ "$code" = "200" ] || exit 1
 
-          echo "==> Checking https://maula.ai/health"
-          code=$(curl -k -s -o /dev/null -w "%{http_code}" --retry 4 --retry-delay 3 https://maula.ai/health);
+          echo "==> Checking https://onelastai.com/health"
+          code=$(curl -k -s -o /dev/null -w "%{http_code}" --retry 4 --retry-delay 3 https://onelastai.com/health);
           echo "GET /health => $code"; [ "$code" = "200" ] || exit 1
 
-          echo "==> Checking https://maula.ai/api/status"
-          code=$(curl -k -s -o /dev/null -w "%{http_code}" --retry 4 --retry-delay 3 https://maula.ai/api/status);
+          echo "==> Checking https://onelastai.com/api/status"
+          code=$(curl -k -s -o /dev/null -w "%{http_code}" --retry 4 --retry-delay 3 https://onelastai.com/api/status);
           echo "GET /api/status => $code"; [ "$code" = "200" ] || exit 1
 
             echo "==> Done"

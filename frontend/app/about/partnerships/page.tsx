@@ -15,7 +15,7 @@ export default function PartnershipsPage() {
       name: "Amazon Web Services",
       icon: "⚙️",
       description: "Cloud computing and storage solutions",
-      details: "Using AWS's comprehensive suite of services for reliable hosting, data processing, and enterprise-grade security for Maula AI."
+      details: "Using AWS's comprehensive suite of services for reliable hosting, data processing, and enterprise-grade security for One Last AI."
     },
     {
       name: "Microsoft Azure",
@@ -36,13 +36,13 @@ export default function PartnershipsPage() {
       name: "Microsoft Teams",
       icon: "👥",
       description: "Enterprise communication hub",
-      details: "Integrate Maula AI agents with Teams for seamless collaboration, automated notifications, and enterprise communication workflows."
+      details: "Integrate One Last AI agents with Teams for seamless collaboration, automated notifications, and enterprise communication workflows."
     },
     {
       name: "Zapier",
       icon: "⚡",
       description: "Automation and workflow platform",
-      details: "Connect Maula AI with thousands of apps through Zapier for sophisticated automation workflows and data synchronization."
+      details: "Connect One Last AI with thousands of apps through Zapier for sophisticated automation workflows and data synchronization."
     },
     {
       name: "HubSpot",
@@ -69,7 +69,7 @@ export default function PartnershipsPage() {
       name: "IBM Consulting",
       icon: "🔧",
       description: "Enterprise technology solutions",
-      details: "Delivering comprehensive consulting and integration services for enterprise-scale Maula AI deployments."
+      details: "Delivering comprehensive consulting and integration services for enterprise-scale One Last AI deployments."
     }
   ]
 
@@ -103,12 +103,12 @@ export default function PartnershipsPage() {
           <div className="bg-white border border-neural-100 rounded-2xl p-6 text-center shadow-sm">
             <Cloud className="w-10 h-10 text-brand-600 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-neural-800 mb-2">Technology Partnerships</h3>
-            <p className="text-neural-600 text-sm">Infrastructure and cloud services powering Maula AI</p>
+            <p className="text-neural-600 text-sm">Infrastructure and cloud services powering One Last AI</p>
           </div>
           <div className="bg-white border border-neural-100 rounded-2xl p-6 text-center shadow-sm">
             <Zap className="w-10 h-10 text-accent-600 mx-auto mb-3" />
             <h3 className="text-lg font-bold text-neural-800 mb-2">Integration Partnerships</h3>
-            <p className="text-neural-600 text-sm">Tools and platforms that enhance Maula AI capabilities</p>
+            <p className="text-neural-600 text-sm">Tools and platforms that enhance One Last AI capabilities</p>
           </div>
           <div className="bg-white border border-neural-100 rounded-2xl p-6 text-center shadow-sm">
             <Users className="w-10 h-10 text-pink-600 mx-auto mb-3" />
@@ -136,7 +136,7 @@ export default function PartnershipsPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
             <h4 className="text-neural-800 font-bold mb-2">Why These Partners?</h4>
             <p className="text-neural-600">
-              We partner with Google Cloud, AWS, and Microsoft Azure to ensure Maula AI runs on best-in-class infrastructure. 
+              We partner with Google Cloud, AWS, and Microsoft Azure to ensure One Last AI runs on best-in-class infrastructure. 
               These partnerships guarantee reliability, security, and scalability for enterprises of all sizes.
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function PartnershipsPage() {
           <div className="bg-purple-50 border border-purple-200 rounded-2xl p-6">
             <h4 className="text-neural-800 font-bold mb-2">Seamless Integrations</h4>
             <p className="text-neural-600">
-              Our integration partnerships enable Maula AI to work seamlessly with tools your team already uses. 
+              Our integration partnerships enable One Last AI to work seamlessly with tools your team already uses. 
               From communication platforms to automation tools, we're constantly expanding our ecosystem to enhance your productivity.
             </p>
           </div>
@@ -174,7 +174,7 @@ export default function PartnershipsPage() {
               <Award className="w-6 h-6 text-pink-600" />
               <h2 className="text-3xl font-bold text-neural-800">Reseller Partners</h2>
             </div>
-            <p className="text-neural-600">Global consulting firms helping organizations implement Maula AI solutions</p>
+            <p className="text-neural-600">Global consulting firms helping organizations implement One Last AI solutions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -187,7 +187,7 @@ export default function PartnershipsPage() {
             <h4 className="text-neural-800 font-bold mb-2">Enterprise Implementation</h4>
             <p className="text-neural-600">
               Our reseller partners bring deep enterprise expertise and global reach. They help organizations of all sizes 
-              successfully implement, customize, and optimize Maula AI for their specific business needs.
+              successfully implement, customize, and optimize One Last AI for their specific business needs.
             </p>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function PartnershipsPage() {
         <div className="bg-gradient-to-r from-brand-600 to-accent-600 rounded-2xl p-8 text-white text-center">
           <h2 className="text-3xl font-bold mb-4">Interested in Partnering?</h2>
           <p className="text-white/90 mb-4 text-lg max-w-2xl mx-auto">
-            We're always looking for innovative companies and consulting firms to partner with Maula AI.
+            We're always looking for innovative companies and consulting firms to partner with One Last AI.
           </p>
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">
             Whether you're interested in technology partnerships, integrations, or reselling, we'd love to explore opportunities together.

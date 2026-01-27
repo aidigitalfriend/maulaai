@@ -7,10 +7,10 @@ echo "🔧 Starting immediate performance optimizations..."
 
 # 1. Enable gzip compression in nginx
 echo "📦 Enabling gzip compression..."
-sudo tee /etc/nginx/sites-available/maula.ai << EOF
+sudo tee /etc/nginx/sites-available/onelastai.com << EOF
 server {
     listen 80;
-    server_name maula.ai www.maula.ai;
+    server_name onelastai.com www.onelastai.com;
 
     # Gzip compression
     gzip on;

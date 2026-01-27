@@ -584,7 +584,7 @@ export default function CreateTicketPage() {
                       </svg>
                     </div>
                     <p className="font-semibold text-neural-900">Documentation</p>
-                    <p className="text-sm text-neural-500">Learn how to use Maula AI</p>
+                    <p className="text-sm text-neural-500">Learn how to use One Last AI</p>
                   </Link>
                 </div>
               </div>

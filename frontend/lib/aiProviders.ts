@@ -14,7 +14,7 @@ export interface ProviderModelOption {
 // ============================================================================
 // Standard Structure for ALL agents (7 options):
 // 1. [Agent Name] - Anthropic (Primary for character personality)
-// 2. Maula AI - Mistral (Platform branding)
+// 2. One Last AI - Mistral (Platform branding)
 // 3. Image Generator - OpenAI (DALL-E)
 // 4. Fast Response - Cerebras (Ultra-fast inference)
 // 5. Research - xAI (Deep analysis)
@@ -24,7 +24,7 @@ export interface ProviderModelOption {
 
 // Helper to create standard agent options (all 7)
 // 1. Agent Character → Anthropic (primary for personality)
-// 2. Maula AI Platform → Mistral (platform branding)
+// 2. One Last AI Platform → Mistral (platform branding)
 // 3. Image Generator → OpenAI (DALL-E)
 // 4. Fast Response → Cerebras
 // 5. Research → xAI
@@ -41,10 +41,10 @@ function createAgentOptions(agentName: string): ProviderModelOption[] {
         { value: 'claude-3-5-haiku-20241022', label: 'Fast Response' },
       ],
     },
-    // 2. Maula AI Platform - Mistral (Platform branding)
+    // 2. One Last AI Platform - Mistral (Platform branding)
     {
       provider: 'mistral',
-      label: 'Maula AI',
+      label: 'One Last AI',
       models: [
         { value: 'mistral-large-latest', label: 'Best Quality' },
         { value: 'mistral-medium-latest', label: 'Balanced' },
@@ -363,7 +363,7 @@ export function getCanvasDefaultModel(provider?: string): string {
 // ============================================================================
 // Branded AI providers for the standalone Canvas App:
 // 1. One Last AI → Anthropic (Best for coding)
-// 2. Maula AI → Mistral (Platform branding)
+// 2. One Last AI → Mistral (Platform branding)
 // 3. Image Generator → OpenAI
 // 4. Code Builder → xAI Grok
 // 5. Planner → xAI
@@ -424,34 +424,34 @@ export function getCanvasAppProviders(): CanvasAppProviderConfig[] {
         },
       ],
     },
-    // 2. Maula AI - Mistral (Platform branding)
+    // 2. One Last AI - Mistral (Platform branding)
     {
       key: 'mistral',
-      name: 'Maula AI',
+      name: 'One Last AI',
       icon: '✨',
       color: 'indigo',
       models: [
         {
           id: 'mistral-large-latest',
           name: 'Maula Pro',
-          provider: 'Maula AI',
-          brandedProvider: 'Maula AI',
+          provider: 'One Last AI',
+          brandedProvider: 'One Last AI',
           description: 'Best quality & reasoning',
           icon: '✨',
         },
         {
           id: 'codestral-latest',
           name: 'Maula Code',
-          provider: 'Maula AI',
-          brandedProvider: 'Maula AI',
+          provider: 'One Last AI',
+          brandedProvider: 'One Last AI',
           description: 'Specialized for code generation',
           icon: '💻',
         },
         {
           id: 'mistral-small-latest',
           name: 'Maula Fast',
-          provider: 'Maula AI',
-          brandedProvider: 'Maula AI',
+          provider: 'One Last AI',
+          brandedProvider: 'One Last AI',
           description: 'Fast and efficient',
           icon: '⚡',
         },
@@ -650,7 +650,7 @@ export function getCanvasAppDefaultModel(): CanvasAppModel {
 // DEFAULT USER-FRIENDLY AI OPTIONS (Fallback for unknown agents)
 // ============================================================================
 // 1. AI Assistant → Anthropic (primary for personality)
-// 2. Maula AI Platform → Mistral (platform branding)
+// 2. One Last AI Platform → Mistral (platform branding)
 // 3. Image Generator → OpenAI (DALL-E)
 // 4. Fast Response → Cerebras
 // 5. Research → xAI
@@ -667,10 +667,10 @@ export const PROVIDER_MODEL_OPTIONS: ProviderModelOption[] = [
       { value: 'claude-3-5-haiku-20241022', label: 'Fast Response' },
     ],
   },
-  // 2. Maula AI Platform - Mistral
+  // 2. One Last AI Platform - Mistral
   {
     provider: 'mistral',
-    label: 'Maula AI',
+    label: 'One Last AI',
     models: [
       { value: 'mistral-large-latest', label: 'Best Quality' },
       { value: 'mistral-medium-latest', label: 'Balanced' },

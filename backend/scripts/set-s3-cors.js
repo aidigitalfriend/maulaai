@@ -23,8 +23,8 @@ const corsConfig = {
       AllowedHeaders: ['*'],
       AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
       AllowedOrigins: [
-        'https://maula.ai',
-        'https://www.maula.ai',
+        'https://onelastai.com',
+        'https://www.onelastai.com',
         'http://localhost:3000',
         'http://localhost:3100',
       ],

@@ -62,7 +62,7 @@ export default function RoadmapPage() {
             Building the Future
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Product Roadmap</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">See what we&apos;re building next and help shape the future of Maula AI</p>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">See what we&apos;re building next and help shape the future of One Last AI</p>
         </div>
       </section>
 
@@ -156,7 +156,7 @@ export default function RoadmapPage() {
             </div>
             <h2 className="text-3xl font-bold text-neural-900 mb-4">Have an Idea?</h2>
             <p className="text-lg text-neural-600 mb-8 max-w-xl mx-auto">
-              We love hearing from our community. Share your feature requests and help shape the future of Maula AI.
+              We love hearing from our community. Share your feature requests and help shape the future of One Last AI.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/community/suggestions" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">

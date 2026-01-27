@@ -1294,7 +1294,7 @@ function CanvasAppInner() {
             <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
               <img 
                 src="/images/logos/company-logo.png" 
-                alt="Maula AI" 
+                alt="One Last AI" 
                 className="w-9 h-9 object-contain"
               />
             </div>

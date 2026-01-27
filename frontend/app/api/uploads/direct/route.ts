@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         await fs.writeFile(localPath, buffer);
         
         // URL for the uploaded file
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://maula.ai';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onelastai.com';
         fileUrl = `${baseUrl}/uploads/chat/${localFilename}`;
         
         console.log(`[upload] Local upload success: ${localPath}, size: ${file.size} bytes`);

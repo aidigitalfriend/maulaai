@@ -56,10 +56,10 @@ export default function DocsIntegrations() {
     {
       platform: "Slack",
       steps: [
-        "Go to Slack App Directory and search for Maula AI",
+        "Go to Slack App Directory and search for One Last AI",
         "Click 'Add to Slack' and authorize the permissions",
         "Copy your Slack Bot Token from the API settings",
-        "Paste the token in Maula AI Settings → Integrations → Slack",
+        "Paste the token in One Last AI Settings → Integrations → Slack",
         "Test the connection with a message"
       ]
     },
@@ -69,7 +69,7 @@ export default function DocsIntegrations() {
         "Create a new application in Discord Developer Portal",
         "Add a Bot User to your application",
         "Copy the Bot Token",
-        "In Maula AI, go to Settings → Integrations → Discord",
+        "In One Last AI, go to Settings → Integrations → Discord",
         "Paste your token and configure the command prefix"
       ]
     }

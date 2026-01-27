@@ -127,8 +127,8 @@ const nextConfig = {
   images: {
     // Modern configuration: prefer remotePatterns over deprecated domains list
     remotePatterns: [
-      { protocol: 'https', hostname: 'maula.ai' },
-      { protocol: 'https', hostname: 'www.maula.ai' },
+      { protocol: 'https', hostname: 'onelastai.com' },
+      { protocol: 'https', hostname: 'www.onelastai.com' },
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: '*.wikimedia.org' },

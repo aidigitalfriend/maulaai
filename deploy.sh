@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ############################################################
-# Maula AI - Production Deployment Script
+# One Last AI - Production Deployment Script
 # ------------------------------------
 # Automates the local commit + push flow and the remote build
-# + restart cycle for the maula.ai project.
+# + restart cycle for the onelastai.com project.
 #
 # Usage:
 #   ./deploy.sh                          # auto commit + deploy
@@ -132,9 +132,9 @@ pm2 restart maula-frontend || true
 
 cd ~/maula-ai
 echo "🌐 Updating nginx config"
-if [ -f nginx/maula.ai.conf ]; then
-  sudo cp nginx/maula.ai.conf /etc/nginx/sites-available/maula.ai
-  sudo cp nginx/maula.ai.conf /etc/nginx/sites-enabled/maula.ai
+if [ -f nginx/onelastai.com.conf ]; then
+  sudo cp nginx/onelastai.com.conf /etc/nginx/sites-available/onelastai.com
+  sudo cp nginx/onelastai.com.conf /etc/nginx/sites-enabled/onelastai.com
   sudo nginx -t && sudo systemctl reload nginx
   echo "✅ Nginx config updated and reloaded"
 else

@@ -15,7 +15,7 @@ const clientNoSSL = new Client({
   host: 'maulaai-db.c3oiwgyy4oo1.ap-southeast-1.rds.amazonaws.com',
   port: 5432,
   user: 'postgres',
-  password: 'MaulaAI_2026_Secure!',
+  password: 'OnelastAI_2026_Secure!',
   database: 'maulaai',
   connectionTimeoutMillis: 10000,
 });

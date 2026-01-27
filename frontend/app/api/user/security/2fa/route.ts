@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const secret = authenticator.generateSecret();
     
     // Create the OTP auth URL
-    const otpauthUrl = authenticator.keyuri(user.email, 'Maula AI', secret);
+    const otpauthUrl = authenticator.keyuri(user.email, 'One Last AI', secret);
     
     // Generate QR code as data URL
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);

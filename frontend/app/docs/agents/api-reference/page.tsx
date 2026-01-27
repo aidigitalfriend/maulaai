@@ -41,7 +41,7 @@ export default function APIReferencePage() {
               <h2 className="text-2xl font-bold text-neural-900">API Overview</h2>
             </div>
             <p className="text-neural-600 mb-4">
-              The Maula AI API provides RESTful endpoints to integrate AI agents into your applications, websites, and systems. 
+              The One Last AI API provides RESTful endpoints to integrate AI agents into your applications, websites, and systems. 
               The API uses JSON for request and response payloads and requires authentication via API keys.
             </p>
             <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
@@ -58,7 +58,7 @@ export default function APIReferencePage() {
               <div>
                 <h3 className="text-lg font-semibold text-brand-600 mb-2">API Keys</h3>
                 <p className="text-neural-600 mb-3">
-                  All API requests require an API key in the Authorization header. You can generate API keys from your Maula AI dashboard under Settings → API Keys.
+                  All API requests require an API key in the Authorization header. You can generate API keys from your One Last AI dashboard under Settings → API Keys.
                 </p>
               </div>
 

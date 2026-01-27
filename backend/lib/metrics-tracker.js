@@ -1,6 +1,6 @@
 /**
  * METRICS TRACKER
- * Real-time metrics tracking service for Maula AI
+ * Real-time metrics tracking service for One Last AI
  */
 
 import { prisma } from './prisma.js';

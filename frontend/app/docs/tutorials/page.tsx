@@ -139,7 +139,7 @@ export default function DocsTutorials() {
           <h2 className="text-3xl font-bold text-neural-900 mb-8">Getting Started</h2>
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
             <p className="text-neural-700 mb-6 text-lg">
-              Welcome to Maula AI! This guide will help you create your first AI agent in just a few minutes.
+              Welcome to One Last AI! This guide will help you create your first AI agent in just a few minutes.
             </p>
 
             <div className="mb-8">
@@ -148,7 +148,7 @@ export default function DocsTutorials() {
                 <div className="flex gap-4">
                   <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
                   <div>
-                    <p className="font-semibold text-neural-900">Create an account on Maula AI</p>
+                    <p className="font-semibold text-neural-900">Create an account on One Last AI</p>
                     <p className="text-neural-600 text-sm">Visit the dashboard and sign up with your email</p>
                   </div>
                 </div>
@@ -192,10 +192,10 @@ export default function DocsTutorials() {
               <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 3: Create Your First Agent</h3>
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
-                  {`import { MaulaAI } from '@maulaai/sdk';
+                  {`import { OnelastAI } from '@maulaai/sdk';
 
 // Initialize client
-const client = new MaulaAI({
+const client = new OnelastAI({
   apiKey: process.env.MAULAAI_API_KEY
 });
 
@@ -247,9 +247,9 @@ console.log('Agent created:', agent.id);`}
               <h3 className="text-2xl font-bold text-neural-900 mb-6">Complete Example</h3>
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
-                  {`import { MaulaAI } from '@maulaai/sdk';
+                  {`import { OnelastAI } from '@maulaai/sdk';
 
-const client = new MaulaAI({
+const client = new OnelastAI({
   apiKey: process.env.MAULAAI_API_KEY
 });
 
@@ -590,7 +590,7 @@ DATADOG_API_KEY=your-datadog-key`}
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
                   {`// Set up logging
-const client = new MaulaAI({
+const client = new OnelastAI({
   apiKey: process.env.MAULAAI_API_KEY,
   logLevel: 'info',
   onError: (error) => {

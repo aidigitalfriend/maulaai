@@ -23,7 +23,7 @@ export default function AboutOverviewPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
             <Users className="w-10 h-10" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">About Maula AI</h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">About One Last AI</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Transforming businesses with emotionally intelligent, human-centric AI agents
           </p>
@@ -41,7 +41,7 @@ export default function AboutOverviewPage() {
               <div className="flex-1">
                 <h3 className="text-2xl font-bold text-amber-900 mb-3">Special Recognition</h3>
                 <p className="text-lg text-amber-800 mb-3">
-                  We extend our heartfelt gratitude to <span className="font-bold">Mr. Ben from Thailand</span> for his exceptional and invaluable contributions to Maula AI.
+                  We extend our heartfelt gratitude to <span className="font-bold">Mr. Ben from Thailand</span> for his exceptional and invaluable contributions to One Last AI.
                 </p>
                 <p className="text-amber-700 mb-2">
                   <span className="font-semibold">His dedication includes:</span>
@@ -65,7 +65,7 @@ export default function AboutOverviewPage() {
                   </li>
                 </ul>
                 <p className="text-amber-800 font-semibold mt-4">
-                  Mr. Ben's vision, generosity, and commitment to excellence have been instrumental in bringing Maula AI to life. He truly deserves this special recognition.
+                  Mr. Ben's vision, generosity, and commitment to excellence have been instrumental in bringing One Last AI to life. He truly deserves this special recognition.
                 </p>
               </div>
             </div>
@@ -226,7 +226,7 @@ export default function AboutOverviewPage() {
                 </ul>
               </div>
               <div className="bg-white/15 rounded-xl p-6 backdrop-blur-sm border border-white/20">
-                <h4 className="text-xl font-bold mb-3">Maula AI Master</h4>
+                <h4 className="text-xl font-bold mb-3">One Last AI Master</h4>
                 <ul className="space-y-2 text-sm text-white/90">
                   <li className="flex items-center gap-2">
                     <span>▸</span>
@@ -301,7 +301,7 @@ export default function AboutOverviewPage() {
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
                     <Users className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-xl font-bold text-neural-900">Maula AI</h4>
+                  <h4 className="text-xl font-bold text-neural-900">One Last AI</h4>
                 </div>
                 <p className="text-neural-600 text-sm mb-4">
                   Cinematic AI multiverse with 50+ modular agents

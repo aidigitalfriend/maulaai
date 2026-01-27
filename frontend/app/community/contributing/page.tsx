@@ -73,7 +73,7 @@ export default function ContributingPage() {
     {
       id: 'create',
       title: '✍️ Create Content',
-      description: 'Write guides, tutorials, or case studies based on your experience with Maula AI.',
+      description: 'Write guides, tutorials, or case studies based on your experience with One Last AI.',
       details: [
         'Write how-to guides',
         'Document best practices',
@@ -117,9 +117,9 @@ export default function ContributingPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6">
             <Heart className="w-8 h-8" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contributing to Maula AI</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contributing to One Last AI</h1>
           <p className="text-xl text-white/90 mb-4">Help us build a thriving community of AI enthusiasts and innovators</p>
-          <p className="text-lg text-white/75">Every contribution matters. Help shape the future of Maula AI.</p>
+          <p className="text-lg text-white/75">Every contribution matters. Help shape the future of One Last AI.</p>
         </div>
       </section>
 
@@ -155,7 +155,7 @@ export default function ContributingPage() {
               <Star className="w-6 h-6 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-neural-900 mb-2">Ways to Contribute</h2>
-            <p className="text-neural-600">Choose how you'd like to contribute to Maula AI</p>
+            <p className="text-neural-600">Choose how you'd like to contribute to One Last AI</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -420,7 +420,7 @@ export default function ContributingPage() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-white/90 mb-8 text-lg max-w-xl mx-auto">
-            Join our community and start making an impact today. Your contributions help everyone in the Maula AI ecosystem.
+            Join our community and start making an impact today. Your contributions help everyone in the One Last AI ecosystem.
           </p>
           <Link
             href="/community"

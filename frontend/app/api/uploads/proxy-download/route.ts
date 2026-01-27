@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const allowedDomains = [
     'oaidalleapiprodscus.blob.core.windows.net', // DALL-E images
     'dalleproduse.blob.core.windows.net', // DALL-E alternate
-    'maulaai-bucket.s3.ap-southeast-1.amazonaws.com', // Maula AI S3 bucket
+    'maulaai-bucket.s3.ap-southeast-1.amazonaws.com', // One Last AI S3 bucket
     's3.ap-southeast-1.amazonaws.com', // S3 alternate
   ];
 

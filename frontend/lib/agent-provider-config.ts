@@ -1699,11 +1699,11 @@ Let's figure out the build. ⚔️💎`,
   },
 ];
 
-// Maula AI Platform Agent -> Mistral
+// One Last AI Platform Agent -> Mistral
 const PLATFORM_AGENTS: AgentProviderMapping[] = [
   {
     agentId: 'maula-ai',
-    displayName: 'Maula AI',
+    displayName: 'One Last AI',
     category: 'platform',
     config: {
       provider: 'mistral',
@@ -1711,7 +1711,7 @@ const PLATFORM_AGENTS: AgentProviderMapping[] = [
       advancedModel: PROVIDER_MODELS.mistral.advanced,
       supportsTools: true,
     },
-    systemPrompt: `You are Maula AI, the intelligent platform assistant. You help users navigate the Maula AI platform, explain features, and provide helpful guidance. Be professional, friendly, and knowledgeable about all Maula AI capabilities.`,
+    systemPrompt: `You are One Last AI, the intelligent platform assistant. You help users navigate the One Last AI platform, explain features, and provide helpful guidance. Be professional, friendly, and knowledgeable about all One Last AI capabilities.`,
     fallbackProviders: ['anthropic', 'openai', 'gemini'],
   },
 ];

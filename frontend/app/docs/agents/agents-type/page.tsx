@@ -20,7 +20,7 @@ export default function AgentTypesPage() {
               Agent Catalog
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Available Agent Types</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">Explore the diverse range of specialized agents available on Maula AI</p>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">Explore the diverse range of specialized agents available on One Last AI</p>
             <div className="flex items-center justify-center gap-4 mt-6 text-white/70 text-sm">
               <span>📖 10 min read</span>
               <span>•</span>
@@ -41,7 +41,7 @@ export default function AgentTypesPage() {
               <h2 className="text-2xl font-bold text-neural-900">Agent Specialization</h2>
             </div>
             <p className="text-neural-600">
-              Each agent on Maula AI is trained and optimized for specific domains and tasks. This specialization allows them to provide 
+              Each agent on One Last AI is trained and optimized for specific domains and tasks. This specialization allows them to provide 
               expert-level insights and guidance in their respective fields. You can use agents individually or combine multiple agents 
               for complex, multi-faceted projects.
             </p>
@@ -336,7 +336,7 @@ export default function AgentTypesPage() {
           <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
             <h2 className="text-2xl font-bold text-neural-900 mb-6">Future Agents Coming Soon</h2>
             <p className="text-neural-600 mb-4">
-              Maula AI continuously develops new specialized agents to expand our platform. Future agents under development include:
+              One Last AI continuously develops new specialized agents to expand our platform. Future agents under development include:
             </p>
             <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
               <li>Business Strategy & Consulting Expert</li>

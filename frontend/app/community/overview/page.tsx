@@ -20,7 +20,7 @@ export default function CommunityOverviewPage() {
       icon: GitBranch,
       emoji: "🔧",
       title: "Contributing",
-      description: "Help improve Maula AI by contributing code, reporting bugs, or suggesting new features.",
+      description: "Help improve One Last AI by contributing code, reporting bugs, or suggesting new features.",
       link: "/community/contributing",
       linkText: "Get Involved",
       color: "from-green-500 to-emerald-600",
@@ -214,7 +214,7 @@ export default function CommunityOverviewPage() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Join?</h2>
           <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
-            Start your journey with Maula AI today. Connect, learn, and build amazing things together.
+            Start your journey with One Last AI today. Connect, learn, and build amazing things together.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link 

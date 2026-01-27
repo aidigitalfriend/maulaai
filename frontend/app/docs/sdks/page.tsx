@@ -70,9 +70,9 @@ export default function DocsSDKs() {
   const jsInstallNpm = `npm install @maulaai/sdk`
   const jsInstallYarn = `yarn add @maulaai/sdk`
   
-  const jsBasicUsage = `import { MaulaAI } from '@maulaai/sdk';
+  const jsBasicUsage = `import { OnelastAI } from '@maulaai/sdk';
 
-const client = new MaulaAI({
+const client = new OnelastAI({
   apiKey: process.env.MAULAAI_API_KEY
 });
 
@@ -98,9 +98,9 @@ console.log(newAgent.id);`
 
   const pyInstall = `pip install maulaai-sdk`
   
-  const pyBasicUsage = `from maulaai import MaulaAI
+  const pyBasicUsage = `from maulaai import OnelastAI
 
-client = MaulaAI(api_key='YOUR_API_KEY')
+client = OnelastAI(api_key='YOUR_API_KEY')
 
 # Get all agents
 agents = client.agents.list()
@@ -114,10 +114,10 @@ response = client.conversations.send(
 print(response['reply'])`
 
   const pyAsyncUsage = `import asyncio
-from maulaai import AsyncMaulaAI
+from maulaai import AsyncOnelastAI
 
 async def main():
-  client = AsyncMaulaAI(api_key='YOUR_API_KEY')
+  client = AsyncOnelastAI(api_key='YOUR_API_KEY')
   
   response = await client.conversations.send(
     agent_id='agent_123',
@@ -160,7 +160,7 @@ func main() {
   const phpBasicUsage = `<?php
 require 'vendor/autoload.php';
 
-use MaulaAI\\Client;
+use OnelastAI\\Client;
 
 $client = new Client([
   'api_key' => 'YOUR_API_KEY'
@@ -182,7 +182,7 @@ echo $response['reply'];
   
   const rubyBasicUsage = `require 'maulaai'
 
-client = MaulaAI::Client.new(api_key: ENV['MAULAAI_API_KEY'])
+client = OnelastAI::Client.new(api_key: ENV['MAULAAI_API_KEY'])
 
 # List agents
 agents = client.agents.list
@@ -201,12 +201,12 @@ puts response['reply']`
   <version>2.2.0</version>
 </dependency>`
   
-  const javaBasicUsage = `import com.maulaai.sdk.MaulaAI;
+  const javaBasicUsage = `import com.maulaai.sdk.OnelastAI;
 import com.maulaai.sdk.models.Agent;
 
 public class Main {
   public static void main(String[] args) {
-    MaulaAI client = new MaulaAI("YOUR_API_KEY");
+    OnelastAI client = new OnelastAI("YOUR_API_KEY");
     
     // List agents
     List<Agent> agents = client.agents().list();
@@ -303,7 +303,7 @@ for await (const chunk of stream) {
               <div className="text-4xl mb-4">⚙️</div>
               <h3 className="text-lg font-bold text-neural-900 mb-2">Easy to Use</h3>
               <p className="text-neural-600 text-sm">
-                Simple APIs that make it easy to integrate Maula AI into your apps
+                Simple APIs that make it easy to integrate One Last AI into your apps
               </p>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">

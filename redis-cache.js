@@ -1,4 +1,4 @@
-// Redis Setup Guide for MaulaAI
+// Redis Setup Guide for OnelastAI
 // This script provides the foundation for Redis integration
 
 import { createClient } from 'redis';

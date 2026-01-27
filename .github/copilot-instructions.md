@@ -1,4 +1,4 @@
-# Copilot Instructions for Maula AI
+# Copilot Instructions for One Last AI
 
 - **Architecture**: Next.js 16 frontend in [frontend](frontend) and Express API/socket server in [backend/server-simple.js](backend/server-simple.js); root scripts run both (frontend on port 3100) with [package.json](package.json) `npm run dev` / `npm run start`.
 - **Routing pattern**: New API endpoints live in [backend/routes](backend/routes) and mount via the centralized [backend/routes/api-router.js](backend/routes/api-router.js) under `/api`; keep rate-limit middleware (`rateLimiters` from [backend/lib/cache.js](backend/lib/cache.js)) applied and prefer placing endpoints behind the apiLimiter/authLimiter used there.
