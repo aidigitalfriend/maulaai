@@ -240,11 +240,32 @@ export default function LiveSupportPage() {
   };
 
   const initializeChat = () => {
-    const userName = auth.state.user?.name || 'lovely';
+    const userName = auth.state.user?.name || 'there';
+    const firstName = userName.split(' ')[0];
+    const hour = new Date().getHours();
+    
+    // Time-based greetings that feel natural
+    const timeGreetings = hour < 12 
+      ? ['Good morning, sleepyhead! ☀️', 'Morning, sunshine! 🌅', 'Hey early bird! 🐦']
+      : hour < 17 
+      ? ['Hey there! ✨', 'Hiii! 👋', 'Well hello! 💕']
+      : hour < 21 
+      ? ['Good evening, lovely! 🌆', 'Hey you! 💫', 'Hi there! 🌸']
+      : ['Hey night owl! 🦉', 'Still up? Me too! 🌙', 'Late night vibes ✨'];
+    
+    const greeting = timeGreetings[Math.floor(Math.random() * timeGreetings.length)];
+    
+    // Variety of warm opening messages
+    const openingMessages = [
+      `${greeting}\n\nI'm Luna, and I'm genuinely happy you're here! 💕 Whether you need help with something, have questions, or just want to chat - I'm all ears.\n\nHow's your ${hour < 12 ? 'morning' : hour < 17 ? 'day' : 'evening'} going, ${firstName}?`,
+      `${greeting}\n\nLuna here! 🌙 So glad you stopped by. I know reaching out to support can sometimes feel like a chore, but I promise to make this as painless (maybe even fun?) as possible!\n\nWhat brings you here today?`,
+      `${greeting}\n\nIt's Luna! 💫 I've been looking forward to meeting you, ${firstName}! Whether it's a quick question or something that's been bugging you - I'm here and ready to help.\n\nWhat's on your mind?`,
+    ];
+    
     const welcomeMessage: Message = {
       id: '0',
       role: 'assistant',
-      content: `Hey there, ${userName}! 🌙💕\n\nI'm Luna, your personal support companion here at Maula AI! It's so wonderful to have you here, darling!\n\nHow can I make your day better today? 🥰`,
+      content: openingMessages[Math.floor(Math.random() * openingMessages.length)],
       timestamp: new Date(),
     };
     setMessages([welcomeMessage]);
@@ -474,30 +495,34 @@ export default function LiveSupportPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="bg-white rounded-2xl p-8 border border-neural-200 shadow-xl">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
-              <Phone size={32} className="text-white" />
+            {/* Luna's Avatar */}
+            <div className="relative mx-auto mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-xl shadow-pink-500/30 ring-4 ring-white">
+                <span className="text-4xl">🌙</span>
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
+                <span className="text-white text-xs">💬</span>
+              </span>
             </div>
-            <h1 className="text-3xl font-bold text-neural-900 mb-4">Live Support</h1>
+            <h1 className="text-3xl font-bold text-neural-900 mb-2">Hey there! I'm Luna 💕</h1>
             <p className="text-neural-600 mb-8">
-              Please log in to access our real-time AI support agent with
-              personalized assistance based on your account.
+              I'm so excited to chat with you! But first, I need to know who you are so I can give you the best, most personalized help possible. 
             </p>
 
             <div className="space-y-3">
               <Link
                 href="/auth/login"
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <AlertCircle size={18} />
-                Sign In Now
+                ✨ Sign In to Chat
               </Link>
               <p className="text-sm text-neural-500">
-                Don't have an account?{' '}
+                New here?{' '}
                 <Link
                   href="/auth/signup"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-purple-600 hover:text-purple-700 font-medium"
                 >
-                  Sign up here
+                  Join the family! 💜
                 </Link>
               </p>
             </div>
@@ -512,17 +537,28 @@ export default function LiveSupportPage() {
       <div className="flex h-screen overflow-hidden">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
+          {/* Header - Luna's Profile */}
           <div className="bg-white/80 backdrop-blur-xl border-b border-neural-200 px-6 py-4 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <MessageCircle size={20} className="text-white" />
+            <div className="flex items-center gap-4">
+              {/* Luna's Avatar */}
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/25 ring-2 ring-white">
+                  <span className="text-2xl">🌙</span>
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
               </div>
               <div>
-                <h1 className="font-bold text-lg text-neural-900">Live Support</h1>
-                <p className="text-sm text-neural-500 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  AI-Powered Support Agent
+                <h1 className="font-bold text-lg text-neural-900 flex items-center gap-2">
+                  Luna
+                  <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full font-medium">Support Companion</span>
+                </h1>
+                <p className="text-sm text-neural-500 flex items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    Online now
+                  </span>
+                  <span className="text-neural-300">•</span>
+                  <span className="text-neural-400">Usually replies instantly 💬</span>
                 </p>
               </div>
             </div>
@@ -547,8 +583,14 @@ export default function LiveSupportPage() {
                 key={message.id}
                 className={`flex ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
+                } ${message.role !== 'user' ? 'items-end gap-2' : ''}`}
               >
+                {/* Luna's mini avatar for her messages */}
+                {message.role === 'assistant' && (
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0 mb-1">
+                    <span className="text-sm">🌙</span>
+                  </div>
+                )}
                 <div
                   className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-2xl shadow-sm ${
                     message.role === 'user'
@@ -558,7 +600,7 @@ export default function LiveSupportPage() {
                       : 'bg-white border border-neural-200 text-neural-800 rounded-bl-sm'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                     {message.content}
                   </p>
                   <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-neural-400'}`}>
@@ -568,13 +610,20 @@ export default function LiveSupportPage() {
               </div>
             ))}
 
-            {isStreamingResponse && (
-              <div className="flex justify-start">
+            {/* Luna's typing indicator */}
+            {isLoading && !messages.some(m => m.isStreaming && m.content) && (
+              <div className="flex justify-start items-end gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0 mb-1">
+                  <span className="text-sm">🌙</span>
+                </div>
                 <div className="bg-white border border-neural-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-neural-500 italic">Luna is typing</span>
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -610,14 +659,14 @@ export default function LiveSupportPage() {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Describe your issue or ask a question..."
+                placeholder="Message Luna... 💬"
                 disabled={isLoading}
-                className="flex-1 bg-gray-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
+                className="flex-1 bg-gray-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 transition-all"
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
-                className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
+                className="px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
               >
                 {isLoading ? (
                   <Loader size={18} className="animate-spin" />
