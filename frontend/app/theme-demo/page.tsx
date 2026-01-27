@@ -105,35 +105,36 @@ export default function MetallicDemoPage() {
     { category: 'Security', title: 'Best Practices for Data Security in AI Applications', excerpt: 'Protect your data with enterprise-grade security measures and compliance.' },
   ];
 
-  // GSAP Animations
+  // GSAP Animations - Creative & Modern
   useGSAP(() => {
-    // Hero entrance animation
+    // Hero entrance animation with 3D effect
     const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     
     heroTl
       .fromTo(heroTitleRef.current, 
-        { opacity: 0, y: 100, scale: 0.9 }, 
-        { opacity: 1, y: 0, scale: 1, duration: 1.2 }
+        { opacity: 0, y: 100, scale: 0.9, rotateX: 20 }, 
+        { opacity: 1, y: 0, scale: 1, rotateX: 0, duration: 1.2 }
       )
       .fromTo(heroSubtitleRef.current, 
-        { opacity: 0, y: 50 }, 
-        { opacity: 1, y: 0, duration: 0.8 }, 
+        { opacity: 0, y: 50, filter: 'blur(10px)' }, 
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8 }, 
         '-=0.6'
       )
       .fromTo(heroCTARef.current, 
-        { opacity: 0, y: 30 }, 
-        { opacity: 1, y: 0, duration: 0.6 }, 
+        { opacity: 0, y: 30, scale: 0.8 }, 
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'back.out(2)' }, 
         '-=0.4'
       )
       .fromTo(dashboardRef.current, 
-        { opacity: 0, y: 80, scale: 0.95 }, 
-        { opacity: 1, y: 0, scale: 1, duration: 1 }, 
+        { opacity: 0, y: 80, scale: 0.9, rotateX: 10 }, 
+        { opacity: 1, y: 0, scale: 1, rotateX: 0, duration: 1.2, ease: 'power4.out' }, 
         '-=0.3'
       );
 
     // Parallax effect on dashboard
     gsap.to(dashboardRef.current, {
       y: 100,
+      rotateX: -5,
       ease: 'none',
       scrollTrigger: {
         trigger: heroRef.current,
@@ -143,49 +144,70 @@ export default function MetallicDemoPage() {
       },
     });
 
-    // Bento cards stagger animation
-    gsap.fromTo('.bento-card', 
-      { opacity: 0, y: 60, scale: 0.9 },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: 'back.out(1.4)',
-        scrollTrigger: {
-          trigger: bentoRef.current,
-          start: 'top 80%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
+    // Bento cards - EXPLOSIVE STAGGER from center
+    const bentoCards = gsap.utils.toArray('.bento-card');
+    bentoCards.forEach((card: any, i) => {
+      const directions = [
+        { x: -100, y: -50, rotate: -10 },
+        { x: 100, y: -50, rotate: 10 },
+        { x: -80, y: 50, rotate: -5 },
+        { x: 80, y: 50, rotate: 5 },
+        { x: 0, y: 80, rotate: 0 },
+      ];
+      const dir = directions[i % directions.length];
+      
+      gsap.fromTo(card, 
+        { opacity: 0, x: dir.x, y: dir.y, rotate: dir.rotate, scale: 0.7, filter: 'blur(8px)' },
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          rotate: 0,
+          scale: 1,
+          filter: 'blur(0px)',
+          duration: 1,
+          delay: i * 0.1,
+          ease: 'elastic.out(1, 0.8)',
+          scrollTrigger: {
+            trigger: bentoRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none reverse',
+          },
+        }
+      );
+    });
 
-    // Feature cards slide in
-    gsap.fromTo('.feature-card', 
-      { opacity: 0, x: -40 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: featuresRef.current,
-          start: 'top 75%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
+    // Feature cards - WAVE effect from left with 3D rotation
+    const featureCards = gsap.utils.toArray('.feature-card');
+    featureCards.forEach((card: any, i) => {
+      gsap.fromTo(card, 
+        { opacity: 0, x: -60, rotateY: -30, scale: 0.9 },
+        {
+          opacity: 1,
+          x: 0,
+          rotateY: 0,
+          scale: 1,
+          duration: 0.8,
+          delay: i * 0.08,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: featuresRef.current,
+            start: 'top 75%',
+            toggleActions: 'play none none reverse',
+          },
+        }
+      );
+    });
 
-    // Split section animation
+    // Split section - SLIDE with parallax layers
     gsap.fromTo('.split-left', 
-      { opacity: 0, x: -80 },
+      { opacity: 0, x: -100, scale: 0.95 },
       {
         opacity: 1,
         x: 0,
-        duration: 1,
-        ease: 'power3.out',
+        scale: 1,
+        duration: 1.2,
+        ease: 'power4.out',
         scrollTrigger: {
           trigger: splitRef.current,
           start: 'top 70%',
@@ -195,12 +217,13 @@ export default function MetallicDemoPage() {
     );
 
     gsap.fromTo('.split-right', 
-      { opacity: 0, x: 80 },
+      { opacity: 0, x: 100, scale: 0.95 },
       {
         opacity: 1,
         x: 0,
-        duration: 1,
-        ease: 'power3.out',
+        scale: 1,
+        duration: 1.2,
+        ease: 'power4.out',
         scrollTrigger: {
           trigger: splitRef.current,
           start: 'top 70%',
@@ -209,12 +232,12 @@ export default function MetallicDemoPage() {
       }
     );
 
-    // Stats counter animation
+    // Stats counter animation with bounce
     gsap.fromTo('.stat-number', 
       { textContent: 0 },
       {
         textContent: (i, el) => el.getAttribute('data-value'),
-        duration: 2,
+        duration: 2.5,
         ease: 'power2.out',
         snap: { textContent: 1 },
         scrollTrigger: {
@@ -225,14 +248,15 @@ export default function MetallicDemoPage() {
       }
     );
 
-    // Video section zoom
+    // Video section - DRAMATIC zoom with glow
     gsap.fromTo(videoRef.current, 
-      { opacity: 0, scale: 0.8 },
+      { opacity: 0, scale: 0.6, filter: 'blur(20px) brightness(2)' },
       {
         opacity: 1,
         scale: 1,
-        duration: 1,
-        ease: 'power2.out',
+        filter: 'blur(0px) brightness(1)',
+        duration: 1.5,
+        ease: 'power3.out',
         scrollTrigger: {
           trigger: videoRef.current,
           start: 'top 80%',
@@ -241,83 +265,103 @@ export default function MetallicDemoPage() {
       }
     );
 
-    // Use cases slide up
-    gsap.fromTo('.usecase-card', 
-      { opacity: 0, y: 40 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        stagger: 0.12,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: useCasesRef.current,
-          start: 'top 75%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
+    // Use cases - DIAGONAL slide with rotation
+    const useCaseCards = gsap.utils.toArray('.usecase-card');
+    useCaseCards.forEach((card: any, i) => {
+      gsap.fromTo(card, 
+        { opacity: 0, x: 50, y: 50, rotate: 5, scale: 0.9 },
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          rotate: 0,
+          scale: 1,
+          duration: 0.7,
+          delay: i * 0.12,
+          ease: 'back.out(1.5)',
+          scrollTrigger: {
+            trigger: useCasesRef.current,
+            start: 'top 75%',
+            toggleActions: 'play none none reverse',
+          },
+        }
+      );
+    });
 
-    // Customer stories
-    gsap.fromTo('.story-card', 
-      { opacity: 0, y: 50, rotateY: 15 },
-      {
-        opacity: 1,
-        y: 0,
-        rotateY: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: storiesRef.current,
-          start: 'top 75%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
+    // Customer stories - FLIP IN 3D
+    const storyCards = gsap.utils.toArray('.story-card');
+    storyCards.forEach((card: any, i) => {
+      gsap.fromTo(card, 
+        { opacity: 0, rotateY: 90, scale: 0.8, transformOrigin: 'left center' },
+        {
+          opacity: 1,
+          rotateY: 0,
+          scale: 1,
+          duration: 1,
+          delay: i * 0.2,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: storiesRef.current,
+            start: 'top 75%',
+            toggleActions: 'play none none reverse',
+          },
+        }
+      );
+    });
 
-    // Blog cards
-    gsap.fromTo('.blog-card', 
-      { opacity: 0, y: 60 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.7,
-        stagger: 0.12,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: blogRef.current,
-          start: 'top 75%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
+    // Blog cards - STAGGERED POP with different heights
+    const blogCards = gsap.utils.toArray('.blog-card');
+    blogCards.forEach((card: any, i) => {
+      const yOffsets = [80, 60, 100];
+      gsap.fromTo(card, 
+        { opacity: 0, y: yOffsets[i % 3], scale: 0.85, filter: 'blur(5px)' },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: 'blur(0px)',
+          duration: 0.9,
+          delay: i * 0.15,
+          ease: 'elastic.out(1, 0.9)',
+          scrollTrigger: {
+            trigger: blogRef.current,
+            start: 'top 75%',
+            toggleActions: 'play none none reverse',
+          },
+        }
+      );
+    });
 
-    // FAQ accordion
-    gsap.fromTo('.faq-item', 
-      { opacity: 0, x: -30 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: faqRef.current,
-          start: 'top 75%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
+    // FAQ accordion - ACCORDION SLIDE with bounce
+    const faqItems = gsap.utils.toArray('.faq-item');
+    faqItems.forEach((item: any, i) => {
+      gsap.fromTo(item, 
+        { opacity: 0, x: i % 2 === 0 ? -50 : 50, scale: 0.95 },
+        {
+          opacity: 1,
+          x: 0,
+          scale: 1,
+          duration: 0.6,
+          delay: i * 0.1,
+          ease: 'back.out(1.2)',
+          scrollTrigger: {
+            trigger: faqRef.current,
+            start: 'top 75%',
+            toggleActions: 'play none none reverse',
+          },
+        }
+      );
+    });
 
-    // CTA section
+    // CTA section - GRAND REVEAL
     gsap.fromTo(ctaRef.current, 
-      { opacity: 0, y: 60, scale: 0.95 },
+      { opacity: 0, y: 100, scale: 0.9, filter: 'blur(10px)' },
       {
         opacity: 1,
         y: 0,
         scale: 1,
-        duration: 1,
+        filter: 'blur(0px)',
+        duration: 1.2,
         ease: 'power3.out',
         scrollTrigger: {
           trigger: ctaRef.current,
@@ -347,9 +391,193 @@ export default function MetallicDemoPage() {
 
   }, { scope: containerRef });
 
+  // 3D Tilt effect for cards
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 20;
+    const rotateY = (centerX - x) / 20;
+    
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+  };
+
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
       
+      {/* Custom CSS for creative card effects */}
+      <style jsx global>{`
+        /* Glowing border effect */
+        .glow-card {
+          position: relative;
+          overflow: hidden;
+        }
+        .glow-card::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          background: linear-gradient(90deg, #00d4ff, #00ff88, #0066ff, #00d4ff);
+          background-size: 400% 100%;
+          animation: glow-rotate 4s linear infinite;
+          border-radius: inherit;
+          z-index: -1;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .glow-card:hover::before {
+          opacity: 1;
+        }
+        .glow-card::after {
+          content: '';
+          position: absolute;
+          inset: 1px;
+          background: #0f0f0f;
+          border-radius: inherit;
+          z-index: -1;
+        }
+        
+        @keyframes glow-rotate {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 400% 50%; }
+        }
+        
+        /* Shimmer effect */
+        .shimmer-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            120deg,
+            transparent,
+            rgba(0, 212, 255, 0.1),
+            transparent
+          );
+          transition: left 0.6s ease;
+        }
+        .shimmer-card:hover::before {
+          left: 100%;
+        }
+        
+        /* Floating card effect */
+        .float-card {
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+        .float-card:hover {
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 25px 50px -12px rgba(0, 212, 255, 0.25);
+        }
+        
+        /* Magnetic card */
+        .magnetic-card {
+          transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+        }
+        
+        /* Pulse glow */
+        .pulse-glow {
+          position: relative;
+        }
+        .pulse-glow::after {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: inherit;
+          background: linear-gradient(45deg, #00d4ff, #00ff88);
+          opacity: 0;
+          z-index: -1;
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(1.02); }
+        }
+        
+        /* Gradient border animation */
+        .gradient-border {
+          position: relative;
+          background: linear-gradient(#0f0f0f, #0f0f0f) padding-box,
+                      linear-gradient(135deg, #00d4ff, #00ff88, #0066ff) border-box;
+          border: 2px solid transparent;
+        }
+        
+        /* Neon glow text */
+        .neon-text {
+          text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+        }
+        
+        /* Glass morphism */
+        .glass-card {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(0, 212, 255, 0.3);
+        }
+        
+        /* Spotlight effect */
+        .spotlight-card {
+          position: relative;
+          overflow: hidden;
+        }
+        .spotlight-card::before {
+          content: '';
+          position: absolute;
+          width: 200px;
+          height: 200px;
+          background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .spotlight-card:hover::before {
+          opacity: 1;
+        }
+        
+        /* Cyber grid background */
+        .cyber-grid {
+          background-image: 
+            linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+          background-size: 20px 20px;
+        }
+        
+        /* Animated icon */
+        .icon-bounce {
+          transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .group:hover .icon-bounce {
+          transform: scale(1.2) rotate(-5deg);
+        }
+        
+        /* Floating animation */
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        
+        /* Testimonial card hover */
+        .testimonial-card {
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .testimonial-card:hover {
+          transform: translateY(-4px) scale(1.02);
+        }
+      `}</style>
+
       {/* ═══════════════════════════════════════════════════════════════════════════
           NAVIGATION
       ═══════════════════════════════════════════════════════════════════════════ */}
@@ -492,18 +720,24 @@ export default function MetallicDemoPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Large card - Workflow */}
-            <div className="bento-card md:col-span-2 md:row-span-2 group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-8 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <h3 className="text-2xl font-bold mb-3">Streamline Your Workflow</h3>
-              <p className="text-gray-400 mb-6">AI-powered automation for maximum efficiency</p>
+            <div 
+              className="bento-card glow-card shimmer-card md:col-span-2 md:row-span-2 group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-8 overflow-hidden transition-all duration-500 cursor-pointer cyber-grid" 
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-[#00d4ff]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-radial from-[#00ff88]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl"></div>
+              <h3 className="text-2xl font-bold mb-3 group-hover:text-[#00d4ff] transition-colors duration-300">Streamline Your Workflow</h3>
+              <p className="text-gray-400 mb-6 group-hover:text-gray-300 transition-colors">AI-powered automation for maximum efficiency</p>
               {/* Mock Dashboard Preview */}
-              <div className="relative rounded-xl bg-[#0a0a0a] border border-white/5 p-4 overflow-hidden">
+              <div className="relative rounded-xl bg-[#0a0a0a] border border-white/5 p-4 overflow-hidden group-hover:border-[#00d4ff]/20 transition-colors">
                 <div className="flex items-end justify-around h-32 gap-2">
                   {[45, 70, 55, 85, 60, 90, 75, 80, 95, 65, 88, 72].map((h, i) => (
                     <div 
                       key={i} 
-                      className="flex-1 bg-gradient-to-t from-[#00d4ff] to-[#00d4ff]/20 rounded-t transition-all duration-500 group-hover:from-[#00ff88]" 
-                      style={{ height: `${h}%` }}
+                      className="flex-1 bg-gradient-to-t from-[#00d4ff] to-[#00d4ff]/20 rounded-t transition-all duration-500 group-hover:from-[#00ff88] hover:!from-[#fff]" 
+                      style={{ height: `${h}%`, transitionDelay: `${i * 30}ms` }}
                     ></div>
                   ))}
                 </div>
@@ -514,14 +748,20 @@ export default function MetallicDemoPage() {
             </div>
             
             {/* Product Efficiency - with circular progress */}
-            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <h3 className="text-lg font-bold mb-2">Product Efficiency</h3>
+            <div 
+              className="bento-card float-card glass-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-[#00d4ff]/10 rounded-full blur-2xl group-hover:bg-[#00d4ff]/30 transition-colors"></div>
+              <h3 className="text-lg font-bold mb-2 group-hover:text-[#00d4ff] transition-colors">Product Efficiency</h3>
               <p className="text-sm text-gray-400 mb-4">Optimize every step</p>
-              <div className="relative w-20 h-20 mx-auto">
-                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+              <div className="relative w-20 h-20 mx-auto group-hover:scale-110 transition-transform duration-500">
+                <svg className="w-20 h-20 -rotate-90 group-hover:rotate-[270deg] transition-transform duration-1000" viewBox="0 0 36 36">
                   <circle cx="18" cy="18" r="15" fill="none" stroke="#1a1a1a" strokeWidth="3"/>
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#gradient1)" strokeWidth="3" strokeDasharray="94" strokeDashoffset="6" strokeLinecap="round"/>
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#gradient1)" strokeWidth="3" strokeDasharray="94" strokeDashoffset="6" strokeLinecap="round" className="drop-shadow-[0_0_10px_rgba(0,212,255,0.5)]"/>
                   <defs>
                     <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#00d4ff"/>
@@ -529,18 +769,26 @@ export default function MetallicDemoPage() {
                     </linearGradient>
                   </defs>
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-[#00d4ff]">94%</span>
+                <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-[#00d4ff] group-hover:scale-110 transition-transform">94%</span>
               </div>
             </div>
             
             {/* Income Insights - with trend line */}
-            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00ff88]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <h3 className="text-lg font-bold mb-2">Income Insights</h3>
+            <div 
+              className="bento-card float-card glass-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00ff88]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-[#00ff88]/10 rounded-full blur-2xl group-hover:bg-[#00ff88]/30 transition-colors"></div>
+              <h3 className="text-lg font-bold mb-2 group-hover:text-[#00ff88] transition-colors">Income Insights</h3>
               <p className="text-sm text-gray-400 mb-2">Real-time revenue</p>
-              <div className="text-2xl font-bold text-[#00ff88]">$47.2K</div>
-              <div className="text-xs text-[#00ff88] mb-3">↑ 12.5% this month</div>
-              <svg className="w-full h-10" viewBox="0 0 100 30">
+              <div className="text-2xl font-bold text-[#00ff88] group-hover:scale-105 transition-transform origin-left">$47.2K</div>
+              <div className="text-xs text-[#00ff88] mb-3 flex items-center gap-1">
+                <span className="inline-block group-hover:animate-bounce">↑</span> 12.5% this month
+              </div>
+              <svg className="w-full h-10 group-hover:drop-shadow-[0_0_15px_rgba(0,255,136,0.4)] transition-all" viewBox="0 0 100 30">
                 <path d="M0,25 Q10,20 20,22 T40,15 T60,18 T80,8 T100,5" fill="none" stroke="#00ff88" strokeWidth="2" strokeLinecap="round"/>
                 <path d="M0,25 Q10,20 20,22 T40,15 T60,18 T80,8 T100,5 L100,30 L0,30 Z" fill="url(#gradient2)" opacity="0.2"/>
                 <defs>
@@ -553,19 +801,25 @@ export default function MetallicDemoPage() {
             </div>
             
             {/* Events Scheduling - with calendar dots */}
-            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <h3 className="text-lg font-bold mb-2">Events Scheduling</h3>
+            <div 
+              className="bento-card float-card glass-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <h3 className="text-lg font-bold mb-2 group-hover:text-[#00d4ff] transition-colors">Events Scheduling</h3>
               <p className="text-sm text-gray-400 mb-3">Smart calendar</p>
               <div className="grid grid-cols-7 gap-1">
                 {Array.from({ length: 28 }, (_, i) => (
                   <div 
                     key={i} 
-                    className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center ${
+                    className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center transition-all duration-300 hover:scale-125 ${
                       [3, 7, 12, 18, 24].includes(i) 
-                        ? 'bg-[#00d4ff] text-black font-bold' 
-                        : 'bg-white/5 text-gray-500'
+                        ? 'bg-[#00d4ff] text-black font-bold shadow-[0_0_10px_rgba(0,212,255,0.5)] hover:shadow-[0_0_20px_rgba(0,212,255,0.8)]' 
+                        : 'bg-white/5 text-gray-500 hover:bg-white/20'
                     }`}
+                    style={{ transitionDelay: `${i * 15}ms` }}
                   >
                     {i + 1}
                   </div>
@@ -574,13 +828,27 @@ export default function MetallicDemoPage() {
             </div>
             
             {/* Visitor Analytics - with mini bars */}
-            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#0066ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <h3 className="text-lg font-bold mb-2">Visitor Analytics</h3>
+            <div 
+              className="bento-card float-card glass-card group relative rounded-2xl p-6 overflow-hidden cursor-pointer"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#0066ff]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-20 h-20 bg-[#0066ff]/10 rounded-full blur-2xl group-hover:bg-[#0066ff]/30 transition-colors"></div>
+              <h3 className="text-lg font-bold mb-2 group-hover:text-[#0066ff] transition-colors">Visitor Analytics</h3>
               <p className="text-sm text-gray-400 mb-3">Track behavior</p>
               <div className="flex items-end justify-around h-16 gap-1">
                 {[60, 80, 45, 90, 55, 75, 85].map((h, i) => (
-                  <div key={i} className="flex-1 rounded-t transition-all duration-300" style={{ height: `${h}%`, background: `linear-gradient(to top, #0066ff, #00d4ff)` }}></div>
+                  <div 
+                    key={i} 
+                    className="flex-1 rounded-t transition-all duration-500 hover:!h-full group-hover:shadow-[0_0_10px_rgba(0,102,255,0.3)]" 
+                    style={{ 
+                      height: `${h}%`, 
+                      background: `linear-gradient(to top, #0066ff, #00d4ff)`,
+                      transitionDelay: `${i * 50}ms`
+                    }}
+                  ></div>
                 ))}
               </div>
               <div className="mt-2 flex justify-between text-xs text-gray-500">
@@ -602,19 +870,55 @@ export default function MetallicDemoPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((feature, i) => (
-              <a key={i} href="#" className="feature-card group p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-[#00d4ff]/30 hover:bg-white/[0.04] transition-all duration-300">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    {feature.icon}
+            {features.map((feature, i) => {
+              const colors = ['#00d4ff', '#00ff88', '#0066ff', '#ff00ff', '#ff6600', '#00ffff'];
+              const color = colors[i % colors.length];
+              return (
+                <a 
+                  key={i} 
+                  href="#" 
+                  className="feature-card group relative p-6 rounded-xl glass-card shimmer-card overflow-hidden transition-all duration-500 hover:scale-[1.02] cursor-pointer"
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  {/* Spotlight effect */}
+                  <div 
+                    className="absolute w-40 h-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-3xl -z-10"
+                    style={{ background: `radial-gradient(circle, ${color}30, transparent 70%)`, top: '-20%', right: '-20%' }}
+                  ></div>
+                  
+                  {/* Animated border on hover */}
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ boxShadow: `inset 0 0 0 1px ${color}40` }}></div>
+                  
+                  <div className="flex items-start gap-4 relative z-10">
+                    <div 
+                      className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 icon-bounce transition-all duration-500 group-hover:shadow-lg"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${color}30, transparent)`,
+                        boxShadow: `0 0 0 1px ${color}20`
+                      }}
+                    >
+                      <span className="group-hover:scale-110 transition-transform duration-300">{feature.icon}</span>
+                    </div>
+                    <div>
+                      <h3 
+                        className="font-semibold mb-1 transition-colors duration-300"
+                        style={{ color: 'white' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = color}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
+                      >
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors">{feature.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold mb-1 group-hover:text-[#00d4ff] transition-colors">{feature.title}</h3>
-                    <p className="text-sm text-gray-500">{feature.desc}</p>
+                  
+                  {/* Arrow indicator */}
+                  <div className="absolute bottom-4 right-4 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" style={{ background: `${color}20` }}>
+                    <span style={{ color }}>→</span>
                   </div>
-                </div>
-              </a>
-            ))}
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -789,20 +1093,45 @@ export default function MetallicDemoPage() {
             </div>
             
             <div className="space-y-3">
-              {useCases.map((useCase, i) => (
-                <a key={i} href="#" className="usecase-card group block p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-[#00d4ff]/30 hover:bg-white/[0.04] transition-all duration-300">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                      {useCase.icon}
+              {useCases.map((useCase, i) => {
+                const colors = ['#00d4ff', '#00ff88', '#0066ff', '#ff6600'];
+                const color = colors[i % colors.length];
+                return (
+                  <a 
+                    key={i} 
+                    href="#" 
+                    className="usecase-card group relative block p-6 rounded-xl glass-card overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    {/* Left border glow */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(to bottom, transparent, ${color}, transparent)` }}></div>
+                    
+                    {/* Background glow */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at 20% 50%, ${color}10, transparent 50%)` }}></div>
+                    
+                    <div className="flex items-center gap-4 relative z-10">
+                      <div 
+                        className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl transition-all duration-500 group-hover:rotate-12"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${color}30, transparent)`,
+                          boxShadow: `0 0 0 1px ${color}20`
+                        }}
+                      >
+                        <span className="group-hover:scale-125 transition-transform duration-500">{useCase.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold transition-colors duration-300" style={{ color: 'white' }} onMouseEnter={(e) => e.currentTarget.style.color = color} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>{useCase.title}</h3>
+                        <p className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors">{useCase.desc}</p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:translate-x-2" style={{ background: `${color}10` }}>
+                        <span className="transition-colors" style={{ color }}>→</span>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold group-hover:text-[#00d4ff] transition-colors">{useCase.title}</h3>
-                      <p className="text-sm text-gray-500">{useCase.desc}</p>
-                    </div>
-                    <span className="text-gray-600 group-hover:text-[#00d4ff] group-hover:translate-x-1 transition-all">→</span>
-                  </div>
-                </a>
-              ))}
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -824,17 +1153,78 @@ export default function MetallicDemoPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {customerStories.map((story, i) => (
-              <a key={i} href="#" className="story-card group block rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-                <div className="h-40 bg-gradient-to-br from-[#00d4ff]/5 to-transparent flex items-center justify-center">
-                  <span className="text-6xl group-hover:scale-110 transition-transform duration-300">{story.logo}</span>
-                </div>
-                <div className="p-6">
-                  <p className="text-sm text-[#00d4ff] mb-2">{story.company}</p>
-                  <h3 className="font-semibold group-hover:text-[#00d4ff] transition-colors">{story.title}</h3>
-                </div>
-              </a>
-            ))}
+            {customerStories.map((story, i) => {
+              const colors = ['#00d4ff', '#00ff88', '#0066ff'];
+              const color = colors[i % colors.length];
+              return (
+                <a 
+                  key={i} 
+                  href="#" 
+                  className="story-card group relative block rounded-2xl overflow-hidden transition-all duration-500 hover:scale-[1.03] cursor-pointer"
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  {/* Animated gradient border */}
+                  <div className="absolute inset-0 rounded-2xl glow-card" style={{ zIndex: -1 }}></div>
+                  
+                  {/* Card content */}
+                  <div className="relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/5 overflow-hidden group-hover:border-transparent transition-all duration-500">
+                    
+                    {/* Icon area with gradient */}
+                    <div 
+                      className="h-44 relative flex items-center justify-center overflow-hidden"
+                      style={{ background: `linear-gradient(135deg, ${color}10, transparent)` }}
+                    >
+                      {/* Floating particles */}
+                      <div className="absolute inset-0">
+                        {[...Array(5)].map((_, j) => (
+                          <div 
+                            key={j}
+                            className="absolute w-2 h-2 rounded-full opacity-20 group-hover:opacity-60 transition-opacity duration-1000"
+                            style={{ 
+                              background: color,
+                              left: `${20 + j * 15}%`,
+                              top: `${30 + (j % 3) * 20}%`,
+                              animation: `float ${2 + j * 0.5}s ease-in-out infinite`,
+                              animationDelay: `${j * 0.2}s`
+                            }}
+                          ></div>
+                        ))}
+                      </div>
+                      
+                      {/* Icon with glow */}
+                      <span 
+                        className="text-7xl transition-all duration-500 group-hover:scale-125 group-hover:rotate-6 relative z-10"
+                        style={{ filter: `drop-shadow(0 0 30px ${color}50)` }}
+                      >
+                        {story.logo}
+                      </span>
+                      
+                      {/* Bottom gradient fade */}
+                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0a] to-transparent"></div>
+                    </div>
+                    
+                    <div className="p-6 relative">
+                      {/* Glow line */}
+                      <div 
+                        className="absolute top-0 left-6 right-6 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        style={{ background: `linear-gradient(to right, transparent, ${color}, transparent)` }}
+                      ></div>
+                      
+                      <p className="text-sm font-medium mb-2 transition-colors duration-300" style={{ color }}>{story.company}</p>
+                      <h3 className="font-semibold text-white group-hover:text-gray-100 transition-colors leading-snug">{story.title}</h3>
+                      
+                      {/* Read more indicator */}
+                      <div className="mt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-y-0 translate-y-2">
+                        <span className="text-sm" style={{ color }}>Read Story</span>
+                        <span style={{ color }}>→</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -856,14 +1246,21 @@ export default function MetallicDemoPage() {
             
             <div className="flex animate-marquee-slow">
               {[...testimonialsRow1, ...testimonialsRow1].map((t, i) => (
-                <div key={i} className="flex-shrink-0 w-[400px] mx-3 p-6 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 hover:border-[#00d4ff]/30 transition-colors">
-                  <p className="text-gray-300 mb-6 italic">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00d4ff]/20 to-[#0066ff]/20 flex items-center justify-center text-2xl">
+                <div key={i} className="testimonial-card group flex-shrink-0 w-[400px] mx-3 p-6 rounded-2xl glass-card relative overflow-hidden cursor-pointer">
+                  {/* Glow effect on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" style={{ boxShadow: 'inset 0 0 0 1px rgba(0, 212, 255, 0.3)' }}></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl"></div>
+                  
+                  {/* Quote icon */}
+                  <div className="absolute top-4 right-4 text-4xl opacity-10 group-hover:opacity-30 transition-opacity text-[#00d4ff]">"</div>
+                  
+                  <p className="text-gray-300 mb-6 italic relative z-10 group-hover:text-gray-200 transition-colors">&ldquo;{t.text}&rdquo;</p>
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00d4ff]/30 to-[#0066ff]/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 ring-2 ring-white/10 group-hover:ring-[#00d4ff]/30">
                       {t.avatar}
                     </div>
                     <div>
-                      <div className="font-semibold">{t.name}</div>
+                      <div className="font-semibold group-hover:text-[#00d4ff] transition-colors">{t.name}</div>
                       <div className="text-sm text-gray-500">{t.role}</div>
                     </div>
                   </div>
@@ -879,14 +1276,21 @@ export default function MetallicDemoPage() {
             
             <div className="flex animate-marquee-reverse">
               {[...testimonialsRow2, ...testimonialsRow2].map((t, i) => (
-                <div key={i} className="flex-shrink-0 w-[400px] mx-3 p-6 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 hover:border-[#00ff88]/30 transition-colors">
-                  <p className="text-gray-300 mb-6 italic">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ff88]/20 to-[#00d4ff]/20 flex items-center justify-center text-2xl">
+                <div key={i} className="testimonial-card group flex-shrink-0 w-[400px] mx-3 p-6 rounded-2xl glass-card relative overflow-hidden cursor-pointer">
+                  {/* Glow effect on hover */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" style={{ boxShadow: 'inset 0 0 0 1px rgba(0, 255, 136, 0.3)' }}></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00ff88]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl"></div>
+                  
+                  {/* Quote icon */}
+                  <div className="absolute top-4 right-4 text-4xl opacity-10 group-hover:opacity-30 transition-opacity text-[#00ff88]">"</div>
+                  
+                  <p className="text-gray-300 mb-6 italic relative z-10 group-hover:text-gray-200 transition-colors">&ldquo;{t.text}&rdquo;</p>
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ff88]/30 to-[#00d4ff]/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 ring-2 ring-white/10 group-hover:ring-[#00ff88]/30">
                       {t.avatar}
                     </div>
                     <div>
-                      <div className="font-semibold">{t.name}</div>
+                      <div className="font-semibold group-hover:text-[#00ff88] transition-colors">{t.name}</div>
                       <div className="text-sm text-gray-500">{t.role}</div>
                     </div>
                   </div>
@@ -913,16 +1317,70 @@ export default function MetallicDemoPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {blogPosts.map((post, i) => (
-              <a key={i} href="#" className="blog-card group block rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-                <div className="h-48 bg-gradient-to-br from-[#00d4ff]/10 to-[#0066ff]/5 group-hover:from-[#00d4ff]/20 transition-colors"></div>
-                <div className="p-6">
-                  <span className="text-xs text-[#00d4ff] font-medium px-3 py-1 rounded-full bg-[#00d4ff]/10">{post.category}</span>
-                  <h3 className="font-semibold mt-4 mb-2 group-hover:text-[#00d4ff] transition-colors">{post.title}</h3>
-                  <p className="text-sm text-gray-500">{post.excerpt}</p>
-                </div>
-              </a>
-            ))}
+            {blogPosts.map((post, i) => {
+              const colors = ['#00d4ff', '#00ff88', '#0066ff'];
+              const color = colors[i % colors.length];
+              return (
+                <a 
+                  key={i} 
+                  href="#" 
+                  className="blog-card group relative block rounded-2xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  <div className="relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/5 overflow-hidden group-hover:border-transparent transition-all duration-500">
+                    {/* Animated gradient border on hover */}
+                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: `inset 0 0 0 1px ${color}40` }}></div>
+                    
+                    {/* Image area with gradient pattern */}
+                    <div 
+                      className="h-52 relative overflow-hidden"
+                      style={{ background: `linear-gradient(135deg, ${color}10, ${color}05)` }}
+                    >
+                      {/* Animated grid pattern */}
+                      <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-500 cyber-grid"></div>
+                      
+                      {/* Floating decorative elements */}
+                      <div 
+                        className="absolute w-32 h-32 rounded-full blur-3xl opacity-30 group-hover:opacity-60 transition-all duration-700"
+                        style={{ background: color, top: '20%', right: '10%' }}
+                      ></div>
+                      <div 
+                        className="absolute w-20 h-20 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-all duration-700"
+                        style={{ background: color, bottom: '20%', left: '15%' }}
+                      ></div>
+                      
+                      {/* Category badge - positioned in image */}
+                      <div className="absolute top-4 left-4">
+                        <span 
+                          className="text-xs font-semibold px-4 py-2 rounded-full transition-all duration-300 group-hover:scale-105"
+                          style={{ background: `${color}20`, color, border: `1px solid ${color}30` }}
+                        >
+                          {post.category}
+                        </span>
+                      </div>
+                      
+                      {/* Bottom gradient fade */}
+                      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0a0a0a] to-transparent"></div>
+                    </div>
+                    
+                    <div className="p-6 relative">
+                      <h3 className="font-semibold text-lg mb-2 transition-colors duration-300 leading-snug" style={{ color: 'white' }} onMouseEnter={(e) => e.currentTarget.style.color = color} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>
+                        {post.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors line-clamp-2">{post.excerpt}</p>
+                      
+                      {/* Read more with animated arrow */}
+                      <div className="mt-4 flex items-center gap-2 transition-all duration-300 group-hover:translate-x-1">
+                        <span className="text-sm font-medium" style={{ color }}>Read Article</span>
+                        <span className="transition-transform duration-300 group-hover:translate-x-1" style={{ color }}>→</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -939,27 +1397,33 @@ export default function MetallicDemoPage() {
           
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="faq-item rounded-xl border border-white/5 overflow-hidden bg-white/[0.02] hover:border-[#00d4ff]/20 transition-colors">
+              <div key={i} className="faq-item group rounded-xl overflow-hidden glass-card relative transition-all duration-300 hover:scale-[1.01]">
+                {/* Left accent bar */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1 transition-all duration-300 ${openFaq === i ? 'bg-gradient-to-b from-[#00d4ff] to-[#00ff88]' : 'bg-transparent group-hover:bg-[#00d4ff]/50'}`}></div>
+                
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors"
+                  className="w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors relative"
                 >
-                  <span className="font-medium pr-4">{faq.q}</span>
-                  <span className={`text-2xl text-gray-400 transition-transform duration-300 ${openFaq === i ? 'rotate-45 text-[#00d4ff]' : ''}`}>
+                  <span className={`font-medium pr-4 transition-colors duration-300 ${openFaq === i ? 'text-[#00d4ff]' : 'group-hover:text-gray-200'}`}>{faq.q}</span>
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xl transition-all duration-500 ${openFaq === i ? 'rotate-45 bg-[#00d4ff] text-black' : 'bg-white/5 text-gray-400 group-hover:bg-white/10'}`}>
                     +
                   </span>
                 </button>
                 <div className={`overflow-hidden transition-all duration-500 ease-out ${openFaq === i ? 'max-h-48' : 'max-h-0'}`}>
-                  <p className="px-6 pb-6 text-gray-400">{faq.a}</p>
+                  <p className="px-6 pb-6 text-gray-400 border-t border-white/5 pt-4 ml-1">{faq.a}</p>
                 </div>
               </div>
             ))}
           </div>
           
-          <div className="mt-12 text-center p-8 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5">
-            <h3 className="text-xl font-bold mb-2">Still have questions?</h3>
-            <p className="text-gray-400 mb-6">Our team is here to help you get started.</p>
-            <button className="px-6 py-3 bg-white text-black font-medium rounded-full hover:bg-gray-200 transition-all hover:scale-105">
+          <div className="mt-12 text-center p-8 rounded-2xl glass-card relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
+            {/* Background glow */}
+            <div className="absolute inset-0 bg-gradient-radial from-[#00d4ff]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <h3 className="text-xl font-bold mb-2 relative z-10">Still have questions?</h3>
+            <p className="text-gray-400 mb-6 relative z-10">Our team is here to help you get started.</p>
+            <button className="relative z-10 px-6 py-3 bg-white text-black font-medium rounded-full hover:bg-gray-200 transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(0,212,255,0.3)]">
               Contact Support
             </button>
           </div>
