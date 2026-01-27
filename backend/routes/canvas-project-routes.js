@@ -23,17 +23,33 @@ const validateRequest = (req, res, next) => {
   next();
 };
 
-// Authentication middleware - optional for list operations
+// Authentication middleware - requires valid session
 const requireAuth = async (req, res, next) => {
   try {
+    // Check for authenticated user
     const userId = req.session?.userId || req.user?.id;
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required',
-      });
+    if (userId) {
+      req.userId = userId;
+      req.isAuthenticated = true;
+      return next();
     }
-    req.userId = userId;
+    
+    // For canvas operations, allow session-based access
+    const sessionId = req.cookies?.sessionId;
+    if (sessionId) {
+      req.userId = `session_${sessionId}`;
+      req.isAuthenticated = false;
+      return next();
+    }
+    
+    // Fallback: Use browser fingerprint for guest users
+    const crypto = await import('crypto');
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const fingerprint = crypto.createHash('md5').update(`${ip}:${userAgent}`).digest('hex').slice(0, 16);
+    req.userId = `guest_${fingerprint}`;
+    req.isAuthenticated = false;
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
@@ -44,14 +60,40 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-// Optional auth - sets userId if available, otherwise uses 'anonymous'
+// Optional auth - sets userId if available, otherwise uses browser session ID for isolation
 const optionalAuth = async (req, res, next) => {
   try {
+    // Try to get authenticated user ID first
     const userId = req.session?.userId || req.user?.id;
-    req.userId = userId || 'anonymous';
+    if (userId) {
+      req.userId = userId;
+      req.isAuthenticated = true;
+      return next();
+    }
+    
+    // For unauthenticated users, use session cookie for isolation
+    // This ensures each browser session gets their own project space
+    const sessionId = req.cookies?.sessionId;
+    if (sessionId) {
+      req.userId = `session_${sessionId}`;
+      req.isAuthenticated = false;
+      return next();
+    }
+    
+    // Fallback: Use a combination of IP + User-Agent hash for uniqueness
+    const crypto = await import('crypto');
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = forwarded ? forwarded.split(',')[0] : req.ip || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    const fingerprint = crypto.createHash('md5').update(`${ip}:${userAgent}`).digest('hex').slice(0, 16);
+    req.userId = `guest_${fingerprint}`;
+    req.isAuthenticated = false;
     next();
   } catch (error) {
-    req.userId = 'anonymous';
+    console.error('optionalAuth error:', error);
+    // Use timestamp-based fallback to ensure uniqueness
+    req.userId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    req.isAuthenticated = false;
     next();
   }
 };

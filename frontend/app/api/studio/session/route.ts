@@ -1,18 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 // Simple in-memory session store (resets on server restart)
+// This is intentional for Studio - sessions are temporary and per-browser
 const sessionStore = new Map<
   string,
   { messages: any[]; messageCount: number; createdAt: number }
 >();
 const SESSION_EXPIRY = 30 * 60 * 1000; // 30 minutes
 
-function getSessionKey(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  const ip = forwarded
-    ? forwarded.split(',')[0]
-    : req.headers.get('x-real-ip') || 'unknown';
-  return `session-${ip}`;
+// Generate a unique session key based on cookies (user-specific)
+async function getSessionKey(req: NextRequest): Promise<string> {
+  const cookieStore = await cookies();
+  
+  // First try authenticated user's session
+  const sessionId = cookieStore.get('session_id')?.value || 
+                    cookieStore.get('sessionId')?.value;
+  if (sessionId) {
+    return `studio_auth_${sessionId}`;
+  }
+  
+  // Fallback: Generate a studio-specific session ID for this browser
+  let studioSessionId = cookieStore.get('studio_session')?.value;
+  if (!studioSessionId) {
+    // Generate a new studio session ID (will be set in response)
+    studioSessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+  }
+  
+  return `studio_guest_${studioSessionId}`;
 }
 
 function cleanupExpiredSessions() {
@@ -27,7 +42,7 @@ function cleanupExpiredSessions() {
 export async function GET(request: NextRequest) {
   try {
     cleanupExpiredSessions();
-    const sessionKey = getSessionKey(request);
+    const sessionKey = await getSessionKey(request);
     const session = sessionStore.get(sessionKey);
 
     if (!session) {
@@ -79,7 +94,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const sessionKey = getSessionKey(request);
+    const sessionKey = await getSessionKey(request);
 
     const existingSession = sessionStore.get(sessionKey);
     const createdAt = existingSession?.createdAt || Date.now();
@@ -90,10 +105,27 @@ export async function POST(request: NextRequest) {
       createdAt,
     });
 
-    return NextResponse.json({
+    // Set studio session cookie for guest users
+    const cookieStore = await cookies();
+    const existingStudioSession = cookieStore.get('studio_session')?.value;
+    
+    const response = NextResponse.json({
       success: true,
       message: 'Session saved',
     });
+    
+    // If no studio session exists and user isn't authenticated, set one
+    if (!existingStudioSession && !cookieStore.get('session_id')?.value && !cookieStore.get('sessionId')?.value) {
+      const newStudioSession = `${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
+      response.cookies.set('studio_session', newStudioSession, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 30 * 60, // 30 minutes
+      });
+    }
+    
+    return response;
   } catch (error) {
     console.error('Session POST error:', error);
     return NextResponse.json(
@@ -105,7 +137,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const sessionKey = getSessionKey(request);
+    const sessionKey = await getSessionKey(request);
     sessionStore.delete(sessionKey);
 
     return NextResponse.json({
