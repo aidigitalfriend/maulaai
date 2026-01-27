@@ -5,7 +5,9 @@ import { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ShieldCheckIcon, KeyIcon } from '@heroicons/react/24/outline';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ShieldCheckIcon, KeyIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 import secureAuthStorage from '@/lib/secure-auth-storage';
 
@@ -16,6 +18,7 @@ function Verify2FAContent() {
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [backupCode, setBackupCode] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { state, clearError } = useAuth();
   const router = useRouter();
@@ -23,6 +26,26 @@ function Verify2FAContent() {
 
   const tempToken = searchParams.get('token');
   const userId = searchParams.get('userId');
+
+  useGSAP(
+    () => {
+      gsap.from('.twofa-card', {
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+      });
+      gsap.from('.form-element', {
+        y: 20,
+        opacity: 0,
+        duration: 0.5,
+        stagger: 0.1,
+        delay: 0.3,
+        ease: 'power2.out',
+      });
+    },
+    { scope: containerRef }
+  );
 
   // Redirect if no token or already authenticated
   useEffect(() => {
@@ -133,47 +156,74 @@ function Verify2FAContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-accent-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="max-w-md w-full space-y-6 relative z-10">
+        {/* Back to login link */}
+        <Link
+          href="/auth/login"
+          className="form-element inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeftIcon className="w-4 h-4" />
+          Back to Login
+        </Link>
+
         {/* Header with Logo */}
-        <div className="text-center">
+        <div className="form-element text-center">
           <Link href="/" className="inline-flex items-center justify-center mb-6">
             <Image
               src="/images/logos/company-logo.png"
               alt="One Last AI"
-              width={80}
-              height={80}
-              className="w-20 h-20 object-contain"
+              width={64}
+              height={64}
+              className="w-16 h-16 object-contain"
               priority
             />
           </Link>
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-brand-100 rounded-full">
-              <ShieldCheckIcon className="w-8 h-8 text-brand-600" />
+            <div
+              className="p-3 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%)',
+              }}
+            >
+              <ShieldCheckIcon className="w-8 h-8 text-purple-400" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-neural-900 mb-2">
+          <h1 className="text-2xl font-bold text-white mb-2">
             Two-Factor Authentication
           </h1>
-          <p className="text-neural-600">
+          <p className="text-gray-400">
             Enter the 6-digit code from your authenticator app
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800 text-center font-medium">{error}</p>
+          <div className="form-element p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+            <p className="text-red-400 text-center font-medium">{error}</p>
           </div>
         )}
 
         {/* Verification Form */}
-        <div className="bg-white rounded-xl shadow-lg border border-neural-200 p-6">
+        <div
+          className="twofa-card rounded-2xl p-6"
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
           {!useBackupCode ? (
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-6">
               {/* Code Input */}
               <div>
-                <label className="block text-sm font-medium text-neural-700 mb-4 text-center">
+                <label className="block text-sm font-medium text-gray-300 mb-4 text-center">
                   Enter Verification Code
                 </label>
                 <div className="flex justify-center gap-2" onPaste={handlePaste}>
@@ -187,7 +237,11 @@ function Verify2FAContent() {
                       value={digit}
                       onChange={(e) => handleCodeChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                      className="w-12 h-14 text-center text-2xl font-bold rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                      }}
                       disabled={isSubmitting}
                       autoFocus={index === 0}
                     />
@@ -199,19 +253,23 @@ function Verify2FAContent() {
               <button
                 type="submit"
                 disabled={isSubmitting || code.some(d => !d)}
-                className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                  isSubmitting || code.some(d => !d)
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-brand-600 to-accent-500 text-white hover:from-brand-700 hover:to-accent-600'
-                }`}
+                className="w-full py-3 px-4 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                style={{
+                  background: isSubmitting || code.some(d => !d)
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'linear-gradient(135deg, #a855f7 0%, #06b6d4 100%)',
+                }}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-2"></div>
                     Verifying...
                   </span>
                 ) : (
-                  '🔐 Verify & Sign In'
+                  <>
+                    <ShieldCheckIcon className="w-5 h-5" />
+                    Verify & Sign In
+                  </>
                 )}
               </button>
             </form>
@@ -219,7 +277,7 @@ function Verify2FAContent() {
             /* Backup Code Form */
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-neural-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Enter Backup Code
                 </label>
                 <input
@@ -227,11 +285,15 @@ function Verify2FAContent() {
                   value={backupCode}
                   onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
                   placeholder="XXXXXXXX"
-                  className="w-full px-4 py-3 text-center text-xl font-mono tracking-widest border-2 border-neural-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full px-4 py-3 text-center text-xl font-mono tracking-widest rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  }}
                   disabled={isSubmitting}
                   autoFocus
                 />
-                <p className="text-xs text-neural-500 mt-2 text-center">
+                <p className="text-xs text-gray-500 mt-2 text-center">
                   Enter one of your 8-character backup codes
                 </p>
               </div>
@@ -239,19 +301,30 @@ function Verify2FAContent() {
               <button
                 type="submit"
                 disabled={isSubmitting || !backupCode.trim()}
-                className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                  isSubmitting || !backupCode.trim()
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-brand-600 to-accent-500 text-white hover:from-brand-700 hover:to-accent-600'
-                }`}
+                className="w-full py-3 px-4 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                style={{
+                  background: isSubmitting || !backupCode.trim()
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'linear-gradient(135deg, #a855f7 0%, #06b6d4 100%)',
+                }}
               >
-                {isSubmitting ? 'Verifying...' : '🔐 Use Backup Code'}
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-2"></div>
+                    Verifying...
+                  </span>
+                ) : (
+                  <>
+                    <KeyIcon className="w-5 h-5" />
+                    Use Backup Code
+                  </>
+                )}
               </button>
             </form>
           )}
 
           {/* Toggle between code types */}
-          <div className="mt-4 pt-4 border-t border-neural-100">
+          <div className="mt-4 pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={() => {
@@ -260,7 +333,7 @@ function Verify2FAContent() {
                 setCode(['', '', '', '', '', '']);
                 setBackupCode('');
               }}
-              className="w-full text-center text-sm text-brand-600 hover:text-brand-700 flex items-center justify-center gap-2"
+              className="w-full text-center text-sm text-purple-400 hover:text-purple-300 flex items-center justify-center gap-2 transition-colors"
             >
               <KeyIcon className="w-4 h-4" />
               {useBackupCode ? 'Use authenticator app code' : 'Use a backup code instead'}
@@ -269,11 +342,11 @@ function Verify2FAContent() {
         </div>
 
         {/* Help Text */}
-        <div className="text-center space-y-2">
-          <p className="text-sm text-neural-500">
+        <div className="form-element text-center space-y-3">
+          <p className="text-sm text-gray-500">
             Open your authenticator app (Google Authenticator, Authy, etc.) to view your code
           </p>
-          <Link href="/auth/login" className="text-sm text-brand-600 hover:text-brand-700">
+          <Link href="/auth/login" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
             ← Back to login
           </Link>
         </div>
@@ -285,8 +358,8 @@ function Verify2FAContent() {
 export default function Verify2FAPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-500 border-t-transparent"></div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
       </div>
     }>
       <Verify2FAContent />
