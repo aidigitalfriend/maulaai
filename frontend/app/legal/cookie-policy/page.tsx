@@ -1,68 +1,37 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { X, Cookie, Settings, Shield, Eye } from 'lucide-react';
+import { useRef, useState } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+import { 
+  Cookie, 
+  Shield, 
+  Eye, 
+  Settings, 
+  Globe, 
+  Sliders,
+  Bell,
+  Mail,
+  ChevronDown,
+  X,
+  ExternalLink,
+  Check
+} from "lucide-react";
 
+gsap.registerPlugin(ScrollTrigger);
+
+// Article references for legal terms
 interface ArticleReference {
   title: string;
   content: string;
   source: string;
 }
 
-interface ArticlePopupProps {
-  article: ArticleReference;
-  onClose: () => void;
-}
-
-function ArticlePopup({ article, onClose }: ArticlePopupProps) {
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] shadow-2xl border border-neural-200 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-neural-200 bg-gray-50">
-          <h3 className="text-xl font-bold text-neural-900">{article.title}</h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-neural-500 hover:text-neural-700"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          <div className="text-neural-700 whitespace-pre-line leading-relaxed">
-            {article.content}
-          </div>
-          <div className="pt-4 border-t border-neural-200">
-            <p className="text-sm text-blue-600 font-medium">
-              Source: {article.source}
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-neural-200 bg-gray-50">
-          <button
-            onClick={onClose}
-            className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function CookiePolicyPage() {
-  const [selectedArticle, setSelectedArticle] =
-    useState<ArticleReference | null>(null);
-
-  const articles: Record<string, ArticleReference> = {
-    ePrivacy: {
-      title: 'ePrivacy Directive (Cookie Law)',
-      content: `The ePrivacy Directive (2002/58/EC), often called the "Cookie Law," regulates the use of cookies and similar tracking technologies in the European Union.
+const articles: Record<string, ArticleReference> = {
+  ePrivacy: {
+    title: "ePrivacy Directive (Cookie Law)",
+    content: `The ePrivacy Directive (2002/58/EC), often called the "Cookie Law," regulates the use of cookies and similar tracking technologies in the European Union.
 
 Key Requirements:
 • Prior informed consent required for non-essential cookies
@@ -78,11 +47,11 @@ Cookie Categories:
 
 Penalties:
 Non-compliance can result in fines up to €20 million or 4% of global annual revenue under GDPR enforcement.`,
-      source: 'Directive 2002/58/EC (as amended by Directive 2009/136/EC)',
-    },
-    ccpaOptOut: {
-      title: 'CCPA Cookie Opt-Out Rights',
-      content: `The California Consumer Privacy Act (CCPA) provides specific rights regarding cookies and tracking technologies.
+    source: "Directive 2002/58/EC (as amended by Directive 2009/136/EC)",
+  },
+  ccpaOptOut: {
+    title: "CCPA Cookie Opt-Out Rights",
+    content: `The California Consumer Privacy Act (CCPA) provides specific rights regarding cookies and tracking technologies.
 
 Consumer Rights:
 • Right to know what personal information is collected via cookies
@@ -101,696 +70,595 @@ Cookie Disclosure Requirements:
 
 Enforcement:
 The California Privacy Protection Agency (CPPA) can impose fines of up to $7,500 per intentional violation.`,
-      source: 'California Civil Code § 1798.100 et seq.',
+    source: "California Civil Code § 1798.100 et seq.",
+  },
+};
+
+function ArticlePopup({
+  article,
+  onClose,
+}: {
+  article: ArticleReference;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl shadow-2xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <h3 className="text-xl font-bold text-white pr-10">{article.title}</h3>
+          <button
+            onClick={onClose}
+            aria-label="Close popup"
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="text-gray-300 whitespace-pre-line leading-relaxed">
+            {article.content}
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-sm text-cyan-400 font-medium">Source: {article.source}</p>
+          </div>
+        </div>
+        <div className="p-4 border-t border-white/10">
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-xl transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Section wrapper component
+function Section({
+  id,
+  icon: Icon,
+  title,
+  children,
+  className = "",
+}: {
+  id: string;
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section id={id} className={`section-card bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-2xl p-6 md:p-8 ${className}`}>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 rounded-xl bg-cyan-500/20 border border-cyan-500/30">
+          <Icon className="w-6 h-6 text-cyan-400" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">{title}</h2>
+      </div>
+      <div className="text-gray-300 space-y-4 leading-relaxed">{children}</div>
+    </section>
+  );
+}
+
+// Clickable article reference
+function ArticleRef({
+  articleKey,
+  label,
+  onClick,
+}: {
+  articleKey: string;
+  label: string;
+  onClick: (key: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onClick(articleKey)}
+      className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
+    >
+      {label}
+      <ExternalLink className="w-3 h-3" />
+    </button>
+  );
+}
+
+// Cookie table component
+function CookieTable({
+  cookies,
+  headerBg = "bg-white/5",
+}: {
+  cookies: Array<{ name: string; purpose: string; duration: string }>;
+  headerBg?: string;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className={headerBg}>
+          <tr className="border-b border-white/10">
+            <th className="text-left p-3 text-gray-400 font-medium">Cookie Name</th>
+            <th className="text-left p-3 text-gray-400 font-medium">Purpose</th>
+            <th className="text-left p-3 text-gray-400 font-medium">Duration</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          {cookies.map((cookie, i) => (
+            <tr key={i}>
+              <td className="p-3 font-mono text-xs text-cyan-400">{cookie.name}</td>
+              <td className="p-3 text-gray-400">{cookie.purpose}</td>
+              <td className="p-3 text-gray-500">{cookie.duration}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function CookiePolicyPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
+
+  useGSAP(
+    () => {
+      // Hero animation
+      gsap.from(".hero-content > *", {
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "power3.out",
+      });
+
+      // Section cards animation
+      gsap.utils.toArray<HTMLElement>(".section-card").forEach((card) => {
+        gsap.from(card, {
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+          y: 30,
+          opacity: 0,
+          duration: 0.6,
+          ease: "power2.out",
+        });
+      });
+
+      // TOC animation
+      gsap.from(".toc-item", {
+        x: -20,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        ease: "power2.out",
+        delay: 0.5,
+      });
     },
+    { scope: containerRef }
+  );
+
+  const sections = [
+    { id: "introduction", title: "1. Introduction", icon: Cookie },
+    { id: "what-are-cookies", title: "2. What Are Cookies?", icon: Cookie },
+    { id: "cookies-we-use", title: "3. Cookies We Use", icon: Shield },
+    { id: "third-party", title: "4. Third-Party Services", icon: Globe },
+    { id: "managing", title: "5. Managing Cookies", icon: Sliders },
+    { id: "updates", title: "6. Updates", icon: Bell },
+    { id: "contact", title: "7. Contact", icon: Mail },
+  ];
+
+  const handleArticleClick = (key: string) => {
+    setSelectedArticle(key);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <span className="text-xl">🍪</span>
-            Cookie Management
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a]">
+      {/* Hero */}
+      <div className="relative py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[120px] opacity-30" />
+        
+        <div className="hero-content relative max-w-4xl mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+            <Cookie className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm text-cyan-400 font-medium">Cookie Management</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Cookie Policy
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-4">
+            Learn how we use cookies and similar technologies to improve your experience on our platform.
+          </p>
+          <p className="text-sm text-gray-500">
             Last updated: November 6, 2025 • Effective Date: November 6, 2025
           </p>
         </div>
-      </section>
+      </div>
 
-      {/* Content */}
-      <div className="container-custom section-padding max-w-5xl">
-        <div className="space-y-12">
-          {/* Introduction */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <div className="flex items-start gap-4 mb-4">
-              <Cookie className="text-blue-600 flex-shrink-0 mt-1" size={36} />
-              <div>
-                <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  1. Introduction
-                </h2>
-                <p className="text-neural-700 leading-relaxed mb-4">
-                  This Cookie Policy explains how One Last AI ("we," "our," or
-                  "us") uses cookies and similar tracking technologies on our
-                  website at{' '}
-                  <a
-                    href="https://onelastai.com"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    onelastai.com
-                  </a>
-                  .
-                </p>
-                <p className="text-neural-700 leading-relaxed">
-                  By using our website, you consent to our use of cookies in
-                  accordance with this policy and our{' '}
-                  <a
-                    href="/legal/privacy-policy"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    Privacy Policy
-                  </a>
-                  . You can manage your cookie preferences at any time.
-                </p>
-              </div>
+      {/* Table of Contents - Mobile */}
+      <div className="lg:hidden px-4 mb-8">
+        <details className="bg-white/5 border border-white/10 rounded-xl">
+          <summary className="flex items-center justify-between p-4 cursor-pointer text-white font-medium">
+            <span>Table of Contents</span>
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          </summary>
+          <div className="p-4 pt-0 space-y-2">
+            {sections.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                className="block py-2 text-gray-400 hover:text-cyan-400 transition-colors text-sm"
+              >
+                {section.title}
+              </a>
+            ))}
+          </div>
+        </details>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 pb-24">
+        <div className="flex gap-12">
+          {/* Sticky TOC - Desktop */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-24 space-y-1">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-4 font-medium">On this page</p>
+              {sections.map((section) => (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  className="toc-item block py-2 px-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                >
+                  {section.title}
+                </a>
+              ))}
             </div>
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 mt-6">
-              <p className="text-neural-700">
-                <strong className="text-neural-900">Legal Framework:</strong> Our
-                cookie practices comply with the{' '}
-                <button
-                  onClick={() => setSelectedArticle(articles.ePrivacy)}
-                  className="text-blue-600 hover:text-blue-700 underline font-medium"
-                >
-                  ePrivacy Directive (EU Cookie Law)
-                </button>
-                , GDPR, and{' '}
-                <button
-                  onClick={() => setSelectedArticle(articles.ccpaOptOut)}
-                  className="text-blue-600 hover:text-blue-700 underline font-medium"
-                >
-                  CCPA requirements
-                </button>
-                .
+          </aside>
+
+          {/* Content */}
+          <div className="flex-1 space-y-8 max-w-3xl">
+            {/* 1. Introduction */}
+            <Section id="introduction" icon={Cookie} title="1. Introduction">
+              <p>
+                This Cookie Policy explains how One Last AI (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) uses cookies and similar tracking technologies on our website at{" "}
+                <a href="https://onelastai.com" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                  onelastai.com
+                </a>.
               </p>
-            </div>
-          </section>
+              <p>
+                By using our website, you consent to our use of cookies in accordance with this policy and our{" "}
+                <a href="/legal/privacy-policy" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                  Privacy Policy
+                </a>. You can manage your cookie preferences at any time.
+              </p>
+              
+              <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl mt-4">
+                <p>
+                  <strong className="text-white">Legal Framework:</strong> Our cookie practices comply with the{" "}
+                  <ArticleRef articleKey="ePrivacy" label="ePrivacy Directive (EU Cookie Law)" onClick={handleArticleClick} />, GDPR, and{" "}
+                  <ArticleRef articleKey="ccpaOptOut" label="CCPA requirements" onClick={handleArticleClick} />.
+                </p>
+              </div>
+            </Section>
 
-          {/* What Are Cookies */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              2. What Are Cookies?
-            </h2>
-            <p className="text-neural-700 mb-4">
-              Cookies are small text files stored on your device when you visit
-              a website. They help websites:
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                <p className="font-semibold text-blue-700 mb-2">
-                  📝 Remember You
-                </p>
-                <p className="text-neural-600 text-sm">
-                  Store login status and preferences
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                <p className="font-semibold text-blue-700 mb-2">
-                  📊 Analyze Usage
-                </p>
-                <p className="text-neural-600 text-sm">
-                  Track how visitors use the site
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                <p className="font-semibold text-blue-700 mb-2">
-                  ⚡ Improve Performance
-                </p>
-                <p className="text-neural-600 text-sm">
-                  Optimize loading times and functionality
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                <p className="font-semibold text-blue-700 mb-2">
-                  🎯 Personalize Experience
-                </p>
-                <p className="text-neural-600 text-sm">
-                  Customize content and features
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  Cookie Types by Duration
-                </h3>
-                <div className="space-y-3">
-                  <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Session Cookies
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Temporary cookies deleted when you close your browser.
-                      Used for essential site functions.
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Persistent Cookies
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Remain on your device until expiration or manual deletion.
-                      Remember preferences between visits.
-                    </p>
-                  </div>
+            {/* 2. What Are Cookies */}
+            <Section id="what-are-cookies" icon={Cookie} title="2. What Are Cookies?">
+              <p className="mb-4">Cookies are small text files stored on your device when you visit a website. They help websites:</p>
+              
+              <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="font-semibold text-white mb-1">📝 Remember You</p>
+                  <p className="text-sm text-gray-400">Store login status and preferences</p>
+                </div>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="font-semibold text-white mb-1">📊 Analyze Usage</p>
+                  <p className="text-sm text-gray-400">Track how visitors use the site</p>
+                </div>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="font-semibold text-white mb-1">⚡ Improve Performance</p>
+                  <p className="text-sm text-gray-400">Optimize loading times and functionality</p>
+                </div>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <p className="font-semibold text-white mb-1">🎯 Personalize Experience</p>
+                  <p className="text-sm text-gray-400">Customize content and features</p>
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  Cookie Types by Source
-                </h3>
-                <div className="space-y-3">
-                  <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      First-Party Cookies
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Set by One Last AI directly. We have full control over
-                      these cookies.
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Third-Party Cookies
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Set by external services (e.g., Google Analytics). Subject
-                      to third-party privacy policies.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Cookies We Use */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              3. Cookies We Use
-            </h2>
-
-            <div className="space-y-6">
-              {/* Strictly Necessary */}
-              <div className="bg-green-50 rounded-xl p-6 border border-green-200">
-                <div className="flex items-start gap-3 mb-4">
-                  <Shield
-                    className="text-green-600 flex-shrink-0 mt-1"
-                    size={28}
-                  />
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-2">
-                      3.1 Strictly Necessary Cookies
-                    </h3>
-                    <p className="text-neural-600 text-sm">
-                      These cookies are essential for the website to function.
-                      We do not need your consent for these.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-green-100">
-                      <tr className="border-b border-green-200">
-                        <th className="text-left p-3 text-neural-900">
-                          Cookie Name
-                        </th>
-                        <th className="text-left p-3 text-neural-900">Purpose</th>
-                        <th className="text-left p-3 text-neural-900">Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-neural-700">
-                      <tr className="border-b border-green-100">
-                        <td className="p-3 font-mono text-xs">session_token</td>
-                        <td className="p-3">Maintains your login session</td>
-                        <td className="p-3">Session</td>
-                      </tr>
-                      <tr className="border-b border-green-100">
-                        <td className="p-3 font-mono text-xs">csrf_token</td>
-                        <td className="p-3">
-                          Prevents cross-site request forgery
-                        </td>
-                        <td className="p-3">Session</td>
-                      </tr>
-                      <tr className="border-b border-green-100">
-                        <td className="p-3 font-mono text-xs">
-                          cookie_consent
-                        </td>
-                        <td className="p-3">Stores your cookie preferences</td>
-                        <td className="p-3">1 year</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-mono text-xs">load_balancer</td>
-                        <td className="p-3">
-                          Routes requests to correct server
-                        </td>
-                        <td className="p-3">Session</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Performance/Analytics */}
-              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                <div className="flex items-start gap-3 mb-4">
-                  <Eye className="text-blue-600 flex-shrink-0 mt-1" size={28} />
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-2">
-                      3.2 Performance & Analytics Cookies
-                    </h3>
-                    <p className="text-neural-600 text-sm">
-                      Help us understand how visitors use our site. We need your
-                      consent for these.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white rounded-lg p-4 border border-blue-100">
-                    <h4 className="font-semibold text-neural-900 mb-2">
-                      Google Analytics
-                    </h4>
-                    <p className="text-neural-600 text-sm mb-3">
-                      We use Google Analytics to track website usage, visitor
-                      demographics, and traffic sources.
-                    </p>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead className="bg-blue-100">
-                          <tr className="border-b border-blue-200">
-                            <th className="text-left p-2 text-neural-900">Cookie</th>
-                            <th className="text-left p-2 text-neural-900">
-                              Purpose
-                            </th>
-                            <th className="text-left p-2 text-neural-900">
-                              Duration
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-neural-700">
-                          <tr className="border-b border-blue-100">
-                            <td className="p-2 font-mono">_ga</td>
-                            <td className="p-2">
-                              Distinguishes unique visitors
-                            </td>
-                            <td className="p-2">2 years</td>
-                          </tr>
-                          <tr className="border-b border-blue-100">
-                            <td className="p-2 font-mono">_gid</td>
-                            <td className="p-2">
-                              Distinguishes users for 24 hours
-                            </td>
-                            <td className="p-2">24 hours</td>
-                          </tr>
-                          <tr>
-                            <td className="p-2 font-mono">_gat</td>
-                            <td className="p-2">Throttles request rate</td>
-                            <td className="p-2">1 minute</td>
-                          </tr>
-                        </tbody>
-                      </table>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">Cookie Types by Duration</h4>
+                  <div className="space-y-3">
+                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                      <p className="font-semibold text-white mb-1">Session Cookies</p>
+                      <p className="text-sm text-gray-400">Temporary cookies deleted when you close your browser. Used for essential site functions.</p>
                     </div>
-                    <p className="text-neural-500 text-xs mt-3">
-                      Data is anonymized. See{' '}
-                      <a
-                        href="https://policies.google.com/privacy"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 underline"
-                      >
-                        Google's Privacy Policy
+                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                      <p className="font-semibold text-white mb-1">Persistent Cookies</p>
+                      <p className="text-sm text-gray-400">Remain on your device until expiration or manual deletion. Remember preferences between visits.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">Cookie Types by Source</h4>
+                  <div className="space-y-3">
+                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                      <p className="font-semibold text-white mb-1">First-Party Cookies</p>
+                      <p className="text-sm text-gray-400">Set by One Last AI directly. We have full control over these cookies.</p>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                      <p className="font-semibold text-white mb-1">Third-Party Cookies</p>
+                      <p className="text-sm text-gray-400">Set by external services (e.g., Google Analytics). Subject to third-party privacy policies.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* 3. Cookies We Use */}
+            <Section id="cookies-we-use" icon={Shield} title="3. Cookies We Use">
+              <div className="space-y-6">
+                {/* Strictly Necessary */}
+                <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-xl">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2 rounded-lg bg-green-500/20">
+                      <Shield className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-bold text-white">3.1 Strictly Necessary Cookies</h4>
+                        <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">Always Active</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">These cookies are essential for the website to function. We do not need your consent for these.</p>
+                    </div>
+                  </div>
+                  
+                  <CookieTable
+                    cookies={[
+                      { name: "session_token", purpose: "Maintains your login session", duration: "Session" },
+                      { name: "csrf_token", purpose: "Prevents cross-site request forgery", duration: "Session" },
+                      { name: "cookie_consent", purpose: "Stores your cookie preferences", duration: "1 year" },
+                      { name: "load_balancer", purpose: "Routes requests to correct server", duration: "Session" },
+                    ]}
+                  />
+                </div>
+
+                {/* Performance/Analytics */}
+                <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2 rounded-lg bg-blue-500/20">
+                      <Eye className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-bold text-white">3.2 Performance & Analytics Cookies</h4>
+                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs rounded-full">Consent Required</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">Help us understand how visitors use our site. We need your consent for these.</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="p-4 bg-white/5 rounded-lg border border-white/5">
+                      <h5 className="font-semibold text-white mb-2">Google Analytics</h5>
+                      <p className="text-sm text-gray-400 mb-3">We use Google Analytics to track website usage, visitor demographics, and traffic sources.</p>
+                      <CookieTable
+                        cookies={[
+                          { name: "_ga", purpose: "Distinguishes unique visitors", duration: "2 years" },
+                          { name: "_gid", purpose: "Distinguishes users for 24 hours", duration: "24 hours" },
+                          { name: "_gat", purpose: "Throttles request rate", duration: "1 minute" },
+                        ]}
+                      />
+                      <p className="text-xs text-gray-500 mt-3">
+                        Data is anonymized. See{" "}
+                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                          Google&apos;s Privacy Policy
+                        </a>
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-white/5 rounded-lg border border-white/5">
+                      <h5 className="font-semibold text-white mb-2">Performance Monitoring</h5>
+                      <p className="text-sm text-gray-400 mb-3">Track page load times, API response times, and errors to improve service quality.</p>
+                      <CookieTable
+                        cookies={[
+                          { name: "perf_metrics", purpose: "Stores performance timing data", duration: "7 days" },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Functional */}
+                <div className="p-6 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="p-2 rounded-lg bg-purple-500/20">
+                      <Settings className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-bold text-white">3.3 Functional Cookies</h4>
+                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs rounded-full">Consent Required</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">Remember your preferences and provide enhanced features.</p>
+                    </div>
+                  </div>
+                  
+                  <CookieTable
+                    cookies={[
+                      { name: "theme_preference", purpose: "Remembers dark/light mode choice", duration: "1 year" },
+                      { name: "language", purpose: "Stores preferred language", duration: "1 year" },
+                      { name: "agent_preferences", purpose: "Saves favorite AI agents", duration: "6 months" },
+                      { name: "voice_settings", purpose: "Remembers voice interaction preferences", duration: "6 months" },
+                    ]}
+                  />
+                </div>
+              </div>
+            </Section>
+
+            {/* 4. Third-Party Services */}
+            <Section id="third-party" icon={Globe} title="4. Third-Party Services">
+              <p className="mb-4">We integrate the following third-party services that may set cookies:</p>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <h4 className="font-semibold text-white mb-2">Google Analytics</h4>
+                  <p className="text-sm text-gray-400 mb-2">Website analytics and visitor insights</p>
+                  <div className="space-y-1 text-xs text-gray-500">
+                    <p>
+                      Privacy Policy:{" "}
+                      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                        policies.google.com/privacy
+                      </a>
+                    </p>
+                    <p>
+                      Opt-out:{" "}
+                      <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                        Browser Add-on
                       </a>
                     </p>
                   </div>
-
-                  <div className="bg-white rounded-lg p-4 border border-blue-100">
-                    <h4 className="font-semibold text-neural-900 mb-2">
-                      Performance Monitoring
-                    </h4>
-                    <p className="text-neural-600 text-sm mb-3">
-                      Track page load times, API response times, and errors to
-                      improve service quality.
-                    </p>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead className="bg-blue-100">
-                          <tr className="border-b border-blue-200">
-                            <th className="text-left p-2 text-neural-900">Cookie</th>
-                            <th className="text-left p-2 text-neural-900">
-                              Purpose
-                            </th>
-                            <th className="text-left p-2 text-neural-900">
-                              Duration
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-neural-700">
-                          <tr>
-                            <td className="p-2 font-mono">perf_metrics</td>
-                            <td className="p-2">
-                              Stores performance timing data
-                            </td>
-                            <td className="p-2">7 days</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
                 </div>
-              </div>
 
-              {/* Functional */}
-              <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
-                <div className="flex items-start gap-3 mb-4">
-                  <Settings
-                    className="text-purple-600 flex-shrink-0 mt-1"
-                    size={28}
-                  />
-                  <div>
-                    <h3 className="text-xl font-bold text-neural-900 mb-2">
-                      3.3 Functional Cookies
-                    </h3>
-                    <p className="text-neural-600 text-sm">
-                      Remember your preferences and provide enhanced features.
-                      Consent required.
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <h4 className="font-semibold text-white mb-2">Payment Processors (Stripe, PayPal)</h4>
+                  <p className="text-sm text-gray-400 mb-2">Secure payment processing and fraud prevention</p>
+                  <div className="space-y-1 text-xs text-gray-500">
+                    <p>
+                      Stripe Privacy:{" "}
+                      <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                        stripe.com/privacy
+                      </a>
+                    </p>
+                    <p>
+                      PayPal Privacy:{" "}
+                      <a href="https://www.paypal.com/privacy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                        paypal.com/privacy
+                      </a>
                     </p>
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-purple-100">
-                      <tr className="border-b border-purple-200">
-                        <th className="text-left p-3 text-neural-900">
-                          Cookie Name
-                        </th>
-                        <th className="text-left p-3 text-neural-900">Purpose</th>
-                        <th className="text-left p-3 text-neural-900">Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-neural-700">
-                      <tr className="border-b border-purple-100">
-                        <td className="p-3 font-mono text-xs">
-                          theme_preference
-                        </td>
-                        <td className="p-3">
-                          Remembers dark/light mode choice
-                        </td>
-                        <td className="p-3">1 year</td>
-                      </tr>
-                      <tr className="border-b border-purple-100">
-                        <td className="p-3 font-mono text-xs">language</td>
-                        <td className="p-3">Stores preferred language</td>
-                        <td className="p-3">1 year</td>
-                      </tr>
-                      <tr className="border-b border-purple-100">
-                        <td className="p-3 font-mono text-xs">
-                          agent_preferences
-                        </td>
-                        <td className="p-3">Saves favorite AI agents</td>
-                        <td className="p-3">6 months</td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-mono text-xs">
-                          voice_settings
-                        </td>
-                        <td className="p-3">
-                          Remembers voice interaction preferences
-                        </td>
-                        <td className="p-3">6 months</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                  <h4 className="font-semibold text-white mb-2">Cloudflare</h4>
+                  <p className="text-sm text-gray-400 mb-2">CDN, DDoS protection, and performance optimization</p>
+                  <div className="text-xs text-gray-500">
+                    <p>
+                      Privacy Policy:{" "}
+                      <a href="https://www.cloudflare.com/privacy" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                        cloudflare.com/privacy
+                      </a>
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </Section>
 
-          {/* Third-Party Services */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              4. Third-Party Services
-            </h2>
-            <p className="text-neural-700 mb-4">
-              We integrate the following third-party services that may set
-              cookies:
-            </p>
+            {/* 5. Managing Cookies */}
+            <Section id="managing" icon={Sliders} title="5. Managing Your Cookie Preferences">
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">5.1 Cookie Settings on Our Site</h4>
+                  <p className="mb-3">You can manage your cookie preferences at any time:</p>
+                  <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                    <button className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold rounded-xl transition-colors">
+                      Open Cookie Preferences
+                    </button>
+                    <p className="text-sm text-gray-400 mt-3">Adjust settings for analytics, functional, and other non-essential cookies</p>
+                  </div>
+                </div>
 
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold text-neural-900 mb-3">
-                  Google Analytics
-                </h3>
-                <p className="text-neural-600 text-sm mb-2">
-                  Website analytics and visitor insights
-                </p>
-                <p className="text-neural-500 text-xs">
-                  Privacy Policy:{' '}
-                  <a
-                    href="https://policies.google.com/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    policies.google.com/privacy
-                  </a>
-                </p>
-                <p className="text-neural-500 text-xs mt-1">
-                  Opt-out:{' '}
-                  <a
-                    href="https://tools.google.com/dlpage/gaoptout"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    Browser Add-on
-                  </a>
-                </p>
-              </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">5.2 Browser Settings</h4>
+                  <p className="mb-3">Most browsers allow you to control cookies through settings:</p>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {[
+                      { browser: "Google Chrome", path: "Settings → Privacy and Security → Cookies" },
+                      { browser: "Mozilla Firefox", path: "Options → Privacy & Security → Cookies" },
+                      { browser: "Safari", path: "Preferences → Privacy → Cookies" },
+                      { browser: "Microsoft Edge", path: "Settings → Privacy → Cookies" },
+                    ].map((item, i) => (
+                      <div key={i} className="p-3 bg-white/5 rounded-lg border border-white/5">
+                        <p className="font-semibold text-white text-sm">{item.browser}</p>
+                        <p className="text-xs text-gray-500">{item.path}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-              <div className="bg-gray-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold text-neural-900 mb-3">
-                  Payment Processors (Stripe, PayPal)
-                </h3>
-                <p className="text-neural-600 text-sm mb-2">
-                  Secure payment processing and fraud prevention
-                </p>
-                <p className="text-neural-500 text-xs">
-                  Stripe Privacy:{' '}
-                  <a
-                    href="https://stripe.com/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    stripe.com/privacy
-                  </a>
-                </p>
-                <p className="text-neural-500 text-xs mt-1">
-                  PayPal Privacy:{' '}
-                  <a
-                    href="https://www.paypal.com/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    paypal.com/privacy
-                  </a>
-                </p>
-              </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">5.3 Opt-Out Tools</h4>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                      <span className="text-gray-400">
+                        <strong className="text-white">Google Analytics:</strong>{" "}
+                        <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                          Browser Add-on
+                        </a>
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                      <span className="text-gray-400">
+                        <strong className="text-white">Do Not Track (DNT):</strong> Enable in browser settings (we honor DNT signals)
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                      <span className="text-gray-400">
+                        <strong className="text-white">Global Privacy Control:</strong>{" "}
+                        <a href="https://globalprivacycontrol.org" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+                          Learn more
+                        </a>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
 
-              <div className="bg-gray-50 rounded-xl p-6 border border-neural-200">
-                <h3 className="text-lg font-semibold text-neural-900 mb-3">
-                  Cloudflare
-                </h3>
-                <p className="text-neural-600 text-sm mb-2">
-                  CDN, DDoS protection, and performance optimization
-                </p>
-                <p className="text-neural-500 text-xs">
-                  Privacy Policy:{' '}
-                  <a
-                    href="https://www.cloudflare.com/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    cloudflare.com/privacy
-                  </a>
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Managing Cookies */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              5. Managing Your Cookie Preferences
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  5.1 Cookie Settings on Our Site
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  You can manage your cookie preferences at any time:
-                </p>
-                <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                  <button className="w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                    Open Cookie Preferences
-                  </button>
-                  <p className="text-neural-600 text-sm mt-3">
-                    Adjust settings for analytics, functional, and other
-                    non-essential cookies
+                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                  <p className="text-amber-400 text-sm">
+                    <strong className="text-white">Important:</strong> Blocking strictly necessary cookies may prevent you from using essential features of our platform, including login and account management.
                   </p>
                 </div>
               </div>
+            </Section>
 
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  5.2 Browser Settings
-                </h3>
-                <p className="text-neural-700 mb-3">
-                  Most browsers allow you to control cookies through settings:
-                </p>
-                <div className="grid md:grid-cols-2 gap-3">
-                  <div className="bg-gray-50 rounded-lg p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Google Chrome
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Settings → Privacy and Security → Cookies
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Mozilla Firefox
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Options → Privacy & Security → Cookies
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">Safari</p>
-                    <p className="text-neural-600 text-sm">
-                      Preferences → Privacy → Cookies
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 border border-neural-200">
-                    <p className="font-semibold text-neural-900 mb-2">
-                      Microsoft Edge
-                    </p>
-                    <p className="text-neural-600 text-sm">
-                      Settings → Privacy → Cookies
-                    </p>
-                  </div>
+            {/* 6. Updates */}
+            <Section id="updates" icon={Bell} title="6. Updates to This Policy">
+              <p>
+                We may update this Cookie Policy from time to time to reflect changes in our practices or for legal compliance. Updates will be posted on this page with a new &ldquo;Last Updated&rdquo; date. Significant changes will be communicated via email or platform notification.
+              </p>
+            </Section>
+
+            {/* 7. Contact */}
+            <Section id="contact" icon={Mail} title="7. Contact Us About Cookies">
+              <p className="mb-6">For questions about our cookie practices:</p>
+              
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl">
+                  <h4 className="font-semibold text-white mb-2">Privacy</h4>
+                  <a href="mailto:privacy@onelastai.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    privacy@onelastai.com
+                  </a>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl">
+                  <h4 className="font-semibold text-white mb-2">Support</h4>
+                  <a href="mailto:support@onelastai.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    support@onelastai.com
+                  </a>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-neural-900">
-                  5.3 Opt-Out Tools
-                </h3>
-                <ul className="list-disc pl-6 text-neural-700 space-y-2">
-                  <li>
-                    <strong className="text-neural-900">Google Analytics:</strong>{' '}
-                    <a
-                      href="https://tools.google.com/dlpage/gaoptout"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 underline"
-                    >
-                      Browser Add-on
-                    </a>
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">Do Not Track (DNT):</strong>{' '}
-                    Enable in browser settings (we honor DNT signals)
-                  </li>
-                  <li>
-                    <strong className="text-neural-900">
-                      Global Privacy Control:
-                    </strong>{' '}
-                    <a
-                      href="https://globalprivacycontrol.org"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 underline"
-                    >
-                      Learn more
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
-                <p className="text-neural-700">
-                  <strong className="text-neural-900">Important:</strong> Blocking
-                  strictly necessary cookies may prevent you from using
-                  essential features of our platform, including login and
-                  account management.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Updates */}
-          <section className="bg-white rounded-2xl p-8 border border-neural-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              6. Updates to This Policy
-            </h2>
-            <p className="text-neural-700">
-              We may update this Cookie Policy from time to time to reflect
-              changes in our practices or for legal compliance. Updates will be
-              posted on this page with a new "Last Updated" date. Significant
-              changes will be communicated via email or platform notification.
-            </p>
-          </section>
-
-          {/* Contact */}
-          <section className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-8">
-            <h2 className="text-3xl font-bold mb-6 text-white">
-              7. Contact Us About Cookies
-            </h2>
-            <div className="space-y-3 text-blue-100">
-              <p>
-                <strong className="text-white">Cookie Questions:</strong>
-              </p>
-              <p>
-                Email:{' '}
-                <a
-                  href="mailto:privacy@onelastai.com"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  privacy@onelastai.com
-                </a>
-              </p>
-              <p>
-                Support:{' '}
-                <a
-                  href="mailto:support@onelastai.com"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  support@onelastai.com
-                </a>
-              </p>
-              <p>
-                Website:{' '}
-                <a
-                  href="https://onelastai.com"
-                  className="text-white hover:text-blue-200 underline"
-                >
-                  https://onelastai.com
-                </a>
-              </p>
-            </div>
-          </section>
+            </Section>
+          </div>
         </div>
       </div>
 
       {/* Article Popup */}
-      {selectedArticle && (
+      {selectedArticle && articles[selectedArticle] && (
         <ArticlePopup
-          article={selectedArticle}
+          article={articles[selectedArticle]}
           onClose={() => setSelectedArticle(null)}
         />
       )}

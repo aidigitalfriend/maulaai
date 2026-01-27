@@ -21,6 +21,7 @@
     "@aws-sdk/s3-request-presigner": "^3.964.0",
     "@babel/standalone": "^7.28.5",
     "@google/generative-ai": "^0.24.1",
+    "@gsap/react": "^2.1.2",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.0.18",
     "@mistralai/mistralai": "^1.11.0",
