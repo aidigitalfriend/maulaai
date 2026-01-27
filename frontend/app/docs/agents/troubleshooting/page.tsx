@@ -1,411 +1,270 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle, Wrench, HelpCircle } from 'lucide-react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, AlertTriangle, Search, CheckCircle, XCircle, MessageSquare, Zap, RefreshCw, Shield, ChevronDown, ChevronUp } from 'lucide-react';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function TroubleshootingPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const commonIssues = [
+    {
+      title: 'Agent Not Responding',
+      icon: MessageSquare,
+      symptoms: ['No response after sending message', 'Loading indicator stuck', 'Timeout errors'],
+      solutions: [
+        'Check your internet connection and API status',
+        'Verify your API key is valid and not expired',
+        'Ensure rate limits haven\'t been exceeded',
+        'Try refreshing the page or starting a new session'
+      ],
+      color: '#ef4444'
+    },
+    {
+      title: 'Slow Response Times',
+      icon: Zap,
+      symptoms: ['Responses take over 30 seconds', 'Inconsistent response times', 'Timeouts on complex queries'],
+      solutions: [
+        'Reduce the max_tokens parameter for shorter responses',
+        'Simplify your prompts and reduce context length',
+        'Check current API status for any slowdowns',
+        'Consider upgrading to a higher tier for better performance'
+      ],
+      color: '#f59e0b'
+    },
+    {
+      title: 'Unexpected Responses',
+      icon: RefreshCw,
+      symptoms: ['Off-topic replies', 'Inconsistent behavior', 'Hallucinations or incorrect info'],
+      solutions: [
+        'Review and refine your system prompt for clarity',
+        'Lower the temperature setting for more consistent outputs',
+        'Provide more specific examples in your prompt',
+        'Add explicit constraints about what the agent should NOT do'
+      ],
+      color: '#a855f7'
+    },
+    {
+      title: 'Authentication Errors',
+      icon: Shield,
+      symptoms: ['401 Unauthorized errors', 'Invalid API key messages', 'Permission denied'],
+      solutions: [
+        'Regenerate your API key from the settings page',
+        'Ensure the API key is correctly formatted in headers',
+        'Check that your subscription is active',
+        'Verify you have the required permissions for the endpoint'
+      ],
+      color: '#00d4ff'
+    }
+  ];
+
+  const faqs = [
+    {
+      q: 'Why does my agent forget previous context?',
+      a: 'Agents have a limited context window. For long conversations, enable memory in your agent settings. This stores conversation history and maintains context across sessions. You can also increase the context window size in configuration.'
+    },
+    {
+      q: 'How do I handle rate limit errors?',
+      a: 'Rate limits are based on your subscription tier. If you\'re hitting limits, consider upgrading your plan, implementing request queuing, or adding exponential backoff to your retry logic. You can monitor your usage in the dashboard.'
+    },
+    {
+      q: 'My agent is giving biased or inappropriate responses',
+      a: 'Enable stricter content filters in your agent\'s safety settings. You can also add explicit guidelines in your system prompt about avoiding certain topics. If issues persist, report them through our support channel.'
+    },
+    {
+      q: 'Can I use agents offline?',
+      a: 'Currently, agents require an internet connection to function. The AI models run on our servers to ensure optimal performance and security. Offline mode is on our roadmap for enterprise customers.'
+    },
+    {
+      q: 'How do I export conversation history?',
+      a: 'Go to Settings > Data > Export. You can export conversations in JSON, CSV, or Markdown format. For API users, use the GET /api/conversations endpoint to retrieve history programmatically.'
+    }
+  ];
+
+  const debugSteps = [
+    { num: 1, title: 'Check API Status', desc: 'Visit our status page to verify all services are operational.' },
+    { num: 2, title: 'Verify Configuration', desc: 'Review your agent settings and ensure all parameters are valid.' },
+    { num: 3, title: 'Test in Isolation', desc: 'Try a simple "Hello" message to rule out prompt issues.' },
+    { num: 4, title: 'Check Logs', desc: 'Review error logs in your dashboard for specific error codes.' },
+    { num: 5, title: 'Contact Support', desc: 'If issues persist, reach out with error details and agent ID.' }
+  ];
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4');
+
+    gsap.fromTo('.issue-card',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: '.issues-grid', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.step-item',
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.debug-section', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.faq-item',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out', scrollTrigger: { trigger: '.faq-section', start: 'top 85%' } }
+    );
+  }, { scope: containerRef });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Agent Docs
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.3); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
+
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(239,68,68,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-gray-400 hover:text-[#ef4444] mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Agent Docs
           </Link>
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-              <span className="text-xl">🔧</span>
-              Support Guide
+            <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-sm mb-6 opacity-0">
+              <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />
+              <span className="text-gray-300">Problem Solving</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Troubleshooting</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">Solutions for common issues and problems you might encounter</p>
-            <div className="flex items-center justify-center gap-4 mt-6 text-white/70 text-sm">
-              <span>📖 8 min read</span>
-              <span>•</span>
-              <span>Updated: January 2026</span>
-            </div>
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">Troubleshooting</h1>
+            <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+              Quick solutions to common issues and debugging guides
+            </p>
           </div>
         </div>
       </section>
 
-      <div className="container-custom py-12">
+      {/* Common Issues */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Common Issues</h2>
+            <p className="text-gray-400">Quick fixes for frequently encountered problems</p>
+          </div>
+          <div className="issues-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+            {commonIssues.map((issue, i) => {
+              const Icon = issue.icon;
+              return (
+                <div key={i} className="issue-card glass-card rounded-2xl p-6 opacity-0">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${issue.color}20`, border: `1px solid ${issue.color}40` }}>
+                      <Icon className="w-6 h-6" style={{ color: issue.color }} />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">{issue.title}</h3>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-2">Symptoms</h4>
+                    <ul className="space-y-1">
+                      {issue.symptoms.map((s, j) => (
+                        <li key={j} className="flex items-center gap-2 text-gray-500 text-sm">
+                          <XCircle className="w-3 h-3 text-red-400" /> {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Common Issues */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-orange-100 rounded-xl p-2"><AlertCircle className="w-6 h-6 text-orange-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Common Issues & Solutions</h2>
-            </div>
-
-            <div className="space-y-8">
-              {/* Issue 1 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Agent Responses Are Too Generic</h3>
-                <p className="text-neural-600 mb-4">
-                  The responses lack detail or don't address your specific needs.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Provide more specific context in your questions</li>
-                    <li>Increase response length to "Detailed" or "Comprehensive"</li>
-                    <li>Add follow-up questions like "Can you provide examples?"</li>
-                    <li>Try a different agent - may be better suited for your task</li>
-                    <li>Enable citations mode to get sourced information</li>
-                  </ul>
+                  <div>
+                    <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-2">Solutions</h4>
+                    <ul className="space-y-1">
+                      {issue.solutions.map((s, j) => (
+                        <li key={j} className="flex items-start gap-2 text-gray-400 text-sm">
+                          <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0 mt-0.5" /> {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-
-              {/* Issue 2 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Not Getting the Type of Response I Want</h3>
-                <p className="text-neural-600 mb-4">
-                  The response format or style doesn't match your needs.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Specify the format you want: "Provide as a list" or "Write as a step-by-step guide"</li>
-                    <li>Adjust Response Tone setting (Professional, Casual, Technical)</li>
-                    <li>Change Output Format in advanced settings (Narrative, Bullet Points, Structured)</li>
-                    <li>Ask the agent to reformat: "Can you rewrite that as a list?"</li>
-                    <li>Try role-based prompting: "As a teacher, explain this concept"</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Issue 3 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Getting Conflicting Information</h3>
-                <p className="text-neural-600 mb-4">
-                  Agent responses seem contradictory or inconsistent.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Ask for clarification: "Why did you say X before but Y now?"</li>
-                    <li>Provide more context to reduce confusion</li>
-                    <li>Start a new conversation if context is overwhelming</li>
-                    <li>Consult multiple agents for different perspectives</li>
-                    <li>Verify information against reliable external sources</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Issue 4 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Response Takes Too Long to Receive</h3>
-                <p className="text-neural-600 mb-4">
-                  The agent is taking a long time to generate responses.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Reduce Response Length to "Brief" or "Standard"</li>
-                    <li>Simplify your question - break complex questions into smaller parts</li>
-                    <li>Check your internet connection</li>
-                    <li>Try again during off-peak hours if you're on a free tier</li>
-                    <li>Upgrade to a higher plan tier for priority processing</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Issue 5 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Agent Doesn't Remember Previous Context</h3>
-                <p className="text-neural-600 mb-4">
-                  The agent isn't remembering what we discussed earlier in the conversation.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Check Context Awareness setting - ensure it's not set to "Disabled"</li>
-                    <li>Enable "Limited" context if it's less than 5 messages back</li>
-                    <li>Explicitly restate context in your question</li>
-                    <li>Very long conversations may lose older context - start fresh if needed</li>
-                    <li>Use this feature strategically with fresh contexts for new topics</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Issue 6 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Code Examples Have Errors</h3>
-                <p className="text-neural-600 mb-4">
-                  Code provided by the agent doesn't work or has syntax errors.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Show the agent the error message: "I got this error: [error text]"</li>
-                    <li>Ask for step-by-step debugging help</li>
-                    <li>Clarify your environment: Python version, framework version, etc.</li>
-                    <li>Ask for simpler examples first, then build complexity</li>
-                    <li>Request explanations of what the code does before using it</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Issue 7 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Agent Doesn't Know About Current Events</h3>
-                <p className="text-neural-600 mb-4">
-                  Agent seems to not have recent information or current date knowledge.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Provide current information in your question: "As of October 2025..."</li>
-                    <li>Agents have a knowledge cutoff - provide context for recent events</li>
-                    <li>Ask about concepts rather than current events when possible</li>
-                    <li>Use external sources for real-time information like stock prices, weather</li>
-                    <li>Enable citations to see source dates for information</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Issue 8 */}
-              <div className="border-l-4 border-orange-500 pl-6">
-                <h3 className="text-lg font-semibold text-neural-900 mb-2">Language or Translation Issues</h3>
-                <p className="text-neural-600 mb-4">
-                  Responses in different languages are poor quality or incorrect.
-                </p>
-                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                  <p className="text-neural-800 font-semibold">Solutions:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                    <li>Set Language explicitly in configuration settings</li>
-                    <li>Use native speakers of the language to verify accuracy</li>
-                    <li>Agents perform better in English - consider that if precision matters</li>
-                    <li>For technical content, mixing English terms with your language helps</li>
-                    <li>Report language quality issues so we can improve</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Optimization Tips */}
-          <section className="bg-white rounded-2xl shadow-sm border border-neural-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-blue-100 rounded-xl p-2">
-                <Wrench className="w-6 h-6 text-blue-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-neural-900">Performance Optimization</h2>
-            </div>
-
-            <div className="space-y-4 text-neural-600">
-              <div className="flex gap-3">
-                <span className="text-brand-600 font-bold">→</span>
-                <span><strong className="text-neural-900">Shorter Questions:</strong> Simpler questions get faster responses</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-brand-600 font-bold">→</span>
-                <span><strong className="text-neural-900">Reduce Response Length:</strong> "Brief" mode is faster than "Comprehensive"</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-brand-600 font-bold">→</span>
-                <span><strong className="text-neural-900">Lower Creativity:</strong> Conservative mode doesn't need to generate as many alternatives</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-brand-600 font-bold">→</span>
-                <span><strong className="text-neural-900">Disable Citations:</strong> Finding sources takes extra time; turn off if not needed</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-brand-600 font-bold">→</span>
-                <span><strong className="text-neural-900">Manage Conversation Length:</strong> Very long conversations may slow down responses</span>
-              </div>
-            </div>
-          </section>
-
-          {/* Account & Access Issues */}
-          <section className="bg-white rounded-2xl shadow-sm border border-neural-100 p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Account & Access Issues</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Can't Log In</h3>
-                <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
-                  <li>Check that you're using the correct email address</li>
-                  <li>Reset your password using "Forgot Password" link</li>
-                  <li>Clear browser cache and cookies, then try again</li>
-                  <li>Try a different browser to rule out browser-specific issues</li>
-                  <li>Contact support if the issue persists</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Getting Rate Limited</h3>
-                <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
-                  <li>You've exceeded your plan's request limit</li>
-                  <li>Upgrade to a higher tier for more requests</li>
-                  <li>Limits reset daily - wait until tomorrow for free tier</li>
-                  <li>For API users: implement request queuing and backoff logic</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">API Key Not Working</h3>
-                <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
-                  <li>Verify the key includes "Bearer " prefix in the Authorization header</li>
-                  <li>Check that the key hasn't been deactivated in settings</li>
-                  <li>Regenerate the key from the dashboard if in doubt</li>
-                  <li>Verify the key is for the correct environment (test vs production)</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Browser & Technical Issues */}
-          <section className="bg-white rounded-2xl shadow-sm border border-neural-100 p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Browser & Technical Issues</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Page Not Loading or Blank Screen</h3>
-                <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
-                  <li>Refresh the page (Ctrl+R or Cmd+R)</li>
-                  <li>Hard refresh to clear cache (Ctrl+Shift+R or Cmd+Shift+R)</li>
-                  <li>Clear browser cookies and cache for onelastai.com</li>
-                  <li>Try a different browser</li>
-                  <li>Disable browser extensions and try again</li>
-                  <li>Check that JavaScript is enabled in your browser</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Chat Box Not Responding</h3>
-                <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
-                  <li>Close the agent and reopen it</li>
-                  <li>Refresh the entire page</li>
-                  <li>Check your internet connection is stable</li>
-                  <li>Try disabling browser extensions temporarily</li>
-                  <li>Clear browser cache and cookies</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Settings Not Saving</h3>
-                <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
-                  <li>Ensure you wait for the save confirmation</li>
-                  <li>Refresh the page and check if settings persisted</li>
-                  <li>Check if cookies are enabled - settings are saved locally</li>
-                  <li>Try with a different browser</li>
-                  <li>Contact support if problem continues</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Getting Help */}
-          <section className="bg-blue-50 border border-blue-200 rounded-2xl p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-100 rounded-xl p-2">
-                <HelpCircle className="w-6 h-6 text-blue-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-neural-900">When Nothing Works</h2>
-            </div>
-
-            <div className="space-y-4 text-neural-700">
-              <p>If you've tried the solutions above and still have issues:</p>
-
-              <div className="bg-white p-4 rounded-xl space-y-3">
-                <h3 className="font-semibold text-brand-600 mb-2">Information to Provide</h3>
-                <ul className="list-disc list-inside space-y-2 ml-2 text-neural-600">
-                  <li>Describe the issue clearly</li>
-                  <li>Include error messages (exact text or screenshots)</li>
-                  <li>Tell us which browser and version you're using</li>
-                  <li>Specify which agent has the issue (if applicable)</li>
-                  <li>Provide steps to reproduce the issue</li>
-                  <li>Tell us your plan tier and when the issue started</li>
-                </ul>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl mt-4">
-                <h3 className="font-semibold text-brand-600 mb-2">Contact Options</h3>
-                <p className="text-neural-600 text-sm">
-                  Visit our Support page to contact our help team, or check the Help section in your dashboard for live chat support.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* FAQ */}
-          <section className="bg-white rounded-2xl shadow-sm border border-neural-100 p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Frequently Asked Questions</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Q: Is my conversation data private?</h3>
-                <p className="text-neural-600">
-                  Yes. All conversations are encrypted and stored securely. We do not share conversation data with third parties. 
-                  Check our Privacy Policy for full details.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Q: Can I delete my conversations?</h3>
-                <p className="text-neural-600">
-                  Yes. You can delete individual conversations from your history, or bulk delete all conversations in your account settings. 
-                  Deleted conversations cannot be recovered.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Q: What if an agent gives incorrect information?</h3>
-                <p className="text-neural-600">
-                  Use the feedback feature to rate responses as unhelpful. Always verify important information from reliable sources. 
-                  For critical decisions, consult multiple sources.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Q: Can I use agent responses in my work?</h3>
-                <p className="text-neural-600">
-                  Yes. You can use agent responses in your projects. For commercial use, review our Terms of Service for any restrictions. 
-                  Always credit original sources when agent responses cite them.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Q: How often are agents updated?</h3>
-                <p className="text-neural-600">
-                  Agents receive periodic updates to improve accuracy and add new capabilities. Major updates are announced in our blog. 
-                  Updates don't affect existing conversations.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Related Links */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <Link 
-              href="/docs/agents/getting-started"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Getting Started</h3>
-              <p className="text-neural-600 text-sm">Learn the basics</p>
-            </Link>
-            <Link 
-              href="/docs/agents/configuration"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Configuration</h3>
-              <p className="text-neural-600 text-sm">Configure agents</p>
-            </Link>
-            <Link 
-              href="/docs/agents/best-practices"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Best Practices</h3>
-              <p className="text-neural-600 text-sm">Learn expert tips</p>
-            </Link>
-          </section>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Debug Steps */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] debug-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Debugging Workflow</h2>
+            <p className="text-gray-400">Step-by-step guide to identify and fix issues</p>
+          </div>
+          <div className="space-y-4">
+            {debugSteps.map((step, i) => (
+              <div key={i} className="step-item glass-card rounded-xl p-5 flex items-center gap-6 opacity-0">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#00d4ff] to-[#0066ff] rounded-lg flex items-center justify-center flex-shrink-0 font-bold">
+                  {step.num}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-white">{step.title}</h4>
+                  <p className="text-gray-500 text-sm">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-24 px-6 faq-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Frequently Asked Questions</h2>
+            <p className="text-gray-400">Quick answers to common questions</p>
+          </div>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <div key={i} className="faq-item glass-card rounded-xl overflow-hidden opacity-0">
+                <button
+                  className="w-full px-6 py-4 flex items-center justify-between text-left"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span className="font-semibold text-white">{faq.q}</span>
+                  {openFaq === i ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-4 text-gray-400 text-sm border-t border-white/5 pt-4">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl font-bold metallic-text mb-4">Still Having Issues?</h2>
+          <p className="text-gray-400 mb-8">Our support team is here to help</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/support" className="px-8 py-4 bg-gradient-to-r from-[#ef4444] to-[#f59e0b] rounded-xl font-semibold hover:opacity-90 transition-all">
+              Contact Support
+            </Link>
+            <Link href="/community" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
+              Community Forums →
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

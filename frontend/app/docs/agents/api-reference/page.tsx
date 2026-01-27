@@ -1,371 +1,279 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Code, BookOpen, Database, Zap } from 'lucide-react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, Code, Copy, Check, Key, Globe, MessageSquare, Settings, Zap, Users, Brain, AlertTriangle } from 'lucide-react';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function APIReferencePage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const endpoints = [
+    { method: 'GET', path: '/api/agents', desc: 'List all available agents', color: '#00ff88' },
+    { method: 'GET', path: '/api/agents/:id', desc: 'Get agent details', color: '#00ff88' },
+    { method: 'POST', path: '/api/agents', desc: 'Create a new agent', color: '#00d4ff' },
+    { method: 'PUT', path: '/api/agents/:id', desc: 'Update agent configuration', color: '#f59e0b' },
+    { method: 'DELETE', path: '/api/agents/:id', desc: 'Delete an agent', color: '#ef4444' },
+    { method: 'POST', path: '/api/agents/:id/chat', desc: 'Send message to agent', color: '#00d4ff' }
+  ];
+
+  const codeExamples = [
+    {
+      title: 'Authentication',
+      lang: 'bash',
+      code: `curl -X GET "https://api.onelastai.com/api/agents" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json"`
+    },
+    {
+      title: 'Create Agent',
+      lang: 'javascript',
+      code: `const response = await fetch('https://api.onelastai.com/api/agents', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'My Agent',
+    model: 'gpt-4-turbo',
+    systemPrompt: 'You are a helpful assistant...'
+  })
+});
+
+const agent = await response.json();`
+    },
+    {
+      title: 'Chat with Agent',
+      lang: 'javascript',
+      code: `const response = await fetch('https://api.onelastai.com/api/agents/agent_123/chat', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    message: 'Hello, how can you help me?',
+    sessionId: 'session_abc123'
+  })
+});
+
+const { reply, tokens } = await response.json();`
+    }
+  ];
+
+  const errorCodes = [
+    { code: '400', desc: 'Bad Request - Invalid parameters', color: '#f59e0b' },
+    { code: '401', desc: 'Unauthorized - Invalid or missing API key', color: '#ef4444' },
+    { code: '403', desc: 'Forbidden - Insufficient permissions', color: '#ef4444' },
+    { code: '404', desc: 'Not Found - Agent does not exist', color: '#f59e0b' },
+    { code: '429', desc: 'Too Many Requests - Rate limit exceeded', color: '#a855f7' },
+    { code: '500', desc: 'Server Error - Internal error', color: '#ef4444' }
+  ];
+
+  const copyCode = (idx: number, code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4');
+
+    gsap.fromTo('.endpoint-row',
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.4, stagger: 0.06, ease: 'power3.out', scrollTrigger: { trigger: '.endpoints-section', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.code-block',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power3.out', scrollTrigger: { trigger: '.code-section', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.error-row',
+      { opacity: 0, x: 20 },
+      { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: 'power3.out', scrollTrigger: { trigger: '.errors-section', start: 'top 85%' } }
+    );
+  }, { scope: containerRef });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Agent Docs
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.3); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
+
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(0,212,255,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-gray-400 hover:text-[#00d4ff] mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Agent Docs
           </Link>
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-              <span className="text-xl">📡</span>
-              API Documentation
+            <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-sm mb-6 opacity-0">
+              <Code className="w-4 h-4 text-[#00d4ff]" />
+              <span className="text-gray-300">API Documentation</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Agent API Reference</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">Complete API documentation for integrating agents into your applications</p>
-            <div className="flex items-center justify-center gap-4 mt-6 text-white/70 text-sm">
-              <span>📖 15 min read</span>
-              <span>•</span>
-              <span>Updated: January 2026</span>
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">API Reference</h1>
+            <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+              Complete API documentation for integrating agents into your applications
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Base URL */}
+      <section className="py-12 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="glass-card rounded-2xl p-6 flex flex-col md:flex-row items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Globe className="w-5 h-5 text-[#00d4ff]" />
+              <span className="text-gray-400">Base URL:</span>
+            </div>
+            <code className="text-[#00ff88] font-mono bg-black/50 px-4 py-2 rounded-lg flex-1 text-center md:text-left">
+              https://api.onelastai.com
+            </code>
+          </div>
+        </div>
+      </section>
+
+      {/* Endpoints */}
+      <section className="py-24 px-6 endpoints-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Endpoints</h2>
+            <p className="text-gray-400">Available API endpoints for agent operations</p>
+          </div>
+          <div className="glass-card rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/10 text-gray-500 text-sm font-medium">
+              <div className="col-span-2">Method</div>
+              <div className="col-span-5">Endpoint</div>
+              <div className="col-span-5">Description</div>
+            </div>
+            {endpoints.map((ep, i) => (
+              <div key={i} className="endpoint-row grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/5 transition-colors opacity-0">
+                <div className="col-span-2">
+                  <span className="px-2 py-1 rounded text-xs font-bold" style={{ background: `${ep.color}20`, color: ep.color }}>
+                    {ep.method}
+                  </span>
+                </div>
+                <div className="col-span-5">
+                  <code className="text-[#00d4ff] text-sm font-mono">{ep.path}</code>
+                </div>
+                <div className="col-span-5 text-gray-400 text-sm">{ep.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Code Examples */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] code-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Code Examples</h2>
+            <p className="text-gray-400">Ready-to-use code snippets for common operations</p>
+          </div>
+          <div className="space-y-8">
+            {codeExamples.map((example, i) => (
+              <div key={i} className="code-block glass-card rounded-2xl overflow-hidden opacity-0">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-300 font-medium">{example.title}</span>
+                    <span className="px-2 py-0.5 bg-white/10 rounded text-xs text-gray-400">{example.lang}</span>
+                  </div>
+                  <button
+                    onClick={() => copyCode(i, example.code)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    {copiedIdx === i ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    <span className="text-sm">{copiedIdx === i ? 'Copied!' : 'Copy'}</span>
+                  </button>
+                </div>
+                <pre className="p-6 overflow-x-auto text-sm">
+                  <code className="text-[#00d4ff]">{example.code}</code>
+                </pre>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Error Codes */}
+      <section className="py-24 px-6 errors-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Error Codes</h2>
+            <p className="text-gray-400">Common error responses and their meanings</p>
+          </div>
+          <div className="glass-card rounded-2xl overflow-hidden">
+            {errorCodes.map((error, i) => (
+              <div key={i} className="error-row flex items-center gap-6 px-6 py-4 border-b border-white/5 hover:bg-white/5 transition-colors opacity-0">
+                <span className="font-mono font-bold text-lg" style={{ color: error.color }}>{error.code}</span>
+                <span className="text-gray-400">{error.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Rate Limits */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto">
+          <div className="glass-card rounded-2xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <AlertTriangle className="w-6 h-6 text-[#f59e0b]" />
+              <h2 className="text-2xl font-bold text-white">Rate Limits</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-4 bg-black/30 rounded-xl border border-white/10">
+                <h4 className="text-gray-400 text-sm mb-1">Free Tier</h4>
+                <p className="text-2xl font-bold text-white">100</p>
+                <p className="text-gray-500 text-sm">requests/hour</p>
+              </div>
+              <div className="p-4 bg-black/30 rounded-xl border border-white/10">
+                <h4 className="text-gray-400 text-sm mb-1">Pro Tier</h4>
+                <p className="text-2xl font-bold text-[#00d4ff]">1,000</p>
+                <p className="text-gray-500 text-sm">requests/hour</p>
+              </div>
+              <div className="p-4 bg-black/30 rounded-xl border border-white/10">
+                <h4 className="text-gray-400 text-sm mb-1">Enterprise</h4>
+                <p className="text-2xl font-bold text-[#00ff88]">Unlimited</p>
+                <p className="text-gray-500 text-sm">custom limits</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="container-custom py-12">
-
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* API Overview */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-brand-100 rounded-xl p-2"><Code className="w-6 h-6 text-brand-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">API Overview</h2>
-            </div>
-            <p className="text-neural-600 mb-4">
-              The One Last AI API provides RESTful endpoints to integrate AI agents into your applications, websites, and systems. 
-              The API uses JSON for request and response payloads and requires authentication via API keys.
-            </p>
-            <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-              <p className="text-neural-600 mb-2"><strong>Base URL:</strong></p>
-              <code className="text-green-600">https://api.onelastai.com/v1</code>
-            </div>
-          </section>
-
-          {/* Authentication */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Authentication</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">API Keys</h3>
-                <p className="text-neural-600 mb-3">
-                  All API requests require an API key in the Authorization header. You can generate API keys from your One Last AI dashboard under Settings → API Keys.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Header Format</h3>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 font-mono text-sm text-neural-700">
-                  Authorization: Bearer your_api_key_here
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Rate Limiting</h3>
-                <p className="text-neural-600">
-                  API requests are rate-limited based on your plan tier. Standard plans allow 100 requests per minute. 
-                  Rate limit information is included in response headers. When you exceed the limit, you'll receive a 429 Too Many Requests response.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Core Endpoints */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Core Endpoints</h2>
-
-            <div className="space-y-8">
-              {/* List Agents */}
-              <div className="border-l-4 border-green-500 pl-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-mono">GET</span>
-                  <code className="text-green-600 font-mono">/agents</code>
-                </div>
-                <p className="text-neural-600 mb-3">Retrieve a list of all available agents with their metadata.</p>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-                  <p className="text-neural-500 mb-2">Response:</p>
-                  <pre className="text-neural-700 overflow-auto">{`{
-  "agents": [
-    {
-      "id": "einstein",
-      "name": "Einstein",
-      "specialty": "Scientific Research",
-      "description": "...",
-      "isAvailable": true
-    }
-  ]
-}`}</pre>
-                </div>
-              </div>
-
-              {/* Get Agent Details */}
-              <div className="border-l-4 border-green-500 pl-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-mono">GET</span>
-                  <code className="text-green-600 font-mono">/agents/{'{agentId}'}</code>
-                </div>
-                <p className="text-neural-600 mb-3">Get detailed information about a specific agent.</p>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-                  <p className="text-neural-500 mb-2">Parameters:</p>
-                  <p className="text-neural-600 mb-3"><code className="text-green-600">agentId</code> (string) - The ID of the agent (e.g., "einstein")</p>
-                  <p className="text-neural-500 mb-2">Response includes:</p>
-                  <p className="text-neural-600">ID, name, specialty, description, configuration options, and model information.</p>
-                </div>
-              </div>
-
-              {/* Send Message */}
-              <div className="border-l-4 border-blue-500 pl-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-mono">POST</span>
-                  <code className="text-blue-600 font-mono">/agents/{'{agentId}'}/message</code>
-                </div>
-                <p className="text-neural-600 mb-3">Send a message to an agent and receive a response.</p>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-                  <p className="text-neural-500 mb-2">Request Body:</p>
-                  <pre className="text-neural-700 overflow-auto">{`{
-  "conversationId": "conv_123",
-  "message": "Your question here",
-  "config": {
-    "tone": "professional",
-    "length": "standard"
-  }
-}`}</pre>
-                  <p className="text-neural-500 mt-4 mb-2">Response:</p>
-                  <pre className="text-neural-700 overflow-auto">{`{
-  "id": "msg_456",
-  "response": "Agent response text",
-  "timestamp": "2025-10-22T10:30:00Z",
-  "tokensUsed": 150
-}`}</pre>
-                </div>
-              </div>
-
-              {/* Create Conversation */}
-              <div className="border-l-4 border-blue-500 pl-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-mono">POST</span>
-                  <code className="text-blue-600 font-mono">/conversations</code>
-                </div>
-                <p className="text-neural-600 mb-3">Create a new conversation session with an agent.</p>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-                  <p className="text-neural-500 mb-2">Request Body:</p>
-                  <pre className="text-neural-700 overflow-auto">{`{
-  "agentId": "einstein",
-  "metadata": {
-    "user_id": "user_123",
-    "context": "Additional context"
-  }
-}`}</pre>
-                  <p className="text-neural-500 mt-4 mb-2">Returns:</p>
-                  <p className="text-neural-600">A new conversation ID to use in subsequent message requests.</p>
-                </div>
-              </div>
-
-              {/* Get Conversation History */}
-              <div className="border-l-4 border-green-500 pl-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-mono">GET</span>
-                  <code className="text-green-600 font-mono">/conversations/{'{conversationId}'}</code>
-                </div>
-                <p className="text-neural-600 mb-3">Retrieve the full conversation history including all messages.</p>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-                  <p className="text-neural-500 mb-2">Query Parameters:</p>
-                  <ul className="list-disc list-inside text-neural-600 space-y-1">
-                    <li><code className="text-green-600">limit</code> - Maximum messages to return (default: 50)</li>
-                    <li><code className="text-green-600">offset</code> - For pagination</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Update Configuration */}
-              <div className="border-l-4 border-purple-500 pl-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-mono">PUT</span>
-                  <code className="text-purple-600 font-mono">/agents/{'{agentId}'}/config</code>
-                </div>
-                <p className="text-neural-600 mb-3">Update the configuration for an agent session.</p>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
-                  <p className="text-neural-500 mb-2">Request Body (example):</p>
-                  <pre className="text-neural-700 overflow-auto">{`{
-  "tone": "casual",
-  "length": "brief",
-  "language": "es",
-  "creativity": "creative"
-}`}</pre>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Error Handling */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Error Handling</h2>
-
-            <div className="space-y-4 text-neural-600">
-              <div>
-                <p className="font-semibold text-brand-600 mb-2">400 Bad Request</p>
-                <p>The request parameters are invalid or malformed. Check your request body and parameters.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-brand-600 mb-2">401 Unauthorized</p>
-                <p>Authentication failed. Verify your API key is correct and included in the Authorization header.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-brand-600 mb-2">404 Not Found</p>
-                <p>The requested resource (agent, conversation) does not exist.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-brand-600 mb-2">429 Too Many Requests</p>
-                <p>Rate limit exceeded. Wait before making additional requests. Check rate-limit headers for reset time.</p>
-              </div>
-              <div>
-                <p className="font-semibold text-brand-600 mb-2">500 Internal Server Error</p>
-                <p>A server error occurred. Retry your request. If the issue persists, contact support.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Integration Examples */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Integration Examples</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">JavaScript/Node.js</h3>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 font-mono text-sm text-neural-700 overflow-auto">
-                  <pre>{`// Create conversation
-const response = await fetch(
-  'https://api.onelastai.com/v1/conversations',
-  {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      agentId: 'einstein'
-    })
-  }
-);
-
-const { conversationId } = await response.json();
-
-// Send message
-const msgResponse = await fetch(
-  'https://api.onelastai.com/v1/agents/einstein/message',
-  {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      conversationId,
-      message: 'What is quantum entanglement?'
-    })
-  }
-);
-
-const data = await msgResponse.json();
-console.log(data.response);`}</pre>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Python</h3>
-                <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 font-mono text-sm text-neural-700 overflow-auto">
-                  <pre>{`import requests
-
-api_key = "YOUR_API_KEY"
-headers = {
-    "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json"
-}
-
-# Create conversation
-conv_response = requests.post(
-    "https://api.onelastai.com/v1/conversations",
-    headers=headers,
-    json={"agentId": "einstein"}
-)
-
-conversation_id = conv_response.json()["conversationId"]
-
-# Send message
-msg_response = requests.post(
-    "https://api.onelastai.com/v1/agents/einstein/message",
-    headers=headers,
-    json={
-        "conversationId": conversation_id,
-        "message": "Explain relativity"
-    }
-)
-
-print(msg_response.json()["response"])`}</pre>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Rate Limits & Quotas */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Rate Limits & Quotas</h2>
-            
-            <div className="space-y-4 text-neural-600">
-              <p>Rate limits vary by plan tier:</p>
-              <div className="space-y-3 ml-4">
-                <div className="flex justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="font-semibold">Starter Plan</span>
-                  <span>100 requests/minute</span>
-                </div>
-                <div className="flex justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="font-semibold">Professional Plan</span>
-                  <span>500 requests/minute</span>
-                </div>
-                <div className="flex justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="font-semibold">Enterprise Plan</span>
-                  <span>Custom limits</span>
-                </div>
-              </div>
-              <p className="mt-4">Upgrade your plan at any time to increase your rate limits and token quotas.</p>
-            </div>
-          </section>
-
-          {/* Related Links */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <Link 
-              href="/docs/agents/configuration"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Configuration</h3>
-              <p className="text-neural-600 text-sm">Configure agents</p>
+      {/* CTA */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl font-bold metallic-text mb-4">Ready to Integrate?</h2>
+          <p className="text-gray-400 mb-8">Get your API key and start building with agents</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/settings" className="px-8 py-4 bg-gradient-to-r from-[#00d4ff] to-[#0066ff] rounded-xl font-semibold hover:opacity-90 transition-all">
+              Get API Key
             </Link>
-            <Link 
-              href="/docs/agents/best-practices"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">Best Practices →</h3>
-              <p className="text-neural-600 text-sm">Learn expert tips</p>
+            <Link href="/docs/sdks" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
+              View SDKs →
             </Link>
-            <Link 
-              href="/docs/agents/troubleshooting"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">Troubleshooting →</h3>
-              <p className="text-neural-600 text-sm">Solve issues</p>
-            </Link>
-          </section>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

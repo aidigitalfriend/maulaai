@@ -1,62 +1,42 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { ArrowLeft, Database, Users, Package, FileText, BarChart3, MessageSquare, Mail, Settings, Zap, Shield, Download, Copy } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react';
+import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, Database, Users, Package, FileText, BarChart3, MessageSquare, Mail, Zap, Shield, Settings, Download, Copy, Check } from 'lucide-react';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function DataGeneratorDocsPage() {
-  const [copiedExample, setCopiedExample] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [copiedExample, setCopiedExample] = useState<string | null>(null);
 
   const dataTypes = [
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: 'Users & Profiles',
-      description: 'Generate realistic user data with names, emails, avatars, addresses, and demographics.',
-      fields: ['name', 'email', 'avatar', 'address', 'phone', 'birthdate', 'occupation'],
-      color: 'from-blue-500 to-cyan-500',
-      emoji: '👤'
-    },
-    {
-      icon: <Package className="w-6 h-6" />,
-      title: 'Products',
-      description: 'Create product catalogs with names, descriptions, prices, categories, and inventory data.',
-      fields: ['name', 'description', 'price', 'category', 'sku', 'stock', 'images'],
-      color: 'from-orange-500 to-red-500',
-      emoji: '📦'
-    },
-    {
-      icon: <FileText className="w-6 h-6" />,
-      title: 'Posts & Articles',
-      description: 'Generate blog posts, articles, and content with titles, body text, tags, and metadata.',
-      fields: ['title', 'content', 'author', 'tags', 'publishedAt', 'views', 'likes'],
-      color: 'from-green-500 to-emerald-500',
-      emoji: '📝'
-    },
-    {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: 'Analytics Data',
-      description: 'Create time-series analytics data for charts, dashboards, and reporting.',
-      fields: ['date', 'pageViews', 'visitors', 'bounceRate', 'sessionDuration', 'conversions'],
-      color: 'from-purple-500 to-indigo-500',
-      emoji: '📊'
-    },
-    {
-      icon: <MessageSquare className="w-6 h-6" />,
-      title: 'Comments & Reviews',
-      description: 'Generate user reviews, comments, ratings, and feedback for products or content.',
-      fields: ['author', 'content', 'rating', 'helpful', 'verified', 'createdAt'],
-      color: 'from-pink-500 to-rose-500',
-      emoji: '💬'
-    },
-    {
-      icon: <Mail className="w-6 h-6" />,
-      title: 'Emails & Messages',
-      description: 'Create email threads, chat messages, and notifications with realistic content.',
-      fields: ['from', 'to', 'subject', 'body', 'timestamp', 'read', 'attachments'],
-      color: 'from-teal-500 to-cyan-500',
-      emoji: '✉️'
-    }
-  ]
+    { Icon: Users, title: 'Users & Profiles', description: 'Generate realistic user data with names, emails, avatars, addresses, and demographics.', fields: ['name', 'email', 'avatar', 'address', 'phone', 'birthdate', 'occupation'], emoji: '👤' },
+    { Icon: Package, title: 'Products', description: 'Create product catalogs with names, descriptions, prices, categories, and inventory data.', fields: ['name', 'description', 'price', 'category', 'sku', 'stock', 'images'], emoji: '📦' },
+    { Icon: FileText, title: 'Posts & Articles', description: 'Generate blog posts, articles, and content with titles, body text, tags, and metadata.', fields: ['title', 'content', 'author', 'tags', 'publishedAt', 'views', 'likes'], emoji: '📝' },
+    { Icon: BarChart3, title: 'Analytics Data', description: 'Create time-series analytics data for charts, dashboards, and reporting.', fields: ['date', 'pageViews', 'visitors', 'bounceRate', 'sessionDuration', 'conversions'], emoji: '📊' },
+    { Icon: MessageSquare, title: 'Comments & Reviews', description: 'Generate user reviews, comments, ratings, and feedback for products or content.', fields: ['author', 'content', 'rating', 'helpful', 'verified', 'createdAt'], emoji: '💬' },
+    { Icon: Mail, title: 'Emails & Messages', description: 'Create email threads, chat messages, and notifications with realistic content.', fields: ['from', 'to', 'subject', 'body', 'timestamp', 'read', 'attachments'], emoji: '✉️' }
+  ];
+
+  const features = [
+    { Icon: Zap, title: 'Instant Generation', description: 'Get data in milliseconds, not minutes' },
+    { Icon: Shield, title: 'Realistic & Valid', description: 'Properly formatted emails, phones, addresses' },
+    { Icon: Settings, title: 'Customizable', description: 'Choose exactly which fields you need' },
+    { Icon: Download, title: 'Multiple Formats', description: 'Export as JSON, CSV, or SQL' }
+  ];
+
+  const useCases = [
+    { title: 'Frontend Development', description: 'Populate UI mockups and prototypes with realistic data', icon: '🎨' },
+    { title: 'API Testing', description: 'Generate test payloads for API endpoints', icon: '🔧' },
+    { title: 'Database Seeding', description: 'Fill development databases with sample data', icon: '🗄️' },
+    { title: 'Demo Environments', description: 'Create compelling demos with real-looking data', icon: '📺' },
+    { title: 'Load Testing', description: 'Generate large datasets for performance testing', icon: '⚡' },
+    { title: 'Documentation', description: 'Create example data for API documentation', icon: '📚' }
+  ];
 
   const exampleCode = `// Example: Generate 10 users
 const response = await fetch('/api/generate-data', {
@@ -69,266 +49,199 @@ const response = await fetch('/api/generate-data', {
   })
 });
 
-const { data } = await response.json();
-// Returns array of 10 user objects`
+const { data } = await response.json();`;
 
   const sampleOutput = `[
   {
     "id": "usr_1a2b3c4d",
     "name": "Sarah Johnson",
     "email": "sarah.johnson@email.com",
-    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
+    "avatar": "https://api.dicebear.com/...",
     "address": {
       "street": "123 Oak Street",
       "city": "San Francisco",
       "state": "CA",
       "zip": "94102"
     }
-  },
-  // ... 9 more users
-]`
+  }
+]`;
 
   const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedExample(id)
-    setTimeout(() => setCopiedExample(null), 2000)
-  }
+    navigator.clipboard.writeText(text);
+    setCopiedExample(id);
+    setTimeout(() => setCopiedExample(null), 2000);
+  };
 
-  const features = [
-    { icon: <Zap className="w-5 h-5" />, title: 'Instant Generation', description: 'Get data in milliseconds, not minutes' },
-    { icon: <Shield className="w-5 h-5" />, title: 'Realistic & Valid', description: 'Properly formatted emails, phones, addresses' },
-    { icon: <Settings className="w-5 h-5" />, title: 'Customizable', description: 'Choose exactly which fields you need' },
-    { icon: <Download className="w-5 h-5" />, title: 'Multiple Formats', description: 'Export as JSON, CSV, or SQL' }
-  ]
+  useGSAP(() => {
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    heroTl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4');
 
-  const useCases = [
-    { title: 'Frontend Development', description: 'Populate UI mockups and prototypes with realistic data', icon: '🎨' },
-    { title: 'API Testing', description: 'Generate test payloads for API endpoints', icon: '🔧' },
-    { title: 'Database Seeding', description: 'Fill development databases with sample data', icon: '🗄️' },
-    { title: 'Demo Environments', description: 'Create compelling demos with real-looking data', icon: '📺' },
-    { title: 'Load Testing', description: 'Generate large datasets for performance testing', icon: '⚡' },
-    { title: 'Documentation', description: 'Create example data for API documentation', icon: '📚' }
-  ]
+    gsap.fromTo('.feature-card',
+      { opacity: 0, y: 30, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.features-grid', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.datatype-card',
+      { opacity: 0, y: 40, rotate: 2 },
+      { opacity: 1, y: 0, rotate: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.datatypes-grid', start: 'top 80%' } }
+    );
+
+    gsap.fromTo('.usecase-card',
+      { opacity: 0, scale: 0.85 },
+      { opacity: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.usecases-grid', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.code-example',
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.6, stagger: 0.2, ease: 'power3.out', scrollTrigger: { trigger: '.code-section', start: 'top 80%' } }
+    );
+  }, { scope: containerRef });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(59,130,246,0.4); transform: translateY(-4px); box-shadow: 0 20px 40px -12px rgba(59,130,246,0.2); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
+
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <Link href="/docs" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Documentation
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1f2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(59,130,246,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <Link href="/docs" className="inline-flex items-center gap-2 text-gray-400 hover:text-blue-400 mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Documentation
           </Link>
+          
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10 text-sm mb-6 opacity-0">
               <span className="text-xl">📊</span>
-              Test Data Tool
+              <span className="text-gray-300">Test Data Tool</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Data Generator</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">Generate realistic test data for your applications instantly</p>
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">Data Generator</h1>
+            <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+              Generate realistic test data for your applications instantly
+            </p>
           </div>
         </div>
       </section>
 
-      <div className="container-custom py-12">
-
-        {/* Header */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center">
-              <Database className="w-10 h-10 text-white" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent mb-6">
-            AI Data Generator
-          </h1>
-          <p className="text-xl text-neural-600 leading-relaxed">
-            Generate realistic test data instantly. Perfect for development, testing, 
-            demos, and prototyping.
-          </p>
+      {/* Features */}
+      <section className="py-16 px-6 border-y border-white/5 features-grid">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+          {features.map((feature, i) => {
+            const Icon = feature.Icon;
+            return (
+              <div key={i} className="feature-card glass-card rounded-xl p-4 text-center opacity-0">
+                <Icon className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                <div className="font-bold text-white text-sm mb-1">{feature.title}</div>
+                <div className="text-xs text-gray-500">{feature.description}</div>
+              </div>
+            );
+          })}
         </div>
+      </section>
 
-        {/* Quick Features */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {features.map((feature, idx) => (
-                <div key={idx} className="text-center p-4">
-                  <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center mx-auto mb-3 text-brand-600">
-                    {feature.icon}
-                  </div>
-                  <h3 className="font-bold text-neural-800 text-sm mb-1">{feature.title}</h3>
-                  <p className="text-xs text-neural-500">{feature.description}</p>
-                </div>
-              ))}
-            </div>
+      {/* Data Types */}
+      <section className="py-24 px-6 datatypes-grid">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Available Data Types</h2>
+            <p className="text-gray-400">Generate any type of data you need</p>
           </div>
-        </div>
-
-        {/* Data Types */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-800 text-center mb-8">Supported Data Types</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {dataTypes.map((type, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg transition">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${type.color} flex items-center justify-center text-white`}>
-                    {type.icon}
-                  </div>
-                  <h3 className="text-lg font-bold text-neural-800">{type.title}</h3>
-                </div>
-                <p className="text-neural-600 text-sm mb-4">{type.description}</p>
+            {dataTypes.map((type, i) => (
+              <div key={i} className="datatype-card glass-card rounded-2xl p-6 opacity-0">
+                <div className="text-4xl mb-4">{type.emoji}</div>
+                <h3 className="text-lg font-bold text-white mb-2">{type.title}</h3>
+                <p className="text-gray-400 text-sm mb-4">{type.description}</p>
                 <div className="flex flex-wrap gap-2">
-                  {type.fields.map((field, fidx) => (
-                    <span key={fidx} className="px-2 py-1 bg-neural-50 rounded text-xs text-neural-600 font-mono">
-                      {field}
-                    </span>
+                  {type.fields.slice(0, 4).map((field, j) => (
+                    <span key={j} className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">{field}</span>
                   ))}
+                  {type.fields.length > 4 && (
+                    <span className="text-xs px-2 py-1 rounded bg-white/5 text-gray-500">+{type.fields.length - 4} more</span>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Code Example */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-800 text-center mb-8">Quick Start</h2>
-          <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Request */}
-            <div className="bg-neural-900 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-neural-800 border-b border-neural-700">
-                <span className="text-sm text-neural-400">API Request</span>
-                <button 
-                  onClick={() => copyToClipboard(exampleCode, 'request')}
-                  className="text-neural-400 hover:text-white transition flex items-center gap-1 text-sm"
-                >
-                  <Copy className="w-4 h-4" />
-                  {copiedExample === 'request' ? 'Copied!' : 'Copy'}
+      {/* Code Examples */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] code-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Code Examples</h2>
+            <p className="text-gray-400">Easy to integrate with any application</p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="code-example glass-card rounded-2xl p-6 opacity-0">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-white">Request</h3>
+                <button onClick={() => copyToClipboard(exampleCode, 'code')} className="flex items-center gap-2 text-sm text-gray-400 hover:text-blue-400 transition-colors">
+                  {copiedExample === 'code' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copiedExample === 'code' ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-              <pre className="p-4 text-sm text-neural-300 overflow-x-auto">
-                <code>{exampleCode}</code>
-              </pre>
+              <pre className="bg-black/50 p-4 rounded-lg text-gray-300 text-sm font-mono border border-white/10 overflow-x-auto">{exampleCode}</pre>
             </div>
-            
-            {/* Response */}
-            <div className="bg-neural-900 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-neural-800 border-b border-neural-700">
-                <span className="text-sm text-neural-400">Sample Response</span>
-                <button 
-                  onClick={() => copyToClipboard(sampleOutput, 'response')}
-                  className="text-neural-400 hover:text-white transition flex items-center gap-1 text-sm"
-                >
-                  <Copy className="w-4 h-4" />
-                  {copiedExample === 'response' ? 'Copied!' : 'Copy'}
+
+            <div className="code-example glass-card rounded-2xl p-6 opacity-0">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-white">Response</h3>
+                <button onClick={() => copyToClipboard(sampleOutput, 'output')} className="flex items-center gap-2 text-sm text-gray-400 hover:text-blue-400 transition-colors">
+                  {copiedExample === 'output' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copiedExample === 'output' ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-              <pre className="p-4 text-sm text-neural-300 overflow-x-auto">
-                <code>{sampleOutput}</code>
-              </pre>
+              <pre className="bg-black/50 p-4 rounded-lg text-gray-300 text-sm font-mono border border-white/10 overflow-x-auto">{sampleOutput}</pre>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Use Cases */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-800 text-center mb-8">Use Cases</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {useCases.map((useCase, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-5 shadow-sm border border-neural-100 hover:border-blue-200 transition">
-                <div className="text-3xl mb-3">{useCase.icon}</div>
-                <h3 className="font-bold text-neural-800 mb-1">{useCase.title}</h3>
-                <p className="text-sm text-neural-600">{useCase.description}</p>
+      {/* Use Cases */}
+      <section className="py-24 px-6 usecases-grid">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Use Cases</h2>
+            <p className="text-gray-400">Perfect for development, testing, and demos</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {useCases.map((useCase, i) => (
+              <div key={i} className="usecase-card glass-card rounded-xl p-4 text-center opacity-0">
+                <div className="text-3xl mb-2">{useCase.icon}</div>
+                <div className="font-bold text-white text-sm mb-1">{useCase.title}</div>
+                <div className="text-xs text-gray-500">{useCase.description}</div>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Configuration Options */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-800 text-center mb-8">Configuration Options</h2>
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-neural-100">
-                    <th className="py-3 px-4 font-bold text-neural-800">Option</th>
-                    <th className="py-3 px-4 font-bold text-neural-800">Type</th>
-                    <th className="py-3 px-4 font-bold text-neural-800">Default</th>
-                    <th className="py-3 px-4 font-bold text-neural-800">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  <tr className="border-b border-neural-50">
-                    <td className="py-3 px-4 font-mono text-brand-600">type</td>
-                    <td className="py-3 px-4 text-neural-600">string</td>
-                    <td className="py-3 px-4 text-neural-500">required</td>
-                    <td className="py-3 px-4 text-neural-600">Data type to generate (users, products, etc.)</td>
-                  </tr>
-                  <tr className="border-b border-neural-50">
-                    <td className="py-3 px-4 font-mono text-brand-600">count</td>
-                    <td className="py-3 px-4 text-neural-600">number</td>
-                    <td className="py-3 px-4 text-neural-500">10</td>
-                    <td className="py-3 px-4 text-neural-600">Number of records to generate (1-1000)</td>
-                  </tr>
-                  <tr className="border-b border-neural-50">
-                    <td className="py-3 px-4 font-mono text-brand-600">fields</td>
-                    <td className="py-3 px-4 text-neural-600">string[]</td>
-                    <td className="py-3 px-4 text-neural-500">all</td>
-                    <td className="py-3 px-4 text-neural-600">Specific fields to include in output</td>
-                  </tr>
-                  <tr className="border-b border-neural-50">
-                    <td className="py-3 px-4 font-mono text-brand-600">locale</td>
-                    <td className="py-3 px-4 text-neural-600">string</td>
-                    <td className="py-3 px-4 text-neural-500">en_US</td>
-                    <td className="py-3 px-4 text-neural-600">Locale for region-specific data</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-4 font-mono text-brand-600">format</td>
-                    <td className="py-3 px-4 text-neural-600">string</td>
-                    <td className="py-3 px-4 text-neural-500">json</td>
-                    <td className="py-3 px-4 text-neural-600">Output format (json, csv, sql)</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+      {/* CTA */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold metallic-text mb-4">Ready to Generate Data?</h2>
+          <p className="text-gray-400 mb-8">Try our data generator tool and speed up your development workflow.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/tools/data-generator" className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl font-semibold hover:opacity-90 transition-all">
+              Try Data Generator
+            </Link>
+            <Link href="/docs/api" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
+              View API Docs
+            </Link>
           </div>
         </div>
-
-        {/* Try It CTA */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-8 text-center text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="relative z-10">
-              <h2 className="text-2xl font-bold mb-4">Try It Now</h2>
-              <p className="text-blue-100 mb-6">Generate sample data instantly with our interactive tool.</p>
-              <Link href="/tools/data-generator" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition">
-                <Database className="w-5 h-5" />
-                Open Data Generator Tool
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-center text-white">
-            <h2 className="text-3xl font-bold mb-4">Need Custom Data?</h2>
-            <p className="text-lg opacity-90 mb-8">
-              Our AI can generate custom data schemas tailored to your specific needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/studio" className="btn-primary bg-white text-blue-600 hover:bg-neural-50">
-                Open Studio
-              </Link>
-              <Link href="/support/contact-us" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-blue-600">
-                Contact Support
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
-  )
+  );
 }

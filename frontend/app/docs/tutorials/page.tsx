@@ -1,681 +1,210 @@
-import Link from 'next/link'
-import { headers as nextHeaders } from 'next/headers'
+'use client';
 
-// Avoid serving stale HTML that references old chunk hashes after deploys
-// Force this page to be dynamic so caches revalidate on each request
-export const revalidate = 0
-export const dynamic = 'force-dynamic'
+import { useRef } from 'react';
+import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, Rocket, Bot, Zap, RefreshCw, Lightbulb, Ship } from 'lucide-react';
 
-export default function DocsTutorials() {
-  // Force dynamic rendering by reading request headers
-  // (Some platforms may ignore revalidate flag for static content otherwise)
-  void nextHeaders()
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
+export default function TutorialsDocsPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const tutorials = [
-    {
-      title: "Getting Started",
-      description: "Learn the basics and create your first AI agent in minutes",
-      category: "Beginner",
-      readTime: "5 min",
-      href: "#getting-started",
-      icon: "🚀"
-    },
-    {
-      title: "Creating Your First Bot",
-      description: "Step-by-step guide to build a functional bot",
-      category: "Beginner",
-      readTime: "15 min",
-      href: "#first-bot",
-      icon: "🤖"
-    },
-    {
-      title: "Advanced Features",
-      description: "Explore advanced configuration and customization",
-      category: "Advanced",
-      readTime: "20 min",
-      href: "#advanced",
-      icon: "⚡"
-    },
-    {
-      title: "Building Workflows",
-      description: "Create complex multi-step conversations and workflows",
-      category: "Advanced",
-      readTime: "25 min",
-      href: "#workflows",
-      icon: "🔄"
-    },
-    {
-      title: "Real-World Use Cases",
-      description: "Learn from real-world examples and best practices",
-      category: "Examples",
-      readTime: "30 min",
-      href: "#usecases",
-      icon: "💡"
-    },
-    {
-      title: "Deployment Guide",
-      description: "Deploy your agents to production",
-      category: "Production",
-      readTime: "15 min",
-      href: "#deployment",
-      icon: "🚢"
-    }
-  ]
+    { title: "Getting Started", description: "Learn the basics and create your first AI agent in minutes", category: "Beginner", readTime: "5 min", href: "#getting-started", Icon: Rocket, icon: "🚀" },
+    { title: "Creating Your First Bot", description: "Step-by-step guide to build a functional bot", category: "Beginner", readTime: "15 min", href: "#first-bot", Icon: Bot, icon: "🤖" },
+    { title: "Advanced Features", description: "Explore advanced configuration and customization", category: "Advanced", readTime: "20 min", href: "#advanced", Icon: Zap, icon: "⚡" },
+    { title: "Building Workflows", description: "Create complex multi-step conversations and workflows", category: "Advanced", readTime: "25 min", href: "#workflows", Icon: RefreshCw, icon: "🔄" },
+    { title: "Real-World Use Cases", description: "Learn from real-world examples and best practices", category: "Examples", readTime: "30 min", href: "#usecases", Icon: Lightbulb, icon: "💡" },
+    { title: "Deployment Guide", description: "Deploy your agents to production", category: "Production", readTime: "15 min", href: "#deployment", Icon: Ship, icon: "🚢" }
+  ];
+
+  const stats = [
+    { value: "50+", label: "Tutorials & Guides" },
+    { value: "100+", label: "Code Examples" },
+    { value: "10+ hrs", label: "Learning Content" }
+  ];
+
+  const gettingStartedSteps = [
+    { step: 1, title: "Sign Up & Get API Key", items: ["Create a free account at onelastai.com", "Navigate to Settings → Developer → API Keys", "Generate and copy your API key"] },
+    { step: 2, title: "Choose Your Agent", items: ["Browse the agent library at /agents", "Select an agent that fits your use case", "Click 'Try Now' to start a conversation"] },
+    { step: 3, title: "Integrate with Your App", items: ["Install our SDK for your language", "Initialize the client with your API key", "Start sending messages to your agent"] }
+  ];
+
+  useGSAP(() => {
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    heroTl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+      .fromTo('.hero-buttons', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.3');
+
+    gsap.fromTo('.stat-card',
+      { opacity: 0, y: 30, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.stats-grid', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.tutorial-card',
+      { opacity: 0, y: 40, rotate: 2 },
+      { opacity: 1, y: 0, rotate: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: '.tutorials-grid', start: 'top 80%' } }
+    );
+
+    gsap.fromTo('.step-block',
+      { opacity: 0, x: -40 },
+      { opacity: 1, x: 0, duration: 0.6, stagger: 0.15, ease: 'power3.out', scrollTrigger: { trigger: '.steps-section', start: 'top 80%' } }
+    );
+  }, { scope: containerRef });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(99,102,241,0.4); transform: translateY(-4px); box-shadow: 0 20px 40px -12px rgba(99,102,241,0.2); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
+
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <span className="text-xl">🎓</span>
-            Learn & Build
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Tutorials & Guides</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">Learn how to build, configure, and deploy AI agents from beginner to advanced</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#getting-started" className="px-6 py-3 bg-white text-slate-900 font-semibold rounded-xl hover:bg-gray-100 transition">
-              Start Learning
-            </a>
-            <a href="#browse" className="px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition">
-              Browse Tutorials
-            </a>
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1f1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(99,102,241,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <Link href="/docs" className="inline-flex items-center gap-2 text-gray-400 hover:text-indigo-400 mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Documentation
+          </Link>
+          
+          <div className="text-center">
+            <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10 text-sm mb-6 opacity-0">
+              <span className="text-xl">🎓</span>
+              <span className="text-gray-300">Learn & Build</span>
+            </div>
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">Tutorials & Guides</h1>
+            <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 opacity-0">
+              Learn how to build, configure, and deploy AI agents from beginner to advanced
+            </p>
+            <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center opacity-0">
+              <a href="#getting-started" className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl font-semibold hover:opacity-90 transition-all">Start Learning</a>
+              <a href="#browse" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">Browse Tutorials</a>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="container-custom py-12">
-        
-        {/* Quick Stats */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">50+</div>
-              <p className="text-neural-700">Tutorials & Guides</p>
+      {/* Stats */}
+      <section className="py-16 px-6 border-y border-white/5 stats-grid">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+          {stats.map((stat, i) => (
+            <div key={i} className="stat-card glass-card rounded-2xl p-6 text-center opacity-0">
+              <div className="text-3xl font-bold text-indigo-400 mb-2">{stat.value}</div>
+              <div className="text-gray-400">{stat.label}</div>
             </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">100+</div>
-              <p className="text-neural-700">Code Examples</p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">10+ hrs</div>
-              <p className="text-neural-700">Learning Content</p>
-            </div>
-          </div>
+          ))}
         </div>
+      </section>
 
-        {/* Browse Tutorials */}
-        <div id="browse" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Browse Tutorials</h2>
+      {/* Browse Tutorials */}
+      <section id="browse" className="py-24 px-6 tutorials-grid">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Browse Tutorials</h2>
+            <p className="text-gray-400">Find the right tutorial for your skill level</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tutorials.map((tutorial, index) => (
-              <a key={index} href={tutorial.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-200 hover:shadow-md hover:border-blue-200 transition-all duration-300 cursor-pointer">
-                <div className="text-3xl mb-4">{tutorial.icon}</div>
-                <div className="mb-4">
-                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                    {tutorial.category}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-neural-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  {tutorial.title}
-                </h3>
-                <p className="text-neural-600 text-sm mb-4 flex-grow">
-                  {tutorial.description}
-                </p>
+            {tutorials.map((tutorial, i) => (
+              <a key={i} href={tutorial.href} className="tutorial-card glass-card rounded-2xl p-6 group block opacity-0">
+                <div className="text-4xl mb-4">{tutorial.icon}</div>
+                <span className="text-xs font-medium px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400">{tutorial.category}</span>
+                <h3 className="text-lg font-bold text-white mt-4 mb-2 group-hover:text-indigo-400 transition-colors">{tutorial.title}</h3>
+                <p className="text-gray-400 text-sm mb-4">{tutorial.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-neural-500">⏱️ {tutorial.readTime}</span>
-                  <span className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
-                    →
-                  </span>
+                  <span className="text-xs text-gray-500">⏱️ {tutorial.readTime}</span>
+                  <span className="text-indigo-400 text-sm font-medium">→</span>
                 </div>
               </a>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Getting Started */}
-        <div id="getting-started" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Getting Started</h2>
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-            <p className="text-neural-700 mb-6 text-lg">
-              Welcome to One Last AI! This guide will help you create your first AI agent in just a few minutes.
-            </p>
-
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 1: Sign Up & Get API Key</h3>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</span>
-                  <div>
-                    <p className="font-semibold text-neural-900">Create an account on One Last AI</p>
-                    <p className="text-neural-600 text-sm">Visit the dashboard and sign up with your email</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</span>
-                  <div>
-                    <p className="font-semibold text-neural-900">Navigate to API Settings</p>
-                    <p className="text-neural-600 text-sm">Go to Settings → Developer → API Keys</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</span>
-                  <div>
-                    <p className="font-semibold text-neural-900">Generate your API key</p>
-                    <p className="text-neural-600 text-sm">Click "Create New Key" and keep it secure</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 2: Choose Your SDK</h3>
-              <p className="text-neural-700 mb-4">Install the SDK for your programming language:</p>
-              <div className="bg-gray-900 p-4 rounded-lg space-y-3">
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">JavaScript:</p>
-                  <code className="text-gray-200">npm install @onelastai/sdk</code>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Python:</p>
-                  <code className="text-gray-200">pip install onelastai-sdk</code>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Go:</p>
-                  <code className="text-gray-200">go get github.com/onelastai/sdk-go</code>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 3: Create Your First Agent</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import { OnelastAI } from '@onelastai/sdk';
-
-// Initialize client
-const client = new OnelastAI({
-  apiKey: process.env.ONELASTAI_API_KEY
-});
-
-// Create an agent
-const agent = await client.agents.create({
-  name: 'My First Bot',
-  personality: 'friendly',
-  model: 'gpt-4',
-  systemPrompt: 'You are a helpful AI assistant'
-});
-
-console.log('Agent created:', agent.id);`}
-                </code>
-              </div>
-            </div>
+      {/* Getting Started */}
+      <section id="getting-started" className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] steps-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Getting Started</h2>
+            <p className="text-gray-400">Create your first AI agent in just a few steps</p>
           </div>
-        </div>
 
-        {/* Creating Your First Bot */}
-        <div id="first-bot" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Creating Your First Bot</h2>
           <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Overview</h3>
-              <p className="text-neural-700 mb-6">
-                In this tutorial, we'll create a helpful customer support bot that can:
-              </p>
-              <ul className="space-y-3 text-neural-700">
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Answer frequently asked questions</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Collect customer information</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Escalate complex issues to humans</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="text-blue-600">✓</span>
-                  <span>Maintain conversation context</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Complete Example</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`import { OnelastAI } from '@onelastai/sdk';
-
-const client = new OnelastAI({
-  apiKey: process.env.ONELASTAI_API_KEY
-});
-
-// Create the support bot
-const bot = await client.agents.create({
-  name: 'Support Bot',
-  personality: 'professional and helpful',
-  model: 'gpt-4',
-  systemPrompt: \`You are a customer support agent.
-Your role is to:
-1. Answer customer questions helpfully
-2. Collect information needed for support tickets
-3. Provide order and account information
-4. Escalate complex issues to human agents
-
-Be polite, professional, and efficient.\`,
-  knowledge_base: {
-    faqs: [
-      {
-        question: 'How do I reset my password?',
-        answer: 'Go to login, click "Forgot Password", and follow the steps'
-      },
-      {
-        question: 'What are your business hours?',
-        answer: 'We\\'re available 24/7 for support'
-      }
-    ]
-  }
-});
-
-// Test the bot
-const conversation = await client.conversations.send({
-  agent_id: bot.id,
-  message: 'I forgot my password, how do I reset it?'
-});
-
-console.log('Bot response:', conversation.reply);`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Key Configuration Options</h3>
-              <div className="space-y-4">
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">name</h4>
-                  <p className="text-neural-600">A unique name for your agent</p>
-                </div>
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">personality</h4>
-                  <p className="text-neural-600">The persona of your agent (e.g., "professional", "friendly", "expert")</p>
-                </div>
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">model</h4>
-                  <p className="text-neural-600">AI model to use (gpt-4, gpt-3.5-turbo, etc.)</p>
-                </div>
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h4 className="font-bold text-neural-900 mb-2">systemPrompt</h4>
-                  <p className="text-neural-600">Instructions that define the agent's behavior</p>
+            {gettingStartedSteps.map((step, i) => (
+              <div key={i} className="step-block glass-card rounded-2xl p-8 opacity-0">
+                <div className="flex items-start gap-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-xl">
+                    {step.step}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-4">{step.title}</h3>
+                    <ul className="space-y-3">
+                      {step.items.map((item, j) => (
+                        <li key={j} className="flex items-center gap-3 text-gray-400">
+                          <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Advanced Features */}
-        <div id="advanced" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Advanced Features</h2>
-          
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Context & Memory</h3>
-              <p className="text-neural-700 mb-4">
-                Keep track of conversation context across multiple messages:
-              </p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Start a conversation with context
-const conversation = await client.conversations.create({
-  agent_id: bot.id,
-  context: {
-    user_id: 'user_123',
-    customer_name: 'John Doe',
-    account_type: 'premium',
-    previous_issues: ['billing', 'login']
-  }
-});
-
-// Send messages (context is maintained)
-const response1 = await client.conversations.send({
-  conversation_id: conversation.id,
-  message: 'I have a billing issue'
-});
-
-// Agent remembers previous issues
-const response2 = await client.conversations.send({
-  conversation_id: conversation.id,
-  message: 'Can you help me with this?'
-});`}
-                </code>
-              </div>
+      {/* First Bot Tutorial */}
+      <section id="first-bot" className="py-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="glass-card rounded-2xl p-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="text-4xl">🤖</div>
+              <h2 className="text-2xl font-bold text-white">Creating Your First Bot</h2>
             </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Custom Actions</h3>
-              <p className="text-neural-700 mb-4">
-                Let your agent take actions like creating tickets or updating data:
-              </p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Define custom actions
-const bot = await client.agents.create({
-  name: 'Advanced Bot',
-  actions: [
-    {
-      name: 'create_ticket',
-      description: 'Create a support ticket',
-      parameters: {
-        title: 'string',
-        description: 'string',
-        priority: 'low|medium|high'
-      }
-    },
-    {
-      name: 'get_order_info',
-      description: 'Retrieve order information',
-      parameters: {
-        order_id: 'string'
-      }
-    }
-  ]
-});
-
-// Agent can now use these actions
-const response = await client.conversations.send({
-  agent_id: bot.id,
-  message: 'I need to create a support ticket'
-});
-
-// Check if action was triggered
-if (response.actions.length > 0) {
-  const action = response.actions[0];
-  console.log('Action:', action.name);
-  console.log('Parameters:', action.parameters);
-}`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Streaming Responses</h3>
-              <p className="text-neural-700 mb-4">
-                Get real-time streaming for long responses:
-              </p>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Stream response in real-time
-const stream = await client.conversations.stream({
-  agent_id: bot.id,
-  message: 'Tell me about your services',
-  stream: true
-});
-
-// Process chunks as they arrive
-for await (const chunk of stream) {
-  process.stdout.write(chunk.data);
-}
-
-console.log('\\n✓ Complete');`}
-                </code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Workflows */}
-        <div id="workflows" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Building Workflows</h2>
-          
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-            <h3 className="text-2xl font-bold text-neural-900 mb-6">Multi-Step Workflows</h3>
-            <p className="text-neural-700 mb-6">
-              Create complex conversations with multiple steps and conditions:
+            <p className="text-gray-400 mb-6">
+              In this tutorial, you&apos;ll learn how to create a fully functional AI chatbot that can answer questions, provide assistance, and integrate with your application.
             </p>
-
-            <div className="bg-gray-900 p-4 rounded-lg mb-6">
-              <code className="text-gray-200 text-sm">
-                {`// Define a workflow
-const workflow = {
-  name: 'Support Workflow',
-  steps: [
-    {
-      id: 'greeting',
-      prompt: 'Greet the user and ask what they need help with',
-      next: 'analyze'
-    },
-    {
-      id: 'analyze',
-      prompt: 'Analyze the issue and determine if it requires escalation',
-      next_if: {
-        'requires_escalation': 'escalate',
-        'default': 'solve'
-      }
-    },
-    {
-      id: 'solve',
-      prompt: 'Provide a solution to the issue',
-      next: 'satisfaction'
-    },
-    {
-      id: 'escalate',
-      prompt: 'Explain that this needs human review and collect info',
-      next: 'satisfaction'
-    },
-    {
-      id: 'satisfaction',
-      prompt: 'Ask if the user is satisfied with the resolution',
-      next: 'end'
-    }
-  ]
-};
-
-// Execute workflow
-const bot = await client.agents.create({
-  name: 'Workflow Bot',
-  workflow: workflow
-});`}
-              </code>
-            </div>
-
-            <p className="text-neural-700">
-              This creates a natural, multi-step conversation flow that guides both the agent and user through a complete support interaction.
-            </p>
-          </div>
-        </div>
-
-        {/* Real-World Use Cases */}
-        <div id="usecases" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Real-World Use Cases</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">E-Commerce</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Product recommendations</li>
-                <li>✓ Order tracking</li>
-                <li>✓ Return processing</li>
-                <li>✓ Customer support</li>
+            <div className="bg-black/30 rounded-xl p-6 border border-white/10">
+              <h4 className="font-bold text-white mb-4">What you&apos;ll learn:</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li className="flex items-center gap-2"><span className="text-indigo-400">✓</span> Setting up your development environment</li>
+                <li className="flex items-center gap-2"><span className="text-indigo-400">✓</span> Creating and configuring an agent</li>
+                <li className="flex items-center gap-2"><span className="text-indigo-400">✓</span> Handling conversations and context</li>
+                <li className="flex items-center gap-2"><span className="text-indigo-400">✓</span> Deploying to production</li>
               </ul>
             </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">Healthcare</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Appointment scheduling</li>
-                <li>✓ Symptom checking</li>
-                <li>✓ Medication reminders</li>
-                <li>✓ Patient triage</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">Banking</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Account inquiries</li>
-                <li>✓ Fraud detection</li>
-                <li>✓ Loan applications</li>
-                <li>✓ Customer onboarding</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <h3 className="text-lg font-bold text-neural-900 mb-3">Education</h3>
-              <ul className="space-y-2 text-neural-700 text-sm">
-                <li>✓ Tutoring & mentoring</li>
-                <li>✓ Course information</li>
-                <li>✓ Student support</li>
-                <li>✓ Assignment help</li>
-              </ul>
+            <div className="mt-6">
+              <Link href="/docs/agents/getting-started" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl font-semibold hover:opacity-90 transition-all">
+                Start Tutorial →
+              </Link>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Deployment */}
-        <div id="deployment" className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Deployment Guide</h2>
-          
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Pre-Deployment Checklist</h3>
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">All agent configurations are finalized</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Thoroughly tested all conversation flows</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">API keys are secure and not hardcoded</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Error handling is implemented</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Monitoring and logging are in place</span>
-                </div>
-                <div className="flex gap-3">
-                  <span className="text-blue-600">□</span>
-                  <span className="text-neural-700">Rate limits are understood</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Environment Setup</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`# .env.production
-ONELASTAI_API_KEY=your-production-key
-ONELASTAI_ENV=production
-NODE_ENV=production
-LOG_LEVEL=info
-
-# Optional: Enable monitoring
-SENTRY_DSN=your-sentry-dsn
-DATADOG_API_KEY=your-datadog-key`}
-                </code>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-200">
-              <h3 className="text-2xl font-bold text-neural-900 mb-6">Monitoring & Logging</h3>
-              <div className="bg-gray-900 p-4 rounded-lg">
-                <code className="text-gray-200 text-sm">
-                  {`// Set up logging
-const client = new OnelastAI({
-  apiKey: process.env.ONELASTAI_API_KEY,
-  logLevel: 'info',
-  onError: (error) => {
-    console.error('Agent Error:', error);
-    // Send to monitoring service
-    captureException(error);
-  },
-  onEvent: (event) => {
-    console.log('Event:', event.type);
-    // Track metrics
-    trackMetric(event.type);
-  }
-});`}
-                </code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Learning Path */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-neural-900 mb-8">Recommended Learning Path</h2>
-          
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Beginner (Week 1-2)</h4>
-                  <p className="text-neural-600 text-sm">Start with Getting Started guide, create first bot, explore basic features</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Intermediate (Week 3-4)</h4>
-                  <p className="text-neural-600 text-sm">Learn integrations, SDKs, and build your first real application</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Advanced (Week 5-6)</h4>
-                  <p className="text-neural-600 text-sm">Master workflows, custom actions, and deployment strategies</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-200">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
-                <div className="flex-grow">
-                  <h4 className="font-bold text-neural-900 mb-2">Production (Week 7+)</h4>
-                  <p className="text-neural-600 text-sm">Deploy to production, monitor performance, and optimize</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-2xl p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Build?</h2>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            Start with the Getting Started guide and create your first AI agent today. Our team is here to help every step of the way.
-          </p>
+      {/* CTA */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold metallic-text mb-4">Ready to Learn More?</h2>
+          <p className="text-gray-400 mb-8">Explore our comprehensive documentation and start building today.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/docs/sdks" className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-colors">
-              Choose Your SDK
+            <Link href="/docs/agents" className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl font-semibold hover:opacity-90 transition-all">
+              Agent Documentation
             </Link>
-            <Link href="/docs/api" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
+            <Link href="/docs/api" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
               API Reference
             </Link>
-            <Link href="/support/contact-us" className="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors">
-              Get Support
-            </Link>
           </div>
         </div>
-      </div>
+      </section>
     </div>
-  )
+  );
 }

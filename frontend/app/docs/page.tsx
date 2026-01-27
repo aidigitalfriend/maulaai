@@ -1,252 +1,390 @@
-import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+'use client';
 
-export default function Docs() {
+import { useRef } from 'react';
+import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { BookOpen, Code, Palette, Database, Link2, Terminal, GraduationCap, LifeBuoy, ArrowRight, Zap, Users, Layers } from 'lucide-react';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
+export default function DocsPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const quickStartRef = useRef<HTMLDivElement>(null);
+
   const docSections = [
     {
       title: "Agent Documentation",
       description: "Learn how to create, configure, and deploy AI agents",
-      icon: "🤖",
+      icon: BookOpen,
       href: "/docs/agents",
-      topics: ["Getting Started", "Configuration", "API Reference", "Best Practices"],
-      color: "from-blue-500 to-cyan-500"
+      topics: ["Getting Started", "Configuration", "API Reference", "Best Practices"]
     },
     {
       title: "Canvas Builder",
       description: "Build complete web applications with AI-powered generation",
-      icon: "🎨",
+      icon: Palette,
       href: "/docs/canvas",
-      topics: ["Text to App", "Live Preview", "Export Code", "Components"],
-      color: "from-purple-500 to-fuchsia-500"
+      topics: ["Text to App", "Live Preview", "Export Code", "Components"]
     },
     {
       title: "Data Generator",
       description: "Generate realistic test data for your applications",
-      icon: "📊",
+      icon: Database,
       href: "/docs/data-generator",
-      topics: ["Users & Profiles", "Products", "Analytics", "Custom Data"],
-      color: "from-blue-500 to-indigo-500"
+      topics: ["Users & Profiles", "Products", "Analytics", "Custom Data"]
     },
     {
       title: "API Reference",
       description: "Complete API documentation for all endpoints and methods",
-      icon: "📚",
+      icon: Code,
       href: "/docs/api",
-      topics: ["Authentication", "Endpoints", "Rate Limits", "Error Codes"],
-      color: "from-orange-500 to-red-500"
+      topics: ["Authentication", "Endpoints", "Rate Limits", "Error Codes"]
     },
     {
       title: "Integration Guides",
       description: "Step-by-step guides for integrating with popular platforms",
-      icon: "🔗",
+      icon: Link2,
       href: "/docs/integrations",
-      topics: ["Slack", "Discord", "Teams", "Webhooks"],
-      color: "from-green-500 to-emerald-500"
+      topics: ["Slack", "Discord", "Teams", "Webhooks"]
     },
     {
       title: "SDKs & Libraries",
       description: "Official SDKs and community libraries for various languages",
-      icon: "💻",
+      icon: Terminal,
       href: "/docs/sdks",
-      topics: ["JavaScript", "Python", "Go", "PHP"],
-      color: "from-teal-500 to-cyan-500"
+      topics: ["JavaScript", "Python", "Go", "PHP"]
     },
     {
       title: "Tutorials",
       description: "Hands-on tutorials to help you build amazing AI experiences",
-      icon: "🎓",
+      icon: GraduationCap,
       href: "/docs/tutorials",
-      topics: ["Quick Start", "Advanced Features", "Use Cases", "Examples"],
-      color: "from-indigo-500 to-purple-500"
+      topics: ["Quick Start", "Advanced Features", "Use Cases", "Examples"]
     },
     {
       title: "Support",
       description: "Get help, report bugs, and connect with the community",
-      icon: "🛠️",
+      icon: LifeBuoy,
       href: "/support",
-      topics: ["FAQ", "Contact Support", "Community", "Bug Reports"],
-      color: "from-rose-500 to-pink-500"
+      topics: ["FAQ", "Contact Support", "Community", "Bug Reports"]
     }
-  ]
+  ];
+
+  const stats = [
+    { value: "18", label: "AI Agents", icon: Users },
+    { value: "50+", label: "API Endpoints", icon: Code },
+    { value: "4", label: "SDK Languages", icon: Terminal },
+    { value: "2", label: "App Builders", icon: Layers }
+  ];
+
+  useGSAP(() => {
+    // Hero animation
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    heroTl
+      .fromTo('.hero-badge', { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40, rotateX: 15 }, { opacity: 1, y: 0, rotateX: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30, filter: 'blur(10px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.6 }, '-=0.4');
+
+    // Stats animation
+    gsap.fromTo('.stat-card',
+      { opacity: 0, y: 40, scale: 0.9 },
+      {
+        opacity: 1, y: 0, scale: 1, duration: 0.6,
+        stagger: 0.1,
+        ease: 'back.out(1.5)',
+        scrollTrigger: { trigger: statsRef.current, start: 'top 85%' }
+      }
+    );
+
+    // Doc cards animation - explosive stagger
+    const docCards = gsap.utils.toArray('.doc-card');
+    docCards.forEach((card: any, i) => {
+      const directions = [
+        { x: -60, y: -30, rotate: -8 },
+        { x: 60, y: -30, rotate: 8 },
+        { x: -40, y: 30, rotate: -5 },
+        { x: 40, y: 30, rotate: 5 },
+        { x: -60, y: 0, rotate: -6 },
+        { x: 60, y: 0, rotate: 6 },
+        { x: 0, y: -40, rotate: 0 },
+        { x: 0, y: 40, rotate: 0 },
+      ];
+      const dir = directions[i % directions.length];
+      
+      gsap.fromTo(card,
+        { opacity: 0, x: dir.x, y: dir.y, rotate: dir.rotate, scale: 0.8 },
+        {
+          opacity: 1, x: 0, y: 0, rotate: 0, scale: 1,
+          duration: 0.8,
+          delay: i * 0.08,
+          ease: 'elastic.out(1, 0.8)',
+          scrollTrigger: { trigger: cardsRef.current, start: 'top 80%' }
+        }
+      );
+    });
+
+    // Quick start animation
+    gsap.fromTo('.quick-step',
+      { opacity: 0, x: -50, scale: 0.9 },
+      {
+        opacity: 1, x: 0, scale: 1, duration: 0.6,
+        stagger: 0.15,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: quickStartRef.current, start: 'top 75%' }
+      }
+    );
+
+    // CTA section
+    gsap.fromTo('.cta-section',
+      { opacity: 0, y: 60, scale: 0.95 },
+      {
+        opacity: 1, y: 0, scale: 1, duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: '.cta-section', start: 'top 85%' }
+      }
+    );
+  }, { scope: containerRef });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      {/* Global Styles */}
+      <style jsx global>{`
+        .glass-card {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(0, 212, 255, 0.3);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px -12px rgba(0, 212, 255, 0.15);
+        }
+        .metallic-text {
+          background: linear-gradient(to bottom, #ffffff, #ffffff, #9ca3af);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      `}</style>
+
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+      <section ref={heroRef} className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(0,212,255,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10 text-sm font-medium mb-6 opacity-0">
             <span className="text-xl">📚</span>
-            Developer Resources
+            <span className="text-gray-300">Developer Resources</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Documentation</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">Everything you need to build amazing AI agent experiences</p>
+          <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text leading-tight opacity-0">
+            Documentation
+          </h1>
+          <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+            Everything you need to build amazing AI agent experiences
+          </p>
         </div>
       </section>
 
-      <div className="container-custom py-12">
-
-        {/* Quick Stats */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-brand-50 rounded-lg">
-                <div className="text-2xl font-bold text-brand-600">18</div>
-                <div className="text-xs text-neural-600">AI Agents</div>
-              </div>
-              <div className="text-center p-4 bg-accent-50 rounded-lg">
-                <div className="text-2xl font-bold text-accent-600">50+</div>
-                <div className="text-xs text-neural-600">API Endpoints</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">4</div>
-                <div className="text-xs text-neural-600">SDK Languages</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">2</div>
-                <div className="text-xs text-neural-600">App Builders</div>
-              </div>
-            </div>
+      {/* Stats Section */}
+      <section ref={statsRef} className="py-12 px-6 border-y border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((stat, i) => {
+              const Icon = stat.icon;
+              return (
+                <div key={i} className="stat-card glass-card rounded-xl p-6 text-center opacity-0">
+                  <Icon className="w-6 h-6 text-[#00d4ff] mx-auto mb-3" />
+                  <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-xs text-gray-500">{stat.label}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
+      </section>
 
-        {/* Documentation Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {docSections.map((section, index) => (
-            <Link key={index} href={section.href} className="group bg-white rounded-2xl p-6 shadow-sm border border-neural-100 hover:shadow-lg hover:border-brand-200 transition-all duration-300 block h-full">
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <span className="text-2xl">{section.icon}</span>
+      {/* Documentation Sections */}
+      <section ref={cardsRef} className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Browse Documentation</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Comprehensive guides and references for every part of the platform
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {docSections.map((section, index) => {
+              const Icon = section.icon;
+              return (
+                <Link
+                  key={index}
+                  href={section.href}
+                  className="doc-card glass-card rounded-2xl p-6 group block opacity-0"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-[#0066ff]/20 border border-[#00d4ff]/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Icon className="w-6 h-6 text-[#00d4ff]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#00d4ff] transition-colors">
+                    {section.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 leading-relaxed mb-4">
+                    {section.description}
+                  </p>
+                  <ul className="space-y-2">
+                    {section.topics.map((topic, topicIndex) => (
+                      <li key={topicIndex} className="text-sm text-gray-500 flex items-center">
+                        <span className="w-1.5 h-1.5 bg-[#00d4ff] rounded-full mr-3"></span>
+                        {topic}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-4 flex items-center text-[#00d4ff] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span>Explore</span>
+                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Start */}
+      <section ref={quickStartRef} className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Quick Start</h2>
+            <p className="text-gray-400">Get up and running with your first AI agent in minutes</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              { step: 1, title: "Choose an Agent", desc: "Select from our library of pre-built agents" },
+              { step: 2, title: "Configure", desc: "Customize the agent to fit your needs" },
+              { step: 3, title: "Deploy", desc: "Launch your agent and start using it" }
+            ].map((item, i) => (
+              <div key={i} className="quick-step glass-card rounded-2xl p-6 text-center opacity-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#00d4ff] to-[#0066ff] rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-lg">
+                  {item.step}
+                </div>
+                <h3 className="font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-400">{item.desc}</p>
               </div>
-              <h3 className="text-lg font-bold text-neural-800 mb-2 group-hover:text-brand-600 transition-colors">
-                {section.title}
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/docs/agents"
+              className="px-8 py-4 bg-gradient-to-r from-[#00d4ff] to-[#0066ff] rounded-xl font-semibold text-white hover:opacity-90 transition-all hover:scale-105 text-center"
+            >
+              View Agent Docs
+            </Link>
+            <Link
+              href="/agents"
+              className="px-8 py-4 border border-white/20 rounded-xl font-semibold text-white hover:bg-white/5 transition-all hover:border-[#00d4ff]/50 text-center"
+            >
+              Browse Agents
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Popular Resources */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="glass-card rounded-2xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-[#00d4ff]" />
+                Popular Guides
               </h3>
-              <p className="text-sm text-neural-600 leading-relaxed mb-4">
-                {section.description}
-              </p>
-              <ul className="space-y-2">
-                {section.topics.map((topic, topicIndex) => (
-                  <li key={topicIndex} className="text-sm text-neural-500 flex items-center">
-                    <span className="w-1.5 h-1.5 bg-brand-500 rounded-full mr-3"></span>
-                    {topic}
+              <ul className="space-y-4">
+                {[
+                  { label: "Getting Started with Agents", href: "/docs/agents/getting-started" },
+                  { label: "API Authentication", href: "/docs/api" },
+                  { label: "Slack Integration", href: "/docs/integrations" },
+                  { label: "Building Your First Bot", href: "/docs/tutorials" }
+                ].map((link, i) => (
+                  <li key={i}>
+                    <Link href={link.href} className="text-gray-400 hover:text-[#00d4ff] transition-colors flex items-center group">
+                      <span className="w-2 h-2 bg-[#00d4ff] rounded-full mr-3 group-hover:scale-125 transition-transform"></span>
+                      {link.label}
+                      <ArrowRight className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
                   </li>
                 ))}
               </ul>
-            </Link>
-          ))}
-        </div>
-
-        {/* Quick Start */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100 mb-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-neural-800 mb-6">Quick Start</h2>
-            <p className="text-lg text-neural-600 mb-8">
-              Get up and running with your first AI agent in minutes
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-brand-50 rounded-xl">
-                <div className="w-12 h-12 bg-brand-600 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold">
-                  1
-                </div>
-                <h3 className="font-bold text-neural-800 mb-2">Choose an Agent</h3>
-                <p className="text-sm text-neural-600">Select from our library of pre-built agents</p>
-              </div>
-              <div className="text-center p-4 bg-accent-50 rounded-xl">
-                <div className="w-12 h-12 bg-accent-600 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold">
-                  2
-                </div>
-                <h3 className="font-bold text-neural-800 mb-2">Configure</h3>
-                <p className="text-sm text-neural-600">Customize the agent to fit your needs</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-xl">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold">
-                  3
-                </div>
-                <h3 className="font-bold text-neural-800 mb-2">Deploy</h3>
-                <p className="text-sm text-neural-600">Launch your agent and start using it</p>
-              </div>
             </div>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/docs/agents" className="btn-primary">
-                View Agent Docs
-              </Link>
-              <Link href="/agents" className="btn-secondary">
-                Browse Agents
-              </Link>
+
+            <div className="glass-card rounded-2xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <LifeBuoy className="w-5 h-5 text-[#00ff88]" />
+                Need Help?
+              </h3>
+              <p className="text-gray-400 mb-6">
+                Can&apos;t find what you&apos;re looking for? Our support team is here to help.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  { label: "Contact Support", href: "/support/contact-us" },
+                  { label: "Join Community", href: "/community" },
+                  { label: "Browse FAQ", href: "/support/help-center" }
+                ].map((link, i) => (
+                  <li key={i}>
+                    <Link href={link.href} className="text-gray-400 hover:text-[#00ff88] transition-colors flex items-center group">
+                      <span className="w-2 h-2 bg-[#00ff88] rounded-full mr-3 group-hover:scale-125 transition-transform"></span>
+                      {link.label}
+                      <ArrowRight className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Popular Resources */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
-            <h3 className="text-xl font-bold text-neural-800 mb-4">Popular Guides</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/docs/agents/getting-started" className="text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                  <span className="w-2 h-2 bg-brand-500 rounded-full mr-3"></span>
-                  Getting Started with Agents →
-                </Link>
-              </li>
-              <li>
-                <Link href="/docs/api" className="text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                  <span className="w-2 h-2 bg-brand-500 rounded-full mr-3"></span>
-                  API Authentication →
-                </Link>
-              </li>
-              <li>
-                <Link href="/docs/integrations" className="text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                  <span className="w-2 h-2 bg-brand-500 rounded-full mr-3"></span>
-                  Slack Integration →
-                </Link>
-              </li>
-              <li>
-                <Link href="/docs/tutorials" className="text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                  <span className="w-2 h-2 bg-brand-500 rounded-full mr-3"></span>
-                  Building Your First Bot →
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
-            <h3 className="text-xl font-bold text-neural-800 mb-4">Need Help?</h3>
-            <p className="text-neural-600 mb-4">
-              Can't find what you're looking for? Our support team is here to help.
-            </p>
-            <div className="space-y-3">
-              <Link href="/support/contact-us" className="block text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                <span className="w-2 h-2 bg-accent-500 rounded-full mr-3"></span>
-                Contact Support →
-              </Link>
-              <Link href="/community" className="block text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                <span className="w-2 h-2 bg-accent-500 rounded-full mr-3"></span>
-                Join Community →
-              </Link>
-              <Link href="/support/help-center" className="block text-brand-600 hover:text-brand-700 transition-colors flex items-center">
-                <span className="w-2 h-2 bg-accent-500 rounded-full mr-3"></span>
-                Browse FAQ →
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
+      {/* CTA Section */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a]">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-brand-600 to-accent-500 rounded-2xl p-8 md:p-12 text-center text-white">
-            <h2 className="text-3xl font-bold mb-4">Ready to Build?</h2>
-            <p className="text-lg opacity-90 mb-8">
-              Start creating powerful AI experiences with our comprehensive documentation.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/docs/agents/getting-started" className="btn-primary bg-white text-brand-600 hover:bg-neural-50">
-                Get Started
-              </Link>
-              <Link href="/demo" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-brand-600">
-                Request Demo
-              </Link>
+          <div className="cta-section relative rounded-3xl p-12 text-center overflow-hidden opacity-0">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#00d4ff]/10 via-[#00ff88]/10 to-[#0066ff]/10"></div>
+            <div className="absolute inset-0 border border-white/10 rounded-3xl"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-[radial-gradient(ellipse_at_center,_rgba(0,212,255,0.2)_0%,_transparent_70%)] blur-3xl"></div>
+            
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-4xl font-bold metallic-text mb-4">Ready to Build?</h2>
+              <p className="text-lg text-gray-400 mb-8 max-w-xl mx-auto">
+                Start creating powerful AI experiences with our comprehensive documentation.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/docs/agents/getting-started"
+                  className="px-8 py-4 bg-gradient-to-r from-[#00d4ff] to-[#0066ff] rounded-xl font-semibold text-white hover:opacity-90 transition-all hover:scale-105"
+                >
+                  Get Started
+                </Link>
+                <Link
+                  href="/demo"
+                  className="px-8 py-4 border border-white/20 rounded-xl font-semibold text-white hover:bg-white/5 transition-all hover:border-[#00d4ff]/50"
+                >
+                  Request Demo
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
-  )
+  );
 }

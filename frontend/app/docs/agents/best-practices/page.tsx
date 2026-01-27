@@ -1,392 +1,216 @@
 'use client';
 
+import { useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Lightbulb, TrendingUp, Award, Target } from 'lucide-react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, Award, CheckCircle, XCircle, Lightbulb, Target, Shield, Zap, MessageSquare, Users } from 'lucide-react';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function BestPracticesPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const doList = [
+    { title: 'Write Clear Prompts', desc: 'Be specific and detailed in your system prompts to guide agent behavior.' },
+    { title: 'Use Context Wisely', desc: 'Provide relevant context without overwhelming the agent with unnecessary information.' },
+    { title: 'Test Thoroughly', desc: 'Test your agents with various inputs to ensure consistent, accurate responses.' },
+    { title: 'Monitor Performance', desc: 'Track metrics like response time, accuracy, and user satisfaction regularly.' },
+    { title: 'Iterate and Improve', desc: 'Continuously refine prompts and configurations based on feedback.' },
+    { title: 'Set Guardrails', desc: 'Define clear boundaries and safety filters for your agent responses.' }
+  ];
+
+  const dontList = [
+    { title: 'Vague Instructions', desc: 'Avoid ambiguous prompts that can lead to inconsistent responses.' },
+    { title: 'Overloading Context', desc: 'Don\'t stuff too much information into a single conversation.' },
+    { title: 'Ignoring Errors', desc: 'Never ignore error handling - gracefully manage failures.' },
+    { title: 'Skipping Testing', desc: 'Don\'t deploy agents without thorough testing across edge cases.' },
+    { title: 'Static Configuration', desc: 'Avoid set-and-forget - agents need ongoing optimization.' },
+    { title: 'Unlimited Scope', desc: 'Don\'t let agents handle tasks outside their trained domain.' }
+  ];
+
+  const tips = [
+    { icon: Target, title: 'Define Clear Goals', desc: 'Every agent should have a specific purpose. Define what success looks like before building.', color: '#00d4ff' },
+    { icon: MessageSquare, title: 'Craft Better Prompts', desc: 'Use examples, specify format expectations, and include edge case handling in prompts.', color: '#00ff88' },
+    { icon: Shield, title: 'Implement Safety', desc: 'Always include content moderation, error boundaries, and fallback responses.', color: '#f59e0b' },
+    { icon: Users, title: 'Consider Users', desc: 'Design agent interactions with your end users in mind - focus on helpful, natural conversations.', color: '#a855f7' }
+  ];
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4');
+
+    gsap.fromTo('.do-item',
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.dos-section', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.dont-item',
+      { opacity: 0, x: 30 },
+      { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.donts-section', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.tip-card',
+      { opacity: 0, y: 30, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.tips-grid', start: 'top 85%' } }
+    );
+  }, { scope: containerRef });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Agent Docs
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.3); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
+
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(0,255,136,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <Link href="/docs/agents" className="inline-flex items-center gap-2 text-gray-400 hover:text-[#00ff88] mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Agent Docs
           </Link>
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-              <span className="text-xl">💡</span>
-              Expert Guide
+            <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-sm mb-6 opacity-0">
+              <Award className="w-4 h-4 text-[#00ff88]" />
+              <span className="text-gray-300">Expert Guidelines</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Best Practices</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">Expert tips and strategies for maximizing the value and effectiveness of your agents</p>
-            <div className="flex items-center justify-center gap-4 mt-6 text-white/70 text-sm">
-              <span>📖 12 min read</span>
-              <span>•</span>
-              <span>Updated: January 2026</span>
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">Best Practices</h1>
+            <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+              Learn proven strategies for building effective, reliable AI agents
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Do and Don't */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Do */}
+          <div className="dos-section">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-[#00ff88]/20 rounded-xl flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-[#00ff88]" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Do</h2>
+            </div>
+            <div className="space-y-4">
+              {doList.map((item, i) => (
+                <div key={i} className="do-item glass-card rounded-xl p-4 opacity-0 hover:border-[#00ff88]/30">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-[#00ff88] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-white mb-1">{item.title}</h4>
+                      <p className="text-gray-500 text-sm">{item.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Don't */}
+          <div className="donts-section">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-[#ef4444]/20 rounded-xl flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-[#ef4444]" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Don't</h2>
+            </div>
+            <div className="space-y-4">
+              {dontList.map((item, i) => (
+                <div key={i} className="dont-item glass-card rounded-xl p-4 opacity-0 hover:border-[#ef4444]/30">
+                  <div className="flex items-start gap-3">
+                    <XCircle className="w-5 h-5 text-[#ef4444] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-white mb-1">{item.title}</h4>
+                      <p className="text-gray-500 text-sm">{item.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <div className="container-custom py-12">
-
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Effective Communication */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-yellow-100 rounded-xl p-2"><Lightbulb className="w-6 h-6 text-yellow-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Effective Communication</h2>
+      {/* Tips */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <Lightbulb className="w-6 h-6 text-[#f59e0b]" />
+              <h2 className="text-3xl font-bold metallic-text">Pro Tips</h2>
             </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Be Specific and Clear</h3>
-                <p className="text-neural-600 mb-3">Vague questions lead to vague answers. Instead of asking general questions, provide specific details about your situation.</p>
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-3">
-                  <p className="text-red-700 text-sm">❌ <strong>Avoid:</strong> "How do I code?"</p>
+            <p className="text-gray-400">Expert advice for building world-class agents</p>
+          </div>
+          <div className="tips-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+            {tips.map((tip, i) => {
+              const Icon = tip.icon;
+              return (
+                <div key={i} className="tip-card glass-card rounded-2xl p-6 opacity-0">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${tip.color}20`, border: `1px solid ${tip.color}40` }}>
+                    <Icon className="w-6 h-6" style={{ color: tip.color }} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">{tip.title}</h3>
+                  <p className="text-gray-500 text-sm">{tip.desc}</p>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-700 text-sm">✓ <strong>Try:</strong> "How do I create a REST API in Python using Flask? I need endpoints for CRUD operations."</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Provide Context</h3>
-                <p className="text-neural-600 mb-3">Give agents relevant background information. This helps them understand your situation and provide more appropriate responses.</p>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-700 text-sm">✓ "I'm developing an ecommerce platform for fashion items. We expect 10,000 daily users. What database should I choose?"</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Ask Follow-Up Questions</h3>
-                <p className="text-neural-600 mb-3">
-                  If a response isn't quite right, ask the agent to clarify, expand, or approach the topic differently. The conversation context helps refine answers.
-                </p>
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                  <p className="text-green-700 text-sm">✓ "That's helpful! Can you explain that more simply for a beginner?" or "Can you provide code examples?"</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Use Precise Language</h3>
-                <p className="text-neural-600 mb-3">
-                  While agents understand casual language, using precise terminology helps get better results. Use domain-specific terms when appropriate.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Optimizing Configuration */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-purple-100 rounded-xl p-2"><Target className="w-6 h-6 text-purple-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Optimizing Configuration</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Match Tone to Your Use Case</h3>
-                <p className="text-neural-600 mb-3">Select response tone based on your needs:</p>
-                <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                  <li><strong>Professional</strong> - Business communications, formal documentation</li>
-                  <li><strong>Casual</strong> - Learning, exploration, creative tasks</li>
-                  <li><strong>Technical</strong> - Deep technical discussions, specifications</li>
-                  <li><strong>Balanced</strong> - General purpose, most situations</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Adjust Response Length Strategically</h3>
-                <p className="text-neural-600 mb-3">
-                  Use brief responses for quick facts, standard for most situations, and detailed/comprehensive for learning or complex topics.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Experiment with Creativity Level</h3>
-                <p className="text-neural-600 mb-3">
-                  For brainstorming and ideation, increase creativity. For factual accuracy, use conservative. Start conservative and increase as needed.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Save Preset Configurations</h3>
-                <p className="text-neural-600 mb-3">
-                  If you frequently use the same settings, create named presets. Access them quickly without reconfiguring each time.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Leveraging Specialization */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-100 rounded-xl p-2"><Award className="w-6 h-6 text-blue-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Leveraging Agent Specialization</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Choose the Right Agent</h3>
-                <p className="text-neural-600 mb-3">Match agents to their specialization:</p>
-                <ul className="list-disc list-inside text-neural-600 space-y-2 ml-2">
-                  <li><strong>Einstein</strong> for science, math, research questions</li>
-                  <li><strong>Tech Wizard</strong> for programming, tech support, debugging</li>
-                  <li><strong>Travel Buddy</strong> for travel planning, destination research</li>
-                  <li><strong>Chef Biew</strong> for recipes, cooking techniques, meal planning</li>
-                  <li><strong>Fitness Guru</strong> for workouts, nutrition, fitness advice</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Combine Multiple Agents</h3>
-                <p className="text-neural-600 mb-3">
-                  Don't limit yourself to one agent. For complex projects, consult multiple agents for different aspects. 
-                  For example, ask Tech Wizard about architecture, then Einstein about the mathematics involved.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Use Agent Domain Focus</h3>
-                <p className="text-neural-600 mb-3">
-                  Set domain focus within specialized agents to narrow expertise. For Tech Wizard, focus on your programming language. 
-                  For Travel Buddy, focus on your destination region.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Conversation Management */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Conversation Management</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Start Fresh When Needed</h3>
-                <p className="text-neural-600 mb-3">
-                  If your conversation topic shifts significantly, consider starting a new conversation. This keeps context clean and improves response quality.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Save Important Responses</h3>
-                <p className="text-neural-600 mb-3">
-                  Bookmark or copy important responses for future reference. Create a knowledge base of useful agent responses.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Review and Validate</h3>
-                <p className="text-neural-600 mb-3">
-                  While agents are highly capable, always review responses critically, especially for important decisions. 
-                  Cross-reference facts and test code suggestions before using in production.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Provide Feedback</h3>
-                <p className="text-neural-600 mb-3">
-                  Use the feedback system to rate responses. This helps improve overall agent quality and personalization for your needs.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Advanced Techniques */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-green-100 rounded-xl p-2"><TrendingUp className="w-6 h-6 text-green-600" /></div>
-              <h2 className="text-2xl font-bold text-neural-900">Advanced Techniques</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Iterative Refinement</h3>
-                <p className="text-neural-600 mb-3">
-                  Get an initial response, then iteratively refine by asking follow-ups: "Make it more concise," 
-                  "Add more examples," "Explain for a child," etc. This builds exactly what you need.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Role-Based Prompting</h3>
-                <p className="text-neural-600 mb-3">
-                  Ask agents to adopt a specific role: "As a senior architect, how would you design this system?" 
-                  This often produces more targeted, expert-level responses.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Structured Requests</h3>
-                <p className="text-neural-600 mb-3">
-                  Break complex requests into structured steps. Example: "First, explain the concepts. Then provide a concrete example. Finally, list best practices."
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Comparison Prompts</h3>
-                <p className="text-neural-600 mb-3">
-                  Ask agents to compare options: "Compare these three approaches in terms of performance, maintainability, and learning curve." 
-                  This produces comprehensive analysis.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">Scenario-Based Queries</h3>
-                <p className="text-neural-600 mb-3">
-                  Present specific scenarios for tailored advice. Example: "I have 3 hours to learn React basics before a job interview. What should I focus on?"
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Common Mistakes to Avoid */}
-          <section className="bg-red-50 border border-red-200 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Common Mistakes to Avoid</h2>
-
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Asking too general or vague questions</p>
-                  <p className="text-neural-600 text-sm">Specific questions get specific answers. Vague questions get vague responses.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Ignoring context and conversation flow</p>
-                  <p className="text-neural-600 text-sm">Agents work best with context. Provide relevant background in your questions.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Using wrong agent for the task</p>
-                  <p className="text-neural-600 text-sm">Choose agents based on their specialization. Tech Wizard won't help with recipes.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Not reviewing responses critically</p>
-                  <p className="text-neural-600 text-sm">Always verify important information, especially for decisions or production code.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="text-red-600 font-bold text-lg">✗</span>
-                <div>
-                  <p className="text-neural-900 font-semibold mb-1">Never adjusting configuration</p>
-                  <p className="text-neural-600 text-sm">Experiment with settings to find what works best for your use case.</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Use Case Examples */}
-          <section className="bg-white rounded-2xl p-8 shadow-sm border border-neural-100">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Use Case Examples</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">📚 Learning & Education</h3>
-                <p className="text-neural-600">
-                  Set to detailed response length and balanced tone. Ask questions progressively, building knowledge. 
-                  Request examples frequently. Save responses for review.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">💼 Professional Work</h3>
-                <p className="text-neural-600">
-                  Use professional tone with standard response length. Set citations on. Combine multiple agents for complex projects. 
-                  Archive important conversations.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">🚀 Brainstorming & Ideation</h3>
-                <p className="text-neural-600">
-                  Set creativity to high. Use casual tone. Ask comparison questions and role-based prompts. 
-                  Iterate on ideas to refine them.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-brand-600 mb-2">🔧 Problem-Solving</h3>
-                <p className="text-neural-600">
-                  Provide detailed context about the problem. Ask step-by-step solutions. Use the Troubleshooting guide for technical issues. 
-                  Test recommendations before implementation.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Key Takeaways */}
-          <section className="bg-green-50 border border-green-200 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-neural-900 mb-6">Key Takeaways</h2>
-            <div className="space-y-3 text-neural-700">
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Be specific and provide context for better responses</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Choose the right agent for your task's domain</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Configure agents for your specific use case</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Use iterative refinement to get exactly what you need</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Always review and validate important responses</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-green-600 font-bold">→</span>
-                <span>Combine multiple agents for complex projects</span>
-              </div>
-            </div>
-          </section>
-
-          {/* Related Links */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <Link 
-              href="/docs/agents/getting-started"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Getting Started</h3>
-              <p className="text-neural-600 text-sm">Learn the basics</p>
-            </Link>
-            <Link 
-              href="/docs/agents/configuration"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">← Configuration</h3>
-              <p className="text-neural-600 text-sm">Configure agents</p>
-            </Link>
-            <Link 
-              href="/docs/agents/troubleshooting"
-              className="p-4 bg-white hover:bg-gray-50 rounded-xl shadow-sm border border-neural-100 transition-colors"
-            >
-              <h3 className="font-semibold text-brand-600 mb-2">Troubleshooting →</h3>
-              <p className="text-neural-600 text-sm">Solve issues</p>
-            </Link>
-          </section>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Checklist */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="glass-card rounded-2xl p-8">
+            <h2 className="text-2xl font-bold metallic-text mb-6">📋 Pre-Deployment Checklist</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                'System prompt is clear and tested',
+                'Temperature setting matches use case',
+                'Error handling is implemented',
+                'Rate limits are configured',
+                'Safety filters are enabled',
+                'Fallback responses are defined',
+                'Performance metrics are tracked',
+                'User feedback mechanism exists'
+              ].map((item, i) => (
+                <label key={i} className="flex items-center gap-3 p-3 bg-black/30 rounded-lg border border-white/10 hover:border-white/20 cursor-pointer transition-colors">
+                  <div className="w-5 h-5 rounded border-2 border-[#00d4ff] flex items-center justify-center">
+                    <CheckCircle className="w-3 h-3 text-[#00d4ff] opacity-0 hover:opacity-100" />
+                  </div>
+                  <span className="text-gray-400 text-sm">{item}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl font-bold metallic-text mb-4">Ready to Build Better Agents?</h2>
+          <p className="text-gray-400 mb-8">Apply these best practices to create exceptional AI experiences</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/agents/create" className="px-8 py-4 bg-gradient-to-r from-[#00ff88] to-[#00d4ff] rounded-xl font-semibold text-black hover:opacity-90 transition-all">
+              Create Agent
+            </Link>
+            <Link href="/docs/agents/troubleshooting" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
+              Troubleshooting →
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
