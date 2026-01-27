@@ -1,542 +1,237 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useState, useRef, useEffect } from 'react'
-import { BookOpen, ArrowRight, Sparkles, Target, Lightbulb, MessageSquare, Layout, Code, Database } from 'lucide-react'
+import { useRef, useState } from 'react';
+import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowLeft, GraduationCap, Play, Clock, Star, Check, ChevronRight, Search, Filter } from 'lucide-react';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function TutorialsPage() {
-  const [selectedAgent, setSelectedAgent] = useState('einstein')
-  const contentRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    if (contentRef.current && window.innerWidth < 1024) {
-      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const categories = ['All', 'Getting Started', 'Agent Building', 'Customization', 'Integrations', 'Advanced'];
+
+  const tutorials = [
+    {
+      title: 'Building Your First AI Agent',
+      description: 'Learn how to create and deploy your first AI agent in under 10 minutes.',
+      category: 'Getting Started',
+      duration: '10 min',
+      difficulty: 'Beginner',
+      rating: 4.9,
+      views: '15.2K',
+      color: '#00d4ff'
+    },
+    {
+      title: 'Customizing Agent Personalities',
+      description: 'Deep dive into personality configuration and tone adjustments.',
+      category: 'Customization',
+      duration: '25 min',
+      difficulty: 'Intermediate',
+      rating: 4.8,
+      views: '8.7K',
+      color: '#a855f7'
+    },
+    {
+      title: 'Advanced Memory & Context',
+      description: 'Master long-term memory and context management for your agents.',
+      category: 'Advanced',
+      duration: '35 min',
+      difficulty: 'Advanced',
+      rating: 4.7,
+      views: '5.4K',
+      color: '#00ff88'
+    },
+    {
+      title: 'API Integration Guide',
+      description: 'Connect your agents to external APIs and services.',
+      category: 'Integrations',
+      duration: '20 min',
+      difficulty: 'Intermediate',
+      rating: 4.8,
+      views: '10.1K',
+      color: '#f59e0b'
+    },
+    {
+      title: 'Multi-Agent Workflows',
+      description: 'Build complex workflows with multiple cooperating agents.',
+      category: 'Advanced',
+      duration: '40 min',
+      difficulty: 'Advanced',
+      rating: 4.6,
+      views: '3.2K',
+      color: '#ec4899'
+    },
+    {
+      title: 'Agent Training Basics',
+      description: 'Understand how to train and fine-tune your AI agents.',
+      category: 'Agent Building',
+      duration: '30 min',
+      difficulty: 'Intermediate',
+      rating: 4.9,
+      views: '12.8K',
+      color: '#6366f1'
     }
-  }, [selectedAgent])
+  ];
 
-  const agents = [
-    {
-      id: 'einstein',
-      name: 'Einstein',
-      avatar: '🧠',
-      description: 'Physics & Mathematics Expert',
-      color: 'from-blue-500 to-cyan-500',
-      tutorial: {
-        features: ['Advanced physics calculations', 'Mathematical theorem explanation', 'Scientific research guidance', 'Problem-solving methodology'],
-        specialties: ['Quantum mechanics', 'Relativity theory', 'Complex mathematics', 'Scientific reasoning'],
-        howItWorks: 'Einstein specializes in providing in-depth explanations of complex physics and mathematics concepts. Ask questions about theories, equations, or scientific principles and receive expert-level insights.',
-        useCases: ['Academic learning and tutoring', 'Research assistance', 'Homework help', 'Scientific concept clarification'],
-        example: 'Ask: "Explain the theory of relativity" or "Help me solve this differential equation"'
-      }
-    },
-    {
-      id: 'comedy-king',
-      name: 'Comedy King',
-      avatar: '🎭',
-      description: 'Humor & Entertainment',
-      color: 'from-purple-500 to-pink-500',
-      tutorial: {
-        features: ['Joke generation and storytelling', 'Comedy timing and delivery', 'Humorous content creation', 'Entertainment recommendations'],
-        specialties: ['Stand-up comedy style', 'Witty remarks and puns', 'Funny story creation', 'Comedy writing'],
-        howItWorks: 'Comedy King brings humor and entertainment to conversations. Whether you need a laugh, want to learn about comedy, or need funny content, this agent delivers laughs and entertainment.',
-        useCases: ['Entertainment and fun conversations', 'Joke writing and creation', 'Comedy content creation', 'Lighthearted discussions'],
-        example: 'Ask: "Tell me a funny joke" or "Create a comedic story about..."'
-      }
-    },
-    {
-      id: 'tech-wizard',
-      name: 'Tech Wizard',
-      avatar: '💻',
-      description: 'Technology & Programming',
-      color: 'from-green-500 to-emerald-500',
-      tutorial: {
-        features: ['Code review and debugging', 'Programming language expertise', 'Technology recommendations', 'Development best practices'],
-        specialties: ['Full-stack development', 'Cloud technologies', 'DevOps and deployment', 'Software architecture'],
-        howItWorks: 'Tech Wizard is your go-to resource for all programming and technology questions. From debugging code to architectural decisions, get expert guidance on technology topics.',
-        useCases: ['Code development assistance', 'Bug fixing and debugging', 'Technology selection', 'Development mentoring'],
-        example: 'Ask: "How do I implement this feature?" or "Debug this code snippet"'
-      }
-    },
-    {
-      id: 'chef-biew',
-      name: 'Chef Biew',
-      avatar: '👨‍🍳',
-      description: 'Cooking & Recipes',
-      color: 'from-orange-500 to-red-500',
-      tutorial: {
-        features: ['Recipe suggestions and guidance', 'Cooking technique explanation', 'Ingredient substitutions', 'Nutritional information'],
-        specialties: ['International cuisines', 'Dietary accommodations', 'Meal planning', 'Cooking methodology'],
-        howItWorks: 'Chef Biew helps you explore culinary arts. Get recipes, cooking tips, dietary guidance, and learn about different cuisines from around the world.',
-        useCases: ['Recipe discovery', 'Cooking instruction', 'Dietary meal planning', 'Culinary learning'],
-        example: 'Ask: "What can I make with these ingredients?" or "Teach me how to make pasta from scratch"'
-      }
-    },
-    {
-      id: 'fitness-guru',
-      name: 'Fitness Guru',
-      avatar: '💪',
-      description: 'Fitness & Health',
-      color: 'from-red-500 to-rose-500',
-      tutorial: {
-        features: ['Workout planning and guidance', 'Exercise form and technique', 'Nutrition and diet advice', 'Health and wellness tips'],
-        specialties: ['Strength training', 'Cardio fitness', 'Flexibility and mobility', 'Holistic health'],
-        howItWorks: 'Fitness Guru provides personalized fitness and health guidance. Get workout plans, exercise instructions, nutritional advice, and motivation for your fitness journey.',
-        useCases: ['Fitness training plans', 'Exercise instruction', 'Health coaching', 'Wellness motivation'],
-        example: 'Ask: "Create a workout plan for me" or "How do I do proper form for squats?"'
-      }
-    },
-    {
-      id: 'travel-buddy',
-      name: 'Travel Buddy',
-      avatar: '✈️',
-      description: 'Travel & Exploration',
-      color: 'from-cyan-500 to-blue-500',
-      tutorial: {
-        features: ['Destination recommendations', 'Travel planning assistance', 'Cultural insights and tips', 'Itinerary creation'],
-        specialties: ['World geography', 'Cultural experiences', 'Budget travel', 'Adventure planning'],
-        howItWorks: 'Travel Buddy is your personal travel guide. Discover destinations, plan itineraries, learn about cultures, and get insider tips for amazing travel experiences.',
-        useCases: ['Travel planning and research', 'Destination selection', 'Itinerary creation', 'Cultural learning'],
-        example: 'Ask: "Plan a 5-day trip to Japan" or "What should I see in Barcelona?"'
-      }
-    },
-    {
-      id: 'professor-astrology',
-      name: 'Professor Astrology',
-      avatar: '🔭',
-      description: 'Astrology & Zodiac',
-      color: 'from-indigo-500 to-purple-500',
-      tutorial: {
-        features: ['Zodiac sign information', 'Birth chart analysis', 'Horoscope readings', 'Astrological guidance'],
-        specialties: ['Personality traits by sign', 'Compatibility analysis', 'Planetary influences', 'Astrological timing'],
-        howItWorks: 'Professor Astrology explores the fascinating world of astrology. Learn about zodiac signs, get horoscope readings, understand planetary influences, and discover astrological insights.',
-        useCases: ['Zodiac learning', 'Compatibility checking', 'Horoscope readings', 'Astrological curiosity'],
-        example: 'Ask: "What does my zodiac sign say about me?" or "Are we compatible?"'
-      }
-    },
-    {
-      id: 'julie-girlfriend',
-      name: 'Julie Girlfriend',
-      avatar: '💕',
-      description: 'Relationship Advice',
-      color: 'from-pink-500 to-rose-500',
-      tutorial: {
-        features: ['Relationship guidance', 'Communication advice', 'Emotional support', 'Dating tips'],
-        specialties: ['Relationship dynamics', 'Communication techniques', 'Emotional intelligence', 'Conflict resolution'],
-        howItWorks: 'Julie Girlfriend provides thoughtful relationship advice and support. Get guidance on communication, dating, relationships, and emotional connection.',
-        useCases: ['Relationship advice', 'Dating guidance', 'Communication help', 'Emotional support'],
-        example: 'Ask: "How do I improve my relationship?" or "What should I do about this situation?"'
-      }
-    },
-    {
-      id: 'emma-emotional',
-      name: 'Emma Emotional',
-      avatar: '🤗',
-      description: 'Emotional Support',
-      color: 'from-yellow-500 to-orange-500',
-      tutorial: {
-        features: ['Emotional listening and support', 'Stress management techniques', 'Coping strategies', 'Mental wellness guidance'],
-        specialties: ['Empathetic conversation', 'Anxiety management', 'Self-care routines', 'Emotional wellness'],
-        howItWorks: 'Emma Emotional provides compassionate emotional support. Talk through your feelings, get coping strategies, and receive guidance on emotional wellness.',
-        useCases: ['Emotional support and listening', 'Stress and anxiety management', 'Self-care guidance', 'Wellness coaching'],
-        example: "Ask: \"I'm feeling overwhelmed, can you help?\" or \"What are some self-care tips?\""
-      }
-    },
-    {
-      id: 'mrs-boss',
-      name: 'Mrs Boss',
-      avatar: '📊',
-      description: 'Business & Management',
-      color: 'from-emerald-500 to-teal-500',
-      tutorial: {
-        features: ['Business strategy advice', 'Management techniques', 'Leadership guidance', 'Decision-making frameworks'],
-        specialties: ['Strategic planning', 'Team management', 'Business growth', 'Executive decision-making'],
-        howItWorks: 'Mrs Boss provides expert business and management guidance. Get strategic advice, leadership coaching, and business insights from an experienced perspective.',
-        useCases: ['Business planning', 'Management coaching', 'Strategic decision-making', 'Leadership guidance'],
-        example: "Ask: \"How do I scale my business?\" or \"What's the best approach for team management?\""
-      }
-    },
-    {
-      id: 'bishop-burger',
-      name: 'Bishop Burger',
-      avatar: '🍔',
-      description: 'Food & Cuisine',
-      color: 'from-amber-500 to-yellow-500',
-      tutorial: {
-        features: ['Food recommendations', 'Restaurant suggestions', 'Food pairing advice', 'Culinary discussions'],
-        specialties: ['Cuisine varieties', 'Food culture', 'Flavor combinations', 'Dining experiences'],
-        howItWorks: 'Bishop Burger explores the world of food and cuisine. Get restaurant recommendations, food pairing suggestions, and discuss culinary preferences.',
-        useCases: ['Food discovery', 'Restaurant recommendations', 'Dining planning', 'Culinary discussions'],
-        example: 'Ask: "Recommend a good restaurant" or "What should I eat today?"'
-      }
-    },
-    {
-      id: 'ben-sega',
-      name: 'Ben Sega',
-      avatar: '🎮',
-      description: 'Gaming & Retro',
-      color: 'from-violet-500 to-purple-500',
-      tutorial: {
-        features: ['Gaming recommendations', 'Retro game nostalgia', 'Game strategies and tips', 'Gaming community insights'],
-        specialties: ['Classic and retro games', 'Modern gaming trends', 'Game design', 'Gaming culture'],
-        howItWorks: 'Ben Sega is your gaming companion. Get game recommendations, retro gaming insights, strategies, and dive into gaming culture and history.',
-        useCases: ['Game recommendations', 'Gaming strategy help', 'Retro gaming nostalgia', 'Gaming discussions'],
-        example: 'Ask: "Recommend a good game for me" or "Tell me about classic Sega games"'
-      }
-    },
-    {
-      id: 'rook-jokey',
-      name: 'Rook Jokey',
-      avatar: '🃏',
-      description: 'Humor & Jokes',
-      color: 'from-teal-500 to-green-500',
-      tutorial: {
-        features: ['Joke telling and humor', 'Funny observations', 'Entertainment value', 'Playful commentary'],
-        specialties: ['Classic jokes', 'Wordplay and puns', 'Funny situations', 'Comedic timing'],
-        howItWorks: 'Rook Jokey brings fun and laughter. Exchange jokes, enjoy humorous conversations, and lighten your mood with entertaining content.',
-        useCases: ['Entertainment and fun', 'Joke exchange', 'Humor appreciation', 'Lighthearted chat'],
-        example: 'Ask: "Tell me something funny" or "Make me laugh"'
-      }
-    },
-    {
-      id: 'nid-gaming',
-      name: 'Nid Gaming',
-      avatar: '🎮',
-      description: 'Modern Gaming & Esports',
-      color: 'from-green-500 to-teal-500',
-      tutorial: {
-        features: ['Current game tips and strategies', 'Esports news and insights', 'Gaming hardware advice', 'Build recommendations'],
-        specialties: ['Video Games', 'Esports', 'Gaming Hardware', 'Game Strategy'],
-        howItWorks: 'Nid Gaming is your expert guide to modern gaming. Get tips, strategies, hardware recommendations, and stay updated on the latest esports news and competitive gaming scene.',
-        useCases: ['Game strategy improvement', 'Esports updates', 'Gaming hardware selection', 'Build optimization'],
-        example: 'Ask: "What\'s the best gaming setup for 2024?" or "How do I improve at competitive gaming?"'
-      }
-    },
-    {
-      id: 'drama-queen',
-      name: 'Drama Queen',
-      avatar: '👑',
-      description: 'Theatre & Performing Arts',
-      color: 'from-pink-500 to-fuchsia-500',
-      tutorial: {
-        features: ['Acting techniques and tips', 'Theatre history and classics', 'Performance coaching', 'Script analysis and writing'],
-        specialties: ['Theatre', 'Acting', 'Playwriting', 'Performance Arts'],
-        howItWorks: 'Drama Queen brings theatrical passion to every conversation. Learn about acting techniques, explore theatre history from Shakespeare to Broadway, and get guidance on performance and creative writing.',
-        useCases: ['Acting skill development', 'Theatre education', 'Script writing help', 'Performance preparation'],
-        example: 'Ask: "How do I deliver a powerful monologue?" or "Tell me about Shakespeare\'s influence"'
-      }
-    },
-    {
-      id: 'chess-player',
-      name: 'Chess Master',
-      avatar: '♟️',
-      description: 'Chess Strategy & Analysis',
-      color: 'from-slate-600 to-slate-800',
-      tutorial: {
-        features: ['Opening repertoire guidance', 'Middlegame strategies', 'Endgame techniques', 'Position analysis'],
-        specialties: ['Chess Strategy', 'Tactical Patterns', 'Opening Theory', 'Game Analysis'],
-        howItWorks: 'Chess Master is your expert teacher for the royal game. Get strategic insights, learn tactical patterns, analyze positions, and improve your chess at any skill level.',
-        useCases: ['Chess improvement training', 'Opening preparation', 'Game analysis', 'Learning from grandmasters'],
-        example: 'Ask: "What\'s the best opening for beginners?" or "Analyze this chess position"'
-      }
-    },
-    {
-      id: 'knight-logic',
-      name: 'Knight Logic',
-      avatar: '⚔️',
-      description: 'Logic & Problem Solving',
-      color: 'from-amber-500 to-orange-600',
-      tutorial: {
-        features: ['Logic puzzle solving', 'Critical thinking development', 'Strategic reasoning', 'Brain teasers and riddles'],
-        specialties: ['Logic Puzzles', 'Strategic Thinking', 'Problem Solving', 'Critical Analysis'],
-        howItWorks: 'Knight Logic sharpens your mind with logical challenges. Get help solving puzzles, develop critical thinking skills, and tackle complex problems with systematic approaches.',
-        useCases: ['Logic puzzle practice', 'Critical thinking training', 'Problem-solving skills', 'Brain exercise'],
-        example: 'Ask: "Give me a logic puzzle" or "How do I approach complex problems?"'
-      }
-    },
-    {
-      id: 'lazy-pawn',
-      name: 'Lazy Pawn',
-      avatar: '🐢',
-      description: 'Relaxed Chill Companion',
-      color: 'from-emerald-400 to-teal-500',
-      tutorial: {
-        features: ['Relaxed conversations', 'Stress-free advice', 'Laid-back perspective', 'Low-pressure interaction'],
-        specialties: ['Relaxation', 'Stress Relief', 'Casual Chat', 'Life Advice'],
-        howItWorks: 'Lazy Pawn is your chill companion for relaxed conversations. No rush, no pressure - just easygoing chat and a laid-back perspective on life\'s challenges.',
-        useCases: ['Stress relief', 'Casual conversation', 'Relaxed advice', 'Chill vibes'],
-        example: 'Ask: "Just want to chat about nothing" or "Help me chill out"'
-      }
+  const filteredTutorials = tutorials.filter(t => {
+    const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory;
+    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         t.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Beginner': return '#00ff88';
+      case 'Intermediate': return '#f59e0b';
+      case 'Advanced': return '#ec4899';
+      default: return '#00d4ff';
     }
-  ]
+  };
 
-  const selectedAgentData = agents.find(a => a.id === selectedAgent) || agents[0]
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4')
+      .fromTo('.search-bar', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
+
+    gsap.fromTo('.category-btn',
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.4, stagger: 0.05, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.categories', start: 'top 90%' } }
+    );
+
+    gsap.fromTo('.tutorial-card',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: '.tutorials-grid', start: 'top 85%' } }
+    );
+  }, { scope: containerRef });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <span className="text-xl">🎓</span>
-            Learn & Master
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.3); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
+
+      {/* Hero */}
+      <section className="pt-32 pb-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(99,102,241,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto relative z-10">
+          <Link href="/resources" className="inline-flex items-center gap-2 text-gray-400 hover:text-[#6366f1] mb-6 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Resources
+          </Link>
+          <div className="text-center">
+            <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-sm mb-6 opacity-0">
+              <GraduationCap className="w-4 h-4 text-[#6366f1]" />
+              <span className="text-gray-300">Learn & Grow</span>
+            </div>
+            <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">Tutorials</h1>
+            <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+              Step-by-step guides to help you master AI agent development
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Agent Tutorials</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">Learn how to use each agent and discover their unique capabilities</p>
+
+          {/* Search */}
+          <div className="search-bar mt-10 max-w-2xl mx-auto opacity-0">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search tutorials..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#6366f1]/50"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="container-custom py-12">
-        {/* Quick Stats */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-neural-100">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-brand-50 rounded-lg">
-                <div className="text-2xl font-bold text-brand-600">18</div>
-                <div className="text-xs text-neural-600">AI Agents</div>
-              </div>
-              <div className="text-center p-4 bg-accent-50 rounded-lg">
-                <div className="text-2xl font-bold text-accent-600">Pro</div>
-                <div className="text-xs text-neural-600">Quality</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">24/7</div>
-                <div className="text-xs text-neural-600">Available</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">∞</div>
-                <div className="text-xs text-neural-600">Possibilities</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Agent List Sidebar */}
-          <div className="w-full lg:w-72 bg-white rounded-2xl shadow-sm border border-neural-100 p-4 flex-shrink-0">
-            <h3 className="text-sm font-bold text-neural-500 uppercase tracking-wider mb-4 px-2">Select an Agent</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2">
-              {agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => setSelectedAgent(agent.id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition text-sm flex items-center gap-3 ${
-                    selectedAgent === agent.id
-                      ? 'bg-brand-600 text-white shadow-lg'
-                      : 'text-neural-700 hover:bg-neural-50 border border-transparent hover:border-neural-200'
-                  }`}
-                >
-                  <span className="text-xl">{agent.avatar}</span>
-                  <span className="font-medium text-xs sm:text-sm">{agent.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tutorial Content */}
-          <div ref={contentRef} className="flex-1 bg-white rounded-2xl shadow-sm border border-neural-100 p-6 md:p-8 scroll-mt-4">
-            {/* Agent Header */}
-            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-neural-100">
-              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${selectedAgentData.color} flex items-center justify-center`}>
-                <span className="text-3xl">{selectedAgentData.avatar}</span>
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-neural-800">{selectedAgentData.name}</h2>
-                <p className="text-neural-600">{selectedAgentData.description}</p>
-              </div>
-            </div>
-
-            {/* How It Works */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Lightbulb className="w-5 h-5 text-brand-600" />
-                <h3 className="text-xl font-bold text-neural-800">How It Works</h3>
-              </div>
-              <p className="text-neural-600 leading-relaxed bg-brand-50 p-4 rounded-xl border border-brand-100">
-                {selectedAgentData.tutorial.howItWorks}
-              </p>
-            </div>
-
-            {/* Features */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-brand-600" />
-                <h3 className="text-xl font-bold text-neural-800">Key Features</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {selectedAgentData.tutorial.features.map((feature, idx) => (
-                  <div key={idx} className="bg-neural-50 p-4 rounded-xl border border-neural-100 flex items-start gap-3">
-                    <span className="text-green-500 mt-0.5">✓</span>
-                    <p className="text-neural-700">{feature}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Specialties */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="w-5 h-5 text-brand-600" />
-                <h3 className="text-xl font-bold text-neural-800">Specialties</h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {selectedAgentData.tutorial.specialties.map((specialty, idx) => (
-                  <span key={idx} className={`px-4 py-2 rounded-full bg-gradient-to-r ${selectedAgentData.color} text-white text-sm font-medium`}>
-                    {specialty}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Use Cases */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="w-5 h-5 text-brand-600" />
-                <h3 className="text-xl font-bold text-neural-800">Use Cases</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {selectedAgentData.tutorial.useCases.map((useCase, idx) => (
-                  <div key={idx} className="bg-accent-50 p-4 rounded-xl border border-accent-100 flex items-start gap-3">
-                    <ArrowRight className="w-4 h-4 text-accent-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-neural-700">{useCase}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Example */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <MessageSquare className="w-5 h-5 text-brand-600" />
-                <h3 className="text-xl font-bold text-neural-800">Try It Out</h3>
-              </div>
-              <div className="bg-neural-800 text-white p-4 rounded-xl">
-                <p className="italic">{selectedAgentData.tutorial.example}</p>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="pt-6 border-t border-neural-100">
-              <Link
-                href={`/agents/${selectedAgentData.id}`}
-                className={`inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r ${selectedAgentData.color} text-white rounded-xl font-semibold hover:opacity-90 transition shadow-lg`}
+      {/* Categories */}
+      <section className="py-8 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="categories flex flex-wrap gap-3 justify-center">
+            {categories.map((cat, i) => (
+              <button
+                key={i}
+                onClick={() => setSelectedCategory(cat)}
+                className={`category-btn px-5 py-2 rounded-full text-sm font-medium transition-all opacity-0 ${
+                  selectedCategory === cat
+                    ? 'bg-[#6366f1] text-white'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
+                }`}
               >
-                Start Using {selectedAgentData.name}
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Canvas Builder Section */}
-        <div className="max-w-6xl mx-auto mt-16 mb-12">
-          <div className="bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 rounded-2xl p-8 md:p-12 text-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent-500/10 rounded-full blur-2xl"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-accent-500 rounded-xl flex items-center justify-center">
-                  <Layout className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-3xl md:text-4xl font-bold">Canvas Builder</h2>
-                  <p className="text-neural-300">AI-Powered App Generator</p>
-                </div>
-              </div>
-              <p className="text-lg text-neural-300 mb-8 max-w-2xl">
-                Build complete web applications with just a text description. Our AI Canvas Builder generates 
-                functional React components, complete with styling and interactivity.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-                  <Code className="w-8 h-8 text-brand-400 mb-3" />
-                  <h3 className="font-bold text-white mb-2">Instant Generation</h3>
-                  <p className="text-sm text-neural-400">Describe your app and watch it come to life in seconds</p>
-                </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-                  <Sparkles className="w-8 h-8 text-accent-400 mb-3" />
-                  <h3 className="font-bold text-white mb-2">Live Preview</h3>
-                  <p className="text-sm text-neural-400">See your app running in real-time as it's generated</p>
-                </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10">
-                  <Target className="w-8 h-8 text-green-400 mb-3" />
-                  <h3 className="font-bold text-white mb-2">Export Code</h3>
-                  <p className="text-sm text-neural-400">Download clean, production-ready React code</p>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/canvas-app" className="btn-primary bg-gradient-to-r from-brand-500 to-accent-500 hover:opacity-90">
-                  Try Canvas Builder
-                  <ArrowRight className="w-5 h-5 ml-2 inline" />
-                </Link>
-                <Link href="/docs/canvas" className="btn-secondary text-white border-white/20 hover:bg-white/10">
-                  View Documentation
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Data Generator Section */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-neural-100 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full blur-3xl opacity-50"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-                  <Database className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-neural-800">AI Data Generator</h2>
-                  <p className="text-neural-500">Generate Test Data in Seconds</p>
-                </div>
-              </div>
-              <p className="text-lg text-neural-600 mb-8 max-w-2xl">
-                Need realistic test data? Our AI Data Generator creates users, products, posts, analytics, 
-                and more with intelligent context-aware generation.
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-                {['Users', 'Products', 'Posts', 'Analytics', 'Comments', 'Emails'].map((type, idx) => (
-                  <div key={idx} className="bg-neural-50 rounded-xl p-4 text-center border border-neural-100 hover:border-brand-200 transition">
-                    <div className="text-2xl mb-2">
-                      {type === 'Users' ? '👤' : type === 'Products' ? '📦' : type === 'Posts' ? '📝' : type === 'Analytics' ? '📊' : type === 'Comments' ? '💬' : '✉️'}
-                    </div>
-                    <p className="text-sm font-medium text-neural-700">{type}</p>
+      {/* Tutorials Grid */}
+      <section className="py-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="tutorials-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTutorials.map((tutorial, i) => (
+              <div key={i} className="tutorial-card glass-card rounded-2xl p-6 opacity-0 group hover:scale-[1.02] transition-transform cursor-pointer">
+                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl mb-5 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${tutorial.color}10, transparent)` }}></div>
+                  <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
+                    <Play className="w-6 h-6 text-white ml-1" />
                   </div>
-                ))}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/tools/data-generator" className="btn-primary bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white">
-                  Try Data Generator
-                  <ArrowRight className="w-5 h-5 ml-2 inline" />
-                </Link>
-                <Link href="/docs/data-generator" className="btn-secondary">
-                  View Documentation
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+                </div>
 
-        {/* Bottom CTA */}
-        <div className="max-w-4xl mx-auto mt-16">
-          <div className="bg-gradient-to-r from-brand-600 to-accent-500 rounded-2xl p-8 md:p-12 text-center text-white">
-            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-            <p className="text-lg opacity-90 mb-8">
-              Explore all our AI agents and find the perfect companion for your needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/agents" className="btn-primary bg-white text-brand-600 hover:bg-neural-50">
-                Browse All Agents
-              </Link>
-              <Link href="/pricing" className="btn-primary border-2 border-white bg-transparent hover:bg-white hover:text-brand-600">
-                View Pricing
-              </Link>
-            </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="px-2 py-1 rounded text-xs" style={{ background: `${getDifficultyColor(tutorial.difficulty)}20`, color: getDifficultyColor(tutorial.difficulty) }}>
+                    {tutorial.difficulty}
+                  </span>
+                  <span className="text-gray-500 text-xs flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> {tutorial.duration}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#6366f1] transition-colors">{tutorial.title}</h3>
+                <p className="text-gray-500 text-sm mb-4">{tutorial.description}</p>
+
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1 text-yellow-400">
+                    <Star className="w-4 h-4 fill-current" /> {tutorial.rating}
+                  </span>
+                  <span className="text-gray-500">{tutorial.views} views</span>
+                </div>
+              </div>
+            ))}
           </div>
+
+          {filteredTutorials.length === 0 && (
+            <div className="text-center py-16">
+              <p className="text-gray-500">No tutorials found. Try adjusting your search or filters.</p>
+            </div>
+          )}
         </div>
-      </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl font-bold metallic-text mb-4">Ready to Start Building?</h2>
+          <p className="text-gray-400 mb-8">Create your first AI agent today with our step-by-step guidance</p>
+          <Link href="/agents" className="inline-block px-8 py-4 bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-xl font-semibold hover:opacity-90 transition-all">
+            Create Your Agent
+          </Link>
+        </div>
+      </section>
     </div>
-  )
+  );
 }

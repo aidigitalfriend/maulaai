@@ -1,222 +1,196 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useRef } from 'react';
+import Link from 'next/link';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Building2, Users, Handshake, ArrowRight, Sparkles, Globe, Shield, Zap } from 'lucide-react';
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const creativeStyles = `
-  .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .glow-card {
-    position: relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .glow-card::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg, #00d4ff, #a855f7, #00ff88);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  .glow-card:hover::before { opacity: 1; }
-  .shimmer-card {
-    position: relative;
-    overflow: hidden;
-  }
-  .shimmer-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-    transition: left 0.6s ease;
-  }
-  .shimmer-card:hover::after { left: 100%; }
-  .float-card {
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
-  }
-  .float-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
-  }
-  .stat-glow {
-    text-shadow: 0 0 30px currentColor;
-  }
-`
-
-export default function About() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const cardsRef = useRef<HTMLDivElement[]>([])
+export default function AboutPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const sections = [
     {
-      title: "About Us",
-      description: "Learn about our mission, vision, and the story behind our AI agent platform.",
-      icon: "🏢",
-      href: "/about/overview",
-      highlights: ["Company Mission", "Our Vision", "Core Values", "Company History"],
-      color: "#00d4ff"
+      title: 'About Us',
+      description: 'Learn about our mission, vision, and the story behind our AI agent platform.',
+      icon: Building2,
+      href: '/about/overview',
+      highlights: ['Company Mission', 'Our Vision', 'Core Values', 'Company History'],
+      color: '#00d4ff'
     },
     {
-      title: "Meet the Team",
-      description: "Get to know the talented individuals driving innovation in AI technology.",
-      icon: "👥",
-      href: "/about/team",
-      highlights: ["Leadership Team", "Engineering", "Research", "Customer Success"],
-      color: "#a855f7"
+      title: 'Meet the Team',
+      description: 'Get to know the talented individuals driving innovation in AI technology.',
+      icon: Users,
+      href: '/about/team',
+      highlights: ['Leadership Team', 'Engineering', 'Research', 'Customer Success'],
+      color: '#a855f7'
     },
     {
-      title: "Partnerships",
-      description: "Discover our strategic partnerships and ecosystem of collaborators.",
-      icon: "🤝",
-      href: "/about/partnerships",
-      highlights: ["Technology Partners", "Integration Partners", "Channel Partners", "Academic Research"],
-      color: "#00ff88"
+      title: 'Partnerships',
+      description: 'Discover our strategic partnerships and ecosystem of collaborators.',
+      icon: Handshake,
+      href: '/about/partnerships',
+      highlights: ['Technology Partners', 'Integration Partners', 'Channel Partners', 'Academic Research'],
+      color: '#00ff88'
     }
-  ]
+  ];
 
   const stats = [
-    { number: "50M+", label: "Conversations Processed", color: "#00d4ff" },
-    { number: "10K+", label: "Active Users", color: "#a855f7" },
-    { number: "99.9%", label: "Uptime", color: "#00ff88" },
-    { number: "150+", label: "Countries Served", color: "#f59e0b" }
-  ]
+    { number: '50M+', label: 'Conversations Processed', color: '#00d4ff' },
+    { number: '10K+', label: 'Active Users', color: '#a855f7' },
+    { number: '99.9%', label: 'Uptime', color: '#00ff88' },
+    { number: '150+', label: 'Countries Served', color: '#f59e0b' }
+  ];
 
   const values = [
-    { icon: "🎯", title: "Innovation", description: "Continuously pushing the boundaries of what's possible with AI technology." },
-    { icon: "🛡️", title: "Trust", description: "Building secure, reliable, and transparent AI solutions you can depend on." },
-    { icon: "🚀", title: "Excellence", description: "Delivering exceptional experiences that exceed expectations every time." }
-  ]
+    { icon: Sparkles, title: 'Innovation', desc: 'Pushing the boundaries of AI technology', color: '#00d4ff' },
+    { icon: Globe, title: 'Global Impact', desc: 'Serving users across 150+ countries', color: '#00ff88' },
+    { icon: Shield, title: 'Trust & Security', desc: 'Enterprise-grade protection for your data', color: '#a855f7' },
+    { icon: Zap, title: 'Performance', desc: 'Lightning-fast responses at scale', color: '#f59e0b' }
+  ];
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.hero-title', { opacity: 0, y: 50, duration: 1, ease: 'power3.out' })
-      gsap.from('.hero-subtitle', { opacity: 0, y: 30, duration: 1, delay: 0.2, ease: 'power3.out' })
-      gsap.from('.mission-card', { opacity: 0, y: 40, duration: 0.8, delay: 0.4, ease: 'power3.out', scrollTrigger: { trigger: '.mission-card', start: 'top 85%' } })
-      gsap.from('.stat-item', { opacity: 0, y: 30, duration: 0.6, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: '.stats-grid', start: 'top 85%' } })
-      gsap.from('.section-card', { opacity: 0, y: 40, duration: 0.6, stagger: 0.15, ease: 'power3.out', scrollTrigger: { trigger: '.sections-grid', start: 'top 85%' } })
-      gsap.from('.value-card', { opacity: 0, scale: 0.9, duration: 0.6, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: '.values-grid', start: 'top 85%' } })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [])
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl
+      .fromTo('.hero-badge', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo('.hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
+      .fromTo('.hero-subtitle', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.4');
 
-  const handleTilt = (e: React.MouseEvent<HTMLElement>, card: HTMLElement) => {
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateX = (y - centerY) / 12
-    const rotateY = (centerX - x) / 12
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`
-  }
+    gsap.fromTo('.stat-card',
+      { opacity: 0, y: 30, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.stats-grid', start: 'top 85%' } }
+    );
 
-  const resetTilt = (card: HTMLElement) => {
-    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)'
-  }
+    gsap.fromTo('.section-card',
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 0.6, stagger: 0.15, ease: 'power3.out', scrollTrigger: { trigger: '.sections-grid', start: 'top 85%' } }
+    );
+
+    gsap.fromTo('.value-card',
+      { opacity: 0, x: -30 },
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out', scrollTrigger: { trigger: '.values-grid', start: 'top 85%' } }
+    );
+  }, { scope: containerRef });
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a]">
-      <style dangerouslySetInnerHTML={{ __html: creativeStyles }} />
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.3); }
+        .metallic-text { background: linear-gradient(to bottom, #fff, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      `}</style>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        {/* Hero */}
-        <div className="text-center max-w-4xl mx-auto mb-20">
-          <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-[#00d4ff] via-[#a855f7] to-[#00ff88] bg-clip-text text-transparent">
-              About Us
-            </span>
+      {/* Hero */}
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse_at_center,_rgba(0,212,255,0.15)_0%,_transparent_70%)] blur-2xl"></div>
+        
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 text-sm mb-6 opacity-0">
+            <Building2 className="w-4 h-4 text-[#00d4ff]" />
+            <span className="text-gray-300">About One Last AI</span>
+          </div>
+          <h1 className="hero-title text-5xl md:text-7xl font-bold mb-6 metallic-text opacity-0">
+            Building the Future of AI
           </h1>
-          <p className="hero-subtitle text-xl md:text-2xl text-gray-400 leading-relaxed">
-            We're building the future of AI agents, empowering businesses to automate and scale with intelligent conversational AI.
+          <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto opacity-0">
+            Empowering businesses and individuals with intelligent AI agents that transform the way we work, create, and innovate.
           </p>
         </div>
+      </section>
 
-        {/* Mission Statement */}
-        <div className="mission-card glass-card glow-card rounded-3xl p-10 mb-16">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Our Mission</h2>
-            <p className="text-lg text-gray-300 leading-relaxed mb-6">
-              To democratize access to advanced AI technology by creating intelligent agents that understand, learn, and adapt to help businesses achieve their goals more efficiently.
-            </p>
-            <p className="text-gray-400">
-              We believe that AI should be accessible, transparent, and designed to augment human capabilities rather than replace them.
-            </p>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="stats-grid grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {stats.map((stat, index) => (
-            <div key={index} className="stat-item text-center p-6 glass-card rounded-2xl">
-              <div className="text-4xl md:text-5xl font-bold mb-2 stat-glow" style={{ color: stat.color }}>
-                {stat.number}
-              </div>
-              <div className="text-gray-400 font-medium">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* About Sections */}
-        <div className="sections-grid grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {sections.map((section, index) => (
-            <Link
-              key={index}
-              href={section.href}
-              className="section-card group glass-card glow-card shimmer-card float-card rounded-2xl p-8 transition-all duration-300"
-              onMouseMove={(e) => handleTilt(e, e.currentTarget)}
-              onMouseLeave={(e) => resetTilt(e.currentTarget)}
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <div className="text-5xl mb-4">{section.icon}</div>
-              <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#00d4ff] transition-colors">
-                {section.title}
-              </h3>
-              <p className="text-gray-400 mb-4 leading-relaxed">
-                {section.description}
-              </p>
-              <ul className="space-y-2">
-                {section.highlights.map((highlight, highlightIndex) => (
-                  <li key={highlightIndex} className="text-sm text-gray-500 flex items-center">
-                    <span className="w-1.5 h-1.5 rounded-full mr-3" style={{ backgroundColor: section.color }}></span>
-                    {highlight}
-                  </li>
-                ))}
-              </ul>
-            </Link>
-          ))}
-        </div>
-
-        {/* Values */}
-        <div className="values-grid rounded-3xl p-10" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(168,85,247,0.1) 50%, rgba(0,255,136,0.1) 100%)' }}>
-          <h2 className="text-3xl font-bold text-white mb-10 text-center">Our Core Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {values.map((value, index) => (
-              <div key={index} className="value-card text-center glass-card rounded-2xl p-8">
-                <div className="text-4xl mb-4">{value.icon}</div>
-                <h3 className="text-xl font-bold text-white mb-3">{value.title}</h3>
-                <p className="text-gray-400">{value.description}</p>
+      {/* Stats */}
+      <section className="py-16 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="stats-grid grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((stat, i) => (
+              <div key={i} className="stat-card glass-card rounded-2xl p-6 text-center opacity-0">
+                <div className="text-3xl md:text-4xl font-bold mb-2" style={{ color: stat.color }}>
+                  {stat.number}
+                </div>
+                <div className="text-gray-400 text-sm">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Sections */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Explore Our Story</h2>
+            <p className="text-gray-400">Discover what makes One Last AI unique</p>
+          </div>
+          <div className="sections-grid grid grid-cols-1 md:grid-cols-3 gap-6">
+            {sections.map((section, i) => {
+              const Icon = section.icon;
+              return (
+                <Link key={i} href={section.href} className="section-card glass-card rounded-2xl p-8 group opacity-0 hover:scale-[1.02] transition-transform">
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6" style={{ background: `${section.color}20`, border: `1px solid ${section.color}40` }}>
+                    <Icon className="w-7 h-7" style={{ color: section.color }} />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#00d4ff] transition-colors">{section.title}</h3>
+                  <p className="text-gray-500 text-sm mb-6">{section.description}</p>
+                  <ul className="space-y-2 mb-6">
+                    {section.highlights.map((h, j) => (
+                      <li key={j} className="flex items-center gap-2 text-gray-400 text-sm">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: section.color }}></div>
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                  <span className="text-sm flex items-center gap-1" style={{ color: section.color }}>
+                    Learn more <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Values */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold metallic-text mb-4">Our Values</h2>
+            <p className="text-gray-400">The principles that guide everything we do</p>
+          </div>
+          <div className="values-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {values.map((value, i) => {
+              const Icon = value.icon;
+              return (
+                <div key={i} className="value-card glass-card rounded-xl p-6 opacity-0">
+                  <Icon className="w-8 h-8 mb-4" style={{ color: value.color }} />
+                  <h4 className="font-bold text-white mb-2">{value.title}</h4>
+                  <p className="text-gray-500 text-sm">{value.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
+          <h2 className="text-2xl font-bold metallic-text mb-4">Join Us on Our Journey</h2>
+          <p className="text-gray-400 mb-8">Be part of the AI revolution and help shape the future of intelligent technology</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/resources/careers" className="px-8 py-4 bg-gradient-to-r from-[#00d4ff] to-[#0066ff] rounded-xl font-semibold hover:opacity-90 transition-all">
+              View Careers
+            </Link>
+            <Link href="/contact" className="px-8 py-4 border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
+              Contact Us
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
-  )
+  );
 }
