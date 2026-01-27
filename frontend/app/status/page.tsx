@@ -25,12 +25,14 @@ interface StatusData {
     load5: number;
     load15: number;
     cores: number;
+    uptimeFormatted?: string;
   };
   platform: {
     status: string;
     uptime: number;
     lastUpdated: string;
     version: string;
+    environment?: string;
   };
   api: {
     status: string;
@@ -46,12 +48,20 @@ interface StatusData {
     connectionPool: number;
     responseTime: number;
     uptime: number;
+    type?: string;
+  };
+  cache?: {
+    status: string;
+    type: string;
+    responseTime: number;
+    connected: boolean;
   };
   aiServices: Array<{
     name: string;
     status: string;
     responseTime: number;
     uptime: number;
+    model?: string;
   }>;
   agents: Array<{
     name: string;
@@ -79,6 +89,11 @@ interface StatusData {
     duration: string;
     resolved: boolean;
   }>;
+  analytics?: {
+    sessionsToday: number;
+    pageViewsToday: number;
+    activeUsers: number;
+  };
   totalActiveUsers?: number; // Active users in last 15 minutes
 }
 
@@ -492,13 +507,16 @@ export default function StatusPage() {
 
         {/* System Gauges */}
         {data.system && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
             <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-neural-800">
                   CPU Usage
                 </h3>
                 <MiniLine series={cpuHistory} stroke="#f97316" />
+                <div className="text-xs text-neural-600 mt-1">
+                  {data.system.cores} cores • Load: {data.system.load1}
+                </div>
               </div>
               <Gauge
                 label="CPU"
@@ -522,6 +540,20 @@ export default function StatusPage() {
                 value={data.system.memoryPercent}
                 color="#22c55e"
               />
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <Clock className="w-8 h-8 text-blue-600" />
+                <h3 className="text-lg font-semibold text-neural-800">
+                  Server Uptime
+                </h3>
+              </div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">
+                {data.system.uptimeFormatted || '—'}
+              </div>
+              <div className="text-sm text-neural-600">
+                {data.platform.environment || 'production'} • v{data.platform.version}
+              </div>
             </div>
           </div>
         )}
@@ -575,7 +607,7 @@ export default function StatusPage() {
         </div>
 
         {/* Main Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-8 md:mb-12">
           {/* Platform Status */}
           <div className="bg-white rounded-xl md:rounded-2xl p-5 md:p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
@@ -601,7 +633,7 @@ export default function StatusPage() {
               API
             </h3>
             <div className="text-2xl md:text-3xl font-bold text-yellow-600 mb-2">
-              {data.api.responseTime}ms
+              {data.api.responseTime || 0}ms
             </div>
             <p className="text-sm text-neural-600">Avg Response Time</p>
           </div>
@@ -612,12 +644,27 @@ export default function StatusPage() {
               <Database className="w-8 h-8 text-green-600" />
               <StatusBadge status={data.database.status} />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Database</h3>
+            <h3 className="text-lg font-semibold mb-2">{data.database.type || 'Database'}</h3>
             <div className="text-3xl font-bold text-green-600 mb-2">
-              {data.database.connectionPool}%
+              {data.database.responseTime || 0}ms
             </div>
-            <p className="text-sm text-neural-600">Connection Pool</p>
+            <p className="text-sm text-neural-600">Response Time</p>
           </div>
+
+          {/* Cache Status */}
+          {data.cache && (
+            <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <Activity className="w-8 h-8 text-red-500" />
+                <StatusBadge status={data.cache.status} />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Cache ({data.cache.type})</h3>
+              <div className="text-3xl font-bold text-red-500 mb-2">
+                {data.cache.responseTime || 0}ms
+              </div>
+              <p className="text-sm text-neural-600">{data.cache.connected ? 'Connected' : 'Disconnected'}</p>
+            </div>
+          )}
 
           {/* Active Users */}
           <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow">
@@ -784,6 +831,39 @@ export default function StatusPage() {
             />
           </div>
         </div>
+
+        {/* Real-time Analytics */}
+        {data.analytics && (
+          <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow mb-12">
+            <h3 className="text-xl font-bold mb-6">📊 Real-time Analytics</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <Activity className="w-6 h-6 text-blue-600" />
+                  <h4 className="font-semibold text-blue-900">Sessions Today</h4>
+                </div>
+                <div className="text-4xl font-bold text-blue-700">{data.analytics.sessionsToday}</div>
+                <p className="text-sm text-blue-600 mt-1">User sessions started today</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                  <h4 className="font-semibold text-green-900">Page Views Today</h4>
+                </div>
+                <div className="text-4xl font-bold text-green-700">{data.analytics.pageViewsToday}</div>
+                <p className="text-sm text-green-600 mt-1">Pages viewed today</p>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border border-purple-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <Users className="w-6 h-6 text-purple-600" />
+                  <h4 className="font-semibold text-purple-900">Active Right Now</h4>
+                </div>
+                <div className="text-4xl font-bold text-purple-700">{data.analytics.activeUsers}</div>
+                <p className="text-sm text-purple-600 mt-1">Users active in last 15 min</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* AI Services Status */}
         <div className="bg-white rounded-2xl p-6 border border-neural-200 shadow-sm hover:shadow-md transition-shadow mb-12">
