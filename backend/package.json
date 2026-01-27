@@ -106,7 +106,7 @@
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.12",
-    "openai": "^6.15.0",
+    "openai": "^6.16.0",
     "papaparse": "^5.5.3",
     "pdf-parse": "^2.4.5",
     "pg": "^8.17.2",
