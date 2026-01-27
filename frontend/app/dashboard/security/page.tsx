@@ -455,7 +455,7 @@ use one of these codes to sign in.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `maulaai-backup-codes-${
+    a.download = `onelastai-backup-codes-${
       new Date().toISOString().split('T')[0]
     }.txt`;
     document.body.appendChild(a);

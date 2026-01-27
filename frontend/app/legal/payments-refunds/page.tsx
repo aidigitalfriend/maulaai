@@ -400,7 +400,7 @@ export default function PaymentsRefundsPage() {
                 </h3>
                 <p className="text-neural-700 leading-relaxed mb-4 text-lg">
                   <strong className="text-red-600">
-                    MAULA AI DOES NOT OFFER REFUNDS FOR ANY REASON.
+                    ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.
                   </strong>
                 </p>
                 <p className="text-neural-700 leading-relaxed">

@@ -269,7 +269,7 @@ export default function TroubleshootingPage() {
                 <ul className="list-disc list-inside text-neural-600 space-y-1 ml-2">
                   <li>Refresh the page (Ctrl+R or Cmd+R)</li>
                   <li>Hard refresh to clear cache (Ctrl+Shift+R or Cmd+Shift+R)</li>
-                  <li>Clear browser cookies and cache for maulaai.co</li>
+                  <li>Clear browser cookies and cache for onelastai.com</li>
                   <li>Try a different browser</li>
                   <li>Disable browser extensions and try again</li>
                   <li>Check that JavaScript is enabled in your browser</li>

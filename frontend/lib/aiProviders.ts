@@ -433,7 +433,7 @@ export function getCanvasAppProviders(): CanvasAppProviderConfig[] {
       models: [
         {
           id: 'mistral-large-latest',
-          name: 'Maula Pro',
+          name: 'OneLast Pro',
           provider: 'One Last AI',
           brandedProvider: 'One Last AI',
           description: 'Best quality & reasoning',
@@ -441,7 +441,7 @@ export function getCanvasAppProviders(): CanvasAppProviderConfig[] {
         },
         {
           id: 'codestral-latest',
-          name: 'Maula Code',
+          name: 'OneLast Code',
           provider: 'One Last AI',
           brandedProvider: 'One Last AI',
           description: 'Specialized for code generation',
@@ -449,7 +449,7 @@ export function getCanvasAppProviders(): CanvasAppProviderConfig[] {
         },
         {
           id: 'mistral-small-latest',
-          name: 'Maula Fast',
+          name: 'OneLast Fast',
           provider: 'One Last AI',
           brandedProvider: 'One Last AI',
           description: 'Fast and efficient',

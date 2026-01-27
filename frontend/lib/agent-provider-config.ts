@@ -1702,7 +1702,7 @@ Let's figure out the build. ⚔️💎`,
 // One Last AI Platform Agent -> Mistral
 const PLATFORM_AGENTS: AgentProviderMapping[] = [
   {
-    agentId: 'maula-ai',
+    agentId: 'onelastai',
     displayName: 'One Last AI',
     category: 'platform',
     config: {

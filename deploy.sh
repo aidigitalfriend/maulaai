@@ -14,7 +14,7 @@
 # Requirements:
 #   • victorykit.pem key present in repo root
 #   • ssh access to ubuntu@18.140.156.40
-#   • pm2 configured with maula-backend + maula-frontend
+#   • pm2 configured with onelastai-backend + onelastai-frontend
 ############################################################
 
 set -euo pipefail
@@ -24,7 +24,7 @@ cd "$REPO_ROOT"
 
 SERVER="ubuntu@18.140.156.40"
 SSH_KEY="$REPO_ROOT/victorykit.pem"
-REMOTE_DIR="~/maula-ai"
+REMOTE_DIR="~/onelastai"
 COMMIT_MSG="chore: deploy $(date +'%Y-%m-%d %H:%M:%S')"
 SKIP_COMMIT=false
 
@@ -96,7 +96,7 @@ git push origin main
 print_status "3) Deploying to production server"
 SSH_COMMAND=$(cat <<'REMOTE'
 set -euo pipefail
-cd ~/maula-ai
+cd ~/onelastai
 
 echo "📦 Pulling latest code"
 git stash || true
@@ -114,7 +114,7 @@ echo "�️ Pushing schema changes to database"
 npx prisma db push --accept-data-loss || echo "⚠️ Schema push failed (may already be up to date)"
 
 echo "�🔄 Restarting backend"
-pm2 restart maula-backend || true
+pm2 restart onelastai-backend || true
 
 cd ..
 
@@ -128,9 +128,9 @@ echo "🏗️ Building Next.js frontend"
 NEXT_TELEMETRY_DISABLED=1 npm run build
 
 echo "🔄 Restarting frontend"
-pm2 restart maula-frontend || true
+pm2 restart onelastai-frontend || true
 
-cd ~/maula-ai
+cd ~/onelastai
 echo "🌐 Updating nginx config"
 if [ -f nginx/onelastai.com.conf ]; then
   sudo cp nginx/onelastai.com.conf /etc/nginx/sites-available/onelastai.com
@@ -156,8 +156,8 @@ ssh -tt -i "$SSH_KEY" "$SERVER" "\
   ss -tuln | grep ':3100' || true; \
   ss -tuln | grep ':3005' || true; \
   echo '\n--- PM2 process info ---'; \
-  pm2 info maula-backend || true; \
-  pm2 info maula-frontend || true; \
+  pm2 info onelastai-backend || true; \
+  pm2 info onelastai-frontend || true; \
   echo '\n--- Retesting endpoints ---'; \
   curl -f http://localhost:3100/api/status | head -c 200 || echo 'Status endpoint failed'; \
 "

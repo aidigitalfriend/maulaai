@@ -7,8 +7,8 @@ module.exports = {
   apps: [
     // Frontend Next.js Application
     {
-      name: 'maula-frontend',
-      cwd: '/home/ubuntu/maula-ai/frontend',
+      name: 'onelastai-frontend',
+      cwd: '/home/ubuntu/onelastai/frontend',
       script: 'npm',
       args: 'start',
       env: {
@@ -32,15 +32,15 @@ module.exports = {
 
     // Backend API Server with Authentication
     {
-      name: 'maula-backend',
-      cwd: '/home/ubuntu/maula-ai/backend',
+      name: 'onelastai-backend',
+      cwd: '/home/ubuntu/onelastai/backend',
       script: 'server-simple.js',
       interpreter: '/usr/bin/node',
       node_args: '-r dotenv/config',
       env: {
         NODE_ENV: 'production',
         PORT: 3005,
-        DOTENV_CONFIG_PATH: '/home/ubuntu/maula-ai/backend/.env',
+        DOTENV_CONFIG_PATH: '/home/ubuntu/onelastai/backend/.env',
         REDIS_URL:
           'redis://default:oSBgRq10A8j5Pg8AMxZmf5P8bOiPYrtn@redis-13535.crce214.us-east-1-3.ec2.cloud.redislabs.com:13535',
       },

@@ -65,8 +65,8 @@ tee ecosystem.config.cjs << EOF
 module.exports = {
   apps: [
     {
-      name: 'maula-frontend',
-      cwd: '/home/ubuntu/maula-ai/frontend',
+      name: 'onelastai-frontend',
+      cwd: '/home/ubuntu/onelastai/frontend',
       script: 'npm',
       args: 'start',
       env: {
@@ -84,8 +84,8 @@ module.exports = {
       merge_logs: true,
     },
     {
-      name: 'maula-backend',
-      cwd: '/home/ubuntu/maula-ai/backend',
+      name: 'onelastai-backend',
+      cwd: '/home/ubuntu/onelastai/backend',
       script: 'server-simple.js',
       interpreter: '/usr/bin/node',
       node_args: '-r dotenv/config --max-old-space-size=1024 --optimize-for-size',

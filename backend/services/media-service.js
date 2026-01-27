@@ -15,7 +15,7 @@ import FormData from 'form-data';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // S3 Configuration
-const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
+const S3_BUCKET = process.env.S3_BUCKET || 'onelastai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({

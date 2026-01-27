@@ -175,15 +175,15 @@ export default function DocsTutorials() {
               <div className="bg-gray-900 p-4 rounded-lg space-y-3">
                 <div>
                   <p className="text-gray-400 text-sm mb-1">JavaScript:</p>
-                  <code className="text-gray-200">npm install @maulaai/sdk</code>
+                  <code className="text-gray-200">npm install @onelastai/sdk</code>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Python:</p>
-                  <code className="text-gray-200">pip install maulaai-sdk</code>
+                  <code className="text-gray-200">pip install onelastai-sdk</code>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm mb-1">Go:</p>
-                  <code className="text-gray-200">go get github.com/maulaai/sdk-go</code>
+                  <code className="text-gray-200">go get github.com/onelastai/sdk-go</code>
                 </div>
               </div>
             </div>
@@ -192,11 +192,11 @@ export default function DocsTutorials() {
               <h3 className="text-2xl font-bold text-neural-900 mb-6">Step 3: Create Your First Agent</h3>
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
-                  {`import { OnelastAI } from '@maulaai/sdk';
+                  {`import { OnelastAI } from '@onelastai/sdk';
 
 // Initialize client
 const client = new OnelastAI({
-  apiKey: process.env.MAULAAI_API_KEY
+  apiKey: process.env.ONELASTAI_API_KEY
 });
 
 // Create an agent
@@ -247,10 +247,10 @@ console.log('Agent created:', agent.id);`}
               <h3 className="text-2xl font-bold text-neural-900 mb-6">Complete Example</h3>
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
-                  {`import { OnelastAI } from '@maulaai/sdk';
+                  {`import { OnelastAI } from '@onelastai/sdk';
 
 const client = new OnelastAI({
-  apiKey: process.env.MAULAAI_API_KEY
+  apiKey: process.env.ONELASTAI_API_KEY
 });
 
 // Create the support bot
@@ -573,8 +573,8 @@ const bot = await client.agents.create({
               <div className="bg-gray-900 p-4 rounded-lg">
                 <code className="text-gray-200 text-sm">
                   {`# .env.production
-MAULAAI_API_KEY=your-production-key
-MAULAAI_ENV=production
+ONELASTAI_API_KEY=your-production-key
+ONELASTAI_ENV=production
 NODE_ENV=production
 LOG_LEVEL=info
 
@@ -591,7 +591,7 @@ DATADOG_API_KEY=your-datadog-key`}
                 <code className="text-gray-200 text-sm">
                   {`// Set up logging
 const client = new OnelastAI({
-  apiKey: process.env.MAULAAI_API_KEY,
+  apiKey: process.env.ONELASTAI_API_KEY,
   logLevel: 'info',
   onError: (error) => {
     console.error('Agent Error:', error);

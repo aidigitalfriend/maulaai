@@ -46,7 +46,7 @@ export default function APIReferencePage() {
             </p>
             <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 text-sm">
               <p className="text-neural-600 mb-2"><strong>Base URL:</strong></p>
-              <code className="text-green-600">https://api.maulaai.co/v1</code>
+              <code className="text-green-600">https://api.onelastai.com/v1</code>
             </div>
           </section>
 
@@ -244,7 +244,7 @@ export default function APIReferencePage() {
                 <div className="bg-gray-50 p-4 rounded-xl border border-neural-200 font-mono text-sm text-neural-700 overflow-auto">
                   <pre>{`// Create conversation
 const response = await fetch(
-  'https://api.maulaai.co/v1/conversations',
+  'https://api.onelastai.com/v1/conversations',
   {
     method: 'POST',
     headers: {
@@ -261,7 +261,7 @@ const { conversationId } = await response.json();
 
 // Send message
 const msgResponse = await fetch(
-  'https://api.maulaai.co/v1/agents/einstein/message',
+  'https://api.onelastai.com/v1/agents/einstein/message',
   {
     method: 'POST',
     headers: {
@@ -293,7 +293,7 @@ headers = {
 
 # Create conversation
 conv_response = requests.post(
-    "https://api.maulaai.co/v1/conversations",
+    "https://api.onelastai.com/v1/conversations",
     headers=headers,
     json={"agentId": "einstein"}
 )
@@ -302,7 +302,7 @@ conversation_id = conv_response.json()["conversationId"]
 
 # Send message
 msg_response = requests.post(
-    "https://api.maulaai.co/v1/agents/einstein/message",
+    "https://api.onelastai.com/v1/agents/einstein/message",
     headers=headers,
     json={
         "conversationId": conversation_id,

@@ -600,7 +600,7 @@ Many services allow users to opt out of arbitration within a specified period (t
                 </h3>
                 <div className="bg-red-50 rounded-xl p-6 border border-red-200">
                   <p className="text-neural-700 mb-3">
-                    TO THE MAXIMUM EXTENT PERMITTED BY LAW, MAULA AI SHALL
+                    TO THE MAXIMUM EXTENT PERMITTED BY LAW, ONE LAST AI SHALL
                     NOT BE LIABLE FOR:
                   </p>
                   <ul className="list-disc pl-6 text-neural-700 space-y-2">

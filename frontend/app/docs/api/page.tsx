@@ -51,7 +51,7 @@ export default function DocsAPI() {
       title: "List All Agents",
       language: "JavaScript",
       code: `// Get all agents
-const response = await fetch('https://api.maulaai.co/v1/agents', {
+const response = await fetch('https://api.onelastai.com/v1/agents', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -69,7 +69,7 @@ console.log(agents);`
 
 # Create a new agent
 response = requests.post(
-  'https://api.maulaai.co/v1/agents',
+  'https://api.onelastai.com/v1/agents',
   headers={
     'Authorization': 'Bearer YOUR_API_KEY',
     'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ print(agent['id'])`
       title: "Send Message",
       language: "JavaScript",
       code: `// Send a message to an agent
-const response = await fetch('https://api.maulaai.co/v1/conversations', {
+const response = await fetch('https://api.onelastai.com/v1/conversations', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -141,7 +141,7 @@ console.log(result.reply);`
               Base URL
             </h3>
             <code className="block bg-gray-900 p-4 rounded-lg text-gray-200 text-sm">
-              https://api.maulaai.co/v1
+              https://api.onelastai.com/v1
             </code>
             <p className="text-neural-600 text-sm mt-3">
               All API requests should be made to this base URL with proper versioning.

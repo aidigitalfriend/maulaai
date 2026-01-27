@@ -53,7 +53,7 @@ async function monitorDatabasePerformance() {
     console.log('\n🔌 CONNECTION INFO:');
     console.log('- Database: PostgreSQL (AWS RDS)');
     console.log('- ORM: Prisma');
-    console.log('- Host: maulaai-db.c3oiwgyy4oo1.ap-southeast-1.rds.amazonaws.com');
+    console.log('- Host: onelastai-db.c3oiwgyy4oo1.ap-southeast-1.rds.amazonaws.com');
 
     // Performance recommendations
     console.log('\n💡 PERFORMANCE RECOMMENDATIONS:');

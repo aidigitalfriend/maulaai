@@ -12,11 +12,11 @@ console.log('🔐 SSL Mode:', process.env.DATABASE_URL?.includes('sslmode') ? 'E
 // Test 1: Basic connectivity without SSL
 console.log('\n--- Test 1: Basic Connection (No SSL) ---');
 const clientNoSSL = new Client({
-  host: 'maulaai-db.c3oiwgyy4oo1.ap-southeast-1.rds.amazonaws.com',
+  host: 'onelastai-db.c3oiwgyy4oo1.ap-southeast-1.rds.amazonaws.com',
   port: 5432,
   user: 'postgres',
   password: 'OnelastAI_2026_Secure!',
-  database: 'maulaai',
+  database: 'onelastai',
   connectionTimeoutMillis: 10000,
 });
 

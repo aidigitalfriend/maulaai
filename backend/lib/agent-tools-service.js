@@ -22,7 +22,7 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 // S3 CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════
 
-const S3_BUCKET = process.env.S3_BUCKET || 'maulaai-bucket';
+const S3_BUCKET = process.env.S3_BUCKET || 'onelastai-bucket';
 const S3_REGION = process.env.AWS_REGION || 'ap-southeast-1';
 
 const s3Client = new S3Client({

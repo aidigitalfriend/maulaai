@@ -67,13 +67,13 @@ export default function DocsSDKs() {
   ]
 
   // Code snippets
-  const jsInstallNpm = `npm install @maulaai/sdk`
-  const jsInstallYarn = `yarn add @maulaai/sdk`
+  const jsInstallNpm = `npm install @onelastai/sdk`
+  const jsInstallYarn = `yarn add @onelastai/sdk`
   
-  const jsBasicUsage = `import { OnelastAI } from '@maulaai/sdk';
+  const jsBasicUsage = `import { OnelastAI } from '@onelastai/sdk';
 
 const client = new OnelastAI({
-  apiKey: process.env.MAULAAI_API_KEY
+  apiKey: process.env.ONELASTAI_API_KEY
 });
 
 // Get all agents
@@ -96,9 +96,9 @@ console.log(response.reply);`
 
 console.log(newAgent.id);`
 
-  const pyInstall = `pip install maulaai-sdk`
+  const pyInstall = `pip install onelastai-sdk`
   
-  const pyBasicUsage = `from maulaai import OnelastAI
+  const pyBasicUsage = `from onelastai import OnelastAI
 
 client = OnelastAI(api_key='YOUR_API_KEY')
 
@@ -114,7 +114,7 @@ response = client.conversations.send(
 print(response['reply'])`
 
   const pyAsyncUsage = `import asyncio
-from maulaai import AsyncOnelastAI
+from onelastai import AsyncOnelastAI
 
 async def main():
   client = AsyncOnelastAI(api_key='YOUR_API_KEY')
@@ -128,17 +128,17 @@ async def main():
 
 asyncio.run(main())`
 
-  const goInstall = `go get github.com/maulaai/sdk-go`
+  const goInstall = `go get github.com/onelastai/sdk-go`
   
   const goBasicUsage = `package main
 
 import (
   "fmt"
-  "github.com/maulaai/sdk-go"
+  "github.com/onelastai/sdk-go"
 )
 
 func main() {
-  client := maulaai.NewClient("YOUR_API_KEY")
+  client := onelastai.NewClient("YOUR_API_KEY")
   
   // List agents
   agents, err := client.Agents.List()
@@ -147,7 +147,7 @@ func main() {
   }
   
   // Send message
-  response, err := client.Conversations.Send(&maulaai.Message{
+  response, err := client.Conversations.Send(&onelastai.Message{
     AgentID: "agent_123",
     Text:    "Hello!",
   })
@@ -155,7 +155,7 @@ func main() {
   fmt.Println(response.Reply)
 }`
 
-  const phpInstall = `composer require maulaai/sdk-php`
+  const phpInstall = `composer require onelastai/sdk-php`
   
   const phpBasicUsage = `<?php
 require 'vendor/autoload.php';
@@ -178,11 +178,11 @@ $response = $client->conversations->send([
 echo $response['reply'];
 ?>`
 
-  const rubyInstall = `gem install maulaai-sdk`
+  const rubyInstall = `gem install onelastai-sdk`
   
-  const rubyBasicUsage = `require 'maulaai'
+  const rubyBasicUsage = `require 'onelastai'
 
-client = OnelastAI::Client.new(api_key: ENV['MAULAAI_API_KEY'])
+client = OnelastAI::Client.new(api_key: ENV['ONELASTAI_API_KEY'])
 
 # List agents
 agents = client.agents.list
@@ -196,13 +196,13 @@ response = client.conversations.send(
 puts response['reply']`
 
   const javaInstall = `<dependency>
-  <groupId>com.maulaai</groupId>
+  <groupId>com.onelastai</groupId>
   <artifactId>sdk-java</artifactId>
   <version>2.2.0</version>
 </dependency>`
   
-  const javaBasicUsage = `import com.maulaai.sdk.OnelastAI;
-import com.maulaai.sdk.models.Agent;
+  const javaBasicUsage = `import com.onelastai.sdk.OnelastAI;
+import com.onelastai.sdk.models.Agent;
 
 public class Main {
   public static void main(String[] args) {
