@@ -1,8 +1,10 @@
 ﻿'use client'
 
-import { useState } from 'react'
-import { Send, Plus, Trash2, Copy, Clock, ArrowLeft } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Send, Plus, Trash2, Copy, Clock, ArrowLeft, Zap, Code, Shield, Globe } from 'lucide-react'
 import Link from 'next/link'
+import { gsap } from 'gsap'
+import { useGSAP } from '@gsap/react'
 
 interface Header {
   id: string
@@ -56,7 +58,21 @@ const quickPresets = [
   }
 ]
 
+const methodColors: Record<string, string> = {
+  GET: 'text-emerald-400',
+  POST: 'text-blue-400',
+  PUT: 'text-amber-400',
+  PATCH: 'text-orange-400',
+  DELETE: 'text-red-400',
+  HEAD: 'text-purple-400',
+  OPTIONS: 'text-pink-400'
+}
+
 export default function ApiTesterPage() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const heroRef = useRef<HTMLDivElement>(null)
+  const cardsRef = useRef<HTMLDivElement>(null)
+  
   const [method, setMethod] = useState('GET')
   const [url, setUrl] = useState('')
   const [authType, setAuthType] = useState('none')
@@ -73,6 +89,72 @@ export default function ApiTesterPage() {
   const [response, setResponse] = useState<ApiResponse | null>(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+
+  // GSAP Animations
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+    // Hero animations
+    tl.fromTo('.hero-badge', 
+      { opacity: 0, y: 20, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6 }
+    )
+    .fromTo('.hero-title',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8 },
+      '-=0.3'
+    )
+    .fromTo('.hero-subtitle',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6 },
+      '-=0.4'
+    )
+    .fromTo('.hero-features span',
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 },
+      '-=0.3'
+    )
+
+    // Cards stagger animation
+    gsap.fromTo('.glass-card',
+      { opacity: 0, y: 40, scale: 0.95 },
+      { 
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        duration: 0.7,
+        stagger: 0.1,
+        ease: 'power2.out',
+        delay: 0.5
+      }
+    )
+
+    // Floating orbs animation
+    gsap.to('.floating-orb-1', {
+      y: -20,
+      x: 10,
+      duration: 4,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+    gsap.to('.floating-orb-2', {
+      y: 15,
+      x: -15,
+      duration: 5,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+    gsap.to('.floating-orb-3', {
+      y: -25,
+      x: -10,
+      duration: 6,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+  }, { scope: containerRef })
 
   const addHeader = () => {
     setHeaders([...headers, { id: Date.now().toString(), key: '', value: '', enabled: true }])
@@ -219,72 +301,135 @@ export default function ApiTesterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        
+        {/* Floating orbs */}
+        <div className="floating-orb-1 absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
+        <div className="floating-orb-2 absolute top-1/2 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="floating-orb-3 absolute bottom-1/4 left-1/2 w-72 h-72 bg-fuchsia-500/10 rounded-full blur-3xl" />
+        
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-900/5 via-transparent to-purple-900/5" />
+      </div>
+
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
+      <section ref={heroRef} className="relative py-16 md:py-24 overflow-hidden">
+        {/* Hero background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-violet-500/20 via-purple-500/10 to-transparent blur-3xl" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <Link 
+            href="/tools/network-tools" 
+            className="inline-flex items-center gap-2 text-white/50 hover:text-white mb-8 transition-all duration-300 hover:gap-3 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to Network Tools
           </Link>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <span className="text-xl">🧪</span>
-            API Tester
+
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 backdrop-blur-sm rounded-full text-sm font-medium mb-8 border border-white/10">
+            <Zap className="w-4 h-4 text-violet-400" />
+            <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent font-semibold">
+              Professional API Testing
+            </span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            API Tester
+
+          <h1 className="hero-title text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
+            <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent">
+              API Tester
+            </span>
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Professional API testing with presets and advanced options
+
+          <p className="hero-subtitle text-xl md:text-2xl text-white/60 max-w-3xl mx-auto mb-10">
+            Test, debug, and explore APIs with powerful presets and advanced authentication options
           </p>
+
+          <div className="hero-features flex flex-wrap items-center justify-center gap-6 text-sm text-white/50">
+            <span className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-violet-400" />
+              All HTTP Methods
+            </span>
+            <span className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              Multiple Auth Types
+            </span>
+            <span className="flex items-center gap-2">
+              <Code className="w-4 h-4 text-fuchsia-400" />
+              JSON Formatting
+            </span>
+          </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <div className="container-custom py-8">
+      <div ref={cardsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Configuration */}
           <div className="space-y-6">
             {/* Quick Presets */}
-            <div className="card-modern p-6">
-              <h2 className="text-xl font-semibold mb-4">Quick Presets</h2>
-              <select
-                className="input-modern w-full"
-                onChange={(e) => {
-                  const preset = quickPresets[parseInt(e.target.value)]
-                  if (preset) loadPreset(preset)
-                }}
-                defaultValue=""
-              >
-                <option value="" disabled>Select a preset...</option>
-                {quickPresets.map((preset, idx) => (
-                  <option key={idx} value={idx}>{preset.name}</option>
-                ))}
-              </select>
+            <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                 style={{
+                   background: 'rgba(255,255,255,0.03)',
+                   backdropFilter: 'blur(10px)',
+                   border: '1px solid rgba(255,255,255,0.1)'
+                 }}>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-violet-400" />
+                  Quick Presets
+                </h2>
+                <select
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer"
+                  onChange={(e) => {
+                    const preset = quickPresets[parseInt(e.target.value)]
+                    if (preset) loadPreset(preset)
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled className="bg-[#1a1a1a]">Select a preset...</option>
+                  {quickPresets.map((preset, idx) => (
+                    <option key={idx} value={idx} className="bg-[#1a1a1a]">{preset.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* URL and Method */}
-            <div className="card-modern p-6">
-              <h2 className="text-xl font-semibold mb-4">Request</h2>
-              <div className="space-y-4">
-                <div className="flex gap-2">
+            <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                 style={{
+                   background: 'rgba(255,255,255,0.03)',
+                   backdropFilter: 'blur(10px)',
+                   border: '1px solid rgba(255,255,255,0.1)'
+                 }}>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Send className="w-5 h-5 text-violet-400" />
+                  Request
+                </h2>
+                <div className="flex gap-3">
                   <select
-                    className="input-modern w-32"
+                    className={`w-32 px-4 py-3 bg-white/5 border border-white/10 rounded-xl font-semibold focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer ${methodColors[method]}`}
                     value={method}
                     onChange={(e) => setMethod(e.target.value)}
                   >
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="PATCH">PATCH</option>
-                    <option value="DELETE">DELETE</option>
-                    <option value="HEAD">HEAD</option>
-                    <option value="OPTIONS">OPTIONS</option>
+                    <option value="GET" className="bg-[#1a1a1a] text-emerald-400">GET</option>
+                    <option value="POST" className="bg-[#1a1a1a] text-blue-400">POST</option>
+                    <option value="PUT" className="bg-[#1a1a1a] text-amber-400">PUT</option>
+                    <option value="PATCH" className="bg-[#1a1a1a] text-orange-400">PATCH</option>
+                    <option value="DELETE" className="bg-[#1a1a1a] text-red-400">DELETE</option>
+                    <option value="HEAD" className="bg-[#1a1a1a] text-purple-400">HEAD</option>
+                    <option value="OPTIONS" className="bg-[#1a1a1a] text-pink-400">OPTIONS</option>
                   </select>
                   <input
                     type="text"
-                    className="input-modern flex-1"
+                    className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
                     placeholder="https://api.example.com/endpoint"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
@@ -294,207 +439,251 @@ export default function ApiTesterPage() {
             </div>
 
             {/* Authentication */}
-            <div className="card-modern p-6">
-              <h2 className="text-xl font-semibold mb-4">Authentication</h2>
-              <div className="space-y-4">
-                <select
-                  className="input-modern w-full"
-                  value={authType}
-                  onChange={(e) => setAuthType(e.target.value)}
-                >
-                  <option value="none">No Auth</option>
-                  <option value="bearer">Bearer Token</option>
-                  <option value="basic">Basic Auth</option>
-                  <option value="apikey">API Key</option>
-                </select>
+            <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                 style={{
+                   background: 'rgba(255,255,255,0.03)',
+                   backdropFilter: 'blur(10px)',
+                   border: '1px solid rgba(255,255,255,0.1)'
+                 }}>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-violet-400" />
+                  Authentication
+                </h2>
+                <div className="space-y-4">
+                  <select
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer"
+                    value={authType}
+                    onChange={(e) => setAuthType(e.target.value)}
+                  >
+                    <option value="none" className="bg-[#1a1a1a]">No Auth</option>
+                    <option value="bearer" className="bg-[#1a1a1a]">Bearer Token</option>
+                    <option value="basic" className="bg-[#1a1a1a]">Basic Auth</option>
+                    <option value="apikey" className="bg-[#1a1a1a]">API Key</option>
+                  </select>
 
-                {authType === 'bearer' && (
-                  <input
-                    type="text"
-                    className="input-modern w-full"
-                    placeholder="Token"
-                    value={bearerToken}
-                    onChange={(e) => setBearerToken(e.target.value)}
-                  />
-                )}
-
-                {authType === 'basic' && (
-                  <div className="space-y-2">
+                  {authType === 'bearer' && (
                     <input
                       type="text"
-                      className="input-modern w-full"
-                      placeholder="Username"
-                      value={basicUsername}
-                      onChange={(e) => setBasicUsername(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                      placeholder="Token"
+                      value={bearerToken}
+                      onChange={(e) => setBearerToken(e.target.value)}
                     />
-                    <input
-                      type="password"
-                      className="input-modern w-full"
-                      placeholder="Password"
-                      value={basicPassword}
-                      onChange={(e) => setBasicPassword(e.target.value)}
-                    />
-                  </div>
-                )}
+                  )}
 
-                {authType === 'apikey' && (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      className="input-modern w-full"
-                      placeholder="Header Name (e.g., X-API-Key)"
-                      value={apiKeyHeader}
-                      onChange={(e) => setApiKeyHeader(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="input-modern w-full"
-                      placeholder="API Key Value"
-                      value={apiKeyValue}
-                      onChange={(e) => setApiKeyValue(e.target.value)}
-                    />
-                  </div>
-                )}
+                  {authType === 'basic' && (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                        placeholder="Username"
+                        value={basicUsername}
+                        onChange={(e) => setBasicUsername(e.target.value)}
+                      />
+                      <input
+                        type="password"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                        placeholder="Password"
+                        value={basicPassword}
+                        onChange={(e) => setBasicPassword(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {authType === 'apikey' && (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                        placeholder="Header Name (e.g., X-API-Key)"
+                        value={apiKeyHeader}
+                        onChange={(e) => setApiKeyHeader(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all"
+                        placeholder="API Key Value"
+                        value={apiKeyValue}
+                        onChange={(e) => setApiKeyValue(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Query Parameters */}
-            <div className="card-modern p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Query Parameters</h2>
-                <button
-                  onClick={addQueryParam}
-                  className="btn-secondary text-sm flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add
-                </button>
-              </div>
-              <div className="space-y-2">
-                {queryParams.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No query parameters</p>
-                ) : (
-                  queryParams.map((param) => (
-                    <div key={param.id} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={param.enabled}
-                        onChange={(e) => updateQueryParam(param.id, 'enabled', e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      <input
-                        type="text"
-                        className="input-modern flex-1"
-                        placeholder="Key"
-                        value={param.key}
-                        onChange={(e) => updateQueryParam(param.id, 'key', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        className="input-modern flex-1"
-                        placeholder="Value"
-                        value={param.value}
-                        onChange={(e) => updateQueryParam(param.id, 'value', e.target.value)}
-                      />
-                      <button
-                        onClick={() => removeQueryParam(param.id)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))
-                )}
+            <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                 style={{
+                   background: 'rgba(255,255,255,0.03)',
+                   backdropFilter: 'blur(10px)',
+                   border: '1px solid rgba(255,255,255,0.1)'
+                 }}>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-violet-400" />
+                    Query Parameters
+                  </h2>
+                  <button
+                    onClick={addQueryParam}
+                    className="px-3 py-1.5 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 rounded-lg text-violet-300 text-sm font-medium flex items-center gap-2 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {queryParams.length === 0 ? (
+                    <p className="text-white/40 text-sm">No query parameters</p>
+                  ) : (
+                    queryParams.map((param) => (
+                      <div key={param.id} className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={param.enabled}
+                          onChange={(e) => updateQueryParam(param.id, 'enabled', e.target.checked)}
+                          className="w-4 h-4 rounded bg-white/10 border-white/20 text-violet-500 focus:ring-violet-500/30"
+                        />
+                        <input
+                          type="text"
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 text-sm focus:outline-none focus:border-violet-500/50 transition-all"
+                          placeholder="Key"
+                          value={param.key}
+                          onChange={(e) => updateQueryParam(param.id, 'key', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 text-sm focus:outline-none focus:border-violet-500/50 transition-all"
+                          placeholder="Value"
+                          value={param.value}
+                          onChange={(e) => updateQueryParam(param.id, 'value', e.target.value)}
+                        />
+                        <button
+                          onClick={() => removeQueryParam(param.id)}
+                          className="p-2 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Headers */}
-            <div className="card-modern p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Headers</h2>
-                <button
-                  onClick={addHeader}
-                  className="btn-secondary text-sm flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add
-                </button>
-              </div>
-              <div className="space-y-2">
-                {headers.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No custom headers</p>
-                ) : (
-                  headers.map((header) => (
-                    <div key={header.id} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={header.enabled}
-                        onChange={(e) => updateHeader(header.id, 'enabled', e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      <input
-                        type="text"
-                        className="input-modern flex-1"
-                        placeholder="Key"
-                        value={header.key}
-                        onChange={(e) => updateHeader(header.id, 'key', e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        className="input-modern flex-1"
-                        placeholder="Value"
-                        value={header.value}
-                        onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
-                      />
-                      <button
-                        onClick={() => removeHeader(header.id)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))
-                )}
+            <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                 style={{
+                   background: 'rgba(255,255,255,0.03)',
+                   backdropFilter: 'blur(10px)',
+                   border: '1px solid rgba(255,255,255,0.1)'
+                 }}>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Code className="w-5 h-5 text-violet-400" />
+                    Headers
+                  </h2>
+                  <button
+                    onClick={addHeader}
+                    className="px-3 py-1.5 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 rounded-lg text-violet-300 text-sm font-medium flex items-center gap-2 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {headers.length === 0 ? (
+                    <p className="text-white/40 text-sm">No custom headers</p>
+                  ) : (
+                    headers.map((header) => (
+                      <div key={header.id} className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={header.enabled}
+                          onChange={(e) => updateHeader(header.id, 'enabled', e.target.checked)}
+                          className="w-4 h-4 rounded bg-white/10 border-white/20 text-violet-500 focus:ring-violet-500/30"
+                        />
+                        <input
+                          type="text"
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 text-sm focus:outline-none focus:border-violet-500/50 transition-all"
+                          placeholder="Key"
+                          value={header.key}
+                          onChange={(e) => updateHeader(header.id, 'key', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 text-sm focus:outline-none focus:border-violet-500/50 transition-all"
+                          placeholder="Value"
+                          value={header.value}
+                          onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
+                        />
+                        <button
+                          onClick={() => removeHeader(header.id)}
+                          className="p-2 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Body */}
             {['POST', 'PUT', 'PATCH'].includes(method) && (
-              <div className="card-modern p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">Body</h2>
-                  <div className="flex gap-2">
-                    <select
-                      className="input-modern text-sm"
-                      value={bodyType}
-                      onChange={(e) => setBodyType(e.target.value)}
-                    >
-                      <option value="json">JSON</option>
-                      <option value="text">Raw Text</option>
-                      <option value="form">Form Data</option>
-                      <option value="urlencoded">URL Encoded</option>
-                    </select>
-                    {bodyType === 'json' && (
-                      <button
-                        onClick={formatJson}
-                        className="btn-secondary text-sm"
+              <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                   style={{
+                     background: 'rgba(255,255,255,0.03)',
+                     backdropFilter: 'blur(10px)',
+                     border: '1px solid rgba(255,255,255,0.1)'
+                   }}>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Code className="w-5 h-5 text-violet-400" />
+                      Request Body
+                    </h2>
+                    <div className="flex gap-2">
+                      <select
+                        className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-violet-500/50 transition-all cursor-pointer"
+                        value={bodyType}
+                        onChange={(e) => setBodyType(e.target.value)}
                       >
-                        Format
-                      </button>
-                    )}
+                        <option value="json" className="bg-[#1a1a1a]">JSON</option>
+                        <option value="text" className="bg-[#1a1a1a]">Raw Text</option>
+                        <option value="form" className="bg-[#1a1a1a]">Form Data</option>
+                        <option value="urlencoded" className="bg-[#1a1a1a]">URL Encoded</option>
+                      </select>
+                      {bodyType === 'json' && (
+                        <button
+                          onClick={formatJson}
+                          className="px-3 py-1.5 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 rounded-lg text-violet-300 text-sm font-medium transition-all"
+                        >
+                          Format
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  <textarea
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 font-mono text-sm focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all resize-none"
+                    rows={10}
+                    placeholder={
+                      bodyType === 'json' 
+                        ? '{\n  "key": "value"\n}'
+                        : 'Request body...'
+                    }
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                  />
                 </div>
-                <textarea
-                  className="input-modern w-full font-mono text-sm"
-                  rows={10}
-                  placeholder={
-                    bodyType === 'json' 
-                      ? '{\n  "key": "value"\n}'
-                      : 'Request body...'
-                  }
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                />
               </div>
             )}
 
@@ -502,96 +691,116 @@ export default function ApiTesterPage() {
             <button
               onClick={handleSend}
               disabled={loading || !url.trim()}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="glass-card w-full py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+              style={{
+                background: loading ? 'rgba(139,92,246,0.2)' : 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(168,85,247,0.3))',
+                border: '1px solid rgba(139,92,246,0.4)'
+              }}
             >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  Send Request
-                </>
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex items-center gap-3">
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    Send Request
+                  </>
+                )}
+              </div>
             </button>
           </div>
 
           {/* Right Column - Response */}
           <div className="lg:sticky lg:top-6 lg:h-fit">
-            <div className="card-modern p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Response</h2>
-                {response && (
-                  <button
-                    onClick={copyResponse}
-                    className="btn-secondary text-sm flex items-center gap-2"
-                  >
-                    {copied ? <span></span> : <Copy className="w-4 h-4" />}
-                    {copied ? 'Copied!' : 'Copy'}
-                  </button>
-                )}
-              </div>
-
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
-                  <p className="text-red-400 text-sm">{error}</p>
+            <div className="glass-card group relative rounded-2xl p-6 transition-all duration-300 hover:border-violet-500/30"
+                 style={{
+                   background: 'rgba(255,255,255,0.03)',
+                   backdropFilter: 'blur(10px)',
+                   border: '1px solid rgba(255,255,255,0.1)'
+                 }}>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Code className="w-5 h-5 text-violet-400" />
+                    Response
+                  </h2>
+                  {response && (
+                    <button
+                      onClick={copyResponse}
+                      className="px-3 py-1.5 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 rounded-lg text-violet-300 text-sm font-medium flex items-center gap-2 transition-all"
+                    >
+                      {copied ? <span>✓</span> : <Copy className="w-4 h-4" />}
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  )}
                 </div>
-              )}
 
-              {response ? (
-                <div className="space-y-4">
-                  {/* Status */}
-                  <div className="flex items-center gap-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      response.status >= 200 && response.status < 300
-                        ? 'bg-green-500/20 text-green-400'
-                        : response.status >= 400
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
-                      {response.status} {response.statusText}
-                    </span>
-                    {response.time !== undefined && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        {response.time}ms
-                      </div>
-                    )}
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-4">
+                    <p className="text-red-400 text-sm">{error}</p>
                   </div>
+                )}
 
-                  {/* Response Body */}
-                  <div>
-                    <h3 className="text-sm font-medium mb-2 text-gray-600">Body</h3>
-                    <pre className="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96 text-sm border border-gray-200">
-                      <code>{JSON.stringify(response.data, null, 2)}</code>
-                    </pre>
-                  </div>
-
-                  {/* Response Headers */}
-                  <div>
-                    <h3 className="text-sm font-medium mb-2 text-gray-600">Headers</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-1 text-sm max-h-48 overflow-auto border border-gray-200">
-                      {response.headers && Object.keys(response.headers).length > 0 ? (
-                        Object.entries(response.headers).map(([key, value]) => (
-                          <div key={key} className="flex gap-2">
-                            <span className="text-violet-600 font-mono">{key}:</span>
-                            <span className="text-gray-600 font-mono break-all">{value}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-gray-500 text-sm">No headers returned</div>
+                {response ? (
+                  <div className="space-y-5">
+                    {/* Status */}
+                    <div className="flex items-center gap-4">
+                      <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                        response.status >= 200 && response.status < 300
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : response.status >= 400
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>
+                        {response.status} {response.statusText}
+                      </span>
+                      {response.time !== undefined && (
+                        <div className="flex items-center gap-2 text-sm text-white/50">
+                          <Clock className="w-4 h-4" />
+                          {response.time}ms
+                        </div>
                       )}
                     </div>
+
+                    {/* Response Body */}
+                    <div>
+                      <h3 className="text-sm font-medium mb-3 text-white/70">Body</h3>
+                      <pre className="bg-black/30 rounded-xl p-4 overflow-auto max-h-96 text-sm border border-white/5 font-mono">
+                        <code className="text-white/80">{JSON.stringify(response.data, null, 2)}</code>
+                      </pre>
+                    </div>
+
+                    {/* Response Headers */}
+                    <div>
+                      <h3 className="text-sm font-medium mb-3 text-white/70">Headers</h3>
+                      <div className="bg-black/30 rounded-xl p-4 space-y-2 text-sm max-h-48 overflow-auto border border-white/5">
+                        {response.headers && Object.keys(response.headers).length > 0 ? (
+                          Object.entries(response.headers).map(([key, value]) => (
+                            <div key={key} className="flex gap-2 font-mono">
+                              <span className="text-violet-400">{key}:</span>
+                              <span className="text-white/60 break-all">{value}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-white/40 text-sm">No headers returned</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Send className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Send a request to see the response</p>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-16 text-white/40">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
+                      <Send className="w-8 h-8 opacity-50" />
+                    </div>
+                    <p>Send a request to see the response</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

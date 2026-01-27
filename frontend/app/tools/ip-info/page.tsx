@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import Link from 'next/link';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import { 
   Globe, 
   MapPin, 
@@ -15,9 +18,9 @@ import {
   XCircle,
   Loader2,
   Eye,
-  Globe2,
   Wifi,
-  Navigation
+  Navigation,
+  ArrowLeft,
 } from 'lucide-react';
 import DoctorNetworkChat from '@/components/DoctorNetworkChat';
 import Script from 'next/script';
@@ -87,9 +90,9 @@ interface APIResponse {
 
 const getThreatColor = (threat: string) => {
   switch (threat) {
-    case 'high': return 'text-red-600 bg-red-50 border-red-200';
-    case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-    default: return 'text-green-600 bg-green-50 border-green-200';
+    case 'high': return 'text-red-400 bg-red-500/10 border-red-500/30';
+    case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
+    default: return 'text-green-400 bg-green-500/10 border-green-500/30';
   }
 };
 
@@ -161,6 +164,7 @@ const getSecurityAnalysis = (security: IPSecurity, network: IPNetwork) => {
 };
 
 export default function IPInfoPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [ipData, setIpData] = useState<IPInfoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -179,6 +183,18 @@ export default function IPInfoPage() {
   const [toast, setToast] = useState<null | { message: string; type?: 'success' | 'info' | 'error' }>(null);
   const mapsApiKey = useMemo(() => (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim(), []);
   const [mapsAvailable, setMapsAvailable] = useState<boolean>(!!mapsApiKey);
+
+  useGSAP(() => {
+    if (!loading && ipData) {
+      gsap.from('.result-section', {
+        opacity: 0,
+        y: 20,
+        stagger: 0.1,
+        duration: 0.5,
+        ease: 'power3.out',
+      });
+    }
+  }, { scope: containerRef, dependencies: [loading, ipData] });
 
   // Set up Google Maps callback
   useEffect(() => {
@@ -471,11 +487,26 @@ export default function IPInfoPage() {
     </div>
   `;
 
-  const InfoCard = ({ title, children, icon }: { title: string; children: React.ReactNode; icon: React.ReactNode }) => (
-    <div className="card card-padding">
+  const GlassCard = ({ title, children, icon, className = '' }: { title: string; children: React.ReactNode; icon: React.ReactNode; className?: string }) => (
+    <div 
+      className={`result-section rounded-2xl p-6 border border-white/10 ${className}`}
+      style={{
+        background: 'rgba(255, 255, 255, 0.03)',
+        backdropFilter: 'blur(10px)',
+      }}
+    >
       <div className="flex items-center gap-2 mb-4">
-        {icon}
-        <h3 className="text-lg font-semibold text-contrast-high">{title}</h3>
+        <div className="text-cyan-400">{icon}</div>
+        <h3 
+          className="text-lg font-semibold"
+          style={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          {title}
+        </h3>
       </div>
       {children}
     </div>
@@ -485,18 +516,18 @@ export default function IPInfoPage() {
     if (!value) return null;
     
     return (
-      <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-        <span className="text-sm font-medium text-gray-600">{label}</span>
+      <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-b-0">
+        <span className="text-sm font-medium text-gray-400">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-900">{value}</span>
+          <span className="text-sm text-gray-200">{value}</span>
           {copyable && (
             <button
               onClick={() => copyToClipboard(value, label)}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1 text-gray-500 hover:text-cyan-400 transition-colors"
               title="Copy to clipboard"
             >
               {copiedField === label ? (
-                <CheckCircle className="w-4 h-4 text-green-600" />
+                <CheckCircle className="w-4 h-4 text-green-400" />
               ) : (
                 <Copy className="w-4 h-4" />
               )}
@@ -509,15 +540,11 @@ export default function IPInfoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center py-12">
-              <Loader2 className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-spin" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Detecting Your IP Address</h2>
-              <p className="text-gray-600">Please wait while we gather your network information...</p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-cyan-400 mx-auto mb-4 animate-spin" />
+          <h2 className="text-xl font-semibold text-white mb-2">Detecting Your IP Address</h2>
+          <p className="text-gray-400">Please wait while we gather your network information...</p>
         </div>
       </div>
     );
@@ -534,30 +561,66 @@ export default function IPInfoPage() {
         />
       )}
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <span className="text-xl">🌍</span>
-            IP Info
+      <div ref={containerRef} className="min-h-screen bg-[#0a0a0a]">
+        {/* Hero Section */}
+        <section className="relative py-16 md:py-20 overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+            <div 
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: `radial-gradient(rgba(0, 212, 255, 0.15) 1px, transparent 1px)`,
+                backgroundSize: '40px 40px',
+              }}
+            />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            IP Address Lookup Tool
-          </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Get detailed information about any IP address including location, ISP details, 
-            security flags, and network information.
-          </p>
-        </div>
-      </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <Link 
+              href="/tools/network-tools" 
+              className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Network Tools
+            </Link>
 
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 backdrop-blur-sm mb-6">
+                <MapPin className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-medium text-cyan-300">IP Geolocation</span>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                <span 
+                  className="bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage: 'linear-gradient(135deg, #00d4ff 0%, #0ea5e9 50%, #00d4ff 100%)',
+                  }}
+                >
+                  IP Address Lookup
+                </span>
+              </h1>
+
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Get detailed information about any IP address including location, ISP details, 
+                security flags, and network information.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
           {/* Manual Search */}
-          <div className="card card-padding mb-8">
+          <div 
+            className="result-section rounded-2xl p-6 mb-8 border border-white/10"
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
             <form onSubmit={handleManualSearch} className="flex gap-3">
               <div className="flex-1">
                 <input
@@ -565,13 +628,17 @@ export default function IPInfoPage() {
                   value={manualIP}
                   onChange={(e) => setManualIP(e.target.value)}
                   placeholder="Enter IP address to lookup (e.g., 8.8.8.8)"
-                  className="form-input"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
                 />
               </div>
               <button
                 type="submit"
                 disabled={searchLoading || !manualIP.trim()}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all duration-300 hover:scale-105"
+                style={{
+                  background: 'linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%)',
+                  color: 'white',
+                }}
               >
                 {searchLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -585,12 +652,12 @@ export default function IPInfoPage() {
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
+            <div className="result-section rounded-2xl p-4 mb-8 border border-red-500/30 bg-red-500/10">
               <div className="flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-red-600" />
-                <p className="text-red-800 font-medium">Error</p>
+                <XCircle className="w-5 h-5 text-red-400" />
+                <p className="text-red-300 font-medium">Error</p>
               </div>
-              <p className="text-red-700 mt-1">{error}</p>
+              <p className="text-red-200 mt-1">{error}</p>
             </div>
           )}
 
@@ -598,20 +665,26 @@ export default function IPInfoPage() {
           {ipData && (
             <>
               {/* IP Address Header */}
-              <div className="rounded-lg p-6 mb-8 text-white btn-primary !w-full !justify-between">
-                <div className="flex items-center justify-between">
+              <div 
+                className="result-section rounded-2xl p-6 mb-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%)',
+                  border: '1px solid rgba(0, 212, 255, 0.3)',
+                }}
+              >
+                <div className="flex items-center justify-between relative">
                   <div>
-                    <h2 className="text-2xl font-bold mb-2">IP Address: {ipData.ip}</h2>
-                    <div className="flex items-center gap-4 opacity-90">
+                    <h2 className="text-2xl font-bold text-white mb-2">IP Address: {ipData.ip}</h2>
+                    <div className="flex items-center gap-4 text-gray-300">
                       {ipData.location.city && ipData.location.country && (
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-4 h-4 text-cyan-400" />
                           <span>{ipData.location.city}, {ipData.location.country}</span>
                         </div>
                       )}
                       {ipData.network.isp && (
                         <div className="flex items-center gap-1">
-                          <Wifi className="w-4 h-4" />
+                          <Wifi className="w-4 h-4 text-cyan-400" />
                           <span>{ipData.network.isp}</span>
                         </div>
                       )}
@@ -620,21 +693,21 @@ export default function IPInfoPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => copyToClipboard(ipData.ip, 'ip')}
-                      className="p-2 bg-black/20 hover:bg-black/30 rounded-lg transition-colors"
+                      className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors border border-white/10"
                       title="Copy IP address"
                     >
                       {copiedField === 'ip' ? (
-                        <CheckCircle className="w-5 h-5" />
+                        <CheckCircle className="w-5 h-5 text-green-400" />
                       ) : (
-                        <Copy className="w-5 h-5" />
+                        <Copy className="w-5 h-5 text-white" />
                       )}
                     </button>
                     <button
                       onClick={downloadReport}
-                      className="p-2 bg-black/20 hover:bg-black/30 rounded-lg transition-colors"
+                      className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors border border-white/10"
                       title="Download report"
                     >
-                      <Download className="w-5 h-5" />
+                      <Download className="w-5 h-5 text-white" />
                     </button>
                   </div>
                 </div>
@@ -644,18 +717,21 @@ export default function IPInfoPage() {
               {(() => {
                 const securityAnalysis = getSecurityAnalysis(ipData.security, ipData.network);
                 return securityAnalysis.warnings.length > 0 && (
-                  <div className="mb-8">
+                  <div className="mb-8 space-y-4">
                     {securityAnalysis.warnings.map((warning, idx) => (
-                      <div key={idx} className={`rounded-lg border p-4 mb-4 ${
-                        warning.level === 'high' ? 'bg-red-50 border-red-200' :
-                        warning.level === 'medium' ? 'bg-yellow-50 border-yellow-200' :
-                        'bg-blue-50 border-blue-200'
-                      }`}>
+                      <div 
+                        key={idx} 
+                        className={`result-section rounded-2xl border p-4 ${
+                          warning.level === 'high' ? 'bg-red-500/10 border-red-500/30' :
+                          warning.level === 'medium' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                          'bg-cyan-500/10 border-cyan-500/30'
+                        }`}
+                      >
                         <div className="flex items-start gap-3">
                           <div className={`mt-0.5 ${
-                            warning.level === 'high' ? 'text-red-600' :
-                            warning.level === 'medium' ? 'text-yellow-600' :
-                            'text-blue-600'
+                            warning.level === 'high' ? 'text-red-400' :
+                            warning.level === 'medium' ? 'text-yellow-400' :
+                            'text-cyan-400'
                           }`}>
                             {warning.level === 'high' ? <XCircle className="w-5 h-5" /> :
                              warning.level === 'medium' ? <AlertTriangle className="w-5 h-5" /> :
@@ -663,23 +739,19 @@ export default function IPInfoPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className={`font-semibold mb-1 ${
-                              warning.level === 'high' ? 'text-red-800' :
-                              warning.level === 'medium' ? 'text-yellow-800' :
-                              'text-blue-800'
+                              warning.level === 'high' ? 'text-red-300' :
+                              warning.level === 'medium' ? 'text-yellow-300' :
+                              'text-cyan-300'
                             }`}>
                               {warning.title}
                             </h3>
-                            <p className={`text-sm mb-2 ${
-                              warning.level === 'high' ? 'text-red-700' :
-                              warning.level === 'medium' ? 'text-yellow-700' :
-                              'text-blue-700'
-                            }`}>
+                            <p className="text-sm text-gray-300 mb-2">
                               {warning.description}
                             </p>
                             <p className={`text-xs font-medium ${
-                              warning.level === 'high' ? 'text-red-600' :
-                              warning.level === 'medium' ? 'text-yellow-600' :
-                              'text-blue-600'
+                              warning.level === 'high' ? 'text-red-400' :
+                              warning.level === 'medium' ? 'text-yellow-400' :
+                              'text-cyan-400'
                             }`}>
                               💡 {warning.recommendation}
                             </p>
@@ -693,15 +765,29 @@ export default function IPInfoPage() {
 
               {/* Google Maps Location Visualization */}
               {ipData.location.coordinates && (
-                <div className="mb-8 card overflow-hidden">
-                  <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div 
+                  className="result-section mb-8 rounded-2xl overflow-hidden border border-white/10"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                  }}
+                >
+                  <div className="p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Navigation className="w-5 h-5 text-contrast-high" />
-                        <h3 className="text-lg font-semibold text-contrast-high">Geographic Location</h3>
+                        <Navigation className="w-5 h-5 text-cyan-400" />
+                        <h3 
+                          className="text-lg font-semibold"
+                          style={{
+                            background: 'linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                          }}
+                        >
+                          Geographic Location
+                        </h3>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <MapPin className="w-4 h-4 text-cyan-400" />
                         <span>{formattedAddress || `${ipData.location.city || 'Unknown'}, ${ipData.location.country || 'Unknown'}`}</span>
                       </div>
                     </div>
@@ -713,14 +799,14 @@ export default function IPInfoPage() {
                       style={{ minHeight: '400px' }}
                     />
                   ) : (
-                    <div className="w-full h-[400px] flex items-center justify-center text-center p-6">
+                    <div className="w-full h-[400px] flex items-center justify-center text-center p-6 bg-white/5">
                       <div>
-                        <p className="text-contrast-medium mb-2">Map preview is unavailable.</p>
-                        <p className="text-caption">Missing or invalid Google Maps API key. You can still open the location below.</p>
+                        <p className="text-gray-300 mb-2">Map preview is unavailable.</p>
+                        <p className="text-gray-500 text-sm">Missing or invalid Google Maps API key. You can still open the location below.</p>
                       </div>
                     </div>
                   )}
-                  <div className="p-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-600 flex items-center gap-2">
+                  <div className="p-3 bg-yellow-500/10 border-t border-yellow-500/20 text-xs text-yellow-300 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
                     <span>
                       Location is approximate based on IP address geolocation. 
@@ -728,14 +814,18 @@ export default function IPInfoPage() {
                     </span>
                   </div>
                   {/* Quick actions and summary cards */}
-                  <div className="p-4 bg-white border-t border-gray-200">
+                  <div className="p-4 border-t border-white/10">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                       <div className="flex flex-wrap gap-3">
                         <a
                           href={openInGoogleMapsUrl(ipData.location.coordinates.lat, ipData.location.coordinates.lng)}
                           target="_blank"
                           rel="noreferrer"
-                          className="btn-primary"
+                          className="px-4 py-2 rounded-xl font-medium text-sm transition-all hover:scale-105"
+                          style={{
+                            background: 'linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%)',
+                            color: 'white',
+                          }}
                         >
                           Open in Google Maps
                         </a>
@@ -743,7 +833,7 @@ export default function IPInfoPage() {
                           href={getDirectionsUrl(ipData.location.coordinates.lat, ipData.location.coordinates.lng)}
                           target="_blank"
                           rel="noreferrer"
-                          className="btn-secondary"
+                          className="px-4 py-2 rounded-xl font-medium text-sm border border-white/20 text-white hover:bg-white/10 transition-all"
                         >
                           Get Directions
                         </a>
@@ -754,7 +844,7 @@ export default function IPInfoPage() {
                             formattedAddress || getFallbackAddress() || undefined,
                             ipData.ip
                           )}
-                          className="btn-primary"
+                          className="px-4 py-2 rounded-xl font-medium text-sm border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all"
                         >
                           Share Location
                         </button>
@@ -763,13 +853,13 @@ export default function IPInfoPage() {
                             const addr = formattedAddress || getFallbackAddress();
                             if (addr) copyToClipboard(addr, 'address');
                           }}
-                          className="btn-secondary"
+                          className="px-4 py-2 rounded-xl font-medium text-sm border border-white/20 text-white hover:bg-white/10 transition-all"
                         >
                           Copy Address
                         </button>
                         <button
                           onClick={() => setShowQuickInfo(v => !v)}
-                          className="btn-secondary"
+                          className="px-4 py-2 rounded-xl font-medium text-sm border border-white/20 text-white hover:bg-white/10 transition-all"
                         >
                           {showQuickInfo ? 'Hide Info' : 'Show Info'}
                         </button>
@@ -778,21 +868,21 @@ export default function IPInfoPage() {
 
                     {showQuickInfo && (
                       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="rounded-lg bg-neutral-900 text-white p-4">
-                          <div className="text-sm opacity-80 mb-1">Coordinates</div>
-                          <div className="font-semibold text-lg">
+                        <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-4">
+                          <div className="text-sm text-cyan-300 mb-1">Coordinates</div>
+                          <div className="font-semibold text-lg text-white">
                             {ipData.location.coordinates.lat.toFixed(6)}, {ipData.location.coordinates.lng.toFixed(6)}
                           </div>
                         </div>
-                        <div className="rounded-lg bg-neutral-900 text-white p-4">
-                          <div className="text-sm opacity-80 mb-1">Location</div>
-                          <div className="font-semibold text-lg">
+                        <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-4">
+                          <div className="text-sm text-purple-300 mb-1">Location</div>
+                          <div className="font-semibold text-lg text-white">
                             {formattedAddress || getFallbackAddress() || 'Unknown'}
                           </div>
                         </div>
-                        <div className="rounded-lg bg-neutral-900 text-white p-4">
-                          <div className="text-sm opacity-80 mb-1">Network</div>
-                          <div className="font-semibold text-lg">
+                        <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-4">
+                          <div className="text-sm text-green-300 mb-1">Network</div>
+                          <div className="font-semibold text-lg text-white">
                             {ipData.network.organization || ipData.network.isp || 'Unknown'}
                           </div>
                         </div>
@@ -805,7 +895,7 @@ export default function IPInfoPage() {
               {/* Information Cards Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Location Information */}
-                <InfoCard title="Location Information" icon={<MapPin className="w-5 h-5 text-contrast-high" />}>
+                <GlassCard title="Location Information" icon={<MapPin className="w-5 h-5" />}>
                   <div className="space-y-0">
                     <InfoRow label="Address" value={formattedAddress || getFallbackAddress() || undefined} copyable />
                     <InfoRow label="City" value={ipData.location.city} />
@@ -821,10 +911,10 @@ export default function IPInfoPage() {
                       />
                     )}
                   </div>
-                </InfoCard>
+                </GlassCard>
 
                 {/* Network Information */}
-                <InfoCard title="Network Information" icon={<Server className="w-5 h-5 text-contrast-high" />}>
+                <GlassCard title="Network Information" icon={<Server className="w-5 h-5" />}>
                   <div className="space-y-0">
                     <InfoRow label="ISP" value={ipData.network.isp} copyable />
                     <InfoRow label="Organization" value={ipData.network.organization} />
@@ -833,10 +923,10 @@ export default function IPInfoPage() {
                     <InfoRow label="Domain" value={ipData.network.domain} copyable />
                     <InfoRow label="Type" value={ipData.network.type} />
                   </div>
-                </InfoCard>
+                </GlassCard>
 
                 {/* Security Information */}
-                <InfoCard title="Security Analysis" icon={<Shield className="w-5 h-5 text-contrast-high" />}>
+                <GlassCard title="Security Analysis" icon={<Shield className="w-5 h-5" />}>
                   <div className="space-y-3">
                     <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border ${getThreatColor(ipData.security.threat)}`}>
                       {getThreatIcon(ipData.security.threat)}
@@ -846,19 +936,19 @@ export default function IPInfoPage() {
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${ipData.security.isVPN ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                        <span className="text-sm">VPN: {ipData.security.isVPN ? 'Yes' : 'No'}</span>
+                        <span className="text-sm text-gray-300">VPN: {ipData.security.isVPN ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${ipData.security.isProxy ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                        <span className="text-sm">Proxy: {ipData.security.isProxy ? 'Yes' : 'No'}</span>
+                        <span className="text-sm text-gray-300">Proxy: {ipData.security.isProxy ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${ipData.security.isTor ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                        <span className="text-sm">Tor: {ipData.security.isTor ? 'Yes' : 'No'}</span>
+                        <span className="text-sm text-gray-300">Tor: {ipData.security.isTor ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${ipData.security.isHosting ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-                        <span className="text-sm">Hosting: {ipData.security.isHosting ? 'Yes' : 'No'}</span>
+                        <span className="text-sm text-gray-300">Hosting: {ipData.security.isHosting ? 'Yes' : 'No'}</span>
                       </div>
                     </div>
                     
@@ -866,10 +956,10 @@ export default function IPInfoPage() {
                       <InfoRow label="Service" value={ipData.security.service} />
                     )}
                   </div>
-                </InfoCard>
+                </GlassCard>
 
                 {/* Metadata Information */}
-                <InfoCard title="Additional Information" icon={<Clock className="w-5 h-5 text-contrast-high" />}>
+                <GlassCard title="Additional Information" icon={<Clock className="w-5 h-5" />}>
                   <div className="space-y-0">
                     <InfoRow label="Hostname" value={ipData.metadata.hostname} copyable />
                     <InfoRow label="Data Source" value={ipData.metadata.source} />
@@ -879,45 +969,53 @@ export default function IPInfoPage() {
                     />
                     {ipData.metadata.userAgent && (
                       <div className="py-2">
-                        <span className="text-sm font-medium text-gray-600 block mb-1">User Agent</span>
-                        <span className="text-xs text-gray-900 bg-gray-50 p-2 rounded block break-all">
+                        <span className="text-sm font-medium text-gray-400 block mb-1">User Agent</span>
+                        <span className="text-xs text-gray-300 bg-white/5 p-2 rounded block break-all border border-white/5">
                           {ipData.metadata.userAgent}
                         </span>
                       </div>
                     )}
                   </div>
-                </InfoCard>
+                </GlassCard>
               </div>
 
               {/* Abuse Contact (if available) */}
               {ipData.abuse && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center gap-2">
+                <div 
+                  className="result-section rounded-2xl p-6 mb-8 border border-yellow-500/30 bg-yellow-500/10"
+                >
+                  <h3 className="text-lg font-semibold text-yellow-300 mb-4 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
                     Abuse Contact Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-yellow-700">Contact:</span>
-                      <p className="text-yellow-900">{ipData.abuse.contact}</p>
+                      <span className="font-medium text-yellow-400">Contact:</span>
+                      <p className="text-yellow-200">{ipData.abuse.contact}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-yellow-700">Network:</span>
-                      <p className="text-yellow-900">{ipData.abuse.network}</p>
+                      <span className="font-medium text-yellow-400">Network:</span>
+                      <p className="text-yellow-200">{ipData.abuse.network}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-yellow-700">Name:</span>
-                      <p className="text-yellow-900">{ipData.abuse.name}</p>
+                      <span className="font-medium text-yellow-400">Name:</span>
+                      <p className="text-yellow-200">{ipData.abuse.name}</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Raw Data Toggle */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div 
+                className="result-section rounded-2xl p-6 border border-white/10"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
                 <button
                   onClick={() => setShowRawData(!showRawData)}
-                  className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
                 >
                   <Eye className="w-5 h-5" />
                   <span className="font-medium">
@@ -927,17 +1025,17 @@ export default function IPInfoPage() {
                 
                 {showRawData && rawData && (
                   <div className="mt-4">
-                    <div className="bg-gray-900 rounded-lg p-4 overflow-auto">
+                    <div className="bg-black/50 rounded-xl p-4 overflow-auto border border-white/10">
                       <pre className="text-green-400 text-sm">
                         {JSON.stringify(rawData, null, 2)}
                       </pre>
                     </div>
                     <button
                       onClick={() => copyToClipboard(JSON.stringify(rawData, null, 2), 'rawData')}
-                      className="mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors flex items-center gap-2"
+                      className="mt-3 px-4 py-2 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors flex items-center gap-2 border border-white/10"
                     >
                       {copiedField === 'rawData' ? (
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4 text-green-400" />
                       ) : (
                         <Copy className="w-4 h-4" />
                       )}
@@ -949,18 +1047,35 @@ export default function IPInfoPage() {
             </>
           )}
         </div>
-      </div>
 
-      {/* Doctor Network Chat Widget */}
-      <DoctorNetworkChat 
-        ipContext={ipData ? {
-          ip: ipData.ip,
-          location: ipData.location,
-          network: ipData.network,
-          security: ipData.security
-        } : undefined}
-      />
-    </div>
+        {/* Toast notification */}
+        {toast && (
+          <div 
+            className="fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg z-50 border"
+            style={{
+              background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.9)' : 
+                         toast.type === 'success' ? 'rgba(34, 197, 94, 0.9)' : 
+                         'rgba(59, 130, 246, 0.9)',
+              borderColor: toast.type === 'error' ? 'rgba(239, 68, 68, 0.5)' : 
+                          toast.type === 'success' ? 'rgba(34, 197, 94, 0.5)' : 
+                          'rgba(59, 130, 246, 0.5)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <p className="text-white text-sm font-medium">{toast.message}</p>
+          </div>
+        )}
+
+        {/* Doctor Network Chat Widget */}
+        <DoctorNetworkChat 
+          ipContext={ipData ? {
+            ip: ipData.ip,
+            location: ipData.location,
+            network: ipData.network,
+            security: ipData.security
+          } : undefined}
+        />
+      </div>
     </>
   );
 }

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowLeft, Tag, Loader2, XCircle, Globe, CheckCircle } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { ArrowLeft, Tag, Loader2, XCircle, Globe, CheckCircle, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { gsap } from 'gsap'
+import { useGSAP } from '@gsap/react'
 
 interface CategoryData {
   domain: string
@@ -17,6 +19,83 @@ export default function WebsiteCategorizationPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [data, setData] = useState<CategoryData | null>(null)
+  
+  const containerRef = useRef<HTMLDivElement>(null)
+  const heroRef = useRef<HTMLElement>(null)
+  const formRef = useRef<HTMLDivElement>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+    
+    // Hero animations
+    tl.fromTo('.hero-badge', 
+      { opacity: 0, y: 20, scale: 0.9 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6 }
+    )
+    .fromTo('.hero-title',
+      { opacity: 0, y: 30 },
+      { opacity: 1, y: 0, duration: 0.8 },
+      '-=0.3'
+    )
+    .fromTo('.hero-subtitle',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6 },
+      '-=0.4'
+    )
+    .fromTo('.search-form',
+      { opacity: 0, y: 30, scale: 0.98 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.7 },
+      '-=0.3'
+    )
+    .fromTo('.info-card',
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 0.6 },
+      '-=0.2'
+    )
+
+    // Floating orbs animation
+    gsap.to('.orb-1', {
+      y: -20,
+      x: 10,
+      duration: 4,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+    gsap.to('.orb-2', {
+      y: 15,
+      x: -15,
+      duration: 5,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+    gsap.to('.orb-3', {
+      y: -25,
+      x: -10,
+      duration: 6,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    })
+  }, { scope: containerRef })
+
+  // Animate results when data changes
+  useGSAP(() => {
+    if (data && resultsRef.current) {
+      gsap.fromTo(resultsRef.current.children,
+        { opacity: 0, y: 30 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.5, 
+          stagger: 0.1,
+          ease: 'power2.out'
+        }
+      )
+    }
+  }, { dependencies: [data] })
 
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,92 +128,193 @@ export default function WebsiteCategorizationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-40"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <Link href="/tools/network-tools" className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
+      <section ref={heroRef} className="relative py-20 md:py-28 overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-950/20 via-transparent to-transparent" />
+          
+          {/* Grid pattern */}
+          <div 
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+              backgroundSize: '50px 50px'
+            }}
+          />
+          
+          {/* Floating orbs */}
+          <div className="orb-1 absolute top-20 left-[15%] w-64 h-64 bg-amber-500/10 rounded-full blur-3xl" />
+          <div className="orb-2 absolute top-40 right-[10%] w-96 h-96 bg-yellow-500/8 rounded-full blur-3xl" />
+          <div className="orb-3 absolute bottom-0 left-[30%] w-80 h-80 bg-orange-500/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <Link 
+            href="/tools/network-tools" 
+            className="inline-flex items-center gap-2 text-white/50 hover:text-amber-400 mb-8 transition-all duration-300 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to Network Tools
           </Link>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-            <span className="text-xl">📂</span>
-            Categorization
+          
+          <div className="hero-badge inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium mb-8 border border-amber-500/20"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              backdropFilter: 'blur(10px)'
+            }}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span className="text-amber-300">AI-Powered Categorization</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            Website Categorization
+          
+          <h1 className="hero-title text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight">
+            <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+              Website
+            </span>
+            <br />
+            <span className="text-white">Categorization</span>
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Automatically classify websites into content categories
+          
+          <p className="hero-subtitle text-xl md:text-2xl text-white/60 max-w-2xl mx-auto leading-relaxed">
+            Automatically classify websites into content categories with AI precision
           </p>
         </div>
       </section>
 
-      <div className="container-custom py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         {/* Search Form */}
-        <div className="max-w-3xl mx-auto mb-12">
+        <div ref={formRef} className="search-form max-w-3xl mx-auto mb-16 -mt-4">
           <form onSubmit={handleCheck} className="relative">
-            <div className="relative bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
-              <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                placeholder="Enter domain (e.g., amazon.com)"
-                className="w-full pl-12 pr-36 py-4 bg-white border-0 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-0 transition-all outline-none"
-                disabled={loading}
-              />
-              <button
-                type="submit"
-                disabled={loading || !domain.trim()}
-                className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:from-gray-400 disabled:to-gray-400 rounded-lg font-semibold shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
-              >
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Analyzing...</> : <><Tag className="w-4 h-4" />Categorize</>}
-              </button>
+            <div 
+              className="relative rounded-2xl p-1.5 border border-white/10"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <div className="relative flex items-center">
+                <Globe className="absolute left-5 w-5 h-5 text-amber-400/60" />
+                <input
+                  type="text"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  placeholder="Enter domain (e.g., amazon.com)"
+                  className="w-full pl-14 pr-40 py-5 bg-transparent border-0 rounded-xl text-white placeholder-white/30 focus:ring-0 focus:outline-none text-lg"
+                  disabled={loading}
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !domain.trim()}
+                  className="absolute right-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black disabled:from-white/10 disabled:to-white/10 disabled:text-white/30 rounded-xl font-semibold shadow-lg shadow-amber-500/20 transition-all duration-300 flex items-center gap-2 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Tag className="w-4 h-4" />
+                      Categorize
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
+          
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700">{error}</p>
+            <div 
+              className="mt-4 p-4 rounded-xl flex items-start gap-3 border border-red-500/20"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-red-300">{error}</p>
             </div>
           )}
         </div>
 
         {/* Results */}
         {data && (
-          <div className="max-w-5xl mx-auto space-y-6">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Globe className="w-5 h-5 text-blue-600" />
-                <h2 className="text-xl font-bold text-gray-900">Domain</h2>
+          <div ref={resultsRef} className="max-w-5xl mx-auto space-y-6">
+            {/* Domain Card */}
+            <div 
+              className="rounded-2xl p-6 border border-amber-500/20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(234, 179, 8, 0.05) 100%)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-amber-500/20">
+                  <Globe className="w-5 h-5 text-amber-400" />
+                </div>
+                <h2 className="text-lg font-semibold text-white/80">Domain</h2>
               </div>
-              <p className="text-2xl font-mono text-gray-900">{data.domain}</p>
-              {data.description && <p className="text-gray-600 mt-2">{data.description}</p>}
+              <p className="text-3xl font-mono font-bold text-white">{data.domain}</p>
+              {data.description && (
+                <p className="text-white/50 mt-3 leading-relaxed">{data.description}</p>
+              )}
             </div>
 
+            {/* Primary Category */}
             {data.tier1 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
+              <div 
+                className="rounded-2xl p-6 border border-white/10"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <h3 className="text-lg font-semibold text-white/80 mb-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  </div>
                   Primary Category
                 </h3>
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-gray-900">{data.tier1}</div>
+                <div 
+                  className="rounded-xl p-5 border border-amber-500/20"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(234, 179, 8, 0.05) 100%)'
+                  }}
+                >
+                  <div className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
+                    {data.tier1}
+                  </div>
                 </div>
               </div>
             )}
 
+            {/* Secondary Categories */}
             {data.tier2 && data.tier2.length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-blue-500" />
+              <div 
+                className="rounded-2xl p-6 border border-white/10"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <h3 className="text-lg font-semibold text-white/80 mb-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/20">
+                    <Tag className="w-5 h-5 text-amber-400" />
+                  </div>
                   Secondary Categories
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {data.tier2.map((category, index) => (
-                    <div key={index} className="px-4 py-2 bg-blue-100 border border-blue-200 rounded-lg text-blue-800 font-medium">
+                    <div 
+                      key={index} 
+                      className="px-4 py-2.5 rounded-xl text-amber-300 font-medium border border-amber-500/20 transition-all duration-300 hover:border-amber-500/40 hover:bg-amber-500/10"
+                      style={{
+                        background: 'rgba(245, 158, 11, 0.1)'
+                      }}
+                    >
                       {category}
                     </div>
                   ))}
@@ -142,12 +322,25 @@ export default function WebsiteCategorizationPage() {
               </div>
             )}
 
+            {/* All Categories */}
             {data.categories && data.categories.length > 0 && (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">All Categories</h3>
+              <div 
+                className="rounded-2xl p-6 border border-white/10"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <h3 className="text-lg font-semibold text-white/80 mb-4">All Categories</h3>
                 <div className="flex flex-wrap gap-2">
                   {data.categories.map((category, index) => (
-                    <span key={index} className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-full text-sm text-gray-700">
+                    <span 
+                      key={index} 
+                      className="px-3 py-1.5 rounded-full text-sm text-white/70 border border-white/10 hover:border-white/20 transition-colors"
+                      style={{
+                        background: 'rgba(255,255,255,0.05)'
+                      }}
+                    >
                       {category}
                     </span>
                   ))}
@@ -157,17 +350,36 @@ export default function WebsiteCategorizationPage() {
           </div>
         )}
 
+        {/* Info Card */}
         {!data && !loading && (
-          <div className="max-w-3xl mx-auto mt-12">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">About Website Categorization</h3>
-              <div className="space-y-3 text-gray-600">
+          <div className="info-card max-w-3xl mx-auto">
+            <div 
+              className="rounded-2xl p-8 border border-white/10"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <h3 className="text-xl font-semibold text-white mb-5 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/20">
+                  <Tag className="w-5 h-5 text-amber-400" />
+                </div>
+                About Website Categorization
+              </h3>
+              <div className="space-y-4 text-white/60 leading-relaxed">
                 <p>Automatically classify websites into content categories. Perfect for:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Content filtering and parental controls</li>
-                  <li>Market research and competitive analysis</li>
-                  <li>Ad targeting and brand safety</li>
-                  <li>Network security policies</li>
+                <ul className="space-y-3 ml-1">
+                  {[
+                    'Content filtering and parental controls',
+                    'Market research and competitive analysis',
+                    'Ad targeting and brand safety',
+                    'Network security policies'
+                  ].map((item, index) => (
+                    <li key={index} className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
