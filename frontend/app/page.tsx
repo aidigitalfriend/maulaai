@@ -5,6 +5,8 @@ import CommunityStats from '@/components/CommunityStats';
 import NewsletterSection from '@/components/NewsletterSection';
 import Link from 'next/link';
 import Image from 'next/image';
+import AgentShowcaseSection from '@/components/AgentShowcaseSection';
+import AIShowcaseSection from '@/components/AIShowcaseSection';
 
 // Homepage showcasing the fixed design system
 export default function HomePage() {
@@ -134,90 +136,6 @@ export default function HomePage() {
       link: {
         text: 'Configure Setup',
         href: '/config',
-      },
-    },
-  ];
-
-  // AI agent personalities preview - Updated with real agents
-  const agentPreviews = [
-    {
-      icon: <div className="text-2xl">🧠</div>,
-      title: 'Einstein',
-      description:
-        'Theoretical physics, complex problem solving, and scientific research assistance.',
-      link: {
-        text: 'Chat with Einstein',
-        href: '/subscribe?agent=Einstein&slug=einstein',
-      },
-    },
-    {
-      icon: <div className="text-2xl">💚</div>,
-      title: 'Emma Emotional',
-      description:
-        'Master of feelings and empathy. Perfect for emotional support and relationship advice.',
-      link: {
-        text: 'Talk to Emma',
-        href: '/subscribe?agent=Emma+Emotional&slug=emma-emotional',
-      },
-    },
-    {
-      icon: <div className="text-2xl">🎮</div>,
-      title: 'Nid Gaming',
-      description:
-        'Pro gamer extraordinaire! Master of gaming strategies, reviews, and esports culture.',
-      link: {
-        text: 'Game with Nid',
-        href: '/subscribe?agent=Nid+Gaming&slug=nid-gaming',
-      },
-    },
-    {
-      icon: <div className="text-2xl">🥢</div>,
-      title: 'Chef Biew',
-      description:
-        'Asian culinary master! Specializes in authentic recipes and cultural food traditions.',
-      link: {
-        text: 'Cook with Chef Biew',
-        href: '/subscribe?agent=Chef+Biew&slug=chef-biew',
-      },
-    },
-    {
-      icon: <div className="text-2xl">🧙‍♂️</div>,
-      title: 'Tech Wizard',
-      description:
-        'Master of all things tech! Expert in coding, troubleshooting, and innovation.',
-      link: {
-        text: 'Code with Tech Wizard',
-        href: '/subscribe?agent=Tech+Wizard&slug=tech-wizard',
-      },
-    },
-    {
-      icon: <div className="text-2xl">👔</div>,
-      title: 'Mrs Boss',
-      description:
-        'Take-charge executive! Master of leadership, business management, and results.',
-      link: {
-        text: 'Lead with Mrs Boss',
-        href: '/subscribe?agent=Mrs+Boss&slug=mrs-boss',
-      },
-    },
-    {
-      icon: <div className="text-2xl">💪</div>,
-      title: 'Fitness Guru',
-      description:
-        'Your personal fitness coach! Expert in workouts, nutrition, and wellness goals.',
-      link: {
-        text: 'Train with Fitness Guru',
-        href: '/subscribe?agent=Fitness+Guru&slug=fitness-guru',
-      },
-    },
-    {
-      icon: <div className="text-2xl">🕹️</div>,
-      title: 'Ben Sega',
-      description:
-        'Retro gaming legend! Expert in classic games, gaming history, and nostalgia.',
-      link: {
-        text: 'Play with Ben Sega',
-        href: '/subscribe?agent=Ben+Sega&slug=ben-sega',
       },
     },
   ];
@@ -492,39 +410,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AI Agents Preview - Fix #4: Visual hierarchy */}
-      <FeatureSection
-        title="Meet Our AI Personalities"
-        subtitle="Each agent specializes in different areas of expertise to help you achieve more"
-        features={agentPreviews}
-        layout="4-col"
-        backgroundStyle="gradient"
-      />
-
-      {/* Explore All Agents Button */}
-      <section className="bg-gradient-to-br from-neural-800 via-neural-900 to-neural-800 py-8">
-        <div className="container-custom text-center">
-          <a
-            href="/agents"
-            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 group"
-          >
-            <span>Explore All Agents</span>
-            <svg
-              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </a>
-        </div>
-      </section>
+      {/* AI Showcase Section - Animated screenshots */}
+      <AIShowcaseSection />
 
       {/* Canvas Builder Section - AI App Generator */}
       <section className="section-padding bg-gradient-to-br from-neural-900 via-indigo-900 to-neural-800 text-white overflow-hidden relative">
