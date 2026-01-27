@@ -56,13 +56,22 @@ export default function MetallicDemoPage() {
     { icon: '🔗', title: 'Integration', desc: 'Connect with 100+ tools' },
   ];
 
-  // Testimonials data
-  const testimonials = [
+  // Testimonials data - Row 1
+  const testimonialsRow1 = [
     { name: 'Mark Roberts', role: 'Freelancer', avatar: '👨‍💻', text: 'This platform transformed how I manage my AI workflows. The automation features saved me countless hours.' },
     { name: 'Jenny Walker', role: 'CEO, TechStart', avatar: '👩‍💼', text: 'We saw a 40% increase in productivity after implementing this solution. The AI capabilities are truly next-level.' },
     { name: 'Michael Chen', role: 'Developer, HIL', avatar: '👨‍🔬', text: 'The API is incredibly well-designed. Integration took just hours instead of the weeks we anticipated.' },
     { name: 'Emily Davis', role: 'CTO, RevUp', avatar: '👩‍🚀', text: 'Security and performance exceeded our expectations. This is enterprise-ready out of the box.' },
     { name: 'David Thomson', role: 'Founder, Agency', avatar: '👨‍🎨', text: 'The customer support is phenomenal. They helped us customize everything to our exact needs.' },
+  ];
+
+  // Testimonials data - Row 2 (different people)
+  const testimonialsRow2 = [
+    { name: 'Sarah Kim', role: 'Product Manager', avatar: '👩‍💻', text: 'The intuitive dashboard makes it easy to track everything. Our team adopted it within days.' },
+    { name: 'James Wilson', role: 'CTO, Fintech', avatar: '👨‍💼', text: 'We integrated this with our existing stack seamlessly. The API documentation is excellent.' },
+    { name: 'Lisa Chen', role: 'Director, Marketing', avatar: '👩‍🎨', text: 'The AI insights helped us understand our customers better than any tool we have used before.' },
+    { name: 'Robert Taylor', role: 'Startup Founder', avatar: '👨‍🚀', text: 'From day one, this platform has been a game-changer. We could not imagine working without it now.' },
+    { name: 'Amanda Lee', role: 'VP Engineering', avatar: '👩‍🔬', text: 'The scalability is impressive. We went from 100 to 10,000 users without any performance issues.' },
   ];
 
   // FAQ data
@@ -398,32 +407,53 @@ export default function MetallicDemoPage() {
         {/* Hero Image/Dashboard Preview */}
         <div ref={dashboardRef} className="max-w-6xl mx-auto mt-16 relative opacity-0">
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 pointer-events-none"></div>
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] p-2 shadow-2xl hover:border-[#00d4ff]/20 transition-colors duration-500">
+          <div className="absolute -inset-4 bg-gradient-radial from-[#00d4ff]/10 via-transparent to-transparent blur-3xl opacity-50"></div>
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] p-2 shadow-2xl hover:border-[#00d4ff]/20 transition-colors duration-500 relative">
             <div className="rounded-xl bg-[#0a0a0a] border border-white/5 overflow-hidden">
-              {/* Mock dashboard */}
-              <div className="h-8 bg-[#1a1a1a] flex items-center px-4 gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
-                <div className="w-3 h-3 rounded-full bg-[#febc2e]"></div>
-                <div className="w-3 h-3 rounded-full bg-[#28c840]"></div>
+              {/* Mock dashboard header */}
+              <div className="h-10 bg-[#1a1a1a] flex items-center justify-between px-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#febc2e]"></div>
+                  <div className="w-3 h-3 rounded-full bg-[#28c840]"></div>
+                </div>
+                <div className="text-xs text-gray-500">dashboard.onelastai.com</div>
+                <div className="w-16"></div>
               </div>
-              <div className="p-6 grid grid-cols-3 gap-4">
-                <div className="col-span-2 h-48 rounded-xl bg-gradient-to-br from-[#00d4ff]/10 to-transparent border border-white/5 p-4">
-                  <div className="text-sm text-gray-500 mb-2">Revenue Overview</div>
-                  <div className="text-3xl font-bold text-white mb-4">$124,500</div>
-                  <div className="h-20 flex items-end gap-1">
+              {/* Dashboard content */}
+              <div className="p-6 grid grid-cols-4 gap-4">
+                {/* Main chart area */}
+                <div className="col-span-3 h-56 rounded-xl bg-gradient-to-br from-[#00d4ff]/5 to-transparent border border-white/5 p-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="text-sm text-gray-500 mb-1">Revenue Overview</div>
+                      <div className="text-3xl font-bold text-white">$124,500</div>
+                      <div className="text-xs text-[#00ff88] mt-1">↑ 24.5% from last month</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="px-3 py-1 rounded-full bg-[#00d4ff]/10 text-[#00d4ff] text-xs">Weekly</div>
+                      <div className="px-3 py-1 rounded-full bg-white/5 text-gray-400 text-xs">Monthly</div>
+                    </div>
+                  </div>
+                  <div className="h-28 flex items-end gap-1 mt-4">
                     {[40, 65, 45, 80, 55, 90, 75, 85, 95, 70, 88, 92].map((h, i) => (
                       <div key={i} className="flex-1 bg-gradient-to-t from-[#00d4ff] to-[#00d4ff]/30 rounded-t transition-all duration-300 hover:from-[#00ff88]" style={{ height: `${h}%` }}></div>
                     ))}
                   </div>
                 </div>
+                {/* Right stats */}
                 <div className="space-y-4">
-                  <div className="h-[88px] rounded-xl bg-white/5 border border-white/5 p-4 hover:bg-white/10 transition-colors">
-                    <div className="text-sm text-gray-500">Active Users</div>
-                    <div className="text-2xl font-bold text-[#00d4ff]">2,847</div>
+                  <div className="h-[68px] rounded-xl bg-white/5 border border-white/5 p-4 hover:bg-white/10 transition-colors">
+                    <div className="text-xs text-gray-500">Active Users</div>
+                    <div className="text-xl font-bold text-[#00d4ff]">2,847</div>
                   </div>
-                  <div className="h-[88px] rounded-xl bg-white/5 border border-white/5 p-4 hover:bg-white/10 transition-colors">
-                    <div className="text-sm text-gray-500">AI Tasks</div>
-                    <div className="text-2xl font-bold text-[#00ff88]">12,459</div>
+                  <div className="h-[68px] rounded-xl bg-white/5 border border-white/5 p-4 hover:bg-white/10 transition-colors">
+                    <div className="text-xs text-gray-500">AI Tasks</div>
+                    <div className="text-xl font-bold text-[#00ff88]">12,459</div>
+                  </div>
+                  <div className="h-[68px] rounded-xl bg-white/5 border border-white/5 p-4 hover:bg-white/10 transition-colors">
+                    <div className="text-xs text-gray-500">Uptime</div>
+                    <div className="text-xl font-bold text-white">99.9%</div>
                   </div>
                 </div>
               </div>
@@ -461,24 +491,102 @@ export default function MetallicDemoPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Large card */}
+            {/* Large card - Workflow */}
             <div className="bento-card md:col-span-2 md:row-span-2 group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-8 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">🚀</div>
-              <h3 className="text-2xl font-bold mb-3">{bentoItems[0].title}</h3>
-              <p className="text-gray-400">{bentoItems[0].desc}</p>
-              <div className="mt-8 h-32 bg-gradient-to-t from-[#00d4ff]/5 to-transparent rounded-xl"></div>
+              <h3 className="text-2xl font-bold mb-3">Streamline Your Workflow</h3>
+              <p className="text-gray-400 mb-6">AI-powered automation for maximum efficiency</p>
+              {/* Mock Dashboard Preview */}
+              <div className="relative rounded-xl bg-[#0a0a0a] border border-white/5 p-4 overflow-hidden">
+                <div className="flex items-end justify-around h-32 gap-2">
+                  {[45, 70, 55, 85, 60, 90, 75, 80, 95, 65, 88, 72].map((h, i) => (
+                    <div 
+                      key={i} 
+                      className="flex-1 bg-gradient-to-t from-[#00d4ff] to-[#00d4ff]/20 rounded-t transition-all duration-500 group-hover:from-[#00ff88]" 
+                      style={{ height: `${h}%` }}
+                    ></div>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-4 text-xs text-gray-500">
+                  <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                </div>
+              </div>
             </div>
             
-            {/* Small cards */}
-            {bentoItems.slice(1).map((item, i) => (
-              <div key={i} className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{item.image}</div>
-                <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-400">{item.desc}</p>
+            {/* Product Efficiency - with circular progress */}
+            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <h3 className="text-lg font-bold mb-2">Product Efficiency</h3>
+              <p className="text-sm text-gray-400 mb-4">Optimize every step</p>
+              <div className="relative w-20 h-20 mx-auto">
+                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="#1a1a1a" strokeWidth="3"/>
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#gradient1)" strokeWidth="3" strokeDasharray="94" strokeDashoffset="6" strokeLinecap="round"/>
+                  <defs>
+                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#00d4ff"/>
+                      <stop offset="100%" stopColor="#00ff88"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-[#00d4ff]">94%</span>
               </div>
-            ))}
+            </div>
+            
+            {/* Income Insights - with trend line */}
+            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00ff88]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <h3 className="text-lg font-bold mb-2">Income Insights</h3>
+              <p className="text-sm text-gray-400 mb-2">Real-time revenue</p>
+              <div className="text-2xl font-bold text-[#00ff88]">$47.2K</div>
+              <div className="text-xs text-[#00ff88] mb-3">↑ 12.5% this month</div>
+              <svg className="w-full h-10" viewBox="0 0 100 30">
+                <path d="M0,25 Q10,20 20,22 T40,15 T60,18 T80,8 T100,5" fill="none" stroke="#00ff88" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M0,25 Q10,20 20,22 T40,15 T60,18 T80,8 T100,5 L100,30 L0,30 Z" fill="url(#gradient2)" opacity="0.2"/>
+                <defs>
+                  <linearGradient id="gradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#00ff88"/>
+                    <stop offset="100%" stopColor="transparent"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            
+            {/* Events Scheduling - with calendar dots */}
+            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#00d4ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <h3 className="text-lg font-bold mb-2">Events Scheduling</h3>
+              <p className="text-sm text-gray-400 mb-3">Smart calendar</p>
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: 28 }, (_, i) => (
+                  <div 
+                    key={i} 
+                    className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center ${
+                      [3, 7, 12, 18, 24].includes(i) 
+                        ? 'bg-[#00d4ff] text-black font-bold' 
+                        : 'bg-white/5 text-gray-500'
+                    }`}
+                  >
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Visitor Analytics - with mini bars */}
+            <div className="bento-card group relative rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 p-6 overflow-hidden hover:border-[#00d4ff]/30 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-[#0066ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <h3 className="text-lg font-bold mb-2">Visitor Analytics</h3>
+              <p className="text-sm text-gray-400 mb-3">Track behavior</p>
+              <div className="flex items-end justify-around h-16 gap-1">
+                {[60, 80, 45, 90, 55, 75, 85].map((h, i) => (
+                  <div key={i} className="flex-1 rounded-t transition-all duration-300" style={{ height: `${h}%`, background: `linear-gradient(to top, #0066ff, #00d4ff)` }}></div>
+                ))}
+              </div>
+              <div className="mt-2 flex justify-between text-xs text-gray-500">
+                <span>Mon</span><span>Sun</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -518,7 +626,8 @@ export default function MetallicDemoPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="split-left">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">Track, Manage, and Optimize with AI</h2>
+              <p className="text-[#00d4ff] text-sm font-medium mb-3 tracking-wider uppercase">Expense Management</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Track, Manage, and Optimize Expenses Easily</h2>
               <p className="text-gray-400 mb-8">Leverage intelligent automation to streamline your operations and maximize efficiency across all departments.</p>
               
               <div className="space-y-6">
@@ -556,6 +665,81 @@ export default function MetallicDemoPage() {
                   </div>
                   <div className="text-sm text-gray-500 mt-2">per week on average</div>
                 </div>
+                <div className="rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 overflow-hidden col-span-2 hover:border-[#00d4ff]/30 transition-colors">
+                  <div className="h-32 bg-gradient-to-br from-[#00d4ff]/10 to-transparent flex items-center justify-center">
+                    <div className="w-full px-6 flex items-end justify-around h-20">
+                      {[40, 65, 45, 80, 55, 90, 75].map((h, i) => (
+                        <div key={i} className="w-6 bg-gradient-to-t from-[#00d4ff] to-[#00d4ff]/30 rounded-t transition-all duration-300 hover:from-[#00ff88]" style={{ height: `${h}%` }}></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SPLIT SECTION 2 - PLAN & ORGANIZE (Reverse Layout)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Images on LEFT this time */}
+            <div className="split-right relative order-2 lg:order-1">
+              <div className="absolute inset-0 bg-gradient-radial from-[#00ff88]/15 via-transparent to-transparent blur-3xl"></div>
+              <div className="relative grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-6 hover:border-[#00ff88]/30 transition-colors">
+                  <div className="text-4xl mb-3">📅</div>
+                  <div className="text-sm text-gray-500 mb-1">Today&apos;s Tasks</div>
+                  <div className="text-2xl font-bold text-white">8 / 12</div>
+                  <div className="mt-3 h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full w-[67%] bg-gradient-to-r from-[#00ff88] to-[#00d4ff] rounded-full"></div>
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-6 mt-8 hover:border-[#00ff88]/30 transition-colors">
+                  <div className="text-4xl mb-3">🎯</div>
+                  <div className="text-sm text-gray-500 mb-1">Goals Met</div>
+                  <div className="text-2xl font-bold text-[#00ff88]">96%</div>
+                </div>
+                <div className="col-span-2 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-6 hover:border-[#00ff88]/30 transition-colors">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-gray-500">Upcoming</span>
+                    <span className="text-xs text-[#00ff88]">View All</span>
+                  </div>
+                  <div className="space-y-3">
+                    {['Team Standup', 'Design Review', 'Client Call'].map((task, i) => (
+                      <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+                        <div className="w-2 h-2 rounded-full bg-[#00ff88]"></div>
+                        <span className="text-sm text-gray-300">{task}</span>
+                        <span className="ml-auto text-xs text-gray-500">{9 + i}:00 AM</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Text on RIGHT this time */}
+            <div className="split-left order-1 lg:order-2">
+              <p className="text-[#00ff88] text-sm font-medium mb-3 tracking-wider uppercase">Task Management</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Plan, Organize, and Streamline Your Day</h2>
+              <p className="text-gray-400 mb-8">AI-powered scheduling that learns your preferences and optimizes your calendar for maximum productivity.</p>
+              
+              <div className="space-y-6">
+                {[
+                  { icon: '🗓️', text: 'Smart calendar scheduling' },
+                  { icon: '🔔', text: 'Intelligent reminders & priorities' },
+                  { icon: '✅', text: 'Automated task categorization' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 group">
+                    <div className="w-10 h-10 rounded-lg bg-[#00ff88]/10 flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-300">
+                      {item.icon}
+                    </div>
+                    <span className="text-gray-300 group-hover:text-white transition-colors">{item.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -656,25 +840,49 @@ export default function MetallicDemoPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          TESTIMONIALS MARQUEE
+          TESTIMONIALS MARQUEE - TWO ROWS
       ═══════════════════════════════════════════════════════════════════════════ */}
       <section id="testimonials" ref={testimonialsRef} className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 section-title">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">You're in Good Company</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">You&apos;re in Good Company</h2>
             <p className="text-gray-400">See what our customers have to say</p>
           </div>
           
-          <div className="relative overflow-hidden">
+          {/* Row 1 - Scroll Left */}
+          <div className="relative overflow-hidden mb-6">
             <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10"></div>
             <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10"></div>
             
             <div className="flex animate-marquee-slow">
-              {[...testimonials, ...testimonials].map((t, i) => (
+              {[...testimonialsRow1, ...testimonialsRow1].map((t, i) => (
                 <div key={i} className="flex-shrink-0 w-[400px] mx-3 p-6 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 hover:border-[#00d4ff]/30 transition-colors">
                   <p className="text-gray-300 mb-6 italic">&ldquo;{t.text}&rdquo;</p>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00d4ff]/20 to-[#0066ff]/20 flex items-center justify-center text-2xl">
+                      {t.avatar}
+                    </div>
+                    <div>
+                      <div className="font-semibold">{t.name}</div>
+                      <div className="text-sm text-gray-500">{t.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Row 2 - Scroll Right (Reverse Direction) */}
+          <div className="relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10"></div>
+            
+            <div className="flex animate-marquee-reverse">
+              {[...testimonialsRow2, ...testimonialsRow2].map((t, i) => (
+                <div key={i} className="flex-shrink-0 w-[400px] mx-3 p-6 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/5 hover:border-[#00ff88]/30 transition-colors">
+                  <p className="text-gray-300 mb-6 italic">&ldquo;{t.text}&rdquo;</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00ff88]/20 to-[#00d4ff]/20 flex items-center justify-center text-2xl">
                       {t.avatar}
                     </div>
                     <div>
@@ -889,12 +1097,21 @@ export default function MetallicDemoPage() {
           100% { transform: translateX(-50%); }
         }
         
+        @keyframes marquee-reverse {
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        
         .animate-marquee {
           animation: marquee 20s linear infinite;
         }
         
         .animate-marquee-slow {
           animation: marquee-slow 40s linear infinite;
+        }
+        
+        .animate-marquee-reverse {
+          animation: marquee-reverse 45s linear infinite;
         }
         
         .bg-gradient-radial {
