@@ -341,7 +341,7 @@ export default function RewardsCenterPage() {
               <h2 className="text-3xl font-bold metallic-text mb-8 text-center">Earn Points Every Day</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {rewards.map((reward) => (
-                  <div key={reward.id} className="content-card glass-card rounded-2xl p-6 text-center opacity-0 hover:scale-[1.02] transition-transform">
+                  <div key={reward.id} className="glass-card rounded-2xl p-6 text-center hover:scale-[1.02] transition-transform">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${getCategoryColor(reward.category)}, ${getCategoryColor(reward.category)}80)` }}>
                       {reward.icon}
                     </div>
@@ -372,7 +372,7 @@ export default function RewardsCenterPage() {
               </p>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {agentRewards.map((agent) => (
-                  <div key={agent.id} className="content-card glass-card rounded-2xl p-6 opacity-0 hover:scale-[1.02] transition-transform">
+                  <div key={agent.id} className="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-transform">
                     <div className="text-center mb-4">
                       <div className="text-6xl mb-3">{agent.image}</div>
                       <h3 className="text-xl font-bold text-white mb-1">{agent.name}</h3>
@@ -418,7 +418,7 @@ export default function RewardsCenterPage() {
                   {leaderboard.map((user) => (
                     <div
                       key={user.rank}
-                      className={`content-card flex items-center justify-between p-4 rounded-xl opacity-0 transition-all ${
+                      className={`flex items-center justify-between p-4 rounded-xl transition-all ${
                         user.name === 'You'
                           ? 'bg-gradient-to-r from-[#a855f7]/20 to-[#00d4ff]/20 border-2 border-[#a855f7]'
                           : 'bg-white/5 border border-white/10 hover:bg-white/10'
