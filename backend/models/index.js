@@ -1226,7 +1226,22 @@ class SupportTicketAdapter {
   }
 
   _getData() {
-    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    const { _isNew, id, createdAt, updatedAt, ticketId, ticketNumber, messages, ...rest } = this;
+    // Map field names from route format to Prisma schema format
+    const data = {
+      ...rest,
+      // Map userEmail to email if present
+      email: rest.email || rest.userEmail,
+      // Map userName to name if present  
+      name: rest.name || rest.userName,
+    };
+    // Remove the old field names
+    delete data.userEmail;
+    delete data.userName;
+    // Store messages in metadata
+    if (messages && Array.isArray(messages)) {
+      data.metadata = { ...(data.metadata || {}), chatMessages: messages };
+    }
     return data;
   }
 
@@ -1281,7 +1296,16 @@ class ContactMessageAdapter {
   }
 
   _getData() {
-    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    const { _isNew, id, createdAt, updatedAt, ticketId, agentName, category, priority, metadata, ...rest } = this;
+    // ContactMessage schema only has: name, email, subject, message, source, isRead
+    const data = {
+      name: rest.name,
+      email: rest.email,
+      subject: rest.subject || null,
+      message: rest.message,
+      source: rest.source || 'website',
+      isRead: rest.isRead || false,
+    };
     return data;
   }
 
@@ -1489,7 +1513,25 @@ class JobApplicationAdapter {
   }
 
   _getData() {
-    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    const { _isNew, id, createdAt, updatedAt, applicationId, applicationNumber, ...rest } = this;
+    // Map route format to Prisma schema format
+    // Route sends: { applicant: { firstName, lastName, email, phone }, position: { id, title }, ... }
+    // Prisma expects: { name, email, phone, position, ... }
+    const data = {
+      userId: rest.userId || null,
+      name: rest.applicant 
+        ? `${rest.applicant.firstName} ${rest.applicant.lastName}` 
+        : rest.name,
+      email: rest.applicant?.email || rest.email,
+      phone: rest.applicant?.phone || rest.phone || null,
+      position: rest.position?.title || rest.position?.id || rest.position,
+      resumeUrl: rest.resume?.url || rest.resumeUrl || null,
+      coverLetter: rest.coverLetter || null,
+      linkedinUrl: rest.applicant?.linkedin || rest.linkedinUrl || null,
+      portfolioUrl: rest.applicant?.portfolio || rest.portfolioUrl || null,
+      status: rest.status || 'submitted',
+      notes: rest.notes || null,
+    };
     return data;
   }
 
@@ -1873,7 +1915,16 @@ class CommunitySuggestionAdapter {
   }
 
   _getData() {
-    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    const { _isNew, id, createdAt, updatedAt, suggestionId, userEmail, userName, isAnonymous, relatedTo, userPriority, tags, votes, ...rest } = this;
+    // Map route format to Prisma schema format
+    const data = {
+      userId: rest.userId || null,
+      title: rest.title,
+      description: rest.description,
+      category: rest.category || 'general',
+      status: rest.status || 'pending',
+      votes: 0,
+    };
     return data;
   }
 
@@ -2060,7 +2111,22 @@ class ConsultationAdapter {
   }
 
   _getData() {
-    const { _isNew, id, createdAt, updatedAt, ...data } = this;
+    const { _isNew, id, createdAt, updatedAt, consultationId, consultationNumber, ...rest } = this;
+    // Map route format to Prisma schema format
+    // Route sends: { userName, userEmail, userPhone, consultationType, project: { description }, ... }
+    // Prisma expects: { name, email, phone, company, topic, description, ... }
+    const data = {
+      name: rest.userName || rest.name,
+      email: rest.userEmail || rest.email,
+      phone: rest.userPhone || rest.phone || null,
+      company: rest.company?.name || rest.company || null,
+      topic: rest.consultationType || rest.topic || 'General',
+      description: rest.project?.description || rest.description || null,
+      preferredDate: rest.preferredDates?.[0] ? new Date(rest.preferredDates[0]) : null,
+      timezone: rest.timezone || null,
+      status: rest.status || 'requested',
+      notes: rest.notes || null,
+    };
     return data;
   }
 
