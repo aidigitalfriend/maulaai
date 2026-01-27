@@ -24,7 +24,7 @@ export default function ContactForm({ agentName, className = '', showTitle = tru
     setSubmitStatus('idle')
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'}/api/contact`, {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
