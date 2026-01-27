@@ -4,648 +4,445 @@ import { useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { 
-  DollarSign, 
-  CreditCard, 
-  Shield, 
+import {
+  CreditCard,
+  DollarSign,
+  Clock,
+  Ban,
   AlertTriangle,
-  FileText,
-  XCircle,
-  RefreshCw,
-  AlertCircle,
+  RefreshCcw,
   Bell,
   Mail,
-  ChevronDown,
   Check,
+  Calendar,
+  Shield,
+  Zap,
+  Crown,
   X,
-  Bot,
-  Wrench,
-  Mic,
-  Users,
-  BarChart3,
-  HeadphonesIcon
+  AlertCircle,
 } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Section wrapper component
-function Section({
-  id,
-  icon: Icon,
-  title,
-  children,
-  className = "",
-  variant = "default",
-}: {
-  id: string;
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-  variant?: "default" | "danger" | "warning";
-}) {
-  const bgColors = {
-    default: "from-white/5 to-transparent border-white/10",
-    danger: "from-red-500/10 to-red-500/5 border-red-500/30",
-    warning: "from-amber-500/10 to-amber-500/5 border-amber-500/30",
-  };
-
-  const iconColors = {
-    default: "bg-cyan-500/20 border-cyan-500/30 text-cyan-400",
-    danger: "bg-red-500/20 border-red-500/30 text-red-400",
-    warning: "bg-amber-500/20 border-amber-500/30 text-amber-400",
-  };
-
-  const titleColors = {
-    default: "text-white",
-    danger: "text-red-400",
-    warning: "text-amber-400",
-  };
-
-  return (
-    <section id={id} className={`section-card bg-gradient-to-br ${bgColors[variant]} border rounded-2xl p-6 md:p-8 ${className}`}>
-      <div className="flex items-center gap-3 mb-6">
-        <div className={`p-3 rounded-xl border ${iconColors[variant]}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-        <h2 className={`text-2xl font-bold ${titleColors[variant]}`}>{title}</h2>
-      </div>
-      <div className="text-gray-300 space-y-4 leading-relaxed">{children}</div>
-    </section>
-  );
-}
-
 export default function PaymentsRefundsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(
-    () => {
-      // Hero animation
-      gsap.from(".hero-content > *", {
-        y: 40,
-        opacity: 0,
+  useGSAP(() => {
+    // Hero entrance animation
+    const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+    heroTl
+      .fromTo(".hero-badge", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
+      .fromTo(".hero-title", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, "-=0.3")
+      .fromTo(".hero-subtitle", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, "-=0.4")
+      .fromTo(".hero-meta", { opacity: 0 }, { opacity: 1, duration: 0.5 }, "-=0.2");
+
+    // Pricing cards animation
+    gsap.fromTo(
+      ".pricing-card",
+      { opacity: 0, y: 60, scale: 0.95 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
         duration: 0.8,
         stagger: 0.15,
-        ease: "power3.out",
-      });
+        ease: "back.out(1.2)",
+        scrollTrigger: { trigger: ".pricing-grid", start: "top 85%", toggleActions: "play none none reverse" },
+      }
+    );
 
-      // Section cards animation
-      gsap.utils.toArray<HTMLElement>(".section-card").forEach((card) => {
-        gsap.from(card, {
-          scrollTrigger: {
-            trigger: card,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-          y: 30,
-          opacity: 0,
-          duration: 0.6,
+    // Section animations
+    gsap.utils.toArray<HTMLElement>(".section-animate").forEach((section) => {
+      gsap.fromTo(
+        section,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
           ease: "power2.out",
-        });
-      });
+          scrollTrigger: { trigger: section, start: "top 85%", toggleActions: "play none none reverse" },
+        }
+      );
+    });
 
-      // TOC animation
-      gsap.from(".toc-item", {
-        x: -20,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.05,
+    // Feature cards
+    gsap.fromTo(
+      ".feature-card",
+      { opacity: 0, x: -30 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.6,
+        stagger: 0.08,
         ease: "power2.out",
-        delay: 0.5,
-      });
-    },
-    { scope: containerRef }
-  );
+        scrollTrigger: { trigger: ".features-grid", start: "top 80%", toggleActions: "play none none reverse" },
+      }
+    );
+  }, { scope: containerRef });
 
-  const sections = [
-    { id: "overview", title: "1. Overview", icon: FileText },
-    { id: "pricing", title: "2. Pricing Structure", icon: DollarSign },
-    { id: "payment-methods", title: "3. Payment Methods", icon: CreditCard },
-    { id: "payment-terms", title: "4. Payment Terms", icon: FileText },
-    { id: "no-refunds", title: "5. No Refund Policy", icon: XCircle },
-    { id: "cancellation", title: "6. Cancellation", icon: RefreshCw },
-    { id: "chargebacks", title: "7. Chargebacks", icon: AlertCircle },
-    { id: "price-changes", title: "8. Price Changes", icon: Bell },
-    { id: "contact", title: "9. Contact", icon: Mail },
+  const pricingPlans = [
+    {
+      name: "Daily Pass",
+      price: "$1",
+      period: "/day",
+      icon: Zap,
+      features: ["Full access for 24 hours", "All AI models", "Unlimited chats", "No auto-renewal"],
+      highlight: false,
+    },
+    {
+      name: "Weekly Pass",
+      price: "$5",
+      period: "/week",
+      icon: Shield,
+      features: ["Full access for 7 days", "All AI models", "Unlimited chats", "Priority support"],
+      highlight: true,
+    },
+    {
+      name: "Monthly Pass",
+      price: "$15",
+      period: "/month",
+      icon: Crown,
+      features: ["Full access for 30 days", "All AI models", "Unlimited chats", "Premium features", "VIP support"],
+      highlight: false,
+    },
+  ];
+
+  const paymentMethods = [
+    { name: "Credit/Debit Cards", desc: "Visa, Mastercard, American Express, Discover" },
+    { name: "Digital Wallets", desc: "Apple Pay, Google Pay" },
+    { name: "Link by Stripe", desc: "Fast checkout with saved payment info" },
   ];
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a]">
-      {/* Hero */}
-      <div className="relative py-16 md:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[120px] opacity-30" />
-        
-        <div className="hero-content relative max-w-4xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
-            <CreditCard className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm text-cyan-400 font-medium">Billing & Payments</span>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      {/* HERO SECTION */}
+      <section className="pt-24 pb-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-radial from-[#00d4ff]/10 via-transparent to-transparent blur-3xl"></div>
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="hero-badge inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/20 mb-6">
+            <CreditCard className="w-4 h-4 text-[#00d4ff]" />
+            <span className="text-sm text-[#00d4ff] font-medium">Payments & Refunds</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Payments & Refunds Policy
+
+          <h1 className="hero-title text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent leading-tight">
+            Billing & Payments
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-4">
-            Simple, transparent pricing with no auto-renewal. Understand our payment terms and refund policy.
+
+          <p className="hero-subtitle text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-6">
+            Transparent pricing with simple, flexible plans. Understand our payment terms and refund policy.
           </p>
-          <p className="text-sm text-gray-500">
-            Last updated: November 6, 2025 • Effective Date: November 6, 2025
-          </p>
+
+          <p className="hero-meta text-sm text-gray-500">Last updated: December 28, 2024</p>
         </div>
-      </div>
+      </section>
 
-      {/* Table of Contents - Mobile */}
-      <div className="lg:hidden px-4 mb-8">
-        <details className="bg-white/5 border border-white/10 rounded-xl">
-          <summary className="flex items-center justify-between p-4 cursor-pointer text-white font-medium">
-            <span>Table of Contents</span>
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          </summary>
-          <div className="p-4 pt-0 space-y-2">
-            {sections.map((section) => (
-              <a
-                key={section.id}
-                href={`#${section.id}`}
-                className="block py-2 text-gray-400 hover:text-cyan-400 transition-colors text-sm"
-              >
-                {section.title}
-              </a>
-            ))}
-          </div>
-        </details>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-24">
-        <div className="flex gap-12">
-          {/* Sticky TOC - Desktop */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 space-y-1">
-              <p className="text-xs uppercase tracking-wider text-gray-500 mb-4 font-medium">On this page</p>
-              {sections.map((section) => (
-                <a
-                  key={section.id}
-                  href={`#${section.id}`}
-                  className="toc-item block py-2 px-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                >
-                  {section.title}
-                </a>
-              ))}
+      {/* PRICING OVERVIEW */}
+      <section className="py-16 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12 section-animate">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/20 mb-4">
+              <DollarSign className="w-4 h-4 text-[#00d4ff]" />
+              <span className="text-sm text-[#00d4ff] font-medium">Pricing Structure</span>
             </div>
-          </aside>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">Simple, Flexible Plans</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">Choose the plan that works for you. No hidden fees.</p>
+          </div>
 
-          {/* Content */}
-          <div className="flex-1 space-y-8 max-w-3xl">
-            {/* 1. Overview */}
-            <Section id="overview" icon={FileText} title="1. Overview">
-              <p>
-                This Payments & Refunds Policy explains the pricing structure, payment methods, billing procedures, and refund policy for One Last AI services. By purchasing access to our services, you agree to these terms.
-              </p>
-              
-              <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl mt-4">
-                <div className="flex gap-4">
-                  <div className="p-3 rounded-xl bg-cyan-500/20 h-fit">
-                    <DollarSign className="w-8 h-8 text-cyan-400" />
+          <div className="pricing-grid grid grid-cols-1 md:grid-cols-3 gap-6">
+            {pricingPlans.map((plan, i) => (
+              <div
+                key={i}
+                className={`pricing-card group relative rounded-2xl p-8 overflow-hidden transition-all duration-300 ${
+                  plan.highlight
+                    ? "bg-gradient-to-br from-[#00d4ff]/20 to-[#0a0a0a] border-2 border-[#00d4ff]/50 scale-105"
+                    : "bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 hover:border-[#00d4ff]/30"
+                }`}
+              >
+                {plan.highlight && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00d4ff] text-black text-xs font-bold rounded-b-lg">
+                    BEST VALUE
                   </div>
-                  <div>
-                    <p className="text-xl font-bold text-white mb-2">One-Time Purchases - No Auto-Renewal</p>
-                    <p className="text-gray-400">
-                      Choose from $1/day, $5/week, or $15/month access to any AI agent. Each purchase is one-time only with NO automatic renewal. You only pay when you want access.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Section>
+                )}
 
-            {/* 2. Pricing Structure */}
-            <Section id="pricing" icon={DollarSign} title="2. Pricing Structure">
-              <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl mb-6">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-cyan-400" />
-                  Simple Per-Agent Pricing
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { title: "One-Time Purchase", desc: "$1/day, $5/week, or $15/month - NO auto-renewal" },
-                    { title: "Single Agent Access", desc: "Choose one AI agent per purchase" },
-                    { title: "No Recurring Charges", desc: "Manually repurchase when access expires if you want to continue" },
-                    { title: "Immediate Access", desc: "Start using your chosen agent right away" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-white font-semibold">{item.title}</p>
-                        <p className="text-sm text-gray-400">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <plan.icon className="w-7 h-7 text-[#00d4ff]" />
                 </div>
-              </div>
 
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-3">2.1 What&apos;s Included</h4>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {[
-                    { icon: Bot, title: "AI Agents", desc: "Access to 90+ specialized AI personalities" },
-                    { icon: Wrench, title: "Developer Tools", desc: "19 network utilities and WHOIS services" },
-                    { icon: Mic, title: "Voice Features", desc: "Emotional TTS with 15+ voices" },
-                    { icon: Users, title: "Community", desc: "Connect with users worldwide" },
-                    { icon: BarChart3, title: "Analytics", desc: "Track usage and performance" },
-                    { icon: HeadphonesIcon, title: "Priority Support", desc: "Email support within 24 hours" },
-                  ].map((item, i) => (
-                    <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/5 flex items-start gap-3">
-                      <item.icon className="w-5 h-5 text-cyan-400 mt-0.5" />
-                      <div>
-                        <p className="text-white font-medium text-sm">{item.title}</p>
-                        <p className="text-xs text-gray-500">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
+                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-bold text-[#00d4ff]">{plan.price}</span>
+                  <span className="text-gray-400">{plan.period}</span>
                 </div>
-              </div>
 
-              <div className="mt-6">
-                <h4 className="text-lg font-semibold text-white mb-3">2.2 No Free Tier</h4>
-                <p className="mb-3">One Last AI does not offer a free tier. All agent access requires a one-time payment starting at $1/day. This low-cost model ensures:</p>
-                <ul className="space-y-2">
-                  {[
-                    "High-quality AI services without ads",
-                    "Continuous platform improvements",
-                    "Responsive customer support",
-                    "Data privacy and security investments",
-                    "No surprise recurring charges"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">{item}</span>
+                <ul className="space-y-3">
+                  {plan.features.map((feature, j) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <Check className="w-4 h-4 text-[#00d4ff]" />
+                      <span className="text-gray-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-            </Section>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* 3. Payment Methods */}
-            <Section id="payment-methods" icon={CreditCard} title="3. Payment Methods">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-cyan-400" />
-                    Accepted Payment Methods
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                      <p className="font-semibold text-white mb-1">💳 Credit & Debit Cards</p>
-                      <p className="text-sm text-gray-400">Visa, MasterCard, American Express, Discover, Diners Club, JCB</p>
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                      <p className="font-semibold text-white mb-1">🅿️ PayPal</p>
-                      <p className="text-sm text-gray-400">Link your PayPal account for convenient payments</p>
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                      <p className="font-semibold text-white mb-1">🌐 International Payments</p>
-                      <p className="text-sm text-gray-400">We accept payments from most countries worldwide</p>
-                    </div>
-                  </div>
-                </div>
+      {/* PAYMENT METHODS */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="section-animate">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00d4ff]/10 border border-[#00d4ff]/20 mb-4">
+                <CreditCard className="w-4 h-4 text-[#00d4ff]" />
+                <span className="text-sm text-[#00d4ff] font-medium">Payment Methods</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Accepted Payment Methods</h2>
+              <p className="text-gray-400 mb-8">
+                We accept a variety of payment methods for your convenience. All payments are processed securely through
+                Stripe.
+              </p>
 
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">3.1 Payment Processing</h4>
-                  <p className="mb-3">Payments are processed securely through:</p>
-                  <ul className="space-y-2">
-                    {[
-                      { label: "Stripe:", value: "PCI DSS Level 1 certified payment processor" },
-                      { label: "PayPal:", value: "Industry-leading payment platform" },
-                      { label: "Encryption:", value: "All transactions use 256-bit SSL encryption" },
-                      { label: "No Storage:", value: "We do not store full credit card numbers" },
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                        <span className="text-gray-400"><strong className="text-white">{item.label}</strong> {item.value}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
-                  <div className="flex gap-3">
-                    <Shield className="w-6 h-6 text-cyan-400 flex-shrink-0 mt-0.5" />
+              <div className="space-y-4">
+                {paymentMethods.map((method, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-4 p-4 bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 rounded-xl hover:border-[#00d4ff]/30 transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#00d4ff]/10 flex items-center justify-center flex-shrink-0">
+                      <CreditCard className="w-5 h-5 text-[#00d4ff]" />
+                    </div>
                     <div>
-                      <p className="font-bold text-white mb-1">Secure Payment Guarantee</p>
-                      <p className="text-sm text-gray-400">Your payment information is never stored on our servers. All transactions are processed through PCI-compliant third-party providers with bank-level security.</p>
+                      <h4 className="font-semibold text-white">{method.name}</h4>
+                      <p className="text-sm text-gray-400">{method.desc}</p>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            </Section>
+            </div>
 
-            {/* 4. Payment Terms */}
-            <Section id="payment-terms" icon={FileText} title="4. Payment Terms">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">4.1 One-Time Purchase - No Auto-Renewal</h4>
-                  <p className="mb-3">Your payment method will be charged <strong className="text-white">once</strong> when you purchase access:</p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">Charge occurs immediately upon purchase</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400"><strong className="text-white">NO automatic renewal</strong> - you will NOT be charged again</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">Access expires after your chosen period (1 day, 1 week, or 1 month)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">You must manually purchase again if you want continued access</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">No surprises - you control when you pay</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">4.2 Payment Failures</h4>
-                  <p className="mb-3">If a payment fails during purchase:</p>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                      <p className="text-gray-300"><strong className="text-white">Immediate:</strong> You&apos;ll see an error message and can retry with a different payment method</p>
-                    </div>
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                      <p className="text-gray-300"><strong className="text-white">No Access:</strong> Access is not granted until payment succeeds</p>
-                    </div>
-                    <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
-                      <p className="text-gray-300"><strong className="text-white">No Retries:</strong> Since there&apos;s no auto-renewal, we don&apos;t retry failed payments - you simply try again when ready</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">4.3 Currency and Taxes</h4>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">All prices are in <strong className="text-white">USD (United States Dollars)</strong></span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">Your bank may apply currency conversion fees</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">Sales tax or VAT may be added based on your location</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400">Final charges will be clearly shown before payment</span>
-                    </li>
-                  </ul>
-                </div>
+            <div className="section-animate rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Clock className="w-8 h-8 text-[#00d4ff]" />
+                <h3 className="text-2xl font-bold">Payment Terms</h3>
               </div>
-            </Section>
+              <ul className="space-y-4">
+                {[
+                  "All payments are charged at the time of purchase",
+                  "Prices are in USD and include all applicable fees",
+                  "Subscriptions auto-renew unless cancelled",
+                  "You will receive an email receipt for every payment",
+                  "Failed payments may result in service suspension",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="w-4 h-4 text-[#00d4ff] mt-1" />
+                    <span className="text-gray-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* 5. NO REFUND POLICY */}
-            <Section id="no-refunds" icon={XCircle} title="5. NO REFUND POLICY" variant="danger">
-              <div className="flex items-start gap-3 mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-400 flex-shrink-0" />
+      {/* NO REFUNDS POLICY - IMPORTANT */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="section-animate rounded-3xl bg-gradient-to-br from-red-500/10 to-[#0a0a0a] border-2 border-red-500/30 p-8 md:p-12 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-red-500/10 to-transparent opacity-50"></div>
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <Ban className="w-7 h-7 text-red-400" />
+                </div>
                 <div>
-                  <p className="text-lg font-bold text-white">All Payments Are Final and Non-Refundable</p>
+                  <h2 className="text-3xl font-bold text-red-400">No Refunds Policy</h2>
+                  <p className="text-gray-400">Please read carefully before purchasing</p>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="p-6 bg-white/5 rounded-xl border border-white/10">
-                  <h4 className="text-lg font-bold text-white mb-3">5.1 Policy Statement</h4>
-                  <p className="text-lg mb-4">
-                    <strong className="text-red-400">ONE LAST AI DOES NOT OFFER REFUNDS FOR ANY REASON.</strong>
-                  </p>
-                  <p className="mb-3">
-                    All payments made to One Last AI are <strong className="text-white">final, non-refundable, and non-transferable</strong>. This includes but is not limited to:
-                  </p>
-                  <ul className="space-y-1 text-gray-400">
-                    <li>• Daily access charges ($1.00 per day)</li>
-                    <li>• Weekly access charges ($5.00 per week)</li>
-                    <li>• Monthly access charges ($15.00 per month)</li>
-                    <li>• Any one-time purchase fees</li>
-                    <li>• Payments made in error</li>
-                    <li>• Duplicate payments</li>
-                  </ul>
-                </div>
-
-                <div className="p-6 bg-white/5 rounded-xl border border-white/10">
-                  <h4 className="text-lg font-bold text-white mb-3">5.2 Rationale for No Refund Policy</h4>
-                  <p className="mb-4">Our no-refund policy exists because:</p>
-                  <div className="space-y-4">
-                    {[
-                      { num: 1, title: "Extremely Low Cost", desc: "At just $1.00 per day, our service is priced affordably for everyone." },
-                      { num: 2, title: "Immediate Access", desc: "You receive full platform access immediately upon payment." },
-                      { num: 3, title: "Digital Service Nature", desc: "Our AI services cannot be \"returned\" once used." },
-                      { num: 4, title: "Transparent Pricing", desc: "You know exactly what you're paying upfront with no hidden fees." },
-                      { num: 5, title: "Operational Sustainability", desc: "Low pricing requires efficient operations." },
-                    ].map((item) => (
-                      <div key={item.num} className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                          {item.num}
-                        </span>
-                        <div>
-                          <p className="text-white font-semibold">{item.title}</p>
-                          <p className="text-sm text-gray-400">{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-6 bg-red-500/10 rounded-xl border border-red-500/20">
-                  <h4 className="text-lg font-bold text-white mb-3">5.3 No Exceptions</h4>
-                  <p className="mb-3">We do not make exceptions to this policy for any circumstance, including:</p>
-                  <div className="grid sm:grid-cols-2 gap-2">
-                    {[
-                      "Dissatisfaction with service",
-                      "Technical issues or bugs",
-                      "Accidental purchases",
-                      "Change of mind",
-                      "Lack of usage",
-                      "Early cancellation",
-                      "Billing disputes",
-                      "Feature requests not implemented",
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2 text-gray-400">
-                        <X className="w-4 h-4 text-red-400" />
-                        <span className="text-sm">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-red-400 font-semibold mt-4">
-                    By purchasing, you acknowledge and accept this no-refund policy.
-                  </p>
-                </div>
-
-                <div className="p-6 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-                  <h4 className="text-lg font-bold text-cyan-400 mb-3">5.4 Alternatives to Refunds</h4>
-                  <p className="mb-3">If you&apos;re experiencing issues, we encourage you to:</p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400"><strong className="text-white">Contact Support:</strong> <a href="mailto:support@onelastai.com" className="text-cyan-400 hover:text-cyan-300 underline">support@onelastai.com</a></span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400"><strong className="text-white">Cancel Your Access:</strong> Stop using the agent and prevent duplicate purchases</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400"><strong className="text-white">Provide Feedback:</strong> Help us improve the platform</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                      <span className="text-gray-400"><strong className="text-white">Review Documentation:</strong> <a href="https://onelastai.com/docs" className="text-cyan-400 hover:text-cyan-300 underline">onelastai.com/docs</a></span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </Section>
-
-            {/* 6. Cancellation */}
-            <Section id="cancellation" icon={RefreshCw} title="6. Cancellation & Access Management">
-              <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl mb-6">
-                <h4 className="text-lg font-semibold text-cyan-400 mb-2">Important: No Auto-Renewal = Simple Management</h4>
-                <p className="text-gray-400">
-                  Since all purchases are one-time with <strong className="text-white">NO auto-renewal</strong>, there&apos;s nothing to &ldquo;cancel&rdquo; in the traditional sense. Your access simply expires after your chosen period, and you can re-purchase whenever you want.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">6.1 Stopping Access Early (Optional)</h4>
-                  <p className="mb-3">If you want to stop using an agent before your access expires:</p>
-                  <div className="space-y-3">
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                      <p className="font-semibold text-white mb-2">Method 1: Agent Page</p>
-                      <ol className="list-decimal pl-5 text-sm text-gray-400 space-y-1">
-                        <li>Go to /subscribe page</li>
-                        <li>Find your active agent</li>
-                        <li>Click &ldquo;Cancel Subscription&rdquo; button</li>
-                        <li>Confirm cancellation</li>
-                      </ol>
-                    </div>
-                    <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                      <p className="font-semibold text-white mb-2">Method 2: Email Request</p>
-                      <p className="text-sm text-gray-400">
-                        Email <a href="mailto:support@onelastai.com" className="text-cyan-400 hover:text-cyan-300 underline">support@onelastai.com</a> with your account email, agent name, and &ldquo;CANCEL ACCESS&rdquo; in the subject line
+                <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-6 h-6 text-red-400 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-red-400 mb-2">All Sales Are Final</p>
+                      <p className="text-gray-300">
+                        Due to the nature of our digital services and the immediate access to AI features upon payment,{" "}
+                        <strong className="text-white">all sales are final and non-refundable</strong>.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">6.2 What Happens When You Cancel</h4>
-                  <ul className="space-y-2">
-                    {[
-                      { label: "Immediate Effect:", value: "Access is terminated and you can no longer use the agent" },
-                      { label: "No Future Charges:", value: "Since there's no auto-renewal anyway, you won't be charged again" },
-                      { label: "Data Retention:", value: "Your conversation history is kept for 30 days" },
-                      { label: "No Refund:", value: "Current purchase is not refunded (all sales final)" },
-                      { label: "Can Re-purchase:", value: "You can buy access again anytime" },
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                        <span className="text-gray-400"><strong className="text-white">{item.label}</strong> {item.value}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { icon: X, title: "No partial refunds", desc: "Even for unused time" },
+                    { icon: X, title: "No prorated refunds", desc: "For early cancellation" },
+                    { icon: X, title: "No exceptions", desc: "For change of mind" },
+                    { icon: X, title: "No credit transfers", desc: "Between accounts" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 bg-white/[0.02] rounded-xl">
+                      <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                        <item.icon className="w-5 h-5 text-red-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white">{item.title}</p>
+                        <p className="text-sm text-gray-400">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
+                <p className="text-gray-400 text-sm">
+                  By making a purchase, you acknowledge and agree to this no-refund policy. We encourage you to try our
+                  free features before purchasing.
+                </p>
               </div>
-            </Section>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* 7. Chargebacks */}
-            <Section id="chargebacks" icon={AlertCircle} title="7. Chargebacks and Disputes" variant="warning">
-              <div className="space-y-4">
-                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                  <h4 className="text-lg font-semibold text-amber-400 mb-2">7.1 Contact Us First</h4>
-                  <p className="text-gray-400">
-                    Before filing a chargeback or payment dispute with your bank, please contact us at{" "}
-                    <a href="mailto:billing@onelastai.com" className="text-cyan-400 hover:text-cyan-300 underline">billing@onelastai.com</a>. We&apos;re committed to resolving billing issues quickly.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">7.2 Chargeback Policy</h4>
-                  <p className="mb-3">Filing a chargeback for a legitimate charge may result in:</p>
-                  <ul className="space-y-1 text-gray-400">
-                    <li>• Immediate account suspension</li>
-                    <li>• Permanent ban from future services</li>
-                    <li>• Legal action for fraudulent chargebacks</li>
-                    <li>• Collection of chargeback fees ($15-25)</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">7.3 Legitimate Disputes</h4>
-                  <p className="mb-2">We will work with you on legitimate billing errors such as:</p>
-                  <ul className="space-y-1 text-gray-400">
-                    <li>• Charges after proper cancellation</li>
-                    <li>• Duplicate transactions</li>
-                    <li>• Unauthorized account access</li>
-                    <li>• System processing errors</li>
-                  </ul>
-                  <p className="text-sm text-gray-500 mt-3">These issues will be investigated and resolved within 5-7 business days.</p>
-                </div>
+      {/* CANCELLATION */}
+      <section className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Cancellation */}
+            <div className="section-animate rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-8 hover:border-[#00d4ff]/30 transition-all">
+              <div className="flex items-center gap-3 mb-6">
+                <Calendar className="w-8 h-8 text-[#00d4ff]" />
+                <h3 className="text-2xl font-bold">Cancellation</h3>
               </div>
-            </Section>
-
-            {/* 8. Price Changes */}
-            <Section id="price-changes" icon={Bell} title="8. Price Changes">
-              <p className="mb-4">We reserve the right to change our pricing at any time. Price changes will:</p>
-              <ul className="space-y-2">
+              <p className="text-gray-400 mb-6">
+                You may cancel your subscription at any time through your account settings.
+              </p>
+              <ul className="space-y-3">
                 {[
-                  "Be communicated at least 30 days in advance via email",
-                  "Apply to all new purchases immediately upon announcement",
-                  "Not affect any active access periods already purchased at the old price",
-                  "Allow you to make final purchases at current prices before changes take effect"
+                  "Access continues until end of billing period",
+                  "No partial refunds for remaining time",
+                  "You can reactivate anytime",
+                  "Data retained for 30 days after expiry",
                 ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
-                    <span className="text-gray-400">{item}</span>
+                  <li key={i} className="flex items-center gap-3">
+                    <Check className="w-4 h-4 text-[#00d4ff]" />
+                    <span className="text-gray-300">{item}</span>
                   </li>
                 ))}
               </ul>
-              <p className="text-sm text-gray-500 mt-4">
-                Since there&apos;s no auto-renewal, you&apos;re never locked into new pricing - you simply choose whether to purchase again at the new rates.
+            </div>
+
+            {/* Chargebacks */}
+            <div className="section-animate rounded-2xl bg-amber-500/10 border border-amber-500/20 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <AlertCircle className="w-8 h-8 text-amber-400" />
+                <h3 className="text-2xl font-bold text-amber-400">Chargebacks</h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                Disputing a charge with your bank without contacting us first may result in:
               </p>
-            </Section>
-
-            {/* 9. Contact */}
-            <Section id="contact" icon={Mail} title="9. Contact Billing Support">
-              <p className="mb-6">For billing questions and support:</p>
-              
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl">
-                  <h4 className="font-semibold text-white mb-2">Billing</h4>
-                  <a href="mailto:billing@onelastai.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                    billing@onelastai.com
-                  </a>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-xl">
-                  <h4 className="font-semibold text-white mb-2">Support</h4>
-                  <a href="mailto:support@onelastai.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                    support@onelastai.com
-                  </a>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-sm text-gray-400">
-                  <strong className="text-white">Response Time:</strong> We respond to all billing inquiries within 24-48 hours (Monday-Friday, excluding holidays).
-                </p>
-              </div>
-            </Section>
+              <ul className="space-y-3">
+                {[
+                  "Immediate account suspension",
+                  "Permanent account termination",
+                  "Collection actions for owed amounts",
+                  "Prohibition from future services",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <span className="text-gray-300">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm text-gray-400 mt-6">
+                Please contact us at billing@onelastai.com before filing a dispute.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* PRICE CHANGES */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="section-animate rounded-3xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-white/10 p-8 md:p-12">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center">
+                <RefreshCcw className="w-6 h-6 text-[#00d4ff]" />
+              </div>
+              <h2 className="text-3xl font-bold">Price Changes</h2>
+            </div>
+
+            <p className="text-gray-400 mb-8">
+              We may update our prices from time to time. Here&apos;s how we handle price changes:
+            </p>
+
+            <div className="space-y-4">
+              {[
+                { title: "Advance Notice", desc: "You will receive at least 30 days notice before any price increase" },
+                {
+                  title: "Current Subscribers",
+                  desc: "Existing subscriptions continue at current price until the next billing cycle after notice period",
+                },
+                { title: "New Purchases", desc: "New prices apply immediately to new subscriptions" },
+                { title: "Right to Cancel", desc: "You may cancel before the new price takes effect" },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#00d4ff]/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bell className="w-4 h-4 text-[#00d4ff]" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white">{item.title}</h4>
+                    <p className="text-sm text-gray-400">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT CTA */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="section-animate rounded-3xl bg-gradient-to-br from-[#1a1a2e] to-[#0a0a0a] border border-white/10 p-12 md:p-16 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-radial from-[#00d4ff]/20 via-transparent to-transparent blur-3xl"></div>
+
+            <div className="relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00d4ff]/20 to-transparent flex items-center justify-center mx-auto mb-6">
+                <Mail className="w-8 h-8 text-[#00d4ff]" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Billing Questions?</h2>
+              <p className="text-gray-400 mb-10 max-w-2xl mx-auto">
+                If you have any questions about payments, billing, or this policy, please contact our billing team.
+              </p>
+
+              <a
+                href="mailto:billing@onelastai.com"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#00d4ff] to-[#00a8cc] text-black font-semibold rounded-2xl hover:opacity-90 transition-opacity"
+              >
+                <Mail className="w-5 h-5" />
+                Contact Billing Team
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CSS for gradient-radial */}
+      <style jsx>{`
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
+        }
+      `}</style>
     </div>
   );
 }
