@@ -1,190 +1,226 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { gsap } from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const creativeStyles = `
-  .glass-card {
-    background: rgba(30, 30, 35, 0.9);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .glow-card {
-    position: relative;
-    background: linear-gradient(135deg, rgba(40, 40, 50, 0.95) 0%, rgba(25, 25, 35, 0.95) 100%);
-    border: 1px solid rgba(255,255,255,0.12);
-  }
-  .glow-card::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg, #00d4ff, #a855f7, #00ff88);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  .glow-card:hover::before { opacity: 1; }
-  .input-glow:focus {
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-  }
-  .shimmer-card {
-    position: relative;
-    overflow: hidden;
-  }
-  .shimmer-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-    transition: left 0.6s ease;
-  }
-  .shimmer-card:hover::after { left: 100%; }
-  .float-card {
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
-  }
-  .float-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
-  }
-`
-
-export default function BookConsultation() {
+export default function BookConsultationPage() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [formData, setFormData] = useState({
+    name: '', email: '', company: '', phone: '', topic: '', message: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
-  const steps = [
-    { icon: '📅', title: 'Schedule', description: 'Choose a time that works for you', color: '#00d4ff' },
-    { icon: '💬', title: 'Discuss', description: 'Talk about your AI agent needs', color: '#a855f7' },
-    { icon: '🚀', title: 'Launch', description: 'Get started with your solution', color: '#00ff88' }
+  const topics = [
+    'Getting Started',
+    'Enterprise Solutions',
+    'API Integration',
+    'Custom AI Agents',
+    'Billing & Plans',
+    'Technical Support',
+    'Other'
   ]
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.hero-content', { opacity: 0, y: 50, duration: 1, ease: 'power3.out' })
-      gsap.from('.step-card', { opacity: 0, y: 30, duration: 0.6, stagger: 0.15, delay: 0.3, ease: 'power3.out' })
-      gsap.from('.form-container', { opacity: 0, y: 40, duration: 0.8, delay: 0.5, ease: 'power3.out', scrollTrigger: { trigger: '.form-container', start: 'top 85%' } })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [])
+  const benefits = [
+    { icon: '🎯', title: 'Personalized Guidance', desc: 'One-on-one session tailored to your needs' },
+    { icon: '⚡', title: 'Quick Resolution', desc: 'Get answers to complex questions fast' },
+    { icon: '🔧', title: 'Expert Support', desc: 'Direct access to our technical team' },
+  ]
 
-  const handleTilt = (e: React.MouseEvent<HTMLElement>, card: HTMLElement) => {
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateX = (y - centerY) / 15
-    const rotateY = (centerX - x) / 15
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`
-  }
+  useGSAP(() => {
+    gsap.fromTo('.hero-title', 
+      { opacity: 0, y: 100, rotateX: 20 }, 
+      { opacity: 1, y: 0, rotateX: 0, duration: 1.2, ease: 'power3.out' }
+    )
+    gsap.fromTo('.hero-subtitle', 
+      { opacity: 0, y: 50 }, 
+      { opacity: 1, y: 0, duration: 0.8, delay: 0.3, ease: 'power3.out' }
+    )
+    gsap.fromTo('.benefit-card',
+      { opacity: 0, y: 40, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1, delay: 0.4, ease: 'back.out(1.5)' }
+    )
+    gsap.fromTo('.form-section',
+      { opacity: 0, y: 60 },
+      { opacity: 1, y: 0, duration: 0.8, delay: 0.6, ease: 'power3.out' }
+    )
+  }, { scope: containerRef })
 
-  const resetTilt = (card: HTMLElement) => {
-    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)'
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    setSubmitted(true)
+    setIsSubmitting(false)
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a]">
-      <style dangerouslySetInnerHTML={{ __html: creativeStyles }} />
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+      <style jsx global>{`
+        .glass-card {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(0, 212, 255, 0.3);
+        }
+        .input-field {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          transition: all 0.3s ease;
+        }
+        .input-field:focus {
+          border-color: #00d4ff;
+          box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+          outline: none;
+        }
+        .float-card {
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+        .float-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 25px 50px -12px rgba(0, 212, 255, 0.25);
+        }
+      `}</style>
 
       {/* Hero */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00d4ff]/10 via-[#a855f7]/10 to-[#00ff88]/10" />
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[#00d4ff] rounded-full filter blur-[100px]" />
-          <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#a855f7] rounded-full filter blur-[100px]" />
+      <section className="pt-32 pb-16 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/50 via-[#0a0a0a] to-[#0a0a0a]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(circle,rgba(0,212,255,0.1),transparent)] blur-3xl"></div>
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h1 className="hero-title text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent opacity-0">
+            Book a Consultation
+          </h1>
+          <p className="hero-subtitle text-lg text-gray-400 max-w-xl mx-auto opacity-0">
+            Schedule a one-on-one session with our experts. We&apos;ll help you get the most out of our platform.
+          </p>
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="hero-content text-center max-w-4xl mx-auto mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-[#00d4ff] via-[#a855f7] to-[#00ff88] bg-clip-text text-transparent">
-                Book a Consultation
-              </span>
-            </h1>
-            <p className="text-xl text-gray-400 leading-relaxed">
-              Schedule a personalized consultation with our AI experts to discuss your specific needs and goals.
-            </p>
-          </div>
+      </section>
 
-          {/* Steps */}
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {steps.map((step, i) => (
-                <div
-                  key={i}
-                  className="step-card glass-card glow-card shimmer-card rounded-2xl p-6 text-center transition-all duration-300"
-                  onMouseMove={(e) => handleTilt(e, e.currentTarget)}
-                  onMouseLeave={(e) => resetTilt(e.currentTarget)}
-                  style={{ transformStyle: 'preserve-3d' }}
-                >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ background: `${step.color}22` }}>
-                    <span className="text-3xl">{step.icon}</span>
-                  </div>
-                  <h3 className="font-bold text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-gray-400">{step.description}</p>
-                </div>
-              ))}
-            </div>
+      {/* Benefits */}
+      <section className="py-12 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {benefits.map((benefit, i) => (
+              <div key={i} className="benefit-card text-center rounded-2xl p-6 glass-card float-card opacity-0">
+                <div className="text-4xl mb-4">{benefit.icon}</div>
+                <h3 className="text-lg font-bold text-white mb-2">{benefit.title}</h3>
+                <p className="text-sm text-gray-400">{benefit.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Form */}
-      <section className="py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="form-container glass-card glow-card rounded-3xl p-8 md:p-10">
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">First Name</label>
-                  <input type="text" className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] input-glow transition-all" placeholder="John" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
-                  <input type="text" className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] input-glow transition-all" placeholder="Doe" />
-                </div>
+      {/* Booking Form */}
+      <section className="py-20 px-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="form-section rounded-2xl p-8 glass-card opacity-0">
+            {submitted ? (
+              <div className="text-center py-10">
+                <div className="text-6xl mb-6">📅</div>
+                <h2 className="text-2xl font-bold mb-4 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent">
+                  Consultation Requested!
+                </h2>
+                <p className="text-gray-400 mb-6">We&apos;ll reach out within 24 hours to confirm your appointment.</p>
+                <Link href="/support" className="inline-block px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 transition-all">
+                  Back to Support
+                </Link>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                <input type="email" className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] input-glow transition-all" placeholder="john@company.com" />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Company</label>
-                <input type="text" className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] input-glow transition-all" placeholder="Your company name" />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">What are you interested in?</label>
-                <select className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-[#00d4ff] input-glow transition-all">
-                  <option value="" className="bg-[#1a1a1a]">Select an option</option>
-                  <option value="enterprise" className="bg-[#1a1a1a]">Enterprise Solutions</option>
-                  <option value="agents" className="bg-[#1a1a1a]">AI Agent Implementation</option>
-                  <option value="custom" className="bg-[#1a1a1a]">Custom Development</option>
-                  <option value="consulting" className="bg-[#1a1a1a]">Strategy Consulting</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Tell us about your project</label>
-                <textarea rows={4} className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] input-glow transition-all resize-none" placeholder="Describe your needs, goals, and timeline..."></textarea>
-              </div>
-              
-              <button type="submit" className="w-full py-4 bg-gradient-to-r from-[#00d4ff] to-[#a855f7] text-white font-bold rounded-xl hover:shadow-xl shadow-lg shadow-[#00d4ff]/25 transition-all transform hover:scale-[1.02]">
-                Schedule Consultation
-              </button>
-            </form>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold mb-6 bg-gradient-to-b from-white via-white to-gray-400 bg-clip-text text-transparent">
+                  Schedule Your Session
+                </h2>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 input-field"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Email Address *</label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 input-field"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Company</label>
+                      <input
+                        type="text"
+                        value={formData.company}
+                        onChange={e => setFormData({ ...formData, company: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 input-field"
+                        placeholder="Your Company"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 input-field"
+                        placeholder="+1 234 567 890"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Consultation Topic *</label>
+                    <select
+                      required
+                      value={formData.topic}
+                      onChange={e => setFormData({ ...formData, topic: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl text-white input-field"
+                    >
+                      <option value="" className="bg-[#0a0a0a]">Select a topic</option>
+                      {topics.map((topic, i) => (
+                        <option key={i} value={topic} className="bg-[#0a0a0a]">{topic}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Additional Details</label>
+                    <textarea
+                      rows={4}
+                      value={formData.message}
+                      onChange={e => setFormData({ ...formData, message: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 resize-none input-field"
+                      placeholder="Tell us what you'd like to discuss..."
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-4 rounded-xl bg-gradient-to-r from-[#00d4ff] to-[#0066ff] text-white font-semibold hover:shadow-lg hover:shadow-[#00d4ff]/25 transition-all hover:scale-[1.02] disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Scheduling...' : 'Request Consultation'}
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </section>
