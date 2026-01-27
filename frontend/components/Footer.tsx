@@ -8,12 +8,20 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const footerRef = useRef<HTMLElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
   const linksRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
 
+  // Set mounted immediately to ensure footer is visible
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     const initGSAP = async () => {
       // Check if all refs are available before running GSAP
       if (!footerRef.current || !brandRef.current || !linksRef.current || !ctaRef.current) {
@@ -23,12 +31,15 @@ export default function Footer() {
       const gsap = (await import('gsap')).default;
       const { ScrollTrigger } = await import('gsap/ScrollTrigger');
       gsap.registerPlugin(ScrollTrigger);
+      
+      // Refresh ScrollTrigger on navigation
+      ScrollTrigger.refresh();
 
       // Animate elements when footer comes into view
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: footerRef.current,
-          start: 'top 90%',
+          start: 'top 95%',
           toggleActions: 'play none none reverse'
         }
       });
@@ -47,10 +58,20 @@ export default function Footer() {
         { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
         '-=0.3'
       );
+      
+      // If footer is already in view, play immediately
+      if (footerRef.current) {
+        const rect = footerRef.current.getBoundingClientRect();
+        if (rect.top < window.innerHeight) {
+          tl.progress(1);
+        }
+      }
     };
 
-    initGSAP();
-  }, []);
+    // Small delay to ensure DOM is ready after navigation
+    const timer = setTimeout(initGSAP, 100);
+    return () => clearTimeout(timer);
+  }, [mounted]);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,8 +127,8 @@ export default function Footer() {
       <div className="relative z-10 container-custom py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           
-          {/* Left Column: Brand & Description */}
-          <div ref={brandRef}>
+          {/* Left Column: Brand & Description - opacity-100 ensures visibility */}
+          <div ref={brandRef} style={{ opacity: 1 }}>
             <Link href="/" className="flex items-center gap-3 mb-4 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-brand-500/20 rounded-xl blur-xl group-hover:bg-brand-500/40 transition-all duration-300"></div>
@@ -129,7 +150,7 @@ export default function Footer() {
           </div>
 
           {/* Right Column: Navigation Links - Brand Theme Style */}
-          <div ref={linksRef}>
+          <div ref={linksRef} style={{ opacity: 1 }}>
             <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg hover:shadow-xl hover:border-brand-500/30 transition-all duration-300">
               <h3 className="text-sm font-bold bg-gradient-to-r from-brand-400 via-accent-400 to-brand-500 bg-clip-text text-transparent uppercase tracking-wider mb-5">Quick Links</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-4 gap-y-3">
@@ -150,7 +171,7 @@ export default function Footer() {
       </div>
 
       {/* CTA Banner - Sky Blue with 2-column layout: Email left, App badges right */}
-      <div ref={ctaRef} className="relative z-10 bg-[#4A9FD4] overflow-hidden">
+      <div ref={ctaRef} style={{ opacity: 1 }} className="relative z-10 bg-[#4A9FD4] overflow-hidden">
         <div className="relative container-custom py-5 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-6">
             {/* Left: Email Subscription */}
