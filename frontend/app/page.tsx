@@ -3,6 +3,7 @@ import FeatureSection from '@/components/FeatureSection';
 import TestimonialSection from '@/components/TestimonialSection';
 import CommunityStats from '@/components/CommunityStats';
 import NewsletterSection from '@/components/NewsletterSection';
+import AgentShowcaseCarousel from '@/components/AgentShowcaseCarousel';
 import Link from 'next/link';
 
 // Homepage showcasing the fixed design system
@@ -226,7 +227,7 @@ export default function HomePage() {
       {/* GSAP Hero Section - Clean, professional animation */}
       <HeroSectionGSAP />
 
-      {/* AI-Powered Agents Section - Image Right */}
+      {/* AI-Powered Agents Section - Image Right with Rotating Screenshots */}
       <section className="section-padding bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-brand-500 rounded-full filter blur-3xl"></div>
@@ -247,10 +248,35 @@ export default function HomePage() {
                 <span className="bg-gradient-to-r from-brand-400 via-accent-400 to-brand-500 bg-clip-text text-transparent"> AI Personalities</span>
               </h2>
               <p className="text-lg text-neural-300 mb-8 leading-relaxed">
-                Access Einstein, Shakespeare, Tesla, and more. Each agent brings unique expertise to solve your specific challenges with human-like conversation.
+                From intelligent conversations to creative canvas building - experience the future of AI interaction. Each agent brings unique expertise with beautiful, intuitive interfaces.
               </p>
-              <ul className="space-y-4 mb-8">
-                {['Einstein - Physics & Science', 'Tech Wizard - Coding & Innovation', 'Mrs Boss - Leadership & Strategy', 'Chef Biew - Culinary Expertise', 'Emma Emotional - Empathy & Support'].map((feature, idx) => (
+              
+              {/* Feature Highlights */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                  <div className="text-2xl mb-2">💬</div>
+                  <div className="text-sm font-semibold text-white">Smart Chat</div>
+                  <div className="text-xs text-neural-400">Human-like conversations</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                  <div className="text-2xl mb-2">🎨</div>
+                  <div className="text-sm font-semibold text-white">AI Canvas</div>
+                  <div className="text-xs text-neural-400">Build websites & apps</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                  <div className="text-2xl mb-2">⚙️</div>
+                  <div className="text-sm font-semibold text-white">Neural Config</div>
+                  <div className="text-xs text-neural-400">Customize behavior</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                  <div className="text-2xl mb-2">🎙️</div>
+                  <div className="text-sm font-semibold text-white">Voice Chat</div>
+                  <div className="text-xs text-neural-400">Talk naturally</div>
+                </div>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                {['Einstein - Physics & Science', 'Julie - Your AI Companion', 'Tech Wizard - Coding & Innovation', 'Mrs Boss - Leadership & Strategy'].map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-neural-200 hover:text-white transition-colors">
                     <span className="flex-shrink-0 w-6 h-6 bg-brand-500/30 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,14 +295,9 @@ export default function HomePage() {
               </Link>
             </div>
             
-            {/* Right - Image */}
+            {/* Right - Rotating Screenshots */}
             <div className="relative">
-              <img
-                src="/images/products/ai-agents.jpeg"
-                alt="AI-Powered Agents"
-                className="rounded-2xl shadow-2xl border border-white/10 w-full object-cover"
-                style={{ maxHeight: '450px' }}
-              />
+              <AgentShowcaseCarousel />
               <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/30">
                 <span className="text-4xl">🤖</span>
               </div>
