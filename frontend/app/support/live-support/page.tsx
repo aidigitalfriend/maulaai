@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Send,
@@ -23,9 +24,103 @@ import {
   CheckCircle,
   Zap,
   Clock,
+  Moon,
+  Heart,
+  Sparkles,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+// Luna's Avatar Component with breathing animation
+const LunaAvatar = ({ size = 'md', isTyping = false, mood = 'happy' }: { size?: 'sm' | 'md' | 'lg', isTyping?: boolean, mood?: 'happy' | 'thinking' | 'concerned' }) => {
+  const sizeClasses = {
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-14 h-14'
+  };
+  
+  const moodColors = {
+    happy: 'from-purple-500 via-pink-500 to-rose-400',
+    thinking: 'from-blue-500 via-indigo-500 to-purple-500',
+    concerned: 'from-amber-400 via-orange-400 to-pink-400'
+  };
+  
+  return (
+    <div className="relative">
+      <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${moodColors[mood]} p-0.5 ${isTyping ? 'animate-pulse' : ''}`}>
+        <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center relative overflow-hidden">
+          <Moon className="w-1/2 h-1/2 text-amber-200" />
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/10"></div>
+        </div>
+      </div>
+      {/* Online indicator */}
+      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${isTyping ? 'bg-amber-400 animate-pulse' : 'bg-green-500'}`}></div>
+      {/* Sparkle effect when typing */}
+      {isTyping && (
+        <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-amber-400 animate-ping" />
+      )}
+    </div>
+  );
+};
+
+// Enhanced typing indicator with personality
+const LunaTypingIndicator = () => {
+  const [dots, setDots] = useState(1);
+  const messages = [
+    "Luna is thinking...",
+    "Luna is crafting a response...",
+    "Luna is here for you...",
+    "Let me think about this...",
+  ];
+  const [message, setMessage] = useState(messages[0]);
+  
+  useEffect(() => {
+    const dotInterval = setInterval(() => {
+      setDots(d => d >= 3 ? 1 : d + 1);
+    }, 500);
+    
+    const messageInterval = setInterval(() => {
+      setMessage(messages[Math.floor(Math.random() * messages.length)]);
+    }, 3000);
+    
+    return () => {
+      clearInterval(dotInterval);
+      clearInterval(messageInterval);
+    };
+  }, []);
+  
+  return (
+    <div className="flex items-start gap-3">
+      <LunaAvatar size="sm" isTyping={true} mood="thinking" />
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm max-w-xs">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            <div className={`w-2 h-2 bg-indigo-400 rounded-full ${dots >= 1 ? 'opacity-100' : 'opacity-30'} transition-opacity`}></div>
+            <div className={`w-2 h-2 bg-purple-400 rounded-full ${dots >= 2 ? 'opacity-100' : 'opacity-30'} transition-opacity`}></div>
+            <div className={`w-2 h-2 bg-pink-400 rounded-full ${dots >= 3 ? 'opacity-100' : 'opacity-30'} transition-opacity`}></div>
+          </div>
+          <span className="text-xs text-indigo-600 italic">{message}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Get contextual greeting based on time
+const getTimeBasedGreeting = (userName: string) => {
+  const hour = new Date().getHours();
+  const name = userName || 'there';
+  
+  if (hour >= 5 && hour < 12) {
+    return `Good morning, ${name}! ☀️ I'm Luna, and I'm so happy you're here. How can I brighten your day?`;
+  } else if (hour >= 12 && hour < 17) {
+    return `Hey ${name}! 🌸 Luna here~ I hope your afternoon is going well. What brings you by today?`;
+  } else if (hour >= 17 && hour < 21) {
+    return `Good evening, ${name}! 🌙 I'm Luna. Winding down from the day? I'm here if you need anything!`;
+  } else {
+    return `Hey ${name}~ 🌙✨ Burning the midnight oil? I'm Luna, and I'm here with you. What can I help with tonight?`;
+  }
+};
 
 // Social Media Icon component
 const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
@@ -219,10 +314,11 @@ export default function LiveSupportPage() {
 
   const initializeChat = useCallback(() => {
     const userName = auth.state.user?.name || 'lovely';
+    const greeting = getTimeBasedGreeting(userName);
     const welcomeMessage: Message = {
       id: '0',
       role: 'assistant',
-      content: `Hey there, ${userName}! 🌙💕\n\nI'm Luna, your personal support companion here at One Last AI! It's so wonderful to have you here, darling!\n\nHow can I make your day better today? 🥰`,
+      content: greeting,
       timestamp: new Date(),
     };
     setMessages([welcomeMessage]);
@@ -465,33 +561,32 @@ export default function LiveSupportPage() {
 
   if (showLoginPrompt && !auth.state.isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-xl">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
-              <Phone size={32} className="text-white" />
+          <div className="bg-white rounded-2xl p-8 border border-purple-200 shadow-xl">
+            <div className="mb-6">
+              <LunaAvatar size="lg" mood="happy" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Live Support</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">Meet Luna 🌙</h1>
             <p className="text-gray-600 mb-8">
-              Please log in to access our real-time AI support agent with
-              personalized assistance based on your account.
+              Hi there! I'm Luna, your personal support companion. Sign in so I can get to know you better and help you with anything you need! 💕
             </p>
 
             <div className="space-y-3">
               <Link
                 href="/auth/login"
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <AlertCircle size={18} />
-                Sign In Now
+                <Heart size={18} />
+                Sign In to Chat with Luna
               </Link>
               <p className="text-sm text-gray-500">
                 Don't have an account?{' '}
                 <Link
                   href="/auth/signup"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-purple-600 hover:text-purple-700 font-medium"
                 >
-                  Sign up here
+                  Join the family ✨
                 </Link>
               </p>
             </div>
@@ -502,30 +597,41 @@ export default function LiveSupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50/50 to-pink-50/50">
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
+        }
+      `}</style>
       <div className="flex h-screen overflow-hidden">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
           <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <MessageCircle size={20} className="text-white" />
-              </div>
+              <LunaAvatar size="md" isTyping={isStreamingResponse} mood={isStreamingResponse ? 'thinking' : 'happy'} />
               <div>
-                <h1 className="font-bold text-lg text-gray-900">Live Support</h1>
+                <h1 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                  Luna
+                  <span className="text-xs font-normal px-2 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 rounded-full">AI Companion</span>
+                </h1>
                 <p className="text-sm text-gray-500 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  AI-Powered Support Agent
+                  {isStreamingResponse ? 'Thinking of you...' : 'Here for you 💕'}
                 </p>
               </div>
             </div>
 
             {userProfile && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-xl">
+                <Heart size={14} className="text-pink-400" />
                 <span className="text-sm text-gray-700">
-                  <span className="text-gray-500">Account:</span>{' '}
-                  <span className="font-medium">{userProfile.name}</span>
+                  <span className="text-gray-500">Welcome,</span>{' '}
+                  <span className="font-medium text-purple-700">{userProfile.name}</span>
                 </span>
               </div>
             )}
@@ -534,65 +640,65 @@ export default function LiveSupportPage() {
           {/* Messages Container */}
           <div
             ref={messageContainerRef}
-            className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-white/50"
+            className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-purple-50/30 via-transparent to-white/50"
           >
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
                 className={`flex ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
+                } animate-fade-in`}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
+                {/* Luna's avatar for assistant messages */}
+                {message.role === 'assistant' && (
+                  <div className="mr-2 flex-shrink-0">
+                    <LunaAvatar size="sm" mood="happy" />
+                  </div>
+                )}
                 <div
-                  className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-2xl shadow-sm ${
+                  className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-2xl shadow-sm transition-all duration-300 ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-sm'
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-br-sm'
                       : message.role === 'system'
                       ? 'bg-amber-50 border border-amber-200 text-amber-800'
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm'
-                  }`}
+                      : 'bg-gradient-to-r from-white to-purple-50/50 border border-purple-100 text-gray-800 rounded-bl-sm'
+                  } ${message.isStreaming ? 'ring-2 ring-purple-300 ring-opacity-50' : ''}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                     {message.content}
                   </p>
-                  <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
+                  <p className={`text-xs mt-2 flex items-center gap-1 ${message.role === 'user' ? 'text-white/70' : 'text-gray-400'}`}>
+                    {message.role === 'assistant' && <Moon size={10} className="text-purple-400" />}
                     {message.timestamp.toLocaleTimeString()}
+                    {message.isStreaming && <span className="ml-1 text-purple-500">✨</span>}
                   </p>
                 </div>
               </div>
             ))}
 
-            {isStreamingResponse && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
-                  </div>
-                </div>
-              </div>
+            {isStreamingResponse && messages[messages.length - 1]?.role !== 'assistant' && (
+              <LunaTypingIndicator />
             )}
 
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}
-          <div className="bg-white/80 backdrop-blur-xl border-t border-gray-200 p-6">
+          <div className="bg-white/80 backdrop-blur-xl border-t border-purple-100 p-6">
             {ticketGenerated && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+              <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle size={18} className="text-blue-600" />
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Heart size={18} className="text-purple-600" />
                   </div>
-                  <span className="text-sm text-blue-800">
-                    Your issue needs escalation. Our team will create a support
-                    ticket.
+                  <span className="text-sm text-purple-800">
+                    Luna thinks our human team should take a closer look at this for you 💕
                   </span>
                 </div>
                 <button
                   onClick={generateTicket}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-purple-500/25"
                 >
                   Create Ticket
                 </button>
@@ -604,19 +710,21 @@ export default function LiveSupportPage() {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Describe your issue or ask a question..."
+                placeholder="Talk to Luna... she's listening 💕"
                 disabled={isLoading}
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all"
+                className="flex-1 bg-gradient-to-r from-purple-50/50 to-pink-50/50 border border-purple-200 rounded-xl px-4 py-3 text-gray-900 placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent disabled:opacity-50 transition-all"
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
-                className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
+                className="px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white group"
               >
                 {isLoading ? (
                   <Loader size={18} className="animate-spin" />
                 ) : (
-                  <Send size={18} />
+                  <>
+                    <Send size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </>
                 )}
               </button>
             </form>
@@ -625,14 +733,14 @@ export default function LiveSupportPage() {
             <div className="mt-4 flex gap-2 flex-wrap">
               <button
                 onClick={downloadChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg text-sm text-purple-700 transition-colors"
               >
                 <DownloadCloud size={16} />
                 Download
               </button>
               <button
                 onClick={copyChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg text-sm text-purple-700 transition-colors"
               >
                 <Copy size={16} />
                 Copy
@@ -642,11 +750,26 @@ export default function LiveSupportPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto hidden lg:block">
+        <div className="w-80 bg-gradient-to-b from-white to-purple-50/30 border-l border-purple-100 p-6 overflow-y-auto hidden lg:block">
+          {/* Luna's Introduction */}
+          <div className="mb-6 p-4 bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 rounded-2xl border border-purple-200 text-center">
+            <LunaAvatar size="lg" mood="happy" />
+            <h3 className="font-bold text-lg text-gray-900 mt-3">Hi, I'm Luna! 🌙</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Your personal support companion. I'm here to help with anything about One Last AI!
+            </p>
+            <div className="flex justify-center gap-2 mt-3">
+              <span className="px-2 py-1 bg-white/70 rounded-full text-xs text-purple-600">💕 Caring</span>
+              <span className="px-2 py-1 bg-white/70 rounded-full text-xs text-pink-600">✨ Helpful</span>
+              <span className="px-2 py-1 bg-white/70 rounded-full text-xs text-indigo-600">🌙 24/7</span>
+            </div>
+          </div>
+          
           {/* User Profile Section */}
           {userProfile && (
-            <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <h3 className="font-bold mb-3 text-sm uppercase text-gray-500">
+            <div className="mb-8 p-4 bg-white rounded-xl border border-purple-100 shadow-sm">
+              <h3 className="font-bold mb-3 text-sm uppercase text-purple-500 flex items-center gap-2">
+                <Heart size={14} />
                 Your Profile
               </h3>
               <div className="space-y-2 text-sm">
@@ -662,7 +785,7 @@ export default function LiveSupportPage() {
                   <span className="text-gray-500">Status:</span>
                   <p className="text-gray-900 font-medium flex items-center gap-2">
                     {userProfile.subscription === 'Active' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-xs font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                         Active
                       </span>
@@ -686,12 +809,12 @@ export default function LiveSupportPage() {
                   </p>
                 </div>
                 {userProfile.subscription === 'Inactive' && (
-                  <div className="pt-2 mt-2 border-t border-gray-200">
+                  <div className="pt-2 mt-2 border-t border-purple-100">
                     <Link
                       href="/pricing"
-                      className="block w-full text-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
+                      className="block w-full text-center px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-purple-500/25"
                     >
-                      Browse Agents
+                      Browse Agents ✨
                     </Link>
                   </div>
                 )}
@@ -778,15 +901,15 @@ export default function LiveSupportPage() {
           </div>
 
           {/* Support Hours */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <div className="mt-8 p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border border-purple-200">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Clock size={16} className="text-blue-600" />
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <Moon size={16} className="text-purple-600" />
               </div>
-              <h3 className="font-bold text-sm text-gray-900">Support Hours</h3>
+              <h3 className="font-bold text-sm text-gray-900">Always Here For You</h3>
             </div>
             <p className="text-xs text-gray-600">
-              24/7 AI Support • Human team Monday-Friday, 9AM-6PM EST
+              Luna is available 24/7 💕 Our human team is here Monday-Friday, 9AM-6PM EST
             </p>
           </div>
         </div>
