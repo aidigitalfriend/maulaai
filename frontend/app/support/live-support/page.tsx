@@ -1,859 +1,292 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  Send,
-  Mic,
-  Phone,
-  MessageCircle,
-  HelpCircle,
-  Users,
-  Mail,
-  Facebook,
-  Instagram,
-  Github,
-  X,
-  MessageSquare,
-  Copy,
-  DownloadCloud,
-  Loader,
-  AlertCircle,
-  CheckCircle,
-  Zap,
-  Clock,
-} from 'lucide-react';
+import Link from 'next/link'
+import { useState, useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-export const dynamic = 'force-dynamic';
+gsap.registerPlugin(ScrollTrigger)
 
-// Social Media Icon component
-const SocialIcon = ({ icon: Icon, href, label, color }: any) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className={`p-3 rounded-lg transition-all duration-300 hover:scale-110 ${color}`}
-    title={label}
-    aria-label={label}
-  >
-    <Icon size={20} />
-  </a>
-);
-
-// Support button component
-const SupportButton = ({ icon: Icon, label, href, onClick }: any) => (
-  <button
-    onClick={onClick}
-    className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-white border border-neural-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 text-neural-700 group"
-  >
-    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-      <Icon size={16} className="text-white" />
-    </div>
-    <span className="text-sm font-medium">{label}</span>
-  </button>
-);
+const creativeStyles = `
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glow-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .chat-bubble-user {
+    background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%);
+    border-radius: 20px 20px 4px 20px;
+  }
+  .chat-bubble-ai {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px 20px 20px 4px;
+  }
+  .input-glow:focus {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  }
+  .typing-dot {
+    animation: typingBounce 1.4s infinite ease-in-out both;
+  }
+  .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+  .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .pulse-online {
+    animation: pulseOnline 2s infinite;
+  }
+  @keyframes pulseOnline {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
+  }
+`
 
 interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date;
-  isStreaming?: boolean;
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
 }
-
-interface SupportTicket {
-  id: string;
-  userId: string;
-  userEmail: string;
-  userName: string;
-  subscription?: string;
-  issue: string;
-  status: 'open' | 'in-progress' | 'escalated' | 'resolved';
-  createdAt: Date;
-  messages: Message[];
-}
-
-const SOCIAL_LINKS = [
-  {
-    icon: Facebook,
-    href: 'https://facebook.com',
-    label: 'Facebook',
-    color: 'bg-blue-600 hover:bg-blue-700 text-white',
-  },
-  {
-    icon: Instagram,
-    href: 'https://instagram.com',
-    label: 'Instagram',
-    color: 'bg-pink-600 hover:bg-pink-700 text-white',
-  },
-  {
-    icon: Github,
-    href: 'https://github.com',
-    label: 'GitHub',
-    color: 'bg-gray-700 hover:bg-gray-800 text-white',
-  },
-  {
-    icon: X,
-    href: 'https://twitter.com',
-    label: 'X (Twitter)',
-    color: 'bg-black hover:bg-gray-900 text-white',
-  },
-  {
-    icon: MessageSquare,
-    href: 'https://line.me',
-    label: 'LINE',
-    color: 'bg-green-500 hover:bg-green-600 text-white',
-  },
-  {
-    icon: MessageCircle,
-    href: 'https://telegram.me',
-    label: 'Telegram',
-    color: 'bg-cyan-500 hover:bg-cyan-600 text-white',
-  },
-  {
-    icon: MessageCircle,
-    href: 'https://tiktok.com',
-    label: 'TikTok',
-    color: 'bg-black hover:bg-gray-900 text-white',
-  },
-];
 
 export default function LiveSupportPage() {
-  const auth = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isStreamingResponse, setIsStreamingResponse] = useState(false);
-  const [showLoginPrompt, setShowLoginPrompt] = useState(
-    !auth.state.isAuthenticated
-  );
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [supportTicket, setSupportTicket] = useState<SupportTicket | null>(
-    null
-  );
-  const [ticketGenerated, setTicketGenerated] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [chatId, setChatId] = useState<string | null>(null);
-  const [userContext, setUserContext] = useState<any>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messageContainerRef = useRef<HTMLDivElement>(null);
-
-  // Scroll to bottom when new messages arrive
-  const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 0);
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  // Fetch user profile data when authenticated
-  useEffect(() => {
-    if (auth.state.isAuthenticated && auth.state.user) {
-      setShowLoginPrompt(false);
-      fetchUserProfile();
-      initializeChat();
-    } else {
-      setShowLoginPrompt(true);
-    }
-  }, [auth.state.isAuthenticated]);
-
-  const fetchUserProfile = async () => {
-    try {
-      const userId = auth.state.user?.id;
-      if (!userId) {
-        console.error('No user ID available');
-        return;
-      }
-
-      // Fetch real user profile from backend - cookie auth
-      const profileResponse = await fetch(`/api/user/profile`, {
-        credentials: 'include',  // Required to send session_id cookie for auth
-      });
-
-      // Fetch real subscription data - cookie auth via credentials: include
-      console.log('[Live Support] Fetching subscriptions for userId:', userId);
-      const subscriptionResponse = await fetch(`/api/subscriptions/${userId}`, {
-        credentials: 'include',  // Required to send session_id cookie for auth
-      });
-
-      let subscriptionStatus = 'Inactive';  // Default: no active subscriptions
-      let activeSubCount = 0;
-      let subscriptionDetails: any[] = [];
-
-      console.log('[Live Support] Subscription API response status:', subscriptionResponse.status);
-      
-      if (subscriptionResponse.ok) {
-        const subData = await subscriptionResponse.json();
-        console.log('[Live Support] Subscription data:', subData);
-        
-        if (subData.subscriptions && subData.subscriptions.length > 0) {
-          // Find active subscriptions (status active AND not expired)
-          const activeSubs = subData.subscriptions.filter(
-            (s: any) => s.status === 'active' && new Date(s.expiryDate) > new Date()
-          );
-          console.log('[Live Support] Active subs after filter:', activeSubs.length);
-          activeSubCount = activeSubs.length;
-          subscriptionDetails = activeSubs;
-          
-          // If any plan purchased and active, status is Active
-          if (activeSubCount > 0) {
-            subscriptionStatus = 'Active';
-          }
-        }
-      } else {
-        console.error('[Live Support] Subscription API error:', await subscriptionResponse.text());
-      }
-
-      if (!profileResponse.ok) {
-        throw new Error('Failed to fetch user profile');
-      }
-
-      const data = await profileResponse.json();
-      if (data.success && data.profile) {
-        setUserProfile({
-          name: data.profile.name || auth.state.user?.name || 'User',
-          email: data.profile.email || auth.state.user?.email,
-          subscription: subscriptionStatus,
-          activeAgents: activeSubCount,
-          subscriptionDetails: subscriptionDetails,
-          joinedDate: data.profile.createdAt || auth.state.user?.createdAt,
-          supportTickets: 0,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to fetch user profile:', error);
-      // Set minimal profile with Inactive status on error
-      setUserProfile({
-        name: auth.state.user?.name || 'User',
-        email: auth.state.user?.email,
-        subscription: 'Inactive',
-        activeAgents: 0,
-        subscriptionDetails: [],
-        joinedDate: auth.state.user?.createdAt,
-        supportTickets: 0,
-      });
-    }
-  };
-
-  const initializeChat = () => {
-    const userName = auth.state.user?.name || 'there';
-    const firstName = userName.split(' ')[0];
-    const hour = new Date().getHours();
-    
-    // Time-based greetings that feel natural
-    const timeGreetings = hour < 12 
-      ? ['Good morning, sleepyhead! ☀️', 'Morning, sunshine! 🌅', 'Hey early bird! 🐦']
-      : hour < 17 
-      ? ['Hey there! ✨', 'Hiii! 👋', 'Well hello! 💕']
-      : hour < 21 
-      ? ['Good evening, lovely! 🌆', 'Hey you! 💫', 'Hi there! 🌸']
-      : ['Hey night owl! 🦉', 'Still up? Me too! 🌙', 'Late night vibes ✨'];
-    
-    const greeting = timeGreetings[Math.floor(Math.random() * timeGreetings.length)];
-    
-    // Variety of warm opening messages
-    const openingMessages = [
-      `${greeting}\n\nI'm Luna, and I'm genuinely happy you're here! 💕 Whether you need help with something, have questions, or just want to chat - I'm all ears.\n\nHow's your ${hour < 12 ? 'morning' : hour < 17 ? 'day' : 'evening'} going, ${firstName}?`,
-      `${greeting}\n\nLuna here! 🌙 So glad you stopped by. I know reaching out to support can sometimes feel like a chore, but I promise to make this as painless (maybe even fun?) as possible!\n\nWhat brings you here today?`,
-      `${greeting}\n\nIt's Luna! 💫 I've been looking forward to meeting you, ${firstName}! Whether it's a quick question or something that's been bugging you - I'm here and ready to help.\n\nWhat's on your mind?`,
-    ];
-    
-    const welcomeMessage: Message = {
-      id: '0',
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
       role: 'assistant',
-      content: openingMessages[Math.floor(Math.random() * openingMessages.length)],
-      timestamp: new Date(),
-    };
-    setMessages([welcomeMessage]);
-  };
-
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!inputText.trim()) return;
-    if (!auth.state.isAuthenticated) {
-      setShowLoginPrompt(true);
-      return;
+      content: "👋 Hi there! I'm your AI support assistant. How can I help you today? I can assist with:\n\n• Account & billing questions\n• Technical support\n• Feature guidance\n• AI Agents setup\n• General inquiries\n\nFeel free to ask anything!",
+      timestamp: new Date()
     }
+  ])
+  const [inputValue, setInputValue] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const [isConnected, setIsConnected] = useState(true)
 
-    // Add user message
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.hero-content', { opacity: 0, y: 50, duration: 1, ease: 'power3.out' })
+      gsap.from('.chat-section', { opacity: 0, y: 40, duration: 0.8, delay: 0.3, ease: 'power3.out' })
+      gsap.from('.sidebar-card', { opacity: 0, x: 30, duration: 0.6, stagger: 0.1, delay: 0.5, ease: 'power3.out' })
+    }, containerRef)
+    return () => ctx.revert()
+  }, [])
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages])
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputText,
-      timestamp: new Date(),
-    };
+      content: inputValue.trim(),
+      timestamp: new Date()
+    }
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInputText('');
-    setIsLoading(true);
-    setIsStreamingResponse(true);
+    setMessages(prev => [...prev, userMessage])
+    setInputValue('')
+    setIsTyping(true)
 
-    try {
-      const response = await fetch('/api/live-support', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: inputText,
-          userId: auth.state.user?.id,
-          userEmail: auth.state.user?.email,
-          userName: auth.state.user?.name,
-          chatId: chatId,
-          conversationHistory: messages,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
-
-      let fullResponse = '';
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      // Streaming response
-      const assistantMessage: Message = {
+    // Simulate AI response
+    setTimeout(() => {
+      const responses = [
+        "Thanks for reaching out! I understand your concern. Let me help you with that. Could you provide a bit more detail about the specific issue you're experiencing?",
+        "Great question! Here's what you need to know:\n\n1. Navigate to your dashboard\n2. Click on Settings\n3. Find the relevant option\n\nLet me know if you need more help!",
+        "I'd be happy to assist with that! This is a common question. The solution typically involves checking your account settings. Would you like me to walk you through the steps?",
+        "I see what you mean. For this type of request, I recommend creating a support ticket so our team can look into it more thoroughly. Would you like me to help you create one?",
+        "That's a great feature request! I'll make a note of this. In the meantime, is there anything else I can help you with?"
+      ]
+      
+      const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '',
-        timestamp: new Date(),
-        isStreaming: true,
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                // Handle context message (includes chatId)
-                if (data.type === 'context' && data.chatId) {
-                  setChatId(data.chatId);
-                  if (data.userContext) {
-                    setUserContext(data.userContext);
-                  }
-                }
-                // Handle content chunks
-                if (data.content) {
-                  fullResponse += data.content;
-                  setMessages((prev) => {
-                    const updated = [...prev];
-                    updated[updated.length - 1] = {
-                      ...updated[updated.length - 1],
-                      content: fullResponse,
-                    };
-                    return updated;
-                  });
-                }
-                // Handle done message
-                if (data.type === 'done' && data.chatId) {
-                  setChatId(data.chatId);
-                }
-                scrollToBottom();
-              } catch (e) {
-                // Ignore parse errors
-              }
-            }
-          }
-        }
+        content: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: new Date()
       }
-
-      // Check if response suggests escalation
-      if (
-        fullResponse.toLowerCase().includes('escalat') ||
-        fullResponse.toLowerCase().includes('ticket')
-      ) {
-        setTicketGenerated(true);
-      }
-
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1].isStreaming = false;
-        return updated;
-      });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'system',
-        content:
-          '⚠️ Failed to get response. Please try again or contact support directly.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-      setIsStreamingResponse(false);
-    }
-  };
-
-  const generateTicket = async () => {
-    try {
-      // Build description from user messages
-      const userMessages = messages
-        .filter(m => m.role === 'user')
-        .map(m => m.content)
-        .join('\n\n');
       
-      // Create a subject from the first user message
-      const firstUserMessage = messages.find(m => m.role === 'user')?.content || 'Support Request';
-      const subject = firstUserMessage.length > 80 
-        ? firstUserMessage.substring(0, 77) + '...' 
-        : firstUserMessage;
-
-      // Send to backend with correct fields
-      const response = await fetch('/api/live-support/ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: `Luna Chat: ${subject}`,
-          description: userMessages || 'Support request from Luna live chat',
-          category: 'general',
-          priority: 'medium',
-          chatId: chatId,
-          name: userProfile?.name || auth.state.user?.name,
-          email: auth.state.user?.email,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const ticket = data.ticket;
-        
-        setSupportTicket({
-          id: ticket.id,
-          userId: auth.state.user?.id || '',
-          userEmail: auth.state.user?.email || '',
-          userName: userProfile?.name || '',
-          subscription: userProfile?.subscription || 'Monthly',
-          issue: userMessages,
-          status: 'open',
-          createdAt: new Date(),
-          messages: messages,
-        });
-
-        const ticketMessage: Message = {
-          id: Date.now().toString(),
-          role: 'system',
-          content: `✅ Support ticket created!\n\n📋 Ticket Number: #${ticket.ticketNumber}\n📝 Ticket ID: ${ticket.ticketId}\n📊 Status: ${ticket.status}\n⏰ Expected Response: Within 48 hours\n\nOur human support team will review your case and contact you at ${auth.state.user?.email}. You can also view and track this ticket in your Dashboard > Support Tickets.`,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, ticketMessage]);
-        setTicketGenerated(false);
-      } else {
-        throw new Error('Failed to create ticket');
-      }
-    } catch (error) {
-      console.error('Error generating ticket:', error);
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        role: 'system',
-        content: '⚠️ Failed to create support ticket. Please try again or contact us directly at support@onelastai.com',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    }
-  };
-
-  const downloadChat = () => {
-    const chatContent = messages
-      .map(
-        (m) =>
-          `[${m.role.toUpperCase()}] ${m.timestamp.toLocaleTimeString()}\n${
-            m.content
-          }`
-      )
-      .join('\n\n');
-
-    const element = document.createElement('a');
-    element.setAttribute(
-      'href',
-      'data:text/plain;charset=utf-8,' + encodeURIComponent(chatContent)
-    );
-    element.setAttribute('download', `support-chat-${Date.now()}.txt`);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
-  const copyChat = () => {
-    const chatContent = messages
-      .map((m) => `[${m.role.toUpperCase()}] ${m.content}`)
-      .join('\n\n');
-    navigator.clipboard.writeText(chatContent);
-  };
-
-  if (showLoginPrompt && !auth.state.isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-white rounded-2xl p-8 border border-neural-200 shadow-xl">
-            {/* Luna's Avatar */}
-            <div className="relative mx-auto mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-xl shadow-pink-500/30 ring-4 ring-white">
-                <span className="text-4xl">🌙</span>
-              </div>
-              <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
-                <span className="text-white text-xs">💬</span>
-              </span>
-            </div>
-            <h1 className="text-3xl font-bold text-neural-900 mb-2">Hey there! I'm Luna 💕</h1>
-            <p className="text-neural-600 mb-8">
-              I'm so excited to chat with you! But first, I need to know who you are so I can give you the best, most personalized help possible. 
-            </p>
-
-            <div className="space-y-3">
-              <Link
-                href="/auth/login"
-                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                ✨ Sign In to Chat
-              </Link>
-              <p className="text-sm text-neural-500">
-                New here?{' '}
-                <Link
-                  href="/auth/signup"
-                  className="text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  Join the family! 💜
-                </Link>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+      setMessages(prev => [...prev, aiMessage])
+      setIsTyping(false)
+    }, 1500 + Math.random() * 1000)
   }
 
+  const quickActions = [
+    { label: 'Account Help', icon: '👤' },
+    { label: 'Billing Question', icon: '💳' },
+    { label: 'Technical Issue', icon: '🔧' },
+    { label: 'Feature Request', icon: '✨' }
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="flex h-screen overflow-hidden">
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Header - Luna's Profile */}
-          <div className="bg-white/80 backdrop-blur-xl border-b border-neural-200 px-6 py-4 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-4">
-              {/* Luna's Avatar */}
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/25 ring-2 ring-white">
-                  <span className="text-2xl">🌙</span>
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
-              </div>
-              <div>
-                <h1 className="font-bold text-lg text-neural-900 flex items-center gap-2">
-                  Luna
-                  <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full font-medium">Support Companion</span>
-                </h1>
-                <p className="text-sm text-neural-500 flex items-center gap-2">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    Online now
-                  </span>
-                  <span className="text-neural-300">•</span>
-                  <span className="text-neural-400">Usually replies instantly 💬</span>
-                </p>
-              </div>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a]">
+      <style dangerouslySetInnerHTML={{ __html: creativeStyles }} />
+
+      {/* Hero */}
+      <section className="relative py-12 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#00d4ff]/10 via-[#a855f7]/10 to-[#00ff88]/10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="hero-content text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 glass-card rounded-full text-sm font-medium text-[#00ff88] mb-4">
+              <span className="w-2 h-2 bg-[#00ff88] rounded-full pulse-online"></span>
+              Live Support Available
             </div>
-
-            {userProfile && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-neural-200 rounded-xl">
-                <span className="text-sm text-neural-700">
-                  <span className="text-neural-500">Account:</span>{' '}
-                  <span className="font-medium">{userProfile.name}</span>
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Messages Container */}
-          <div
-            ref={messageContainerRef}
-            className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-white/50"
-          >
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                } ${message.role !== 'user' ? 'items-end gap-2' : ''}`}
-              >
-                {/* Luna's mini avatar for her messages */}
-                {message.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0 mb-1">
-                    <span className="text-sm">🌙</span>
-                  </div>
-                )}
-                <div
-                  className={`max-w-lg lg:max-w-xl px-4 py-3 rounded-2xl shadow-sm ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-sm'
-                      : message.role === 'system'
-                      ? 'bg-amber-50 border border-amber-200 text-amber-800'
-                      : 'bg-white border border-neural-200 text-neural-800 rounded-bl-sm'
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                    {message.content}
-                  </p>
-                  <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-neural-400'}`}>
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {/* Luna's typing indicator */}
-            {isLoading && !messages.some(m => m.isStreaming && m.content) && (
-              <div className="flex justify-start items-end gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0 mb-1">
-                  <span className="text-sm">🌙</span>
-                </div>
-                <div className="bg-white border border-neural-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-neural-500 italic">Luna is typing</span>
-                    <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="bg-white/80 backdrop-blur-xl border-t border-neural-200 p-6">
-            {ticketGenerated && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle size={18} className="text-blue-600" />
-                  </div>
-                  <span className="text-sm text-blue-800">
-                    Your issue needs escalation. Our team will create a support
-                    ticket.
-                  </span>
-                </div>
-                <button
-                  onClick={generateTicket}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
-                >
-                  Create Ticket
-                </button>
-              </div>
-            )}
-
-            <form onSubmit={sendMessage} className="flex gap-3">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Message Luna... 💬"
-                disabled={isLoading}
-                className="flex-1 bg-gray-50 border border-neural-200 rounded-xl px-4 py-3 text-neural-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 transition-all"
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !inputText.trim()}
-                className="px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
-              >
-                {isLoading ? (
-                  <Loader size={18} className="animate-spin" />
-                ) : (
-                  <Send size={18} />
-                )}
-              </button>
-            </form>
-
-            {/* Action Buttons */}
-            <div className="mt-4 flex gap-2 flex-wrap">
-              <button
-                onClick={downloadChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-neural-200 rounded-lg text-sm text-neural-700 transition-colors"
-              >
-                <DownloadCloud size={16} />
-                Download
-              </button>
-              <button
-                onClick={copyChat}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 border border-neural-200 rounded-lg text-sm text-neural-700 transition-colors"
-              >
-                <Copy size={16} />
-                Copy
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="w-80 bg-white border-l border-neural-200 p-6 overflow-y-auto hidden lg:block">
-          {/* User Profile Section */}
-          {userProfile && (
-            <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-neural-200">
-              <h3 className="font-bold mb-3 text-sm uppercase text-neural-500">
-                Your Profile
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-neural-500">Name:</span>
-                  <p className="text-neural-900 font-medium">{userProfile.name}</p>
-                </div>
-                <div>
-                  <span className="text-neural-500">Email:</span>
-                  <p className="text-neural-900 font-medium">{userProfile.email}</p>
-                </div>
-                <div>
-                  <span className="text-neural-500">Status:</span>
-                  <p className="text-neural-900 font-medium flex items-center gap-2">
-                    {userProfile.subscription === 'Active' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-neural-600 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                        Inactive
-                      </span>
-                    )}
-                    {userProfile.activeAgents > 0 && (
-                      <span className="text-xs text-neural-500">
-                        ({userProfile.activeAgents} agent{userProfile.activeAgents > 1 ? 's' : ''})
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-neural-500">Member Since:</span>
-                  <p className="text-neural-900 font-medium">
-                    {new Date(userProfile.joinedDate).toLocaleDateString()}
-                  </p>
-                </div>
-                {userProfile.subscription === 'Inactive' && (
-                  <div className="pt-2 mt-2 border-t border-neural-200">
-                    <Link
-                      href="/pricing"
-                      className="block w-full text-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-blue-500/25"
-                    >
-                      Browse Agents
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Support Ticket Info */}
-          {supportTicket && (
-            <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle size={16} className="text-green-600" />
-                </div>
-                <h3 className="font-bold text-sm uppercase text-green-800">
-                  Ticket Generated
-                </h3>
-              </div>
-              <p className="text-sm text-green-700 mb-2">Ticket ID:</p>
-              <p className="font-mono text-xs bg-white border border-green-200 p-2 rounded-lg mb-3 break-all text-neural-800">
-                {supportTicket.id}
-              </p>
-              <p className="text-xs text-green-600 mb-3">
-                Our human support team will contact you within 48 hours.
-              </p>
-              <Link
-                href="/dashboard/support-tickets"
-                className="block w-full text-center px-3 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-green-500/25"
-              >
-                View My Tickets
-              </Link>
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div className="mb-8">
-            <h3 className="font-bold mb-3 text-sm uppercase text-neural-500">
-              Quick Actions
-            </h3>
-            <div className="space-y-2">
-              <SupportButton
-                icon={Mail}
-                label="Contact Us"
-                href="/support/contact-us"
-                onClick={() => (window.location.href = '/support/contact-us')}
-              />
-              <SupportButton
-                icon={HelpCircle}
-                label="Help Center"
-                href="/support/help-center"
-                onClick={() => (window.location.href = '/support/help-center')}
-              />
-              <SupportButton
-                icon={MessageCircle}
-                label="Support Page"
-                href="/support"
-                onClick={() => (window.location.href = '/support')}
-              />
-              <SupportButton
-                icon={Users}
-                label="Community"
-                href="/community"
-                onClick={() => (window.location.href = '/community')}
-              />
-            </div>
-          </div>
-
-          {/* Social Media */}
-          <div>
-            <h3 className="font-bold mb-3 text-sm uppercase text-neural-500">
-              Follow Us
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              {SOCIAL_LINKS.map((social) => (
-                <SocialIcon
-                  key={social.label}
-                  icon={social.icon}
-                  href={social.href}
-                  label={social.label}
-                  color={social.color}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Support Hours */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Clock size={16} className="text-blue-600" />
-              </div>
-              <h3 className="font-bold text-sm text-neural-900">Support Hours</h3>
-            </div>
-            <p className="text-xs text-neural-600">
-              24/7 AI Support • Human team Monday-Friday, 9AM-6PM EST
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+              <span className="bg-gradient-to-r from-[#00d4ff] via-[#a855f7] to-[#00ff88] bg-clip-text text-transparent">
+                Live Support Chat
+              </span>
+            </h1>
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+              Chat with our AI assistant for instant help. For complex issues, we&apos;ll connect you with a human agent.
             </p>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Chat Interface */}
+      <section className="py-8 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Main Chat */}
+            <div className="lg:col-span-3 chat-section">
+              <div className="glass-card glow-card rounded-2xl overflow-hidden h-[600px] flex flex-col">
+                {/* Chat Header */}
+                <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00d4ff 0%, #a855f7 100%)' }}>
+                      <span>🤖</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">AI Support Assistant</h3>
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[#00ff88]' : 'bg-gray-500'}`}></span>
+                        {isConnected ? 'Online' : 'Connecting...'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link href="/support/create-ticket" className="px-4 py-2 glass-card rounded-lg text-sm text-white hover:bg-white/10 transition-all">
+                      Create Ticket
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {messages.map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] px-4 py-3 ${msg.role === 'user' ? 'chat-bubble-user text-white' : 'chat-bubble-ai text-gray-200'}`}>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        <p className={`text-xs mt-2 ${msg.role === 'user' ? 'text-white/60' : 'text-gray-500'}`}>
+                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="chat-bubble-ai px-4 py-3 flex items-center gap-1">
+                        <div className="typing-dot w-2 h-2 bg-gray-400 rounded-full"></div>
+                        <div className="typing-dot w-2 h-2 bg-gray-400 rounded-full"></div>
+                        <div className="typing-dot w-2 h-2 bg-gray-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="px-6 py-3 border-t border-gray-800/50">
+                  <div className="flex flex-wrap gap-2">
+                    {quickActions.map((action, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setInputValue(`I need help with ${action.label.toLowerCase()}`)}
+                        className="px-3 py-1.5 glass-card rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-1"
+                      >
+                        <span>{action.icon}</span>
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input */}
+                <div className="px-6 py-4 border-t border-gray-800">
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder="Type your message..."
+                      className="flex-1 px-4 py-3 bg-white/5 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#00d4ff] input-glow transition-all"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!inputValue.trim() || isTyping}
+                      className="px-6 py-3 bg-gradient-to-r from-[#00d4ff] to-[#a855f7] text-white font-semibold rounded-xl hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-4">
+              <div className="sidebar-card glass-card glow-card rounded-xl p-5">
+                <h3 className="font-bold text-white mb-3 flex items-center gap-2">
+                  <span>⚡</span> Quick Links
+                </h3>
+                <div className="space-y-2">
+                  <Link href="/support/faqs" className="block px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                    📚 FAQs
+                  </Link>
+                  <Link href="/support/help-center" className="block px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                    🎓 Help Center
+                  </Link>
+                  <Link href="/support/contact-us" className="block px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                    ✉️ Contact Us
+                  </Link>
+                </div>
+              </div>
+
+              <div className="sidebar-card glass-card glow-card rounded-xl p-5">
+                <h3 className="font-bold text-white mb-3 flex items-center gap-2">
+                  <span>🌐</span> Connect
+                </h3>
+                <div className="space-y-2">
+                  <a href="https://twitter.com/onelastai" target="_blank" rel="noopener noreferrer" className="block px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                    𝕏 Twitter
+                  </a>
+                  <a href="https://discord.gg/onelastai" target="_blank" rel="noopener noreferrer" className="block px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                    💬 Discord
+                  </a>
+                </div>
+              </div>
+
+              <div className="sidebar-card glass-card glow-card rounded-xl p-5" style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(168,85,247,0.1) 100%)' }}>
+                <h3 className="font-bold text-white mb-2">Need Human Support?</h3>
+                <p className="text-sm text-gray-400 mb-4">For complex issues, create a ticket and our team will respond within 2-4 hours.</p>
+                <Link href="/support/create-ticket" className="block w-full py-2 bg-gradient-to-r from-[#00d4ff] to-[#a855f7] text-white text-center font-semibold rounded-lg hover:shadow-lg transition-all">
+                  Create Ticket
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+  )
 }
