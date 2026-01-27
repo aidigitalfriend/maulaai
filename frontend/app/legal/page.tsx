@@ -103,7 +103,7 @@ export default function LegalPage() {
   }, { scope: containerRef });
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white relative">
       {/* Hero Section */}
       <section ref={heroRef} className="relative py-16 md:py-24 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a2e]/30 via-transparent to-transparent"></div>
