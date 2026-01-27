@@ -47,32 +47,42 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
     <>
       <Link
         href={linkHref}
-        className="agent-card animate-fade-in-up relative"
-        style={{ animationDelay: `${index * 100}ms` }}
+        className="group block p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+        style={{ 
+          animationDelay: `${index * 100}ms`,
+          background: 'rgba(255, 255, 255, 0.03)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
         onClick={handleCardClick}
       >
-        <div className={`agent-avatar bg-gradient-to-r ${agent.color}`}>
+        <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${agent.color} p-0.5 mb-4`}>
           <img
             src={agent.avatarUrl}
             alt={`${agent.name} avatar`}
-            className="w-12 h-12 rounded-full object-cover"
+            className="w-full h-full rounded-xl object-cover"
           />
         </div>
 
         <div className="flex-1">
-          <h3 className="agent-name">{agent.name}</h3>
+          <h3 className="text-lg font-bold text-white mb-1">{agent.name}</h3>
 
-          <div className="text-sm font-medium text-brand-600 mb-3">
+          <div className="text-sm font-medium text-cyan-400 mb-3">
             {agent.specialty}
           </div>
 
-          <p className="agent-description mb-4">{agent.description}</p>
+          <p className="text-sm text-white/60 mb-4 line-clamp-3">{agent.description}</p>
 
           <div className="flex flex-wrap gap-2">
             {agent.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-1 text-xs font-medium bg-brand-50 text-brand-700 rounded-full"
+                className="px-2 py-1 text-xs font-medium rounded-full"
+                style={{
+                  background: 'rgba(6, 182, 212, 0.15)',
+                  color: 'rgba(6, 182, 212, 1)',
+                  border: '1px solid rgba(6, 182, 212, 0.3)',
+                }}
               >
                 {tag}
               </span>
@@ -81,9 +91,9 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-neural-100 gap-3">
+        <div className="flex items-center justify-between mt-4 pt-4 gap-3" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <span
-            className={`text-sm font-medium flex-1 ${isSubscribed ? 'text-green-600' : 'text-brand-600'}`}
+            className={`text-sm font-medium flex-1 ${isSubscribed ? 'text-emerald-400' : 'text-cyan-400'}`}
           >
             {actionText}
           </span>
@@ -97,7 +107,8 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
                   e.preventDefault();
                   setShowDetails(true);
                 }}
-                className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all duration-200 hover:scale-110"
+                className="p-2 text-white/40 hover:text-cyan-400 rounded-lg transition-all duration-200 hover:scale-110"
+                style={{ background: 'rgba(255, 255, 255, 0.05)' }}
                 title="View agent details"
               >
                 <InformationCircleIcon className="w-5 h-5" />
@@ -106,7 +117,7 @@ export default function AgentCard({ agent, index = 0 }: AgentCardProps) {
 
             {/* Arrow */}
             <svg
-              className="w-5 h-5 text-brand-400 group-hover:text-brand-600 group-hover:translate-x-1 transition-all duration-200"
+              className="w-5 h-5 text-white/40 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
