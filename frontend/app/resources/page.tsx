@@ -75,7 +75,7 @@ export default function ResourcesPage() {
       { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.1, ease: 'back.out(1.5)', scrollTrigger: { trigger: '.resources-grid', start: 'top 85%' } }
     );
 
-    gsap.fromTo('.cta-section',
+    gsap.fromTo('.cta-card',
       { opacity: 0, y: 40 },
       { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: '.cta-section', start: 'top 85%' } }
     );
@@ -161,7 +161,7 @@ export default function ResourcesPage() {
 
       {/* Newsletter CTA */}
       <section className="py-24 px-6 cta-section">
-        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center opacity-0">
+        <div className="cta-card max-w-4xl mx-auto glass-card rounded-3xl p-12 text-center">
           <Mail className="w-12 h-12 text-[#00d4ff] mx-auto mb-6" />
           <h2 className="text-2xl font-bold metallic-text mb-4">Stay Updated</h2>
           <p className="text-gray-400 mb-8">Subscribe to our newsletter for the latest resources, insights, and updates.</p>
