@@ -499,37 +499,83 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* AI Agents Preview - Fix #4: Visual hierarchy */}
-      <FeatureSection
-        title="Meet Our AI Personalities"
-        subtitle="Each agent specializes in different areas of expertise to help you achieve more"
-        features={agentPreviews}
-        layout="4-col"
-        backgroundStyle="gradient"
-      />
+      {/* AI Agents Showcase - Updated with Carousel */}
+      <section className="section-padding bg-gradient-to-br from-neural-900 via-neural-800 to-neural-900 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-brand-500 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500 rounded-full filter blur-3xl animate-pulse"></div>
+        </div>
+        <div className="container-custom relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/20 rounded-full text-brand-300 text-sm font-medium mb-6 border border-brand-500/30">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Meet Our AI Personalities
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+              Experience the Future of
+              <span className="bg-gradient-to-r from-brand-400 via-accent-400 to-brand-500 bg-clip-text text-transparent"> AI Interaction</span>
+            </h2>
+            <p className="text-lg text-neural-300 max-w-3xl mx-auto">
+              From intelligent conversations to creative canvas building - each agent brings unique expertise with beautiful, intuitive interfaces.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left - Carousel */}
+            <div className="relative order-2 lg:order-1">
+              <AgentShowcaseCarousel />
+            </div>
+            
+            {/* Right - Content */}
+            <div className="order-1 lg:order-2">
+              {/* Feature Highlights */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-brand-500/50 transition-all hover:scale-105">
+                  <div className="text-3xl mb-3">💬</div>
+                  <div className="text-base font-semibold text-white mb-1">Smart Chat</div>
+                  <div className="text-sm text-neural-400">Human-like conversations with 18+ AI personalities</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-brand-500/50 transition-all hover:scale-105">
+                  <div className="text-3xl mb-3">🎨</div>
+                  <div className="text-base font-semibold text-white mb-1">AI Canvas</div>
+                  <div className="text-sm text-neural-400">Build websites & apps with code generation</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-brand-500/50 transition-all hover:scale-105">
+                  <div className="text-3xl mb-3">⚙️</div>
+                  <div className="text-base font-semibold text-white mb-1">Neural Config</div>
+                  <div className="text-sm text-neural-400">Customize AI behavior & presets</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-brand-500/50 transition-all hover:scale-105">
+                  <div className="text-3xl mb-3">🎙️</div>
+                  <div className="text-base font-semibold text-white mb-1">Voice Chat</div>
+                  <div className="text-sm text-neural-400">Talk naturally with AI companions</div>
+                </div>
+              </div>
 
-      {/* Explore All Agents Button */}
-      <section className="bg-gradient-to-br from-neural-800 via-neural-900 to-neural-800 py-8">
-        <div className="container-custom text-center">
-          <a
-            href="/agents"
-            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 group"
-          >
-            <span>Explore All Agents</span>
-            <svg
-              className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </a>
+              <ul className="space-y-3 mb-8">
+                {['Einstein - Physics & Science Expert', 'Julie - Your AI Companion', 'Tech Wizard - Coding & Innovation', 'Mrs Boss - Leadership & Strategy'].map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-neural-200 hover:text-white transition-colors">
+                    <span className="flex-shrink-0 w-6 h-6 bg-brand-500/30 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              
+              <Link href="/agents" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-brand-500 to-accent-500 hover:from-brand-600 hover:to-accent-600 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-brand-500/30 group">
+                Explore All Agents
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
