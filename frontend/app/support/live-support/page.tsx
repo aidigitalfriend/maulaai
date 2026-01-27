@@ -403,22 +403,30 @@ export default function LiveSupportPage() {
 
   const generateTicket = async () => {
     try {
-      const issueDescription = messages
+      // Build description from user messages
+      const userMessages = messages
         .filter(m => m.role === 'user')
         .map(m => m.content)
         .join('\n\n');
+      
+      // Create a subject from the first user message
+      const firstUserMessage = messages.find(m => m.role === 'user')?.content || 'Support Request';
+      const subject = firstUserMessage.length > 80 
+        ? firstUserMessage.substring(0, 77) + '...' 
+        : firstUserMessage;
 
-      // Send to backend
+      // Send to backend with correct fields
       const response = await fetch('/api/live-support/ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          subject: `Luna Chat: ${subject}`,
+          description: userMessages || 'Support request from Luna live chat',
+          category: 'general',
+          priority: 'medium',
           chatId: chatId,
-          userId: auth.state.user?.id,
-          userEmail: auth.state.user?.email,
-          userName: userProfile?.name || auth.state.user?.name,
-          issue: issueDescription || 'Support request from live chat',
-          messages: messages,
+          name: userProfile?.name || auth.state.user?.name,
+          email: auth.state.user?.email,
         }),
       });
 
@@ -427,12 +435,12 @@ export default function LiveSupportPage() {
         const ticket = data.ticket;
         
         setSupportTicket({
-          id: ticket.ticketId,
+          id: ticket.id,
           userId: auth.state.user?.id || '',
           userEmail: auth.state.user?.email || '',
           userName: userProfile?.name || '',
           subscription: userProfile?.subscription || 'Monthly',
-          issue: issueDescription,
+          issue: userMessages,
           status: 'open',
           createdAt: new Date(),
           messages: messages,
@@ -454,7 +462,7 @@ export default function LiveSupportPage() {
       const errorMessage: Message = {
         id: Date.now().toString(),
         role: 'system',
-        content: '⚠️ Failed to create support ticket. Please try again or contact us directly at support@maula.aim',
+        content: '⚠️ Failed to create support ticket. Please try again or contact us directly at support@maula.ai',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);

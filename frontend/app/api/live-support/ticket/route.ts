@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { subject, description, priority = 'medium', category = 'general' } = body;
+    const { subject, description, priority = 'medium', category = 'general', chatId } = body;
 
     if (!subject || !description) {
       return NextResponse.json(
@@ -47,6 +47,23 @@ export async function POST(request: NextRequest) {
         status: 'open',
       },
     });
+
+    // Link ticket to SupportChat if chatId provided (from Luna)
+    if (chatId) {
+      try {
+        await prisma.supportChat.update({
+          where: { chatId },
+          data: {
+            ticketCreated: true,
+            ticketId: ticket.id,
+            ticketNumber: parseInt(ticketNumber.replace('TKT-', ''), 10) || ticketCount + 1,
+          },
+        });
+        console.log(`[/api/live-support/ticket] Linked ticket ${ticketNumber} to chat ${chatId}`);
+      } catch (linkError) {
+        console.warn(`[/api/live-support/ticket] Could not link to chat ${chatId}:`, linkError);
+      }
+    }
 
     console.log(`[/api/live-support/ticket] Created ticket ${ticketNumber}`);
 
