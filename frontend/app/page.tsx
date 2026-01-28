@@ -4,11 +4,15 @@ import CommunityStats from '@/components/CommunityStats';
 import NewsletterSection from '@/components/NewsletterSection';
 import AgentMarquee from '@/components/AgentMarquee';
 import HomepageSectionsGSAP from '@/components/HomepageSectionsGSAP';
+import AnimatedBackground from '@/components/AnimatedBackground';
 
 // Homepage showcasing the fixed design system
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Animated Particle Background */}
+      <AnimatedBackground />
+      
       {/* GSAP Hero Section - Premium animation with SplitText */}
       <HeroSectionGSAP />
 

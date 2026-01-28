@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { LoadingProvider } from '@/lib/loading-context';
 import SplashScreenWrapper from '@/components/SplashScreenWrapper';
+import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 import PerformanceInitializer from './components/PerformanceInitializer';
 import '@/styles/globals.css';
 
@@ -133,17 +134,19 @@ export default function RootLayout({
           <AuthProvider>
             <SubscriptionProvider>
               <RSCErrorBoundary>
-                {/* Global Splash Screen - Temporarily disabled */}
-                {/* <SplashScreenWrapper /> */}
+                <SmoothScrollProvider>
+                  {/* Global Splash Screen - Temporarily disabled */}
+                  {/* <SplashScreenWrapper /> */}
 
-                {/* Global Navigation - Fix #2: Consistent Navigation */}
-                <Header />
+                  {/* Global Navigation - Fix #2: Consistent Navigation */}
+                  <Header />
 
-                {/* Main Content Area - Fix #1: Proper Layout System */}
-                <main className="flex-1">{children}</main>
+                  {/* Main Content Area - Fix #1: Proper Layout System */}
+                  <main className="flex-1">{children}</main>
 
-                {/* Conditional Footer - Hidden on agent pages */}
-                <ConditionalFooter />
+                  {/* Conditional Footer - Hidden on agent pages */}
+                  <ConditionalFooter />
+                </SmoothScrollProvider>
               </RSCErrorBoundary>
             </SubscriptionProvider>
           </AuthProvider>
