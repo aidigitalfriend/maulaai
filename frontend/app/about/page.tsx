@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   gsap,
@@ -12,22 +12,27 @@ import {
   Flip,
   Draggable,
   Observer,
+  CustomEase,
   CustomBounce,
   CustomWiggle,
 } from '@/lib/gsap-plugins';
 import { Building2, Users, Handshake, ArrowRight, Sparkles, Globe, Shield, Zap, Rocket, Target, Heart, Award } from 'lucide-react';
-
-// Register custom eases
-gsap.registerPlugin(CustomBounce, CustomWiggle);
-CustomBounce.create('myBounce', { strength: 0.6, squash: 2 });
-CustomWiggle.create('myWiggle', { wiggles: 6, type: 'easeOut' });
 
 export default function AboutPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
+  // Register CustomBounce/CustomWiggle on client only
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      CustomBounce.create('myBounce', { strength: 0.6, squash: 2 });
+      CustomWiggle.create('myWiggle', { wiggles: 6, type: 'easeOut' });
+    }
+  }, []);
   const sections = [
     {
       title: 'About Us',
@@ -77,6 +82,8 @@ export default function AboutPage() {
   ];
 
   useGSAP(() => {
+    if (!isClient) return;
+
     // ====== EFFECT 1: SplitText Hero Title Animation ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
@@ -296,7 +303,7 @@ export default function AboutPage() {
       },
     });
 
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [isClient] });
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">

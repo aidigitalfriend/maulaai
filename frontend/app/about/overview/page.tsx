@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   gsap,
@@ -10,19 +10,16 @@ import {
   ScrambleTextPlugin,
   TextPlugin,
   Observer,
+  CustomEase,
   CustomBounce,
   CustomWiggle,
 } from '@/lib/gsap-plugins';
 import { ArrowLeft, Heart, Zap, Shield, Lightbulb, Users, Star, Award, Globe, Target, Rocket, Eye, TrendingUp, Code, Cpu, Brain } from 'lucide-react';
 
-// Register custom eases
-gsap.registerPlugin(CustomBounce, CustomWiggle);
-CustomBounce.create('overviewBounce', { strength: 0.5, squash: 1.5 });
-CustomWiggle.create('overviewWiggle', { wiggles: 4, type: 'uniform' });
-
 export default function AboutOverviewPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const values = [
     { icon: Heart, title: 'User-First', desc: 'Every decision starts with our users in mind', color: '#ec4899' },
@@ -56,7 +53,17 @@ export default function AboutOverviewPage() {
     { value: 256, suffix: '-bit', label: 'Encryption', color: '#f59e0b' },
   ];
 
+  // Register CustomBounce/CustomWiggle on client only
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      CustomBounce.create('overviewBounce', { strength: 0.5, squash: 1.5 });
+      CustomWiggle.create('overviewWiggle', { wiggles: 4, type: 'uniform' });
+    }
+  }, []);
+
   useGSAP(() => {
+    if (!isClient) return;
     // ====== EFFECT 1: SplitText Hero Title with 3D rotation ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
@@ -298,7 +305,7 @@ export default function AboutOverviewPage() {
       },
     });
 
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [isClient] });
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">

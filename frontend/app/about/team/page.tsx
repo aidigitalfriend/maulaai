@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   gsap,
@@ -10,6 +10,7 @@ import {
   ScrambleTextPlugin,
   TextPlugin,
   Observer,
+  CustomEase,
   CustomBounce,
   CustomWiggle,
   Flip,
@@ -17,14 +18,10 @@ import {
 } from '@/lib/gsap-plugins';
 import { ArrowLeft, Users, Linkedin, Twitter, Mail, ArrowRight, Star, Briefcase, GraduationCap, Code, Heart, Rocket, Globe, Award } from 'lucide-react';
 
-// Register custom eases
-gsap.registerPlugin(CustomBounce, CustomWiggle);
-CustomBounce.create('teamBounce', { strength: 0.55, squash: 1.3 });
-CustomWiggle.create('teamWiggle', { wiggles: 4, type: 'uniform' });
-
 export default function TeamPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const leadership = [
     { name: 'Shahbaz Chaudhry', role: 'CEO & Co-founder', bio: 'AI researcher with 15+ years of experience building intelligent systems', color: '#00d4ff', avatar: '👨‍💼' },
@@ -54,7 +51,18 @@ export default function TeamPage() {
     { icon: Heart, title: 'Inclusive Culture', desc: 'Diversity matters', color: '#f59e0b' },
   ];
 
+  // Register CustomBounce/CustomWiggle on client only
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      CustomBounce.create('teamBounce', { strength: 0.55, squash: 1.3 });
+      CustomWiggle.create('teamWiggle', { wiggles: 4, type: 'uniform' });
+    }
+  }, []);
+
   useGSAP(() => {
+    if (!isClient) return;
+
     // ====== EFFECT 1: SplitText Hero Title ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
@@ -313,7 +321,7 @@ export default function TeamPage() {
       },
     });
 
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [isClient] });
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">

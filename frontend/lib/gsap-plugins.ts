@@ -16,13 +16,14 @@ import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
 import { Physics2DPlugin } from 'gsap/Physics2DPlugin';
 import { PhysicsPropsPlugin } from 'gsap/PhysicsPropsPlugin';
+import { CustomEase } from 'gsap/CustomEase';
 import { CustomBounce } from 'gsap/CustomBounce';
 import { CustomWiggle } from 'gsap/CustomWiggle';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { EasePack } from 'gsap/EasePack';
 
-// Register all plugins
+// Register all plugins - CustomEase MUST be registered before CustomBounce/CustomWiggle
 gsap.registerPlugin(
   ScrollTrigger,
   ScrollSmoother,
@@ -36,6 +37,7 @@ gsap.registerPlugin(
   MorphSVGPlugin,
   Physics2DPlugin,
   PhysicsPropsPlugin,
+  CustomEase,
   CustomBounce,
   CustomWiggle,
   InertiaPlugin,
@@ -59,6 +61,7 @@ export {
   MorphSVGPlugin,
   Physics2DPlugin,
   PhysicsPropsPlugin,
+  CustomEase,
   CustomBounce,
   CustomWiggle,
   InertiaPlugin,

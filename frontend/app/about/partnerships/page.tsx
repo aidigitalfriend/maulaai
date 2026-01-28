@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   gsap,
@@ -10,6 +10,7 @@ import {
   ScrambleTextPlugin,
   TextPlugin,
   Observer,
+  CustomEase,
   CustomBounce,
   CustomWiggle,
   Flip,
@@ -17,14 +18,10 @@ import {
 } from '@/lib/gsap-plugins';
 import { ArrowLeft, Cloud, Zap, Globe, Link2, Award, Users, ArrowRight, Handshake, Building2, Sparkles, Shield, Rocket, Target } from 'lucide-react';
 
-// Register custom eases
-gsap.registerPlugin(CustomBounce, CustomWiggle);
-CustomBounce.create('partnerBounce', { strength: 0.6, squash: 1.2 });
-CustomWiggle.create('partnerWiggle', { wiggles: 5, type: 'anticipate' });
-
 export default function PartnershipsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   const technologyPartners = [
     { name: 'Google Cloud', icon: '☁️', description: 'Infrastructure and AI/ML services', details: 'Leveraging Google Cloud for scalable agent deployment.', color: '#4285f4' },
@@ -68,7 +65,17 @@ export default function PartnershipsPage() {
     { name: 'SAP', color: '#0faaff' },
   ];
 
+  // Register CustomBounce/CustomWiggle on client only
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      CustomBounce.create('partnerBounce', { strength: 0.6, squash: 1.2 });
+      CustomWiggle.create('partnerWiggle', { wiggles: 5, type: 'anticipate' });
+    }
+  }, []);
+
   useGSAP(() => {
+    if (!isClient) return;
     // ====== EFFECT 1: SplitText Hero Title ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
@@ -314,7 +321,7 @@ export default function PartnershipsPage() {
       repeat: -1,
     });
 
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [isClient] });
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
