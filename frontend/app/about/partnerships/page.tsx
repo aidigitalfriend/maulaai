@@ -76,54 +76,55 @@ export default function PartnershipsPage() {
 
   useGSAP(() => {
     if (!isClient) return;
-    // ====== EFFECT 1: SplitText Hero Title ======
+    
+    // ====== EFFECT 1: SplitText Hero Title with scroll reverse ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      // Set initial state immediately
-      gsap.set(split.chars, { opacity: 0, y: -50, scale: 0.5, transformPerspective: 1000 });
-      // Animate to visible - coming from behind
-      gsap.to(split.chars, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        stagger: 0.04,
-        duration: 0.9,
-        ease: 'back.out(1.7)',
-        delay: 0.3,
+      gsap.set(split.chars, { opacity: 0, y: 60, scale: 0.7, transformPerspective: 1000 });
+      
+      ScrollTrigger.create({
+        trigger: heroTitleRef.current,
+        start: 'top 85%',
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
+        onEnter: () => gsap.to(split.chars, { opacity: 1, y: 0, scale: 1, stagger: 0.03, duration: 0.7, ease: 'back.out(1.7)' }),
+        onLeaveBack: () => gsap.to(split.chars, { opacity: 0, y: 60, scale: 0.7, stagger: 0.02, duration: 0.4, ease: 'power2.in' }),
       });
     }
 
-    // ====== EFFECT 2: ScrambleText Badge ======
-    gsap.to('.partner-badge-text', {
-      scrambleText: {
-        text: 'Our Partners',
-        chars: 'PARTNERSHIP01234',
-        speed: 0.4,
-      },
-      duration: 1.5,
-      delay: 0.3,
+    // ====== EFFECT 2: ScrambleText Badge with scroll reverse ======
+    ScrollTrigger.create({
+      trigger: '.hero-badge',
+      start: 'top 90%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.partner-badge-text', { scrambleText: { text: 'Our Partners', chars: 'PARTNERSHIP01234', speed: 0.4 }, duration: 1.2 }),
+      onLeaveBack: () => gsap.to('.partner-badge-text', { scrambleText: { text: '', chars: 'PARTNERSHIP', speed: 0.6 }, duration: 0.5 }),
     });
 
-    // ====== EFFECT 3: Hero subtitle from behind ======
-    gsap.set('.hero-subtitle', { opacity: 0, y: -20, scale: 0.9 });
-    gsap.to('.hero-subtitle', {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 1.0,
-      delay: 0.6,
-      ease: 'power3.out',
+    // ====== EFFECT 3: Hero subtitle with scroll reverse ======
+    gsap.set('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95 });
+    ScrollTrigger.create({
+      trigger: '.hero-subtitle',
+      start: 'top 90%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.hero-subtitle', { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 4: Back button slide ======
-    gsap.from('.back-button', {
-      x: -50,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'power3.out',
+    // ====== EFFECT 4: Back button with scroll reverse ======
+    gsap.set('.back-button', { x: -40, opacity: 0 });
+    ScrollTrigger.create({
+      trigger: '.back-button',
+      start: 'top 95%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.back-button', { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.back-button', { x: -40, opacity: 0, duration: 0.3, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 5: Stats counter animation ======
+    // ====== EFFECT 5: Stats counter with scroll reverse ======
     const statElements = document.querySelectorAll('.stat-value');
     statElements.forEach((el, i) => {
       const target = stats[i];
@@ -132,151 +133,110 @@ export default function PartnershipsPage() {
       ScrollTrigger.create({
         trigger: el,
         start: 'top 85%',
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
         onEnter: () => {
           gsap.to(obj, {
-            value: target.value,
-            duration: 2,
-            ease: 'power2.out',
-            onUpdate: () => {
-              if (target.value < 100) {
-                el.textContent = `${obj.value.toFixed(2)}${target.suffix}`;
-              } else {
-                el.textContent = `${Math.round(obj.value)}${target.suffix}`;
-              }
-            },
+            value: target.value, duration: 1.8, ease: 'power2.out',
+            onUpdate: () => { el.textContent = target.value < 100 ? `${obj.value.toFixed(2)}${target.suffix}` : `${Math.round(obj.value)}${target.suffix}`; },
           });
         },
-        once: true,
+        onLeaveBack: () => {
+          gsap.to(obj, {
+            value: 0, duration: 0.6, ease: 'power2.in',
+            onUpdate: () => { el.textContent = target.value < 100 ? `${obj.value.toFixed(2)}${target.suffix}` : `${Math.round(obj.value)}${target.suffix}`; },
+          });
+        },
       });
     });
 
-    // ====== EFFECT 6: Stats cards CustomBounce ======
-    gsap.from('.stat-card', {
-      y: 60,
-      opacity: 0,
-      scale: 0.7,
-      stagger: 0.1,
-      duration: 1,
-      ease: 'partnerBounce',
-      scrollTrigger: {
-        trigger: '.stats-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 6: Stats cards with scroll reverse ======
+    gsap.set('.stat-card', { y: 50, opacity: 0, scale: 0.85 });
+    ScrollTrigger.create({
+      trigger: '.stats-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.stat-card', { y: 0, opacity: 1, scale: 1, stagger: 0.1, duration: 0.7, ease: 'back.out(1.5)' }),
+      onLeaveBack: () => gsap.to('.stat-card', { y: 50, opacity: 0, scale: 0.85, stagger: 0.05, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 7: Partner cards 3D flip entrance ======
-    gsap.from('.partner-card', {
-      opacity: 0,
-      rotationY: -90,
-      transformPerspective: 1000,
-      transformOrigin: 'left center',
-      stagger: 0.2,
-      duration: 0.9,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.tech-partners',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 7: Partner cards with scroll reverse ======
+    gsap.set('.partner-card', { opacity: 0, rotationY: -60, transformPerspective: 1000, transformOrigin: 'left center' });
+    ScrollTrigger.create({
+      trigger: '.tech-partners',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.partner-card', { opacity: 1, rotationY: 0, stagger: 0.15, duration: 0.8, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.partner-card', { opacity: 0, rotationY: -60, stagger: 0.08, duration: 0.5, ease: 'power2.in' }),
     });
 
     // ====== EFFECT 8: Partner icon pulse on hover ======
     const partnerCards = document.querySelectorAll('.partner-card');
     partnerCards.forEach((card) => {
       card.addEventListener('mouseenter', () => {
-        gsap.to(card.querySelector('.partner-icon'), {
-          scale: 1.3,
-          rotation: 10,
-          duration: 0.4,
-          ease: 'power2.out',
-        });
-        gsap.to(card, {
-          borderColor: 'rgba(0, 212, 255, 0.4)',
-          duration: 0.3,
-        });
+        gsap.to(card.querySelector('.partner-icon'), { scale: 1.3, rotation: 10, duration: 0.4, ease: 'power2.out' });
+        gsap.to(card, { borderColor: 'rgba(0, 212, 255, 0.4)', duration: 0.3 });
       });
       card.addEventListener('mouseleave', () => {
-        gsap.to(card.querySelector('.partner-icon'), {
-          scale: 1,
-          rotation: 0,
-          duration: 0.3,
-          ease: 'power2.out',
-        });
-        gsap.to(card, {
-          borderColor: 'rgba(255, 255, 255, 0.08)',
-          duration: 0.3,
-        });
+        gsap.to(card.querySelector('.partner-icon'), { scale: 1, rotation: 0, duration: 0.3, ease: 'power2.out' });
+        gsap.to(card, { borderColor: 'rgba(255, 255, 255, 0.08)', duration: 0.3 });
       });
     });
 
-    // ====== EFFECT 9: Integration grid elastic stagger ======
-    gsap.from('.integration-card', {
-      opacity: 0,
-      scale: 0,
-      rotation: (i) => (i % 2 === 0 ? -20 : 20),
-      stagger: {
-        amount: 0.6,
-        from: 'random',
-      },
-      duration: 0.8,
-      ease: 'elastic.out(1, 0.5)',
-      scrollTrigger: {
-        trigger: '.integrations-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 9: Integration grid with scroll reverse ======
+    gsap.set('.integration-card', { opacity: 0, scale: 0.7, rotation: (i) => (i % 2 === 0 ? -15 : 15) });
+    ScrollTrigger.create({
+      trigger: '.integrations-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.integration-card', { opacity: 1, scale: 1, rotation: 0, stagger: { amount: 0.5, from: 'random' }, duration: 0.7, ease: 'back.out(1.5)' }),
+      onLeaveBack: () => gsap.to('.integration-card', { opacity: 0, scale: 0.7, rotation: (i) => (i % 2 === 0 ? -15 : 15), stagger: 0.05, duration: 0.5, ease: 'power2.in' }),
     });
 
     // ====== EFFECT 10: Integration card wiggle on hover ======
     const integrationCards = document.querySelectorAll('.integration-card');
     integrationCards.forEach((card) => {
       card.addEventListener('mouseenter', () => {
-        gsap.to(card, {
-          rotation: 'random(-5, 5)',
-          ease: 'partnerWiggle',
-          duration: 0.5,
-        });
+        gsap.to(card, { rotation: 'random(-5, 5)', ease: 'partnerWiggle', duration: 0.5 });
       });
       card.addEventListener('mouseleave', () => {
         gsap.to(card, { rotation: 0, duration: 0.3 });
       });
     });
 
-    // ====== EFFECT 11: Reseller cards cascade from top ======
-    gsap.from('.reseller-card', {
-      opacity: 0,
-      y: -80,
-      stagger: 0.15,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.reseller-section',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 11: Reseller cards with scroll reverse ======
+    gsap.set('.reseller-card', { opacity: 0, y: -60 });
+    ScrollTrigger.create({
+      trigger: '.reseller-section',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.reseller-card', { opacity: 1, y: 0, stagger: 0.12, duration: 0.7, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.reseller-card', { opacity: 0, y: -60, stagger: 0.06, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 12: Benefits grid slide from sides ======
-    gsap.from('.benefit-card', {
-      opacity: 0,
-      x: (i) => (i % 2 === 0 ? -60 : 60),
-      stagger: 0.12,
-      duration: 0.7,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.benefits-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 12: Benefits grid with scroll reverse ======
+    gsap.set('.benefit-card', { opacity: 0, x: (i) => (i % 2 === 0 ? -50 : 50) });
+    ScrollTrigger.create({
+      trigger: '.benefits-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.benefit-card', { opacity: 1, x: 0, stagger: 0.1, duration: 0.7, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.benefit-card', { opacity: 0, x: (i) => (i % 2 === 0 ? -50 : 50), stagger: 0.05, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 13: Benefit icons CustomWiggle on enter ======
+    // ====== EFFECT 13: Benefit icons with scroll reverse ======
     ScrollTrigger.create({
       trigger: '.benefits-grid',
       start: 'top 80%',
-      onEnter: () => {
-        gsap.to('.benefit-icon', {
-          rotation: 15,
-          ease: 'partnerWiggle',
-          duration: 0.8,
-        });
-      },
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.benefit-icon', { rotation: 12, ease: 'partnerWiggle', duration: 0.6 }),
+      onLeaveBack: () => gsap.to('.benefit-icon', { rotation: 0, duration: 0.3 }),
     });
 
     // ====== EFFECT 14: Floating background orbs ======
@@ -286,10 +246,7 @@ export default function PartnershipsPage() {
       ease: 'power1.inOut',
       yoyo: true,
       repeat: -1,
-      stagger: {
-        each: 0.9,
-        from: 'random',
-      },
+      stagger: { each: 0.9, from: 'random' },
     });
 
     // ====== EFFECT 15: CTA parallax effect ======
@@ -304,7 +261,7 @@ export default function PartnershipsPage() {
       },
     });
 
-    // ====== EFFECT 16: Observer scroll progress bar ======
+    // ====== EFFECT 16: Progress bar scroll indicator ======
     Observer.create({
       target: containerRef.current,
       type: 'scroll',

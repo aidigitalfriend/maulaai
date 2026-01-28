@@ -84,43 +84,60 @@ export default function AboutPage() {
   useGSAP(() => {
     if (!isClient) return;
 
-    // ====== EFFECT 1: SplitText Hero Title Animation ======
+    // ====== EFFECT 1: SplitText Hero Title with ScrollTrigger ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      // Set initial state immediately
-      gsap.set(split.chars, { opacity: 0, y: -50, rotateX: 90, transformPerspective: 1000 });
-      // Animate to visible
-      gsap.to(split.chars, {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        stagger: 0.03,
-        duration: 0.8,
-        ease: 'back.out(1.7)',
-        delay: 0.2,
+      gsap.set(split.chars, { opacity: 0, y: 60, rotateX: -90, transformPerspective: 1000 });
+      
+      ScrollTrigger.create({
+        trigger: heroTitleRef.current,
+        start: 'top 85%',
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
+        onEnter: () => {
+          gsap.to(split.chars, {
+            opacity: 1, y: 0, rotateX: 0,
+            stagger: 0.03, duration: 0.6, ease: 'back.out(1.7)',
+          });
+        },
+        onLeaveBack: () => {
+          gsap.to(split.chars, {
+            opacity: 0, y: 60, rotateX: -90,
+            stagger: 0.02, duration: 0.4, ease: 'power2.in',
+          });
+        },
       });
     }
 
-    // ====== EFFECT 2: ScrambleText for Badge ======
-    gsap.to('.hero-badge-text', {
-      scrambleText: {
-        text: 'About One Last AI',
-        chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        speed: 0.4,
+    // ====== EFFECT 2: ScrambleText for Badge with ScrollTrigger ======
+    ScrollTrigger.create({
+      trigger: '.hero-badge',
+      start: 'top 90%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => {
+        gsap.to('.hero-badge-text', {
+          scrambleText: { text: 'About One Last AI', chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', speed: 0.4 },
+          duration: 1.2,
+        });
       },
-      duration: 1.5,
-      delay: 0.5,
+      onLeaveBack: () => {
+        gsap.to('.hero-badge-text', {
+          scrambleText: { text: '', chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', speed: 0.6 },
+          duration: 0.6,
+        });
+      },
     });
 
-    // ====== EFFECT 3: Hero subtitle fade from behind ======
-    gsap.set('.hero-subtitle', { opacity: 0, y: -20, scale: 0.9 });
-    gsap.to('.hero-subtitle', {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 1,
-      delay: 0.6,
-      ease: 'power3.out',
+    // ====== EFFECT 3: Hero subtitle with scroll toggle ======
+    gsap.set('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95 });
+    ScrollTrigger.create({
+      trigger: '.hero-subtitle',
+      start: 'top 90%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.hero-subtitle', { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95, duration: 0.5, ease: 'power2.in' }),
     });
 
     // ====== EFFECT 4: Counter animation for stats ======
@@ -132,11 +149,11 @@ export default function AboutPage() {
       ScrollTrigger.create({
         trigger: el,
         start: 'top 85%',
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
         onEnter: () => {
           gsap.to(obj, {
-            value: target.number,
-            duration: 2.5,
-            ease: 'power2.out',
+            value: target.number, duration: 2, ease: 'power2.out',
             onUpdate: () => {
               if (target.number >= 1000000) {
                 el.textContent = `${target.prefix}${(obj.value / 1000000).toFixed(0)}M${target.suffix}`;
@@ -150,88 +167,94 @@ export default function AboutPage() {
             },
           });
         },
-        once: true,
+        onLeaveBack: () => {
+          gsap.to(obj, {
+            value: 0, duration: 0.8, ease: 'power2.in',
+            onUpdate: () => {
+              if (target.number >= 1000000) {
+                el.textContent = `${target.prefix}${(obj.value / 1000000).toFixed(0)}M${target.suffix}`;
+              } else if (target.number >= 1000) {
+                el.textContent = `${target.prefix}${(obj.value / 1000).toFixed(0)}K${target.suffix}`;
+              } else if (target.number < 100) {
+                el.textContent = `${target.prefix}${obj.value.toFixed(1)}${target.suffix}`;
+              } else {
+                el.textContent = `${target.prefix}${Math.round(obj.value)}${target.suffix}`;
+              }
+            },
+          });
+        },
       });
     });
 
-    // ====== EFFECT 5: Stats cards with CustomBounce ======
-    gsap.from('.stat-card', {
-      y: 100,
-      opacity: 0,
-      scale: 0.5,
-      stagger: 0.1,
-      duration: 1,
-      ease: 'myBounce',
-      scrollTrigger: {
-        trigger: '.stats-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 5: Stats cards with scroll reverse ======
+    gsap.set('.stat-card', { y: 80, opacity: 0, scale: 0.8 });
+    ScrollTrigger.create({
+      trigger: '.stats-grid',
+      start: 'top 85%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.stat-card', { y: 0, opacity: 1, scale: 1, stagger: 0.1, duration: 0.8, ease: 'back.out(1.7)' }),
+      onLeaveBack: () => gsap.to('.stat-card', { y: 80, opacity: 0, scale: 0.8, stagger: 0.05, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 6: Section cards with stagger from center ======
-    gsap.from('.section-card', {
-      opacity: 0,
-      scale: 0.8,
-      y: 60,
-      rotationY: 15,
-      stagger: {
-        amount: 0.6,
-        from: 'center',
-      },
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.sections-grid',
-        start: 'top 80%',
-      },
+    // ====== EFFECT 6: Section cards with scroll reverse ======
+    gsap.set('.section-card', { opacity: 0, scale: 0.85, y: 50, rotationY: 10 });
+    ScrollTrigger.create({
+      trigger: '.sections-grid',
+      start: 'top 80%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.section-card', { opacity: 1, scale: 1, y: 0, rotationY: 0, stagger: 0.15, duration: 0.7, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.section-card', { opacity: 0, scale: 0.85, y: 50, rotationY: 10, stagger: 0.08, duration: 0.5, ease: 'power2.in' }),
     });
 
     // ====== EFFECT 7: Section card icons with wiggle ======
-    gsap.to('.section-icon', {
-      rotation: 'random(-5, 5)',
-      ease: 'myWiggle',
-      duration: 0.5,
-      scrollTrigger: {
-        trigger: '.sections-grid',
-        start: 'top 80%',
-      },
+    ScrollTrigger.create({
+      trigger: '.sections-grid',
+      start: 'top 80%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.section-icon', { rotation: 'random(-8, 8)', ease: 'myWiggle', duration: 0.6 }),
+      onLeaveBack: () => gsap.to('.section-icon', { rotation: 0, duration: 0.3 }),
     });
 
-    // ====== EFFECT 8: Values cards slide from left with elastic ======
-    gsap.from('.value-card', {
-      x: -100,
-      opacity: 0,
-      stagger: 0.15,
-      duration: 1.2,
-      ease: 'elastic.out(1, 0.5)',
-      scrollTrigger: {
-        trigger: '.values-grid',
-        start: 'top 80%',
-      },
+    // ====== EFFECT 8: Values cards with scroll reverse ======
+    gsap.set('.value-card', { x: -80, opacity: 0, scale: 0.9 });
+    ScrollTrigger.create({
+      trigger: '.values-grid',
+      start: 'top 80%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.value-card', { x: 0, opacity: 1, scale: 1, stagger: 0.12, duration: 0.8, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.value-card', { x: -80, opacity: 0, scale: 0.9, stagger: 0.06, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 9: Timeline items with alternating slide ======
-    gsap.from('.timeline-item', {
-      opacity: 0,
-      x: (i) => (i % 2 === 0 ? -80 : 80),
-      stagger: 0.2,
-      duration: 0.8,
-      ease: 'power3.out',
+    // ====== EFFECT 9: Timeline items with scroll reverse ======
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach((item, i) => {
+      const xStart = i % 2 === 0 ? -60 : 60;
+      gsap.set(item, { opacity: 0, x: xStart });
+      
+      ScrollTrigger.create({
+        trigger: item,
+        start: 'top 85%',
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
+        onEnter: () => gsap.to(item, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' }),
+        onLeaveBack: () => gsap.to(item, { opacity: 0, x: xStart, duration: 0.4, ease: 'power2.in' }),
+      });
+    });
+
+    // ====== EFFECT 10: Timeline line with scrub ======
+    gsap.set('.timeline-line', { scaleY: 0, transformOrigin: 'top' });
+    gsap.to('.timeline-line', {
+      scaleY: 1,
+      ease: 'none',
       scrollTrigger: {
         trigger: '.timeline-section',
-        start: 'top 80%',
-      },
-    });
-
-    // ====== EFFECT 10: Timeline line draw effect ======
-    gsap.from('.timeline-line', {
-      scaleY: 0,
-      transformOrigin: 'top',
-      duration: 1.5,
-      ease: 'power2.inOut',
-      scrollTrigger: {
-        trigger: '.timeline-section',
-        start: 'top 80%',
+        start: 'top 60%',
+        end: 'bottom 40%',
+        scrub: 0.5,
       },
     });
 
@@ -254,10 +277,7 @@ export default function AboutPage() {
       ease: 'power1.inOut',
       yoyo: true,
       repeat: -1,
-      stagger: {
-        each: 0.5,
-        from: 'random',
-      },
+      stagger: { each: 0.5, from: 'random' },
     });
 
     // ====== EFFECT 13: Glow pulse on section title ======
@@ -288,22 +308,24 @@ export default function AboutPage() {
     Observer.create({
       target: containerRef.current,
       type: 'scroll',
-      onUp: () => {
-        gsap.to('.scroll-indicator', { opacity: 1, duration: 0.3 });
-      },
-      onDown: () => {
-        gsap.to('.scroll-indicator', { opacity: 0, duration: 0.3 });
-      },
+      onUp: () => gsap.to('.scroll-indicator', { opacity: 1, duration: 0.3 }),
+      onDown: () => gsap.to('.scroll-indicator', { opacity: 0, duration: 0.3 }),
     });
 
-    // ====== EFFECT 16: Typewriter effect for CTA headline ======
-    gsap.to('.cta-headline', {
-      text: { value: 'Join Us on Our Journey', delimiter: '' },
-      duration: 1.5,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '.cta-section',
-        start: 'top 80%',
+    // ====== EFFECT 16: CTA content with scroll reverse ======
+    gsap.set('.cta-section .glass-card', { opacity: 0, y: 60, scale: 0.95 });
+    ScrollTrigger.create({
+      trigger: '.cta-section',
+      start: 'top 75%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => {
+        gsap.to('.cta-section .glass-card', { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out' });
+        gsap.to('.cta-headline', { text: { value: 'Join Us on Our Journey', delimiter: '' }, duration: 1.2, ease: 'none' });
+      },
+      onLeaveBack: () => {
+        gsap.to('.cta-section .glass-card', { opacity: 0, y: 60, scale: 0.95, duration: 0.5, ease: 'power2.in' });
+        gsap.set('.cta-headline', { text: '' });
       },
     });
 

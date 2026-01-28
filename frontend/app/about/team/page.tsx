@@ -63,157 +63,118 @@ export default function TeamPage() {
   useGSAP(() => {
     if (!isClient) return;
 
-    // ====== EFFECT 1: SplitText Hero Title ======
+    // ====== EFFECT 1: SplitText Hero Title with scroll reverse ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      // Set initial state immediately
-      gsap.set(split.chars, { opacity: 0, y: -60, rotateX: 90, transformPerspective: 1000 });
-      // Animate to visible - coming from behind
-      gsap.to(split.chars, {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        stagger: 0.04,
-        duration: 1,
-        ease: 'back.out(1.7)',
-        delay: 0.3,
+      gsap.set(split.chars, { opacity: 0, y: 60, rotateX: -90, transformPerspective: 1000 });
+      
+      ScrollTrigger.create({
+        trigger: heroTitleRef.current,
+        start: 'top 85%',
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
+        onEnter: () => gsap.to(split.chars, { opacity: 1, y: 0, rotateX: 0, stagger: 0.03, duration: 0.7, ease: 'back.out(1.7)' }),
+        onLeaveBack: () => gsap.to(split.chars, { opacity: 0, y: 60, rotateX: -90, stagger: 0.02, duration: 0.4, ease: 'power2.in' }),
       });
     }
 
-    // ====== EFFECT 2: ScrambleText Badge ======
-    gsap.to('.team-badge-text', {
-      scrambleText: {
-        text: 'Our Team',
-        chars: 'TEAMWORK01234',
-        speed: 0.4,
-      },
-      duration: 1.5,
-      delay: 0.3,
+    // ====== EFFECT 2: ScrambleText Badge with scroll reverse ======
+    ScrollTrigger.create({
+      trigger: '.hero-badge',
+      start: 'top 90%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.team-badge-text', { scrambleText: { text: 'Our Team', chars: 'TEAMWORK01234', speed: 0.4 }, duration: 1.2 }),
+      onLeaveBack: () => gsap.to('.team-badge-text', { scrambleText: { text: '', chars: 'TEAMWORK', speed: 0.6 }, duration: 0.5 }),
     });
 
-    // ====== EFFECT 3: Hero subtitle from behind ======
-    gsap.set('.hero-subtitle', { opacity: 0, y: -20, scale: 0.9 });
-    gsap.to('.hero-subtitle', {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 1.2,
-      delay: 0.6,
-      ease: 'power3.out',
+    // ====== EFFECT 3: Hero subtitle with scroll reverse ======
+    gsap.set('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95 });
+    ScrollTrigger.create({
+      trigger: '.hero-subtitle',
+      start: 'top 90%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.hero-subtitle', { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 4: Back button slide ======
-    gsap.from('.back-button', {
-      x: -50,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'power3.out',
+    // ====== EFFECT 4: Back button with scroll reverse ======
+    gsap.set('.back-button', { x: -40, opacity: 0 });
+    ScrollTrigger.create({
+      trigger: '.back-button',
+      start: 'top 95%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.back-button', { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.back-button', { x: -40, opacity: 0, duration: 0.3, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 5: Culture highlights stagger ======
-    gsap.from('.culture-card', {
-      opacity: 0,
-      y: 40,
-      stagger: 0.1,
-      duration: 0.6,
-      ease: 'back.out(1.5)',
-      scrollTrigger: {
-        trigger: '.culture-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 5: Culture highlights with scroll reverse ======
+    gsap.set('.culture-card', { opacity: 0, y: 35 });
+    ScrollTrigger.create({
+      trigger: '.culture-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.culture-card', { opacity: 1, y: 0, stagger: 0.08, duration: 0.6, ease: 'back.out(1.5)' }),
+      onLeaveBack: () => gsap.to('.culture-card', { opacity: 0, y: 35, stagger: 0.04, duration: 0.4, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 6: Leadership cards 3D flip entrance ======
-    gsap.from('.leadership-card', {
-      opacity: 0,
-      rotationY: -45,
-      transformPerspective: 1000,
-      scale: 0.9,
-      stagger: 0.2,
-      duration: 1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.leadership-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 6: Leadership cards with scroll reverse ======
+    gsap.set('.leadership-card', { opacity: 0, rotationY: -35, transformPerspective: 1000, scale: 0.9 });
+    ScrollTrigger.create({
+      trigger: '.leadership-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.leadership-card', { opacity: 1, rotationY: 0, scale: 1, stagger: 0.15, duration: 0.8, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.leadership-card', { opacity: 0, rotationY: -35, scale: 0.9, stagger: 0.08, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 7: Leadership avatar bounce on entry ======
+    // ====== EFFECT 7: Leadership avatars with scroll reverse ======
+    gsap.set('.leader-avatar', { scale: 0, rotation: 180 });
     ScrollTrigger.create({
       trigger: '.leadership-grid',
       start: 'top 80%',
-      onEnter: () => {
-        gsap.from('.leader-avatar', {
-          scale: 0,
-          rotation: 360,
-          stagger: 0.15,
-          duration: 0.8,
-          ease: 'teamBounce',
-        });
-      },
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.leader-avatar', { scale: 1, rotation: 0, stagger: 0.12, duration: 0.7, ease: 'back.out(1.7)' }),
+      onLeaveBack: () => gsap.to('.leader-avatar', { scale: 0, rotation: 180, stagger: 0.06, duration: 0.4, ease: 'power2.in' }),
     });
 
     // ====== EFFECT 8: Leadership card hover magnetic effect ======
     const leaderCards = document.querySelectorAll('.leadership-card');
     leaderCards.forEach((card) => {
       card.addEventListener('mouseenter', () => {
-        gsap.to(card, {
-          scale: 1.05,
-          y: -10,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-          duration: 0.3,
-          ease: 'power2.out',
-        });
-        gsap.to(card.querySelector('.leader-avatar'), {
-          scale: 1.15,
-          duration: 0.4,
-          ease: 'power2.out',
-        });
+        gsap.to(card, { scale: 1.05, y: -10, boxShadow: '0 20px 40px rgba(0,0,0,0.3)', duration: 0.3, ease: 'power2.out' });
+        gsap.to(card.querySelector('.leader-avatar'), { scale: 1.15, duration: 0.4, ease: 'power2.out' });
       });
       card.addEventListener('mouseleave', () => {
-        gsap.to(card, {
-          scale: 1,
-          y: 0,
-          boxShadow: 'none',
-          duration: 0.3,
-        });
-        gsap.to(card.querySelector('.leader-avatar'), {
-          scale: 1,
-          duration: 0.3,
-        });
+        gsap.to(card, { scale: 1, y: 0, boxShadow: 'none', duration: 0.3 });
+        gsap.to(card.querySelector('.leader-avatar'), { scale: 1, duration: 0.3 });
       });
     });
 
     // ====== EFFECT 9: Social icons wiggle on hover ======
     const socialBtns = document.querySelectorAll('.social-btn');
     socialBtns.forEach((btn) => {
-      btn.addEventListener('mouseenter', () => {
-        gsap.to(btn, {
-          rotation: 15,
-          ease: 'teamWiggle',
-          duration: 0.5,
-        });
-      });
-      btn.addEventListener('mouseleave', () => {
-        gsap.to(btn, { rotation: 0, duration: 0.3 });
-      });
+      btn.addEventListener('mouseenter', () => gsap.to(btn, { rotation: 15, ease: 'teamWiggle', duration: 0.5 }));
+      btn.addEventListener('mouseleave', () => gsap.to(btn, { rotation: 0, duration: 0.3 }));
     });
 
-    // ====== EFFECT 10: Team cards cascade slide ======
-    gsap.from('.team-card', {
-      opacity: 0,
-      x: (i) => (i % 2 === 0 ? -80 : 80),
-      rotationZ: (i) => (i % 2 === 0 ? -5 : 5),
-      stagger: 0.15,
-      duration: 0.8,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.team-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 10: Team cards with scroll reverse ======
+    gsap.set('.team-card', { opacity: 0, x: (i) => (i % 2 === 0 ? -60 : 60), rotationZ: (i) => (i % 2 === 0 ? -4 : 4) });
+    ScrollTrigger.create({
+      trigger: '.team-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.team-card', { opacity: 1, x: 0, rotationZ: 0, stagger: 0.12, duration: 0.7, ease: 'power3.out' }),
+      onLeaveBack: () => gsap.to('.team-card', { opacity: 0, x: (i) => (i % 2 === 0 ? -60 : 60), rotationZ: (i) => (i % 2 === 0 ? -4 : 4), stagger: 0.06, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 11: Department counter animation ======
+    // ====== EFFECT 11: Department counter with scroll reverse ======
     const deptElements = document.querySelectorAll('.dept-count');
     deptElements.forEach((el, i) => {
       const target = departments[i];
@@ -222,53 +183,32 @@ export default function TeamPage() {
       ScrollTrigger.create({
         trigger: el,
         start: 'top 85%',
-        onEnter: () => {
-          gsap.to(obj, {
-            value: target.count,
-            duration: 1.5,
-            ease: 'power2.out',
-            onUpdate: () => {
-              el.textContent = `${Math.round(obj.value)}${target.suffix}`;
-            },
-          });
-        },
-        once: true,
+        end: 'top 20%',
+        toggleActions: 'play reverse play reverse',
+        onEnter: () => gsap.to(obj, { value: target.count, duration: 1.2, ease: 'power2.out', onUpdate: () => { el.textContent = `${Math.round(obj.value)}${target.suffix}`; } }),
+        onLeaveBack: () => gsap.to(obj, { value: 0, duration: 0.5, ease: 'power2.in', onUpdate: () => { el.textContent = `${Math.round(obj.value)}${target.suffix}`; } }),
       });
     });
 
-    // ====== EFFECT 12: Department cards elastic bounce ======
-    gsap.from('.dept-card', {
-      opacity: 0,
-      scale: 0,
-      stagger: {
-        amount: 0.6,
-        from: 'random',
-      },
-      duration: 0.8,
-      ease: 'elastic.out(1, 0.5)',
-      scrollTrigger: {
-        trigger: '.depts-grid',
-        start: 'top 85%',
-      },
+    // ====== EFFECT 12: Department cards with scroll reverse ======
+    gsap.set('.dept-card', { opacity: 0, scale: 0.7 });
+    ScrollTrigger.create({
+      trigger: '.depts-grid',
+      start: 'top 85%',
+      end: 'top 15%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.dept-card', { opacity: 1, scale: 1, stagger: { amount: 0.5, from: 'random' }, duration: 0.7, ease: 'back.out(1.5)' }),
+      onLeaveBack: () => gsap.to('.dept-card', { opacity: 0, scale: 0.7, stagger: 0.05, duration: 0.5, ease: 'power2.in' }),
     });
 
-    // ====== EFFECT 13: Department icon CustomWiggle on hover ======
+    // ====== EFFECT 13: Department icon on hover ======
     const deptCards = document.querySelectorAll('.dept-card');
     deptCards.forEach((card) => {
       card.addEventListener('mouseenter', () => {
-        gsap.to(card.querySelector('.dept-icon'), {
-          rotation: 'random(-15, 15)',
-          scale: 1.2,
-          ease: 'teamWiggle',
-          duration: 0.5,
-        });
+        gsap.to(card.querySelector('.dept-icon'), { rotation: 'random(-15, 15)', scale: 1.2, ease: 'teamWiggle', duration: 0.5 });
       });
       card.addEventListener('mouseleave', () => {
-        gsap.to(card.querySelector('.dept-icon'), {
-          rotation: 0,
-          scale: 1,
-          duration: 0.3,
-        });
+        gsap.to(card.querySelector('.dept-icon'), { rotation: 0, scale: 1, duration: 0.3 });
       });
     });
 
@@ -279,10 +219,7 @@ export default function TeamPage() {
       ease: 'power1.inOut',
       yoyo: true,
       repeat: -1,
-      stagger: {
-        each: 1,
-        from: 'random',
-      },
+      stagger: { each: 1, from: 'random' },
     });
 
     // ====== EFFECT 15: CTA parallax background ======
@@ -297,7 +234,7 @@ export default function TeamPage() {
       },
     });
 
-    // ====== EFFECT 16: Observer scroll progress bar ======
+    // ====== EFFECT 16: Progress bar scroll indicator ======
     Observer.create({
       target: containerRef.current,
       type: 'scroll',
@@ -310,19 +247,15 @@ export default function TeamPage() {
       },
     });
 
-    // ====== EFFECT 17: CTA buttons typewriter effect ======
-    gsap.to('.cta-title', {
-      text: {
-        value: 'Join Our Team',
-        delimiter: '',
-      },
-      duration: 1.5,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '.cta-section',
-        start: 'top 80%',
-        once: true,
-      },
+    // ====== EFFECT 17: CTA title with scroll reverse ======
+    gsap.set('.cta-title', { text: '' });
+    ScrollTrigger.create({
+      trigger: '.cta-section',
+      start: 'top 80%',
+      end: 'top 20%',
+      toggleActions: 'play reverse play reverse',
+      onEnter: () => gsap.to('.cta-title', { text: { value: 'Join Our Team', delimiter: '' }, duration: 1.2, ease: 'none' }),
+      onLeaveBack: () => gsap.set('.cta-title', { text: '' }),
     });
 
   }, { scope: containerRef, dependencies: [isClient] });
