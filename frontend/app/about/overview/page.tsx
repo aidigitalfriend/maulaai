@@ -65,52 +65,33 @@ export default function AboutOverviewPage() {
   useGSAP(() => {
     if (!isClient) return;
     
-    // ====== EFFECT 1: SplitText Hero Title with scroll reverse ======
+    // ====== EFFECT 1: SplitText Hero Title - Immediate Animation ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      gsap.set(split.chars, { opacity: 0, y: 60, rotateX: -90, transformPerspective: 1000 });
-      
-      ScrollTrigger.create({
-        trigger: heroTitleRef.current,
-        start: 'top 85%',
-        end: 'top 20%',
-        toggleActions: 'play reverse play reverse',
-        onEnter: () => gsap.to(split.chars, { opacity: 1, y: 0, rotateX: 0, stagger: 0.03, duration: 0.7, ease: 'back.out(1.7)' }),
-        onLeaveBack: () => gsap.to(split.chars, { opacity: 0, y: 60, rotateX: -90, stagger: 0.02, duration: 0.4, ease: 'power2.in' }),
-      });
+      gsap.fromTo(split.chars,
+        { opacity: 0, y: 60, rotateX: -90, transformPerspective: 1000 },
+        { opacity: 1, y: 0, rotateX: 0, stagger: 0.04, duration: 0.8, ease: 'back.out(1.7)', delay: 0.3 }
+      );
     }
 
-    // ====== EFFECT 2: ScrambleText Badge with scroll reverse ======
-    ScrollTrigger.create({
-      trigger: '.hero-badge',
-      start: 'top 90%',
-      end: 'top 20%',
-      toggleActions: 'play reverse play reverse',
-      onEnter: () => gsap.to('.overview-badge-text', { scrambleText: { text: 'Company Overview', chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ01234', speed: 0.3 }, duration: 1.2 }),
-      onLeaveBack: () => gsap.to('.overview-badge-text', { scrambleText: { text: '', chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', speed: 0.6 }, duration: 0.5 }),
+    // ====== EFFECT 2: ScrambleText Badge - Immediate ======
+    gsap.to('.overview-badge-text', {
+      scrambleText: { text: 'Company Overview', chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ01234', speed: 0.3 },
+      duration: 1.5,
+      delay: 0.2,
     });
 
-    // ====== EFFECT 3: Hero subtitle with scroll reverse ======
-    gsap.set('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95 });
-    ScrollTrigger.create({
-      trigger: '.hero-subtitle',
-      start: 'top 90%',
-      end: 'top 20%',
-      toggleActions: 'play reverse play reverse',
-      onEnter: () => gsap.to('.hero-subtitle', { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'power3.out' }),
-      onLeaveBack: () => gsap.to('.hero-subtitle', { opacity: 0, y: 40, scale: 0.95, duration: 0.5, ease: 'power2.in' }),
-    });
+    // ====== EFFECT 3: Hero subtitle - Immediate ======
+    gsap.fromTo('.hero-subtitle',
+      { opacity: 0, y: 40, scale: 0.95 },
+      { opacity: 1, y: 0, scale: 1, duration: 1, delay: 0.6, ease: 'power3.out' }
+    );
 
-    // ====== EFFECT 4: Back button with scroll reverse ======
-    gsap.set('.back-button', { x: -40, opacity: 0 });
-    ScrollTrigger.create({
-      trigger: '.back-button',
-      start: 'top 95%',
-      end: 'top 20%',
-      toggleActions: 'play reverse play reverse',
-      onEnter: () => gsap.to('.back-button', { x: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }),
-      onLeaveBack: () => gsap.to('.back-button', { x: -40, opacity: 0, duration: 0.3, ease: 'power2.in' }),
-    });
+    // ====== EFFECT 4: Back button - Immediate ======
+    gsap.fromTo('.back-button',
+      { x: -40, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.6, delay: 0.1, ease: 'power3.out' }
+    );
 
     // ====== EFFECT 5: Mission cards with scroll reverse ======
     gsap.set('.mission-card', { opacity: 0, y: 50, rotationY: -12, transformPerspective: 1000 });
