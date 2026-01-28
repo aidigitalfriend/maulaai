@@ -79,18 +79,18 @@ export default function PartnershipsPage() {
     // ====== EFFECT 1: SplitText Hero Title ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      gsap.fromTo(split.chars,
-        { opacity: 0, y: 80, rotationZ: -5 },
-        {
-          opacity: 1,
-          y: 0,
-          rotationZ: 0,
-          stagger: 0.04,
-          duration: 0.9,
-          ease: 'back.out(1.7)',
-          delay: 0.4,
-        }
-      );
+      // Set initial state immediately
+      gsap.set(split.chars, { opacity: 0, y: -50, scale: 0.5, transformPerspective: 1000 });
+      // Animate to visible - coming from behind
+      gsap.to(split.chars, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        stagger: 0.04,
+        duration: 0.9,
+        ease: 'back.out(1.7)',
+        delay: 0.3,
+      });
     }
 
     // ====== EFFECT 2: ScrambleText Badge ======
@@ -104,18 +104,16 @@ export default function PartnershipsPage() {
       delay: 0.3,
     });
 
-    // ====== EFFECT 3: Hero subtitle blur + typewriter ======
-    gsap.fromTo('.hero-subtitle',
-      { opacity: 0, y: 30, filter: 'blur(12px)' },
-      {
-        opacity: 1,
-        y: 0,
-        filter: 'blur(0px)',
-        duration: 1.0,
-        delay: 0.8,
-        ease: 'power3.out',
-      }
-    );
+    // ====== EFFECT 3: Hero subtitle from behind ======
+    gsap.set('.hero-subtitle', { opacity: 0, y: -20, scale: 0.9 });
+    gsap.to('.hero-subtitle', {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 1.0,
+      delay: 0.6,
+      ease: 'power3.out',
+    });
 
     // ====== EFFECT 4: Back button slide ======
     gsap.from('.back-button', {
