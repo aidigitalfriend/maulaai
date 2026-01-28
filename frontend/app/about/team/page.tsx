@@ -66,15 +66,18 @@ export default function TeamPage() {
     // ====== EFFECT 1: SplitText Hero Title ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      gsap.from(split.chars, {
-        opacity: 0,
-        y: 100,
-        rotationY: -90,
-        stagger: 0.04,
-        duration: 1,
-        ease: 'back.out(1.7)',
-        delay: 0.4,
-      });
+      gsap.fromTo(split.chars,
+        { opacity: 0, y: 100, rotationY: -90 },
+        {
+          opacity: 1,
+          y: 0,
+          rotationY: 0,
+          stagger: 0.04,
+          duration: 1,
+          ease: 'back.out(1.7)',
+          delay: 0.4,
+        }
+      );
     }
 
     // ====== EFFECT 2: ScrambleText Badge ======
@@ -89,14 +92,17 @@ export default function TeamPage() {
     });
 
     // ====== EFFECT 3: Hero subtitle blur-in ======
-    gsap.from('.hero-subtitle', {
-      opacity: 0,
-      y: 40,
-      filter: 'blur(15px)',
-      duration: 1.2,
-      delay: 0.8,
-      ease: 'power3.out',
-    });
+    gsap.fromTo('.hero-subtitle',
+      { opacity: 0, y: 40, filter: 'blur(15px)' },
+      {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 1.2,
+        delay: 0.8,
+        ease: 'power3.out',
+      }
+    );
 
     // ====== EFFECT 4: Back button slide ======
     gsap.from('.back-button', {

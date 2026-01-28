@@ -87,15 +87,18 @@ export default function AboutPage() {
     // ====== EFFECT 1: SplitText Hero Title Animation ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      gsap.from(split.chars, {
-        opacity: 0,
-        y: 80,
-        rotateX: -90,
-        stagger: 0.02,
-        duration: 0.8,
-        ease: 'back.out(1.7)',
-        delay: 0.3,
-      });
+      gsap.fromTo(split.chars, 
+        { opacity: 0, y: 80, rotateX: -90 },
+        {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          stagger: 0.02,
+          duration: 0.8,
+          ease: 'back.out(1.7)',
+          delay: 0.3,
+        }
+      );
     }
 
     // ====== EFFECT 2: ScrambleText for Badge ======
@@ -110,14 +113,17 @@ export default function AboutPage() {
     });
 
     // ====== EFFECT 3: Hero subtitle fade with blur ======
-    gsap.from('.hero-subtitle', {
-      opacity: 0,
-      y: 30,
-      filter: 'blur(10px)',
-      duration: 1,
-      delay: 0.8,
-      ease: 'power3.out',
-    });
+    gsap.fromTo('.hero-subtitle',
+      { opacity: 0, y: 30, filter: 'blur(10px)' },
+      {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 1,
+        delay: 0.8,
+        ease: 'power3.out',
+      }
+    );
 
     // ====== EFFECT 4: Counter animation for stats ======
     const statElements = document.querySelectorAll('.stat-number');

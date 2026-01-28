@@ -79,15 +79,18 @@ export default function PartnershipsPage() {
     // ====== EFFECT 1: SplitText Hero Title ======
     if (heroTitleRef.current) {
       const split = new SplitText(heroTitleRef.current, { type: 'chars,words' });
-      gsap.from(split.chars, {
-        opacity: 0,
-        y: 80,
-        rotationZ: -5,
-        stagger: 0.04,
-        duration: 0.9,
-        ease: 'back.out(1.7)',
-        delay: 0.4,
-      });
+      gsap.fromTo(split.chars,
+        { opacity: 0, y: 80, rotationZ: -5 },
+        {
+          opacity: 1,
+          y: 0,
+          rotationZ: 0,
+          stagger: 0.04,
+          duration: 0.9,
+          ease: 'back.out(1.7)',
+          delay: 0.4,
+        }
+      );
     }
 
     // ====== EFFECT 2: ScrambleText Badge ======
@@ -102,14 +105,17 @@ export default function PartnershipsPage() {
     });
 
     // ====== EFFECT 3: Hero subtitle blur + typewriter ======
-    gsap.from('.hero-subtitle', {
-      opacity: 0,
-      y: 30,
-      filter: 'blur(12px)',
-      duration: 1.0,
-      delay: 0.8,
-      ease: 'power3.out',
-    });
+    gsap.fromTo('.hero-subtitle',
+      { opacity: 0, y: 30, filter: 'blur(12px)' },
+      {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 1.0,
+        delay: 0.8,
+        ease: 'power3.out',
+      }
+    );
 
     // ====== EFFECT 4: Back button slide ======
     gsap.from('.back-button', {
