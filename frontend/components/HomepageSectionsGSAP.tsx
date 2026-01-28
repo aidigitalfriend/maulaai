@@ -10,8 +10,9 @@ import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { TextPlugin } from 'gsap/TextPlugin';
 import AgentShowcaseCarousel from '@/components/AgentShowcaseCarousel';
 
-// Register plugins client-side only
+// Register plugins client-side only and suppress trial warning
 if (typeof window !== 'undefined') {
+  gsap.config({ trialWarn: false });
   gsap.registerPlugin(ScrollTrigger, CustomEase, SplitText, ScrambleTextPlugin, TextPlugin);
   CustomEase.create('sectionEase', 'M0,0 C0.25,0.1 0.25,1 1,1');
   CustomEase.create('bounceReveal', 'M0,0 C0.215,0.61 0.355,1 0.75,1 0.885,1 0.865,1 1,1');

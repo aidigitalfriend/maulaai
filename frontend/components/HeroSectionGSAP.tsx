@@ -9,8 +9,9 @@ import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { Observer } from 'gsap/Observer';
 
-// Register GSAP plugins
+// Register GSAP plugins and suppress trial warning
 if (typeof window !== 'undefined') {
+  gsap.config({ trialWarn: false });
   gsap.registerPlugin(CustomEase, SplitText, ScrambleTextPlugin, TextPlugin, Observer);
   CustomEase.create('heroEase', 'M0,0 C0.25,0.1 0.25,1 1,1');
   CustomEase.create('bounceOut', 'M0,0 C0.215,0.61 0.355,1 0.75,1 0.885,1 0.865,1 1,1');
