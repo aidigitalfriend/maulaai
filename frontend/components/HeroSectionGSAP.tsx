@@ -2,6 +2,20 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
+import { SplitText } from 'gsap/SplitText';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import { TextPlugin } from 'gsap/TextPlugin';
+import { Observer } from 'gsap/Observer';
+
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(CustomEase, SplitText, ScrambleTextPlugin, TextPlugin, Observer);
+  CustomEase.create('heroEase', 'M0,0 C0.25,0.1 0.25,1 1,1');
+  CustomEase.create('bounceOut', 'M0,0 C0.215,0.61 0.355,1 0.75,1 0.885,1 0.865,1 1,1');
+  CustomEase.create('smoothReveal', 'M0,0 C0.42,0 0.58,1 1,1');
+}
 
 export default function HeroSectionGSAP() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -13,148 +27,236 @@ export default function HeroSectionGSAP() {
   const orb2Ref = useRef<HTMLDivElement>(null);
   const orb3Ref = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Dynamic import GSAP only on client side
-    const initGSAP = async () => {
-      // Check if all refs are available before running GSAP
-      if (!titleRef.current || !subtitleRef.current || !descRef.current || 
-          !buttonsRef.current || !orb1Ref.current || !orb2Ref.current || 
-          !orb3Ref.current || !gridRef.current) {
-        return;
+    // Check if all refs are available before running GSAP
+    if (!titleRef.current || !subtitleRef.current || !descRef.current || 
+        !buttonsRef.current || !orb1Ref.current || !orb2Ref.current || 
+        !orb3Ref.current || !gridRef.current) {
+      return;
+    }
+
+    // Store refs for cleanup
+    const orb1 = orb1Ref.current;
+    const orb2 = orb2Ref.current;
+    const orb3 = orb3Ref.current;
+    const badge = badgeRef.current;
+    const stats = statsRef.current;
+    const scrollIndicator = scrollIndicatorRef.current;
+    
+    // Create SplitText instances for premium text animations
+    const titleSplit = new SplitText(titleRef.current, { type: 'chars,words', charsClass: 'hero-char' });
+    const subtitleSplit = new SplitText(subtitleRef.current, { type: 'words', wordsClass: 'hero-word' });
+    
+    // Initial states - everything hidden
+    gsap.set(titleSplit.chars, { opacity: 0, y: 100, rotateX: 90, transformOrigin: 'center bottom' });
+    gsap.set(subtitleSplit.words, { opacity: 0, y: 50, rotateY: 45, transformOrigin: 'center center' });
+    gsap.set(descRef.current, { opacity: 0, y: 40, filter: 'blur(10px)' });
+    gsap.set(buttonsRef.current?.children || [], { opacity: 0, y: 30, scale: 0.8 });
+    gsap.set([orb1, orb2, orb3], { scale: 0, opacity: 0, rotate: -180 });
+    gsap.set(gridRef.current, { opacity: 0, scale: 1.1 });
+    if (badge) gsap.set(badge, { opacity: 0, y: -30, scale: 0.5 });
+    if (stats) gsap.set(stats.children, { opacity: 0, y: 50, scale: 0.9 });
+    if (scrollIndicator) gsap.set(scrollIndicator, { opacity: 0, y: -20 });
+
+    // Create master timeline with premium easing
+    const masterTl = gsap.timeline({ defaults: { ease: 'heroEase' } });
+
+    // Phase 1: Ambient elements fade in with rotation
+    masterTl.to([orb1, orb2, orb3], {
+      scale: 1,
+      opacity: 1,
+      rotate: 0,
+      duration: 2,
+      stagger: { each: 0.2, from: 'random' },
+      ease: 'bounceOut'
+    })
+    // Grid pattern reveals with scale
+    .to(gridRef.current, {
+      opacity: 1,
+      scale: 1,
+      duration: 1.5,
+      ease: 'power2.out'
+    }, '-=1.5')
+    // Badge pops in
+    .to(badge, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.8,
+      ease: 'back.out(1.7)'
+    }, '-=1')
+    // Phase 2: Title characters animate with 3D flip - PREMIUM SplitText effect
+    .to(titleSplit.chars, {
+      opacity: 1,
+      y: 0,
+      rotateX: 0,
+      duration: 1.2,
+      stagger: { each: 0.03, from: 'start' },
+      ease: 'smoothReveal'
+    }, '-=0.5')
+    // Subtitle words cascade in with 3D rotation
+    .to(subtitleSplit.words, {
+      opacity: 1,
+      y: 0,
+      rotateY: 0,
+      duration: 0.9,
+      stagger: { each: 0.08, from: 'center' },
+      ease: 'power3.out'
+    }, '-=0.7')
+    // Description blurs in
+    .to(descRef.current, {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      duration: 1,
+      ease: 'power2.out'
+    }, '-=0.6')
+    // Buttons pop in with stagger
+    .to(buttonsRef.current?.children || [], {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.7,
+      stagger: 0.15,
+      ease: 'back.out(1.5)'
+    }, '-=0.5')
+    // Stats counter animation
+    .to(stats?.children || [], {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: 'power3.out'
+    }, '-=0.4')
+    // Scroll indicator fades in
+    .to(scrollIndicator, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: 'power2.out'
+    }, '-=0.3');
+
+    // Continuous premium floating animations for orbs
+    gsap.to(orb1, {
+      y: -40,
+      x: 30,
+      rotation: 10,
+      duration: 8,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to(orb2, {
+      y: 35,
+      x: -25,
+      rotation: -8,
+      duration: 10,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to(orb3, {
+      y: -30,
+      x: -35,
+      rotation: 5,
+      duration: 12,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    // Subtle pulsing glow on orbs
+    gsap.to(orb1, {
+      scale: 1.1,
+      duration: 4,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power1.inOut'
+    });
+
+    gsap.to(orb2, {
+      scale: 1.15,
+      duration: 5,
+      repeat: -1,
+      yoyo: true,
+      ease: 'power1.inOut'
+    });
+
+    // Title characters hover effect - subtle color shift
+    const chars = titleSplit.chars;
+    chars.forEach((char: HTMLElement) => {
+      char.addEventListener('mouseenter', () => {
+        gsap.to(char, {
+          scale: 1.2,
+          color: '#00d4ff',
+          textShadow: '0 0 20px rgba(0,212,255,0.5)',
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+      });
+      char.addEventListener('mouseleave', () => {
+        gsap.to(char, {
+          scale: 1,
+          color: '',
+          textShadow: 'none',
+          duration: 0.3,
+          ease: 'power2.out'
+        });
+      });
+    });
+
+    // Premium parallax on mouse move using Observer
+    Observer.create({
+      target: window,
+      type: 'pointer',
+      onMove: (self) => {
+        const xPercent = ((self.x || 0) / window.innerWidth - 0.5) * 2;
+        const yPercent = ((self.y || 0) / window.innerHeight - 0.5) * 2;
+
+        gsap.to(orb1, {
+          x: xPercent * 40,
+          y: yPercent * 40,
+          duration: 1.5,
+          ease: 'power2.out'
+        });
+
+        gsap.to(orb2, {
+          x: xPercent * -30,
+          y: yPercent * -30,
+          duration: 1.8,
+          ease: 'power2.out'
+        });
+
+        gsap.to(orb3, {
+          x: xPercent * 20,
+          y: yPercent * -20,
+          duration: 2,
+          ease: 'power2.out'
+        });
+
+        // Subtle title parallax
+        gsap.to(titleRef.current, {
+          x: xPercent * 10,
+          y: yPercent * 5,
+          duration: 1,
+          ease: 'power2.out'
+        });
       }
+    });
 
-      const gsap = (await import('gsap')).default;
-      
-      // Initial states
-      gsap.set([titleRef.current, subtitleRef.current, descRef.current, buttonsRef.current], {
-        opacity: 0,
-        y: 50
-      });
-      
-      gsap.set([orb1Ref.current, orb2Ref.current, orb3Ref.current], {
-        scale: 0.5,
-        opacity: 0
-      });
-
-      gsap.set(gridRef.current, {
-        opacity: 0
-      });
-
-      // Create timeline
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-      // Animate orbs first
-      tl.to([orb1Ref.current, orb2Ref.current, orb3Ref.current], {
-        scale: 1,
-        opacity: 1,
-        duration: 1.5,
-        stagger: 0.2
-      })
-      // Then animate grid
-      .to(gridRef.current, {
-        opacity: 1,
-        duration: 1
-      }, '-=1')
-      // Then animate text content
-      .to(titleRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 1
-      }, '-=0.8')
-      .to(subtitleRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8
-      }, '-=0.6')
-      .to(descRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8
-      }, '-=0.5')
-      .to(buttonsRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8
-      }, '-=0.4');
-
-      // Store refs for cleanup
-      const orb1 = orb1Ref.current;
-      const orb2 = orb2Ref.current;
-      const orb3 = orb3Ref.current;
-
-      // Continuous floating animation for orbs
-      gsap.to(orb1, {
-        y: -30,
-        x: 20,
-        duration: 8,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-
-      gsap.to(orb2, {
-        y: 25,
-        x: -15,
-        duration: 10,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-
-      gsap.to(orb3, {
-        y: -20,
-        x: -25,
-        duration: 12,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut'
-      });
-
-      // Subtle parallax on mouse move
-      const handleMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        const { innerWidth, innerHeight } = window;
-        
-        const xPercent = (clientX / innerWidth - 0.5) * 2;
-        const yPercent = (clientY / innerHeight - 0.5) * 2;
-
-        if (orb1) {
-          gsap.to(orb1, {
-            x: xPercent * 30,
-            y: yPercent * 30,
-            duration: 1,
-            ease: 'power2.out'
-          });
-        }
-
-        if (orb2) {
-          gsap.to(orb2, {
-            x: xPercent * -20,
-            y: yPercent * -20,
-            duration: 1.2,
-            ease: 'power2.out'
-          });
-        }
-
-        if (orb3) {
-          gsap.to(orb3, {
-            x: xPercent * 15,
-            y: yPercent * -15,
-            duration: 1.4,
-            ease: 'power2.out'
-          });
-        }
-      };
-
-      window.addEventListener('mousemove', handleMouseMove);
-
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-      };
+    // Cleanup function
+    return () => {
+      masterTl.kill();
+      titleSplit.revert();
+      subtitleSplit.revert();
     };
-
-    initGSAP();
   }, []);
 
   return (
@@ -205,7 +307,7 @@ export default function HeroSectionGSAP() {
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div className="text-center max-w-5xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8">
+          <div ref={badgeRef} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
@@ -265,14 +367,14 @@ export default function HeroSectionGSAP() {
           </div>
 
           {/* Stats row */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
+          <div ref={statsRef} className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
             {[
               { value: '20+', label: 'AI Agents' },
               { value: '99.9%', label: 'Uptime' },
               { value: '10K+', label: 'Users' },
               { value: '24/7', label: 'Support' }
             ].map((stat, index) => (
-              <div key={index} className="text-center">
+              <div key={index} className="text-center stat-item">
                 <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-neural-300 bg-clip-text text-transparent">
                   {stat.value}
                 </div>
@@ -287,7 +389,7 @@ export default function HeroSectionGSAP() {
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-neural-950 to-transparent pointer-events-none z-20" />
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+      <div ref={scrollIndicatorRef} className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
         <div className="flex flex-col items-center gap-2 text-neural-500">
           <span className="text-xs uppercase tracking-wider">Scroll</span>
           <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
