@@ -124,7 +124,7 @@
     "react-player": "^2.16.1",
     "react-resizable-panels": "^4.1.0",
     "react-syntax-highlighter": "^16.1.0",
-    "react-virtualized-auto-sizer": "^2.0.1",
+    "react-virtualized-auto-sizer": "^2.0.2",
     "react-window": "^2.2.3",
     "react-window-infinite-loader": "^2.0.0",
     "recharts": "^3.6.0",
